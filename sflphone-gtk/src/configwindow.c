@@ -16,7 +16,7 @@
  *  
  *  You should have received a copy of the GNU General Public License
  *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
 #include <accountlist.h>
@@ -25,6 +25,8 @@
 #include <config.h>
 #include <dbus.h>
 #include <mainwindow.h>
+
+#include <stdlib.h>
 
 #include <gtk/gtk.h>
 
@@ -51,6 +53,16 @@ GtkWidget *moveDownButton;
 
 account_t *selectedAccount;
 
+// Codec properties ID
+enum {
+	COLUMN_CODEC_ACTIVE,
+	COLUMN_CODEC_NAME,
+	COLUMN_CODEC_FREQUENCY,
+	COLUMN_CODEC_BITRATE,
+	COLUMN_CODEC_BANDWIDTH,
+	CODEC_COLUMN_COUNT
+};
+
 /**
  * Fills the treelist with accounts
  */
@@ -76,7 +88,7 @@ config_window_fill_account_list()
 						3, a,                                 // Pointer
 						-1);
 			}
-		} 
+		}
 
 		gtk_widget_set_sensitive( GTK_WIDGET(editButton),   FALSE);
 		gtk_widget_set_sensitive( GTK_WIDGET(deleteButton), FALSE);
@@ -103,17 +115,17 @@ config_window_fill_codec_list()
 		int i;
 		for(i = 0; i < codec_list_get_size(); i++)
 		{
-			codec_t* c = codec_list_get_nth(i);
+			codec_t *c = codec_list_get_nth(i);
 			printf("%s\n", c->name);
 			if(c)
 			{
 				gtk_list_store_append(codecStore, &iter);
 				gtk_list_store_set(codecStore, &iter,
-						0, c->is_active,		// Active
-						1, c->name,				// Name
-						2, c->sample_rate,		// Frequency
-						3, "bit rate",			// Bit rate
-						4, "bandwith",			// Bandwith
+						COLUMN_CODEC_ACTIVE,	c->is_active,									// Active
+						COLUMN_CODEC_NAME,		c->name,										// Name
+						COLUMN_CODEC_FREQUENCY,	g_strdup_printf("%d kHz", c->sample_rate/1000),	// Frequency (kHz)
+						COLUMN_CODEC_BITRATE,	g_strdup_printf("%.1f kbps", c->_bitrate),		// Bitrate (kbps)
+						COLUMN_CODEC_BANDWIDTH,	g_strdup_printf("%.1f kbps", c->_bandwidth),	// Bandwidth (kpbs)
 						-1);
 			}
 		}
@@ -245,41 +257,56 @@ select_codec(GtkTreeSelection *selection, GtkTreeModel *model)
 }
 
 /**
- * SEE not working
+ * Toggle active value of codec on click and update changes to the deamon
+ * and in configuration files
  */
 static void
-codec_active_toggled(GtkCellRendererToggle *renderer, gchar *path, GtkTreeView *treeView)
+codec_active_toggled(GtkCellRendererToggle *renderer, gchar *path, gpointer data)
 {
-/*	GtkTreeIter iter;
+	GtkTreeIter iter;
 	GtkTreePath *treePath;
 	GtkTreeModel *model;
-	gboolean visible;
-
+	gboolean active;
+	char* name;
+	
 	// Get path of clicked codec active toggle box
 	treePath = gtk_tree_path_new_from_string(path);
-	model = gtk_tree_view_get_model(treeView);
+	model = gtk_tree_view_get_model(GTK_TREE_VIEW(data));
 	gtk_tree_model_get_iter(model, &iter, treePath);
 
-	// Get value at iteration
+	// Get active value and name at iteration
 	gtk_tree_model_get(model, &iter,
-			0, &visible
+			COLUMN_CODEC_ACTIVE, &active,
+			COLUMN_CODEC_NAME, &name,
 			-1);
 	
-	visible = !visible;
-	
+	printf("%s\n", name);
+
 	// Toggle active value
-	gtk_tree_store_set(GTK_TREE_STORE(model), &iter,
-			0, visible,
+	active = !active;
+	
+	// Store value
+	gtk_list_store_set(GTK_LIST_STORE(model), &iter,
+			COLUMN_CODEC_ACTIVE, active,
 			-1);
 
-	gtk_tree_path_free(treePath);*/
+	gtk_tree_path_free(treePath);
+
+	// Modify codec queue to represent change	
+	if(active)
+		codec_set_active(name);
+	else
+		codec_set_inactive(name);
+	
+	// TODO Perpetuate changes to the deamon
 }
 
 /**
- * Move codec in list depending on direction and selected codec
+ * Move codec in list depending on direction and selected codec and
+ * update changes in the deamon list and the configuration files
  */
 static void
-moveCodec(gboolean moveUp, gpointer data)
+codec_move(gboolean moveUp, gpointer data)
 {
 	GtkTreeIter iter;
 	GtkTreeIter *iter2;
@@ -301,7 +328,9 @@ moveCodec(gboolean moveUp, gpointer data)
 	// Find path of iteration
 	path = gtk_tree_model_get_string_from_iter(GTK_TREE_MODEL(model), &iter);
 	treePath = gtk_tree_path_new_from_string(path);
-
+	gint *indices = gtk_tree_path_get_indices(treePath);
+	gint indice = indices[0];
+	
 	// Depending on button direction get new path
 	if(moveUp)
 		gtk_tree_path_prev(treePath);
@@ -321,33 +350,33 @@ moveCodec(gboolean moveUp, gpointer data)
 	gtk_tree_iter_free(iter2);
 	g_free(path);
 	
+	// Perpetuate changes in codec queue
+	if(moveUp)
+		codec_list_move_codec_up(indice);
+	else
+		codec_list_move_codec_down(indice);
+	
 	// TODO Perpetuate changes to the deamon
-	/* Update the gconf key
-	codecs_data = gm_codecs_list_to_gm_conf_list (GTK_WIDGET (data));
-
-	gm_conf_set_string_list (AUDIO_CODECS_KEY "list", codecs_data);
-
-	g_slist_foreach (codecs_data, (GFunc) g_free, NULL);
-	g_slist_free (codecs_data);
-	*/
 }
 
 /**
  * Called from move up codec button signal
  */
-void
-moveCodecUp(GtkButton *button, gpointer data)
+static void
+codec_move_up(GtkButton *button, gpointer data)
 {
-	moveCodec(TRUE, data);
+	// Change tree view ordering and get indice changed
+	codec_move(TRUE, data);
 }
 
 /**
  * Called from move down codec button signal
  */
 static void
-moveCodecDown(GtkButton *button, gpointer data)
+codec_move_down(GtkButton *button, gpointer data)
 {
-	moveCodec(FALSE, data);
+	// Change tree view ordering and get indice changed
+	codec_move(FALSE, data);
 }
 
 /**
@@ -360,10 +389,9 @@ bold_if_default_account(GtkTreeViewColumn *col,
 			GtkTreeIter *iter,
 			gpointer data)
 {
-	GValue val;
-	val.g_type = G_TYPE_POINTER;
+	GValue val = { 0, };
 	gtk_tree_model_get_value(tree_model, iter, 3, &val);
-	account_t* current = (account_t*) g_value_get_pointer(&val);
+	account_t *current = (account_t*)g_value_get_pointer(&val);
 	g_value_unset(&val);
 	if(g_strcasecmp(current->accountID, account_list_get_default()) == 0)
 		g_object_set(G_OBJECT(rend), "weight", 800, NULL);
@@ -372,8 +400,8 @@ bold_if_default_account(GtkTreeViewColumn *col,
 }
 
 /**
- * TODO
- */
+ * TODO Action when restore default codecs is done
+ 
 void
 default_codecs(GtkWidget* widget, gpointer data)
 {
@@ -412,7 +440,7 @@ default_codecs(GtkWidget* widget, gpointer data)
 	codecStore = GTK_LIST_STORE(gtk_tree_view_get_model(GTK_TREE_VIEW(codecTreeView)));
 	gtk_list_store_reorder(codecStore, new_order);
 }
-
+*/
 /**
  * Create table widget for codecs
  */
@@ -436,7 +464,7 @@ create_codec_table()
 	gtk_scrolled_window_set_shadow_type(GTK_SCROLLED_WINDOW(scrolledWindow), GTK_SHADOW_IN);
 	
 	gtk_box_pack_start(GTK_BOX(ret), scrolledWindow, TRUE, TRUE, 0);
-	codecStore = gtk_list_store_new(5,
+	codecStore = gtk_list_store_new(CODEC_COLUMN_COUNT,
 			G_TYPE_BOOLEAN,		// Active
 			G_TYPE_STRING,		// Name
 			G_TYPE_STRING,		// Frequency
@@ -455,30 +483,30 @@ create_codec_table()
 	
 	// Active column
 	renderer = gtk_cell_renderer_toggle_new();
-	treeViewColumn = gtk_tree_view_column_new_with_attributes("", renderer, "active", 0, NULL);
+	treeViewColumn = gtk_tree_view_column_new_with_attributes("", renderer, "active", COLUMN_CODEC_ACTIVE, NULL);
 	gtk_tree_view_append_column(GTK_TREE_VIEW(codecTreeView), treeViewColumn);
-	g_signal_connect(G_OBJECT(renderer), "toggled", G_CALLBACK(codec_active_toggled), codecTreeView);
-	
-	// TODO toggle on clicked
+
+	// Toggle codec active property on clicked
+	g_signal_connect(G_OBJECT(renderer), "toggled", G_CALLBACK(codec_active_toggled), (gpointer)codecTreeView);
 	
 	// Name column
 	renderer = gtk_cell_renderer_text_new();
-	treeViewColumn = gtk_tree_view_column_new_with_attributes("Name", renderer, "markup", 1, NULL);
+	treeViewColumn = gtk_tree_view_column_new_with_attributes("Name", renderer, "markup", COLUMN_CODEC_NAME, NULL);
 	gtk_tree_view_append_column(GTK_TREE_VIEW(codecTreeView), treeViewColumn);
 	
 	// Bit rate column
 	renderer = gtk_cell_renderer_text_new();
-	treeViewColumn = gtk_tree_view_column_new_with_attributes("Frequency", renderer, "text", 2, NULL);
+	treeViewColumn = gtk_tree_view_column_new_with_attributes("Frequency", renderer, "text", COLUMN_CODEC_FREQUENCY, NULL);
 	gtk_tree_view_append_column(GTK_TREE_VIEW(codecTreeView), treeViewColumn);
 	
 	// Bandwith column
 	renderer = gtk_cell_renderer_text_new();
-	treeViewColumn = gtk_tree_view_column_new_with_attributes("Bitrate", renderer, "text", 3, NULL);
+	treeViewColumn = gtk_tree_view_column_new_with_attributes("Bitrate", renderer, "text", COLUMN_CODEC_BITRATE, NULL);
 	gtk_tree_view_append_column(GTK_TREE_VIEW(codecTreeView), treeViewColumn);
 	
 	// Frequency column
 	renderer = gtk_cell_renderer_text_new();
-	treeViewColumn = gtk_tree_view_column_new_with_attributes("Bandwidth", renderer, "text", 4, NULL);
+	treeViewColumn = gtk_tree_view_column_new_with_attributes("Bandwidth", renderer, "text", COLUMN_CODEC_BANDWIDTH, NULL);
 	gtk_tree_view_append_column(GTK_TREE_VIEW(codecTreeView), treeViewColumn);
 	
 	g_object_unref(G_OBJECT(codecStore));
@@ -492,12 +520,12 @@ create_codec_table()
 	moveUpButton = gtk_button_new_from_stock(GTK_STOCK_GO_UP);
 	gtk_widget_set_sensitive(GTK_WIDGET(moveUpButton), FALSE);
 	gtk_box_pack_start(GTK_BOX(buttonBox), moveUpButton, FALSE, FALSE, 0);
-	g_signal_connect(G_OBJECT(moveUpButton), "clicked", G_CALLBACK(moveCodecUp), codecTreeView);
+	g_signal_connect(G_OBJECT(moveUpButton), "clicked", G_CALLBACK(codec_move_up), codecTreeView);
 	
 	moveDownButton = gtk_button_new_from_stock(GTK_STOCK_GO_DOWN);
 	gtk_widget_set_sensitive(GTK_WIDGET(moveDownButton), FALSE);
 	gtk_box_pack_start(GTK_BOX(buttonBox), moveDownButton, FALSE, FALSE, 0);
-	g_signal_connect(G_OBJECT(moveDownButton), "clicked", G_CALLBACK(moveCodecDown), codecTreeView);
+	g_signal_connect(G_OBJECT(moveDownButton), "clicked", G_CALLBACK(codec_move_down), codecTreeView);
 	
 	config_window_fill_codec_list();
 
@@ -519,13 +547,10 @@ create_accounts_tab()
 	GtkTreeSelection *treeSelection;
 	GtkWidget *label;
 
-    GValue val;
-    val.g_type = G_TYPE_POINTER;
-
 	selectedAccount = NULL;
 
 	ret = gtk_vbox_new(FALSE, 10); 
-	gtk_container_set_border_width (GTK_CONTAINER (ret), 10);
+	gtk_container_set_border_width(GTK_CONTAINER (ret), 10);
 
 	label = gtk_label_new("This is the list of accounts previously setup.");
 
@@ -628,39 +653,37 @@ create_accounts_tab()
 GtkWidget*
 create_audio_tab ()
 {
-	GtkWidget * ret;
+	GtkWidget *ret;
 	
-	GtkWidget * deviceLabel;
-	GtkWidget * deviceBox;
-	GtkWidget * deviceTable;
-	GtkWidget * codecLabel;
-	GtkWidget * codecBox;
+	GtkWidget *deviceLabel;
+	GtkWidget *deviceBox;
+	GtkWidget *deviceTable;
+	GtkWidget *codecLabel;
+	GtkWidget *codecBox;
 	
-	GtkWidget * titleLabel;
-	GtkWidget * comboBox;
-	GtkWidget * refreshButton;
-	GtkCellRenderer * renderer;
+	GtkWidget *titleLabel;
+	GtkWidget *comboBox;
+	GtkWidget *refreshButton;
+	GtkCellRenderer *renderer;
 	GtkTreeIter iter;
+	
+	GtkWidget *codecTable;
 	
 	// Main widget
 	ret = gtk_vbox_new(FALSE, 10);
     gtk_container_set_border_width(GTK_CONTAINER(ret), 10);
     
     // Device section label
-    deviceLabel = gtk_label_new("Devices");
+    deviceLabel = gtk_label_new(NULL);
+    gtk_label_set_markup(GTK_LABEL(deviceLabel), "<b>Devices</b>");
 	gtk_label_set_line_wrap(GTK_LABEL(deviceLabel), TRUE);
 	gtk_misc_set_alignment(GTK_MISC(deviceLabel), 0, 0.5);
 	gtk_label_set_justify(GTK_LABEL(deviceLabel), GTK_JUSTIFY_LEFT);
 	gtk_box_pack_start(GTK_BOX(ret), deviceLabel, FALSE, FALSE, 0);
-	gtk_widget_show(deviceLabel);
 	
     // Main device widget
 	deviceBox = gtk_hbox_new(FALSE, 10);
 	gtk_box_pack_start(GTK_BOX(ret), deviceBox, FALSE, FALSE, 0);
-	gtk_widget_show(codecBox);
-	
-	// TODO Create margin instead of column
-	// Also change 3 buttons for one detect button
     
     // Main device widget
 	deviceTable = gtk_table_new(4, 3, FALSE);
@@ -671,7 +694,7 @@ create_audio_tab ()
 	
 	// Device : Audio manager
 	// Create title label
-	titleLabel = gtk_label_new("Audio manager:");
+	titleLabel = gtk_label_new("Audio manager");
     gtk_misc_set_alignment(GTK_MISC(titleLabel), 0, 0.5);
 	gtk_table_attach(GTK_TABLE(deviceTable), titleLabel, 1, 2, 0, 1, GTK_FILL | GTK_EXPAND, GTK_SHRINK, 0, 0);
 	gtk_widget_show(titleLabel);	
@@ -688,10 +711,6 @@ create_audio_tab ()
 	gtk_cell_layout_set_attributes(GTK_CELL_LAYOUT(comboBox), renderer, "text", 0, NULL);
 	gtk_table_attach(GTK_TABLE(deviceTable), comboBox, 2, 3, 0, 1, GTK_FILL | GTK_EXPAND, GTK_SHRINK, 0, 0);
 	gtk_widget_show(comboBox);
-	// Create refresh button
-	refreshButton = gtk_button_new_from_stock(GTK_STOCK_REFRESH);
-	gtk_table_attach(GTK_TABLE(deviceTable), refreshButton, 3, 4, 0, 1, GTK_EXPAND, GTK_SHRINK, 0, 0);
-	gtk_widget_show(refreshButton);
 	
 	// Device : Output device
 	// Create title label
@@ -712,9 +731,6 @@ create_audio_tab ()
 	gtk_cell_layout_set_attributes(GTK_CELL_LAYOUT(comboBox), renderer, "text", 0, NULL);
 	gtk_table_attach(GTK_TABLE(deviceTable), comboBox, 2, 3, 1, 2, GTK_FILL | GTK_EXPAND, GTK_SHRINK, 0, 0);
 	gtk_widget_show(comboBox);
-	// Create refresh button
-	refreshButton = gtk_button_new_from_stock(GTK_STOCK_REFRESH);
-	gtk_table_attach(GTK_TABLE(deviceTable), refreshButton, 3, 4, 1, 2, GTK_EXPAND, GTK_SHRINK, 0, 0);
 	
 	// Device : Input device
 	// Create title label
@@ -735,12 +751,15 @@ create_audio_tab ()
 	gtk_cell_layout_set_attributes(GTK_CELL_LAYOUT(comboBox), renderer, "text", 0, NULL);
     gtk_table_attach(GTK_TABLE(deviceTable), comboBox, 2, 3, 2, 3, GTK_FILL | GTK_EXPAND, GTK_SHRINK, 0, 0);
 	gtk_widget_show(comboBox);
-	// Create refresh button
-	refreshButton = gtk_button_new_from_stock(GTK_STOCK_REFRESH);
-    gtk_table_attach(GTK_TABLE(deviceTable), refreshButton, 3, 4, 2, 3, GTK_EXPAND, GTK_SHRINK, 0, 0);
-
+	
+	// Create detect button
+	refreshButton = gtk_button_new_with_label("Detect all");
+	gtk_button_set_image(GTK_BUTTON(refreshButton), gtk_image_new_from_stock(GTK_STOCK_REFRESH, GTK_ICON_SIZE_BUTTON));
+	gtk_table_attach(GTK_TABLE(deviceTable), refreshButton, 3, 4, 0, 3, GTK_EXPAND, GTK_EXPAND, 0, 0);
+	
     // Codec section label
-    codecLabel = gtk_label_new("Codecs");
+    codecLabel = gtk_label_new(NULL);
+    gtk_label_set_markup(GTK_LABEL(codecLabel), "<b>Codecs</b>");
     gtk_label_set_line_wrap(GTK_LABEL(codecLabel), TRUE);
     gtk_misc_set_alignment(GTK_MISC(codecLabel), 0, 0.5);
     gtk_label_set_justify(GTK_LABEL(codecLabel), GTK_JUSTIFY_LEFT);
@@ -753,8 +772,8 @@ create_audio_tab ()
 	gtk_widget_show(codecBox);
 	
 	// Codec : List
-	GtkWidget * codecTable;
 	codecTable = create_codec_table();
+	gtk_widget_set_size_request(GTK_WIDGET(codecTable), -1, 150);
 	gtk_box_pack_start(GTK_BOX(codecBox), codecTable, TRUE, TRUE, 0);
 	gtk_widget_show(codecTable);
 
@@ -783,16 +802,17 @@ show_config_window ()
 				GTK_RESPONSE_ACCEPT,
 				NULL));
 
+	// Set window properties
 	gtk_dialog_set_has_separator(dialog, FALSE);
 	gtk_window_set_default_size(GTK_WINDOW(dialog), 400, 400);
 	gtk_container_set_border_width(GTK_CONTAINER(dialog), 0);
 
+	// Create tabs container
 	notebook = gtk_notebook_new();
 	gtk_box_pack_start(GTK_BOX (dialog->vbox), notebook, TRUE, TRUE, 0);
 	gtk_container_set_border_width(GTK_CONTAINER(notebook), 10);
 	gtk_widget_show(notebook);
 
-	/* Create tabs */
 	// Accounts tab
 	tab = create_accounts_tab();
 	gtk_notebook_append_page(GTK_NOTEBOOK(notebook), tab, gtk_label_new("Accounts"));
