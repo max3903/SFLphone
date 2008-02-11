@@ -236,16 +236,19 @@ IAXVoIPLink::loadCodec(int payload)
    switch(payload)
    {
      case 0:
-       handle_codec = dlopen("codec_ulaw.so", RTLD_LAZY);
+       handle_codec = dlopen(CODECS_DIR "/libcodec_ulaw.so", RTLD_LAZY);
        break;
      case 3:
-       handle_codec = dlopen("codec_gsm.so", RTLD_LAZY);
+       handle_codec = dlopen(CODECS_DIR "/libcodec_gsm.so", RTLD_LAZY);
        break;
      case 8:
-       handle_codec = dlopen("codec_alaw.so", RTLD_LAZY);
+       handle_codec = dlopen(CODECS_DIR "/libcodec_alaw.so", RTLD_LAZY);
        break;
      case 97:
-       handle_codec = dlopen("codec_ilbc.so", RTLD_LAZY);
+       handle_codec = dlopen(CODECS_DIR "/libcodec_ilbc.so", RTLD_LAZY);
+       break;
+     case 110:
+       handle_codec = dlopen(CODECS_DIR "/libcodec_speex.so", RTLD_LAZY);
        break;
    }
    if(!handle_codec){
@@ -512,6 +515,8 @@ Call*
 IAXVoIPLink::newOutgoingCall(const CallID& id, const std::string& toUrl)
 {
   IAXCall* call = new IAXCall(id, Call::Outgoing);
+  call->setCodecMap(Manager::instance().getCodecDescriptorMap());
+
 
   if (call) {
     call->setPeerNumber(toUrl);
@@ -954,6 +959,7 @@ IAXVoIPLink::iaxHandlePrecallEvent(iax_event* event)
     call->setCodecMap(Manager::instance().getCodecDescriptorMap());
     call->setConnectionState(Call::Progressing);
 
+
     if (event->ies.calling_number)
       call->setPeerNumber(std::string(event->ies.calling_number));
     if (event->ies.calling_name)
@@ -1004,4 +1010,13 @@ IAXVoIPLink::iaxHandlePrecallEvent(iax_event* event)
   }
   
 }
+
+int 
+IAXVoIPLink::iaxCodecMapToFormat(IAXCall* call)
+{
+  CodecOrder map = call->getCodecMap().getActiveCodecs();
+  printf("taytciatcia = %i\n", map.size());
+  return 0;
+}
+
 

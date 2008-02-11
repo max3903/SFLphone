@@ -25,6 +25,7 @@
 
 #include <string>
 #include <map>
+#include <vector>
 
 #include "../global.h"
 typedef enum {
@@ -44,13 +45,17 @@ typedef enum {
 //  97 speex/8000
 // http://support.xten.com/viewtopic.php?p=8684&sid=3367a83d01fdcad16c7459a79859b08e
 // 100 speex/16000
-  PAYLOAD_CODEC_SPEEX = 110
+  PAYLOAD_CODEC_SPEEX_8000 = 110,
+  PAYLOAD_CODEC_SPEEX_16000 = 111,
+  PAYLOAD_CODEC_SPEEX_32000 = 112
 } CodecType;
 
 #include "audiocodec.h"
 
 /* A codec is identified by its payload. A payload is associated with a name. */ 
 typedef std::map<CodecType, std::string> CodecMap;
+/* The struct to reflect the order the user wants to use the codecs */
+typedef std::vector<CodecType> CodecOrder;
 
 class CodecDescriptor {
 public:
@@ -60,6 +65,7 @@ public:
   CodecDescriptor();
   ~CodecDescriptor() {};
   CodecMap& getCodecMap() { return _codecMap; }
+  CodecOrder& getActiveCodecs() { return _codecOrder; }
 
   /**
    * Get codec with is associated payload
@@ -69,15 +75,23 @@ public:
    */
   std::string& getCodecName(CodecType payload);
 
+  /**
+   * Initialiaze the map with all the supported codecs, even those inactive
+   */  
   void init();
 
+  /**
+   * Set the default codecs order
+   */   
+  void setDefaultOrder();
+  
   /**
    * Check in the map codec if the specified codec is supported 
    * @param payload unique identifier of a codec (RFC)
    * @return true if the codec specified is supported
    * 	     false otherwise
    */
-  bool isSupported(CodecType payload);
+  bool isActive(CodecType payload);
 
  /**
   * Remove the codec with payload payload from the list
@@ -114,8 +128,16 @@ public:
   * @return int The clock rate of the specified codec
   */
   int getSampleRate(CodecType payload);
+
+/**
+ * Set the order of codecs by their payload
+ * @param list The ordered list sent by DBus
+ */
+ void saveActiveCodecs(const std::vector<std::string>& list);
+ 
 private:
   CodecMap _codecMap;
+  CodecOrder _codecOrder;
 };
 
 #endif // __CODEC_DESCRIPTOR_H__
