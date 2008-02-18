@@ -4,6 +4,7 @@
  *  Author: Yan Morin <yan.morin@savoirfairelinux.com>
  *  Author: Laurielle Lea <laurielle.lea@savoirfairelinux.com>
  *  Author: Emmanuel Milou <emmanuel.milou@savoirfairelinux.com>
+ *  Author: Guillaume Carmel-Archambault <guillaume.carmel-archambault@savoirfairelinux.com>
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -39,7 +40,6 @@
 #include "manager.h"
 #include "account.h"
 #include "audio/audiolayer.h"
-#include "audio/audiocodec.h"
 #include "audio/tonelist.h"
 
 #include "accountcreator.h" // create new account
@@ -1204,6 +1204,118 @@ ManagerImpl::getCodecDetails( const ::DBus::Int32& payload )
 
   return v;
 }
+
+/**
+ * Get list of supported audio manager
+ */
+std::vector<std::string>
+ManagerImpl::getAudioManagerList(void)
+{
+	std::vector<std::string> v;
+	_debug("Get audio manager list");
+	
+	// Return only ALSA for now
+	v.push_back("ALSA");
+	return v;
+}
+
+/**
+ * Set audio manager (always put ALSA)
+ */
+void
+ManagerImpl::setAudioManager(const std::string& audioManager)
+{
+	_debug("Set audio manager");
+	// Do nothing for now
+}
+
+/**
+ * Get list of supported audio output device
+ */
+std::vector<std::string>
+ManagerImpl::getAudioOutputDeviceList(void)
+{
+	_debug("Get audio output device list");
+	return _audiodriver->getAudioDeviceList(paALSA, _audiodriver->OutputDevice);
+}
+
+/**
+ * Set audio output device
+ */
+void
+ManagerImpl::setAudioOutputDevice(const int index)
+{
+	_debug("Set audio output device");
+	_audiodriver->openDevice(_audiodriver->getIndexIn(), index, _audiodriver->getSampleRate(), _audiodriver->getFrameSize());
+	printf("%d audio output set\n", index);
+}
+
+/**
+ * Get list of supported audio input device
+ */
+std::vector<std::string>
+ManagerImpl::getAudioInputDeviceList(void)
+{
+	_debug("Get audio input device list");
+	return _audiodriver->getAudioDeviceList(paALSA, _audiodriver->InputDevice);
+}
+
+/**
+ * Set audio input device
+ */
+void
+ManagerImpl::setAudioInputDevice(const int index)
+{
+	_debug("Set audio input device");
+	_audiodriver->openDevice(index, _audiodriver->getIndexOut(), _audiodriver->getSampleRate(), _audiodriver->getFrameSize());
+	printf("%d audio input set\n", index);
+}
+
+/**
+ * Get string array representing integer indexes of output and input device
+ */
+std::vector<std::string>
+ManagerImpl::getCurrentAudioDevicesIndex()
+{
+	_debug("Get current audio devices index");
+	std::vector<std::string> v;
+	
+	char index[10];
+	sprintf(index, "%d", _audiodriver->getIndexOut());
+	v.push_back(index);
+	sprintf(index, "%d", _audiodriver->getIndexIn());
+	v.push_back(index);
+	
+	return v;
+}
+
+/**
+ * Get name, max input channels, max output channels, sample rate of audio device
+ */
+std::vector<std::string>
+ManagerImpl::getAudioDeviceDetails(const int index)
+{
+	_debug("Get audio input device list");
+	std::vector<std::string> v;
+
+	try
+	{
+		portaudio::System& sys = portaudio::System::instance();
+		portaudio::Device& device = sys.deviceByIndex(index);
+		
+		char answer[10];
+		v.push_back(device.name());
+		sprintf(answer, "%d", device.maxInputChannels());
+		v.push_back(answer);		
+		sprintf(answer, "%d", device.maxOutputChannels());
+		v.push_back(answer);
+		sprintf(answer, "%d", device.defaultSampleRate());
+		v.push_back(answer);
+	}
+	catch (...) {}
+	return v;
+}
+
 
 
 /**
