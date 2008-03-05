@@ -112,6 +112,8 @@ ManagerImpl::~ManagerImpl (void)
 void 
 ManagerImpl::init() 
 {
+	// \todo Verify supported library (GLX)
+	
   // Load accounts, init map
   loadAccountMap();
 
@@ -126,6 +128,11 @@ ManagerImpl::init()
 
   // Initialize the list of supported audio codecs
   initAudioCodec();
+  
+  // \todo Initialize the list of supported video codec
+  // \todo Allocate memory
+  
+
 
   AudioLayer *audiolayer = getAudioDriver();
   if (audiolayer!=0) {
@@ -158,6 +165,10 @@ void ManagerImpl::terminate()
 
   _debug("Unload Telephone Tone\n");
   delete _telephoneTone; _telephoneTone = NULL;
+  
+  // \todo delete memory allocation
+  // \todo End threads
+  // \todo Probably need to unload video driver too
 }
 
 bool
@@ -219,6 +230,20 @@ ManagerImpl::outgoingCall(const std::string& accountid, const CallID& id, const 
   return false;
 }
 
+/*
+ * Outgoing call to start a conference call (3 people)
+ */
+bool
+ManagerImpl::outgoingConfCall(const std::string& accountid, const CallID& id, const std::string& to)
+{
+	if(outgoingCall(accountid, id, to))
+	{
+		// \todo set mode to server
+		// \todo start mixing audio-video signals
+	}
+	
+}
+
 //THREAD=Main : for outgoing Call
 bool
 ManagerImpl::answerCall(const CallID& id)
@@ -278,6 +303,10 @@ ManagerImpl::hangupCall(const CallID& id)
   removeCallAccount(id);
   switchCall("");
   
+    /* \todo IF it is the server of the conference 
+     * \todo return to a normal conversation
+     */
+  
   
   return returnValue;
 }
@@ -297,6 +326,12 @@ ManagerImpl::cancelCall (const CallID& id)
   // it could be a waiting call?
   removeWaitingCall(id);
   removeCallAccount(id);
+  
+    /* \todo IF it is the server of the conference 
+     * \todo Send a signal on dbus to popup a confirmation screen for the user
+     * \todo THEN end both conversation 
+     */
+  
   switchCall("");
   
   return returnValue;
@@ -309,17 +344,19 @@ ManagerImpl::onHoldCall(const CallID& id)
   stopTone(true);
   AccountID accountid = getAccountFromCall( id );
   if (accountid == AccountNULL) {
-    _debug("5 Manager On Hold Call: Account ID %s or callid %s desn't exists\n", accountid.c_str(), id.c_str());
+    _debug("5 Manager On Hold Call: Account ID %s or callid %s doesn't exists\n", accountid.c_str(), id.c_str());
     return false;
   }
 
   _debug("Setting ONHOLD, Account %s, callid %s\n", accountid.c_str(), id.c_str());
 
+  // \todo End SIP video session
+	  
   bool returnValue = getAccountLink(accountid)->onhold(id);
   
   removeWaitingCall(id);
   if (_dbus) _dbus->getCallManager()->callStateChanged(id, "HOLD");
-  switchCall("");
+  switchCall(""); 
   
   return returnValue;
 }
@@ -611,7 +648,9 @@ bool
 ManagerImpl::incomingCall(Call* call, const AccountID& accountId) 
 {
   _debug("Incoming call\n");
-
+	/* \todo IF the mode is set to server THEN all the incoming calls
+	 * should be forwarded to the voice mail
+	 */
   associateCallToAccount(call->getCallId(), accountId);
 
   if ( !hasCurrentCall() ) {
@@ -2334,4 +2373,164 @@ bool ManagerImpl::testAccountMap()
   }
   return true;
 }
+
+/**
+ * Initialization: Main Thread
+ */
+void
+ManagerImpl::initVideoCodec (void)
+{
+  _debugInit("Active Video Codecs List");
+  // \todo Initialize Video Codec
+}
+
+std::vector<std::string>
+ManagerImpl::retrieveActiveVideoCodecs()
+{
+  std::vector<std::string> order; 
+  // \todo Retrieve active video codec
+  return order;
+}
+
+void
+ManagerImpl::setActiveVideoCodecList(const std::vector<std::string>& list)
+{
+	// \todo set active video codec list
+}
+
+
+std::vector <std::string>
+ManagerImpl::getActiveVideoCodecList( void )
+{
+  _debug("Get Active video codecs list");
+  std::vector< std::string > v;
+  // \todo get active video codec list
+  
+  return v;
+}
+
+
+/**
+ * Send the list of video codecs to the client through DBus.
+ */
+std::vector< std::string >
+ManagerImpl::getVideoCodecList( void )
+{
+  std::vector<std::string> list;
+  // \todo get video codec list
+  return list;
+}
+
+std::vector<std::string>
+ManagerImpl::getVideoCodecDetails( const ::DBus::Int32& payload )
+{
+
+  std::vector<std::string> v;
+  // \todo get video codec details
+
+  return v;
+}  
+  /**
+ * Get list of supported video input device
+ */
+std::vector<std::string>
+ManagerImpl::getVideoInputDeviceList(void)
+{
+	_debug("Get video input device list");
+	// \todo get video input device list
+	// returns the audio input device for testing only
+	return _audiodriver->getAudioDeviceList(paALSA, _audiodriver->InputDevice);
+}
+
+/**
+ * Set video input device
+ */
+void
+ManagerImpl::setVideoInputDevice(const int index)
+{
+	_debug("Set video input device");
+	// \todo set video input device
+	printf("%d video input set\n", index);
+}
+
+/**
+ * Get string array representing integer indexes of input video device
+ */
+std::vector<std::string>
+ManagerImpl::getCurrentVideoDeviceIndex()
+{
+	_debug("Get current video device index");
+	std::vector<std::string> v;
+	// \todo get string array representing integer indexes of input video device
+	
+	return v;
+}
+
+/**
+ * Get name, brightness, contrast, color, resolution of video device
+ */
+std::vector<std::string>
+ManagerImpl::getVideoDeviceDetails(const int index)
+{
+	_debug("Get video input device list");
+	std::vector<std::string> v;
+	// \todo get video device details
+	return v;
+}
+
+/*
+ * Start it when the user activates the webcam icon
+ * Changes the status of the mixer
+ * The mixer should now take the input from the 
+ * local webcam instead of a black screen
+ */
+bool startVideo()
+{
+	
+}
+/*
+ * Start it when the user desactivates on the webcam icon
+ * Changes the status of the mixer
+ * The mixer should now take the input from a 
+ * black screen instead of the local webcam
+ */
+bool stopVideo()
+{
+	
+}
+/*
+ * Start it when there is an incoming video session
+ * Changes the status of the mixer
+ * The mixer should now take the input from the 
+ * video session instead of a black screen
+ */
+bool startIncomingVideo()
+{
+	
+}
+/*
+ * Stop it when a video session has ended
+ * Changes the status of the mixer
+ * The mixer should now take the input from a 
+ * black screen instead of the video session
+ */
+bool stopIncomingVideo()
+{
+	
+}
+/*
+ * Tells the mixer which calls to join the audio from
+ */
+bool joinAudio(const CallID& id1, const CallID& id2)
+{
+	
+}
+/*
+ * Tells the mixer which calls to join the video from
+ */
+bool joinVideo(const CallID& id1, const CallID& id2)
+{
+	
+}
+
 #endif
