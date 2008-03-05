@@ -36,7 +36,10 @@ GtkToolItem * hangupButton;
 GtkToolItem * holdButton;
 GtkToolItem * transfertButton;
 GtkToolItem * unholdButton;
+GtkToolItem * webCamButton;
+GtkToolItem * inviteButton;
 guint transfertButtonConnId; //The button toggled signal connection ID
+guint webCamButtonConnId;	 //The webCam button toggled signal connection ID
 
 
 /**
@@ -126,6 +129,22 @@ unhold( GtkWidget *widget, gpointer   data )
 	sflphone_off_hold();
 }
 
+/**
+ * Enable/Disable webcam
+ */
+static void webCamStatusChange( GtkWidget *widget, gpointer data )
+{
+	//TODO: Implement Fonctionnality
+}
+
+/**
+ * Invite 3rd person to make a conference call
+ */
+static void inviteUser( GtkWidget *widget, gpointer data )
+{
+	//TODO:`Implement Fonctionnality
+}
+
 	void 
 toolbar_update_buttons ()
 {
@@ -135,6 +154,8 @@ toolbar_update_buttons ()
 	gtk_widget_set_sensitive( GTK_WIDGET(holdButton),       FALSE);
 	gtk_widget_set_sensitive( GTK_WIDGET(transfertButton),  FALSE);
 	gtk_widget_set_sensitive( GTK_WIDGET(unholdButton),     FALSE);
+	gtk_widget_set_sensitive( GTK_WIDGET(webCamButton),     FALSE);
+	gtk_widget_set_sensitive( GTK_WIDGET(inviteButton),     FALSE);	
 	g_object_ref(holdButton);
 	g_object_ref(unholdButton);
 	gtk_container_remove(GTK_CONTAINER(toolbar), GTK_WIDGET(holdButton));
@@ -143,13 +164,19 @@ toolbar_update_buttons ()
 	g_object_ref(callButton);
 	g_object_ref(pickupButton);
 	gtk_container_remove(GTK_CONTAINER(toolbar), GTK_WIDGET(callButton));
-        gtk_container_remove(GTK_CONTAINER(toolbar), GTK_WIDGET(pickupButton));
-        gtk_toolbar_insert(GTK_TOOLBAR(toolbar), callButton, 0);
+    gtk_container_remove(GTK_CONTAINER(toolbar), GTK_WIDGET(pickupButton));
+    gtk_toolbar_insert(GTK_TOOLBAR(toolbar), callButton, 0);
+    /*g_object_ref(inviteButton);
+    gtk_container_remove(GTK_CONTAINER(toolbar), GTK_WIDGET(inviteButton));
+    gtk_toolbar_insert(GTK_CONTAINER(toolbar), inviteButton, 0);*/
 	
-
 	gtk_signal_handler_block(GTK_OBJECT(transfertButton),transfertButtonConnId);
 	gtk_toggle_tool_button_set_active(GTK_TOGGLE_TOOL_BUTTON(transfertButton), FALSE);
 	gtk_signal_handler_unblock(transfertButton, transfertButtonConnId);
+	
+	gtk_signal_handler_block(GTK_OBJECT(webCamButton),webCamButtonConnId);
+	gtk_toggle_tool_button_set_active(GTK_TOGGLE_TOOL_BUTTON(webCamButton), TRUE);
+	gtk_signal_handler_unblock(webCamButton, webCamButtonConnId);	
 
 	call_t * selectedCall = call_get_selected();
 	if (selectedCall)
@@ -188,6 +215,7 @@ toolbar_update_buttons ()
 				gtk_widget_set_sensitive( GTK_WIDGET(holdButton),       TRUE);
 				gtk_widget_set_sensitive( GTK_WIDGET(transfertButton),  TRUE);
 				gtk_widget_set_sensitive( GTK_WIDGET(callButton),       TRUE);
+				gtk_widget_set_sensitive( GTK_WIDGET(inviteButton),     TRUE);
 				break;
 			case CALL_STATE_BUSY:
 			case CALL_STATE_FAILURE:
@@ -329,7 +357,25 @@ create_toolbar (){
 	gtk_widget_set_state( GTK_WIDGET(transfertButton), GTK_STATE_INSENSITIVE);
 	transfertButtonConnId = g_signal_connect (G_OBJECT (transfertButton), "toggled",
 			G_CALLBACK (transfert), NULL);
-	gtk_toolbar_insert(GTK_TOOLBAR(ret), GTK_TOOL_ITEM(transfertButton), -1);  
+	gtk_toolbar_insert(GTK_TOOLBAR(ret), GTK_TOOL_ITEM(transfertButton), -1); 
+	
+	image = gtk_image_new_from_file( "/usr/share/icons/gnome/scalable/devices/camera-web.svg" );
+	webCamButton = gtk_toggle_tool_button_new ();
+	gtk_tool_button_set_icon_widget(GTK_TOOL_BUTTON(webCamButton), image);
+	gtk_widget_set_tooltip_text(GTK_WIDGET(webCamButton), "Enable WebCam");
+	gtk_tool_button_set_label(GTK_TOOL_BUTTON(webCamButton), "Enable Webcam");
+	gtk_widget_set_state( GTK_WIDGET(webCamButton), GTK_STATE_INSENSITIVE);
+	webCamButtonConnId = g_signal_connect (G_OBJECT (webCamButton), "toggled",
+			G_CALLBACK (webCamStatusChange), NULL);
+	gtk_toolbar_insert(GTK_TOOLBAR(ret), GTK_TOOL_ITEM(webCamButton), -1);   
+	
+	image = gtk_image_new_from_file( ICONS_DIR "/conf.svg");
+	inviteButton =  gtk_tool_button_new (image, "Invite 3dr Person");
+	gtk_widget_set_tooltip_text(GTK_WIDGET(inviteButton), "Invite 3rd Person");
+	gtk_widget_set_state( GTK_WIDGET(inviteButton), GTK_STATE_INSENSITIVE);
+	g_signal_connect (G_OBJECT (inviteButton), "clicked",
+			G_CALLBACK (inviteUser), NULL);
+	gtk_toolbar_insert(GTK_TOOLBAR(ret), GTK_TOOL_ITEM(holdButton), -1);
 
 	return ret;
 
