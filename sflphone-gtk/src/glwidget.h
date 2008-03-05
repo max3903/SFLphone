@@ -68,17 +68,21 @@ GtkWidget* createGLWidget();
 /*!
  * \param widget a pointer to the widget being drawned
  * \param data data on the call back
+ * \param glContext the context of the glwidget
+ * \param glDrawable the drawing info of the glwidget
  * \return the success of the operation
  */
-gboolean drawLocal(GtkWidget* widget, gpointer data);
+gboolean drawLocal(GtkWidget* widget, gpointer data, GdkGLContext *glContext, GdkGLDrawable *glDrawable);
 
 
 //! Draws the images from the remote source
 /*!
  * \param widget a pointer to the widget being drawned
  * \param data data on the call back
+ * \param glContext the context of the glwidget
+ * \param glDrawable the drawing info of the glwidget
  * \return the success of the operation
  */
-gboolean drawRemote(GtkWidget* widget, gpointer data);
+gboolean drawRemote(GtkWidget* widget, gpointer data, GdkGLContext *glContext, GdkGLDrawable *glDrawable);
 
 #endif //GLWIDGET_H
