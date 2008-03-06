@@ -27,6 +27,7 @@
 #include <menus.h>
 #include <screen.h>
 #include <sliders.h>
+#include <glwidget.h>
 
 #include <gtk/gtk.h>
 
@@ -39,6 +40,7 @@ GtkWidget * statusBar = NULL;
 GtkWidget * infoScreen = NULL;
 gboolean showDialpad  = FALSE; // true if the dialpad have been shown
 gboolean showInfoScreen = FALSE; // true if the info screen have been shown
+gboolean showGlWidget= FALSE; // true if the glwidget have been been shown
 
 /**
  * Terminate the main loop.
@@ -268,5 +270,58 @@ void
 status_bar_message(const gchar * message)
 { 
   gtk_statusbar_push(GTK_STATUSBAR(statusBar), 0, message);
+}
+
+gboolean main_window_glWidget( gboolean show )
+{
+	call_t * selectedCall = call_get_selected();
+	
+	if (selectedCall)
+	{
+		switch(selectedCall->state)
+		{
+			// If selected call in anny other state show config windows
+			case CALL_STATE_INCOMING:
+			case CALL_STATE_HOLD:
+			case CALL_STATE_RINGING:
+			case CALL_STATE_BUSY:
+			case CALL_STATE_FAILURE:
+			case CALL_STATE_DIALING:
+				g_print("No active call selected, showing config window\n");
+				show_config_window();
+				return FALSE;
+				
+			// If current call active enable/disable webcam
+			case CALL_STATE_CURRENT:
+			{
+				  showGlWidget = show;
+				  if(show && !showGlWidget)
+				  {
+				  	g_print("Enabling visualization pannel\n");
+				    drawing_area = createGLWidget();
+				    gtk_box_pack_end (GTK_BOX (subvbox), drawing_area, FALSE /*expand*/, TRUE /*fill*/, 0 /*padding*/);
+				    gtk_box_reorder_child(GTK_BOX (subvbox), drawing_area, 1);
+				    gtk_widget_show_all (drawing_area);
+				    return TRUE;
+				  }
+				  else if (!show && showGlWidget)
+				  {
+				  	g_print("Disabling visualization pannel\n");
+				    gtk_container_remove(GTK_CONTAINER (subvbox), drawing_area);
+				    return FALSE;
+				  }
+			}
+			default:
+				g_warning("Should not happen!");
+				show_config_window();
+				break; 
+		}
+	}else
+	{
+		g_print("No call selected, showing config window\n");
+		show_config_window();
+	}
+	
+	return FALSE;
 }
 

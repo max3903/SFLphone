@@ -134,7 +134,13 @@ unhold( GtkWidget *widget, gpointer   data )
  */
 static void webCamStatusChange( GtkWidget *widget, gpointer data )
 {
-	//TODO: Implement Fonctionnality
+	g_print("Changing webcam status ...\n");
+	gboolean value= main_window_glWidget(gtk_toggle_tool_button_get_active(GTK_TOGGLE_TOOL_BUTTON (widget)));
+	
+	// Changing button state to represent web cam status
+	gtk_signal_handler_block(GTK_TOGGLE_TOOL_BUTTON(widget),webCamButtonConnId);
+	gtk_toggle_tool_button_set_active(GTK_TOGGLE_TOOL_BUTTON (widget), value);
+	gtk_signal_handler_unblock(GTK_TOGGLE_TOOL_BUTTON(widget),webCamButtonConnId);
 }
 
 /**
@@ -154,7 +160,7 @@ toolbar_update_buttons ()
 	gtk_widget_set_sensitive( GTK_WIDGET(holdButton),       FALSE);
 	gtk_widget_set_sensitive( GTK_WIDGET(transfertButton),  FALSE);
 	gtk_widget_set_sensitive( GTK_WIDGET(unholdButton),     FALSE);
-	gtk_widget_set_sensitive( GTK_WIDGET(webCamButton),     FALSE);
+	gtk_widget_set_sensitive( GTK_WIDGET(webCamButton),     TRUE);
 	gtk_widget_set_sensitive( GTK_WIDGET(inviteButton),     FALSE);	
 	g_object_ref(holdButton);
 	g_object_ref(unholdButton);
@@ -166,10 +172,7 @@ toolbar_update_buttons ()
 	gtk_container_remove(GTK_CONTAINER(toolbar), GTK_WIDGET(callButton));
     gtk_container_remove(GTK_CONTAINER(toolbar), GTK_WIDGET(pickupButton));
     gtk_toolbar_insert(GTK_TOOLBAR(toolbar), callButton, 0);
-    /*g_object_ref(inviteButton);
-    gtk_container_remove(GTK_CONTAINER(toolbar), GTK_WIDGET(inviteButton));
-    gtk_toolbar_insert(GTK_CONTAINER(toolbar), inviteButton, 0);*/
-	
+    	
 	gtk_signal_handler_block(GTK_OBJECT(transfertButton),transfertButtonConnId);
 	gtk_toggle_tool_button_set_active(GTK_TOGGLE_TOOL_BUTTON(transfertButton), FALSE);
 	gtk_signal_handler_unblock(transfertButton, transfertButtonConnId);
