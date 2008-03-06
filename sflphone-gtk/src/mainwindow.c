@@ -122,7 +122,7 @@ create_main_window ()
   window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
   gtk_container_set_border_width (GTK_CONTAINER (window), 0);
   gtk_window_set_title (GTK_WINDOW (window), PACKAGE);
-  gtk_window_set_default_size (GTK_WINDOW (window), 230, 320);
+  gtk_window_set_default_size (GTK_WINDOW (window), 450, 320);
   gtk_window_set_default_icon_from_file (ICON_DIR "/sflphone.png", 
                                           NULL);
 
@@ -287,30 +287,30 @@ gboolean main_window_glWidget( gboolean show )
 			case CALL_STATE_BUSY:
 			case CALL_STATE_FAILURE:
 			case CALL_STATE_DIALING:
-				g_print("No active call selected, showing config window\n");
+				g_print("No active call, showing config window\n");
 				show_config_window();
 				return FALSE;
 				
 			// If current call active enable/disable webcam
 			case CALL_STATE_CURRENT:
-			{
-				  showGlWidget = show;
-				  if(show && !showGlWidget)
-				  {
-				  	g_print("Enabling visualization pannel\n");
-				    drawing_area = createGLWidget();
-				    gtk_box_pack_end (GTK_BOX (subvbox), drawing_area, FALSE /*expand*/, TRUE /*fill*/, 0 /*padding*/);
-				    gtk_box_reorder_child(GTK_BOX (subvbox), drawing_area, 1);
-				    gtk_widget_show_all (drawing_area);
-				    return TRUE;
-				  }
-				  else if (!show && showGlWidget)
-				  {
-				  	g_print("Disabling visualization pannel\n");
-				    gtk_container_remove(GTK_CONTAINER (subvbox), drawing_area);
-				    return FALSE;
-				  }
-			}
+				{
+					  showGlWidget = show;
+					  if(show && !showGlWidget)
+					  {
+					  	g_print("Enabling visualization pannel\n");
+					    drawing_area = createGLWidget();
+					    gtk_box_pack_end (GTK_BOX (subvbox), drawing_area, FALSE /*expand*/, TRUE /*fill*/, 0 /*padding*/);
+					    gtk_box_reorder_child(GTK_BOX (subvbox), drawing_area, 1);
+					    gtk_widget_show_all (drawing_area);
+					    return TRUE;
+					  }
+					  else if (!show && showGlWidget)
+					  {
+					  	g_print("Disabling visualization pannel\n");
+					    gtk_container_remove(GTK_CONTAINER (subvbox), drawing_area);
+					    return FALSE;
+					  }
+				}
 			default:
 				g_warning("Should not happen!");
 				show_config_window();
