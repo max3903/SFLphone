@@ -12,7 +12,7 @@
   }
 
   bool VideoDevice::OpenDevice(){
-
+    // test pour git
     return true;
   }
   
