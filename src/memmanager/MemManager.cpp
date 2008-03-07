@@ -23,7 +23,7 @@ MemManager* MemManager::instance= 0;
 
 MemManager* MemManager::getInstance()
 {
-	return 0;
+	return this;
 }
 
 MemManager::MemManager()

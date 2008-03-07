@@ -32,27 +32,36 @@ MemSpace::MemSpace()
 
 MemSpace::MemSpace(MemKey* key)
 {
+	this->theKey = key;
 }
 
 MemKey* MemSpace::getKey()
 {
+	
+	return this->theKey;
 }
 
 bool MemSpace::putData(void * Data, int size)
 {
-	return false;
+	//TODO put data 
 }
 
 MemData* MemSpace::fetchData()
 {
+	
 }
 
 MemSpace::MemSpace(MemSpace* space)
 {
+	this->baseAddress = space->baseAddress;
+	this->theKey = space->theKey;
 }
 
 MemSpace::MemSpace(MemSpace& space)
 {
+	
+	this->baseAddress = space.baseAddress;
+	this->theKey = space.theKey;
 }
 
 MemSpace::~MemSpace()

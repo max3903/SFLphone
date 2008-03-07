@@ -101,7 +101,7 @@ private:
 
     // Default constrcutor
     /*!
-     * The default constrcutor is declared private to prevent the declaration of a MemSpace without a MemKey
+     * The default constructor is declared private to prevent the declaration of a MemSpace without a MemKey
      */
     MemSpace();
     
