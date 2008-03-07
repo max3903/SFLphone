@@ -21,6 +21,8 @@
 
 MemKey::MemKey(int size, char* description)
 {
+	this->size = size;
+	this->description = description;
 }
 
 MemKey::~MemKey()

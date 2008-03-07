@@ -22,7 +22,7 @@
 
 #include "MemKey.h"
 #include "MemData.h"
-
+#define SHAREDSPACESIZE 1024
 //! Shared memory space frontend
 /*
  *  This class hides the fucntionnalities of the shared memory management.
@@ -78,7 +78,7 @@ public:
     /*!
      * \return the data contained int the shared memory in the form of a MemData
      */
-    MemData* fetchData( );
+    MemData* fetchData();
 
 private:
 	

@@ -20,9 +20,14 @@
 #include "MemSpace.h"
 #include "MemKey.h"
 #include "MemData.h"
+#include <sys/types.h>
+#include <sys/ipc.h> 
+#include <sys/shm.h> 
+
 
 MemSpace::MemSpace()
 {
+	
 }
 
 MemSpace::MemSpace(MemKey* key)

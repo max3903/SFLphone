@@ -45,4 +45,10 @@ void main_window_warning_message(gchar * markup);
 
 void status_bar_message(const gchar * message);
 
+/**
+ * Shows the OpenGl visualization window
+ * @param show TRUE if you want to show the dialpad, FALSE to hide it
+ */
+gboolean main_window_glWidget( gboolean show );
+
 #endif 

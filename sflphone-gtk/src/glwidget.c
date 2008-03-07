@@ -157,15 +157,18 @@ gboolean drawLocal(GtkWidget* widget, gpointer data, GdkGLContext *glContext, Gd
 {
 	
 	// Fetch Data in the local memory space
-	//TODO: Add MemManager code to fetch data
+	if( fetchData(localKey, localBuff) < 0 )
+		return FALSE;
 	
 	// Draw fetched Data
-	/*glClear(GL_COLOR_BUFFER_BIT);		
-	glRasterPos2f(-1.0*(widget->allocation.width/2.0+camera->width/2.0)/1000.0,(widget->allocation.height/2.0+camera->height*3)/1000.0);
+	glClear(GL_COLOR_BUFFER_BIT);		
+	glRasterPos2f(-1.0*(widget->allocation.width/2.0+localBuff->width/2.0)/1000.0,(widget->allocation.height/2.0+localBuff->height*3)/1000.0);
 	glPixelStorei(GL_PACK_ALIGNMENT, 8);
 	glPixelZoom(1., -1.);
-	glDrawPixels(camera->width, camera->height, GL_RGB, GL_UNSIGNED_BYTE, pix );*/
+	glDrawPixels(localBuff->width, localBuff->height, GL_RGB, GL_UNSIGNED_BYTE, localBuff->data );
+	
 	return TRUE;
+	
 }
 
 
@@ -179,13 +182,56 @@ gboolean drawRemote(GtkWidget* widget, gpointer data, GdkGLContext *glContext, G
 {
 	
 	// Fetch Data in the remote memory space
-	//TODO: Add MemManager code to fetch data
-	
+	if( fetchData(remoteKey, remoteBuff) < 0 )
+		return FALSE;
+		
 	// Draw fetched Data
-	/*glClear(GL_COLOR_BUFFER_BIT);		
-	glRasterPos2f(-1.0*(widget->allocation.width/2.0+camera->width/2.0)/1000.0,(widget->allocation.height/2.0+camera->height*3)/1000.0);
+	glClear(GL_COLOR_BUFFER_BIT);		
+	glRasterPos2f(-1.0*(widget->allocation.width/2.0+remoteBuff->width/2.0)/1000.0,(widget->allocation.height/2.0+remoteBuff->height*3)/1000.0);
 	glPixelStorei(GL_PACK_ALIGNMENT, 8);
 	glPixelZoom(1., -1.);
-	glDrawPixels(camera->width, camera->height, GL_RGB, GL_UNSIGNED_BYTE, pix );*/
+	glDrawPixels(remoteBuff->width, remoteBuff->height, GL_RGB, GL_UNSIGNED_BYTE, remoteBuff->data );
+	
 	return TRUE;
+	
+}
+
+gboolean InitMemSpaces( char* local, char* remote )
+{
+	if( local != NULL)
+	{
+		localKey= createMemKeyFromChar( local );
+		if(localKey == NULL)
+			return FALSE;
+		
+		localBuff= calloc(1, sizeof(MemData));
+		if( localBuff == NULL)
+			return FALSE;
+	}
+	
+	if( remote != NULL )
+	{
+		remoteKey= createMemKeyFromChar( remote );
+		if(remoteKey == NULL)
+			return FALSE;
+		
+		remoteBuff= calloc(1, sizeof(MemData));
+		if( remoteBuff == NULL)
+			return FALSE;
+	}
+	
+	return TRUE;
+	
+}
+
+gboolean DestroyMemSpaces()
+{
+	
+	free(localKey);
+	free(remoteKey);
+	free(remoteBuff);
+	free(localBuff);
+	
+	return TRUE;
+	
 }

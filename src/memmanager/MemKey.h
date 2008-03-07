@@ -20,7 +20,7 @@
 #ifndef MEMKEY_H
 #define MEMKEY_H
 
-//! Reprensent a unique key associated to a shared memory space
+//! Represent a unique key associated to a shared memory space
 /*!
  * This class is a container for the information relative to a shared memory space
  */
