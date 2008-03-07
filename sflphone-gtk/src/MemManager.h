@@ -4,6 +4,8 @@
 typedef struct {
         char* data;
         int size;
+        int width;
+        int height;
 }MemData;
 
 typedef struct

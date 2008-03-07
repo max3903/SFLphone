@@ -19,10 +19,10 @@ MemKey* remoteKey;
 MemKey* localKey;
 
 //! Remote data buffer
-unsigned char * remoteBuff;
+MemData* remoteBuff;
 
 //! Local data buffer
-unsigned char * localBuff;
+MemData* localBuff;
 
 //! Configuration information for the gl widget
 GdkGLConfig* glconfig;
@@ -84,5 +84,17 @@ gboolean drawLocal(GtkWidget* widget, gpointer data, GdkGLContext *glContext, Gd
  * \return the success of the operation
  */
 gboolean drawRemote(GtkWidget* widget, gpointer data, GdkGLContext *glContext, GdkGLDrawable *glDrawable);
+
+/**
+ * Intitializes the shred memory spaces
+ * @param local A pointer to the local key in a caracter format
+ * @param remote A pointer to the remote key in a caracter format
+ */
+gboolean InitMemSpaces( char* local, char* remote );
+
+/**
+ * Destroys the memspaces
+ */
+gboolean DestroyMemSpaces();
 
 #endif //GLWIDGET_H
