@@ -204,7 +204,7 @@ gboolean InitMemSpaces( char* local, char* remote )
 		if(localKey == NULL)
 			return FALSE;
 		
-		localBuff= calloc(1, sizeof(MemData));
+		localBuff= (MemData*)calloc(1, sizeof(MemData));
 		if( localBuff == NULL)
 			return FALSE;
 	}
@@ -215,7 +215,7 @@ gboolean InitMemSpaces( char* local, char* remote )
 		if(remoteKey == NULL)
 			return FALSE;
 		
-		remoteBuff= calloc(1, sizeof(MemData));
+		remoteBuff= (MemData*)calloc(1, sizeof(MemData));
 		if( remoteBuff == NULL)
 			return FALSE;
 	}

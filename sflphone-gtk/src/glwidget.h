@@ -3,6 +3,7 @@
 #ifndef GLWIDGET_H
 #define GLWIDGET_H
 
+#include <stdlib.h>
 #include <gtk/gtkgl.h>
 #include <GL/gl.h>
 #include <GL/glu.h>
