@@ -38,8 +38,16 @@ public:
 	 * \param size the maximum size of the shared memory space
 	 * \param description a description of the shared memory space
 	 */
-    MemKey(int size, char* description = 0);
-
+    MemKey(int size, char* description);
+	//! Constructor
+	/*!
+	 * Initiate the object
+	 * 
+	 * \param size the maximum size of the shared memory space
+	 * \param description a description of the shared memory space
+	 * \param key is to set the key
+	 */
+    MemKey(int size, char* description,key_t key);
     //! Pointer copy constructor
     /*!
      * Creates an independant copy of the source object
@@ -73,6 +81,11 @@ public:
      * \return the key to the memory space
      */
     key_t getKey();
+    
+    //! Access method to set the key of the shared memory space
+    /*!
+     */
+    void setKey(key_t key);
 
     //! Access method to the description of the shared memory space
     /*!

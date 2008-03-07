@@ -22,7 +22,7 @@
 
 #include "MemKey.h"
 #include "MemData.h"
-#define SHAREDSPACESIZE 1024
+
 //! Shared memory space frontend
 /*
  *  This class hides the fucntionnalities of the shared memory management.
@@ -99,7 +99,7 @@ private:
      */
     void readSpace(MemData* data);
 
-    // Default constrcutor
+    // Default constructor
     /*!
      * The default constructor is declared private to prevent the declaration of a MemSpace without a MemKey
      */

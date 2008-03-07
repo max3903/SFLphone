@@ -23,7 +23,12 @@ MemManager* MemManager::instance= 0;
 
 MemManager* MemManager::getInstance()
 {
-	return this;
+	//if no instance made create one,
+	//ref. singleton pattern
+	if (instance == 0)
+	instance = new MemManager;
+
+	return instance;
 }
 
 MemManager::MemManager()
@@ -32,29 +37,56 @@ MemManager::MemManager()
 
 MemManager::~MemManager()
 {
+	delete instance;
 }
 
-const MemKey* MemManager::initSpace(int key, int size)
+const MemKey* MemManager::initSpace(key_t key, int size,char * description)
 {
-	return 0;
+	
+	MemKey *newKey = new MemKey(size,description,key);
+	MemSpace *newSpace = new MemSpace(newKey);
+	shmget(newKey->getKey(), newKey->getSize(), IPC_CREAT | 0666);
+	spaces.push_back(newSpace);
+	return newKey;
 }
 
-const MemKey* MemManager::initSpace(MemKey* key, int size)
+const MemKey* MemManager::initSpace(MemKey* key)
 {
-	return 0;
+	MemSpace *newSpace; 
+	
+	newSpace = new MemSpace(key);
+	
+	shmget(key->getKey(), key->getSize(), IPC_CREAT | 0666);
+	spaces.push_back(newSpace);
+	
+	return key;
+}
+
+const MemKey* MemManager::initSpace(int size,char * description)
+{
+	MemKey *newKey;
+	MemSpace *newSpace;
+	key_t key = genKey();
+	newKey = new MemKey(size,description,key);
+	newSpace = new MemSpace(newKey);
+	shmget(newKey->getKey(), newKey->getSize(), IPC_CREAT | 0666);
+	spaces.push_back(newSpace);
+	return newKey;
 }
 
 bool MemManager::setDefaultSpace(MemKey* key)
 {
-	return false;
+return false;
 }
 
 void MemManager::nextSpace()
 {
+
 }
 
 void MemManager::previousSpace()
 {
+
 }
 
 MemData* MemManager::fetchData( )
@@ -86,15 +118,15 @@ bool MemManager::putData(MemKey* key, void * Data, int size)
 
 vector<MemKey*> MemManager::getAvailSpaces() const 
 {
+	//TODO vector memkey or memspace ???
 	vector<MemKey*> tmp;
 	return tmp;
+
 }
 
-const MemKey* MemManager::initSpace(int size)
-{
-	return 0;
-}
 
 int MemManager::genKey()
 {
+	return rand();
+	
 }

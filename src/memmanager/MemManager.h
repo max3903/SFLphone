@@ -54,10 +54,11 @@ public:
     //! Initialise a shared memory space with the specified size
     /*!
      * This method creates a new shared memory space and a new key.
-     * 
+     * \param size the size of the shared memory space
+     * \param description is a description of the key to initialize
      * \return a MemKey that identifies the MemSpace and is necessary for future access
      */
-    const MemKey* initSpace(int size);
+    const MemKey* initSpace(int size,char * description);
 
     //! Initialise a shared memory space with the specified info
     /*!
@@ -65,19 +66,19 @@ public:
      * 
      * \param key the key identifiying the shared memory space
      * \param size the size of the shared memory space
+     * \param description is a description of the key to initialize
      * \return a MemKey linking to a MemSpace dans that is needed for future access
      */
-    const MemKey* initSpace(int key, int size);
+    const MemKey* initSpace(key_t key, int size,char * description);
 
     //! Initialise a shared memory space with the specified info
     /*!
      * This method creates a new shared memory space and create a new key or links to an existing one and returns the corresponding MemKey. To link 2 spaces, the size and the key muste be the same.
      * 
      * \param key the key identifiying the shared memory space
-     * \param size the size of the shared memory space
      * \return a MemKey linking to a MemSpace dans that is needed for future access
      */
-    const MemKey* initSpace(MemKey* key, int size);
+    const MemKey* initSpace(MemKey* key);
 
     
     //! Sets the default MemSpace to work with
@@ -89,7 +90,7 @@ public:
 
     //! Sets the next MemSpace in the pool as the MemSpace to work with
     /*!
-     * Works in a cirular maner, at the end of the pool the first one is referenced.
+     * Works in a cirular manner, at the end of the pool the first one is referenced.
      */
     void nextSpace();
 
@@ -156,7 +157,7 @@ private:
 	
 	//! Generates a random key to access the MemSpace
 	/*!
-	 * \return the generated key
+	 * \return a generated key
 	 */
     int genKey();
     
@@ -171,9 +172,9 @@ private:
     
 protected:
 	
-	//! Default consrtuctor
+	//! Default constructor
 	/*!
-	 * Part of a singleton patern
+	 * Part of a singleton pattern
 	 */
     MemManager();
     

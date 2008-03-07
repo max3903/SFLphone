@@ -37,7 +37,6 @@ MemSpace::MemSpace(MemKey* key)
 
 MemKey* MemSpace::getKey()
 {
-	
 	return this->theKey;
 }
 

@@ -18,6 +18,20 @@
  */
 
 #include "MemKey.h"
+MemKey::MemKey()
+{
+	
+	//TODO get index from memmanager
+	//TODO put size
+	//TODO put description
+	
+}
+
+MemKey::MemKey(char* serializedData)
+{
+	
+	//TODO ????
+}
 
 MemKey::MemKey(int size, char* description)
 {
@@ -26,7 +40,30 @@ MemKey::MemKey(int size, char* description)
 	//TODO get index from memmanager
 	//TODO generate key
 }
+MemKey::MemKey(int size, char* description,key_t key)
+{
+	this->size = size;
+	this->description = description;
+	this->key = key;
 
+}
+MemKey::MemKey(MemKey* key)
+{	
+	
+	size = key->size;
+	description = key->description;
+	index = key->index;
+	size = key->size;
+	
+}
+MemKey::MemKey(MemKey& key)
+{
+	
+	size = key.size;
+	description = key.description;
+	index = key.index;
+	size = key.size;
+}
 MemKey::~MemKey()
 {
 }
@@ -34,6 +71,12 @@ MemKey::~MemKey()
 int MemKey::getKey()
 {
 	return this->key;
+}
+
+void MemKey::setKey(key_t key){
+
+this->key = key;
+
 }
 
 const char * MemKey::getDescription() const 
@@ -51,25 +94,6 @@ void MemKey::setIndex(int index)
 	this->index = index;
 }
 
-MemKey::MemKey(MemKey* key)
-{	
-	
-	size = key->size;
-	description = key->description;
-	index = key->index;
-	size = key->size;
-	
-}
-
-MemKey::MemKey(MemKey& key)
-{
-	
-	size = key.size;
-	description = key.description;
-	index = key.index;
-	size = key.size;
-}
-
 int MemKey::getSize()
 {
 	return this->size;
@@ -80,17 +104,4 @@ char * MemKey::serialize()
 	return 0;
 }
 
-MemKey::MemKey()
-{
-	
-	//TODO get index from memmanager
-	//TODO put size
-	//TODO put description
-	
-}
 
-MemKey::MemKey(char* serializedData)
-{
-	
-	//TODO ????
-}
