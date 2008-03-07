@@ -23,6 +23,8 @@ MemKey::MemKey(int size, char* description)
 {
 	this->size = size;
 	this->description = description;
+	//TODO get index from memmanager
+	//TODO generate key
 }
 
 MemKey::~MemKey()
@@ -31,34 +33,46 @@ MemKey::~MemKey()
 
 int MemKey::getKey()
 {
-	return 0;
+	return this->key;
 }
 
 const char * MemKey::getDescription() const 
 {
-	return 0;
+	return this->description ;
 }
 
 int MemKey::getIndex()
 {
-	return 0;
+	return this->index;
 }
 
 void MemKey::setIndex(int index)
 { 
+	this->index = index;
 }
 
 MemKey::MemKey(MemKey* key)
 {	
+	
+	size = key->size;
+	description = key->description;
+	index = key->index;
+	size = key->size;
+	
 }
 
 MemKey::MemKey(MemKey& key)
 {
+	
+	size = key.size;
+	description = key.description;
+	index = key.index;
+	size = key.size;
 }
 
 int MemKey::getSize()
 {
-	return 0;
+	return this->size;
 }
 
 char * MemKey::serialize()
@@ -69,8 +83,14 @@ char * MemKey::serialize()
 MemKey::MemKey()
 {
 	
+	//TODO get index from memmanager
+	//TODO put size
+	//TODO put description
+	
 }
 
 MemKey::MemKey(char* serializedData)
 {
+	
+	//TODO ????
 }

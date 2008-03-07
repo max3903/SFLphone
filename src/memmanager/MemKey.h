@@ -20,6 +20,10 @@
 #ifndef MEMKEY_H
 #define MEMKEY_H
 
+#include <sys/types.h>
+#include <sys/ipc.h> 
+#include <sys/shm.h> 
+
 //! Represent a unique key associated to a shared memory space
 /*!
  * This class is a container for the information relative to a shared memory space
@@ -68,7 +72,7 @@ public:
     /*!
      * \return the key to the memory space
      */
-    int getKey();
+    key_t getKey();
 
     //! Access method to the description of the shared memory space
     /*!
@@ -109,7 +113,7 @@ private:
     MemKey();
     
     //! The key to access the shared memory space
-    int key;
+    key_t key;
     
     //! The description of the shared memory space
     char * description;
