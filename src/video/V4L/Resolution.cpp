@@ -26,7 +26,7 @@
     return true;
   }
 
-  char* Resolution::GetResolution(){
+  char* Resolution::getResolution(){
 
     return 0;
   }

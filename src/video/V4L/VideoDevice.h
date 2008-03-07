@@ -71,7 +71,7 @@ public:
     /*!
      * \return structure representing the video capabilities
      */
-    v4l2_capability getVideoCapability();
+    v4l2_capability* getVideoCapability();
 
 
     //! Method to set all video capabilities
@@ -86,7 +86,7 @@ public:
     /*!
      * \return structure representing the video capabilities
      */
-    video_picture getVideoPicture();
+    video_picture* getVideoPicture();
 
 
     //! Method to set video picture parameters
@@ -101,7 +101,7 @@ public:
     /*!
      * \return structure representing the video formats
      */
-    v4l2_format getVideoFormat();
+    v4l2_format* getVideoFormat();
 
 
     //! Method to set video formats

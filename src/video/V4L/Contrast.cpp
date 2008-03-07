@@ -26,7 +26,7 @@
     return true;
   }
   
-  char* Contrast::GetContrast(){
+  char* Contrast::getContrast(){
 
     return 0;
   }

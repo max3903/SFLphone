@@ -61,22 +61,19 @@
     return true;
   }
   
-  v4l2_format VideoDevice::getVideoFormat(){
-    v4l2_format vF;
+  v4l2_format* VideoDevice::getVideoFormat(){
     
-    return vF;
+    return this->videoFormat;
   }
   
-  v4l2_capability VideoDevice::getVideoCapability(){
-    v4l2_capability vC;
+  v4l2_capability* VideoDevice::getVideoCapability(){
 
-    return vC;
+    return this->videoCapability;
   }
   
-  video_picture VideoDevice::getVideoPicture(){
-    video_picture vP;
+  video_picture* VideoDevice::getVideoPicture(){
 
-    return vP;
+    return this->videoPicture;
   }
   
   bool VideoDevice::setVideoFormat(v4l2_format* videoFormat){
@@ -102,10 +99,10 @@
   
   char* VideoDevice::getName(){
 
-    return 0;
+    return this->name;
   }
 
   int VideoDevice::getFileDescript(){
 
-    return 0;
+    return this->fileDescript;
   }

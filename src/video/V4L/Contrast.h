@@ -57,6 +57,6 @@ public:
     /*!
      * \return a string representing the value of the contrast
      */
-    char* GetContrast();
+    char* getContrast();
 };
 #endif //CONTRAST_H

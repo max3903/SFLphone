@@ -54,7 +54,7 @@ public:
     /*!
      * \return a string representing the value of the brightness
      */
-    char* GetBrightness();
+    char* getBrightness();
 };
 #endif //BRIGHTNESS_H
 
