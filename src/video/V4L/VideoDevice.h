@@ -8,6 +8,11 @@
 #include <linux/kernel.h>
 #include <linux/videodev.h>
 #include <string>
+#include <stdlib.h>
+#include <stdio.h>
+#include <sys/ioctl.h>
+#include <fcntl.h>
+//#include <jpeglib.h>
 
 
 //! VideoDevice
@@ -19,14 +24,14 @@ public:
 
 
     //! Constructor
-    VideoDevice();
+    VideoDevice(char* srcName);
 
 
     //! Destructor
     ~VideoDevice();
 
 
-    //! Method to get the name of the video source.
+    //! Method to get the name of the video source (i.e. "/dev/video0" ).
     /*!
      * \return the name of the video source
      */
@@ -39,19 +44,27 @@ public:
      */
     int getFileDescript();
 
+
+    //! Method to initiate the device
+    /*!
+     * \param srcName the name of the video source
+     * \return the file descriptor int
+     */
+    void initDevice(char* srcName);
     
-    //! Method to open the video source
+    
+    //! Method to open the video source (query camera)
     /*!
      * \return a bool representing the success of the opening of the video source 
      */
-    bool OpenDevice();
+    bool openDevice();
     
 
     //! Method to close the video source
     /*!
      * \return a bool representing the success of the closing of the video source 
      */
-    bool CloseDevice();
+    bool closeDevice();
 
 
     //! Method to get all video capabilities
@@ -61,12 +74,12 @@ public:
     v4l2_capability getVideoCapability();
 
 
-    //! Method to get all video capabilities
+    //! Method to set all video capabilities
     /*!
      * \param videoCapability the attribute to change
      * \return a bool representing the success of parameters changing
      */
-    bool setVideoCapability(v4l2_capability& videoCapability);
+    bool setVideoCapability(v4l2_capability* videoCapability);
 
 
     //! Method to get video picture parameters
@@ -81,7 +94,7 @@ public:
      * \param videoPicture the attribute to change
      * \return a bool representing the success of parameters changing
      */
-    bool setVideoPicture(video_picture& videoPicture);
+    bool setVideoPicture(video_picture* videoPicture);
 
 
     //! Method to get video formats
@@ -96,7 +109,7 @@ public:
      * \param videoFormat the attribute to change
      * \return a bool representing the success of parameters changing
      */
-    bool setVideoFormat(v4l2_format& videoFormat);
+    bool setVideoFormat(v4l2_format* videoFormat);
 
 private:
 
@@ -107,13 +120,13 @@ private:
     int fileDescript;
 
     //! The actual video formats (contains width and height)
-    v4l2_format videoFormat;
+    v4l2_format* videoFormat;
 
     //! The actual videoCapability (contains ..)
-    v4l2_capability videoCapability;
+    v4l2_capability* videoCapability;
 
     //! The actual videoPicture parameters (contains ..)
-    video_picture videoPicture;
+    video_picture* videoPicture;
 
 };
 #endif //VIDEODEVICE_H

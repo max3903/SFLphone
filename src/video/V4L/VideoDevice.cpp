@@ -2,17 +2,62 @@
 
 #include "VideoDevice.h"
 
-  VideoDevice::VideoDevice(){}
+  VideoDevice::VideoDevice(char* srcName){
+     
+    initDevice(srcName);
+    openDevice();
+  
+  }
 
   VideoDevice::~VideoDevice(){}
 
-  bool VideoDevice::CloseDevice(){
+  void VideoDevice::initDevice(char* srcName){
+    
+    // initiate the name (i.e. "/dev/video0" )
+    name = new char[strlen(srcName)+1];
+    name = srcName;
 
+    // initiate videoCapability, videoFormat and videPicture attributes 
+      //create attributes
+	this->videoCapability = (v4l2_capability*)malloc(sizeof(v4l2_capability));
+	this->videoPicture = (video_picture*)malloc(sizeof(video_picture));
+	this->videoFormat = (v4l2_format*)malloc(sizeof(v4l2_format));
+	
+	  //initiate attributes
+    memset(&(videoCapability),0,sizeof(videoCapability));
+    memset(&(videoPicture),0,sizeof(videoPicture));
+    memset(&(videoFormat),0,sizeof(videoFormat));
+  }
+  
+  bool VideoDevice::openDevice(){
+
+	// open the webcam device, like a file, return a file descriptor
+	this->fileDescript = open(name, O_RDONLY);
+	
+	if(fileDescript < 0){
+		printf("error, can't open device %s\n", name);	
+		return false;	
+	}
+
+	// fill the v4l2_capability struct by a ioctl call (control device)
+	if(ioctl(fileDescript, VIDIOC_QUERYCAP, videoCapability)==-1){
+		printf("error, can't query device's capabilities\n");
+		return false;
+	}
+
+	videoFormat->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+	if(ioctl(fileDescript, VIDIOC_G_FMT, videoFormat)==-1){
+		printf("error, can't set the capture image format\n");
+		return false;
+	}
+	videoFormat->fmt.pix.pixelformat = V4L2_PIX_FMT_YUV420;
+
+	// return true to indicate the sucess of the operation
     return true;
   }
 
-  bool VideoDevice::OpenDevice(){
-    // test pour git
+  bool VideoDevice::closeDevice(){
+
     return true;
   }
   
@@ -34,21 +79,21 @@
     return vP;
   }
   
-  bool VideoDevice::setVideoFormat(v4l2_format& videoFormat){
+  bool VideoDevice::setVideoFormat(v4l2_format* videoFormat){
 
     this->videoFormat = videoFormat;
 
     return true;
   }
 
-  bool VideoDevice::setVideoCapability(v4l2_capability& videoCapability){
+  bool VideoDevice::setVideoCapability(v4l2_capability* videoCapability){
 
     this->videoCapability = videoCapability;
 
     return true;
   }
   
-  bool VideoDevice::setVideoPicture(video_picture& videoPicture){
+  bool VideoDevice::setVideoPicture(video_picture* videoPicture){
 
     this->videoPicture = videoPicture;
 
