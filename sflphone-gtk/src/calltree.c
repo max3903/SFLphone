@@ -141,6 +141,9 @@ static void webCamStatusChange( GtkWidget *widget, gpointer data )
 	gtk_signal_handler_block(GTK_TOGGLE_TOOL_BUTTON(widget),webCamButtonConnId);
 	gtk_toggle_tool_button_set_active(GTK_TOGGLE_TOOL_BUTTON (widget), value);
 	gtk_signal_handler_unblock(GTK_TOGGLE_TOOL_BUTTON(widget),webCamButtonConnId);
+	
+	//TODO: Add send signal to enabled/disable webcam
+	
 }
 
 /**
@@ -148,7 +151,7 @@ static void webCamStatusChange( GtkWidget *widget, gpointer data )
  */
 static void inviteUser( GtkWidget *widget, gpointer data )
 {
-	//TODO:`Implement Fonctionnality
+	//TODO: Implement Fonctionnality
 }
 
 	void 

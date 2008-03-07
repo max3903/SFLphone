@@ -215,6 +215,8 @@ static void changeWebCamStatus ( void *foo )
 	gtk_signal_handler_block(GTK_TOGGLE_TOOL_BUTTON(webCamMenu),webCamConnId);
 	gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(webCamMenu), value);
 	gtk_signal_handler_unblock(GTK_TOGGLE_TOOL_BUTTON(webCamMenu),webCamConnId);
+	
+	//TODO: Add send signal to enabled/disable webcam
 }
 
 static void invitePerson(void* foo)

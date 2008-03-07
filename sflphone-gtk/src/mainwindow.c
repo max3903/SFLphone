@@ -118,7 +118,7 @@ create_main_window ()
 {
   GtkWidget *widget;
   GtkWidget *vbox;
-
+  
   window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
   gtk_container_set_border_width (GTK_CONTAINER (window), 0);
   gtk_window_set_title (GTK_WINDOW (window), PACKAGE);
@@ -294,20 +294,21 @@ gboolean main_window_glWidget( gboolean show )
 			// If current call active enable/disable webcam
 			case CALL_STATE_CURRENT:
 				{
-					  showGlWidget = show;
+					 
 					  if(show && !showGlWidget)
 					  {
 					  	g_print("Enabling visualization pannel\n");
 					    drawing_area = createGLWidget();
-					    gtk_box_pack_end (GTK_BOX (subvbox), drawing_area, FALSE /*expand*/, TRUE /*fill*/, 0 /*padding*/);
-					    gtk_box_reorder_child(GTK_BOX (subvbox), drawing_area, 1);
+					    gtk_box_pack_start (GTK_BOX (subvbox), drawing_area, FALSE /*expand*/, TRUE /*fill*/, 0 /*padding*/);
+					    gtk_box_reorder_child(GTK_BOX (subvbox), drawing_area, 0);
 					    gtk_widget_show_all (drawing_area);
-					    return TRUE;
+					    showGlWidget = show;
 					  }
 					  else if (!show && showGlWidget)
 					  {
 					  	g_print("Disabling visualization pannel\n");
 					    gtk_container_remove(GTK_CONTAINER (subvbox), drawing_area);
+					    showGlWidget = show;
 					    return FALSE;
 					  }
 				}
