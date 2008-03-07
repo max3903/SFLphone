@@ -732,7 +732,7 @@ private:
   bool testAccountMap();
   #endif
 
-	enum modeEnum{NORMAL, SERVER};
+	enum modeEnum {modeNormal, modeServer};
 	modeEnum mode;
 	/* Get and Set the mode of the user
 	 * Server = the user is the server of a conference call
