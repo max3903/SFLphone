@@ -1,13 +1,12 @@
 /*
- *  Copyright (C) 2004-2005 Savoir-Faire Linux inc.
- *  Author: Jean-Philippe Barrette-LaPierre
- *             <jean-philippe.barrette-lapierre@savoirfairelinux.com>
- *
+ *  Copyright (C) 2008 Savoir-Faire Linux inc.
+ *  Author: Guillaume Carmel-Archambault <guillaume.carmel-archambault@savoirfairelinux.com>
+ *                                                                              
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation; either version 2 of the License, or
+ *  the Free Software Foundation; either version 3 of the License, or
  *  (at your option) any later version.
- *                                                                              
+ *                                                                                
  *  This program is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -18,11 +17,26 @@
  *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
-#include "Null/NullContext.hpp"
-#include "Null/NullSource.hpp"
+#ifndef PRESENCE_H
+#define PRESENCE_H
 
-SFLAudio::Source *
-SFLAudio::NullContext::createSource(int, int)
-{
-  return new NullSource();
-}
+#include <string>
+
+/**
+ * TOCOMMENT
+ * @author Guillaume Carmel-Archambault
+ */
+class Presence {
+	
+public:
+	Presence();
+	virtual ~Presence();
+		
+protected:
+	
+private:
+	std::string _state;
+	std::string _capabalities;
+};
+
+#endif

@@ -278,15 +278,26 @@ public:
   std::vector< ::DBus::String > getCodecDetails( const ::DBus::Int32& payload);
 
   /**
-   * Get a list of supported audio managers
+   * Get a list of supported input audio plugin
    * @return List of names
    */
-  std::vector< std::string> getAudioManagerList(void);
+  std::vector< std::string> getInputAudioPluginList(void);
   
   /**
-   * Set audio manager (always put ALSA)
+   * Get a list of supported output audio plugin
+   * @return List of names
    */
-  void setAudioManager(const std::string& audioManager);
+  std::vector< std::string> getOutputAudioPluginList(void);
+  
+  /**
+   * Set input audio plugin 
+   */
+  void setInputAudioPlugin(const std::string& audioPlugin);
+  
+  /**
+   * Set output audio plugin 
+   */
+  void setOutputAudioPlugin(const std::string& audioPlugin);
   
   /**
    * Get list of supported audio output device
@@ -314,9 +325,14 @@ public:
   std::vector<std::string> getCurrentAudioDevicesIndex();
   
   /**
-   * Get name, max input channels, max output channels, sample rate of audio device
+   * Get index of an audio device
    */
-  std::vector<std::string> getAudioDeviceDetails(const int index);
+  int getAudioDeviceIndex( const std::string name );
+
+  /*
+   * Get current alsa plugin
+   */
+  std::string getCurrentAudioOutputPlugin( void ); 
   
   /**
    * Convert a list of payload in a special format, readable by the server.

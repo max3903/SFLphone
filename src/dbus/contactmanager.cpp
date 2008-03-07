@@ -1,6 +1,6 @@
 /*
- *  Copyright (C) 2006-2007 Savoir-Faire Linux inc.
- *  Author: Jean-Francois Blanchard-Dionne <jean-francois.blanchard-dionne@polymtl.ca>
+ *  Copyright (C) 2008 Savoir-Faire Linux inc.
+ *  Author: Guillaume Carmel-Archambault <guillaume.carmel-archambault@savoirfairelinux.com>
  *                                                                              
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -17,20 +17,31 @@
  *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
-#include "H263.h"
+#include <contactmanager.h>
+#include "../manager.h"
 
-H263::H263(){}
-H263::~H263(){}
-int H263::videoEncode(int width, int height, uint8_t* buf, unsigned int size){
+const char* ContactManager::SERVER_PATH = "/org/sflphone/SFLphone/ContactManager";
 
-
-return 0;
-	}
-	
-int H263::videoDecode(uint8_t *in_buf, int width, int height, uint8_t* out_buf  ){
-
-return 0;
+std::map< ::DBus::String, ::DBus::String >
+ContactManager::getContacts( const ::DBus::String& accountID )
+{
+	// TODO
 }
 
+void
+ContactManager::setContacts( const ::DBus::String& accountID, const std::map< ::DBus::String, ::DBus::String >& details )
+{
+	// TODO
+}
 
+void
+ContactManager::setPresence( const ::DBus::String& accountID, const ::DBus::String& presence, const ::DBus::String& additionalInfo )
+{
+	// TODO
+}
 
+void
+ContactManager::setContactPresence( const ::DBus::String& accountID, const ::DBus::String& presence, const ::DBus::String& additionalInfo )
+{
+	// TODO
+}
