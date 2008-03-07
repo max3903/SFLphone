@@ -19,10 +19,10 @@ MemKey* remoteKey;
 MemKey* localKey;
 
 //! Remote data buffer
-unsigned char * remoteBuff;
+MemData* remoteBuff;
 
 //! Local data buffer
-unsigned char * localBuff;
+MemData* localBuff;
 
 //! Configuration information for the gl widget
 GdkGLConfig* glconfig;
@@ -68,17 +68,33 @@ GtkWidget* createGLWidget();
 /*!
  * \param widget a pointer to the widget being drawned
  * \param data data on the call back
+ * \param glContext the context of the glwidget
+ * \param glDrawable the drawing info of the glwidget
  * \return the success of the operation
  */
-gboolean drawLocal(GtkWidget* widget, gpointer data);
+gboolean drawLocal(GtkWidget* widget, gpointer data, GdkGLContext *glContext, GdkGLDrawable *glDrawable);
 
 
 //! Draws the images from the remote source
 /*!
  * \param widget a pointer to the widget being drawned
  * \param data data on the call back
+ * \param glContext the context of the glwidget
+ * \param glDrawable the drawing info of the glwidget
  * \return the success of the operation
  */
-gboolean drawRemote(GtkWidget* widget, gpointer data);
+gboolean drawRemote(GtkWidget* widget, gpointer data, GdkGLContext *glContext, GdkGLDrawable *glDrawable);
+
+/**
+ * Intitializes the shred memory spaces
+ * @param local A pointer to the local key in a caracter format
+ * @param remote A pointer to the remote key in a caracter format
+ */
+gboolean InitMemSpaces( char* local, char* remote );
+
+/**
+ * Destroys the memspaces
+ */
+gboolean DestroyMemSpaces();
 
 #endif //GLWIDGET_H
