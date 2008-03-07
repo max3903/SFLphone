@@ -28,6 +28,7 @@
 #include <screen.h>
 #include <sliders.h>
 #include <glwidget.h>
+#include <invitewindow.h>
 
 #include <gtk/gtk.h>
 
