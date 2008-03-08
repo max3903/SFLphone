@@ -34,20 +34,24 @@ MemKey::MemKey(char* serializedData)
 	//TODO ????
 }
 
-MemKey::MemKey(int size, char* description)
+MemKey::MemKey(int size, char* description,int width, int height)
 {
 	this->size = size;
 	strcpy(this->description,description);
+	this->height = height;
+	this->width = width;
 	//TODO get index from memmanager
 	//TODO generate key
 }
 
 
-MemKey::MemKey(int size, char* description,key_t key)
+MemKey::MemKey(int size, char* description,key_t key,int width, int height)
 {
 	this->size = size;
 	strcpy(this->description,description);
 	this->key = key;
+	this->height = height;
+	this->width = width;
 
 }
 
@@ -108,10 +112,39 @@ int MemKey::getSize()
 	return this->size;
 }
 
+void MemKey::setSize(int size)
+{
+	this->size = size;
+	
+}
+
 char * MemKey::serialize()
 {
 	//TODO return char * with all params
 	return 0;
 }
 
+int MemKey::getHeight()
+{
 
+return this->height;
+
+}
+
+void MemKey::setHeight(int height)
+{
+this->height = height;
+
+}
+
+int MemKey::getWidth()
+{
+return this->width;
+}
+
+void MemKey::setWidth(int width)
+{
+	
+	this->width = width;
+	
+}

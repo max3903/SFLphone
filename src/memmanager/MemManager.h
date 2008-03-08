@@ -58,7 +58,7 @@ public:
      * \param description is a description of the key to initialize
      * \return a MemKey that identifies the MemSpace and is necessary for future access
      */
-    const MemKey* initSpace(int size,char * description);
+    const MemKey* initSpace(int size,char * description,int width,int height);
 
     //! Initialise a shared memory space with the specified info
     /*!
@@ -69,7 +69,7 @@ public:
      * \param description is a description of the key to initialize
      * \return a MemKey linking to a MemSpace dans that is needed for future access
      */
-    const MemKey* initSpace(key_t key, int size,char * description);
+    const MemKey* initSpace(key_t key, int size,char * description,int width,int height);
 
     //! Initialise a shared memory space with the specified info
     /*!
@@ -104,14 +104,14 @@ public:
     /*!
      * \return the data from the MemSpace
      */
-    MemData* fetchData( );
+    MemData* fetchData();
 
     //! Returns the MemData from the MemSpace with the specifed key
     /*!
      * \param key the key of the MemSpace
      * \return the data from the MemSpace
      */
-    MemData* fetchData(int key);
+    MemData* fetchData(key_t key);
 
     //! Returns the MemData from the MemSpace with the specifed key
     /*!
@@ -126,7 +126,7 @@ public:
      * \param size the size of Data
      * \return the success of the operation
      */
-    bool putData(void * Data, int size);
+    bool putData(char * Data, int size);
 
     //! Changes the data in the MemSpace specified by the key
     /*!
@@ -135,7 +135,7 @@ public:
      * \param size the size of Data
      * \return the success of the operation
      */
-    bool putData(int key, void * Data, int size);
+    bool putData(int key, char * Data, int size);
 
     //! Changes the data in the MemSpace specified by the key
     /*!
@@ -144,7 +144,7 @@ public:
      * \param size the size of Data
      * \return the success of the operation
      */
-    bool putData(MemKey* key, void * Data, int size);
+    bool putData(MemKey* key, char * Data, int size);
 
     //! Gets a list of the available MemKeys
     /*!

@@ -40,10 +40,10 @@ MemManager::~MemManager()
 	delete instance;
 }
 
-const MemKey* MemManager::initSpace(key_t key, int size,char * description)
+const MemKey* MemManager::initSpace(key_t key, int size,char * description,int width,int height)
 {
 	int shmid;
-	MemKey *newKey = new MemKey(size,description,key);
+	MemKey *newKey = new MemKey(size,description,key,width,height);
 	MemSpace *newSpace = new MemSpace(newKey);
 	
 	
@@ -92,14 +92,14 @@ const MemKey* MemManager::initSpace(MemKey* key)
 	return key;
 }
 
-const MemKey* MemManager::initSpace(int size,char * description)
+const MemKey* MemManager::initSpace(int size,char * description,int width, int height)
 {
 	MemKey *newKey;
 	int shmid;
 	MemSpace *newSpace;
 	key_t key = genKey();
 	
-	newKey = new MemKey(size,description,key);
+	newKey = new MemKey(size,description,key,width,height);
 	newSpace = new MemSpace(newKey);
 	
 	//create shared memory space
@@ -129,7 +129,7 @@ bool MemManager::setDefaultSpace(MemKey* key)
 	for( iter = spaces.begin(); iter != spaces.end() ;iter++);
 	{
 		if ((*iter)->getMemKey()->getKey() == key->getKey()){
-		defaultIndex = pos;
+		defaultIndex = iter;
 		return true;
 		}
 	
@@ -140,57 +140,127 @@ return false;
 
 void MemManager::nextSpace()
 {
-	defaultIndex++;
-	if (defaultIndex == spaces.size()){
-	defaultIndex = 0;
+	if(defaultIndex == spaces.end()){
+	defaultIndex == spaces.begin();
 	}
-
+	else
+	defaultIndex++;
+	
 }
 
 void MemManager::previousSpace()
 {
-	defaultIndex--;
-	if (defaultIndex < 0){
-	defaultIndex = spaces.size()-1;
+	if(defaultIndex == spaces.begin()){
+	defaultIndex == spaces.end();
 	}
-
-}
-
-MemData* MemManager::fetchData( )
-{
-	
+	else
+	defaultIndex--;
 	
 }
 
-MemData* MemManager::fetchData(int key)
+MemData* MemManager::fetchData()
 {
+
+	MemData* newMemData = new MemData();
 	
+	newMemData->putData((*defaultIndex)->getBaseAddress(),
+	(*defaultIndex)->getMemKey()->getSize(),(*defaultIndex)->getMemKey()->getWidth(),
+	(*defaultIndex)->getMemKey()->getHeight());
+	
+	
+	return newMemData;
+}
+
+MemData* MemManager::fetchData(key_t key)
+{
+	vector<MemSpace*>::iterator i;
+	MemData* newMemData = new MemData();
+	
+	for( iter = spaces.begin(); iter != spaces.end() ;iter++);
+	{
+		if ((*iter)->getMemKey()->getKey() == key){
+		i = iter;
+	
+		}
+	
+	}
+	
+	newMemData->putData((*i)->getBaseAddress(),
+	(*i)->getMemKey()->getSize(),(*i)->getMemKey()->getWidth(),
+	(*i)->getMemKey()->getHeight());
+	
+	
+	return newMemData;
 	
 }
 
 MemData* MemManager::fetchData(MemKey* key)
 {
+	vector<MemSpace*>::iterator i;
+	MemData* newMemData = new MemData();
 	
+	//find memspace 
+	for( iter = spaces.begin(); iter != spaces.end() ;iter++);
+	{
+		if ((*iter)->getMemKey() == key){
+		i = iter;
+		}
+	
+	}
+	
+	newMemData->putData((*i)->getBaseAddress(),
+	(*i)->getMemKey()->getSize(),(*i)->getMemKey()->getWidth(),
+	(*i)->getMemKey()->getHeight());
+	
+	
+	return newMemData;
 	
 }
 
-bool MemManager::putData(void * Data, int size)
+bool MemManager::putData(char * Data, int size)
 {
+	//TODO CHANGE width and height ???
+	//TODO return false???
+	(*defaultIndex)->setBaseAddress(Data);
+	(*defaultIndex)->getMemKey()->setSize(size);
 	
-	
-	return false;
+	return true;
 }
 
-bool MemManager::putData(int key, void * Data, int size)
+bool MemManager::putData(int key, char * Data, int size)
 {
+	vector<MemSpace*>::iterator i;
 	
+	for( iter = spaces.begin(); iter != spaces.end() ;iter++);
+	{
+		if ((*iter)->getMemKey()->getKey() == key){
+		i = iter;
 	
-	return false;
+		}
+	}
+	
+	(*i)->setBaseAddress(Data);
+	(*i)->getMemKey()->setSize(size);
+	return true;
 }
 
-bool MemManager::putData(MemKey* key, void * Data, int size)
+bool MemManager::putData(MemKey* key, char * Data, int size)
 {
-	return false;
+	vector<MemSpace*>::iterator i;
+	
+	//find memspace 
+	for( iter = spaces.begin(); iter != spaces.end() ;iter++);
+	{
+		if ((*iter)->getMemKey() == key){
+		i = iter;
+		}
+	
+	}
+	
+	(*i)->setBaseAddress(Data);
+	(*i)->getMemKey()->setSize(size);
+	
+	return true;
 }
 
 vector<MemKey*> MemManager::getAvailSpaces() const 

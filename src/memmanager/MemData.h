@@ -20,6 +20,8 @@
 #ifndef MEMDATA_H
 #define MEMDATA_H
 
+#include <string>
+
 //! Memmory data container
 /*!
  * Contains a copy of the data in the shared memory. It contains the data it self and the size. This class acts like a container.
@@ -57,7 +59,7 @@ public:
 
     //! Method to access the data in the buffer
     /*!
-     * \param data a pointer to where the data wil be copied
+     * \param data a pointer to where the data will be copied
      * \return the size of data
      */
     int fetchData(char * data);
@@ -67,14 +69,18 @@ public:
      * \param data a pointer to the new data
      * \param size the size of data
      */
-    void putData(char * data, int size);
+    void putData(char * data, int size,int width,int height);
         
 private:
 	
 	 //! Pointer to the data
-    char * data;
-    
+    char *data;
     //! The current size of the data in the buffer
     int size;
+    //! The current size of the data in the buffer
+    int width;
+    //! The current size of the data in the buffer
+    int height;
+    
 };
 #endif //MEMDATA_H

@@ -39,7 +39,7 @@ public:
 	 * \param size the maximum size of the shared memory space
 	 * \param description a description of the shared memory space
 	 */
-    MemKey(int size, char* description);
+    MemKey(int size, char* description,int width, int height);
 	//! Constructor
 	/*!
 	 * Initiate the object
@@ -48,7 +48,7 @@ public:
 	 * \param description a description of the shared memory space
 	 * \param key is to set the key
 	 */
-    MemKey(int size, char* description,key_t key);
+    MemKey(int size, char* description,key_t key,int width, int height);
     //! Pointer copy constructor
     /*!
      * Creates an independant copy of the source object
@@ -87,6 +87,29 @@ public:
     /*!
      */
     void setKey(key_t key);
+    
+    //! Access method for the width of the shared memory space
+    /*!
+     * \return the the width of an image from the shared memory space
+     */
+    int getWidth();
+    
+    //! Access method to set the width of an image from the shared memory space
+    /*!
+     */
+    void setWidth(int width);
+    
+     //! Access method for the Height of the shared memory space
+    /*!
+     * \return the the Height of an image from the shared memory space
+     */
+    int getHeight();
+    
+    //! Access method to set the Height of an image from the shared memory space
+    /*!
+     */
+    void setHeight(int height);
+    
 
     //! Access method to the description of the shared memory space
     /*!
@@ -111,6 +134,12 @@ public:
      * \return the maximum size of the shared memory space
      */
     int getSize();
+    
+    //! Modification method to the size of the memory space in the MemManager
+    /*!
+     * \param index the index in the MemManager
+     */
+    void setSize(int size);
 
     //! Method to serialize the MemKeyObject
     /*!
@@ -122,7 +151,7 @@ private:
 	
 	//! Default constructor
 	/*!
-	 * The default constructor is declared private to prevent the decleratio of an MemKey without the proper information.
+	 * The default constructor is declared private to prevent the decleration of an MemKey without the proper information.
 	 */
     MemKey();
     
@@ -137,6 +166,12 @@ private:
     
     //! The maximum size of the shared memory space
     int size;
+    
+    //! The maximum size of the shared memory space
+    int width;
+    
+    //! The maximum size of the shared memory space
+    int height;
     
 };
 #endif //MEMKEY_H
