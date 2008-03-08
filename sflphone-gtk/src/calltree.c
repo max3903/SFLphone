@@ -24,6 +24,7 @@
 #include <calllist.h>
 #include <menus.h>
 #include <dbus.h>
+#include <invitewindow.h>
 #include <mainwindow.h>
 
 GtkListStore * store;
@@ -153,6 +154,7 @@ static void webCamStatusChange( GtkWidget *widget, gpointer data )
 static void inviteUser( GtkWidget *widget, gpointer data )
 {
 	//TODO: Implement Fonctionnality
+	create_Join_conf();
 }
 
 	void 
@@ -165,7 +167,7 @@ toolbar_update_buttons ()
 	gtk_widget_set_sensitive( GTK_WIDGET(transfertButton),  FALSE);
 	gtk_widget_set_sensitive( GTK_WIDGET(unholdButton),     FALSE);
 	gtk_widget_set_sensitive( GTK_WIDGET(webCamButton),     TRUE);
-	gtk_widget_set_sensitive( GTK_WIDGET(inviteButton),     FALSE);	
+	gtk_widget_set_sensitive( GTK_WIDGET(inviteButton),     TRUE);	
 		g_object_ref(holdButton);
 	g_object_ref(unholdButton);
 	gtk_container_remove(GTK_CONTAINER(toolbar), GTK_WIDGET(holdButton));

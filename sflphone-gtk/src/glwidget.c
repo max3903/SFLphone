@@ -17,7 +17,7 @@
  *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
-#include <glwidget.h>
+#include <glwidget.h>>
 
 gboolean draw(GtkWidget* widget, gpointer data)
 {
@@ -78,7 +78,7 @@ gboolean init(GtkWidget* widget, gpointer data)
  
  	// OpenGl BEGIN 	
     if (!gdk_gl_drawable_gl_begin (gldrawable, glcontext))
-    	return;
+    	return FALSE;
 
     glViewport (0, 0,widget->allocation.width, widget->allocation.height);
               

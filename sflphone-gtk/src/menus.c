@@ -27,6 +27,7 @@
 #include <mainwindow.h>
 #include <screen.h>
 #include <gtk/gtk.h>
+#include <invitewindow.h>
 
 #include <string.h> // for strlen
 
@@ -222,6 +223,7 @@ static void changeWebCamStatus ( void *foo )
 static void invitePerson(void* foo)
 {
 	//TODO: Implement Fonctionnality
+	create_Join_conf();
 }
 
 GtkWidget * 

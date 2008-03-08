@@ -271,9 +271,7 @@ vector<MemKey*> MemManager::getAvailSpaces() const
 
 }
 
-
 int MemManager::genKey()
 {
-	return rand();
-	
+	return rand();	
 }
