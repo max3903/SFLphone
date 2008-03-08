@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2006-2007 Savoir-Faire Linux inc.
+ *  Copyright (C) 2008 Savoir-Faire Linux inc.
  *  Author: Jean-Francois Blanchard-Dionne <jean-francois.blanchard-dionne@polymtl.ca>
  *                                                                              
  *  This program is free software; you can redistribute it and/or modify
@@ -42,21 +42,51 @@ MemManager::~MemManager()
 
 const MemKey* MemManager::initSpace(key_t key, int size,char * description)
 {
-	
+	int shmid;
 	MemKey *newKey = new MemKey(size,description,key);
 	MemSpace *newSpace = new MemSpace(newKey);
-	shmget(newKey->getKey(), newKey->getSize(), IPC_CREAT | 0666);
+	
+	
+	if ( (shmid = shmget(newKey->getKey(), newKey->getSize(), IPC_CREAT | 0666)) < 0)
+	{
+		perror("shmget");
+        exit(1);
+	}
+	
+	//attach shared memory to baseAddress
+    newSpace->setBaseAddress((char *)shmat(shmid, NULL, 0));
+    
+    if ( newSpace->getBaseAddress() == (char *) -1) {
+        perror("shmat");
+        exit(1);
+    } 
+	
+	
 	spaces.push_back(newSpace);
 	return newKey;
 }
 
 const MemKey* MemManager::initSpace(MemKey* key)
 {
+	int shmid;
 	MemSpace *newSpace; 
-	
 	newSpace = new MemSpace(key);
 	
-	shmget(key->getKey(), key->getSize(), IPC_CREAT | 0666);
+	//create shared memory space
+	if ( (shmid = shmget(key->getKey(), key->getSize(), IPC_CREAT | 0666)) < 0)
+	{
+        perror("shmget");
+        exit(1);
+    }
+    
+    //attach shared memory to baseAddress
+    newSpace->setBaseAddress((char *)shmat(shmid, NULL, 0));
+    
+    if ( newSpace->getBaseAddress() == (char *) -1) {
+        perror("shmat");
+        exit(1);
+    }
+    
 	spaces.push_back(newSpace);
 	
 	return key;
@@ -65,49 +95,96 @@ const MemKey* MemManager::initSpace(MemKey* key)
 const MemKey* MemManager::initSpace(int size,char * description)
 {
 	MemKey *newKey;
+	int shmid;
 	MemSpace *newSpace;
 	key_t key = genKey();
+	
 	newKey = new MemKey(size,description,key);
 	newSpace = new MemSpace(newKey);
-	shmget(newKey->getKey(), newKey->getSize(), IPC_CREAT | 0666);
+	
+	//create shared memory space
+	if ( (shmid = shmget(newKey->getKey(), newKey->getSize(), IPC_CREAT | 0666)) < 0)
+	{
+        perror("shmget");
+        exit(1);
+    }
+    
+    //attach shared memory to baseAddress
+    newSpace->setBaseAddress((char *)shmat(shmid, NULL, 0));
+    
+    if ( newSpace->getBaseAddress() == (char *) -1) {
+        perror("shmat");
+        exit(1);
+    }
+    
+    
 	spaces.push_back(newSpace);
+	
 	return newKey;
 }
 
 bool MemManager::setDefaultSpace(MemKey* key)
 {
+
+	for( iter = spaces.begin(); iter != spaces.end() ;iter++);
+	{
+		if ((*iter)->getMemKey()->getKey() == key->getKey()){
+		defaultIndex = pos;
+		return true;
+		}
+	
+	}
+	
 return false;
 }
 
 void MemManager::nextSpace()
 {
+	defaultIndex++;
+	if (defaultIndex == spaces.size()){
+	defaultIndex = 0;
+	}
 
 }
 
 void MemManager::previousSpace()
 {
+	defaultIndex--;
+	if (defaultIndex < 0){
+	defaultIndex = spaces.size()-1;
+	}
 
 }
 
 MemData* MemManager::fetchData( )
 {
+	
+	
 }
 
 MemData* MemManager::fetchData(int key)
 {
+	
+	
 }
 
 MemData* MemManager::fetchData(MemKey* key)
 {
+	
+	
 }
 
 bool MemManager::putData(void * Data, int size)
 {
+	
+	
 	return false;
 }
 
 bool MemManager::putData(int key, void * Data, int size)
 {
+	
+	
 	return false;
 }
 

@@ -35,7 +35,7 @@ MemSpace::MemSpace(MemKey* key)
 	this->theKey = key;
 }
 
-MemKey* MemSpace::getKey()
+MemKey* MemSpace::getMemKey()
 {
 	return this->theKey;
 }
@@ -73,4 +73,16 @@ void MemSpace::readSpace(MemData* data)
 
 void MemSpace::writeSpace(char * data, int size)
 {
+}
+
+char* MemSpace::getBaseAddress(){
+
+return this->baseAddress;
+}
+
+void MemSpace::setBaseAddress(char* Address){
+
+
+this->baseAddress = Address;
+
 }

@@ -64,7 +64,7 @@ public:
     /*!
      * \return a MemKey containing the information for this MemSpace
      */
-    MemKey* getKey();
+    MemKey* getMemKey();
 
     //! Changes the data in the MemSpace
     /*!
@@ -79,6 +79,18 @@ public:
      * \return the data contained int the shared memory in the form of a MemData
      */
     MemData* fetchData();
+    
+     //! Returns the baseAddress associated with this MemSpace
+    /*!
+     * \return a MemKey containing the information for this MemSpace
+     */
+    char* getBaseAddress();
+   //! Sets the char * baseAddress associated with this MemSpace
+    /*!
+     * \param Address containing the information to set the baseAddress
+     */
+    void setBaseAddress(char *Address);
+    
 
 private:
 	

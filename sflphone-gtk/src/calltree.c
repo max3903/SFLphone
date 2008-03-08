@@ -24,6 +24,7 @@
 #include <calllist.h>
 #include <menus.h>
 #include <dbus.h>
+#include <mainwindow.h>
 
 GtkListStore * store;
 GtkWidget *view;

@@ -21,7 +21,7 @@
 #define MEMMANAGER_H
 
 #include <vector>
-
+#include <iterator>
 #include "MemSpace.h"
 #include "MemSorter.h"
 #include "MemData.h"
@@ -164,11 +164,14 @@ private:
     //! The MemSpaces
     vector<MemSpace*> spaces;
     
+    //! The MemSpaces iterator
+    vector<MemSpace*>::iterator iter;
+    
     //! The instance of the manager
     static MemManager* instance;
     
     // The current index of the pool of MemSpace
-    int defaultIndex;
+    vector<MemSpace*>::iterator defaultIndex;
     
 protected:
 	
