@@ -17,8 +17,7 @@
  *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
-#include <glwidget.h>
-#include <gtk/gtkgl.h>
+#include <glwidget.h>>
 
 gboolean draw(GtkWidget* widget, gpointer data)
 {
