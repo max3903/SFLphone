@@ -18,15 +18,10 @@
     name = srcName;
 
     // initiate videoCapability, videoFormat and videPicture attributes 
-      //create attributes
-	this->videoCapability = (v4l2_capability*)malloc(sizeof(v4l2_capability));
-	this->videoPicture = (video_picture*)malloc(sizeof(video_picture));
-	this->videoFormat = (v4l2_format*)malloc(sizeof(v4l2_format));
+	this->videoCapability = new v4l2_capability;
+	this->videoPicture = new video_picture;
+	this->videoFormat = new v4l2_format;
 	
-	  //initiate attributes
-    memset(&(videoCapability),0,sizeof(videoCapability));
-    memset(&(videoPicture),0,sizeof(videoPicture));
-    memset(&(videoFormat),0,sizeof(videoFormat));
   }
   
   bool VideoDevice::openDevice(){
@@ -44,6 +39,7 @@
 		printf("error, can't query device's capabilities\n");
 		return false;
 	}
+
 
 	videoFormat->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
 	if(ioctl(fileDescript, VIDIOC_G_FMT, videoFormat)==-1){
