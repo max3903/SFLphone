@@ -212,158 +212,231 @@ SIPVoIPLink::loadSIPLocalIP()
 void
 SIPVoIPLink::getEvent()
 {
-  eXosip_event_t* event = eXosip_event_wait(0, 50);
-  eXosip_lock();
-  eXosip_automatic_action();
-  eXosip_unlock();
+	char* tmp2;
+	eXosip_event_t* event = eXosip_event_wait(0, 50);
+	eXosip_lock();
+	eXosip_automatic_action();
+	eXosip_unlock();
+	
+	if (event == NULL) {
+		return;
+	}
 
-  if (event == NULL) {
-    return;
-  }
+	_debugMid("> SIP Event: [cdt=%4d:%4d:%4d] type=#%03d %s  = ", event->cid, event->did, event->tid, event->type, event->textinfo);
+	switch (event->type) {
+	
+	/* REGISTER related events */
+	case EXOSIP_REGISTRATION_NEW:         /** 00 < announce new registration.       */
+		_debugMid(" !EXOSIP_REGISTRATION_NEW event is not implemented\n");
+		break;
+	case EXOSIP_REGISTRATION_SUCCESS:     /** 01 < user is successfully registred.  */
+		setRegistrationState(Registered);
+		_debugMid(" !EXOSIP_REGISTRATION_SUCCES\n");
+		//Manager::instance().registrationSucceed(getAccountID());
+		break;
+	case EXOSIP_REGISTRATION_FAILURE:     /** 02 < user is not registred.           */
+		setRegistrationState(Error, "SIP registration failure.");
+		_debugMid(" !EXOSIP_REGISTRATION_FAILURE\n");
+		//Manager::instance().registrationFailed(getAccountID());
+		break;
+	case EXOSIP_REGISTRATION_REFRESHED:   /** 03 < registration has been refreshed. */
+		_debugMid(" !EXOSIP_REGISTRATION_REFRESHED event is not implemented\n");
+		break;
+	case EXOSIP_REGISTRATION_TERMINATED:  /** 04 < UA is not registred any more.    */
+		setRegistrationState(Unregistered, "Registration terminated by remote host");
+		_debugMid(" !EXOSIP_REGISTRATION_TERMINATED event is not implemented\n");
+		break;
 
-  _debug("> SIP Event: [cdt=%4d:%4d:%4d] type=#%03d %s \n", event->cid, event->did, event->tid, event->type, event->textinfo);
-  switch (event->type) {
-     /* REGISTER related events */
-     case EXOSIP_REGISTRATION_NEW:         /** 00 < announce new registration.       */
-       _debug(" !EXOSIP_REGISTRATION_NEW event is not implemented\n");
-       break;
-     case EXOSIP_REGISTRATION_SUCCESS:     /** 01 < user is successfully registred.  */
-       setRegistrationState(Registered);
-       //Manager::instance().registrationSucceed(getAccountID());
-       break;
-     case EXOSIP_REGISTRATION_FAILURE:     /** 02 < user is not registred.           */
-       setRegistrationState(Error, "SIP registration failure.");
-       //Manager::instance().registrationFailed(getAccountID());
-       break;
-     case EXOSIP_REGISTRATION_REFRESHED:   /** 03 < registration has been refreshed. */
-       _debug(" !EXOSIP_REGISTRATION_REFRESHED event is not implemented\n");
-       break;
-     case EXOSIP_REGISTRATION_TERMINATED:  /** 04 < UA is not registred any more.    */
-       setRegistrationState(Unregistered, "Registration terminated by remote host");
-       _debug(" !EXOSIP_REGISTRATION_TERMINATED event is not implemented\n");
-       break;
-      
-      /* INVITE related events within calls */
-     case EXOSIP_CALL_INVITE:          /** 05 < announce a new call                   */
-       SIPCallInvite(event);
-       break;
-     case EXOSIP_CALL_REINVITE:        /** 06 < announce a new INVITE within call     */
-       SIPCallReinvite(event);
-       break;
+	/* INVITE related events within calls */
+	case EXOSIP_CALL_INVITE:          /** 05 < announce a new call                   */
+		SIPCallInvite(event);
+		_debugMid(" !EXOSIP_CALL_INVITE\n");
+		break;
+	case EXOSIP_CALL_REINVITE:        /** 06 < announce a new INVITE within call     */
+		SIPCallReinvite(event);
+		_debugMid(" !EXOSIP_REGISTRATION_TERMINATED event is not implemented\n");
+		break;
 
-     case EXOSIP_CALL_NOANSWER:        /** 07 < announce no answer within the timeout */
-       _debug("  !EXOSIP_CALL_NOANSWER event is not implemented\n");
-       break;
-     case EXOSIP_CALL_PROCEEDING:      /** 08 < announce processing by a remote app   */
-       _debug("  !EXOSIP_CALL_PROCEEDING event is not implemented\n");
-       break;
-     case EXOSIP_CALL_RINGING:         /** 09 < announce ringback                     */
-       SIPCallRinging(event);
-       break;
-     case EXOSIP_CALL_ANSWERED:        /** 10 < announce start of call                */
-       SIPCallAnswered(event);
-       break;
-     case EXOSIP_CALL_REDIRECTED:      /** 11 < announce a redirection                */
-       _debug(" !EXOSIP_CALL_REDIRECTED event is not implemented\n");
-       break;
-     case EXOSIP_CALL_REQUESTFAILURE:  /** 12 < announce a request failure            */
-       SIPCallRequestFailure(event);
-       break;
-     case EXOSIP_CALL_SERVERFAILURE:   /** 13 < announce a server failure             */
-       SIPCallServerFailure(event);
-       break;
-     case EXOSIP_CALL_GLOBALFAILURE:   /** 14 < announce a global failure             */
-       SIPCallServerFailure(event);
-       break;
-     case EXOSIP_CALL_ACK:             /** 15 < ACK received for 200ok to INVITE      */
-       SIPCallAck(event);
-       break;
-      
-     case EXOSIP_CALL_CANCELLED:       /** 16 < announce that call has been cancelled */
-     case EXOSIP_CALL_TIMEOUT:         /** 17 < announce that call has failed         */
-       Manager::instance().displayError(" !EXOSIP Call Error not implemented yet");
-       break;
+	/* CALL related events */
+	case EXOSIP_CALL_NOANSWER:        /** 07 < announce no answer within the timeout */
+		_debugMid(" !EXOSIP_CALL_NOANSWER event is not implemented\n");
+		break;
+	case EXOSIP_CALL_PROCEEDING:      /** 08 < announce processing by a remote app   */
+		_debugMid(" !EXOSIP_CALL_PROCEEDING event is not implemented\n");
+		break;
+	case EXOSIP_CALL_RINGING:         /** 09 < announce ringback                     */
+		_debugMid(" !EXOSIP_CALL_RINGING\n");
+		SIPCallRinging(event);
+		break;
+	case EXOSIP_CALL_ANSWERED:        /** 10 < announce start of call                */
+		_debugMid(" !EXOSIP_CALL_ANSWERED\n");
+		SIPCallAnswered(event);
+		break;
+	case EXOSIP_CALL_REDIRECTED:      /** 11 < announce a redirection                */
+		_debugMid(" !EXOSIP_CALL_REDIRECTED event is not implemented\n");
+		break;
+	case EXOSIP_CALL_REQUESTFAILURE:  /** 12 < announce a request failure            */
+		_debugMid(" !EXOSIP_CALL_REQUESTFAILURE");
+		SIPCallRequestFailure(event);
+		break;
+	case EXOSIP_CALL_SERVERFAILURE:   /** 13 < announce a server failure             */
+		_debugMid(" !EXOSIP_CALL_SERVERFAILURE");
+		SIPCallServerFailure(event);
+		break;
+	case EXOSIP_CALL_GLOBALFAILURE:   /** 14 < announce a global failure             */
+		_debugMid(" !EXOSIP_CALL_GLOBALFAILURE\n");
+		SIPCallServerFailure(event);
+		break;
+	case EXOSIP_CALL_ACK:             /** 15 < ACK received for 200ok to INVITE      */
+		_debugMid(" !EXOSIP_CALL_ACK\n");
+		SIPCallAck(event);
+		break;
+	case EXOSIP_CALL_CANCELLED:       /** 16 < announce that call has been cancelled */
+		_debugMid(" !EXOSIP_CALL_CANCELLED\n");
+		break;
+	case EXOSIP_CALL_TIMEOUT:         /** 17 < announce that call has failed         */
+		_debugMid(" !EXOSIP_CALL_TIMEOUT\n");
+		Manager::instance().displayError(" !EXOSIP Call Error not implemented yet");
+		break;
 
-      /* request related events within calls (except INVITE) */
-     case EXOSIP_CALL_MESSAGE_NEW:            /** 18 < announce new incoming MESSAGE. */
-      SIPCallMessageNew(event);
-      break;
-     case EXOSIP_CALL_MESSAGE_PROCEEDING:     /** 19 < announce a 1xx for MESSAGE. */
-     case EXOSIP_CALL_MESSAGE_ANSWERED:       /** 20 < announce a 200ok  */
-       // 200 OK
-     case EXOSIP_CALL_MESSAGE_REDIRECTED:     /** 21 < announce a failure. */
-     case EXOSIP_CALL_MESSAGE_REQUESTFAILURE: /** 22 < announce a failure. */
-     case EXOSIP_CALL_MESSAGE_SERVERFAILURE:  /** 23 < announce a failure. */
-     case EXOSIP_CALL_MESSAGE_GLOBALFAILURE:  /** 24 < announce a failure. */
-       Manager::instance().displayError(" !EXOSIP Call Message not implemented yet");
-       break;
+	/* Request related events within calls (except INVITE) */
+	case EXOSIP_CALL_MESSAGE_NEW:            /** 18 < announce new incoming MESSAGE. */
+		_debugMid(" !EXOSIP_CALL_MESSAGE_NEW\n");
+		SIPCallMessageNew(event);
+		break;
+	case EXOSIP_CALL_MESSAGE_PROCEEDING:     /** 19 < announce a 1xx for MESSAGE. */
+		_debugMid(" !EXOSIP_CALL_MESSAGE_PROCEEDING\n");
+		break;
+	case EXOSIP_CALL_MESSAGE_ANSWERED:       /** 20 < announce a 200ok  */
+		// 200 OK
+		_debugMid(" !EXOSIP_CALL_MESSAGE_ANSWERED\n");
+		break;
+	case EXOSIP_CALL_MESSAGE_REDIRECTED:     /** 21 < announce a failure. */
+		_debugMid(" !EXOSIP_CALL_MESSAGE_REDIRECTED\n");
+		break;
+	case EXOSIP_CALL_MESSAGE_REQUESTFAILURE: /** 22 < announce a failure. */
+		_debugMid(" !EXOSIP_CALL_MESSAGE_REQUESTFAILURE\n");
+		break;
+	case EXOSIP_CALL_MESSAGE_SERVERFAILURE:  /** 23 < announce a failure. */
+		_debugMid(" !EXOSIP_CALL_MESSAGE_SERVERFAILURE\n");
+		break;
+	case EXOSIP_CALL_MESSAGE_GLOBALFAILURE:  /** 24 < announce a failure. */
+		_debugMid(" !EXOSIP_CALL_MESSAGE_GLOBALFAILURE\n");
+		Manager::instance().displayError(" !EXOSIP Call Message not implemented yet");
+		break;
 
-     case EXOSIP_CALL_CLOSED:          /** 25 < a BYE was received for this call      */
-       SIPCallClosed(event);
-       break;
+	case EXOSIP_CALL_CLOSED:          /** 25 < a BYE was received for this call */
+		_debugMid(" !EXOSIP_CALL_CLOSED\n");
+		SIPCallClosed(event);
+		break;
 
-      /* for both UAS & UAC events */
-     case EXOSIP_CALL_RELEASED:           /** 26 < call context is cleared.            */
-       SIPCallReleased(event);
-       break;
-     
-      /* response received for request outside calls */
-     case EXOSIP_MESSAGE_NEW:            /** 27 < announce new incoming MESSAGE. */
-       if (event->request == NULL) { break; }
-       SIPMessageNew(event);
-       break;
-     case EXOSIP_MESSAGE_PROCEEDING:     /** 28 < announce a 1xx for MESSAGE. */
-     case EXOSIP_MESSAGE_ANSWERED:       /** 29 < announce a 200ok  */
-     case EXOSIP_MESSAGE_REDIRECTED:     /** 30 < announce a failure. */
-       Manager::instance().displayError(" !EXOSIP Message not implemented yet");
-     break;
+	/* For both UAS & UAC events */
+	case EXOSIP_CALL_RELEASED:           /** 26 < call context is cleared. */
+		_debugMid(" !EXOSIP_CALL_RELEASED\n");
+		SIPCallReleased(event);
+		break;
 
-     case EXOSIP_MESSAGE_REQUESTFAILURE: /** 31 < announce a failure. */
-       if (event->response !=0 && event->response->status_code == SIP_METHOD_NOT_ALLOWED) {
-         Manager::instance().incomingMessage(getAccountID(), "Message are not allowed");
-       } else {
-         Manager::instance().displayError(" !EXOSIP_MESSAGE_REQUESTFAILURE not implemented yet");
-       }
-     break;
-     case EXOSIP_MESSAGE_SERVERFAILURE:  /** 32 < announce a failure. */
-     case EXOSIP_MESSAGE_GLOBALFAILURE:  /** 33 < announce a failure. */
-       Manager::instance().displayError(" !EXOSIP Message not implemented yet");
-       break;
-      
-      /* Presence and Instant Messaging */
-     case EXOSIP_SUBSCRIPTION_UPDATE:       /** 34 < announce incoming SUBSCRIBE.      */
-     case EXOSIP_SUBSCRIPTION_CLOSED:       /** 35 < announce end of subscription.     */
-       Manager::instance().displayError(" !EXOSIP Subscription not implemented yet");
-       break;
-      
-     case EXOSIP_SUBSCRIPTION_NOANSWER:        /** 37 < announce no answer              */
-     case EXOSIP_SUBSCRIPTION_PROCEEDING:      /** 38 < announce a 1xx                  */
-       Manager::instance().displayError(" !EXOSIP Subscription resposne not implemented yet");
-       break;
-     case EXOSIP_SUBSCRIPTION_ANSWERED:        /** 39 < announce a 200ok                */
-       eXosip_lock();
-       eXosip_automatic_action();
-       eXosip_unlock();
-     break;
+	/* Response received for request outside calls */
+	case EXOSIP_MESSAGE_NEW:            /** 27 < announce new incoming MESSAGE. */
+		_debugMid(" !EXOSIP_MESSAGE_NEW\n");
+		if (event->request == NULL) { break; }
+		SIPMessageNew(event);
+		break;
+	case EXOSIP_MESSAGE_PROCEEDING:     /** 28 < announce a 1xx for MESSAGE. */
+		_debugMid(" !EXOSIP_MESSAGE_PROCEEDING\n");
+		break;
+	case EXOSIP_MESSAGE_ANSWERED:       /** 29 < announce a 200ok  */
+		_debugMid(" !EXOSIP_MESSAGE_ANSWERED\n");
+		break;
+	case EXOSIP_MESSAGE_REDIRECTED:     /** 30 < announce a failure. */
+		_debugMid(" !EXOSIP_MESSAGE_REDIRECTED\n");
+		Manager::instance().displayError(" !EXOSIP Message not implemented yet");
+		break;
 
-     case EXOSIP_SUBSCRIPTION_REDIRECTED:      /** 40 < announce a redirection          */
-     case EXOSIP_SUBSCRIPTION_REQUESTFAILURE:  /** 41 < announce a request failure      */
-     case EXOSIP_SUBSCRIPTION_SERVERFAILURE:   /** 42 < announce a server failure       */
-     case EXOSIP_SUBSCRIPTION_GLOBALFAILURE:   /** 43 < announce a global failure       */
-     case EXOSIP_SUBSCRIPTION_NOTIFY:          /** 44 < announce new NOTIFY request     */
-     case EXOSIP_SUBSCRIPTION_RELEASED:        /** 45 < call context is cleared.        */
-       Manager::instance().displayError(" !EXOSIP Subscription response not implemented yet.");
-       break;
-      
-     case EXOSIP_IN_SUBSCRIPTION_NEW:          /** 46 < announce new incoming SUBSCRIBE.*/
-     case EXOSIP_IN_SUBSCRIPTION_RELEASED:     /** 47 < announce end of subscription.   */
-       Manager::instance().displayError(" !EXOSIP Subscription not implemented yet");
-       break;
-      
-     case EXOSIP_EVENT_COUNT:               /** 48 < MAX number of events  */
-      break;
-  }  
-  eXosip_event_free(event);
+	case EXOSIP_MESSAGE_REQUESTFAILURE: /** 31 < announce a failure. */
+		_debugMid(" !EXOSIP_MESSAGE_REQUESTFAILURE\n");
+		if (event->response !=0 && event->response->status_code == SIP_METHOD_NOT_ALLOWED) {
+			Manager::instance().incomingMessage(getAccountID(), "Message are not allowed");
+		} else {
+			Manager::instance().displayError(" !EXOSIP_MESSAGE_REQUESTFAILURE not implemented yet");
+		}
+		break;
+	case EXOSIP_MESSAGE_SERVERFAILURE:  /** 32 < announce a failure. */
+		_debugMid(" !EXOSIP_MESSAGE_SERVERFAILURE\n");
+		break;
+	case EXOSIP_MESSAGE_GLOBALFAILURE:  /** 33 < announce a failure. */
+		_debugMid(" !EXOSIP_MESSAGE_GLOBALFAILURE\n");
+		Manager::instance().displayError(" !EXOSIP Message not implemented yet");
+		break;
+
+	/* Presence and Instant Messaging */
+	case EXOSIP_SUBSCRIPTION_UPDATE:       /** 34 < announce incoming SUBSCRIBE.      */
+		_debugMid(" !EXOSIP_SUBSCRIPTION_UPDATE\n");
+		break;
+	case EXOSIP_SUBSCRIPTION_CLOSED:       /** 35 < announce end of subscription.     */
+		_debugMid(" !EXOSIP_SUBSCRIPTION_CLOSED\n");
+		Manager::instance().displayError(" !EXOSIP Subscription not implemented yet");
+		break;
+
+	case EXOSIP_SUBSCRIPTION_NOANSWER:        /** 37 < announce no answer              */
+		_debugMid(" !EXOSIP_SUBSCRIPTION_NOANSWER\n");
+		break;
+	case EXOSIP_SUBSCRIPTION_PROCEEDING:      /** 38 < announce a 1xx                  */
+		_debugMid(" !EXOSIP_SUBSCRIPTION_PROCEEDING\n");
+		Manager::instance().displayError(" !EXOSIP Subscription response not implemented yet");
+		break;
+	case EXOSIP_SUBSCRIPTION_ANSWERED:        /** 39 < announce a 200ok                */
+		_debugMid(" !EXOSIP_SUBSCRIPTION_ANSWERED\n");
+		eXosip_lock();
+		eXosip_automatic_action();
+		eXosip_unlock();
+		break;
+
+	case EXOSIP_SUBSCRIPTION_REDIRECTED:      /** 40 < announce a redirection          */
+		_debugMid(" !EXOSIP_SUBSCRIPTION_REDIRECTED\n");
+		break;
+	case EXOSIP_SUBSCRIPTION_REQUESTFAILURE:  /** 41 < announce a request failure      */
+		_debugMid(" !EXOSIP_SUBSCRIPTION_REQUESTFAILURE\n");
+		break;
+	case EXOSIP_SUBSCRIPTION_SERVERFAILURE:   /** 42 < announce a server failure       */
+		_debugMid(" !EXOSIP_SUBSCRIPTION_REQUESTFAILURE\n");
+		break;
+	case EXOSIP_SUBSCRIPTION_GLOBALFAILURE:   /** 43 < announce a global failure       */
+		_debugMid(" !EXOSIP_SUBSCRIPTION_GLOBALFAILURE\n");
+		break;
+	case EXOSIP_SUBSCRIPTION_NOTIFY:          /** 44 < announce new NOTIFY request     */
+		_debugMid(" !EXOSIP_SUBSCRIPTION_NOTIFY\n");
+		osip_body_t* body;
+		osip_from_to_str(event->request->from, &tmp2);
+		osip_message_get_body(event->request, 0, &body);
+		if (body != NULL && body->body != NULL) {
+//			printf("\n---------------------------------\n");
+//			printf ("(%i) from: %s\n  %s\n", event->tid, tmp2, body->body);
+//			printf("---------------------------------\n");
+		}
+		osip_free(tmp2);
+		break;
+	case EXOSIP_SUBSCRIPTION_RELEASED:        /** 45 < call context is cleared.        */
+		_debugMid(" !EXOSIP_SUBSCRIPTION_RELEASED\n");
+		Manager::instance().displayError(" !EXOSIP Subscription response not implemented yet.");
+		break;
+
+	case EXOSIP_IN_SUBSCRIPTION_NEW:          /** 46 < announce new incoming SUBSCRIBE.*/
+		_debugMid(" !EXOSIP_IN_SUBSCRIPTION_NEW\n");
+		break;
+	case EXOSIP_IN_SUBSCRIPTION_RELEASED:     /** 47 < announce end of subscription.   */
+		_debugMid(" !EXOSIP_IN_SUBSCRIPTION_RELEASED\n");
+		Manager::instance().displayError(" !EXOSIP Subscription not implemented yet");
+		break;
+
+	case EXOSIP_EVENT_COUNT:               /** 48 < MAX number of events  */
+		_debugMid(" !EXOSIP_EVENT_COUNT : SHOULD NEVER HAPPEN!!!!!\n");
+		break;
+	default:
+		printf("received eXosip event (type, did, cid) = (%d, %d, %d)", event->type, event->did, event->cid);
+		break;
+	}
+	eXosip_event_free(event);
 }
 
 bool
@@ -895,6 +968,91 @@ SIPVoIPLink::sendMessage(const std::string& to, const std::string& body)
   return returnValue;
 }
 
+// NOW
+bool
+SIPVoIPLink::isContactPresenceSupported()
+{
+	return true;
+}
+
+void
+SIPVoIPLink::subscribePresenceForContact(Contact* contact)
+{
+	osip_message_t* subscription;
+	
+	int i;
+	
+	std::string to   = contact->getUrl().data();
+	std::ostringstream from;
+	
+	// Build URL of sender
+	from << "sip:" << _userpart.data() << "@" << getHostName().data();
+
+	// Subscribe for changes on server but also polls at every 5000 interval
+	i = eXosip_subscribe_build_initial_request(&subscription,
+			to.data(),
+			from.str().c_str(),
+			NULL,
+			"presence", 5000);
+	if(i!=0) return;
+	
+	// We want to receive presence in the PIDF XML format in SIP messages
+	osip_message_set_accept(subscription, "application/pidf+xml");
+	
+	// Send subscription
+	eXosip_lock();
+	i = eXosip_subscribe_send_initial_request(subscription);
+	if(i!=0) _debug("Sending of subscription tp %s failed\n", to.data());
+	eXosip_unlock();
+}
+
+void
+SIPVoIPLink::publishPresenceStatus(std::string status)
+{
+	_debug("Publishing presence status\n");
+	char buf[4096];
+	int i;
+	osip_message_t* publication;
+	
+	std::ostringstream url;
+	std::string basic;
+	std::string note;
+	
+	// Build URL of sender
+	url << "sip:" << _userpart.data() << "@" << getHostName().data();
+	
+	// TODO
+	// Call function to convert status in basic and note
+	// tags that are integrated in the publication
+	basic = "open";
+	note = "ready";
+	
+	snprintf(buf, 4096,
+"<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n\
+<presence xmlns=\"urn:ietf:params:xml:ns:pidf\"\n\
+          xmlns:es=\"urn:ietf:params:xml:ns:pidf:status:rpid-status\"\n\
+          entity=\"%s\">\n\
+	<tuple id=\"sg89ae\">\n\
+		<status>\n\
+			<basic>%s</basic>\n\
+			<es:activities>\n\
+				<es:activity>in-transit</es:activity>\n\
+			</es:activities>\n\
+		</status>\n\
+		<contact priority=\"0.8\">%s</contact>\n\
+		<note>%s</note>\n\
+	</tuple>\n\
+</presence>"
+			, url.str().c_str(), basic.data(), url.str().c_str(), note.data());
+	
+	// Build publish request in PIDF
+	i = eXosip_build_publish(&publication, url.str().c_str(), url.str().c_str(), NULL, "presence", "1800", "application/pidf+xml", buf);
+	
+	eXosip_lock();
+	i = eXosip_publish(publication, url.str().c_str());
+	eXosip_unlock();
+}
+
 bool
 SIPVoIPLink::SIPOutgoingInvite(SIPCall* call) 
 {
@@ -961,10 +1119,10 @@ SIPVoIPLink::SIPStartCall(SIPCall* call, const std::string& subject)
         call->getCodecMap().getCodecName(payload) << "/" << call->getCodecMap().getSampleRate(payload);
 
     	//TODO add channel infos
-        /*nbChannel = iter->second->getChannel();
+        nbChannel = call->getCodecMap().getChannel(payload);
         if (nbChannel!=1) {
           rtpmap_attr << "/" << nbChannel;
-        }*/
+        }
         rtpmap_attr << "\r\n";
       }
     // go to next codec

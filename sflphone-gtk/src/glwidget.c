@@ -1,11 +1,24 @@
+/*
+ *  Copyright (C) 2007 Savoir-Faire Linux inc.
+ *  Author: Jean Tessier <jean.tessier@polymtl.ca>
+ *                                                                              
+ *  This program is free software; you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation; either version 3 of the License, or
+ *  (at your option) any later version.
+ *                                                                                
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *                                                                              
+ *  You should have received a copy of the GNU General Public License
+ *  along with this program; if not, write to the Free Software
+ *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ */
+
 #include <glwidget.h>
 
-//! Callback Function to draw the content of the widget
-/*!
- * \param widget a pointer to the widget being drawned
- * \param data data on the call back
- * \return the success of the operation
- */
 gboolean draw(GtkWidget* widget, gpointer data)
 {
 	GdkGLContext *glcontext = gtk_widget_get_gl_context (widget);
@@ -51,13 +64,6 @@ gboolean draw(GtkWidget* widget, gpointer data)
 	
 }
 
-//! Callback Function to reshape the content of the widget
-/*!
- * \param widget a pointer to the widget being drawned
- * \param ev a pointer to the event data
- * \param data data on the call back
- * \return the success of the operation
- */
 gboolean reshape(GtkWidget* widget, GdkEventConfigure* ev, gpointer data)
 {
 	
@@ -65,12 +71,6 @@ gboolean reshape(GtkWidget* widget, GdkEventConfigure* ev, gpointer data)
 	return TRUE;
 }
 
-//! Callback Function to initialise the content of the widget
-/*!
- * \param widget a pointer to the widget being drawned
- * \param data data on the call back
- * \return the success of the operation
- */
 gboolean init(GtkWidget* widget, gpointer data)
 {
 	GdkGLContext *glcontext = gtk_widget_get_gl_context (widget);
@@ -78,7 +78,7 @@ gboolean init(GtkWidget* widget, gpointer data)
  
  	// OpenGl BEGIN 	
     if (!gdk_gl_drawable_gl_begin (gldrawable, glcontext))
-    	return;
+    	return FALSE;
 
     glViewport (0, 0,widget->allocation.width, widget->allocation.height);
               
@@ -94,16 +94,11 @@ gboolean init(GtkWidget* widget, gpointer data)
 	return TRUE;
 }
 
-//! Function to force a redraw of the widget
 void redraw(GtkWidget* widget)
 {
 	gtk_widget_queue_draw(GTK_WIDGET(widget));
 }
 
-//! Function that creates the opengl widget with all the proper information
-/*!
- * \return the created widget
- */
 GtkWidget* createGLWidget()
 {	
 	
@@ -147,12 +142,6 @@ GtkWidget* createGLWidget()
 
 }
 
-//! Draws the images from the local capture source
-/*!
- * \param widget a pointer to the widget being drawned
- * \param data data on the call back
- * \return the success of the operation
- */
 gboolean drawLocal(GtkWidget* widget, gpointer data, GdkGLContext *glContext, GdkGLDrawable *glDrawable)
 {
 	
@@ -171,13 +160,6 @@ gboolean drawLocal(GtkWidget* widget, gpointer data, GdkGLContext *glContext, Gd
 	
 }
 
-
-//! Draws the images from the remote source
-/*!
- * \param widget a pointer to the widget being drawned
- * \param data data on the call back
- * \return the success of the operation
- */
 gboolean drawRemote(GtkWidget* widget, gpointer data, GdkGLContext *glContext, GdkGLDrawable *glDrawable)
 {
 	
@@ -191,46 +173,6 @@ gboolean drawRemote(GtkWidget* widget, gpointer data, GdkGLContext *glContext, G
 	glPixelStorei(GL_PACK_ALIGNMENT, 8);
 	glPixelZoom(1., -1.);
 	glDrawPixels(remoteBuff->width, remoteBuff->height, GL_RGB, GL_UNSIGNED_BYTE, remoteBuff->data );
-	
-	return TRUE;
-	
-}
-
-gboolean InitMemSpaces( char* local, char* remote )
-{
-	if( local != NULL)
-	{
-		localKey= createMemKeyFromChar( local );
-		if(localKey == NULL)
-			return FALSE;
-		
-		localBuff= calloc(1, sizeof(MemData));
-		if( localBuff == NULL)
-			return FALSE;
-	}
-	
-	if( remote != NULL )
-	{
-		remoteKey= createMemKeyFromChar( remote );
-		if(remoteKey == NULL)
-			return FALSE;
-		
-		remoteBuff= calloc(1, sizeof(MemData));
-		if( remoteBuff == NULL)
-			return FALSE;
-	}
-	
-	return TRUE;
-	
-}
-
-gboolean DestroyMemSpaces()
-{
-	
-	free(localKey);
-	free(remoteKey);
-	free(remoteBuff);
-	free(localBuff);
 	
 	return TRUE;
 	

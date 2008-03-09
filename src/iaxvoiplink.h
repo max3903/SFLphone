@@ -25,6 +25,8 @@
 #include "global.h"
 #include <samplerate.h>
 
+#include "audio/codecDescriptor.h"
+
 /** @todo Remove this fstream/iostream stuff */
 #include <fstream> // fstream + iostream for _fstream debugging...
 #include <iostream>
@@ -82,6 +84,7 @@ public:
   bool refuse (const CallID& id);
   bool carryingDTMFdigits(const CallID& id, char code);
   bool sendMessage(const std::string& to, const std::string& body) { return false; }
+  bool isContactPresenceSupported() { return false; }
 
 public: // iaxvoiplink only
   void setHost(const std::string& host) { _host = host; }
@@ -152,21 +155,6 @@ private:
    */
   int iaxCodecMapToFormat(IAXCall* call);
 
- /**
-  * Dynamically load an audio codec
-  * @return audiocodec a pointer on an audiocodec object
-  */ 
-  AudioCodec* loadCodec(int payload);
-
- /**
-  * Destroy and close the pointer on the codec
-  * @param audiocodec the codec you want to unload
-  */  
-  void unloadCodec(AudioCodec* audiocodec);
-
-  /** pointer on function **/
-  void* handle_codec;
-
   /** Threading object */
   EventThread* _evThread;
 
@@ -227,6 +215,7 @@ private:
    * @todo Remove this */
   //std::ofstream _fstream;
 
+  AudioCodec* _audiocodec;
 };
 
 #endif
