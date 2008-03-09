@@ -223,7 +223,7 @@ bool MemManager::putData(int key, char * Data, int size)
 			return true;
 		}
 		
-		return false
+		return false;
 }
 
 bool MemManager::putData(MemKey* key, char * Data, int size)

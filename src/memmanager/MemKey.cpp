@@ -118,9 +118,10 @@ void MemKey::setSize(int size)
 	
 }
 
-char * MemKey::serialize()
+char* MemKey::serialize()
 {
-	//TODO return char * with all params
+	
+	//TODO return char* with all params
 	return 0;
 }
 

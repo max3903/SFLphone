@@ -23,7 +23,7 @@
 #include <sys/types.h>
 #include <sys/ipc.h> 
 #include <sys/shm.h> 
-#include <string.h>
+#include <string>
 
 //! Represent a unique key associated to a shared memory space
 /*!

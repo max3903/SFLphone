@@ -23,7 +23,7 @@ bool MemSorter::operator()(MemKey* key1, MemKey* key2)
 		key1->getKey() == key2->getKey() &&
 		key1->getSize() == key2->getSize() &&
 		key1->getWidth() == key2->getWidth())
-		return true
+		return true;
 		else
 			return false;
 	
