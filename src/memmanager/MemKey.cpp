@@ -21,49 +21,50 @@
 
 MemKey::MemKey()
 {
-	
+	this->key = this->genKey();
 	//TODO get index from memmanager
-	//TODO put size
-	//TODO put description
-	
+	//TODO put DEFAULT size
+	//TODO put DEFAULT width
+	//TODO put DEFAULT height
+	this->description = serialize();
 }
 
 MemKey::MemKey(char* serializedData)
 {
 	
-	//TODO ????
+	//TODO read serializedData and create MemKey with parameters
+	//"%i %i %i %i",size,width,height,key
 }
 
-MemKey::MemKey(int size, char* description,int width, int height)
+MemKey::MemKey(int size,int width, int height)
 {
 	this->size = size;
-	strcpy(this->description,description);
 	this->height = height;
 	this->width = width;
+	this->key = this->genKey();
 	//TODO get index from memmanager
-	//TODO generate key
+	this->description = serialize();
+	
 }
 
 
-MemKey::MemKey(int size, char* description,key_t key,int width, int height)
+MemKey::MemKey(int size,key_t key,int width, int height)
 {
 	this->size = size;
-	strcpy(this->description,description);
 	this->key = key;
 	this->height = height;
 	this->width = width;
-
+	this->description = serialize();
 }
 
 
 MemKey::MemKey(MemKey* key)
 {	
-	
-	this->size = key->size;
-	strcpy(this->description,key->description);
 	this->index = key->index;
 	this->size = key->size;
-	
+	this->width = key->width;
+	this->height = key->height;
+	this->description = serialize();
 }
 
 
@@ -71,9 +72,11 @@ MemKey::MemKey(MemKey& key)
 {
 	
 	this->size = key.size;
-	strcpy(this->description,key.description);
 	this->index = key.index;
 	this->size = key.size;
+	this->height = key.height;
+	this->width = key.width;
+	this->description = serialize();
 }
 
 
@@ -86,10 +89,9 @@ int MemKey::getKey()
 	return this->key;
 }
 
-void MemKey::setKey(key_t key){
-
-this->key = key;
-
+void MemKey::setKey(key_t key)
+{
+	this->key = key;
 }
 
 const char * MemKey::getDescription() const 
@@ -118,13 +120,6 @@ void MemKey::setSize(int size)
 	
 }
 
-char* MemKey::serialize()
-{
-	
-	//TODO return char* with all params
-	return 0;
-}
-
 int MemKey::getHeight()
 {
 
@@ -148,4 +143,15 @@ void MemKey::setWidth(int width)
 	
 	this->width = width;
 	
+}
+char* MemKey::serialize()
+{
+	char* tmp;
+	sprintf(tmp,"%i %i %i %i",this->size,this->width,this->height,this->key);
+	return tmp;
+}
+
+int MemKey::genKey()
+{
+	return rand();	
 }

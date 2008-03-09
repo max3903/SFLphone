@@ -39,7 +39,7 @@ public:
 	 * \param size the maximum size of the shared memory space
 	 * \param description a description of the shared memory space
 	 */
-    MemKey(int size, char* description,int width, int height);
+    MemKey(int size,int width, int height);
 	//! Constructor
 	/*!
 	 * Initiate the object
@@ -48,7 +48,7 @@ public:
 	 * \param description a description of the shared memory space
 	 * \param key is to set the key
 	 */
-    MemKey(int size, char* description,key_t key,int width, int height);
+    MemKey(int size,key_t key,int width, int height);
     //! Pointer copy constructor
     /*!
      * Creates an independant copy of the source object
@@ -154,9 +154,15 @@ private:
 	 * The default constructor is declared private to prevent the decleration of an MemKey without the proper information.
 	 */
     MemKey();
+    //! Random key Generator
+	/*!
+	 * Will create a key if needed
+	 */
+    int genKey();
     
     //! The key to access the shared memory space
     key_t key;
+    
     
     //! The description of the shared memory space
     char * description;
