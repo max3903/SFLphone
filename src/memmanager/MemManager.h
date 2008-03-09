@@ -150,7 +150,7 @@ public:
     /*!
      * \return a vector of available MemKey
      */
-    vector<MemKey*> getAvailSpaces() const;
+    vector<MemKey*> getAvailSpaces(); 
 
 
 private:
