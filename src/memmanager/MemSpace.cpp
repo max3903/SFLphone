@@ -27,7 +27,6 @@
 
 MemSpace::MemSpace()
 {
-	
 }
 
 MemSpace::MemSpace(MemKey* key)
@@ -35,19 +34,23 @@ MemSpace::MemSpace(MemKey* key)
 	this->theKey = key;
 }
 
-MemKey* MemSpace::getKey()
+MemKey* MemSpace::getMemKey()
 {
 	return this->theKey;
 }
 
 bool MemSpace::putData(void * Data, int size)
 {
-	//TODO put data 
+	strcpy(this->baseAddress,(char*)Data);
+	this->theKey->setSize(size);
 }
 
 MemData* MemSpace::fetchData()
 {
-	
+	MemData* newMemData = new MemData();
+	newMemData->putData(this->baseAddress,this->theKey->getSize(),this->theKey->getWidth(),
+	this->theKey->getHeight());
+	return newMemData;
 }
 
 MemSpace::MemSpace(MemSpace* space)
@@ -69,8 +72,18 @@ MemSpace::~MemSpace()
 
 void MemSpace::readSpace(MemData* data)
 {
+	//TODO
 }
 
 void MemSpace::writeSpace(char * data, int size)
 {
+	//TODO
+}
+
+char* MemSpace::getBaseAddress(){
+return this->baseAddress;
+}
+
+void MemSpace::setBaseAddress(char* Address){
+this->baseAddress = Address;
 }

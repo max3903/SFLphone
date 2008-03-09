@@ -30,17 +30,23 @@ MemData::~MemData()
 MemData::MemData(MemData* data)
 {
 	// TODO: Use memcpy to copy data
+	strcpy(this->data,data->data);
 }
 
 MemData::MemData(MemData& data)
 {
+	strcpy(this->data,data.data);
 }
 
-int MemData::fetchData(char * data)
+int MemData::fetchData(char* data)
 {
-	data= 0;
-	return 0;
+	strcpy(data,this->data);
+	return size;
 }
-void MemData::putData(char * data, int size)
+void MemData::putData(char * data, int size,int width,int height)
 {
+	strcpy(this->data,data);
+	this->size = size;
+	this->width = width;
+	this->height;
 }

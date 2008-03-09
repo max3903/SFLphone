@@ -64,7 +64,7 @@ public:
     /*!
      * \return a MemKey containing the information for this MemSpace
      */
-    MemKey* getKey();
+    MemKey* getMemKey();
 
     //! Changes the data in the MemSpace
     /*!
@@ -79,12 +79,24 @@ public:
      * \return the data contained int the shared memory in the form of a MemData
      */
     MemData* fetchData();
+    
+     //! Returns the baseAddress associated with this MemSpace
+    /*!
+     * \return a MemKey containing the information for this MemSpace
+     */
+    char* getBaseAddress();
+   //! Sets the char * baseAddress associated with this MemSpace
+    /*!
+     * \param Address containing the information to set the baseAddress
+     */
+    void setBaseAddress(char *Address);
+    
 
 private:
 	
 	//! Writes data to the shared memory space
 	/*!
-	 *	The purpose of this fucntion is to concentrate os specific code
+	 *	The purpose of this function is to concentrate os specific code
 	 * 
 	 * \param data a pointer to the data to be written
 	 * \param size the size of data
