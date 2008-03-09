@@ -25,7 +25,7 @@ public:
     /*!
      * \return a string representing the value of the resolution (i.e. 320X180)
      */
-    char* GetResolution(); 
+    char* getResolution(); 
         
     
     //! Method to set the resolution to an exact value 

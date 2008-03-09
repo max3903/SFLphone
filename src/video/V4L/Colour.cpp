@@ -26,7 +26,7 @@
     return true;
   }
   
-  char* Colour::GetColour(){
+  char* Colour::getColour(){
 
     return 0;
   }
