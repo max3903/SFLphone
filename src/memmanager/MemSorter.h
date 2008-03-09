@@ -25,7 +25,7 @@
 class MemSorter {
 public:
 
-	//! The comparaision operator
+	//! The comparision operator
     bool operator()(MemKey* key1, MemKey* key2);
     
 };
