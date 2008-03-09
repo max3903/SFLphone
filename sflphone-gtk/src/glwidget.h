@@ -20,9 +20,9 @@
 #ifndef GLWIDGET_H
 #define GLWIDGET_H
 
+#include <gtk/gtk.h>
 #include <gtk/gtkgl.h>
 #include <GL/gl.h>
-#include <GL/glu.h>
 
 #include "MemManager.h"
 

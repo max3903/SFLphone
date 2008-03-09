@@ -18,7 +18,6 @@
  */
 
 #include <glwidget.h>
-#include <gtk/gtkgl.h>
 
 gboolean draw(GtkWidget* widget, gpointer data)
 {
