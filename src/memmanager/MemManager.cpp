@@ -125,6 +125,7 @@ const MemKey* MemManager::initSpace(int size,char * description,int width, int h
 
 bool MemManager::setDefaultSpace(MemKey* key)
 {
+vector<MemSpace*>::iterator iter;
 
 	for( iter = spaces.begin(); iter != spaces.end() ;iter++);
 	{
@@ -160,114 +161,82 @@ void MemManager::previousSpace()
 
 MemData* MemManager::fetchData()
 {
-
-	MemData* newMemData = new MemData();
-	
-	newMemData->putData((*defaultIndex)->getBaseAddress(),
-	(*defaultIndex)->getMemKey()->getSize(),(*defaultIndex)->getMemKey()->getWidth(),
-	(*defaultIndex)->getMemKey()->getHeight());
-	
-	
-	return newMemData;
+	return (*defaultIndex)->fetchData();
 }
 
 MemData* MemManager::fetchData(key_t key)
 {
+	vector<MemSpace*>::iterator iter;
 	vector<MemSpace*>::iterator i;
-	MemData* newMemData = new MemData();
 	
+	//find the memspace containing the key
 	for( iter = spaces.begin(); iter != spaces.end() ;iter++);
-	{
-		if ((*iter)->getMemKey()->getKey() == key){
-		i = iter;
-	
-		}
-	
-	}
-	
-	newMemData->putData((*i)->getBaseAddress(),
-	(*i)->getMemKey()->getSize(),(*i)->getMemKey()->getWidth(),
-	(*i)->getMemKey()->getHeight());
+		if ((*iter)->getMemKey()->getKey() == key)
+			i = iter;
 	
 	
-	return newMemData;
+	
+	// returns a MemData
+	return (*i)->fetchData();
 	
 }
 
 MemData* MemManager::fetchData(MemKey* key)
 {
+	vector<MemSpace*>::iterator iter;
 	vector<MemSpace*>::iterator i;
-	MemData* newMemData = new MemData();
 	
-	//find memspace 
+	//find the memspace containing the key
 	for( iter = spaces.begin(); iter != spaces.end() ;iter++);
-	{
-		if ((*iter)->getMemKey() == key){
-		i = iter;
-		}
+		if ((*iter)->getMemKey() == key)
+			i = iter;
 	
-	}
-	
-	newMemData->putData((*i)->getBaseAddress(),
-	(*i)->getMemKey()->getSize(),(*i)->getMemKey()->getWidth(),
-	(*i)->getMemKey()->getHeight());
-	
-	
-	return newMemData;
+	return (*i)->fetchData();
 	
 }
 
 bool MemManager::putData(char * Data, int size)
 {
-	//TODO CHANGE width and height ???
-	//TODO return false???
-	(*defaultIndex)->setBaseAddress(Data);
-	(*defaultIndex)->getMemKey()->setSize(size);
+	(*defaultIndex)->putData(Data,size);
 	
 	return true;
 }
 
 bool MemManager::putData(int key, char * Data, int size)
 {
+	vector<MemSpace*>::iterator iter;
 	vector<MemSpace*>::iterator i;
 	
 	for( iter = spaces.begin(); iter != spaces.end() ;iter++);
-	{
-		if ((*iter)->getMemKey()->getKey() == key){
-		i = iter;
+		if ((*iter)->getMemKey()->getKey() == key)
+			i = iter;
+
+	(*i)->putData(Data,size);
 	
-		}
-	}
-	
-	(*i)->setBaseAddress(Data);
-	(*i)->getMemKey()->setSize(size);
 	return true;
 }
 
 bool MemManager::putData(MemKey* key, char * Data, int size)
 {
+	vector<MemSpace*>::iterator iter;
 	vector<MemSpace*>::iterator i;
 	
 	//find memspace 
 	for( iter = spaces.begin(); iter != spaces.end() ;iter++);
-	{
-		if ((*iter)->getMemKey() == key){
-		i = iter;
-		}
-	
-	}
-	
-	(*i)->setBaseAddress(Data);
-	(*i)->getMemKey()->setSize(size);
+		if ((*iter)->getMemKey() == key)
+			i = iter;
+		
+	(*i)->putData(Data,size);
 	
 	return true;
 }
 
 vector<MemKey*> MemManager::getAvailSpaces() const 
 {
-	//TODO vector memkey or memspace ???
-	vector<MemKey*> tmp;
-	return tmp;
+
+	vector<MemKey*> MemKeys;
+
+	return MemKeys;
 
 }
 

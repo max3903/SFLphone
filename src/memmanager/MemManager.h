@@ -163,10 +163,7 @@ private:
     
     //! The MemSpaces
     vector<MemSpace*> spaces;
-    
-    //! The MemSpaces iterator
-    vector<MemSpace*>::iterator iter;
-    
+   
     //! The instance of the manager
     static MemManager* instance;
     

@@ -96,7 +96,7 @@ private:
 	
 	//! Writes data to the shared memory space
 	/*!
-	 *	The purpose of this fucntion is to concentrate os specific code
+	 *	The purpose of this function is to concentrate os specific code
 	 * 
 	 * \param data a pointer to the data to be written
 	 * \param size the size of data

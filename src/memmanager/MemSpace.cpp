@@ -42,11 +42,16 @@ MemKey* MemSpace::getMemKey()
 
 bool MemSpace::putData(void * Data, int size)
 {
-	//TODO put data 
+	strcpy(this->baseAddress,(char*)Data);
+	this->theKey->setSize(size);
 }
 
 MemData* MemSpace::fetchData()
 {
+	MemData* newMemData = new MemData();
+	newMemData->putData(this->baseAddress,this->theKey->getSize(),this->theKey->getWidth(),
+	this->theKey->getHeight());
+	return newMemData;
 	
 }
 
