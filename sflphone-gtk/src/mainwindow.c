@@ -303,6 +303,7 @@ gboolean main_window_glWidget( gboolean show )
 					    gtk_box_reorder_child(GTK_BOX (subvbox), drawing_area, 0);
 					    gtk_widget_show_all (drawing_area);
 					    showGlWidget = show;
+					    return TRUE;
 					  }
 					  else if (!show && showGlWidget)
 					  {
