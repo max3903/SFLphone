@@ -52,6 +52,6 @@ public:
     /*!
      * \return a string representing the value of the colour
      */
-    char* GetColour();
+    char* getColour();
 };
 #endif //COLOUR_H
