@@ -196,8 +196,6 @@ MemData* MemManager::fetchData()
 
 MemData* MemManager::fetchData(key_t key)
 {
-
-	
 	vector<MemSpace*>::iterator iter;
 	vector<MemSpace*>::iterator i;
 	
@@ -212,7 +210,6 @@ MemData* MemManager::fetchData(key_t key)
 		
 		//if no key found return default index	
 		return (*defaultIndex)->fetchData(); 
-	
 }
 
 MemData* MemManager::fetchData(MemKey* key)
