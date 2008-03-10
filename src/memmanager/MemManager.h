@@ -79,7 +79,15 @@ public:
      * \return a MemKey linking to a MemSpace dans that is needed for future access
      */
     const MemKey* initSpace(MemKey* key);
-
+    
+    //! Delete a shared memory space with the specified info
+    /*!
+     * This method creates a new shared memory space and create a new key or links to an existing one and returns the corresponding MemKey. To link 2 spaces, the size and the key muste be the same.
+     * 
+     * \param key the key identifiying the shared memory space
+     * \return bool true if the memspace was deleted, false otherwise
+     */
+    bool deleteSpace(MemKey* key);
     
     //! Sets the default MemSpace to work with
     /*!

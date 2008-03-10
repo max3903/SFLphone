@@ -68,6 +68,7 @@ MemSpace::MemSpace(MemSpace& space)
 
 MemSpace::~MemSpace()
 {
+	delete theKey;
 }
 
 void MemSpace::readSpace(MemData* data)

@@ -62,6 +62,7 @@ const MemKey* MemManager::initSpace(key_t key, int size,int width,int height)
     } 
 	//add the newly created space to the vector 
 	spaces.push_back(newSpace);
+	
 	return newKey;
 }
 
@@ -89,6 +90,35 @@ const MemKey* MemManager::initSpace(MemKey* key)
 	spaces.push_back(newSpace);
 	
 	return key;
+}
+bool MemManager::deleteSpace(MemKey* key)
+{
+	vector<MemSpace*>::iterator iter;
+	int i;
+	for( iter = spaces.begin(); iter != spaces.end() ;iter++);
+	{
+		if ((*iter)->getMemKey() == key)
+		{
+			//remove memspace from vector
+			spaces.erase(iter);
+			//TODO release space
+			i = shmdt((*iter)->getBaseAddress());
+			if(i == -1) {
+   					 perror("shmop: shmdt failed");
+    					} else 
+  				fprintf(stderr, "shmop: shmdt returned %d\n", i);
+  				
+			//delete memspace
+			delete (*iter);
+			
+			return true;
+		
+		}
+	}
+
+return false;
+
+
 }
 
 const MemKey* MemManager::initSpace(int size,int width, int height)
@@ -166,8 +196,6 @@ MemData* MemManager::fetchData()
 
 MemData* MemManager::fetchData(key_t key)
 {
-
-	
 	vector<MemSpace*>::iterator iter;
 	vector<MemSpace*>::iterator i;
 	
@@ -182,7 +210,6 @@ MemData* MemManager::fetchData(key_t key)
 		
 		//if no key found return default index	
 		return (*defaultIndex)->fetchData(); 
-	
 }
 
 MemData* MemManager::fetchData(MemKey* key)
