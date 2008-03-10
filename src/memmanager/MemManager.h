@@ -28,6 +28,7 @@
 #include "MemSpace.h"
 #include "MemKey.h"
 
+
 using namespace std;
 
 //! Shared memory pool manager
@@ -143,7 +144,7 @@ public:
      * \param size the size of Data
      * \return the success of the operation
      */
-    bool putData(int key, char * Data, int size);
+    bool putData(key_t key, char * Data, int size);
 
     //! Changes the data in the MemSpace specified by the key
     /*!
@@ -170,13 +171,13 @@ private:
     int genKey();
     
     //! The MemSpaces
-    vector<MemSpace*> spaces;
+    vectMemSpace spaces;
    
     //! The instance of the manager
     static MemManager* instance;
     
     // The current index of the pool of MemSpace
-    vector<MemSpace*>::iterator defaultIndex;
+    vectMemSpaceIterator defaultIndex;
     
 protected:
 	

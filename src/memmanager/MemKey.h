@@ -24,6 +24,13 @@
 #include <sys/ipc.h> 
 #include <sys/shm.h> 
 #include <string>
+#include <vector>
+#include <iterator>
+
+class MemSpace;
+typedef std::vector<MemSpace*> vectMemSpace;
+typedef vectMemSpace::iterator vectMemSpaceIterator;
+
 
 //! Represent a unique key associated to a shared memory space
 /*!
@@ -87,9 +94,6 @@ public:
     /*!
      */
     void setKey(key_t key);
-    
-    
- 
 
     //! Access method to the description of the shared memory space
     /*!
@@ -101,13 +105,13 @@ public:
     /*!
      * \return the index in the MemManager
      */
-    int getIndex();
+    vectMemSpaceIterator getIndex();
 
     //! Modification method to the index of the memory space in the MemManager
     /*!
      * \param index the index in the MemManager
      */
-    void setIndex(int index);
+    void setIndex(vectMemSpaceIterator index);
 
     //! Access method to the maixmum size of shared memory space
     /*!
@@ -148,7 +152,7 @@ private:
     char * description;
     
     //! The index of the MemSpace in the MemManager
-    int index;
+    vectMemSpaceIterator index;
     
     //! The maximum size of the shared memory space
     int size;

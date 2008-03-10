@@ -92,12 +92,12 @@ const char * MemKey::getDescription() const
 	return this->description ;
 }
 
-int MemKey::getIndex()
+vectMemSpaceIterator MemKey::getIndex()
 {
 	return this->index;
 }
 
-void MemKey::setIndex(int index)
+void MemKey::setIndex(vectMemSpaceIterator index)
 { 
 	this->index = index;
 }
