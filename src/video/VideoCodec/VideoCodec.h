@@ -1,0 +1,83 @@
+/*
+ *  Copyright (C) 2006-2007 Savoir-Faire Linux inc.
+ *  Author: Jean-Francois Blanchard-Dionne <jean-francois.blanchard-dionne@polymtl.ca>
+ *                                                                              
+ *  This program is free software; you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation; either version 3 of the License, or
+ *  (at your option) any later version.
+ *                                                                                
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *                                                                              
+ *  You should have received a copy of the GNU General Public License
+ *  along with this program; if not, write to the Free Software
+ *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ */
+/**
+ *  VideoCodec Class
+ * 
+ * This is the mother VideoCodec class. It's a virtual abstract class for encoding and 
+ * decoding video data.
+ */
+
+#ifndef VIDEOCODEC_H
+#define VIDEOCODEC_H
+#include <ffmpeg/avcodec.h>
+#include <ffmpeg/avformat.h>
+/**
+ * @author Jean-Francois Blanchard-Dionne */
+class VideoCodec {
+public:
+/**
+     * Function to decode video information
+     * @param in_buf the input buffer
+     * @param width of the video frame
+     * @param height of the video frame
+     * @param out_buf the output buffer
+     * 
+     */
+    virtual int videoDecode(uint8_t *in_buf, int width, int height, uint8_t* out_buf ) =0;
+/**
+     * Function to encode video information
+     * @param width of the video frame
+     * @param height of the video frame
+     * @param buf the buffer to encode
+     * @param size buffer size
+     * 
+     */
+    virtual int videoEncode(int width, int height, uint8_t* buf, unsigned int size) =0;
+
+    void init();
+	/**
+     * Default Destructor
+     * 
+     */
+    virtual ~VideoCodec() =0;
+	/**
+     * Default Constructor
+     * 
+     */
+    VideoCodec();
+private:
+	/**
+     * Libavcodec Codec type
+     */
+    AVCodec* Codec;
+    /**
+     * Libavcodec Codec context
+     */
+    AVCodecContext* codecCtx;
+     /**
+     * Libavcodec packet
+     */
+    AVPacket pkt;
+     /**
+     * Libavcodec frame
+     */
+    AVFrame* frame;
+};
+#endif //VIDEOCODEC_H
+

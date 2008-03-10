@@ -3,6 +3,7 @@
  *  Author: Yan Morin <yan.morin@savoirfairelinux.com>
  *  Author: Laurielle Lea <laurielle.lea@savoirfairelinux.com>
  *  Author: Emmanuel Milou <emmanuel.milou@savoirfairelinux.com>
+ *  Author: Guillaume Carmel-Archambault <guillaume.carmel-archambault@savoirfairelinux.com>
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -42,6 +43,7 @@
 #include "audio/audiofile.h"
 #include "audio/dtmf.h"
 #include "audio/codecDescriptor.h"
+
 
 
 class AudioLayer;
@@ -275,6 +277,63 @@ public:
    */
   std::vector< ::DBus::String > getCodecDetails( const ::DBus::Int32& payload);
 
+  /**
+   * Get a list of supported input audio plugin
+   * @return List of names
+   */
+  std::vector< std::string> getInputAudioPluginList(void);
+  
+  /**
+   * Get a list of supported output audio plugin
+   * @return List of names
+   */
+  std::vector< std::string> getOutputAudioPluginList(void);
+  
+  /**
+   * Set input audio plugin 
+   */
+  void setInputAudioPlugin(const std::string& audioPlugin);
+  
+  /**
+   * Set output audio plugin 
+   */
+  void setOutputAudioPlugin(const std::string& audioPlugin);
+  
+  /**
+   * Get list of supported audio output device
+   */
+  std::vector<std::string> getAudioOutputDeviceList(void);
+
+  /**
+   * Set audio output device
+   */
+  void setAudioOutputDevice(const int index);
+
+  /**
+   * Get list of supported audio input device
+   */
+  std::vector<std::string> getAudioInputDeviceList(void);
+
+  /**
+   * Set audio input device
+   */
+  void setAudioInputDevice(const int index);
+
+  /**
+   * Get string array representing integer indexes of output and input device
+   */
+  std::vector<std::string> getCurrentAudioDevicesIndex();
+  
+  /**
+   * Get index of an audio device
+   */
+  int getAudioDeviceIndex( const std::string name );
+
+  /*
+   * Get current alsa plugin
+   */
+  std::string getCurrentAudioOutputPlugin( void ); 
+  
   /**
    * Convert a list of payload in a special format, readable by the server.
    * Required format: payloads separated with one slash.

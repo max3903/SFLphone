@@ -4,6 +4,7 @@
  *  Author: Yan Morin <yan.morin@savoirfairelinux.com>
  *  Author: Laurielle Lea <laurielle.lea@savoirfairelinux.com>
  *  Author: Emmanuel Milou <emmanuel.milou@savoirfairelinux.com>
+ *  Author: Guillaume Carmel-Archambault <guillaume.carmel-archambault@savoirfairelinux.com>
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -39,13 +40,14 @@
 #include "manager.h"
 #include "account.h"
 #include "audio/audiolayer.h"
-#include "audio/audiocodec.h"
 #include "audio/tonelist.h"
 
 #include "accountcreator.h" // create new account
 #include "voiplink.h"
 
 #include "user_cfg.h"
+
+#include "contact/presencestatus.h"
 
 #ifdef USE_ZEROCONF
 #include "zeroconf/DNSService.h"
@@ -109,7 +111,7 @@ ManagerImpl::~ManagerImpl (void)
   _debug("%s stop correctly.\n", PROGNAME);
 }
 
-void 
+  void 
 ManagerImpl::init() 
 {
   // Load accounts, init map
@@ -126,6 +128,8 @@ ManagerImpl::init()
 
   // Initialize the list of supported audio codecs
   initAudioCodec();
+
+  getAudioInputDeviceList();
 
   AudioLayer *audiolayer = getAudioDriver();
   if (audiolayer!=0) {
@@ -158,6 +162,9 @@ void ManagerImpl::terminate()
 
   _debug("Unload Telephone Tone\n");
   delete _telephoneTone; _telephoneTone = NULL;
+
+  _debug("Unload Audio Codecs\n");
+  _codecDescriptorMap.deleteHandlePointer();
 }
 
 bool
@@ -193,7 +200,7 @@ ManagerImpl::switchCall(const CallID& id ) {
 // Management of events' IP-phone user
 ///////////////////////////////////////////////////////////////////////////////
 /* Main Thread */ 
-bool
+  bool
 ManagerImpl::outgoingCall(const std::string& accountid, const CallID& id, const std::string& to)
 {
   if (!accountExists(accountid)) {
@@ -220,14 +227,14 @@ ManagerImpl::outgoingCall(const std::string& accountid, const CallID& id, const 
 }
 
 //THREAD=Main : for outgoing Call
-bool
+  bool
 ManagerImpl::answerCall(const CallID& id)
 {
   stopTone(false); 
   /*if (hasCurrentCall()) 
-  { 
+    { 
     onHoldCall(getCurrentCallId());
-  }*/
+    }*/
   AccountID accountid = getAccountFromCall( id );
   if (accountid == AccountNULL) {
     _debug("Answering Call: Call doesn't exists\n");
@@ -241,8 +248,8 @@ ManagerImpl::answerCall(const CallID& id)
   }
 
   //Place current call on hold if it isn't
-  
-  
+
+
   // if it was waiting, it's waiting no more
   if (_dbus) _dbus->getCallManager()->callStateChanged(id, "CURRENT");
   removeWaitingCall(id);
@@ -251,7 +258,7 @@ ManagerImpl::answerCall(const CallID& id)
 }
 
 //THREAD=Main
-bool 
+  bool 
 ManagerImpl::sendTextMessage(const AccountID& accountId, const std::string& to, const std::string& message) 
 {
   if (accountExists(accountId)) {
@@ -261,7 +268,7 @@ ManagerImpl::sendTextMessage(const AccountID& accountId, const std::string& to, 
 }
 
 //THREAD=Main
-bool
+  bool
 ManagerImpl::hangupCall(const CallID& id)
 {
   stopTone(true);
@@ -277,13 +284,13 @@ ManagerImpl::hangupCall(const CallID& id)
   bool returnValue = getAccountLink(accountid)->hangup(id);
   removeCallAccount(id);
   switchCall("");
-  
-  
+
+
   return returnValue;
 }
 
 //THREAD=Main
-bool
+  bool
 ManagerImpl::cancelCall (const CallID& id)
 {
   stopTone(true);
@@ -298,12 +305,12 @@ ManagerImpl::cancelCall (const CallID& id)
   removeWaitingCall(id);
   removeCallAccount(id);
   switchCall("");
-  
+
   return returnValue;
 }
 
 //THREAD=Main
-bool
+  bool
 ManagerImpl::onHoldCall(const CallID& id)
 {
   stopTone(true);
@@ -316,16 +323,16 @@ ManagerImpl::onHoldCall(const CallID& id)
   _debug("Setting ONHOLD, Account %s, callid %s\n", accountid.c_str(), id.c_str());
 
   bool returnValue = getAccountLink(accountid)->onhold(id);
-  
+
   removeWaitingCall(id);
   if (_dbus) _dbus->getCallManager()->callStateChanged(id, "HOLD");
   switchCall("");
-  
+
   return returnValue;
 }
 
 //THREAD=Main
-bool
+  bool
 ManagerImpl::offHoldCall(const CallID& id)
 {
   stopTone(false);
@@ -334,13 +341,13 @@ ManagerImpl::offHoldCall(const CallID& id)
     _debug("5 Manager OffHold Call: Call doesn't exists\n");
     return false;
   }
-  
+
   //Place current call on hold if it isn't
   if (hasCurrentCall()) 
   { 
     onHoldCall(getCurrentCallId());
   }
-  
+
   _debug("Setting OFFHOLD, Account %s, callid %s\n", accountid.c_str(), id.c_str());
 
   bool returnValue = getAccountLink(accountid)->offhold(id);
@@ -348,7 +355,7 @@ ManagerImpl::offHoldCall(const CallID& id)
   switchCall(id);
   if (returnValue) {
     try {
-      getAudioDriver()->startStream();
+      //getAudioDriver()->startStream();
     } catch(...) {
       _debugException("! Manager Off hold could not start audio stream");
     }
@@ -357,7 +364,7 @@ ManagerImpl::offHoldCall(const CallID& id)
 }
 
 //THREAD=Main
-bool
+  bool
 ManagerImpl::transferCall(const CallID& id, const std::string& to)
 {
   stopTone(true);
@@ -391,7 +398,7 @@ ManagerImpl::unmute() {
 }
 
 //THREAD=Main : Call:Incoming
-bool
+  bool
 ManagerImpl::refuseCall (const CallID& id)
 {
   stopTone(true);
@@ -413,7 +420,7 @@ ManagerImpl::refuseCall (const CallID& id)
 }
 
 //THREAD=Main
-bool
+  bool
 ManagerImpl::saveConfig (void)
 {
   _debug("Saving Configuration...\n");
@@ -425,26 +432,30 @@ ManagerImpl::saveConfig (void)
 }
 
 //THREAD=Main
-bool
+  bool
 ManagerImpl::initRegisterAccounts() 
 {
-  _debugInit("Initiate VoIP Links Registration");
-  AccountMap::iterator iter = _accountMap.begin();
-  while( iter != _accountMap.end() ) {
-    if ( iter->second) {
-      iter->second->loadConfig();
-      if ( iter->second->isEnabled() ) {
-	iter->second->registerVoIPLink();
-      }
-    }
-    iter++;
-  }
-  return true;
+	_debugInit("Initiate VoIP Links Registration");
+	AccountMap::iterator iter = _accountMap.begin();
+	while( iter != _accountMap.end() ) {
+		if ( iter->second) {
+			iter->second->loadConfig();
+			if ( iter->second->isEnabled() ) {
+				// NOW
+				iter->second->registerVoIPLink();
+				iter->second->loadContacts();
+				iter->second->publishPresence(PRESENCE_ONLINE);
+				iter->second->subscribeContactsPresence();
+			}
+		}
+		iter++;
+	}
+	return true;
 }
 
 //THREAD=Main
 // Currently unused
-bool
+  bool
 ManagerImpl::registerAccount(const AccountID& accountId)
 {
   _debug("Register one VoIP Link\n");
@@ -456,18 +467,22 @@ ManagerImpl::registerAccount(const AccountID& accountId)
     AccountMap::iterator iter = _accountMap.begin();
     while ( iter != _accountMap.end() ) {
       if ( iter->second ) {
-        iter->second->unregisterVoIPLink();
+	iter->second->unregisterVoIPLink();
       }
       iter++;
     }
+    // NOW
     account->registerVoIPLink();
+    account->loadContacts();
+    account->publishPresence(PRESENCE_ONLINE);
+    account->subscribeContactsPresence();
   }
   return true;
 }
 
 //THREAD=Main
 // Currently unused
-bool 
+  bool 
 ManagerImpl::unregisterAccount(const AccountID& accountId)
 {
   _debug("Unregister one VoIP Link\n");
@@ -479,7 +494,7 @@ ManagerImpl::unregisterAccount(const AccountID& accountId)
 }
 
 //THREAD=Main
-bool 
+  bool 
 ManagerImpl::sendDtmf(const CallID& id, char code)
 {
   AccountID accountid = getAccountFromCall( id );
@@ -491,23 +506,23 @@ ManagerImpl::sendDtmf(const CallID& id, char code)
   int sendType = getConfigInt(SIGNALISATION, SEND_DTMF_AS);
   bool returnValue = false;
   switch (sendType) {
-  case 0: // SIP INFO
-    playDtmf(code);
-    returnValue = getAccountLink(accountid)->carryingDTMFdigits(id, code);
-    break;
+    case 0: // SIP INFO
+      playDtmf(code);
+      returnValue = getAccountLink(accountid)->carryingDTMFdigits(id, code);
+      break;
 
-  case 1: // Audio way
-    break;
-  case 2: // rfc 2833
-    break;
-  default: // unknown - error config?
-    break;
+    case 1: // Audio way
+      break;
+    case 2: // rfc 2833
+      break;
+    default: // unknown - error config?
+      break;
   }
   return returnValue;
 }
 
 //THREAD=Main | VoIPLink
-bool
+  bool
 ManagerImpl::playDtmf(char code)
 {
   // HERE are the variable:
@@ -548,24 +563,22 @@ ManagerImpl::playDtmf(char code)
     // Put buffer to urgentRingBuffer 
     // put the size in bytes...
     // so size * 1 channel (mono) * sizeof (bytes for the data)
-    audiolayer->putUrgent(_buf, size * sizeof(SFLDataFormat));
+    audiolayer->playSamples(_buf, size * sizeof(SFLDataFormat));
+    //audiolayer->putUrgent(_buf, size * sizeof(SFLDataFormat));
 
-    try {
-      // We activate the stream if it's not active yet.
-      if (!audiolayer->isStreamActive()) {
-        audiolayer->startStream();
-      } else {
-        audiolayer->sleep(pulselen); // in milliseconds
-      }
-    } catch(...) {
-      _debugException("Portaudio exception when playing a dtmf");
-    }
-    returnValue = true;
+    // We activate the stream if it's not active yet.
+    //if (!audiolayer->isStreamActive()) {
+      //audiolayer->startStream();
+    //} else {
+      //_debugAlsa("send dtmf - sleep\n");
+      //audiolayer->sleep(pulselen); // in milliseconds
+    //}
   }
+  returnValue = true;
 
-  // TODO: add caching
-  delete[] _buf; _buf = 0;
-  return returnValue;
+// TODO: add caching
+delete[] _buf; _buf = 0;
+return returnValue;
 }
 
 // Multi-thread 
@@ -607,7 +620,7 @@ ManagerImpl::isWaitingCall(const CallID& id) {
 // Management of event peer IP-phone 
 ////////////////////////////////////////////////////////////////////////////////
 // SipEvent Thread 
-bool 
+  bool 
 ManagerImpl::incomingCall(Call* call, const AccountID& accountId) 
 {
   _debug("Incoming call\n");
@@ -615,12 +628,12 @@ ManagerImpl::incomingCall(Call* call, const AccountID& accountId)
   associateCallToAccount(call->getCallId(), accountId);
 
   if ( !hasCurrentCall() ) {
-    _debug("INCOMING CALL!!!!!!\n");
     call->setConnectionState(Call::Ringing);
+    _debugAlsa(" call ringtone() method\n ");
     ringtone();
     switchCall(call->getCallId());
   } else {
-     addWaitingCall(call->getCallId());
+    addWaitingCall(call->getCallId());
   }
 
   std::string from = call->getPeerName();
@@ -648,7 +661,7 @@ ManagerImpl::incomingMessage(const AccountID& accountId, const std::string& mess
 }
 
 //THREAD=VoIP CALL=Outgoing
-void
+  void
 ManagerImpl::peerAnsweredCall(const CallID& id)
 {
   if (isCurrentCall(id)) {
@@ -658,7 +671,7 @@ ManagerImpl::peerAnsweredCall(const CallID& id)
 }
 
 //THREAD=VoIP Call=Outgoing
-void
+  void
 ManagerImpl::peerRingingCall(const CallID& id)
 {
   if (isCurrentCall(id)) {
@@ -668,7 +681,7 @@ ManagerImpl::peerRingingCall(const CallID& id)
 }
 
 //THREAD=VoIP Call=Outgoing/Ingoing
-void
+  void
 ManagerImpl::peerHungupCall(const CallID& id)
 {
   AccountID accountid = getAccountFromCall( id );
@@ -683,14 +696,14 @@ ManagerImpl::peerHungupCall(const CallID& id)
   }
   removeWaitingCall(id);
   removeCallAccount(id);
-  
+
 }
 
 //THREAD=VoIP
 void
 ManagerImpl::callBusy(const CallID& id) {
   _debug("Call busy\n");
-  
+
   if (_dbus) _dbus->getCallManager()->callStateChanged(id, "BUSY");
   if (isCurrentCall(id) ) {
     playATone(Tone::TONE_BUSY);
@@ -701,7 +714,7 @@ ManagerImpl::callBusy(const CallID& id) {
 }
 
 //THREAD=VoIP
-void
+  void
 ManagerImpl::callFailure(const CallID& id) 
 {
   _debug("Call failed\n");
@@ -712,83 +725,83 @@ ManagerImpl::callFailure(const CallID& id)
   }
   removeCallAccount(id);
   removeWaitingCall(id);
-  
+
 }
 
 //THREAD=VoIP
-void 
+  void 
 ManagerImpl::displayTextMessage(const CallID& id, const std::string& message)
 {
   /*if(_gui) {
-   _gui->displayTextMessage(id, message);
-  }*/
+    _gui->displayTextMessage(id, message);
+    }*/
 }
 
 //THREAD=VoIP
-void 
+  void 
 ManagerImpl::displayErrorText(const CallID& id, const std::string& message)
 {
   /*if(_gui) {
     _gui->displayErrorText(id, message);
-  } else {
+    } else {
     std::cerr << message << std::endl;
-  }*/
+    }*/
 }
 
 //THREAD=VoIP
-void 
+  void 
 ManagerImpl::displayError (const std::string& error)
 {
   /*if(_gui) {
     _gui->displayError(error);
-  }*/
+    }*/
 }
 
 //THREAD=VoIP
-void 
+  void 
 ManagerImpl::displayStatus(const std::string& status)
 {
   /*if(_gui) {
     _gui->displayStatus(status);
-  }*/
+    }*/
 }
 
 //THREAD=VoIP
-void 
+  void 
 ManagerImpl::displayConfigError (const std::string& message)
 {
   /*if(_gui) {
     _gui->displayConfigError(message);
-  }*/
+    }*/
 }
 
 //THREAD=VoIP
-void
+  void
 ManagerImpl::startVoiceMessageNotification(const AccountID& accountId, const std::string& nb_msg)
 {
   if (_dbus) _dbus->getCallManager()->voiceMailNotify(accountId, atoi(nb_msg.c_str()) );
 }
 
 //THREAD=VoIP
-void
+  void
 ManagerImpl::stopVoiceMessageNotification(const AccountID& accountId)
 {
   if (_dbus) _dbus->getCallManager()->voiceMailNotify(accountId, 0 );
 } 
 
 //THREAD=VoIP
-void 
+  void 
 ManagerImpl::registrationSucceed(const AccountID& accountid)
 {
   Account* acc = getAccount(accountid);
- if ( acc ) { 
+  if ( acc ) { 
     //acc->setState(true); 
     if (_dbus) _dbus->getConfigurationManager()->accountsChanged();
   }
 }
 
 //THREAD=VoIP
-void 
+  void 
 ManagerImpl::registrationFailed(const AccountID& accountid)
 {
   Account* acc = getAccount(accountid);
@@ -811,13 +824,16 @@ ManagerImpl::playATone(Tone::TONEID toneId) {
     _telephoneTone->setCurrentTone(toneId);
     _toneMutex.leaveMutex();
 
-    try {
-      AudioLayer* audiolayer = getAudioDriver();
-      if (audiolayer) { audiolayer->startStream(); }
-    } catch(...) {
-      _debugException("Off hold could not start audio stream");
-      return false;
+    AudioLoop* audioloop = getTelephoneTone();
+    unsigned int nbSampling = audioloop->getSize();
+    AudioLayer* audiolayer = getAudioDriver();
+    SFLDataFormat buf[nbSampling];
+    audioloop->getNext(buf, (int) nbSampling);
+    if ( audiolayer ) { 
+      //audiolayer->putUrgent( buf, sizeof(SFLDataFormat)*nbSampling );
     }
+    else 
+      return false;
   }
   return true;
 }
@@ -831,12 +847,8 @@ ManagerImpl::stopTone(bool stopAudio=true) {
   if (!hasToPlayTone) return;
 
   if (stopAudio) {
-    try {
-      AudioLayer* audiolayer = getAudioDriver();
-      if (audiolayer) { audiolayer->stopStream(); }
-    } catch(...) {
-      _debugException("Stop tone and stop stream");
-    }
+    AudioLayer* audiolayer = getAudioDriver();
+    if (audiolayer) { audiolayer->stopStream(); }
   }
 
   _toneMutex.enterMutex();
@@ -854,7 +866,7 @@ ManagerImpl::stopTone(bool stopAudio=true) {
 /**
  * Multi Thread
  */
-bool
+  bool
 ManagerImpl::playTone()
 {
   //return playATone(Tone::TONE_DIALTONE);
@@ -880,7 +892,7 @@ ManagerImpl::ringback () {
 /**
  * Multi Thread
  */
-void
+  void
 ManagerImpl::ringtone() 
 {
   int hasToPlayTone = getConfigInt(SIGNALISATION, PLAY_TONES);
@@ -896,25 +908,25 @@ ManagerImpl::ringtone()
   AudioLayer* audiolayer = getAudioDriver();
   if (audiolayer==0) { return; }
   int sampleRate  = audiolayer->getSampleRate();
+  AudioCodec* codecForTone = _codecDescriptorMap.getFirstCodecAvailable();
 
   _toneMutex.enterMutex(); 
-  bool loadFile = _audiofile.loadFile(ringchoice, sampleRate);
+  bool loadFile = _audiofile.loadFile(ringchoice, codecForTone , sampleRate);
   _toneMutex.leaveMutex(); 
   if (loadFile) {
     _toneMutex.enterMutex(); 
     _audiofile.start();
     _toneMutex.leaveMutex(); 
-    try {
-      audiolayer->startStream();
-    } catch(...) {
-      _debugException("Audio file couldn't start audio stream");
-    }
+    int size = _audiofile.getSize();
+    SFLDataFormat output[ size ];
+    _audiofile.getNext(output, size , 100);
+    //audiolayer->putUrgent( output , size );
   } else {
     ringback();
   }
 }
 
-AudioLoop*
+  AudioLoop*
 ManagerImpl::getTelephoneTone()
 {
   if(_telephoneTone != 0) {
@@ -926,7 +938,7 @@ ManagerImpl::getTelephoneTone()
   }
 }
 
-AudioLoop*
+  AudioLoop*
 ManagerImpl::getTelephoneFile()
 {
   ost::MutexLock m(_toneMutex);
@@ -955,14 +967,14 @@ ManagerImpl::notificationIncomingCall(void) {
     unsigned int nbSampling = tone.getSize();
     SFLDataFormat buf[nbSampling];
     tone.getNext(buf, tone.getSize());
-    audiolayer->putUrgent(buf, sizeof(SFLDataFormat)*nbSampling);
+    audiolayer->playSamples(buf, sizeof(SFLDataFormat)*nbSampling);
   }
 }
 
 /**
  * Multi Thread
  */
-bool
+  bool
 ManagerImpl::getStunInfo (StunAddress4& stunSvrAddr, int port) 
 {
   StunAddress4 mappedAddr;
@@ -990,19 +1002,19 @@ ManagerImpl::getStunInfo (StunAddress4& stunSvrAddr, int port)
   return false;
 }
 
-bool
+  bool
 ManagerImpl::behindNat(const std::string& svr, int port)
 {
   StunAddress4 stunSvrAddr;
   stunSvrAddr.addr = 0;
-   
+
   // Convert char* to StunAddress4 structure
   bool ret = stunParseServerName ((char*)svr.data(), stunSvrAddr);
   if (!ret) {
     _debug("SIP: Stun server address (%s) is not valid\n", svr.data());
     return 0;
   }
-  
+
   // Firewall address
   //_debug("STUN server: %s\n", svr.data());
   return getStunInfo(stunSvrAddr, port);
@@ -1015,7 +1027,7 @@ ManagerImpl::behindNat(const std::string& svr, int port)
 /**
  * Initialization: Main Thread
  * @return 1: ok
-          -1: error directory
+ -1: error directory
  */
 int
 ManagerImpl::createSettingsPath (void) {
@@ -1037,7 +1049,7 @@ ManagerImpl::createSettingsPath (void) {
 /**
  * Initialization: Main Thread
  */
-void
+  void
 ManagerImpl::initConfigFile (void) 
 {
   std::string type_str("string");
@@ -1055,11 +1067,11 @@ ManagerImpl::initConfigFile (void)
   fill_config_int(SEND_DTMF_AS, SIP_INFO_STR);
 
   section = AUDIO;
-  //fill_config_int(DRIVER_NAME, DFT_DRIVER_STR);
-  fill_config_int(DRIVER_NAME_IN, DFT_DRIVER_STR);
-  fill_config_int(DRIVER_NAME_OUT, DFT_DRIVER_STR);
-  fill_config_int(DRIVER_SAMPLE_RATE, DFT_SAMPLE_RATE);
-  fill_config_int(DRIVER_FRAME_SIZE, DFT_FRAME_SIZE);
+  fill_config_int(ALSA_CARD_ID_IN, ALSA_DFT_CARD);
+  fill_config_int(ALSA_CARD_ID_OUT, ALSA_DFT_CARD);
+  fill_config_int(ALSA_SAMPLE_RATE, DFT_SAMPLE_RATE);
+  fill_config_int(ALSA_FRAME_SIZE, DFT_FRAME_SIZE);
+  fill_config_str(ALSA_PLUGIN, PCM_DEFAULT); 
   fill_config_str(RING_CHOICE, DFT_RINGTONE);
   fill_config_int(VOLUME_SPKR, DFT_VOL_SPKR_STR);
   fill_config_int(VOLUME_MICRO, DFT_VOL_MICRO_STR);
@@ -1083,24 +1095,24 @@ ManagerImpl::initConfigFile (void)
 /**
  * Initialization: Main Thread
  */
-void
+  void
 ManagerImpl::initAudioCodec (void)
 {
   _debugInit("Active Codecs List");
   // init list of all supported codecs
   _codecDescriptorMap.init();
-  // if the user never set the codec list, use the default one
+  // if the user never set the codec list, use the default configuration
   if(getConfigString(AUDIO, "ActiveCodecs") == ""){
     _codecDescriptorMap.setDefaultOrder();
   }
-  // else retrieve the one he set in the config file
+  // else retrieve the one set in the user config file
   else{
     std::vector<std::string> active_list = retrieveActiveCodecs(); 
     setActiveCodecList(active_list);
   }
 }
 
-std::vector<std::string>
+  std::vector<std::string>
 ManagerImpl::retrieveActiveCodecs()
 {
   std::vector<std::string> order; 
@@ -1117,10 +1129,10 @@ ManagerImpl::retrieveActiveCodecs()
   return order;
 }
 
-void
+  void
 ManagerImpl::setActiveCodecList(const std::vector<std::string>& list)
 {
-  _debug("Set active codecs list");
+  _debug("Set active codecs list\n");
   _codecDescriptorMap.saveActiveCodecs(list);
   // setConfig
   std::string s = serialize(list);
@@ -1128,7 +1140,7 @@ ManagerImpl::setActiveCodecList(const std::vector<std::string>& list)
   setConfig("Audio", "ActiveCodecs", s);
 }
 
-std::string
+  std::string
 ManagerImpl::serialize(std::vector<std::string> v)
 {
   int i;
@@ -1141,10 +1153,10 @@ ManagerImpl::serialize(std::vector<std::string> v)
 }
 
 
-std::vector <std::string>
+  std::vector <std::string>
 ManagerImpl::getActiveCodecList( void )
 {
-  _debug("Get Active codecs list");
+  _debug("Get Active codecs list\n");
   std::vector< std::string > v;
   CodecOrder active = _codecDescriptorMap.getActiveCodecs();
   int i=0;
@@ -1163,18 +1175,19 @@ ManagerImpl::getActiveCodecList( void )
 /**
  * Send the list of codecs to the client through DBus.
  */
-std::vector< std::string >
+  std::vector< std::string >
 ManagerImpl::getCodecList( void )
 {
   std::vector<std::string> list;
-  CodecMap codecs = _codecDescriptorMap.getCodecMap();
+  //CodecMap codecs = _codecDescriptorMap.getCodecMap();
+  CodecsMap codecs = _codecDescriptorMap.getCodecsMap();
   CodecOrder order = _codecDescriptorMap.getActiveCodecs();
-  CodecMap::iterator iter = codecs.begin();  
-  
+  CodecsMap::iterator iter = codecs.begin();  
+
   while(iter!=codecs.end())
   {
     std::stringstream ss;
-    if(iter->first!=-1)
+    if( iter->second != NULL )
     {
       ss << iter->first;
       list.push_back((ss.str()).data());
@@ -1184,13 +1197,13 @@ ManagerImpl::getCodecList( void )
   return list;
 }
 
-std::vector<std::string>
+  std::vector<std::string>
 ManagerImpl::getCodecDetails( const ::DBus::Int32& payload )
 {
 
   std::vector<std::string> v;
   std::stringstream ss;
-   
+
   v.push_back(_codecDescriptorMap.getCodecName((CodecType)payload));
   ss << _codecDescriptorMap.getSampleRate((CodecType)payload);
   v.push_back((ss.str()).data()); 
@@ -1205,11 +1218,163 @@ ManagerImpl::getCodecDetails( const ::DBus::Int32& payload )
   return v;
 }
 
+/**
+ * Get list of supported input audio plugin
+ */
+  std::vector<std::string>
+ManagerImpl::getInputAudioPluginList(void)
+{
+  std::vector<std::string> v;
+  _debug("Get input audio plugin list");
+
+  v.push_back("default");
+  v.push_back("surround40");
+  v.push_back("plug:hw");
+
+  return v;
+}
+
+/**
+ * Get list of supported output audio plugin
+ */
+  std::vector<std::string>
+ManagerImpl::getOutputAudioPluginList(void)
+{
+  std::vector<std::string> v;
+  _debug("Get output audio plugin list");
+
+  v.push_back("default");
+  v.push_back("plug:hw");
+  v.push_back("plug:dmix");
+  v.push_back("plug:surround40");
+
+  return v;
+}
+
+/**
+ * Set input audio plugin
+ */
+  void
+ManagerImpl::setInputAudioPlugin(const std::string& audioPlugin)
+{
+  _debug("Set input audio plugin\n");
+  _audiodriver -> openDevice( _audiodriver -> getIndexIn(),
+			      _audiodriver -> getIndexOut(),
+			      _audiodriver -> getSampleRate(),
+			      _audiodriver -> getFrameSize(),
+			      SFL_PCM_CAPTURE,
+			      audioPlugin);
+}
+
+/**
+ * Set output audio plugin
+ */
+  void
+ManagerImpl::setOutputAudioPlugin(const std::string& audioPlugin)
+{
+  _debug("Set output audio plugin\n");
+  _audiodriver -> openDevice( _audiodriver -> getIndexIn(),
+			      _audiodriver -> getIndexOut(),
+			      _audiodriver -> getSampleRate(),
+			      _audiodriver -> getFrameSize(),
+			      SFL_PCM_PLAYBACK,
+			      audioPlugin);
+  // set config
+  setConfig( AUDIO , ALSA_PLUGIN , audioPlugin );
+}
+
+/**
+ * Get list of supported audio output device
+ */
+  std::vector<std::string>
+ManagerImpl::getAudioOutputDeviceList(void)
+{
+  _debug("Get audio output device list\n");
+  return _audiodriver -> getSoundCardsInfo(SFL_PCM_PLAYBACK);
+}
+
+/**
+ * Set audio output device
+ */
+  void
+ManagerImpl::setAudioOutputDevice(const int index)
+{
+  _debug("Set audio output device: %i\n", index);
+  _audiodriver->openDevice(_audiodriver->getIndexIn(), 
+      index, 
+      _audiodriver->getSampleRate(), 
+      _audiodriver->getFrameSize(), 
+      SFL_PCM_PLAYBACK,
+      _audiodriver->getAudioPlugin());
+  // set config
+  setConfig( AUDIO , ALSA_CARD_ID_OUT , index );
+}
+
+/**
+ * Get list of supported audio input device
+ */
+  std::vector<std::string>
+ManagerImpl::getAudioInputDeviceList(void)
+{
+  _debug("Get audio input device list\n");
+  return _audiodriver->getSoundCardsInfo(SFL_PCM_CAPTURE);
+}
+
+/**
+ * Set audio input device
+ */
+  void
+ManagerImpl::setAudioInputDevice(const int index)
+{
+  _debug("Set audio input device %i\n", index);
+  _audiodriver->openDevice(index, 
+      _audiodriver->getIndexOut(), 
+      _audiodriver->getSampleRate(), 
+      _audiodriver->getFrameSize(), 
+      SFL_PCM_CAPTURE,
+      _audiodriver->getAudioPlugin());
+  // set config
+  setConfig( AUDIO , ALSA_CARD_ID_IN , index );
+}
+
+/**
+ * Get string array representing integer indexes of output and input device
+ */
+  std::vector<std::string>
+ManagerImpl::getCurrentAudioDevicesIndex()
+{
+  _debug("Get current audio devices index\n");
+  std::vector<std::string> v;
+  std::stringstream ssi , sso;
+  sso << _audiodriver->getIndexOut();
+  v.push_back( sso.str() );
+  ssi << _audiodriver->getIndexIn();
+  v.push_back( ssi.str() );
+  return v;
+}
+
+  int
+ManagerImpl::getAudioDeviceIndex(const std::string name)
+{
+  _debug("Get audio device index\n");
+  int num = _audiodriver -> soundCardGetIndex( name );
+  _debug(" %s has number %i\n" , name.c_str() , num );
+  return num;
+  //return _audiodriver -> soundCardGetIndex( name );
+}
+
+std::string 
+ManagerImpl::getCurrentAudioOutputPlugin( void )
+{
+  _debug("Get alsa plugin \n");
+  return _audiodriver -> getAudioPlugin();
+}
+
 
 /**
  * Initialization: Main Thread
  */
-void
+  void
 ManagerImpl::initAudioDriver(void) 
 {
   _debugInit("AudioLayer Creation");
@@ -1227,28 +1392,32 @@ ManagerImpl::initAudioDriver(void)
 /**
  * Initialization: Main Thread and gui
  */
-void
+  void
 ManagerImpl::selectAudioDriver (void)
 {
-  //int noDevice  = getConfigInt(AUDIO, DRIVER_NAME);
-  int noDeviceIn  = getConfigInt(AUDIO, DRIVER_NAME_IN);
-  int noDeviceOut = getConfigInt(AUDIO, DRIVER_NAME_OUT);
-  int sampleRate  = getConfigInt(AUDIO, DRIVER_SAMPLE_RATE);
+  std::string alsaPlugin = getConfigString( AUDIO , ALSA_PLUGIN );
+  int numCardIn  = getConfigInt( AUDIO , ALSA_CARD_ID_IN );
+  int numCardOut = getConfigInt( AUDIO , ALSA_CARD_ID_OUT );
+  int sampleRate = getConfigInt( AUDIO , ALSA_SAMPLE_RATE );
   if (sampleRate <=0 || sampleRate > 48000) {
-      sampleRate = 8000;
+    sampleRate = 44100;
   }
-	int frameSize = getConfigInt(AUDIO, DRIVER_FRAME_SIZE);
+  int frameSize = getConfigInt( AUDIO , ALSA_FRAME_SIZE );
 
-  // this is when no audio device in/out are set
-  // or the audio device in/out are set to 0
-  // we take the nodevice instead
-  // remove this hack, how can we change the device to 0, if the noDevice is 1?
-  //if (noDeviceIn == 0 && noDeviceOut == 0) {
-  //  noDeviceIn = noDeviceOut = noDevice;
-  //}
+  if( !_audiodriver -> soundCardIndexExist( numCardIn ) )
+  {
+    _debug(" Index %i is not a valid card number. Switch to 0.\n", numCardIn);
+    numCardIn = ALSA_DFT_CARD_ID ;
+  }
+  if( !_audiodriver -> soundCardIndexExist( numCardOut ) )
+  {  
+    _debug(" Index %i is not a valid card number. Switch to 0.\n", numCardOut);
+    numCardOut = ALSA_DFT_CARD_ID ;
+  }
+
   _debugInit(" AudioLayer Opening Device");
   _audiodriver->setErrorMessage("");
-  _audiodriver->openDevice(noDeviceIn, noDeviceOut, sampleRate, frameSize);
+  _audiodriver->openDevice( numCardIn , numCardOut, sampleRate, frameSize, SFL_PCM_BOTH, alsaPlugin ); 
 }
 
 /**
@@ -1256,7 +1425,7 @@ ManagerImpl::selectAudioDriver (void)
  * Informations will be store inside a map DNSService->_services
  * Initialization: Main Thread
  */
-void 
+  void 
 ManagerImpl::initZeroconf(void) 
 {
 #ifdef USE_ZEROCONF
@@ -1273,7 +1442,7 @@ ManagerImpl::initZeroconf(void)
  * Init the volume for speakers/micro from 0 to 100 value
  * Initialization: Main Thread
  */
-void
+  void
 ManagerImpl::initVolume()
 {
   _debugInit("Initiate Volume");
@@ -1285,7 +1454,7 @@ ManagerImpl::initVolume()
  * configuration function requests
  * Main Thread
  */
-bool 
+  bool 
 ManagerImpl::getZeroconf(const std::string& sequenceId)
 {
   bool returnValue = false;
@@ -1308,13 +1477,13 @@ ManagerImpl::getZeroconf(const std::string& sequenceId)
       TXTRecordMap record = iter->second.getTXTRecords();
       TXTRecordMap::iterator iterTXT = record.begin();
       while(iterTXT!=record.end()) {
-        argTXT.clear();
-        argTXT.push_back(iter->first);
-        argTXT.push_back(iterTXT->first);
-        argTXT.push_back(iterTXT->second);
-        argTXT.push_back(newTXT);
-       // _gui->sendMessage("101",sequenceId,argTXT);
-        iterTXT++;
+	argTXT.clear();
+	argTXT.push_back(iter->first);
+	argTXT.push_back(iterTXT->first);
+	argTXT.push_back(iterTXT->second);
+	argTXT.push_back(newTXT);
+	// _gui->sendMessage("101",sequenceId,argTXT);
+	iterTXT++;
       }
       iter++;
     }
@@ -1329,7 +1498,7 @@ ManagerImpl::getZeroconf(const std::string& sequenceId)
 /**
  * Main Thread
  */
-bool 
+  bool 
 ManagerImpl::attachZeroconfEvents(const std::string& sequenceId, Pattern::Observer& observer)
 {
   bool returnValue = false;
@@ -1348,7 +1517,7 @@ ManagerImpl::attachZeroconfEvents(const std::string& sequenceId, Pattern::Observ
 #endif
   return returnValue;
 }
-bool
+  bool
 ManagerImpl::detachZeroconfEvents(Pattern::Observer& observer)
 {
   bool returnValue = false;
@@ -1370,18 +1539,18 @@ ManagerImpl::detachZeroconfEvents(Pattern::Observer& observer)
  */
 /**
  * DEPRECATED
-bool
-ManagerImpl::getEvents() {
-  initRegisterAccounts();
-  return true;
-}
-*/
+ bool
+ ManagerImpl::getEvents() {
+ initRegisterAccounts();
+ return true;
+ }
+ */
 
 // TODO: rewrite this
 /**
  * Main Thread
  */
-bool 
+  bool 
 ManagerImpl::getCallStatus(const std::string& sequenceId)
 {
   if (!_dbus) { return false; }
@@ -1399,20 +1568,20 @@ ManagerImpl::getCallStatus(const std::string& sequenceId)
     Call::ConnectionState state = call->getConnectionState();
     if (state != Call::Connected) {
       switch(state) {
-        case Call::Trying:       code="110"; status = "Trying";       break;
-        case Call::Ringing:      code="111"; status = "Ringing";      break;
-        case Call::Progressing:  code="125"; status = "Progressing";  break;
-        case Call::Disconnected: code="125"; status = "Disconnected"; break;
-        default: code=""; status= "";
+	case Call::Trying:       code="110"; status = "Trying";       break;
+	case Call::Ringing:      code="111"; status = "Ringing";      break;
+	case Call::Progressing:  code="125"; status = "Progressing";  break;
+	case Call::Disconnected: code="125"; status = "Disconnected"; break;
+	default: code=""; status= "";
       }
     } else {
       switch (call->getState()) {
-        case Call::Active:       code="112"; status = "Established";  break;
-        case Call::Hold:         code="114"; status = "Held";         break;
-        case Call::Busy:         code="113"; status = "Busy";         break;
-        case Call::Refused:      code="125"; status = "Refused";      break;
-        case Call::Error:        code="125"; status = "Error";        break;
-        case Call::Inactive:     code="125"; status = "Inactive";     break;
+	case Call::Active:       code="112"; status = "Established";  break;
+	case Call::Hold:         code="114"; status = "Held";         break;
+	case Call::Busy:         code="113"; status = "Busy";         break;
+	case Call::Refused:      code="125"; status = "Refused";      break;
+	case Call::Error:        code="125"; status = "Error";        break;
+	case Call::Inactive:     code="125"; status = "Inactive";     break;
       }
     }
 
@@ -1434,13 +1603,13 @@ ManagerImpl::getCallStatus(const std::string& sequenceId)
 
     iter++;
   }
-  
+
   return true;
 }
 
 //THREAD=Main
 /* Unused, Deprecated */
-bool 
+  bool 
 ManagerImpl::getConfigAll(const std::string& sequenceId)
 {
   bool returnValue = false;
@@ -1457,7 +1626,7 @@ ManagerImpl::getConfigAll(const std::string& sequenceId)
 }
 
 //THREAD=Main
-bool 
+  bool 
 ManagerImpl::getConfig(const std::string& section, const std::string& name, TokenList& arg)
 {
   return _config.getConfigTreeItemToken(section, name, arg);
@@ -1465,7 +1634,7 @@ ManagerImpl::getConfig(const std::string& section, const std::string& name, Toke
 
 //THREAD=Main
 // throw an Conf::ConfigTreeItemException if not found
-int 
+  int 
 ManagerImpl::getConfigInt(const std::string& section, const std::string& name)
 {
   try {
@@ -1479,7 +1648,7 @@ ManagerImpl::getConfigInt(const std::string& section, const std::string& name)
 //THREAD=Main
 std::string 
 ManagerImpl::getConfigString(const std::string& section, const std::string&
-name)
+    name)
 {
   try {
     return _config.getConfigTreeItemValue(section, name);
@@ -1490,14 +1659,14 @@ name)
 }
 
 //THREAD=Main
-bool 
+  bool 
 ManagerImpl::setConfig(const std::string& section, const std::string& name, const std::string& value)
 {
   return _config.setConfigTreeItem(section, name, value);
 }
 
 //THREAD=Main
-bool 
+  bool 
 ManagerImpl::setConfig(const std::string& section, const std::string& name, int value)
 {
   std::ostringstream valueStream;
@@ -1506,89 +1675,35 @@ ManagerImpl::setConfig(const std::string& section, const std::string& name, int 
 }
 
 //THREAD=Main
-bool 
-ManagerImpl::getConfigList(const std::string& sequenceId, const std::string& name)
-{
-  /*
-  bool returnValue = false;
-  TokenList tk;
-  if (name == "codecdescriptor") {
-
-    CodecMap map = _codecDescriptorMap.getCodecMap();
-    CodecMap::iterator iter = map.begin();
-    while( iter != map.end() ) {
-      tk.clear();
-      std::ostringstream strType;
-      strType << iter->first;
-      tk.push_back(strType.str());
-      if (iter->second != -1) {
-        tk.push_back(iter->second);
-      } else {
-        tk.push_back(strType.str());
-      }
-     // _gui->sendMessage("100", sequenceId, tk);
-      iter++;
-    }
-    returnValue = true;
-  } else if (name == "ringtones") {
-    // add empty line
-    std::ostringstream str;
-    str << 1;
-    tk.push_back(str.str());
-    tk.push_back(""); // filepath
-    //_gui->sendMessage("100", sequenceId, tk);
-
-    // share directory
-    std::string path = std::string(PROGSHAREDIR) + DIR_SEPARATOR_STR + RINGDIR;
-    int nbFile = 1;
-    returnValue = getDirListing(sequenceId, path, &nbFile);
-
-    // home directory
-    path = std::string(HOMEDIR) + DIR_SEPARATOR_STR + "." + PROGDIR + DIR_SEPARATOR_STR + RINGDIR;
-    getDirListing(sequenceId, path, &nbFile);
-  } else if (name == "audiodevice") {
-    returnValue = getAudioDeviceList(sequenceId, AudioLayer::InputDevice | AudioLayer::OutputDevice);
-  } else if (name == "audiodevicein") {
-    returnValue = getAudioDeviceList(sequenceId, AudioLayer::InputDevice);
-  } else if (name == "audiodeviceout") {
-    returnValue = getAudioDeviceList(sequenceId, AudioLayer::OutputDevice);
-  } else if (name == "countrytones") {
-    returnValue = getCountryTones(sequenceId);
-  }
-  return returnValue;*/
-  return true;
-}
-
-//THREAD=Main
-bool 
+  bool 
 ManagerImpl::getAudioDeviceList(const std::string& sequenceId, int ioDeviceMask) 
 {
   AudioLayer* audiolayer = getAudioDriver();
   if (audiolayer == 0) { return false; }
 
   bool returnValue = false;
-  
+
   // TODO: test when there is an error on initializing...
   TokenList tk;
   AudioDevice* device = 0;
   int nbDevice = audiolayer->getDeviceCount();
-  
-  for (int index = 0; index < nbDevice; index++ ) {
-    device = audiolayer->getAudioDeviceInfo(index, ioDeviceMask);
-    if (device != 0) {
-      tk.clear();
-      std::ostringstream str; str << index; tk.push_back(str.str());
-      tk.push_back(device->getName());
-      tk.push_back(device->getApiName());
-      std::ostringstream rate; rate << (int)(device->getRate()); tk.push_back(rate.str());
-      //_gui->sendMessage("100", sequenceId, tk);
+  /* 
+     for (int index = 0; index < nbDevice; index++ ) {
+     device = audiolayer->getAudioDeviceInfo(index, ioDeviceMask);
+     if (device != 0) {
+     tk.clear();
+     std::ostringstream str; str << index; tk.push_back(str.str());
+     tk.push_back(device->getName());
+     tk.push_back(device->getApiName());
+     std::ostringstream rate; rate << (int)(device->getRate()); tk.push_back(rate.str());
+  //_gui->sendMessage("100", sequenceId, tk);
 
-      // don't forget to delete it after
-      delete device; device = 0;
-    }
+  // don't forget to delete it after
+  delete device; device = 0;
   }
+  }*/
   returnValue = true;
-  
+
   std::ostringstream rate; 
   rate << "VARIABLE";
   tk.clear();
@@ -1599,7 +1714,7 @@ ManagerImpl::getAudioDeviceList(const std::string& sequenceId, int ioDeviceMask)
 }
 
 //THREAD=Main
-bool
+  bool
 ManagerImpl::getCountryTones(const std::string& sequenceId)
 {
   // see ToneGenerator for the list...
@@ -1636,13 +1751,13 @@ ManagerImpl::getDirListing(const std::string& sequenceId, const std::string& pat
       fileName = cFileName;
       filePathName = path + DIR_SEPARATOR_STR + cFileName;
       if (fileName.length() && fileName[0]!='.' && !ost::isDir(filePathName.c_str())) {
-        tk.clear();
-        std::ostringstream str;
-        str << (*nbFile);
-        tk.push_back(str.str());
-        tk.push_back(filePathName);
-        //_gui->sendMessage("100", sequenceId, tk);
-        (*nbFile)++;
+	tk.clear();
+	std::ostringstream str;
+	str << (*nbFile);
+	tk.push_back(str.str());
+	tk.push_back(filePathName);
+	//_gui->sendMessage("100", sequenceId, tk);
+	(*nbFile)++;
       }
     }
     return true;
@@ -1652,17 +1767,17 @@ ManagerImpl::getDirListing(const std::string& sequenceId, const std::string& pat
   }
 }
 
-std::vector< std::string > 
+  std::vector< std::string > 
 ManagerImpl::getAccountList() 
 {
   std::vector< std::string > v; 
-    
+
   AccountMap::iterator iter = _accountMap.begin();
   while ( iter != _accountMap.end() ) {
     if ( iter->second != 0 ) {
       _debug("Account List: %s\n", iter->first.data()); 
       v.push_back(iter->first.data());
-        
+
     }
     iter++;
   }
@@ -1672,135 +1787,135 @@ ManagerImpl::getAccountList()
 
 
 
-std::map< std::string, std::string > 
+  std::map< std::string, std::string > 
 ManagerImpl::getAccountDetails(const AccountID& accountID) 
 {
   std::map<std::string, std::string> a;
   std::string accountType;
   enum VoIPLink::RegistrationState state = _accountMap[accountID]->getRegistrationState();
-    
+
   accountType = getConfigString(accountID, CONFIG_ACCOUNT_TYPE);
 
   a.insert(
-    std::pair<std::string, std::string>(
-      CONFIG_ACCOUNT_ALIAS, 
-      getConfigString(accountID, CONFIG_ACCOUNT_ALIAS)
-      )
-    );
+      std::pair<std::string, std::string>(
+	CONFIG_ACCOUNT_ALIAS, 
+	getConfigString(accountID, CONFIG_ACCOUNT_ALIAS)
+	)
+      );
   /*a.insert(
     std::pair<std::string, std::string>(
-      CONFIG_ACCOUNT_AUTO_REGISTER, 
-      getConfigString(accountID, CONFIG_ACCOUNT_AUTO_REGISTER)== "1" ? "TRUE": "FALSE"
-      )
+    CONFIG_ACCOUNT_AUTO_REGISTER, 
+    getConfigString(accountID, CONFIG_ACCOUNT_AUTO_REGISTER)== "1" ? "TRUE": "FALSE"
+    )
     );*/
   a.insert(
-    std::pair<std::string, std::string>(
-      CONFIG_ACCOUNT_ENABLE, 
-      getConfigString(accountID, CONFIG_ACCOUNT_ENABLE) == "1" ? "TRUE": "FALSE"
-      )
-    );
+      std::pair<std::string, std::string>(
+	CONFIG_ACCOUNT_ENABLE, 
+	getConfigString(accountID, CONFIG_ACCOUNT_ENABLE) == "1" ? "TRUE": "FALSE"
+	)
+      );
   a.insert(
-    std::pair<std::string, std::string>(
-      "Status", 
-      (state == VoIPLink::Registered ? "REGISTERED":
-        (state == VoIPLink::Unregistered ? "UNREGISTERED":
-          (state == VoIPLink::Trying ? "TRYING":
-            (state == VoIPLink::Error ? "ERROR": "ERROR"))))
-      )
-    );
+      std::pair<std::string, std::string>(
+	"Status", 
+	(state == VoIPLink::Registered ? "REGISTERED":
+	 (state == VoIPLink::Unregistered ? "UNREGISTERED":
+	  (state == VoIPLink::Trying ? "TRYING":
+	   (state == VoIPLink::Error ? "ERROR": "ERROR"))))
+	)
+      );
   a.insert(
-    std::pair<std::string, std::string>(
-      CONFIG_ACCOUNT_TYPE, accountType
-      )
-    );
+      std::pair<std::string, std::string>(
+	CONFIG_ACCOUNT_TYPE, accountType
+	)
+      );
 
   if (accountType == "SIP") {
     a.insert(
-      std::pair<std::string, std::string>(
-        SIP_FULL_NAME, 
-        getConfigString(accountID, SIP_FULL_NAME)
-        )
-      );
+	std::pair<std::string, std::string>(
+	  SIP_FULL_NAME, 
+	  getConfigString(accountID, SIP_FULL_NAME)
+	  )
+	);
     a.insert(
-      std::pair<std::string, std::string>(
-        SIP_USER_PART, 
-        getConfigString(accountID, SIP_USER_PART)
-        )
-      );
+	std::pair<std::string, std::string>(
+	  SIP_USER_PART, 
+	  getConfigString(accountID, SIP_USER_PART)
+	  )
+	);
     a.insert(
-      std::pair<std::string, std::string>(
-        SIP_AUTH_NAME, 
-        getConfigString(accountID, SIP_AUTH_NAME)
-        )
-      );
+	std::pair<std::string, std::string>(
+	  SIP_AUTH_NAME, 
+	  getConfigString(accountID, SIP_AUTH_NAME)
+	  )
+	);
     a.insert(
-      std::pair<std::string, std::string>(
-        SIP_PASSWORD, 
-        getConfigString(accountID, SIP_PASSWORD)
-        )
-      );
+	std::pair<std::string, std::string>(
+	  SIP_PASSWORD, 
+	  getConfigString(accountID, SIP_PASSWORD)
+	  )
+	);
     a.insert(
-      std::pair<std::string, std::string>(
-        SIP_HOST_PART, 
-        getConfigString(accountID, SIP_HOST_PART)
-        )
-      );
+	std::pair<std::string, std::string>(
+	  SIP_HOST_PART, 
+	  getConfigString(accountID, SIP_HOST_PART)
+	  )
+	);
     a.insert(
-      std::pair<std::string, std::string>(
-        SIP_PROXY, 
-        getConfigString(accountID, SIP_PROXY)
-        )
-      );
+	std::pair<std::string, std::string>(
+	  SIP_PROXY, 
+	  getConfigString(accountID, SIP_PROXY)
+	  )
+	);
     a.insert(
-      std::pair<std::string, std::string>(
-        SIP_STUN_SERVER, 
-        getConfigString(accountID, SIP_STUN_SERVER)
-        )
-      );
+	std::pair<std::string, std::string>(
+	  SIP_STUN_SERVER, 
+	  getConfigString(accountID, SIP_STUN_SERVER)
+	  )
+	);
     a.insert(
-      std::pair<std::string, std::string>(
-        SIP_USE_STUN, 
-        getConfigString(accountID, SIP_USE_STUN) == "1" ? "TRUE": "FALSE"
-        )
-      );
+	std::pair<std::string, std::string>(
+	  SIP_USE_STUN, 
+	  getConfigString(accountID, SIP_USE_STUN) == "1" ? "TRUE": "FALSE"
+	  )
+	);
   }
   else if (accountType == "IAX") {
     a.insert(
-      std::pair<std::string, std::string>(
-        IAX_FULL_NAME, 
-        getConfigString(accountID, IAX_FULL_NAME)
-        )
-      );
+	std::pair<std::string, std::string>(
+	  IAX_FULL_NAME, 
+	  getConfigString(accountID, IAX_FULL_NAME)
+	  )
+	);
     a.insert(
-      std::pair<std::string, std::string>(
-        IAX_HOST, 
-        getConfigString(accountID, IAX_HOST)
-        )
-      );    
+	std::pair<std::string, std::string>(
+	  IAX_HOST, 
+	  getConfigString(accountID, IAX_HOST)
+	  )
+	);    
     a.insert(
-      std::pair<std::string, std::string>(
-        IAX_USER, 
-        getConfigString(accountID, IAX_USER)
-        )
-      );
+	std::pair<std::string, std::string>(
+	  IAX_USER, 
+	  getConfigString(accountID, IAX_USER)
+	  )
+	);
     a.insert(
-      std::pair<std::string, std::string>(
-        IAX_PASS, 
-        getConfigString(accountID, IAX_PASS)
-        )
-      );
+	std::pair<std::string, std::string>(
+	  IAX_PASS, 
+	  getConfigString(accountID, IAX_PASS)
+	  )
+	);
   }
   else {
     // Unknown type
     _debug("Unknown account type in getAccountDetails(): %s", accountType.c_str());
   }
-     
+
   return a;
 }
 
-void 
+  void 
 ManagerImpl::setAccountDetails( const ::DBus::String& accountID, 
-				const std::map< ::DBus::String, ::DBus::String >& details )
+    const std::map< ::DBus::String, ::DBus::String >& details )
 {
   std::string accountType = (*details.find(CONFIG_ACCOUNT_TYPE)).second;
 
@@ -1808,7 +1923,7 @@ ManagerImpl::setAccountDetails( const ::DBus::String& accountID,
   //setConfig(accountID, CONFIG_ACCOUNT_AUTO_REGISTER, 
   // (*details.find(CONFIG_ACCOUNT_AUTO_REGISTER)).second == "TRUE" ? "1": "0" );
   setConfig(accountID, CONFIG_ACCOUNT_ENABLE, 
-	    (*details.find(CONFIG_ACCOUNT_ENABLE)).second == "TRUE" ? "1": "0" );
+      (*details.find(CONFIG_ACCOUNT_ENABLE)).second == "TRUE" ? "1": "0" );
   setConfig(accountID, CONFIG_ACCOUNT_TYPE, accountType);
 
   if (accountType == "SIP") {
@@ -1820,7 +1935,7 @@ ManagerImpl::setAccountDetails( const ::DBus::String& accountID,
     //setConfig(accountID, SIP_PROXY,     (*details.find(SIP_PROXY)).second);
     //setConfig(accountID, SIP_STUN_SERVER,(*details.find(SIP_STUN_SERVER)).second);
     //setConfig(accountID, SIP_USE_STUN,
-	  //    (*details.find(SIP_USE_STUN)).second == "TRUE" ? "1" : "0");
+    //    (*details.find(SIP_USE_STUN)).second == "TRUE" ? "1" : "0");
   }
   else if (accountType == "IAX") {
     setConfig(accountID, IAX_FULL_NAME, (*details.find(IAX_FULL_NAME)).second);
@@ -1830,7 +1945,7 @@ ManagerImpl::setAccountDetails( const ::DBus::String& accountID,
   } else {
     _debug("Unknown account type in setAccountDetails(): %s\n", accountType.c_str());
   }
-  
+
   saveConfig();
 
   /*
@@ -1857,7 +1972,7 @@ ManagerImpl::setAccountDetails( const ::DBus::String& accountID,
 }                   
 
 
-void
+  void
 ManagerImpl::addAccount(const std::map< ::DBus::String, ::DBus::String >& details)
 {
   /** @todo Deal with both the _accountMap and the Configuration */
@@ -1883,11 +1998,11 @@ ManagerImpl::addAccount(const std::map< ::DBus::String, ::DBus::String >& detail
   setAccountDetails(accountID.str(), details);
 
   saveConfig();
-  
+
   if (_dbus) _dbus->getConfigurationManager()->accountsChanged();
 }
 
-void 
+  void 
 ManagerImpl::removeAccount(const AccountID& accountID) 
 {
   // Get it down and dying
@@ -1902,25 +2017,25 @@ ManagerImpl::removeAccount(const AccountID& accountID)
   _config.removeSection(accountID);
 
   saveConfig();
-  
+
   if (_dbus) _dbus->getConfigurationManager()->accountsChanged();
 }
 
-std::string  
+  std::string  
 ManagerImpl::getDefaultAccount()
 {
-	
-	std::string id;
-	id = getConfigString(PREFERENCES, "DefaultAccount");
-	_debug("Default Account = %s\n",id.c_str());	
-	return id;
+
+  std::string id;
+  id = getConfigString(PREFERENCES, "DefaultAccount");
+  _debug("Default Account = %s\n",id.c_str());	
+  return id;
 }
 
-void
+  void
 ManagerImpl::setDefaultAccount(const AccountID& accountID)
 {
-	// we write into the Preferences section the field Default
-	setConfig("Preferences", "DefaultAccount", accountID);
+  // we write into the Preferences section the field Default
+  setConfig("Preferences", "DefaultAccount", accountID);
 }
 
 
@@ -1948,33 +2063,33 @@ ManagerImpl::setSwitch(const std::string& switchName, std::string& message) {
       int newSampleRate = audiolayer->getSampleRate();
 
       if (!error.empty()) {
-        message = error;
-        return false;
+	message = error;
+	return false;
       }
 
       if (newSampleRate != oldSampleRate) {
-        _toneMutex.enterMutex();
+	_toneMutex.enterMutex();
 
-        _debug("Unload Telephone Tone\n");
-        delete _telephoneTone; _telephoneTone = NULL;
-        _debug("Unload DTMF Key\n");
-        delete _dtmfKey; _dtmfKey = NULL;
+	_debug("Unload Telephone Tone\n");
+	delete _telephoneTone; _telephoneTone = NULL;
+	_debug("Unload DTMF Key\n");
+	delete _dtmfKey; _dtmfKey = NULL;
 
-        _debug("Load Telephone Tone\n");
-        std::string country = getConfigString(PREFERENCES, ZONE_TONE);
-        _telephoneTone = new TelephoneTone(country, newSampleRate);
+	_debug("Load Telephone Tone\n");
+	std::string country = getConfigString(PREFERENCES, ZONE_TONE);
+	_telephoneTone = new TelephoneTone(country, newSampleRate);
 
-        _debugInit("Loading DTMF key");
-        _dtmfKey = new DTMF(newSampleRate);
+	_debugInit("Loading DTMF key");
+	_dtmfKey = new DTMF(newSampleRate);
 
-        _toneMutex.leaveMutex();
+	_toneMutex.leaveMutex();
       }
 
       message = _("Change with success");
       playDtmf('9');
-      getAudioDriver()->sleep(300); // in milliseconds
+      //getAudioDriver()->sleep(300); // in milliseconds
       playDtmf('1');
-      getAudioDriver()->sleep(300); // in milliseconds
+      //getAudioDriver()->sleep(300); // in milliseconds
       playDtmf('1');
       return true;
     }
@@ -1991,7 +2106,7 @@ ManagerImpl::setSwitch(const std::string& switchName, std::string& message) {
 }
 
 // ACCOUNT handling
-bool
+  bool
 ManagerImpl::associateCallToAccount(const CallID& callID, const AccountID& accountID)
 {
   if (getAccountFromCall(callID) == AccountNULL) { // nothing with the same ID
@@ -2007,7 +2122,7 @@ ManagerImpl::associateCallToAccount(const CallID& callID, const AccountID& accou
   }
 }
 
-AccountID
+  AccountID
 ManagerImpl::getAccountFromCall(const CallID& callID)
 {
   ost::MutexLock m(_callAccountMapMutex);
@@ -2019,7 +2134,7 @@ ManagerImpl::getAccountFromCall(const CallID& callID)
   }
 }
 
-bool
+  bool
 ManagerImpl::removeCallAccount(const CallID& callID)
 {
   ost::MutexLock m(_callAccountMapMutex);
@@ -2029,12 +2144,12 @@ ManagerImpl::removeCallAccount(const CallID& callID)
   return false;
 }
 
-CallID 
+  CallID 
 ManagerImpl::getNewCallID() 
 {
   std::ostringstream random_id("s");
   random_id << (unsigned)rand();
-  
+
   // when it's not found, it return ""
   // generate, something like s10000s20000s4394040
   while (getAccountFromCall(random_id.str()) != AccountNULL) {
@@ -2045,7 +2160,7 @@ ManagerImpl::getNewCallID()
   return random_id.str();
 }
 
-short
+  short
 ManagerImpl::loadAccountMap()
 {
   _debugStart("Load account:");
@@ -2090,28 +2205,28 @@ ManagerImpl::loadAccountMap()
   // SIP Loading X account...
   short nbAccountSIP = ACCOUNT_SIP_COUNT_DEFAULT;
   for (short iAccountSIP = 0; iAccountSIP<nbAccountSIP; iAccountSIP++) {
-    std::ostringstream accountName;
-    accountName << "SIP" << iAccountSIP;
-    
-    tmpAccount = AccountCreator::createAccount(AccountCreator::SIP_ACCOUNT, accountName.str());
-     if (tmpAccount!=0) {
-       _debugMid(" %s", accountName.str().data());
-       _accountMap[accountName.str()] = tmpAccount;
-      nbAccount++;
-    }
+  std::ostringstream accountName;
+  accountName << "SIP" << iAccountSIP;
+
+  tmpAccount = AccountCreator::createAccount(AccountCreator::SIP_ACCOUNT, accountName.str());
+  if (tmpAccount!=0) {
+  _debugMid(" %s", accountName.str().data());
+  _accountMap[accountName.str()] = tmpAccount;
+  nbAccount++;
+  }
   }
 
   // IAX Loading X account...
   short nbAccountIAX = ACCOUNT_IAX_COUNT_DEFAULT;
   for (short iAccountIAX = 0; iAccountIAX<nbAccountIAX; iAccountIAX++) {
-    std::ostringstream accountName;
-    accountName << "IAX" << iAccountIAX;
-    tmpAccount = AccountCreator::createAccount(AccountCreator::IAX_ACCOUNT, accountName.str());
-    if (tmpAccount!=0) {
-       _debugMid(" %s", accountName.str().data());
-       _accountMap[accountName.str()] = tmpAccount;
-      nbAccount++;
-    }
+  std::ostringstream accountName;
+  accountName << "IAX" << iAccountIAX;
+  tmpAccount = AccountCreator::createAccount(AccountCreator::IAX_ACCOUNT, accountName.str());
+  if (tmpAccount!=0) {
+  _debugMid(" %s", accountName.str().data());
+  _accountMap[accountName.str()] = tmpAccount;
+  nbAccount++;
+  }
   }
   _debugEnd("\n");
   */
@@ -2119,7 +2234,7 @@ ManagerImpl::loadAccountMap()
   return nbAccount;
 }
 
-void
+  void
 ManagerImpl::unloadAccountMap()
 {
   _debug("Unloading account map...\n");
@@ -2132,7 +2247,7 @@ ManagerImpl::unloadAccountMap()
   _accountMap.clear();
 }
 
-bool
+  bool
 ManagerImpl::accountExists(const AccountID& accountID)
 {
   AccountMap::iterator iter = _accountMap.find(accountID);
@@ -2142,7 +2257,7 @@ ManagerImpl::accountExists(const AccountID& accountID)
   return true;
 }
 
-Account*
+  Account*
 ManagerImpl::getAccount(const AccountID& accountID)
 {
   AccountMap::iterator iter = _accountMap.find(accountID);
@@ -2152,7 +2267,7 @@ ManagerImpl::getAccount(const AccountID& accountID)
   return iter->second;
 }
 
-VoIPLink* 
+  VoIPLink* 
 ManagerImpl::getAccountLink(const AccountID& accountID)
 {
   Account* acc = getAccount(accountID);

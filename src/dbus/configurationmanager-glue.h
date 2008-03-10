@@ -36,6 +36,17 @@ public:
         register_method(ConfigurationManager, getCodecDetails, _getCodecDetails_stub);
         register_method(ConfigurationManager, getActiveCodecList, _getActiveCodecList_stub);
         register_method(ConfigurationManager, setActiveCodecList, _setActiveCodecList_stub);
+        register_method(ConfigurationManager, getInputAudioPluginList, _getInputAudioPluginList_stub);
+        register_method(ConfigurationManager, getOutputAudioPluginList, _getOutputAudioPluginList_stub);
+        register_method(ConfigurationManager, setInputAudioPlugin, _setInputAudioPlugin_stub);
+        register_method(ConfigurationManager, setOutputAudioPlugin, _setOutputAudioPlugin_stub);
+        register_method(ConfigurationManager, getAudioOutputDeviceList, _getAudioOutputDeviceList_stub);
+        register_method(ConfigurationManager, setAudioOutputDevice, _setAudioOutputDevice_stub);
+        register_method(ConfigurationManager, getAudioInputDeviceList, _getAudioInputDeviceList_stub);
+        register_method(ConfigurationManager, setAudioInputDevice, _setAudioInputDevice_stub);
+        register_method(ConfigurationManager, getCurrentAudioDevicesIndex, _getCurrentAudioDevicesIndex_stub);
+        register_method(ConfigurationManager, getAudioDeviceIndex, _getAudioDeviceIndex_stub);
+        register_method(ConfigurationManager, getCurrentAudioOutputPlugin, _getCurrentAudioOutputPlugin_stub);
     }
 
     ::DBus::IntrospectedInterface* const introspect() const 
@@ -123,6 +134,62 @@ public:
             { "list", "as", true },
             { 0, 0, 0 }
         };
+        static ::DBus::IntrospectedArgument getInputAudioPluginList_args[] = 
+        {
+            { "list", "as", false },
+            { 0, 0, 0 }
+        };
+        static ::DBus::IntrospectedArgument getOutputAudioPluginList_args[] = 
+        {
+            { "list", "as", false },
+            { 0, 0, 0 }
+        };
+        static ::DBus::IntrospectedArgument setInputAudioPlugin_args[] = 
+        {
+            { "audioPlugin", "s", true },
+            { 0, 0, 0 }
+        };
+        static ::DBus::IntrospectedArgument setOutputAudioPlugin_args[] = 
+        {
+            { "audioPlugin", "s", true },
+            { 0, 0, 0 }
+        };
+        static ::DBus::IntrospectedArgument getAudioOutputDeviceList_args[] = 
+        {
+            { "list", "as", false },
+            { 0, 0, 0 }
+        };
+        static ::DBus::IntrospectedArgument setAudioOutputDevice_args[] = 
+        {
+            { "index", "i", true },
+            { 0, 0, 0 }
+        };
+        static ::DBus::IntrospectedArgument getAudioInputDeviceList_args[] = 
+        {
+            { "list", "as", false },
+            { 0, 0, 0 }
+        };
+        static ::DBus::IntrospectedArgument setAudioInputDevice_args[] = 
+        {
+            { "index", "i", true },
+            { 0, 0, 0 }
+        };
+        static ::DBus::IntrospectedArgument getCurrentAudioDevicesIndex_args[] = 
+        {
+            { "list", "as", false },
+            { 0, 0, 0 }
+        };
+        static ::DBus::IntrospectedArgument getAudioDeviceIndex_args[] = 
+        {
+            { "name", "s", true },
+            { "index", "i", false },
+            { 0, 0, 0 }
+        };
+        static ::DBus::IntrospectedArgument getCurrentAudioOutputPlugin_args[] = 
+        {
+            { "plugin", "s", false },
+            { 0, 0, 0 }
+        };
         static ::DBus::IntrospectedArgument parametersChanged_args[] = 
         {
             { "list", "a{ss}", false },
@@ -150,6 +217,17 @@ public:
             { "getCodecDetails", getCodecDetails_args },
             { "getActiveCodecList", getActiveCodecList_args },
             { "setActiveCodecList", setActiveCodecList_args },
+            { "getInputAudioPluginList", getInputAudioPluginList_args },
+            { "getOutputAudioPluginList", getOutputAudioPluginList_args },
+            { "setInputAudioPlugin", setInputAudioPlugin_args },
+            { "setOutputAudioPlugin", setOutputAudioPlugin_args },
+            { "getAudioOutputDeviceList", getAudioOutputDeviceList_args },
+            { "setAudioOutputDevice", setAudioOutputDevice_args },
+            { "getAudioInputDeviceList", getAudioInputDeviceList_args },
+            { "setAudioInputDevice", setAudioInputDevice_args },
+            { "getCurrentAudioDevicesIndex", getCurrentAudioDevicesIndex_args },
+            { "getAudioDeviceIndex", getAudioDeviceIndex_args },
+            { "getCurrentAudioOutputPlugin", getCurrentAudioOutputPlugin_args },
             { 0, 0 }
         };
         static ::DBus::IntrospectedMethod ConfigurationManager_signals[] = 
@@ -199,6 +277,17 @@ public:
     virtual std::vector< ::DBus::String > getCodecDetails( const ::DBus::Int32& payload ) = 0;
     virtual std::vector< ::DBus::String > getActiveCodecList(  ) = 0;
     virtual void setActiveCodecList( const std::vector< ::DBus::String >& list ) = 0;
+    virtual std::vector< ::DBus::String > getInputAudioPluginList(  ) = 0;
+    virtual std::vector< ::DBus::String > getOutputAudioPluginList(  ) = 0;
+    virtual void setInputAudioPlugin( const ::DBus::String& audioPlugin ) = 0;
+    virtual void setOutputAudioPlugin( const ::DBus::String& audioPlugin ) = 0;
+    virtual std::vector< ::DBus::String > getAudioOutputDeviceList(  ) = 0;
+    virtual void setAudioOutputDevice( const ::DBus::Int32& index ) = 0;
+    virtual std::vector< ::DBus::String > getAudioInputDeviceList(  ) = 0;
+    virtual void setAudioInputDevice( const ::DBus::Int32& index ) = 0;
+    virtual std::vector< ::DBus::String > getCurrentAudioDevicesIndex(  ) = 0;
+    virtual ::DBus::Int32 getAudioDeviceIndex( const ::DBus::String& name ) = 0;
+    virtual ::DBus::String getCurrentAudioOutputPlugin(  ) = 0;
 
 public:
 
@@ -377,6 +466,113 @@ private:
         std::vector< ::DBus::String > argin1; ri >> argin1;
         setActiveCodecList(argin1);
         ::DBus::ReturnMessage reply(call);
+        return reply;
+    }
+    ::DBus::Message _getInputAudioPluginList_stub( const ::DBus::CallMessage& call )
+    {
+        ::DBus::MessageIter ri = call.reader();
+
+        std::vector< ::DBus::String > argout1 = getInputAudioPluginList();
+        ::DBus::ReturnMessage reply(call);
+        ::DBus::MessageIter wi = reply.writer();
+        wi << argout1;
+        return reply;
+    }
+    ::DBus::Message _getOutputAudioPluginList_stub( const ::DBus::CallMessage& call )
+    {
+        ::DBus::MessageIter ri = call.reader();
+
+        std::vector< ::DBus::String > argout1 = getOutputAudioPluginList();
+        ::DBus::ReturnMessage reply(call);
+        ::DBus::MessageIter wi = reply.writer();
+        wi << argout1;
+        return reply;
+    }
+    ::DBus::Message _setInputAudioPlugin_stub( const ::DBus::CallMessage& call )
+    {
+        ::DBus::MessageIter ri = call.reader();
+
+        ::DBus::String argin1; ri >> argin1;
+        setInputAudioPlugin(argin1);
+        ::DBus::ReturnMessage reply(call);
+        return reply;
+    }
+    ::DBus::Message _setOutputAudioPlugin_stub( const ::DBus::CallMessage& call )
+    {
+        ::DBus::MessageIter ri = call.reader();
+
+        ::DBus::String argin1; ri >> argin1;
+        setOutputAudioPlugin(argin1);
+        ::DBus::ReturnMessage reply(call);
+        return reply;
+    }
+    ::DBus::Message _getAudioOutputDeviceList_stub( const ::DBus::CallMessage& call )
+    {
+        ::DBus::MessageIter ri = call.reader();
+
+        std::vector< ::DBus::String > argout1 = getAudioOutputDeviceList();
+        ::DBus::ReturnMessage reply(call);
+        ::DBus::MessageIter wi = reply.writer();
+        wi << argout1;
+        return reply;
+    }
+    ::DBus::Message _setAudioOutputDevice_stub( const ::DBus::CallMessage& call )
+    {
+        ::DBus::MessageIter ri = call.reader();
+
+        ::DBus::Int32 argin1; ri >> argin1;
+        setAudioOutputDevice(argin1);
+        ::DBus::ReturnMessage reply(call);
+        return reply;
+    }
+    ::DBus::Message _getAudioInputDeviceList_stub( const ::DBus::CallMessage& call )
+    {
+        ::DBus::MessageIter ri = call.reader();
+
+        std::vector< ::DBus::String > argout1 = getAudioInputDeviceList();
+        ::DBus::ReturnMessage reply(call);
+        ::DBus::MessageIter wi = reply.writer();
+        wi << argout1;
+        return reply;
+    }
+    ::DBus::Message _setAudioInputDevice_stub( const ::DBus::CallMessage& call )
+    {
+        ::DBus::MessageIter ri = call.reader();
+
+        ::DBus::Int32 argin1; ri >> argin1;
+        setAudioInputDevice(argin1);
+        ::DBus::ReturnMessage reply(call);
+        return reply;
+    }
+    ::DBus::Message _getCurrentAudioDevicesIndex_stub( const ::DBus::CallMessage& call )
+    {
+        ::DBus::MessageIter ri = call.reader();
+
+        std::vector< ::DBus::String > argout1 = getCurrentAudioDevicesIndex();
+        ::DBus::ReturnMessage reply(call);
+        ::DBus::MessageIter wi = reply.writer();
+        wi << argout1;
+        return reply;
+    }
+    ::DBus::Message _getAudioDeviceIndex_stub( const ::DBus::CallMessage& call )
+    {
+        ::DBus::MessageIter ri = call.reader();
+
+        ::DBus::String argin1; ri >> argin1;
+        ::DBus::Int32 argout1 = getAudioDeviceIndex(argin1);
+        ::DBus::ReturnMessage reply(call);
+        ::DBus::MessageIter wi = reply.writer();
+        wi << argout1;
+        return reply;
+    }
+    ::DBus::Message _getCurrentAudioOutputPlugin_stub( const ::DBus::CallMessage& call )
+    {
+        ::DBus::MessageIter ri = call.reader();
+
+        ::DBus::String argout1 = getCurrentAudioOutputPlugin();
+        ::DBus::ReturnMessage reply(call);
+        ::DBus::MessageIter wi = reply.writer();
+        wi << argout1;
         return reply;
     }
 };

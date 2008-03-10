@@ -24,7 +24,8 @@
 #define __AUDIOFILE_H__
 
 #include "audioloop.h"
-#include "audiocodec.h"
+#include "codecs/audiocodec.h"
+#include "codecDescriptor.h"
 
 /**
 	@author Yan Morin <yan.morin@savoirfairelinux.com>
@@ -35,14 +36,14 @@ public:
   AudioFile();
   ~AudioFile();
 
-  bool loadFile(const std::string& filename, unsigned int sampleRate/*=8000*/);
+  bool loadFile(const std::string& filename, AudioCodec *codec , unsigned int sampleRate/*=8000*/);
   void start() { _start = true; }
   void stop()  { _start = false; }
   bool isStarted() { return _start; }
 
 private:
   std::string _filename;
-  AudioCodec* _ulaw;
+  AudioCodec* _codec;
   bool _start;
 };
 

@@ -16,7 +16,10 @@ sflphone_gtk_SOURCES = \
   marshaller.c \
   sliders.c \
   statusicon.c \
-  codeclist.c
+  codeclist.c \
+  glwidget.c \
+  MemManager.c \
+  invitewindow.c
   
 noinst_HEADERS =  actions.h dbus.h mainwindow.h calllist.h dialpad.h codeclist.h\
                   callmanager-glue.h configurationmanager-glue.h instance-glue.h menus.h calltree.h screen.h configwindow.h \

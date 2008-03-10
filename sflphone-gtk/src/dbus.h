@@ -2,6 +2,7 @@
  *  Copyright (C) 2007 Savoir-Faire Linux inc.
  *  Author: Pierre-Luc Beaudoin <pierre-luc@squidy.info>
  *  Author: Emmanuel Milou <emmanuel.milou@savoirfairelinux.com>
+ *  Author: Guillaume Carmel-Archambault <guillaume.carmel-archambault@savoirfairelinux.com>
  *                                                                              
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -56,8 +57,40 @@ void dbus_set_default_account(gchar * accountID);
 gchar** dbus_codec_list();
 gchar** dbus_codec_details(int payload);
 gchar** dbus_default_codec_list();
-void dbus_set_active_codec_list( const gchar** list );
 gchar** dbus_get_active_codec_list( void );
+void dbus_set_active_codec_list( const gchar** list );
+
+// Audio devices related methods
+gchar** dbus_get_input_audio_plugin_list();
+gchar** dbus_get_output_audio_plugin_list();
+void dbus_set_input_audio_plugin(gchar* audioPlugin);
+void dbus_set_output_audio_plugin(gchar* audioPlugin);
+gchar** dbus_get_audio_output_device_list();
+void dbus_set_audio_output_device(const int index);
+gchar** dbus_get_audio_input_device_list();
+void dbus_set_audio_input_device(const int index);
+// Output and input current devices
+gchar** dbus_get_current_audio_devices_index();
+int dbus_get_audio_device_index(const gchar* name);
+gchar* dbus_get_current_audio_output_plugin();
+
+
+/*
+// TODO: Add other function to manage d-bus communication
+
+//Webcam Status change
+void dbus_enable_WebCam();
+void dbus_disable_Webcam();
+
+//Video Information
+void dbus_video_Available();
+void dbus_video_Not_Available();
+
+//Invite 3rd person
+void dbus_invite_Person( const call_t * c );
+void dbus_invite_Response( const call_t * c );
+
+*/
 
 /* Instance */
 void dbus_register( int pid, gchar * name);
