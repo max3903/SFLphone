@@ -21,6 +21,10 @@
 #define __MENUS_H__
 
 #include <gtk/gtk.h>
+
+GtkWidget * webCamMenu;
+guint webCamConnId;     //The webcam_menu signal connection ID
+
 /** @file menus.h
   * @brief The menus of the main window.
   */

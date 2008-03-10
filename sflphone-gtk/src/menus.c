@@ -37,11 +37,11 @@ GtkWidget * newCallMenu;
 GtkWidget * holdMenu;
 GtkWidget * copyMenu;
 GtkWidget * pasteMenu;
-GtkWidget * webCamMenu;
+//GtkWidget * webCamMenu;
 GtkWidget * inviteMenu;
 
 guint holdConnId;     //The hold_menu signal connection ID
-guint webCamConnId;     //The webcam_menu signal connection ID
+//guint webCamConnId;     //The webcam_menu signal connection ID
 
 void update_menus()
 { 
@@ -210,14 +210,8 @@ call_hang_up ( void * foo)
 static void changeWebCamStatus ( void *foo )
 {
 	g_print("Changing webcam status ...\n");
-	gboolean value= main_window_glWidget(gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM(webCamMenu)));
+	main_window_glWidget(gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM(webCamMenu)));
 	
-	// Changing button state to represent web cam status
-	gtk_signal_handler_block(GTK_TOGGLE_TOOL_BUTTON(webCamMenu),webCamConnId);
-	gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(webCamMenu), value);
-	gtk_signal_handler_unblock(GTK_TOGGLE_TOOL_BUTTON(webCamMenu),webCamConnId);
-	
-	//TODO: Add send signal to enabled/disable webcam
 }
 
 static void invitePerson(void* foo)

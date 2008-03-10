@@ -288,6 +288,7 @@ gboolean main_window_glWidget( gboolean show )
 			case CALL_STATE_FAILURE:
 			case CALL_STATE_DIALING:
 				g_print("No active call, showing config window\n");
+				main_window_update_WebcamStatus(showGlWidget);
 				show_config_window();
 				return FALSE;
 				
@@ -303,6 +304,10 @@ gboolean main_window_glWidget( gboolean show )
 					    gtk_box_reorder_child(GTK_BOX (subvbox), drawing_area, 0);
 					    gtk_widget_show_all (drawing_area);
 					    showGlWidget = show;
+					    main_window_update_WebcamStatus(showGlWidget);
+					    
+					    // \TODO: Add Code to send enable webcam signal
+					    
 					    return TRUE;
 					  }
 					  else if (!show && showGlWidget)
@@ -310,20 +315,37 @@ gboolean main_window_glWidget( gboolean show )
 					  	g_print("Disabling visualization pannel\n");
 					    gtk_container_remove(GTK_CONTAINER (subvbox), drawing_area);
 					    showGlWidget = show;
+					    main_window_update_WebcamStatus(showGlWidget);
+					    
+					    // \TODO: Add Code to send disable webcam signal
+					    
 					    return FALSE;
 					  }
 				}
 			default:
 				g_warning("Should not happen!");
+				main_window_update_WebcamStatus(showGlWidget);
 				show_config_window();
 				break; 
 		}
 	}else
 	{
 		g_print("No call selected, showing config window\n");
+		main_window_update_WebcamStatus(showGlWidget);
 		show_config_window();
 	}
 	
 	return FALSE;
+}
+
+void main_window_update_WebcamStatus( gboolean value )
+{
+	gtk_signal_handler_block(GTK_TOGGLE_TOOL_BUTTON(webCamButton),webCamButtonConnId);
+	gtk_toggle_tool_button_set_active(GTK_TOGGLE_TOOL_BUTTON (webCamButton), value);
+	gtk_signal_handler_unblock(GTK_TOGGLE_TOOL_BUTTON(webCamButton),webCamButtonConnId);
+	
+	gtk_signal_handler_block(GTK_TOGGLE_TOOL_BUTTON(webCamMenu),webCamConnId);
+	gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(webCamMenu), value);
+	gtk_signal_handler_unblock(GTK_TOGGLE_TOOL_BUTTON(webCamMenu),webCamConnId);
 }
 
