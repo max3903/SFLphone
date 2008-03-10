@@ -16,7 +16,7 @@
  *  along with this program; if not, write to the Free Software
  *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
-
+// References http://www.ibm.com/developerworks/aix/library/au-ipc/index.html
 #include "MemManager.h"
 
 MemManager* MemManager::instance= 0;
@@ -42,20 +42,25 @@ MemManager::~MemManager()
 
 const MemKey* MemManager::initSpace(key_t key,int size)
 {
+	//THE KEY GIVEN MUST HAVE BEEN GENERATED WITH ftok function
+	
 	int shmid;
 	MemKey *newKey = new MemKey(size,key);
 	MemSpace *newSpace = new MemSpace(newKey);
 	vectMemSpaceIterator MemSpaceLocation;
 	
 	
-	if ( (shmid = shmget(newKey->getKey(), newKey->getSize(), IPC_CREAT | 0666)) < 0)
+	//Get the IPC-specific identifier associated with the IPC key using shmget(2)
+	// for shared memory
+	if ( (shmid = shmget(key, size, IPC_CREAT | 0666)) < 0)
 	{
 		perror("shmget");
         exit(1);
 	}
 	
-	//attach shared memory to baseAddress
-    newSpace->setBaseAddress((char *)shmat(shmid, NULL, 0));
+	//Attach shared memory to baseAddress shmat returns pointer to the
+	// shared memory segment
+    newSpace->setBaseAddress((char *)shmat(shmid, (void *) 0, 0));
     
     if ( newSpace->getBaseAddress() == (char *) -1) {
         perror("shmat");
@@ -82,6 +87,7 @@ const MemKey* MemManager::initSpace(MemKey* key)
 	newSpace = new MemSpace(key);
 	vectMemSpaceIterator MemSpaceLocation;
 	
+	
 	//create shared memory space
 	if ( (shmid = shmget(key->getKey(), key->getSize(), IPC_CREAT | 0666)) < 0)
 	{
@@ -90,12 +96,13 @@ const MemKey* MemManager::initSpace(MemKey* key)
     }
     
     //attach shared memory to baseAddress
-    newSpace->setBaseAddress((char *)shmat(shmid, NULL, 0));
+    newSpace->setBaseAddress((char *)shmat(shmid, 0, 0));
     
     if ( newSpace->getBaseAddress() == (char *) -1) {
         perror("shmat");
         exit(1);
     }
+    
     //add the newly created space to the vector 
 	spaces.push_back(newSpace);
 	// if it's the first memspace created, we assign the defaultIndex to it's position
@@ -129,7 +136,7 @@ const MemKey* MemManager::initSpace(int size)
     }
     
     //attach shared memory to baseAddress
-    newSpace->setBaseAddress((char *)shmat(shmid, NULL, 0));
+    newSpace->setBaseAddress((char *)shmat(shmid, 0, 0));
     
     if ( newSpace->getBaseAddress() == (char *) -1) {
         perror("shmat");
@@ -149,35 +156,52 @@ const MemKey* MemManager::initSpace(int size)
 	
 	return newKey;
 }
+
 bool MemManager::deleteSpace(MemKey* key)
 {
-	vector<MemSpace*>::iterator iter;
+
 	int i;
-	for( iter = spaces.begin(); iter != spaces.end() ;iter++);
-	{
-		if ((*iter)->getMemKey() == key)
-		{
-			//remove memspace from vector
-			spaces.erase(iter);
-			//TODO release space
-			i = shmdt((*iter)->getBaseAddress());
-			if(i == -1) {
-   					 perror("shmop: shmdt failed");
-    					} else 
-  				fprintf(stderr, "shmop: shmdt returned %d\n", i);
+	
+	i = shmdt((*(key->getIndex()))->getBaseAddress());
+	
+	if(i == -1) 
+   		perror("shmop: shmdt failed");
+    	 else 
+  		 fprintf(stderr, "shmop: shmdt returned %d\n", i);
   				
 			//delete memspace
-			delete (*iter);
+			delete (*(key->getIndex()));
 			
 			return true;
+}
+
+bool MemManager::CleanSpaces(){
+
+//TODO
+vector<MemSpace*>::iterator iter;
+int i;
+
+	//for each mespace detach memory
+	for( iter = spaces.begin(); iter != spaces.end() ;iter++)
+	{
 		
+		i = shmdt((*iter)->getBaseAddress());
+		
+		if(i == -1) 
+		{
+   		perror("shmop: shmdt failed");
+   		return false;
 		}
+			
 	}
-
-return false;
-
+	
+	//clean vector
+	spaces.clear();
+	
+		return true;
 
 }
+
 bool MemManager::setDefaultSpace(MemKey* key)
 {
 
@@ -257,7 +281,7 @@ bool MemManager::putData(key_t key, char * Data, int size)
 bool MemManager::putData(MemKey* key, char * Data, int size)
 {
 	(*(key->getIndex()))->putData(Data,size);
-	
+
 			return true;
 	
 }
@@ -276,7 +300,7 @@ vector<MemKey*> MemManager::getAvailSpaces()
 	return MemKeys;
 }
 
-int MemManager::genKey()
+key_t MemManager::genKey()
 {
-	return rand();	
+	return ftok("/tmp/sflPhone",rand());
 }

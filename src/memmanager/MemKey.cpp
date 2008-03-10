@@ -24,8 +24,6 @@ MemKey::MemKey()
 	this->key = this->genKey();
 	//TODO get index from memmanager
 	//TODO put DEFAULT size
-	//TODO put DEFAULT width
-	//TODO put DEFAULT height
 	this->description = serialize();
 }
 
@@ -33,15 +31,13 @@ MemKey::MemKey(char* serializedData)
 {
 	
 	//TODO read serializedData and create MemKey with parameters
-	//"%i %i %i %i",size,width,height,key
+	//"%i %i",size,key
 }
 
 MemKey::MemKey(int size)
 {
 	this->size = size;
-
 	this->key = this->genKey();
-	//TODO get index from memmanager
 	this->description = serialize();
 	
 }
@@ -77,7 +73,7 @@ MemKey::~MemKey()
 {
 }
 
-int MemKey::getKey()
+key_t MemKey::getKey()
 {
 	return this->key;
 }
@@ -120,7 +116,7 @@ char* MemKey::serialize()
 	return tmp;
 }
 
-int MemKey::genKey()
+key_t MemKey::genKey()
 {
-	return rand();	
+	return ftok("/tmp/sflPhone",rand());	
 }

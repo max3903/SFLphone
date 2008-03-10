@@ -31,6 +31,8 @@
 
 using namespace std;
 
+//TODO DESTROY ALL MEM SEGMENT CREATED!!!
+
 //! Shared memory pool manager
 /*!
  * This class manages a pool of MemSpace, it make the link between the MemKey and the MemSpace. It also creates the MemKey Only one instance of the manager can exist at one time
@@ -83,12 +85,21 @@ public:
     
     //! Delete a shared memory space with the specified info
     /*!
-     * This method creates a new shared memory space and create a new key or links to an existing one and returns the corresponding MemKey. To link 2 spaces, the size and the key muste be the same.
+     * This method will delete a memspace
      * 
      * \param key the key identifiying the shared memory space
      * \return bool true if the memspace was deleted, false otherwise
      */
     bool deleteSpace(MemKey* key);
+    
+    //! Clean Spaces 
+    /*!
+     * This method will clean all spaces in the vector from the system
+     * 
+     * 
+     * \return bool true if the memspace was deleted, false otherwise
+     */
+    bool CleanSpaces();
     
     //! Sets the default MemSpace to work with
     /*!
@@ -168,7 +179,7 @@ private:
 	/*!
 	 * \return a generated key
 	 */
-    int genKey();
+    key_t genKey();
     
     //! The MemSpaces
     vectMemSpace spaces;

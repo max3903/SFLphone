@@ -142,7 +142,7 @@ private:
 	/*!
 	 * Will create a key if needed
 	 */
-    int genKey();
+    key_t genKey();
     
     //! The key to access the shared memory space
     key_t key;
