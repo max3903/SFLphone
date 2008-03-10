@@ -21,7 +21,35 @@
 
 MemKey* createMemKeyFromChar( char* key )
 {
-	return 0;
+	int lentgh= strlen(key);
+	int cIndex= 0;
+	MemKey* theKey= (MemKey*)malloc(sizeof(MemKey));
+	char *tmp;
+	int i= 0;
+	
+	for( i= 0; i < lentgh; i++  )
+	{
+		if( key[i] == ' ')
+		{
+			tmp= (char*)malloc( i-cIndex );
+			memcpy( tmp, key, i-cIndex );
+			theKey->key= atoi(tmp);
+			free(tmp);
+			cIndex= i+1;
+			break;
+			
+		}
+	}
+	
+	tmp= (char*)malloc( lentgh-cIndex );
+	memcpy( tmp, key, lentgh-cIndex );
+	theKey->size= atoi(tmp);
+	free(tmp);
+	
+	theKey->description= NULL;
+	theKey->BaseAdd= NULL;
+	
+	return theKey;
 }
 
 MemKey* initSpace( MemKey *key )
@@ -47,13 +75,23 @@ MemKey* initSpace( MemKey *key )
 
 int fetchData( MemKey *key, MemData *data )
 {
-	memcpy(data->data, key->BaseAdd, key->size);
+	//\TODO: Add multiple access protection
+	if( data != NULL && key != NULL )
+		memcpy(data->data, key->BaseAdd, key->size);
+	else
+		return -1;
+		
 	return 0;
 }
 
 int putData( MemKey *key, MemData *data )
 {
-	memcpy(key->BaseAdd, data->data, key->size);
+	//\TODO: Add multiple access protection
+	if( data != NULL && key != NULL )
+		memcpy(key->BaseAdd, data->data, key->size);
+	else
+		return -1;
+		
 	return 0;
 }
 
@@ -88,12 +126,50 @@ int InitMemSpaces( char* local, char* remote )
 
 int DestroyMemSpaces()
 {
+	if( localKey != NULL )
+	{
+		if( localKey->BaseAdd != NULL && shmdt(localKey->BaseAdd) == -1)
+		{
+	    	perror("Error: Failed to detach shared memory segment");
+	    	return -1;
+		}
+		
+		if( localKey->description != NULL)
+			free( localKey->description );
+			
+		free(localKey);
+	}
 	
-	free(localKey);
-	free(remoteKey);
-	free(remoteBuff);
-	free(localBuff);
+	if( remoteKey != NULL )
+	{
+		if( remoteKey->BaseAdd != NULL && shmdt(remoteKey->BaseAdd) == -1)
+		{
+	    	perror("Error: Failed to detach shared memory segment");
+	    	return -1;
+		}
+		
+		if( remoteKey->description != NULL)
+			free( remoteKey->description );
+			
+		free(remoteKey);	
+	}
+
+	if( remoteBuff != NULL)
+	{
+		if( remoteBuff->data != NULL )
+			free(remoteBuff->data);
+		
+		free(remoteBuff);
+	}
 	
+	if( localBuff != NULL)
+	{
+		if( localBuff->data != NULL )
+			free(localBuff->data);
+		
+		free(localBuff);
+	}
+		
 	return 0;
 	
 }
