@@ -56,7 +56,7 @@ void update_menus()
   gtk_widget_set_sensitive( GTK_WIDGET(copyMenu),   FALSE);
   gtk_widget_set_sensitive( GTK_WIDGET(inviteMenu),   FALSE);
   gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(holdMenu), FALSE);
-  gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(webCamMenu), TRUE);
+  gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(webCamMenu), FALSE);
 	
 	call_t * selectedCall = call_get_selected();
 	if (selectedCall)
@@ -277,6 +277,7 @@ create_call_menu()
   webCamMenu = gtk_check_menu_item_new_with_mnemonic("Enable _Webcam");
   gtk_menu_shell_append (GTK_MENU_SHELL (menu), webCamMenu);
   gtk_widget_set_sensitive( GTK_WIDGET(webCamMenu), TRUE);
+  gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(webCamMenu), FALSE);
   //Here we connect only to activate
   //The toggled state is managed from update_menus()
   webCamConnId= g_signal_connect (G_OBJECT (webCamMenu), "activate",
