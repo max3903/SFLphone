@@ -69,7 +69,7 @@ public:
      * \param data a pointer to the new data
      * \param size the size of data
      */
-    void putData(char * data, int size,int width,int height);
+    void putData(char * data, int size);
         
 private:
 	

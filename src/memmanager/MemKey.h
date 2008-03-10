@@ -39,7 +39,7 @@ public:
 	 * \param size the maximum size of the shared memory space
 	 * \param description a description of the shared memory space
 	 */
-    MemKey(int size,int width, int height);
+    MemKey(int size);
 	//! Constructor
 	/*!
 	 * Initiate the object
@@ -48,7 +48,7 @@ public:
 	 * \param description a description of the shared memory space
 	 * \param key is to set the key
 	 */
-    MemKey(int size,key_t key,int width, int height);
+    MemKey(int size,key_t key);
     //! Pointer copy constructor
     /*!
      * Creates an independant copy of the source object
@@ -88,28 +88,8 @@ public:
      */
     void setKey(key_t key);
     
-    //! Access method for the width of the shared memory space
-    /*!
-     * \return the the width of an image from the shared memory space
-     */
-    int getWidth();
     
-    //! Access method to set the width of an image from the shared memory space
-    /*!
-     */
-    void setWidth(int width);
-    
-     //! Access method for the Height of the shared memory space
-    /*!
-     * \return the the Height of an image from the shared memory space
-     */
-    int getHeight();
-    
-    //! Access method to set the Height of an image from the shared memory space
-    /*!
-     */
-    void setHeight(int height);
-    
+ 
 
     //! Access method to the description of the shared memory space
     /*!
@@ -173,11 +153,6 @@ private:
     //! The maximum size of the shared memory space
     int size;
     
-    //! The maximum size of the shared memory space
-    int width;
-    
-    //! The maximum size of the shared memory space
-    int height;
     
 };
 #endif //MEMKEY_H

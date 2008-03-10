@@ -40,10 +40,10 @@ MemManager::~MemManager()
 	delete instance;
 }
 
-const MemKey* MemManager::initSpace(key_t key, int size,int width,int height)
+const MemKey* MemManager::initSpace(key_t key,int size)
 {
 	int shmid;
-	MemKey *newKey = new MemKey(size,key,width,height);
+	MemKey *newKey = new MemKey(size,key);
 	MemSpace *newSpace = new MemSpace(newKey);
 	
 	
@@ -121,14 +121,14 @@ return false;
 
 }
 
-const MemKey* MemManager::initSpace(int size,int width, int height)
+const MemKey* MemManager::initSpace(int size)
 {
 	MemKey *newKey;
 	int shmid;
 	MemSpace *newSpace;
 	key_t key = genKey();
 	
-	newKey = new MemKey(size,key,width,height);
+	newKey = new MemKey(size,key);
 	newSpace = new MemSpace(newKey);
 	
 	//create shared memory space
