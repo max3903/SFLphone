@@ -7,8 +7,7 @@
 int VideoInput::fetchData(char* data)
 { 
   sem_wait(&semaphore);
-  data = buffer + (Deplacement) * sizeof(char);  // TODO: Si le size>1, il faut naviguer les datas non ??
-  Deplacement++;			   		 // TODO: Est-ce qu'il faudrait borner le Deplacement par size-1 ??
+  memcpy(buffer,data,sizeBuffer);
   sem_post(&semaphore);
   return 0;		// TODO: Et le return il sert à quoi ??
 }
@@ -26,7 +25,6 @@ void VideoInput::putData(char * data, int size)
   sem_wait(&semaphore);
   memcpy(data,buffer,size);
   sizeBuffer=size;
-  Deplacement=0;
   sem_post(&semaphore);
 }
 
@@ -35,7 +33,6 @@ VideoInput::VideoInput()
   buffer = new char[1024];      // TODO: Quel est le max_size pour le buffer. TAILLE_BUFFER??
   sem_init(&semaphore,0,1);
   infoTemps = new TimeInfo(0);  // TODO: Verifier la valeur initiale du constructeur...
-  Deplacement = 0; //pas sure
 }
 
 VideoInput::~VideoInput()

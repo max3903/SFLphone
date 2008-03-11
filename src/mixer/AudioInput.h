@@ -64,7 +64,6 @@ private:
     TimeInfo* infoTemps;
     int16 * buffer;
     int sizeBuffer;
-    int Deplacement;
     
 };
 #endif //AUDIOINPUT_H

@@ -17,7 +17,6 @@ void AudioInput::putData(int16 *data, int size)
   sem_wait(&semaphore);
   memcpy(data,buffer,size);
   sizeBuffer=size;
-  Deplacement=0;
   sem_post(&semaphore);
 }
 
@@ -25,8 +24,7 @@ void AudioInput::putData(int16 *data, int size)
 int AudioInput::fetchData(int16 *data) 
 { 
   sem_wait(&semaphore);
-  data = buffer + (Deplacement) * sizeof(int16);  // TODO: Si le size>1, il faut naviguer les datas non ??
-  Deplacement++;			   		 // TODO: Est-ce qu'il faudrait borner le Deplacement par size-1 ??
+  memcpy(buffer,data,sizeBuffer);
   sem_post(&semaphore);
   return 0;		// TODO: Et le return il sert à quoi ??
 }
@@ -36,7 +34,6 @@ AudioInput::AudioInput()
   buffer = new int16[100];      // TODO: Quel est le max_size pour le buffer. TAILLE_BUFFER??
   sem_init(&semaphore,0,1);
   infoTemps = new TimeInfo(0);  // TODO: Verifier la valeur initiale du constructeur...
-  Deplacement = 0; //pas sure
 }
 
 AudioInput::~AudioInput()

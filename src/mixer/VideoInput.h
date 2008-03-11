@@ -62,6 +62,5 @@ private:
     char * buffer;
     TimeInfo* infoTemps;
     int sizeBuffer;
-    int Deplacement;    
 };
 #endif //VIDEOINPUT_H
