@@ -26,7 +26,7 @@ MemManager* MemManager::getInstance()
 	//if no instance made create one,
 	//ref. singleton pattern
 	if (instance == 0)
-	instance = new MemManager();
+	MemManager::instance = new MemManager();
 
 	return instance;
 }
@@ -138,13 +138,14 @@ const MemKey* MemManager::initSpace(int size)
         exit(1);
     }
     
+   // IN COMMENTS FOR TESTS
     //attach shared memory to baseAddress
-   // newSpace->setBaseAddress((char *)shmat(newKey->getShmid(), 0, 0));
+    newSpace->setBaseAddress((char *)shmat(newKey->getShmid(), 0, 0));
     
-    //if ( newSpace->getBaseAddress() == (char *) -1) {
-      //  perror("shmat");
-        //exit(1);
-    //}
+    if ( newSpace->getBaseAddress() == (char *) -1) {
+        perror("shmat");
+        exit(1);
+    }
     
     //add the newly created space to the vector 
 	spaces.push_back(newSpace);
@@ -305,5 +306,5 @@ vector<MemKey*> MemManager::getAvailSpaces()
 
 key_t MemManager::genKey()
 {
-	return ftok("/tmp/sflPhone",rand());
+	return ftok("/tmp",rand());
 }

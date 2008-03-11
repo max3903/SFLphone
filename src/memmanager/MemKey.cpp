@@ -123,7 +123,7 @@ int MemKey::getShmid() const
 char* MemKey::serialize()
 {
 	char* tmp;
-	sprintf(tmp,"%i %i",this->size,this->key);
+	sprintf(tmp,"%i %i %i",this->shmid,this->size,this->key);
 	return tmp;
 }
 

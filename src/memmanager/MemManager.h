@@ -72,7 +72,7 @@ public:
      * \param description is a description of the key to initialize
      * \return a MemKey linking to a MemSpace dans that is needed for future access
      */
-    const MemKey* initSpace(key_t key, int size);
+    const MemKey* initSpace(int key, int size);
 
     //! Initialise a shared memory space with the specified info
     /*!
