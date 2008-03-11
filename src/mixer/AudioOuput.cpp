@@ -5,28 +5,33 @@
 
 int AudioOuput::fetchData(int16 *data)
 { 
+  memcpy(buffer,data,sizeBuffer);
   return 0;
 }
 
 void AudioOuput::putData(int16 * data, int size)
 { 
-  
+  // j'assume ici que le size est le nombre d'octet...
+  memcpy(data,buffer,size);
+  sizeBuffer=size;
 }
 
 AudioOuput::AudioOuput()
 {
-  
+  buffer = new int16[100];      // TODO: Quel est le max_size pour le buffer. TAILLE_BUFFER??
 }
 
 AudioOuput::~AudioOuput()
 {
-  
+  delete []buffer;
 }
+
+// DEPRECIATED !!!!!
 int AudioOuput::fetchData(char* data)
 {
   return 0; 
 }
-
+// DEPRECIATED !!!!!
 void AudioOuput::putData(char * data, int size)
 { 
   
