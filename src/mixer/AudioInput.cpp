@@ -2,33 +2,52 @@
 
 #include "AudioInput.h"
 #include "TimeInfo.h"
+#include <string.h>
 
 TimeInfo AudioInput::fetchTimeInfo() const
 {
-  TimeInfo tmp(0);
-  return tmp;
+  // TODO: pas de semaphore ici ???
+  // TODO: et pourquoi on renverrais pas tout simplement le pointeur?
+  return (*infoTemps);
 }
 
 void AudioInput::putData(int16 *data, int size)
-{ 
+{
+  // j'assume ici que le size est le nombre d'octet...
+  sem_wait(&semaphore);
+  memcpy(data,buffer,size);
+  sizeBuffer=size;
+  Deplacement=0;
+  sem_post(&semaphore);
 }
 
-int AudioInput::fetchData(int16 *data) const 
+// TODO: Impossible de mettre des semaphore dans des fonction Const, je l'ai donc enlevé! ok ?
+int AudioInput::fetchData(int16 *data) 
 { 
-  return 0;
+  sem_wait(&semaphore);
+  data = buffer + (Deplacement) * sizeof(int16);  // TODO: Si le size>1, il faut naviguer les datas non ??
+  Deplacement++;			   		 // TODO: Est-ce qu'il faudrait borner le Deplacement par size-1 ??
+  sem_post(&semaphore);
+  return 0;		// TODO: Et le return il sert à quoi ??
 }
 
 AudioInput::AudioInput()
 {
-  
+  buffer = new int16[100];      // TODO: Quel est le max_size pour le buffer. TAILLE_BUFFER??
+  sem_init(&semaphore,0,1);
+  infoTemps = new TimeInfo(0);  // TODO: Verifier la valeur initiale du constructeur...
+  Deplacement = 0; //pas sure
 }
 
 AudioInput::~AudioInput()
 {
-  
+  delete []buffer;
+  delete infoTemps;
+  sem_destroy(&semaphore);
 }
 
 void AudioInput::putTimeInfo(TimeInfo* infos)
 {
-  
+  // TODO: ici pourquoi pas de semaphore ?
+  infoTemps = infos;
 }

@@ -5,6 +5,7 @@
 
 #include <semaphore.h>
 #include "TimeInfo.h"
+#include <string.h>
 
 //!  Video input buffer
 /*!
@@ -33,7 +34,7 @@ public:
      * \param data a pointer to where the data must be copied
      * \return the size of the fetched data 
      */
-    virtual int fetchData(char* data) const;
+    virtual int fetchData(char* data);
 
     //! Access the timing information
     /*!
@@ -59,6 +60,8 @@ private:
     
     //! Internal data buffer
     char * buffer;
-    TimeInfo* infoTemps;    
+    TimeInfo* infoTemps;
+    int sizeBuffer;
+    int Deplacement;    
 };
 #endif //VIDEOINPUT_H
