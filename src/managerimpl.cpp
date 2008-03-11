@@ -441,7 +441,6 @@ ManagerImpl::initRegisterAccounts()
 		if ( iter->second) {
 			iter->second->loadConfig();
 			if ( iter->second->isEnabled() ) {
-				// NOW
 				iter->second->registerVoIPLink();
 				iter->second->loadContacts();
 				iter->second->publishPresence(PRESENCE_ONLINE);
@@ -2022,8 +2021,115 @@ ManagerImpl::setDefaultAccount(const AccountID& accountID)
   setConfig("Preferences", "DefaultAccount", accountID);
 }
 
+std::vector<std::string>
+ManagerImpl::getContacts(const AccountID& accountID)
+{
+	std::vector<std::string> contactIDList;
 
+	// Get contacts for corresponding account
+	Account* account = getAccount(accountID);
+	if(account == NULL) return contactIDList;
+	std::vector<Contact*> contacts;
+	contacts = account->getContacts();
+	if(contacts.empty()) return contactIDList;
+	
+	// Return all contact id in a vector
+	std::vector<Contact*>::const_iterator iter = contacts.begin();
+	while(iter != contacts.end())
+	{
+		Contact* contact = (Contact*)*iter;
+		contactIDList.push_back(contact->getContactID());
+		iter++;
+	}
+	return contactIDList;
+}
 
+std::vector<std::string>
+ManagerImpl::getContactDetails(const std::string& accountID, const std::string& contactID)
+{
+	std::vector<std::string> contactDetails;
+
+	// Get contact for corresponding account
+	Contact* contact = getContact(accountID, contactID);
+
+	if(contact != NULL)
+	{
+		// Return all contact details in a vector
+		contactDetails.push_back(contact->getFirstName());
+		contactDetails.push_back(contact->getLastName());
+		contactDetails.push_back(contact->getEmail());
+		contactDetails.push_back(contact->getGroup());
+		contactDetails.push_back(contact->getSubGroup());
+	}
+	return contactDetails;
+}
+
+std::vector<std::string>
+ManagerImpl::getContactEntries(const std::string& accountID, const std::string& contactID)
+{
+	std::vector<std::string> entries;
+
+	// Get contact for corresponding account
+	Contact* contact = getContact(accountID, contactID);
+
+	if(contact != NULL)
+	{
+		std::vector<ContactEntry*> contactEntries;
+		contactEntries = contact->getEntries();
+		std::vector<ContactEntry*>::const_iterator iter;
+		iter = contactEntries.begin();
+		
+		// Return all entries id in a vector
+		while(iter != contactEntries.end())
+		{
+			ContactEntry* entry;
+			entry = (ContactEntry*)*iter;
+			entries.push_back(entry->getContact());
+			iter++;
+		}
+	}
+	return entries;
+}
+
+std::vector<std::string>
+ManagerImpl::getContactEntryDetails(const std::string& accountID, const std::string& contactID, const std::string& contactEntryID)
+{
+	std::vector<std::string> entryDetails;
+
+	// Get contact for corresponding account and contact id
+	Contact* contact = getContact(accountID, contactID);
+
+	if(contact != NULL)
+	{
+		std::vector<ContactEntry*> contactEntries;
+		contactEntries = contact->getEntries();
+		std::vector<ContactEntry*>::const_iterator iter;
+		iter = contactEntries.begin();
+
+		while(iter != contactEntries.end())
+		{
+			ContactEntry* entry;
+			entry = (ContactEntry*)*iter;
+			if(entry->getContact() == contactEntryID)
+			{
+				// Return all details in a vector
+				entryDetails.push_back(entry->getContact());
+				entryDetails.push_back(entry->getType());
+				if(entry->getShownInCallConsole())
+					entryDetails.push_back("TRUE");
+				else
+					entryDetails.push_back("FALSE");
+				if(entry->getSubscribedToPresence())
+					entryDetails.push_back("TRUE");
+				else
+					entryDetails.push_back("FALSE");
+				break;
+			}
+			iter++;
+		}
+	}
+	return entryDetails;
+}
 
 //THREAD=Main
 /*
@@ -2261,6 +2367,27 @@ ManagerImpl::getAccountLink(const AccountID& accountID)
   return 0;
 }
 
+Contact*
+ManagerImpl::getContact(const AccountID& accountID, const std::string& contactID)
+{
+	// Get contact for corresponding account
+	Account* account = getAccount(accountID);
+	if(account == NULL) return NULL;
+	std::vector<Contact*> contacts;
+	contacts = account->getContacts();
+	if(contacts.empty()) return NULL;
+	
+	// Find contact corresponding to contactID
+	std::vector<Contact*>::const_iterator iter = contacts.begin();
+	while(iter != contacts.end())
+	{
+		Contact* contact = (Contact*)*iter;
+		if(contact->getContactID() == contactID)
+			return contact;
+		iter++;
+	}
+	return NULL;
+}
 
 #ifdef TEST
 /** 
