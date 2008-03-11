@@ -186,7 +186,7 @@ create_main_window ()
 
     if (response == GTK_RESPONSE_YES)
     {
-      show_config_window();
+      show_config_window(1);
     }
    
   }
@@ -280,7 +280,7 @@ gboolean main_window_glWidget( gboolean show )
 	{
 		switch(selectedCall->state)
 		{
-			// If selected call in anny other state show config windows
+			// If selected call in any other state show config windows
 			case CALL_STATE_INCOMING:
 			case CALL_STATE_HOLD:
 			case CALL_STATE_RINGING:
@@ -288,7 +288,7 @@ gboolean main_window_glWidget( gboolean show )
 			case CALL_STATE_FAILURE:
 			case CALL_STATE_DIALING:
 				g_print("No active call, showing config window\n");
-				show_config_window();
+				show_config_window(1);
 				return FALSE;
 				
 			// If current call active enable/disable webcam
@@ -314,13 +314,13 @@ gboolean main_window_glWidget( gboolean show )
 				}
 			default:
 				g_warning("Should not happen!");
-				show_config_window();
+				show_config_window(1);
 				break; 
 		}
 	}else
 	{
 		g_print("No call selected, showing config window\n");
-		show_config_window();
+		show_config_window(1);
 	}
 	
 	return FALSE;

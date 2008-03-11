@@ -1429,9 +1429,11 @@ create_webcam_tab ()
 
 /**
  * Show configuration window with tabs
+ * \param page_num indicates the tab that will be shown when the
+ * preferences window will be opened
  */
 void
-show_config_window ()
+show_config_window (gint page_num)
 {
 	GtkDialog * dialog;
 	GtkWidget * notebook;
@@ -1476,6 +1478,8 @@ show_config_window ()
 	tab = create_webcam_tab();	
 	gtk_notebook_append_page(GTK_NOTEBOOK(notebook), tab, gtk_label_new("Webcam Settings"));
 	gtk_notebook_page_num(GTK_NOTEBOOK(notebook), tab);
+	
+	gtk_notebook_set_current_page(GTK_NOTEBOOK(notebook),page_num);
 
 	gtk_dialog_run(dialog);
 
