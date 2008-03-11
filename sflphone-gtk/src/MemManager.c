@@ -56,6 +56,7 @@ MemKey* initSpace( MemKey *key )
 {
 	int shmid;
 	
+	// \ TODO: Only need to attach ?
 	if ( (shmid = shmget(key->key, key->size, IPC_CREAT | 0666)) < 0)
 	{
 		g_print("Error: Cannot create shared memory segment");
