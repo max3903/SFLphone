@@ -5,15 +5,15 @@
 
 TimeInfo::TimeInfo()
 {
-  
+  temps=0;
 }
 
 TimeInfo::TimeInfo(int infos)
 {
-  
+  temps=infos;
 }
 
 int TimeInfo::getTemps()
 {
-  return 0;
+  return temps;
 }
