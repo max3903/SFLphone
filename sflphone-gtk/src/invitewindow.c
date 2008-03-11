@@ -67,6 +67,9 @@ create_Join_conf (void)
   GLADE_HOOKUP_OBJECT_NO_REF (Join_conf, dialog_action_area1, "dialog_action_area1");
   GLADE_HOOKUP_OBJECT (Join_conf, Join, "Join");
   GLADE_HOOKUP_OBJECT (Join_conf, Cancel, "Cancel");
+  
+  gtk_dialog_run( GTK_DIALOG(Join_conf) );
+  gtk_widget_destroy(GTK_WIDGET(Join_conf));
 
   return Join_conf;
 }
@@ -88,8 +91,8 @@ create_Call_conf (void)
   gtk_window_set_position (GTK_WINDOW (Call_conf), GTK_WIN_POS_CENTER_ON_PARENT);
   gtk_window_set_type_hint (GTK_WINDOW (Call_conf), GDK_WINDOW_TYPE_HINT_DIALOG);
   gtk_dialog_set_has_separator (GTK_DIALOG (Call_conf), FALSE);
-
-  dialog_vbox2 = GTK_DIALOG (Call_conf)->vbox;
+  
+  dialog_vbox2 = GTK_DIALOG(Call_conf)->vbox;
   gtk_widget_show (dialog_vbox2);
 
   vbox1 = gtk_vbox_new (FALSE, 0);
@@ -127,6 +130,9 @@ create_Call_conf (void)
   GLADE_HOOKUP_OBJECT_NO_REF (Call_conf, dialog_action_area2, "dialog_action_area2");
   GLADE_HOOKUP_OBJECT (Call_conf, Call, "Call");
   GLADE_HOOKUP_OBJECT (Call_conf, Cancel, "Cancel");
+  
+  gtk_dialog_run( GTK_DIALOG(Call_conf) );
+  gtk_widget_destroy(GTK_WIDGET(Call_conf));
 
   return Call_conf;
 }
