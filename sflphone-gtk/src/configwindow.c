@@ -1295,6 +1295,15 @@ create_video_tab ()
 }
 
 /**
+ * Format the value of the scale to show a percentage sign after it
+ */
+gchar*
+format_percentage_scale(GtkScale *scale, gdouble value)
+{
+	return g_strdup_printf ("%0*g%%", gtk_scale_get_digits (scale), value);
+} 
+
+/**
  * Webcam settings tab
  */
 GtkWidget*
@@ -1311,9 +1320,9 @@ create_webcam_tab ()
 	
 	GtkWidget *settingsHBox, *settingsVBox;
 	GtkWidget *settingsLabel, *brightnessLabel;
-	GtkWidget *contrastLabel;
-	GtkWidget *brightnessHScale, *contrastHScale;
-	GtkObject *brightnessAdjustment, *contrastAdjustment;
+	GtkWidget *contrastLabel, *colourLabel;
+	GtkWidget *brightnessHScale, *contrastHScale, *colourHScale;
+	GtkObject *brightnessAdjustment, *contrastAdjustment, *colourAdjustment;
 	
 	GtkWidget *drawingSpace;
 	
@@ -1389,6 +1398,7 @@ create_webcam_tab ()
     gtk_box_pack_start (GTK_BOX (settingsHBox), settingsVBox, TRUE, TRUE, 0);
     gtk_widget_show (settingsVBox);
     
+    //Brightness slider section
     brightnessLabel = gtk_label_new(NULL);
     gtk_label_set_markup(GTK_LABEL(brightnessLabel), "<b>Brightness:</b>");
     gtk_label_set_line_wrap(GTK_LABEL(brightnessLabel), TRUE);
@@ -1397,11 +1407,12 @@ create_webcam_tab ()
     gtk_box_pack_start(GTK_BOX(settingsVBox), brightnessLabel, FALSE, FALSE, 0);
     gtk_widget_show(brightnessLabel);
 
-	brightnessAdjustment = gtk_adjustment_new (0.0, -100.0, 101.0, 0.1, 1.0, 1.0);
+	brightnessAdjustment = gtk_adjustment_new (0.0, 0.0, 101.0, 1.0, 1.0, 1.0);
     brightnessHScale = gtk_hscale_new(GTK_ADJUSTMENT (brightnessAdjustment));
     gtk_box_pack_start(GTK_BOX(settingsVBox), brightnessHScale, TRUE, TRUE, 0);
 	gtk_widget_show(brightnessHScale);
 
+	//Contrast slider section
     contrastLabel = gtk_label_new(NULL);
     gtk_label_set_markup(GTK_LABEL(contrastLabel), "<b>Contrast:</b>");
     gtk_label_set_line_wrap(GTK_LABEL(contrastLabel), TRUE);
@@ -1410,23 +1421,42 @@ create_webcam_tab ()
     gtk_box_pack_start(GTK_BOX(settingsVBox), contrastLabel, FALSE, FALSE, 0);
     gtk_widget_show(contrastLabel);
     
-    contrastAdjustment = gtk_adjustment_new (0.0, -100.0, 101.0, 0.1, 1.0, 1.0);
+    contrastAdjustment = gtk_adjustment_new (0.0, 0.0, 101.0, 1.0, 1.0, 1.0);
     contrastHScale = gtk_hscale_new(GTK_ADJUSTMENT (contrastAdjustment));
     gtk_box_pack_start(GTK_BOX(settingsVBox), contrastHScale, TRUE, TRUE, 0);
 	gtk_widget_show(contrastHScale);
 	
+	//Colour slider section
+	colourLabel = gtk_label_new(NULL);
+    gtk_label_set_markup(GTK_LABEL(colourLabel), "<b>Colour:</b>");
+    gtk_label_set_line_wrap(GTK_LABEL(colourLabel), TRUE);
+    gtk_misc_set_alignment(GTK_MISC(colourLabel), 0, 0.5);
+    gtk_label_set_justify(GTK_LABEL(colourLabel), GTK_JUSTIFY_LEFT);
+    gtk_box_pack_start(GTK_BOX(settingsVBox), colourLabel, FALSE, FALSE, 0);
+    gtk_widget_show(colourLabel);
+    
+    colourAdjustment = gtk_adjustment_new (0.0, 0.0, 101.0, 1.0, 1.0, 1.0);
+    colourHScale = gtk_hscale_new(GTK_ADJUSTMENT (colourAdjustment));
+    gtk_box_pack_start(GTK_BOX(settingsVBox), colourHScale, TRUE, TRUE, 0);
+	gtk_widget_show(colourHScale);
 	
 	// \todo Add an OpenGL widget to show the local video rendering
     drawingSpace= createGLWidget();
     gtk_box_pack_start(GTK_BOX(settingsHBox), drawingSpace, TRUE, TRUE, 0);
     gtk_widget_show(drawingSpace);
 	
+	g_signal_connect (G_OBJECT (colourHScale), "format-value", G_CALLBACK (format_percentage_scale), NULL); 
+	g_signal_connect (G_OBJECT (brightnessHScale), "format-value", G_CALLBACK (format_percentage_scale), NULL); 
+	g_signal_connect (G_OBJECT (contrastHScale), "format-value", G_CALLBACK (format_percentage_scale), NULL); 
 
 	// Show all
 	gtk_widget_show_all(ret);
 
 	return ret;
 }
+
+
+
 
 /**
  * Show configuration window with tabs
