@@ -74,6 +74,24 @@ gchar** dbus_get_current_audio_devices_index();
 int dbus_get_audio_device_index(const gchar* name);
 gchar* dbus_get_current_audio_output_plugin();
 
+
+/*
+// TODO: Add other function to manage d-bus communication
+
+//Webcam Status change
+void dbus_enable_WebCam();
+void dbus_disable_Webcam();
+
+//Video Information
+void dbus_video_Available();
+void dbus_video_Not_Available();
+
+//Invite 3rd person
+void dbus_invite_Person( const call_t * c );
+void dbus_invite_Response( const call_t * c );
+
+*/
+
 /* Instance */
 void dbus_register( int pid, gchar * name);
 void dbus_unregister(int pid);

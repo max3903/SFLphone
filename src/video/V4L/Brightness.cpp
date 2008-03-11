@@ -27,7 +27,7 @@
     return true;
   }
   
-  char* Brightness::GetBrightness(){
+  char* Brightness::getBrightness(){
 
     return 0;
   }

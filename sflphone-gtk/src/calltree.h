@@ -23,6 +23,9 @@
 #include <gtk/gtk.h>
 #include <calllist.h>
 
+GtkToolItem * webCamButton;
+guint webCamButtonConnId;	 //The webCam button toggled signal connection ID
+
 /** @file calltree.h
   * @brief The GtkTreeView that list calls in the main window.
   */
