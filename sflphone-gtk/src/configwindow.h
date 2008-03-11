@@ -46,6 +46,6 @@ GtkWidget * create_accounts_tab();
 GtkWidget * create_audio_tab();
 GtkWidget * create_video_tab();
 GtkWidget * create_webcam_tab();
-void show_config_window();
+void show_config_window(gint page_num);
 
 #endif 

@@ -310,7 +310,7 @@ create_call_menu()
 static void 
 edit_preferences ( void * foo)
 {
-  show_config_window();
+  show_config_window(0);
 }
 
 // The menu Edit/Copy should copy the current selected call's number
