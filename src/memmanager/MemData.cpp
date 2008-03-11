@@ -49,3 +49,15 @@ void MemData::putData(char * data, int size)
 	this->size = size;
 	
 }
+
+void MemData::setData(char* data)
+{
+this->data = data;	
+	
+}
+
+char* MemData::getData()
+{
+return this->data ;	
+	
+}

@@ -138,7 +138,7 @@ const MemKey* MemManager::initSpace(int size)
         exit(1);
     }
     
-   // IN COMMENTS FOR TESTS
+
     //attach shared memory to baseAddress
     newSpace->setBaseAddress((char *)shmat(newKey->getShmid(), 0, 0));
     
