@@ -43,10 +43,9 @@ int MemData::fetchData(char* data)
 	strcpy(data,this->data);
 	return size;
 }
-void MemData::putData(char * data, int size,int width,int height)
+void MemData::putData(char * data, int size)
 {
 	strcpy(this->data,data);
 	this->size = size;
-	this->width = width;
-	this->height;
+	
 }

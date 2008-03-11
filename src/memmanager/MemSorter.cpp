@@ -19,10 +19,8 @@
 #include "MemSorter.h"
 bool MemSorter::operator()(MemKey* key1, MemKey* key2)
 {
-	if(	key1->getHeight() == key2->getHeight() &&
-		key1->getKey() == key2->getKey() &&
-		key1->getSize() == key2->getSize() &&
-		key1->getWidth() == key2->getWidth())
+	if(	key1->getKey() == key2->getKey() &&
+		key1->getSize() == key2->getSize())
 		return true;
 		else
 			return false;

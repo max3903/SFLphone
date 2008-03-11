@@ -28,7 +28,10 @@
 #include "MemSpace.h"
 #include "MemKey.h"
 
+
 using namespace std;
+
+//TODO DESTROY ALL MEM SEGMENT CREATED!!!
 
 //! Shared memory pool manager
 /*!
@@ -58,7 +61,7 @@ public:
      * \param description is a description of the key to initialize
      * \return a MemKey that identifies the MemSpace and is necessary for future access
      */
-    const MemKey* initSpace(int size,int width,int height);
+    const MemKey* initSpace(int size);
 
     //! Initialise a shared memory space with the specified info
     /*!
@@ -69,7 +72,7 @@ public:
      * \param description is a description of the key to initialize
      * \return a MemKey linking to a MemSpace dans that is needed for future access
      */
-    const MemKey* initSpace(key_t key, int size,int width,int height);
+    const MemKey* initSpace(key_t key, int size);
 
     //! Initialise a shared memory space with the specified info
     /*!
@@ -82,12 +85,21 @@ public:
     
     //! Delete a shared memory space with the specified info
     /*!
-     * This method creates a new shared memory space and create a new key or links to an existing one and returns the corresponding MemKey. To link 2 spaces, the size and the key muste be the same.
+     * This method will delete a memspace
      * 
      * \param key the key identifiying the shared memory space
      * \return bool true if the memspace was deleted, false otherwise
      */
     bool deleteSpace(MemKey* key);
+    
+    //! Clean Spaces 
+    /*!
+     * This method will clean all spaces in the vector from the system
+     * 
+     * 
+     * \return bool true if the memspace was deleted, false otherwise
+     */
+    bool CleanSpaces();
     
     //! Sets the default MemSpace to work with
     /*!
@@ -143,7 +155,7 @@ public:
      * \param size the size of Data
      * \return the success of the operation
      */
-    bool putData(int key, char * Data, int size);
+    bool putData(key_t key, char * Data, int size);
 
     //! Changes the data in the MemSpace specified by the key
     /*!
@@ -167,16 +179,16 @@ private:
 	/*!
 	 * \return a generated key
 	 */
-    int genKey();
+    key_t genKey();
     
     //! The MemSpaces
-    vector<MemSpace*> spaces;
+    vectMemSpace spaces;
    
     //! The instance of the manager
     static MemManager* instance;
     
     // The current index of the pool of MemSpace
-    vector<MemSpace*>::iterator defaultIndex;
+    vectMemSpaceIterator defaultIndex;
     
 protected:
 	

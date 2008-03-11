@@ -188,6 +188,11 @@ PKG_CHECK_MODULES(libdbuscpp, dbus-c++-1 >= ${LIBDBUSCPP_MIN_VERSION})
 SFLPHONE_CFLAGS="$SFLPHONE_CFLAGS $libdbuscpp_CFLAGS"
 SFLPHONE_LIBS="$SFLPHONE_LIBS $libdbuscpp_LIBS"
 
+FFPMEG_MIN_VERSION=3.0
+PKG_CHECK_MODULES(FFMPEG, libavutil libavformat libavcodec >= ${FFPMEG_MIN_VERSION})
+SFLPHONE_CFLAGS="$SFLPHONE_CFLAGS $ffmpeg_CFLAGS"
+SFLPHONE_LIBS="$SFLPHONE_LIBS $ffmpeg_LIBS"
+
 # check for libboost (doesn't use pkg-config)
 AC_CHECK_HEADER(boost/tokenizer.hpp, , AC_MSG_ERROR("Unable to find the libboost tokenizer headers; you may need to install the libboost-dev package" ) )
 

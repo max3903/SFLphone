@@ -16,7 +16,7 @@
  *  along with this program; if not, write to the Free Software
  *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
-
+// References http://www.ibm.com/developerworks/aix/library/au-ipc/index.html
 #include "MemManager.h"
 
 MemManager* MemManager::instance= 0;
@@ -26,7 +26,7 @@ MemManager* MemManager::getInstance()
 	//if no instance made create one,
 	//ref. singleton pattern
 	if (instance == 0)
-	instance = new MemManager;
+	instance = new MemManager();
 
 	return instance;
 }
@@ -40,132 +40,177 @@ MemManager::~MemManager()
 	delete instance;
 }
 
-const MemKey* MemManager::initSpace(key_t key, int size,int width,int height)
+const MemKey* MemManager::initSpace(key_t key,int size)
 {
-	int shmid;
-	MemKey *newKey = new MemKey(size,key,width,height);
+	//THE KEY GIVEN MUST HAVE BEEN GENERATED WITH ftok function
+	
+	MemKey *newKey = new MemKey(size,key);
 	MemSpace *newSpace = new MemSpace(newKey);
+	vectMemSpaceIterator MemSpaceLocation;
 	
 	
-	if ( (shmid = shmget(newKey->getKey(), newKey->getSize(), IPC_CREAT | 0666)) < 0)
+	//Get the IPC-specific identifier associated with the IPC key using shmget(2)
+	// for shared memory
+	newKey->setShmid(shmget(key, size, IPC_CREAT | 0666));
+	
+	if ( newKey->getShmid() < 0)
 	{
 		perror("shmget");
         exit(1);
 	}
 	
-	//attach shared memory to baseAddress
-    newSpace->setBaseAddress((char *)shmat(shmid, NULL, 0));
+	//Attach shared memory to baseAddress shmat returns pointer to the
+	// shared memory segment
+    newSpace->setBaseAddress((char *)shmat(newKey->getShmid(), (void *) 0, 0));
     
     if ( newSpace->getBaseAddress() == (char *) -1) {
         perror("shmat");
         exit(1);
     } 
+    
 	//add the newly created space to the vector 
 	spaces.push_back(newSpace);
+	// if it's the first memspace created, we assign the defaultIndex to it's position
+	if(spaces.size() == 1)
+		defaultIndex = spaces.end() -1;
+		
+	//Adds the index to the key
+	MemSpaceLocation = spaces.end() -1;
+	newKey->setIndex(MemSpaceLocation);
 	
 	return newKey;
 }
 
 const MemKey* MemManager::initSpace(MemKey* key)
 {
-	int shmid;
 	MemSpace *newSpace; 
 	newSpace = new MemSpace(key);
+	vectMemSpaceIterator MemSpaceLocation;
+	
 	
 	//create shared memory space
-	if ( (shmid = shmget(key->getKey(), key->getSize(), IPC_CREAT | 0666)) < 0)
+	key->setShmid(shmget(key->getKey(), key->getSize(), IPC_CREAT | 0666));
+	
+	if ( key->getShmid() < 0)
 	{
         perror("shmget");
         exit(1);
     }
     
     //attach shared memory to baseAddress
-    newSpace->setBaseAddress((char *)shmat(shmid, NULL, 0));
+    newSpace->setBaseAddress((char *)shmat(key->getShmid(), 0, 0));
     
     if ( newSpace->getBaseAddress() == (char *) -1) {
         perror("shmat");
         exit(1);
     }
+    
     //add the newly created space to the vector 
 	spaces.push_back(newSpace);
+	// if it's the first memspace created, we assign the defaultIndex to it's position
+	if(spaces.size() == 1)
+		defaultIndex = spaces.end() -1;
+		
+	//Adds the index to the key
+	MemSpaceLocation = spaces.end() -1;
+	key->setIndex(MemSpaceLocation);
 	
 	return key;
 }
-bool MemManager::deleteSpace(MemKey* key)
-{
-	vector<MemSpace*>::iterator iter;
-	int i;
-	for( iter = spaces.begin(); iter != spaces.end() ;iter++);
-	{
-		if ((*iter)->getMemKey() == key)
-		{
-			//remove memspace from vector
-			spaces.erase(iter);
-			//TODO release space
-			i = shmdt((*iter)->getBaseAddress());
-			if(i == -1) {
-   					 perror("shmop: shmdt failed");
-    					} else 
-  				fprintf(stderr, "shmop: shmdt returned %d\n", i);
-  				
-			//delete memspace
-			delete (*iter);
-			
-			return true;
-		
-		}
-	}
-
-return false;
 
 
-}
-
-const MemKey* MemManager::initSpace(int size,int width, int height)
+const MemKey* MemManager::initSpace(int size)
 {
 	MemKey *newKey;
-	int shmid;
 	MemSpace *newSpace;
 	key_t key = genKey();
+	vectMemSpaceIterator MemSpaceLocation;
 	
-	newKey = new MemKey(size,key,width,height);
+	newKey = new MemKey(size,key);
 	newSpace = new MemSpace(newKey);
 	
 	//create shared memory space
-	if ( (shmid = shmget(newKey->getKey(), newKey->getSize(), IPC_CREAT | 0666)) < 0)
+	newKey->setShmid(shmget(key, size, IPC_CREAT | 0666));
+	
+	if ( newKey->getShmid() < 0)
 	{
         perror("shmget");
         exit(1);
     }
     
     //attach shared memory to baseAddress
-    newSpace->setBaseAddress((char *)shmat(shmid, NULL, 0));
+   // newSpace->setBaseAddress((char *)shmat(newKey->getShmid(), 0, 0));
     
-    if ( newSpace->getBaseAddress() == (char *) -1) {
-        perror("shmat");
-        exit(1);
-    }
+    //if ( newSpace->getBaseAddress() == (char *) -1) {
+      //  perror("shmat");
+        //exit(1);
+    //}
     
     //add the newly created space to the vector 
 	spaces.push_back(newSpace);
+	// if it's the first memspace created, we assign the defaultIndex to it's position
+	if(spaces.size() == 1)
+		defaultIndex = spaces.end() -1;
+		
+	//Adds the index to the key
+	MemSpaceLocation = spaces.end() -1;
+	newKey->setIndex(MemSpaceLocation);
+	
 	
 	return newKey;
 }
 
-bool MemManager::setDefaultSpace(MemKey* key)
+bool MemManager::deleteSpace(MemKey* key)
 {
-vector<MemSpace*>::iterator iter;
 
-	for( iter = spaces.begin(); iter != spaces.end() ;iter++);
-	{
-		if ((*iter)->getMemKey()->getKey() == key->getKey()){
-		defaultIndex = iter;
-		return true;
-		}
+	int i;
 	
+	i = shmdt((*(key->getIndex()))->getBaseAddress());
+	
+	if(i == -1) 
+   		perror("shmop: shmdt failed");
+    	 else 
+  		 fprintf(stderr, "shmop: shmdt returned %d\n", i);
+  				
+			//delete memspace
+			delete (*(key->getIndex()));
+			
+			return true;
+}
+
+bool MemManager::CleanSpaces(){
+
+//TODO
+vector<MemSpace*>::iterator iter;
+int i;
+
+	//for each mespace detach memory
+	for( iter = spaces.begin(); iter != spaces.end() ;iter++)
+	{
+		
+		i = shmdt((*iter)->getBaseAddress());
+		
+		if(i == -1) 
+		{
+   		perror("shmop: shmdt failed");
+   		return false;
+		}
+			
 	}
 	
-return false;
+	//clean vector
+	spaces.clear();
+	
+		return true;
+
+}
+
+bool MemManager::setDefaultSpace(MemKey* key)
+{
+
+		defaultIndex = key->getIndex();
+		return true;
+	
 }
 
 void MemManager::nextSpace()
@@ -197,38 +242,22 @@ MemData* MemManager::fetchData()
 MemData* MemManager::fetchData(key_t key)
 {
 	vector<MemSpace*>::iterator iter;
-	vector<MemSpace*>::iterator i;
-	
+
 	//find the memspace containing the key
 	for( iter = spaces.begin(); iter != spaces.end() ;iter++)
 		if ((*iter)->getMemKey()->getKey() == key)
 		{
-			i = iter;
 			// returns a MemData
-			return (*i)->fetchData();
+			return (*iter)->fetchData();
 		}
 		
-		//if no key found return default index	
-		return (*defaultIndex)->fetchData(); 
+		//if no key found return NULL
+		return NULL; 
 }
 
 MemData* MemManager::fetchData(MemKey* key)
 {
-	//TODO Possible bug if the key is not found
-	vector<MemSpace*>::iterator iter;
-	vector<MemSpace*>::iterator i;
-	
-	//find the memspace containing the key
-	for( iter = spaces.begin(); iter != spaces.end() ;iter++)
-		if ((*iter)->getMemKey() == key)
-		{
-			i = iter;
-			return (*i)->fetchData();
-		}
-		
-		//if no key found return default index	
-		return (*defaultIndex)->fetchData(); 
-	
+	return (*(key->getIndex()))->fetchData();
 }
 
 bool MemManager::putData(char * Data, int size)
@@ -237,16 +266,15 @@ bool MemManager::putData(char * Data, int size)
 	return true;
 }
 
-bool MemManager::putData(int key, char * Data, int size)
+bool MemManager::putData(key_t key, char * Data, int size)
 {
 	vector<MemSpace*>::iterator iter;
-	vector<MemSpace*>::iterator i;
+
 	
 	for( iter = spaces.begin(); iter != spaces.end() ;iter++)
 		if ((*iter)->getMemKey()->getKey() == key)
 		{
-			i = iter;
-			(*i)->putData(Data,size);
+			(*iter)->putData(Data,size);
 			return true;
 		}
 		
@@ -255,24 +283,14 @@ bool MemManager::putData(int key, char * Data, int size)
 
 bool MemManager::putData(MemKey* key, char * Data, int size)
 {
-	vector<MemSpace*>::iterator iter;
-	vector<MemSpace*>::iterator i;
-	
-	//find memspace 
-	for( iter = spaces.begin(); iter != spaces.end() ;iter++)
-		if ((*iter)->getMemKey() == key)
-		{
-			i = iter;
-			(*i)->putData(Data,size);
+	(*(key->getIndex()))->putData(Data,size);
+
 			return true;
-		}
-		
-		return false;
+	
 }
 
 vector<MemKey*> MemManager::getAvailSpaces() 
 {
-	//TODO WHY used to be const
 	vector<MemKey*> MemKeys;
 	vector<MemSpace*>::iterator iter;
 	MemKey *tmp;
@@ -283,10 +301,9 @@ vector<MemKey*> MemManager::getAvailSpaces()
 	}
 		
 	return MemKeys;
-
 }
 
-int MemManager::genKey()
+key_t MemManager::genKey()
 {
-	return rand();	
+	return ftok("/tmp/sflPhone",rand());
 }

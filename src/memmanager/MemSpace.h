@@ -94,22 +94,6 @@ public:
 
 private:
 	
-	//! Writes data to the shared memory space
-	/*!
-	 *	The purpose of this function is to concentrate os specific code
-	 * 
-	 * \param data a pointer to the data to be written
-	 * \param size the size of data
-	 */
-    void writeSpace(char * data, int size);
-    
-    //! Read from the shared memory space
-    /*!
-     * The purpose of this fucntion is to concentrate os specific code
-     * 
-     * \param a pointer to a MemData object
-     */
-    void readSpace(MemData* data);
 
     // Default constructor
     /*!

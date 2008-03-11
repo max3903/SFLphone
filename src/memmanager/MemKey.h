@@ -24,6 +24,13 @@
 #include <sys/ipc.h> 
 #include <sys/shm.h> 
 #include <string>
+#include <vector>
+#include <iterator>
+
+class MemSpace;
+typedef std::vector<MemSpace*> vectMemSpace;
+typedef vectMemSpace::iterator vectMemSpaceIterator;
+
 
 //! Represent a unique key associated to a shared memory space
 /*!
@@ -39,7 +46,7 @@ public:
 	 * \param size the maximum size of the shared memory space
 	 * \param description a description of the shared memory space
 	 */
-    MemKey(int size,int width, int height);
+    MemKey(int size);
 	//! Constructor
 	/*!
 	 * Initiate the object
@@ -48,7 +55,7 @@ public:
 	 * \param description a description of the shared memory space
 	 * \param key is to set the key
 	 */
-    MemKey(int size,key_t key,int width, int height);
+    MemKey(int size,key_t key);
     //! Pointer copy constructor
     /*!
      * Creates an independant copy of the source object
@@ -87,29 +94,6 @@ public:
     /*!
      */
     void setKey(key_t key);
-    
-    //! Access method for the width of the shared memory space
-    /*!
-     * \return the the width of an image from the shared memory space
-     */
-    int getWidth();
-    
-    //! Access method to set the width of an image from the shared memory space
-    /*!
-     */
-    void setWidth(int width);
-    
-     //! Access method for the Height of the shared memory space
-    /*!
-     * \return the the Height of an image from the shared memory space
-     */
-    int getHeight();
-    
-    //! Access method to set the Height of an image from the shared memory space
-    /*!
-     */
-    void setHeight(int height);
-    
 
     //! Access method to the description of the shared memory space
     /*!
@@ -121,13 +105,13 @@ public:
     /*!
      * \return the index in the MemManager
      */
-    int getIndex();
+    vectMemSpaceIterator getIndex();
 
     //! Modification method to the index of the memory space in the MemManager
     /*!
      * \param index the index in the MemManager
      */
-    void setIndex(int index);
+    void setIndex(vectMemSpaceIterator index);
 
     //! Access method to the maixmum size of shared memory space
     /*!
@@ -140,6 +124,18 @@ public:
      * \param index the index in the MemManager
      */
     void setSize(int size);
+    
+     //! Access method to the Shmid
+    /*!
+     * \return the maximum size of the shared memory space
+     */
+    int getShmid();
+    
+    //! Modification method to set the key's shmid
+    /*!
+     * \param shmid 
+     */
+    void setShmid(int shmid);
 
     //! Method to serialize the MemKeyObject
     /*!
@@ -158,7 +154,7 @@ private:
 	/*!
 	 * Will create a key if needed
 	 */
-    int genKey();
+    key_t genKey();
     
     //! The key to access the shared memory space
     key_t key;
@@ -168,16 +164,14 @@ private:
     char * description;
     
     //! The index of the MemSpace in the MemManager
-    int index;
+    vectMemSpaceIterator index;
     
     //! The maximum size of the shared memory space
     int size;
     
-    //! The maximum size of the shared memory space
-    int width;
+    //! The space's id
+    int shmid;
     
-    //! The maximum size of the shared memory space
-    int height;
     
 };
 #endif //MEMKEY_H
