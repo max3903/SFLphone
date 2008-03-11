@@ -73,7 +73,7 @@ MemKey::~MemKey()
 {
 }
 
-key_t MemKey::getKey()
+key_t MemKey::getKey() const
 {
 	return this->key;
 }
@@ -88,7 +88,7 @@ const char * MemKey::getDescription() const
 	return this->description ;
 }
 
-vectMemSpaceIterator MemKey::getIndex()
+vectMemSpaceIterator MemKey::getIndex() const
 {
 	return this->index;
 }
@@ -98,7 +98,7 @@ void MemKey::setIndex(vectMemSpaceIterator index)
 	this->index = index;
 }
 
-int MemKey::getSize()
+int MemKey::getSize() const
 {
 	return this->size;
 }
@@ -115,7 +115,7 @@ void MemKey::setShmid(int shmid)
 
 }
 
-int MemKey::getShmid()
+int MemKey::getShmid() const
 {
 	return this->shmid;
 }

@@ -88,7 +88,7 @@ public:
     /*!
      * \return the key to the memory space
      */
-    key_t getKey();
+    key_t getKey() const;
     
     //! Access method to set the key of the shared memory space
     /*!
@@ -105,7 +105,7 @@ public:
     /*!
      * \return the index in the MemManager
      */
-    vectMemSpaceIterator getIndex();
+    vectMemSpaceIterator getIndex() const;
 
     //! Modification method to the index of the memory space in the MemManager
     /*!
@@ -117,7 +117,7 @@ public:
     /*!
      * \return the maximum size of the shared memory space
      */
-    int getSize();
+    int getSize() const;
     
     //! Modification method to the size of the memory space in the MemManager
     /*!
@@ -129,7 +129,7 @@ public:
     /*!
      * \return the maximum size of the shared memory space
      */
-    int getShmid();
+    int getShmid() const;
     
     //! Modification method to set the key's shmid
     /*!
