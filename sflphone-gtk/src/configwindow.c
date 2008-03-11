@@ -25,6 +25,7 @@
 #include <config.h>
 #include <dbus.h>
 #include <mainwindow.h>
+#include <glwidget.h>
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -1310,9 +1311,11 @@ create_webcam_tab ()
 	
 	GtkWidget *settingsHBox, *settingsVBox;
 	GtkWidget *settingsLabel, *brightnessLabel;
-	GtkWidget *contrastLabel, *webcamLabel;
+	GtkWidget *contrastLabel;
 	GtkWidget *brightnessHScale, *contrastHScale;
 	GtkObject *brightnessAdjustment, *contrastAdjustment;
+	
+	GtkWidget *drawingSpace;
 	
 	
 	GtkCellRenderer *renderer;
@@ -1414,11 +1417,9 @@ create_webcam_tab ()
 	
 	
 	// \todo Add an OpenGL widget to show the local video rendering
-	webcamLabel = gtk_label_new(NULL);
-    gtk_label_set_markup(GTK_LABEL(webcamLabel), "<b>Image Webcam</b>");
-    gtk_label_set_justify(GTK_LABEL(webcamLabel), GTK_JUSTIFY_CENTER);
-    gtk_box_pack_start(GTK_BOX(settingsHBox), webcamLabel, TRUE, TRUE, 0);
-    gtk_widget_show(webcamLabel);
+    drawingSpace= createGLWidget();
+    gtk_box_pack_start(GTK_BOX(settingsHBox), drawingSpace, TRUE, TRUE, 0);
+    gtk_widget_show(drawingSpace);
 	
 
 	// Show all
