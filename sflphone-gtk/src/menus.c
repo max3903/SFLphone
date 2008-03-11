@@ -217,7 +217,7 @@ static void changeWebCamStatus ( void *foo )
 static void invitePerson(void* foo)
 {
 	//TODO: Implement Fonctionnality
-	create_Join_conf();
+	create_Call_conf();
 }
 
 GtkWidget * 
