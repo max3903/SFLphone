@@ -6,20 +6,28 @@
 
 InputStreams::InputStreams()
 {
+  audioInput = new AudioInput();
+  videoInput = new VideoInput();
 }
 
 InputStreams::InputStreams(VideoInput* videoData, AudioInput* audioData)
 {
+  audioInput = audioData;
+  videoInput = videoData;
 }
 
 InputStreams::~InputStreams()
 {
+  delete audioInput;
+  delete videoInput;
 }
 
 const VideoInput* InputStreams::fetchVideoStream() const 
 {
+  return videoInput;
 }
 
 const AudioInput* InputStreams::fetchAudioStream() const 
 {
+  return audioInput;
 }
