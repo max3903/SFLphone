@@ -186,7 +186,7 @@ create_main_window ()
 
     if (response == GTK_RESPONSE_YES)
     {
-      show_config_window();
+      show_config_window(0);
     }
    
   }
@@ -289,7 +289,7 @@ gboolean main_window_glWidget( gboolean show )
 			case CALL_STATE_DIALING:
 				g_print("No active call, showing config window\n");
 				main_window_update_WebcamStatus(showGlWidget);
-				show_config_window();
+				show_config_window(3);
 				return FALSE;
 				
 			// If current call active enable/disable webcam
@@ -325,14 +325,14 @@ gboolean main_window_glWidget( gboolean show )
 			default:
 				g_warning("Should not happen!");
 				main_window_update_WebcamStatus(showGlWidget);
-				show_config_window();
+				show_config_window(3);
 				break; 
 		}
 	}else
 	{
 		g_print("No call selected, showing config window\n");
 		main_window_update_WebcamStatus(showGlWidget);
-		show_config_window();
+		show_config_window(3);
 	}
 	
 	return FALSE;

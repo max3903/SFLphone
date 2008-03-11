@@ -1429,9 +1429,10 @@ create_webcam_tab ()
 
 /**
  * Show configuration window with tabs
+ * page_num indicates the current page of the notebook
  */
 void
-show_config_window ()
+show_config_window (gint page_num)
 {
 	GtkDialog * dialog;
 	GtkWidget * notebook;
@@ -1450,35 +1451,41 @@ show_config_window ()
 	gtk_dialog_set_has_separator(dialog, FALSE);
 	gtk_window_set_default_size(GTK_WINDOW(dialog), 400, 400);
 	gtk_container_set_border_width(GTK_CONTAINER(dialog), 0);
-
+	
 	// Create tabs container
 	notebook = gtk_notebook_new();
 	gtk_box_pack_start(GTK_BOX (dialog->vbox), notebook, TRUE, TRUE, 0);
 	gtk_container_set_border_width(GTK_CONTAINER(notebook), 10);
 	gtk_widget_show(notebook);
+	
 
 	// Accounts tab
 	tab = create_accounts_tab();
 	gtk_notebook_append_page(GTK_NOTEBOOK(notebook), tab, gtk_label_new("Accounts"));
 	gtk_notebook_page_num(GTK_NOTEBOOK(notebook), tab);
+	gtk_widget_show(tab);
 	
 	// Audio tab
 	tab = create_audio_tab();	
 	gtk_notebook_append_page(GTK_NOTEBOOK(notebook), tab, gtk_label_new("Audio Settings"));
 	gtk_notebook_page_num(GTK_NOTEBOOK(notebook), tab);
+	gtk_widget_show(tab);
 	
 	// Video tab
 	tab = create_video_tab();	
 	gtk_notebook_append_page(GTK_NOTEBOOK(notebook), tab, gtk_label_new("Video Settings"));
 	gtk_notebook_page_num(GTK_NOTEBOOK(notebook), tab);
+	gtk_widget_show(tab);
 	
 	// Webcam tab
 	tab = create_webcam_tab();	
 	gtk_notebook_append_page(GTK_NOTEBOOK(notebook), tab, gtk_label_new("Webcam Settings"));
 	gtk_notebook_page_num(GTK_NOTEBOOK(notebook), tab);
+	gtk_widget_show(tab);
 
+	gtk_notebook_set_current_page(GTK_NOTEBOOK(notebook),page_num);
 	gtk_dialog_run(dialog);
-
+	
 	dialogOpen = FALSE;
 
 	gtk_widget_destroy(GTK_WIDGET(dialog));
