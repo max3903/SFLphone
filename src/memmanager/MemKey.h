@@ -124,6 +124,18 @@ public:
      * \param index the index in the MemManager
      */
     void setSize(int size);
+    
+     //! Access method to the Shmid
+    /*!
+     * \return the maximum size of the shared memory space
+     */
+    int getShmid();
+    
+    //! Modification method to set the key's shmid
+    /*!
+     * \param shmid 
+     */
+    void setShmid(int shmid);
 
     //! Method to serialize the MemKeyObject
     /*!
@@ -156,6 +168,9 @@ private:
     
     //! The maximum size of the shared memory space
     int size;
+    
+    //! The space's id
+    int shmid;
     
     
 };

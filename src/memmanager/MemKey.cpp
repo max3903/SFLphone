@@ -109,6 +109,17 @@ void MemKey::setSize(int size)
 	
 }
 
+void MemKey::setShmid(int shmid)
+{
+	this->shmid = shmid;
+
+}
+
+int MemKey::getShmid()
+{
+	return this->shmid;
+}
+
 char* MemKey::serialize()
 {
 	char* tmp;
