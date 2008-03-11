@@ -25,6 +25,7 @@
 #include <config.h>
 #include <dbus.h>
 #include <mainwindow.h>
+#include <glwidget.h>
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -1294,6 +1295,15 @@ create_video_tab ()
 }
 
 /**
+ * Format the value of the scale to show a percentage sign after it
+ */
+gchar*
+format_percentage_scale(GtkScale *scale, gdouble value)
+{
+	return g_strdup_printf ("%0*g%%", gtk_scale_get_digits (scale), value);
+} 
+
+/**
  * Webcam settings tab
  */
 GtkWidget*
@@ -1310,9 +1320,11 @@ create_webcam_tab ()
 	
 	GtkWidget *settingsHBox, *settingsVBox;
 	GtkWidget *settingsLabel, *brightnessLabel;
-	GtkWidget *contrastLabel, *webcamLabel;
-	GtkWidget *brightnessHScale, *contrastHScale;
-	GtkObject *brightnessAdjustment, *contrastAdjustment;
+	GtkWidget *contrastLabel, *colourLabel;
+	GtkWidget *brightnessHScale, *contrastHScale, *colourHScale;
+	GtkObject *brightnessAdjustment, *contrastAdjustment, *colourAdjustment;
+	
+	GtkWidget *drawingSpace;
 	
 	
 	GtkCellRenderer *renderer;
@@ -1386,6 +1398,7 @@ create_webcam_tab ()
     gtk_box_pack_start (GTK_BOX (settingsHBox), settingsVBox, TRUE, TRUE, 0);
     gtk_widget_show (settingsVBox);
     
+    //Brightness slider section
     brightnessLabel = gtk_label_new(NULL);
     gtk_label_set_markup(GTK_LABEL(brightnessLabel), "<b>Brightness:</b>");
     gtk_label_set_line_wrap(GTK_LABEL(brightnessLabel), TRUE);
@@ -1394,11 +1407,12 @@ create_webcam_tab ()
     gtk_box_pack_start(GTK_BOX(settingsVBox), brightnessLabel, FALSE, FALSE, 0);
     gtk_widget_show(brightnessLabel);
 
-	brightnessAdjustment = gtk_adjustment_new (0.0, -100.0, 101.0, 0.1, 1.0, 1.0);
+	brightnessAdjustment = gtk_adjustment_new (0.0, 0.0, 101.0, 1.0, 1.0, 1.0);
     brightnessHScale = gtk_hscale_new(GTK_ADJUSTMENT (brightnessAdjustment));
     gtk_box_pack_start(GTK_BOX(settingsVBox), brightnessHScale, TRUE, TRUE, 0);
 	gtk_widget_show(brightnessHScale);
 
+	//Contrast slider section
     contrastLabel = gtk_label_new(NULL);
     gtk_label_set_markup(GTK_LABEL(contrastLabel), "<b>Contrast:</b>");
     gtk_label_set_line_wrap(GTK_LABEL(contrastLabel), TRUE);
@@ -1407,19 +1421,33 @@ create_webcam_tab ()
     gtk_box_pack_start(GTK_BOX(settingsVBox), contrastLabel, FALSE, FALSE, 0);
     gtk_widget_show(contrastLabel);
     
-    contrastAdjustment = gtk_adjustment_new (0.0, -100.0, 101.0, 0.1, 1.0, 1.0);
+    contrastAdjustment = gtk_adjustment_new (0.0, 0.0, 101.0, 1.0, 1.0, 1.0);
     contrastHScale = gtk_hscale_new(GTK_ADJUSTMENT (contrastAdjustment));
     gtk_box_pack_start(GTK_BOX(settingsVBox), contrastHScale, TRUE, TRUE, 0);
 	gtk_widget_show(contrastHScale);
 	
+	//Colour slider section
+	colourLabel = gtk_label_new(NULL);
+    gtk_label_set_markup(GTK_LABEL(colourLabel), "<b>Colour:</b>");
+    gtk_label_set_line_wrap(GTK_LABEL(colourLabel), TRUE);
+    gtk_misc_set_alignment(GTK_MISC(colourLabel), 0, 0.5);
+    gtk_label_set_justify(GTK_LABEL(colourLabel), GTK_JUSTIFY_LEFT);
+    gtk_box_pack_start(GTK_BOX(settingsVBox), colourLabel, FALSE, FALSE, 0);
+    gtk_widget_show(colourLabel);
+    
+    colourAdjustment = gtk_adjustment_new (0.0, 0.0, 101.0, 1.0, 1.0, 1.0);
+    colourHScale = gtk_hscale_new(GTK_ADJUSTMENT (colourAdjustment));
+    gtk_box_pack_start(GTK_BOX(settingsVBox), colourHScale, TRUE, TRUE, 0);
+	gtk_widget_show(colourHScale);
 	
 	// \todo Add an OpenGL widget to show the local video rendering
-	webcamLabel = gtk_label_new(NULL);
-    gtk_label_set_markup(GTK_LABEL(webcamLabel), "<b>Image Webcam</b>");
-    gtk_label_set_justify(GTK_LABEL(webcamLabel), GTK_JUSTIFY_CENTER);
-    gtk_box_pack_start(GTK_BOX(settingsHBox), webcamLabel, TRUE, TRUE, 0);
-    gtk_widget_show(webcamLabel);
+    drawingSpace= createGLWidget();
+    gtk_box_pack_start(GTK_BOX(settingsHBox), drawingSpace, TRUE, TRUE, 0);
+    gtk_widget_show(drawingSpace);
 	
+	g_signal_connect (G_OBJECT (colourHScale), "format-value", G_CALLBACK (format_percentage_scale), NULL); 
+	g_signal_connect (G_OBJECT (brightnessHScale), "format-value", G_CALLBACK (format_percentage_scale), NULL); 
+	g_signal_connect (G_OBJECT (contrastHScale), "format-value", G_CALLBACK (format_percentage_scale), NULL); 
 
 	// Show all
 	gtk_widget_show_all(ret);
@@ -1427,10 +1455,12 @@ create_webcam_tab ()
 	return ret;
 }
 
+
+
+
 /**
  * Show configuration window with tabs
- * \param page_num indicates the tab that will be shown when the
- * preferences window will be opened
+ * page_num indicates the current page of the notebook
  */
 void
 show_config_window (gint page_num)
@@ -1452,37 +1482,42 @@ show_config_window (gint page_num)
 	gtk_dialog_set_has_separator(dialog, FALSE);
 	gtk_window_set_default_size(GTK_WINDOW(dialog), 400, 400);
 	gtk_container_set_border_width(GTK_CONTAINER(dialog), 0);
-
+	
 	// Create tabs container
 	notebook = gtk_notebook_new();
 	gtk_box_pack_start(GTK_BOX (dialog->vbox), notebook, TRUE, TRUE, 0);
 	gtk_container_set_border_width(GTK_CONTAINER(notebook), 10);
 	gtk_widget_show(notebook);
+	
 
 	// Accounts tab
 	tab = create_accounts_tab();
 	gtk_notebook_append_page(GTK_NOTEBOOK(notebook), tab, gtk_label_new("Accounts"));
 	gtk_notebook_page_num(GTK_NOTEBOOK(notebook), tab);
+	gtk_widget_show(tab);
 	
 	// Audio tab
 	tab = create_audio_tab();	
 	gtk_notebook_append_page(GTK_NOTEBOOK(notebook), tab, gtk_label_new("Audio Settings"));
 	gtk_notebook_page_num(GTK_NOTEBOOK(notebook), tab);
+	gtk_widget_show(tab);
 	
 	// Video tab
 	tab = create_video_tab();	
 	gtk_notebook_append_page(GTK_NOTEBOOK(notebook), tab, gtk_label_new("Video Settings"));
 	gtk_notebook_page_num(GTK_NOTEBOOK(notebook), tab);
+	gtk_widget_show(tab);
 	
 	// Webcam tab
 	tab = create_webcam_tab();	
 	gtk_notebook_append_page(GTK_NOTEBOOK(notebook), tab, gtk_label_new("Webcam Settings"));
 	gtk_notebook_page_num(GTK_NOTEBOOK(notebook), tab);
 	
+	gtk_widget_show(tab);
+
 	gtk_notebook_set_current_page(GTK_NOTEBOOK(notebook),page_num);
-
 	gtk_dialog_run(dialog);
-
+	
 	dialogOpen = FALSE;
 
 	gtk_widget_destroy(GTK_WIDGET(dialog));

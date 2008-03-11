@@ -37,11 +37,11 @@ GtkWidget * newCallMenu;
 GtkWidget * holdMenu;
 GtkWidget * copyMenu;
 GtkWidget * pasteMenu;
-GtkWidget * webCamMenu;
+//GtkWidget * webCamMenu;
 GtkWidget * inviteMenu;
 
 guint holdConnId;     //The hold_menu signal connection ID
-guint webCamConnId;     //The webcam_menu signal connection ID
+//guint webCamConnId;     //The webcam_menu signal connection ID
 
 void update_menus()
 { 
@@ -56,7 +56,7 @@ void update_menus()
   gtk_widget_set_sensitive( GTK_WIDGET(copyMenu),   FALSE);
   gtk_widget_set_sensitive( GTK_WIDGET(inviteMenu),   FALSE);
   gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(holdMenu), FALSE);
-  gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(webCamMenu), TRUE);
+  gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(webCamMenu), FALSE);
 	
 	call_t * selectedCall = call_get_selected();
 	if (selectedCall)
@@ -210,20 +210,14 @@ call_hang_up ( void * foo)
 static void changeWebCamStatus ( void *foo )
 {
 	g_print("Changing webcam status ...\n");
-	gboolean value= main_window_glWidget(gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM(webCamMenu)));
+	main_window_glWidget(gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM(webCamMenu)));
 	
-	// Changing button state to represent web cam status
-	gtk_signal_handler_block(GTK_TOGGLE_TOOL_BUTTON(webCamMenu),webCamConnId);
-	gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(webCamMenu), value);
-	gtk_signal_handler_unblock(GTK_TOGGLE_TOOL_BUTTON(webCamMenu),webCamConnId);
-	
-	//TODO: Add send signal to enabled/disable webcam
 }
 
 static void invitePerson(void* foo)
 {
 	//TODO: Implement Fonctionnality
-	create_Join_conf();
+	create_Call_conf();
 }
 
 GtkWidget * 
@@ -277,6 +271,7 @@ create_call_menu()
   webCamMenu = gtk_check_menu_item_new_with_mnemonic("Enable _Webcam");
   gtk_menu_shell_append (GTK_MENU_SHELL (menu), webCamMenu);
   gtk_widget_set_sensitive( GTK_WIDGET(webCamMenu), TRUE);
+  gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(webCamMenu), FALSE);
   //Here we connect only to activate
   //The toggled state is managed from update_menus()
   webCamConnId= g_signal_connect (G_OBJECT (webCamMenu), "activate",
@@ -315,7 +310,7 @@ create_call_menu()
 static void 
 edit_preferences ( void * foo)
 {
-  show_config_window(1);
+  show_config_window(0);
 }
 
 // The menu Edit/Copy should copy the current selected call's number
