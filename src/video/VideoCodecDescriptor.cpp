@@ -20,11 +20,17 @@
 #include "ffmpeg/avcodec.h"
  	VideoCodecDescriptor::~VideoCodecDescriptor(){}
 	
-    VideoCodecDescriptor::VideoCodecDescriptor(){}
+    VideoCodecDescriptor::VideoCodecDescriptor(){
+    
+    init();
+    
+    }
 
     
     int VideoCodecDescriptor::setDefaultOrder(){
     
+    
+    //Set the default order of the codec list
     return 1;
     }
     
@@ -43,6 +49,7 @@
    
     int VideoCodecDescriptor::removeCodec(enum CodecID id){
     
+    
     return 1;
     }
 
@@ -56,5 +63,4 @@
 	
     void VideoCodecDescriptor::setCodecMap(VideoCodecMap& codec){}
     
-    int setDefaultOrder(){return 0;}
     

@@ -35,11 +35,14 @@
 #include <ffmpeg/avcodec.h>
 
 
-/* A codec is identified by its libavcodec CodecID. Each CodecID is part of a AVCodec Struct
- * Each CodecID is unique */
-typedef std::map<CodecID, AVCodec> VideoCodecMap;
+/* A codec is identified by it's AVCodec, the codec utilisation by the AVCodecContext */
+typedef std::map<AVCodec, AVCodecContext> VideoCodecMap;
+/* VideoCodecOrder iterator typedef*/
+typedef VideoCodecMap::iterator VCMIterator;
 /* The vector to reflect the order the user wants to use his VideoCodecs */
 typedef std::vector<AVCodec> VideoCodecOrder;
+/* VideoCodecOrder iterator typedef*/
+typedef VideoCodecOrder::iterator VCOIterator;
 
 class VideoCodecDescriptor {
 public:
@@ -56,11 +59,7 @@ public:
      * Set the default codecs order
      */   
     int setDefaultOrder();
-  	/**
-     * Function called by constructor, will create lists and register active codecs
-     */   
-    void init();
-
+  
     /**
      * Check in the map codec if the specified codec is supported 
      * @param id : libavcodec unique codecID
@@ -70,7 +69,8 @@ public:
     bool isActive(enum CodecID id);
 
     /**
-     * Remove the codec from the list
+     * Remove tdecMap& getCodecMap() { return codecMap; }
+     * he codec from the list
      * @param id :  libavcodec CodecID of the codec to erase
      */ 
     int removeCodec(enum CodecID id);
@@ -103,8 +103,17 @@ public:
      */
    	VideoCodecMap& getCodecMap() { return codecMap; }
 
+	/**
+     * Function to get all the codec info
+     * @return char*, with all the info in a structured way
+     */
+	char * serialize();
 
 private:	
+	/**
+     * Function called by constructor, will create lists and register active codecs
+     */   
+    void init();
 	/**
      * Vector of all the Active codecs
      */
