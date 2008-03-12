@@ -71,6 +71,8 @@ typedef short int16;
 #define CHANNELS				2
 #define SIZEBUF 				1024*1024
 
+#define ALSA_DFT_CARD_ID     0
+
 #define PCM_HW		"hw"
 #define PCM_PLUGHW	"plughw"
 #define PCM_FRONT	"plug:front"
@@ -82,6 +84,11 @@ typedef short int16;
 #define PCM_SURROUND51	"plug:surround51"
 #define PCM_SURROUND71	"plug:surround71"
 #define PCM_IEC958	"plug:iec958"
+
+#define SFL_CODEC_VALID_PREFIX	"libcodec_"
+#define SFL_CODEC_VALID_EXTEN	".so"
+#define CURRENT_DIR		"."
+#define PARENT_DIR		".."
 
 #define SFL_PCM_BOTH		0x0021
 #define SFL_PCM_PLAYBACK	0x0022

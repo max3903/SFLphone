@@ -628,7 +628,6 @@ ManagerImpl::incomingCall(Call* call, const AccountID& accountId)
 
   if ( !hasCurrentCall() ) {
     call->setConnectionState(Call::Ringing);
-    _debugAlsa(" call ringtone() method\n ");
     ringtone();
     switchCall(call->getCallId());
   } else {
@@ -827,9 +826,9 @@ ManagerImpl::playATone(Tone::TONEID toneId) {
     unsigned int nbSampling = audioloop->getSize();
     AudioLayer* audiolayer = getAudioDriver();
     SFLDataFormat buf[nbSampling];
-    audioloop->getNext(buf, (int) nbSampling);
+    //audioloop->getNext(buf, (int) nbSampling);
     if ( audiolayer ) { 
-      //audiolayer->putUrgent( buf, sizeof(SFLDataFormat)*nbSampling );
+      audiolayer->putUrgent( buf, nbSampling );
     }
     else 
       return false;
@@ -909,20 +908,20 @@ ManagerImpl::ringtone()
   int sampleRate  = audiolayer->getSampleRate();
   AudioCodec* codecForTone = _codecDescriptorMap.getFirstCodecAvailable();
 
-  _toneMutex.enterMutex(); 
-  bool loadFile = _audiofile.loadFile(ringchoice, codecForTone , sampleRate);
-  _toneMutex.leaveMutex(); 
-  if (loadFile) {
-    _toneMutex.enterMutex(); 
-    _audiofile.start();
-    _toneMutex.leaveMutex(); 
-    int size = _audiofile.getSize();
-    SFLDataFormat output[ size ];
-    _audiofile.getNext(output, size , 100);
+  //_toneMutex.enterMutex(); 
+ // bool loadFile = _audiofile.loadFile(ringchoice, codecForTone , sampleRate);
+  //_toneMutex.leaveMutex(); 
+  //if (loadFile) {
+    //_toneMutex.enterMutex(); 
+    //_audiofile.start();
+    //_toneMutex.leaveMutex(); 
+    //int size = _audiofile.getSize();
+    //SFLDataFormat output[ size ];
+    //_audiofile.getNext(output, size , 100);
     //audiolayer->putUrgent( output , size );
-  } else {
+  //} else {
     ringback();
-  }
+  //}
 }
 
   AudioLoop*
@@ -1066,11 +1065,11 @@ ManagerImpl::initConfigFile (void)
   fill_config_int(SEND_DTMF_AS, SIP_INFO_STR);
 
   section = AUDIO;
-  //fill_config_int(DRIVER_NAME, DFT_DRIVER_STR);
-  fill_config_int(DRIVER_NAME_IN, DFT_DRIVER_STR);
-  fill_config_int(DRIVER_NAME_OUT, DFT_DRIVER_STR);
-  fill_config_int(DRIVER_SAMPLE_RATE, DFT_SAMPLE_RATE);
-  fill_config_int(DRIVER_FRAME_SIZE, DFT_FRAME_SIZE);
+  fill_config_int(ALSA_CARD_ID_IN, ALSA_DFT_CARD);
+  fill_config_int(ALSA_CARD_ID_OUT, ALSA_DFT_CARD);
+  fill_config_int(ALSA_SAMPLE_RATE, DFT_SAMPLE_RATE);
+  fill_config_int(ALSA_FRAME_SIZE, DFT_FRAME_SIZE);
+  fill_config_str(ALSA_PLUGIN, PCM_DEFAULT); 
   fill_config_str(RING_CHOICE, DFT_RINGTONE);
   fill_config_int(VOLUME_SPKR, DFT_VOL_SPKR_STR);
   fill_config_int(VOLUME_MICRO, DFT_VOL_MICRO_STR);
@@ -1131,7 +1130,7 @@ ManagerImpl::retrieveActiveCodecs()
   void
 ManagerImpl::setActiveCodecList(const std::vector<std::string>& list)
 {
-  _debug("Set active codecs list");
+  _debug("Set active codecs list\n");
   _codecDescriptorMap.saveActiveCodecs(list);
   // setConfig
   std::string s = serialize(list);
@@ -1242,10 +1241,11 @@ ManagerImpl::getOutputAudioPluginList(void)
   std::vector<std::string> v;
   _debug("Get output audio plugin list");
 
-  v.push_back("default");
-  v.push_back("plug:hw");
-  v.push_back("plug:dmix");
-  v.push_back("plug:surround40");
+  v.push_back( PCM_DEFAULT );
+  v.push_back( PCM_PLUGHW );
+  v.push_back( PCM_DMIX );
+  v.push_back( PCM_SURROUND40 );
+  //v.push_back( PCM_HW );
 
   return v;
 }
@@ -1278,6 +1278,8 @@ ManagerImpl::setOutputAudioPlugin(const std::string& audioPlugin)
 			      _audiodriver -> getFrameSize(),
 			      SFL_PCM_PLAYBACK,
 			      audioPlugin);
+  // set config
+  setConfig( AUDIO , ALSA_PLUGIN , audioPlugin );
 }
 
 /**
@@ -1303,6 +1305,8 @@ ManagerImpl::setAudioOutputDevice(const int index)
       _audiodriver->getFrameSize(), 
       SFL_PCM_PLAYBACK,
       _audiodriver->getAudioPlugin());
+  // set config
+  setConfig( AUDIO , ALSA_CARD_ID_OUT , index );
 }
 
 /**
@@ -1328,6 +1332,8 @@ ManagerImpl::setAudioInputDevice(const int index)
       _audiodriver->getFrameSize(), 
       SFL_PCM_CAPTURE,
       _audiodriver->getAudioPlugin());
+  // set config
+  setConfig( AUDIO , ALSA_CARD_ID_IN , index );
 }
 
 /**
@@ -1338,24 +1344,30 @@ ManagerImpl::getCurrentAudioDevicesIndex()
 {
   _debug("Get current audio devices index\n");
   std::vector<std::string> v;
-  std::stringstream ss;
-  ss << _audiodriver->getIndexOut();
-  v.push_back( ss.str() );
-  ss << _audiodriver->getIndexIn();
-  v.push_back( ss.str() );
+  std::stringstream ssi , sso;
+  sso << _audiodriver->getIndexOut();
+  v.push_back( sso.str() );
+  ssi << _audiodriver->getIndexIn();
+  v.push_back( ssi.str() );
   return v;
 }
 
-/**
- * Get name, max input channels, max output channels, sample rate of audio device
- */
-  std::vector<std::string>
-ManagerImpl::getAudioDeviceDetails(const int index)
+  int
+ManagerImpl::getAudioDeviceIndex(const std::string name)
 {
-  _debug("Get audio input device list\n");
-
+  _debug("Get audio device index\n");
+  int num = _audiodriver -> soundCardGetIndex( name );
+  _debug(" %s has number %i\n" , name.c_str() , num );
+  return num;
+  //return _audiodriver -> soundCardGetIndex( name );
 }
 
+std::string 
+ManagerImpl::getCurrentAudioOutputPlugin( void )
+{
+  _debug("Get alsa plugin\n");
+  return _audiodriver -> getAudioPlugin();
+}
 
 
 /**
@@ -1382,25 +1394,29 @@ ManagerImpl::initAudioDriver(void)
   void
 ManagerImpl::selectAudioDriver (void)
 {
-  //int noDevice  = getConfigInt(AUDIO, DRIVER_NAME);
-  int noDeviceIn  = getConfigInt(AUDIO, DRIVER_NAME_IN);
-  int noDeviceOut = getConfigInt(AUDIO, DRIVER_NAME_OUT);
-  int sampleRate  = getConfigInt(AUDIO, DRIVER_SAMPLE_RATE);
+  std::string alsaPlugin = getConfigString( AUDIO , ALSA_PLUGIN );
+  int numCardIn  = getConfigInt( AUDIO , ALSA_CARD_ID_IN );
+  int numCardOut = getConfigInt( AUDIO , ALSA_CARD_ID_OUT );
+  int sampleRate = getConfigInt( AUDIO , ALSA_SAMPLE_RATE );
   if (sampleRate <=0 || sampleRate > 48000) {
     sampleRate = 44100;
   }
-  int frameSize = getConfigInt(AUDIO, DRIVER_FRAME_SIZE);
+  int frameSize = getConfigInt( AUDIO , ALSA_FRAME_SIZE );
 
-  // this is when no audio device in/out are set
-  // or the audio device in/out are set to 0
-  // we take the nodevice instead
-  // remove this hack, how can we change the device to 0, if the noDevice is 1?
-  //if (noDeviceIn == 0 && noDeviceOut == 0) {
-  //  noDeviceIn = noDeviceOut = noDevice;
-  //}
+  if( !_audiodriver -> soundCardIndexExist( numCardIn ) )
+  {
+    _debug(" Index %i is not a valid card number. Switch to 0.\n", numCardIn);
+    numCardIn = ALSA_DFT_CARD_ID ;
+  }
+  if( !_audiodriver -> soundCardIndexExist( numCardOut ) )
+  {  
+    _debug(" Index %i is not a valid card number. Switch to 0.\n", numCardOut);
+    numCardOut = ALSA_DFT_CARD_ID ;
+  }
+
   _debugInit(" AudioLayer Opening Device");
   _audiodriver->setErrorMessage("");
-  _audiodriver->openDevice(noDeviceIn, noDeviceOut, sampleRate, frameSize, SFL_PCM_BOTH, PCM_PLUGHW);
+  _audiodriver->openDevice( numCardIn , numCardOut, sampleRate, frameSize, SFL_PCM_BOTH, alsaPlugin ); 
 }
 
 /**

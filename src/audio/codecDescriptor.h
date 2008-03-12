@@ -30,6 +30,7 @@
 #include <dirent.h>
 
 #include "../global.h"
+#include "../user_cfg.h"
 #include "codecs/audiocodec.h"
 
 typedef enum {
@@ -203,7 +204,8 @@ private:
   void unloadCodec( CodecHandlePointer );
 
   bool seemsValid( std::string );
-
+  bool alreadyInCache( std::string );
+  bool isCodecLoaded( int payload );
   /*
    * Map the payload of a codec and its name
    */
@@ -219,6 +221,8 @@ private:
    */
   CodecOrder _codecOrder;
   
+  std::vector<std::string> _Cache;
+
   /*
    * Number of codecs loaded
    */

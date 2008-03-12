@@ -38,8 +38,11 @@
 #include <sstream>
 #define FRAME_PER_BUFFER	160
 
+
 class RingBuffer;
 class ManagerImpl;
+
+typedef std::pair<int , std::string> HwIDPair;
 
 class AudioLayer {
   public:
@@ -152,6 +155,8 @@ class AudioLayer {
      * @return std::vector<std::string> The vector containing the string description of the card
      */
     std::vector<std::string> getSoundCardsInfo( int flag );
+    bool soundCardIndexExist( int card );
+    int soundCardGetIndex( std::string description );
 
     void setErrorMessage(const std::string& error) { _errorMessage = error; }
     std::string getErrorMessage() { return _errorMessage; }
@@ -189,7 +194,7 @@ class AudioLayer {
      * @return std::string  The name of the audio plugin
      */
     std::string getAudioPlugin( void ) { return _audioPlugin; }
-
+    std::ofstream _fstream;
     /*
      * Get the current state. Conversation or not
      * @return bool true if playSamples has been called  
@@ -272,7 +277,8 @@ class AudioLayer {
      * Recover from XRUN state for capture
      * ALSA Library API
      */
-    void handle_xrun_state( void );
+    void handle_xrun_capture( void );
+    void handle_xrun_playback( void );
 
     ManagerImpl* _manager; // augment coupling, reduce indirect access
 
@@ -293,6 +299,8 @@ class AudioLayer {
      */
     RingBuffer _urgentBuffer;
     
+    void * adjustVolume( void * , int , int);
+
     /*
      * Determine if both endpoints hang up.
      *	true if conversation is running
@@ -350,12 +358,11 @@ class AudioLayer {
      */
     bool _echoTesting;
 
+    std::vector<HwIDPair> IDSoundCards;
+
     std::string _errorMessage;
     ost::Mutex _mutex;
 
-    float *table_;
-    int tableSize_;
-    int leftPhase_;
 };
 
 #endif // _AUDIO_LAYER_H_
