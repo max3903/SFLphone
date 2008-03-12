@@ -32,17 +32,14 @@
 #include <map>
 #include <vector>
 #include <string>
-//#include "/usr/include/ffmpeg/avcodec.h"
 #include <ffmpeg/avcodec.h>
 
-using namespace std;
-/**
- * @author Jean-francois Blanchard-dionne 
- */
-/* A codec is identified by its libavcodec CodecID. A CodecID is associated with a name. */
-typedef std::map<CodecID, std::string> VideoCodecMap;
-/* The struct to reflect the order the user wants to use the Video codecs */
-typedef std::vector<CodecID> VideoCodecOrder;
+
+/* A codec is identified by its libavcodec CodecID. Each CodecID is part of a AVCodec Struct
+ * Each CodecID is unique */
+typedef std::map<CodecID, AVCodec> VideoCodecMap;
+/* The vector to reflect the order the user wants to use his VideoCodecs */
+typedef std::vector<AVCodec> VideoCodecOrder;
 
 class VideoCodecDescriptor {
 public:
@@ -59,10 +56,10 @@ public:
      * Set the default codecs order
      */   
     int setDefaultOrder();
-  
-  
+  	/**
+     * Function called by constructor, will create lists and register active codecs
+     */   
     void init();
-	
 
     /**
      * Check in the map codec if the specified codec is supported 
@@ -93,7 +90,7 @@ public:
      * @param activeC to set the Codec Map with another map
      * (not really suppose to happen)
      */
-    void setActiveCodecs(VideoCodecOrder& activeC);
+    void setActiveCodecs(VideoCodecOrder& activeCodecs);
 	/**
      * Function to set the map
      * @param codecMap to set the Codec Map
@@ -105,6 +102,7 @@ public:
      * @return codecMap to set the Codec Map
      */
    	VideoCodecMap& getCodecMap() { return codecMap; }
+
 
 private:	
 	/**

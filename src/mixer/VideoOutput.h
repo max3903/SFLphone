@@ -42,7 +42,6 @@ protected:
 	
 	//! Data Buffer for the video data
     char * buffer;
-    int sizeBuffer;
     
 private:
 	

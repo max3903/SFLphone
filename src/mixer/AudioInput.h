@@ -50,7 +50,7 @@ public:
      * \param data a pointer to where the data must be copied
      * \return the size of the fetched data 
      */
-    virtual int fetchData(int16 *data);
+    virtual int fetchData(int16 *data) const;
 
     void putTimeInfo(TimeInfo* infos);
 
@@ -63,7 +63,6 @@ private:
 
     TimeInfo* infoTemps;
     int16 * buffer;
-    int sizeBuffer;
     
 };
 #endif //AUDIOINPUT_H

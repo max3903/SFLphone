@@ -72,25 +72,40 @@
     return this->videoPicture;
   }
   
-  bool VideoDevice::setVideoFormat(v4l2_format* videoFormat){
+  void VideoDevice::setVideoFormat(v4l2_format* videoFormat){
 
     this->videoFormat = videoFormat;
 
-    return true;
   }
 
-  bool VideoDevice::setVideoCapability(v4l2_capability* videoCapability){
+  void VideoDevice::setVideoCapability(v4l2_capability* videoCapability){
 
     this->videoCapability = videoCapability;
 
-    return true;
   }
-  
-  bool VideoDevice::setVideoPicture(video_picture* videoPicture){
+
+  void VideoDevice::setVideoPicture(video_picture* videoPicture){
 
     this->videoPicture = videoPicture;
 
-    return true;
+  }
+  
+  void VideoDevice::setBrightness(__u16 value){
+
+    this->videoPicture->brightness = value;
+
+  }
+  
+  void VideoDevice::setContrast(__u16 value){
+
+    this->videoPicture->contrast = value;
+
+  }
+  
+  void VideoDevice::setColour(__u16 value){
+
+    this->videoPicture->colour = value;
+
   }
   
   char* VideoDevice::getName(){

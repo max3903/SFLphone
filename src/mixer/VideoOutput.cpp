@@ -5,33 +5,29 @@
 
 int VideoOutput::fetchData(char* data)
 {
-  memcpy(buffer,data,sizeBuffer);
   return 0;
 }
 
 void VideoOutput::putData(char * data, int size)
 { 
-  // j'assume ici que le size est le nombre d'octet...
-  memcpy(data,buffer,size);
-  sizeBuffer=size;
+  
 }
 
 VideoOutput::VideoOutput()
 {
-  buffer = new char[1024];      // TODO: Quel est le max_size pour le buffer. TAILLE_BUFFER??
+  
 }
 
 VideoOutput::~VideoOutput()
 {
-  delete []buffer;
+  
 }
 
-// DEPRECIATED !!!!!
 int VideoOutput::fetchData(int16 *data)
 { 
-  return 0; 
+  return 0;
 }
-// DEPRECIATED !!!!!
+
 void VideoOutput::putData(int16 * data, int size)
 { 
   

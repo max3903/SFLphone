@@ -217,7 +217,7 @@ static void changeWebCamStatus ( void *foo )
 static void invitePerson(void* foo)
 {
 	//TODO: Implement Fonctionnality
-	create_Join_conf();
+	create_Call_conf();
 }
 
 GtkWidget * 
@@ -310,7 +310,7 @@ create_call_menu()
 static void 
 edit_preferences ( void * foo)
 {
-  show_config_window();
+  show_config_window(0);
 }
 
 // The menu Edit/Copy should copy the current selected call's number

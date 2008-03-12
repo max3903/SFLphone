@@ -51,10 +51,4 @@ void status_bar_message(const gchar * message);
  */
 gboolean main_window_glWidget( gboolean show );
 
-/**
- * Keeps the menu item and the toggle button at the same state
- * @param value The value to set the items to
- */
-void main_window_update_WebcamStatus( gboolean value);
-
 #endif 
