@@ -23,6 +23,11 @@
 #include <gtk/gtk.h>
 #include <calllist.h>
 
+
+// These declaration must be in the .h so that mainwindow.c will see the variables
+GtkToolItem * webCamButton;
+guint webCamButtonConnId;	 //The webCam button toggled signal connection ID
+
 /** @file calltree.h
   * @brief The GtkTreeView that list calls in the main window.
   */
