@@ -37,11 +37,9 @@ GtkWidget * newCallMenu;
 GtkWidget * holdMenu;
 GtkWidget * copyMenu;
 GtkWidget * pasteMenu;
-//GtkWidget * webCamMenu;
 GtkWidget * inviteMenu;
 
 guint holdConnId;     //The hold_menu signal connection ID
-//guint webCamConnId;     //The webcam_menu signal connection ID
 
 void update_menus()
 { 

@@ -38,10 +38,8 @@ GtkToolItem * hangupButton;
 GtkToolItem * holdButton;
 GtkToolItem * transfertButton;
 GtkToolItem * unholdButton;
-GtkToolItem * webCamButton;
 GtkToolItem * inviteButton;
 guint transfertButtonConnId; //The button toggled signal connection ID
-guint webCamButtonConnId;	 //The webCam button toggled signal connection ID
 
 
 /**
