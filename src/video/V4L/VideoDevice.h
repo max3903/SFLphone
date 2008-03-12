@@ -79,7 +79,7 @@ public:
      * \param videoCapability the attribute to change
      * \return a bool representing the success of parameters changing
      */
-    bool setVideoCapability(v4l2_capability* videoCapability);
+    void setVideoCapability(v4l2_capability* videoCapability);
 
 
     //! Method to get video picture parameters
@@ -94,7 +94,7 @@ public:
      * \param videoPicture the attribute to change
      * \return a bool representing the success of parameters changing
      */
-    bool setVideoPicture(video_picture* videoPicture);
+    void setVideoPicture(video_picture* videoPicture);
 
 
     //! Method to get video formats
@@ -109,8 +109,15 @@ public:
      * \param videoFormat the attribute to change
      * \return a bool representing the success of parameters changing
      */
-    bool setVideoFormat(v4l2_format* videoFormat);
-
+    void setVideoFormat(v4l2_format* videoFormat);
+    
+    void setBrightness(__u16 value);
+    
+    void setColour(__u16 value);
+    
+    void setContrast(__u16 value);
+    
+    
 private:
 
     //! The name of the actual video source
