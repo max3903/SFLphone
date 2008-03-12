@@ -17,7 +17,7 @@
  *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 #include "VideoCodecDescriptor.h"
-
+#include "ffmpeg/avcodec.h"
  	VideoCodecDescriptor::~VideoCodecDescriptor(){}
 	
     VideoCodecDescriptor::VideoCodecDescriptor(){}
@@ -28,7 +28,11 @@
     return 1;
     }
     
-    void VideoCodecDescriptor::init(){}
+    void VideoCodecDescriptor::init(){
+    
+    //Create lists
+    //Register codecs
+    }
 	
    
     bool VideoCodecDescriptor::isActive(enum CodecID id){
@@ -48,7 +52,7 @@
 	
     VideoCodecOrder& VideoCodecDescriptor::getActiveCodecs() { return activeCodecs; }
 	
-    void VideoCodecDescriptor::setActiveCodecs(VideoCodecOrder& activeC){}
+    void VideoCodecDescriptor::setActiveCodecs(VideoCodecOrder& activeCodecs){}
 	
     void VideoCodecDescriptor::setCodecMap(VideoCodecMap& codec){}
     
