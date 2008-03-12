@@ -348,7 +348,7 @@ select_active_output_audio_plugin()
 {
 	GtkTreeModel* model;
 	GtkTreeIter iter;
-	gchar** devices;
+//	gchar** devices;
 	gchar* plugin;
 	gchar* tmp;
 
@@ -940,7 +940,7 @@ create_audio_tab ()
 	GtkWidget *codecBox;
 	
 	GtkWidget *titleLabel;
-	GtkWidget *comboBox;
+//	GtkWidget *comboBox;
 	GtkWidget *refreshButton;
 	GtkCellRenderer *renderer;
 	

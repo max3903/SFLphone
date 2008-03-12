@@ -74,6 +74,12 @@ gchar** dbus_get_current_audio_devices_index();
 int dbus_get_audio_device_index(const gchar* name);
 gchar* dbus_get_current_audio_output_plugin();
 
+/** ContactManager */
+gchar** dbus_get_contacts(gchar* accountID);
+gchar** dbus_get_contact_details(gchar* accountID, gchar* contactID);
+gchar** dbus_get_contact_entries(gchar* accountID, gchar* contactID);
+gchar** dbus_get_contact_entry_details(gchar* accountID, gchar* contactID, gchar* entryID);
+
 /* Instance */
 void dbus_register( int pid, gchar * name);
 void dbus_unregister(int pid);

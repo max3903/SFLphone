@@ -11,6 +11,7 @@ sflphone_gtk_SOURCES = \
   screen.c \
   actions.c \
   configwindow.c \
+  contactlist.c \
   accountlist.c \
   accountwindow.c \
   marshaller.c \
@@ -20,8 +21,9 @@ sflphone_gtk_SOURCES = \
   glwidget.c \
   MemManager.c
   
-noinst_HEADERS =  actions.h dbus.h mainwindow.h calllist.h dialpad.h codeclist.h\
-                  callmanager-glue.h configurationmanager-glue.h instance-glue.h menus.h calltree.h screen.h configwindow.h \
+noinst_HEADERS =  actions.h dbus.h mainwindow.h calllist.h dialpad.h codeclist.h \
+                  callmanager-glue.h configurationmanager-glue.h contactmanager-glue.h instance-glue.h \
+                  menus.h calltree.h screen.h configwindow.h contactlist.h \
                   accountlist.h accountwindow.h marshaller.h sliders.h statusicon.h
 EXTRA_DIST   = marshaller.list  
 sflphone_gtk_LDADD = $(DEPS_LIBS)
