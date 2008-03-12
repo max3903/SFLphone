@@ -33,7 +33,7 @@ public:
      * \param value that will be added (step value)
      * \return a bool representing the success of the operation
      */
-    virtual bool setTo(int valueX, int valueY);
+    virtual bool setTo(__u16 valueX, __u16 valueY);
 
 
     //! Method to reset the resolution to its initial value
