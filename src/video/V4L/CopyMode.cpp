@@ -2,11 +2,16 @@
 
 #include "CopyMode.h"
 
-  CopyMode::CopyMode(){}
+  CopyMode::CopyMode(){
+    	//\ TODO
+  }
 
-  CopyMode::~CopyMode(){}
+  CopyMode::~CopyMode(){
+    	//\ TODO
+  }
 
   char* CopyMode::capture(){
+    	//\ TODO
     char* test;    
 
       *test = 't';

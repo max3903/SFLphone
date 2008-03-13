@@ -2,11 +2,17 @@
 
 #include "ReadMode.h"
 
-  ReadMode::ReadMode(){}
+  ReadMode::ReadMode(){
+    	//\ TODO
+  }
 
-  ReadMode::~ReadMode(){}
+  ReadMode::~ReadMode(){
+    	//\ TODO
+  }
 
   char* ReadMode::capture(){
+  	
+  	  	//\ TODO
     char* test;    
 
       *test = 't';

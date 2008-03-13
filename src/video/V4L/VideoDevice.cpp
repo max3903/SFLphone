@@ -3,13 +3,16 @@
 #include "VideoDevice.h"
 
   VideoDevice::VideoDevice(char* srcName){
-     
+    
+    //\ TODO : TOCOMPLET 
     initDevice(srcName);
     openDevice();
   
   }
 
-  VideoDevice::~VideoDevice(){}
+  VideoDevice::~VideoDevice(){
+    //\ TODO : to free allocated memory in function initDevice
+  }
 
   void VideoDevice::initDevice(char* srcName){
     
@@ -93,7 +96,7 @@
 
 
   bool VideoDevice::closeDevice(){
-
+//\ TODO
     return true;
   }
   
