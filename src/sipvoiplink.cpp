@@ -982,7 +982,8 @@ SIPVoIPLink::subscribePresenceForContact(Contact* contact)
 	
 	int i;
 	
-	std::string to   = contact->getUrl().data();
+	// NOW change for contact entry
+	std::string to   = "todo";	// Take entry instead of contact
 	std::ostringstream from;
 	
 	// Build URL of sender

@@ -5,6 +5,8 @@ noinst_LTLIBRARIES = \
 
 libcontact_la_SOURCES = \
 	contact.h \
+	contactentry.h \
 	presence.h \
 	contact.cpp \
+	contactentry.cpp \
 	presence.cpp

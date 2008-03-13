@@ -23,6 +23,7 @@
 #include <calllist.h>
 #include <callmanager-glue.h>
 #include <configurationmanager-glue.h>
+#include <contactmanager-glue.h>
 #include <instance-glue.h>
 #include <configwindow.h>
 #include <mainwindow.h>
@@ -37,6 +38,7 @@
 DBusGConnection * connection;
 DBusGProxy * callManagerProxy;
 DBusGProxy * configurationManagerProxy;
+DBusGProxy * contactManagerProxy;
 DBusGProxy * instanceProxy;
 
 static void  
@@ -243,6 +245,17 @@ dbus_connect ()
     "accountsChanged", G_TYPE_INVALID);
   dbus_g_proxy_connect_signal (configurationManagerProxy,
     "accountsChanged", G_CALLBACK(accounts_changed_cb), NULL, NULL);
+  
+  contactManagerProxy = dbus_g_proxy_new_for_name (connection,
+                                  "org.sflphone.SFLphone",
+                                  "/org/sflphone/SFLphone/ContactManager",
+                                  "org.sflphone.SFLphone.ContactManager");
+  if (!contactManagerProxy)
+  {
+    g_printerr("Failed to get proxy to ContactManager\n");
+    return FALSE;
+  }
+  g_print("DBus connected to ContactManager\n");
    
   return TRUE;
 }
@@ -252,6 +265,7 @@ dbus_clean ()
 {
     g_object_unref (callManagerProxy);
     g_object_unref (configurationManagerProxy);
+    g_object_unref (contactManagerProxy);
 }
 
 void
@@ -1025,4 +1039,45 @@ dbus_get_current_audio_output_plugin()
 	else
 		g_print("DBus called get_current_audio_output_plugin() on ConfigurationManager\n");
 	return plugin;
+}
+
+gchar**
+dbus_get_contacts(gchar* accountID)
+{
+	gchar** array;
+	GError* error = NULL;
+	org_sflphone_SFLphone_ContactManager_get_contacts(
+			contactManagerProxy, 
+			accountID,
+			&array,
+			&error);
+	if(error)
+	{
+		g_printerr ("Failed to call get_contacts() on ContactManager: %s\n", error->message);
+		g_error_free (error);
+	}
+	else
+		g_print ("DBus called get_contacts() on ContactManager\n");
+	return array;
+}
+
+gchar**
+dbus_get_contact_details(gchar* accountID, gchar* contactID)
+{
+	gchar** array;
+	GError* error = NULL;
+	org_sflphone_SFLphone_ContactManager_get_contact_details(
+			contactManagerProxy,
+			accountID,
+			contactID,
+			&array,
+			&error);
+	if(error)
+	{
+		g_printerr ("Failed to call get_contact_details() on ContactManager: %s\n", error->message);
+		g_error_free (error);
+	}
+	else
+		g_print ("DBus called get_contact_details() on ContactManager\n");
+	return array;
 }

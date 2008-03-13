@@ -21,7 +21,11 @@ public:
     : ::DBus::InterfaceAdaptor("org.sflphone.SFLphone.ContactManager")
     {
         register_method(ContactManager, getContacts, _getContacts_stub);
+        register_method(ContactManager, getContactDetails, _getContactDetails_stub);
+        register_method(ContactManager, getContactEntries, _getContactEntries_stub);
+        register_method(ContactManager, getContactEntryDetails, _getContactEntryDetails_stub);
         register_method(ContactManager, setContacts, _setContacts_stub);
+        register_method(ContactManager, setContactEntries, _setContactEntries_stub);
         register_method(ContactManager, setPresence, _setPresence_stub);
         register_method(ContactManager, setContactPresence, _setContactPresence_stub);
     }
@@ -31,13 +35,41 @@ public:
         static ::DBus::IntrospectedArgument getContacts_args[] = 
         {
             { "accountID", "s", true },
-            { "details", "a{ss}", false },
+            { "contactIDs", "as", false },
+            { 0, 0, 0 }
+        };
+        static ::DBus::IntrospectedArgument getContactDetails_args[] = 
+        {
+            { "accountID", "s", true },
+            { "contactID", "s", true },
+            { "details", "as", false },
+            { 0, 0, 0 }
+        };
+        static ::DBus::IntrospectedArgument getContactEntries_args[] = 
+        {
+            { "accountID", "s", true },
+            { "contactID", "s", true },
+            { "contactEntryIDs", "as", false },
+            { 0, 0, 0 }
+        };
+        static ::DBus::IntrospectedArgument getContactEntryDetails_args[] = 
+        {
+            { "accountID", "s", true },
+            { "contactID", "s", true },
+            { "contactEntryID", "s", true },
+            { "details", "as", false },
             { 0, 0, 0 }
         };
         static ::DBus::IntrospectedArgument setContacts_args[] = 
         {
             { "accountID", "s", true },
-            { "details", "a{ss}", true },
+            { "details", "as", true },
+            { 0, 0, 0 }
+        };
+        static ::DBus::IntrospectedArgument setContactEntries_args[] = 
+        {
+            { "contactID", "s", true },
+            { "details", "as", true },
             { 0, 0, 0 }
         };
         static ::DBus::IntrospectedArgument setPresence_args[] = 
@@ -57,7 +89,11 @@ public:
         static ::DBus::IntrospectedMethod ContactManager_methods[] = 
         {
             { "getContacts", getContacts_args },
+            { "getContactDetails", getContactDetails_args },
+            { "getContactEntries", getContactEntries_args },
+            { "getContactEntryDetails", getContactEntryDetails_args },
             { "setContacts", setContacts_args },
+            { "setContactEntries", setContactEntries_args },
             { "setPresence", setPresence_args },
             { "setContactPresence", setContactPresence_args },
             { 0, 0 }
@@ -91,8 +127,12 @@ public:
     /* methods exported by this interface,
      * you will have to implement them in your ObjectAdaptor
      */
-    virtual std::map< ::DBus::String, ::DBus::String > getContacts( const ::DBus::String& accountID ) = 0;
-    virtual void setContacts( const ::DBus::String& accountID, const std::map< ::DBus::String, ::DBus::String >& details ) = 0;
+    virtual std::vector< ::DBus::String > getContacts( const ::DBus::String& accountID ) = 0;
+    virtual std::vector< ::DBus::String > getContactDetails( const ::DBus::String& accountID, const ::DBus::String& contactID ) = 0;
+    virtual std::vector< ::DBus::String > getContactEntries( const ::DBus::String& accountID, const ::DBus::String& contactID ) = 0;
+    virtual std::vector< ::DBus::String > getContactEntryDetails( const ::DBus::String& accountID, const ::DBus::String& contactID, const ::DBus::String& contactEntryID ) = 0;
+    virtual void setContacts( const ::DBus::String& accountID, const std::vector< ::DBus::String >& details ) = 0;
+    virtual void setContactEntries( const ::DBus::String& contactID, const std::vector< ::DBus::String >& details ) = 0;
     virtual void setPresence( const ::DBus::String& accountID, const ::DBus::String& presence, const ::DBus::String& additionalInfo ) = 0;
     virtual void setContactPresence( const ::DBus::String& accountID, const ::DBus::String& presence, const ::DBus::String& additionalInfo ) = 0;
 
@@ -110,7 +150,44 @@ private:
         ::DBus::MessageIter ri = call.reader();
 
         ::DBus::String argin1; ri >> argin1;
-        std::map< ::DBus::String, ::DBus::String > argout1 = getContacts(argin1);
+        std::vector< ::DBus::String > argout1 = getContacts(argin1);
+        ::DBus::ReturnMessage reply(call);
+        ::DBus::MessageIter wi = reply.writer();
+        wi << argout1;
+        return reply;
+    }
+    ::DBus::Message _getContactDetails_stub( const ::DBus::CallMessage& call )
+    {
+        ::DBus::MessageIter ri = call.reader();
+
+        ::DBus::String argin1; ri >> argin1;
+        ::DBus::String argin2; ri >> argin2;
+        std::vector< ::DBus::String > argout1 = getContactDetails(argin1, argin2);
+        ::DBus::ReturnMessage reply(call);
+        ::DBus::MessageIter wi = reply.writer();
+        wi << argout1;
+        return reply;
+    }
+    ::DBus::Message _getContactEntries_stub( const ::DBus::CallMessage& call )
+    {
+        ::DBus::MessageIter ri = call.reader();
+
+        ::DBus::String argin1; ri >> argin1;
+        ::DBus::String argin2; ri >> argin2;
+        std::vector< ::DBus::String > argout1 = getContactEntries(argin1, argin2);
+        ::DBus::ReturnMessage reply(call);
+        ::DBus::MessageIter wi = reply.writer();
+        wi << argout1;
+        return reply;
+    }
+    ::DBus::Message _getContactEntryDetails_stub( const ::DBus::CallMessage& call )
+    {
+        ::DBus::MessageIter ri = call.reader();
+
+        ::DBus::String argin1; ri >> argin1;
+        ::DBus::String argin2; ri >> argin2;
+        ::DBus::String argin3; ri >> argin3;
+        std::vector< ::DBus::String > argout1 = getContactEntryDetails(argin1, argin2, argin3);
         ::DBus::ReturnMessage reply(call);
         ::DBus::MessageIter wi = reply.writer();
         wi << argout1;
@@ -121,8 +198,18 @@ private:
         ::DBus::MessageIter ri = call.reader();
 
         ::DBus::String argin1; ri >> argin1;
-        std::map< ::DBus::String, ::DBus::String > argin2; ri >> argin2;
+        std::vector< ::DBus::String > argin2; ri >> argin2;
         setContacts(argin1, argin2);
+        ::DBus::ReturnMessage reply(call);
+        return reply;
+    }
+    ::DBus::Message _setContactEntries_stub( const ::DBus::CallMessage& call )
+    {
+        ::DBus::MessageIter ri = call.reader();
+
+        ::DBus::String argin1; ri >> argin1;
+        std::vector< ::DBus::String > argin2; ri >> argin2;
+        setContactEntries(argin1, argin2);
         ::DBus::ReturnMessage reply(call);
         return reply;
     }

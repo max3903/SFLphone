@@ -20,11 +20,10 @@
 #ifndef CONTACT_H
 #define CONTACT_H
 
-#include "presence.h"
+#include "contactentry.h"
 
 #include <string>
-
-typedef std::string ContactID;
+#include <vector>
 
 /**
  * TOCOMMENT
@@ -33,21 +32,31 @@ typedef std::string ContactID;
 class Contact {
 public:
 	Contact();
-	Contact(const std::string contactID, const std::string name, const std::string url);
+	Contact(const std::string contactID, const std::string firstName, const std::string lastName, const std::string email);
+	Contact(const std::string contactID, const std::string firstName, const std::string lastName,
+			const std::string email, const std::string group, const std::string subGroup);
 	virtual ~Contact();
 	
-	std::string getUrl() { return _url; }
+	std::string getContactID() { return _contactID; }
+	std::string getFirstName() { return _firstName; }
+	std::string getLastName() { return _lastName; }
+	std::string getEmail() { return _email; }
+	std::string getGroup() { return _group; }
+	std::string getSubGroup() { return _subGroup; }
 	
-protected:
-	
+	const std::vector<ContactEntry*> getEntries();
+	void addEntry(ContactEntry* entry);
+		
 private:
-	ContactID _contactID;
-	std::string _name;
-	std::string _url;
-	bool _suscribeToPresence;
-	
-	// Presence information, can be null
-	Presence* _presence;
+	// Attributes only related to contact list
+	std::string _contactID;			// Unique identifier for each account generated randomly
+	std::string _firstName;
+	std::string _lastName;
+	std::string _email;
+	std::string _group;				// UNUSED but could serve to sort contacts in GUI lists
+	std::string _subGroup;			// UNUSED
+
+	std::vector<ContactEntry*> _entries;	// Each contact can have multiple ways to contact him (home, mobile, work...)
 };
 
 #endif

@@ -22,7 +22,6 @@
 
 #include "contactmanager-glue.h"
 #include <dbus-c++/dbus.h>
-
     
 class ContactManager
 : public org::sflphone::SFLphone::ContactManager,
@@ -30,17 +29,18 @@ class ContactManager
   public DBus::ObjectAdaptor
 {
 public:
-
     ContactManager(DBus::Connection& connection);
     static const char* SERVER_PATH;
 
 public:
-    std::map< ::DBus::String, ::DBus::String > getContacts( const ::DBus::String& accountID );
-    void setContacts( const ::DBus::String& accountID, const std::map< ::DBus::String, ::DBus::String >& details );
+    std::vector< ::DBus::String > getContacts( const ::DBus::String& accountID );
+    std::vector< ::DBus::String > getContactDetails( const ::DBus::String& accountID, const ::DBus::String& contactID );
+    std::vector< ::DBus::String > getContactEntries( const ::DBus::String& accountID, const ::DBus::String& contactID );
+    std::vector< ::DBus::String > getContactEntryDetails( const ::DBus::String& accountID, const ::DBus::String& contactID, const ::DBus::String& contactEntryID );
+    void setContacts( const ::DBus::String& accountID, const std::vector< ::DBus::String >& details );
+    void setContactEntries( const ::DBus::String& contactID, const std::vector< ::DBus::String >& details );
     void setPresence( const ::DBus::String& accountID, const ::DBus::String& presence, const ::DBus::String& additionalInfo );
     void setContactPresence( const ::DBus::String& accountID, const ::DBus::String& presence, const ::DBus::String& additionalInfo );
-
 };
-
 
 #endif//CONTACTMANAGER_H

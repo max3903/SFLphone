@@ -17,8 +17,10 @@
  *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
-#ifndef PRESENCE_H
-#define PRESENCE_H
+#ifndef CONTACT_ENTRY_H
+#define CONTACT_ENTRY_H
+
+#include "presence.h"
 
 #include <string>
 
@@ -26,19 +28,26 @@
  * TOCOMMENT
  * @author Guillaume Carmel-Archambault
  */
-class Presence {
-	
+class ContactEntry {
 public:
-	Presence();
-	virtual ~Presence();
-		
-protected:
+	ContactEntry();
+	ContactEntry(std::string contact, std::string type, bool showInCallConsole, bool subscribeToPresence);
+	virtual ~ContactEntry();
+	
+	std::string getContact() { return _contact; }
+	std::string getType() { return _type; }
+	bool getShownInCallConsole() { return _shownInCallConsole; }
+	bool getSubscribedToPresence() { return _subscribedToPresence; }	
 	
 private:
-	std::string _state;
-	std::string _additionalInfo;
-	std::string _capabalities;		// UNUSED Could be an independant attribute from presence included in a contact entry
-	std::string _userAgent;			// UNUSED Name of user agent used by contact
+	// Attributes used for presence and call console
+	std::string _contact;			// Can be an extension, phone number, url...
+	std::string _type;				// Work, mobile, home...
+	bool _shownInCallConsole;		// Contact entry will be shown in call console if true
+	bool _subscribedToPresence;		// Account link will try to subscribe to presence status if true
+	
+	// Presence information, will be null if contact is not subscribed
+	Presence* _presence;
 };
 
 #endif

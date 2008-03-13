@@ -4,16 +4,51 @@
     
   <!-- Contacts related methods -->
   
-    <!-- Called by the client to get all saved contacts -->
+    <!-- Called by the client to get all saved contactIDs -->
+    <!-- Returns array of contactIDs -->
     <method name="getContacts">
       <arg type="s" name="accountID" direction="in"/>
-      <arg type="a{ss}" name="details" direction="out"/>
+      <arg type="as" name="contactIDs" direction="out"/>
     </method>
     
+    <!-- Called by the client to get details on a contact -->
+    <!-- Returns first name, last name, email, group, subgroup -->
+    <method name="getContactDetails">
+      <arg type="s" name="accountID" direction="in"/>
+      <arg type="s" name="contactID" direction="in"/>
+      <arg type="as" name="details" direction="out"/>
+    </method>
+    
+    <!-- Called for each contact to get all its contact entries id -->
+    <!-- Array of contact entries, examples can be : 140, 514-123-1234... -->
+    <method name="getContactEntries">
+      <arg type="s" name="accountID" direction="in"/>
+      <arg type="s" name="contactID" direction="in"/>
+      <arg type="as" name="contactEntryIDs" direction="out"/>
+    </method>
+    
+    <!-- Called for each contact entry to get its details -->
+    <!-- type, shown in console, is subscribed to presence -->
+    <!-- Example can be : work, true, false -->
+    <method name="getContactEntryDetails">
+      <arg type="s" name="accountID" direction="in"/>
+      <arg type="s" name="contactID" direction="in"/>
+      <arg type="s" name="contactEntryID" direction="in"/>
+      <arg type="as" name="details" direction="out"/>
+    </method>
+    
+    
+    <!-- TODO Same as get (4 functions) -->
     <!-- Called by the client to save all local contacts -->
     <method name="setContacts">
       <arg type="s" name="accountID" direction="in"/>
-      <arg type="a{ss}" name="details" direction="in"/>
+      <arg type="as" name="details" direction="in"/>
+    </method>
+   
+    <!-- Called by the client to save all contact entries -->
+    <method name="setContactEntries">
+      <arg type="s" name="contactID" direction="in"/>
+      <arg type="as" name="details" direction="in"/>
     </method>
    
   <!--      ///////////////////////               -->
@@ -28,6 +63,7 @@
     </method>
   
     <!-- Called by the daemon when a contact presence changes -->
+    <!-- To be changed missing information on contact to pass by contact ID or contact number-->
     <method name="setContactPresence">
       <arg type="s" name="accountID" direction="in"/>
       <arg type="s" name="presence" direction="in"/>
