@@ -9,18 +9,20 @@
   bool Resolution::setTo(__u16 valueX, __u16 valueY){
     
     //this->videoDevice->getVideoFormat()->fmt->pix->height
-    // to use : VIDIOC_G_FMT and VIDIOC_S_FMT ioclt
+    
+    
+ //\ TODO   this->videoDevice->applyChanges('f'); // ioctl call in VideoDevice to apply changes
     
     return true;
   }
 
   bool Resolution::reset(){
-
+    //\ TODO
     return true;
   }
 
   char* Resolution::getResolution(){
-
+    //\ TODO
     return 0;
   }
   
