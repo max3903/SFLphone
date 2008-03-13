@@ -1041,6 +1041,25 @@ dbus_get_current_audio_output_plugin()
 	return plugin;
 }
 
+int
+dbus_is_iax2_enabled()
+{
+	int res;
+	GError* error = NULL;
+	org_sflphone_SFLphone_ConfigurationManager_is_iax2_enabled(
+			configurationManagerProxy,
+			&res,
+			&error);
+	g_print("After");
+	if(error)
+	{
+		g_error_free(error);
+	}
+	else
+		g_print("DBus called is_iax2_enabled() on ConfigurationManager\n");
+	return res;
+}
+
 gchar**
 dbus_get_contacts(gchar* accountID)
 {
@@ -1060,6 +1079,7 @@ dbus_get_contacts(gchar* accountID)
 		g_print ("DBus called get_contacts() on ContactManager\n");
 	return array;
 }
+
 
 gchar**
 dbus_get_contact_details(gchar* accountID, gchar* contactID)

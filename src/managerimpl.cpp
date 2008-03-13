@@ -1159,7 +1159,6 @@ ManagerImpl::retrieveActiveCodecs()
   tokenizer tokens(s, slash); 
   for(tokenizer::iterator tok_iter = tokens.begin(); tok_iter!= tokens.end(); ++tok_iter)
   {
-    printf("%s\n", (*tok_iter).c_str());
     order.push_back(*tok_iter);
   }
   return order;
@@ -1281,9 +1280,6 @@ ManagerImpl::getOutputAudioPluginList(void)
 
   v.push_back( PCM_DEFAULT );
   v.push_back( PCM_PLUGHW );
-  v.push_back( PCM_DMIX );
-  v.push_back( PCM_SURROUND40 );
-  //v.push_back( PCM_HW );
 
   return v;
 }
@@ -1390,14 +1386,23 @@ ManagerImpl::getCurrentAudioDevicesIndex()
   return v;
 }
 
+int 
+ManagerImpl::isIax2Enabled( void )
+{
+  //return ( IAX2_ENABLED ) ? true : false;
+#ifdef USE_IAX
+  return true;
+#else
+  return false;
+#endif
+}
+
   int
 ManagerImpl::getAudioDeviceIndex(const std::string name)
 {
   _debug("Get audio device index\n");
   int num = _audiodriver -> soundCardGetIndex( name );
-  _debug(" %s has number %i\n" , name.c_str() , num );
   return num;
-  //return _audiodriver -> soundCardGetIndex( name );
 }
 
 std::string 
@@ -1441,15 +1446,17 @@ ManagerImpl::selectAudioDriver (void)
   }
   int frameSize = getConfigInt( AUDIO , ALSA_FRAME_SIZE );
 
-  if( !_audiodriver -> soundCardIndexExist( numCardIn ) )
+  if( !_audiodriver -> soundCardIndexExist( numCardIn , SFL_PCM_CAPTURE ) )
   {
-    _debug(" Index %i is not a valid card number. Switch to 0.\n", numCardIn);
+    _debug(" Card with index %i doesn't exist or cannot capture. Switch to 0.\n", numCardIn);
     numCardIn = ALSA_DFT_CARD_ID ;
+    setConfig( AUDIO , ALSA_CARD_ID_IN , ALSA_DFT_CARD_ID );
   }
-  if( !_audiodriver -> soundCardIndexExist( numCardOut ) )
+  if( !_audiodriver -> soundCardIndexExist( numCardOut , SFL_PCM_PLAYBACK ) )
   {  
-    _debug(" Index %i is not a valid card number. Switch to 0.\n", numCardOut);
+    _debug(" Card with index %i doesn't exist or cannot playback . Switch to 0.\n", numCardOut);
     numCardOut = ALSA_DFT_CARD_ID ;
+    setConfig( AUDIO , ALSA_CARD_ID_OUT , ALSA_DFT_CARD_ID );
   }
 
   _debugInit(" AudioLayer Opening Device");

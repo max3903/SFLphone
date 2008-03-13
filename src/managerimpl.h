@@ -368,6 +368,7 @@ public:
    */
   std::string serialize(std::vector<std::string> v);
 
+  int isIax2Enabled( void ); 
   /**
    * Inverse of serialize
    */

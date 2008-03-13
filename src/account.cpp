@@ -47,7 +47,15 @@ Account::~Account()
 void
 Account::loadConfig()
 {
-	_enabled = Manager::instance().getConfigInt(_accountID, CONFIG_ACCOUNT_ENABLE) ? true : false;
+	std::string p =  Manager::instance().getConfigString( _accountID , CONFIG_ACCOUNT_TYPE );
+#ifdef USE_IAX	
+	  _enabled = Manager::instance().getConfigInt(_accountID, CONFIG_ACCOUNT_ENABLE) ? true : false;
+#else
+	if( p.c_str() == "IAX" )
+	  _enabled = false;
+	else
+	  _enabled = Manager::instance().getConfigInt(_accountID, CONFIG_ACCOUNT_ENABLE) ? true : false;
+#endif
 }
 
 // NOW
