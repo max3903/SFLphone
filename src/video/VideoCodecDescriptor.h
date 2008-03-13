@@ -36,11 +36,11 @@
 
 
 /* A codec is identified by it's AVCodec, the codec utilisation by the AVCodecContext */
-typedef std::map<AVCodec, AVCodecContext> VideoCodecMap;
+typedef std::map<AVCodec*, AVCodecContext*> VideoCodecMap;
 /* VideoCodecOrder iterator typedef*/
 typedef VideoCodecMap::iterator VCMIterator;
 /* The vector to reflect the order the user wants to use his VideoCodecs */
-typedef std::vector<AVCodec> VideoCodecOrder;
+typedef std::vector<AVCodec*> VideoCodecOrder;
 /* VideoCodecOrder iterator typedef*/
 typedef VideoCodecOrder::iterator VCOIterator;
 
@@ -84,24 +84,24 @@ public:
      * Function to send the map containing the active Codecs.
      * 
      */
-    VideoCodecOrder& getActiveCodecs();
+    VideoCodecOrder* getActiveCodecs();
 	/**
      * Function to set the map
      * @param activeC to set the Codec Map with another map
      * (not really suppose to happen)
      */
-    void setActiveCodecs(VideoCodecOrder& activeCodecs);
+    void setActiveCodecs(VideoCodecOrder* activeCodecs);
 	/**
      * Function to set the map
      * @param codecMap to set the Codec Map
      * (not really suppose to happen)
      */
-    void setCodecMap(VideoCodecMap& codecMap);
+    void setCodecMap(VideoCodecMap* codecMap);
 	/**
      * Function to get the map
      * @return codecMap to set the Codec Map
      */
-   	VideoCodecMap& getCodecMap() { return codecMap; }
+   	VideoCodecMap* getCodecMap() { return vCodecMap; }
 
 	/**
      * Function to get all the codec info
@@ -117,11 +117,11 @@ private:
 	/**
      * Vector of all the Active codecs
      */
-    VideoCodecOrder activeCodecs;
+    VideoCodecOrder *vCodecOrder;
     /**
      * Map of all codecs, active and inactive
      */
-    VideoCodecMap codecMap;
+    VideoCodecMap *vCodecMap;
 
 
 
