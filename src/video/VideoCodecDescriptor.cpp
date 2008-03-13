@@ -35,10 +35,12 @@
     
     //Set the default order of the codec list
     //means setting the exact same codecs as codecMap
-    vCodecOrder->clear();
+    vCodecOrder.clear();
     
-    for (mapIter = vCodecMap->begin();mapIter != vCodecMap->end();mapIter++);
-    	//vCodecOrder->push_back((*mapIter)->;
+    
+    
+    for (mapIter = vCodecMap.begin();mapIter != vCodecMap.end();mapIter++);
+    	
     
     
     return 1;
@@ -57,20 +59,24 @@
     }
 
    
-    int VideoCodecDescriptor::removeCodec(enum CodecID id){
+    bool VideoCodecDescriptor::removeCodec(enum CodecID id){
     
     
-    return 1;
+    return false;
     }
 
+	
    
-    int VideoCodecDescriptor::addCodec(enum CodecID id){
-    return 1;}
+    int VideoCodecDescriptor::addCodec(enum CodecID id)
+    {
+    	
+    }
+    
 	
-    VideoCodecOrder* VideoCodecDescriptor::getActiveCodecs() { return vCodecOrder; }
+    VideoCodecOrder VideoCodecDescriptor::getActiveCodecs() { return vCodecOrder; }
 	
-    void VideoCodecDescriptor::setActiveCodecs(VideoCodecOrder *activeCodecs){}
+    void VideoCodecDescriptor::setActiveCodecs(VideoCodecOrder activeCodecs){}
 	
-    void VideoCodecDescriptor::setCodecMap(VideoCodecMap *codec){}
+    void VideoCodecDescriptor::setCodecMap(VideoCodecMap codec){}
     
     
