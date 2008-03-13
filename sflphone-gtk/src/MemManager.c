@@ -21,78 +21,21 @@
 
 MemKey* createMemKeyFromChar( char* key )
 {
-	int lentgh= strlen(key);
-	int cIndex= 0;
-	MemKey* theKey= (MemKey*)malloc(sizeof(MemKey));
-	char *tmp;
-	int i= 0;
-	
-	for( i= 0; i < lentgh; i++  )
-	{
-		if( key[i] == ' ')
-		{
-			tmp= (char*)malloc( i-cIndex );
-			memcpy( tmp, key, i-cIndex );
-			theKey->key= atoi(tmp);
-			free(tmp);
-			cIndex= i+1;
-			break;
-			
-		}
-	}
-	
-	tmp= (char*)malloc( lentgh-cIndex );
-	memcpy( tmp, key, lentgh-cIndex );
-	theKey->size= atoi(tmp);
-	free(tmp);
-	
-	theKey->description= NULL;
-	theKey->BaseAdd= NULL;
-	
-	return theKey;
+	return 0;
 }
 
 MemKey* initSpace( MemKey *key )
 {
-	int shmid;
-	
-	// \ TODO: Only need to attach ?
-	if ( (shmid = shmget(key->key, key->size, IPC_CREAT | 0666)) < 0)
-	{
-		g_print("Error: Cannot create shared memory segment");
-        return NULL;
-	}
-	
-	key->BaseAdd= (char *)shmat(shmid, NULL, 0);
-	
-	if( key->BaseAdd == NULL )
-	{
-		g_print("Error: Cannot attach shared memory segment");
-		return NULL;
-	}
-				
-	return key;
+	return 0;
 }
 
 int fetchData( MemKey *key, MemData *data )
 {
-	//\TODO: Add multiple access protection
-	if( data != NULL && key != NULL )
-		memcpy(data->data, key->BaseAdd, key->size);
-	else
-		return -1;
-		
 	return 0;
 }
 
 int putData( MemKey *key, MemData *data )
 {
-	//\TODO: Add multiple access protection
-	if( data != NULL && key != NULL )
-		memcpy(key->BaseAdd, data->data, key->size);
-	else
-		return -1;
-		
 	return 0;
 }
 
@@ -127,50 +70,12 @@ int InitMemSpaces( char* local, char* remote )
 
 int DestroyMemSpaces()
 {
-	if( localKey != NULL )
-	{
-		if( localKey->BaseAdd != NULL && shmdt(localKey->BaseAdd) == -1)
-		{
-	    	perror("Error: Failed to detach shared memory segment");
-	    	return -1;
-		}
-		
-		if( localKey->description != NULL)
-			free( localKey->description );
-			
-		free(localKey);
-	}
 	
-	if( remoteKey != NULL )
-	{
-		if( remoteKey->BaseAdd != NULL && shmdt(remoteKey->BaseAdd) == -1)
-		{
-	    	perror("Error: Failed to detach shared memory segment");
-	    	return -1;
-		}
-		
-		if( remoteKey->description != NULL)
-			free( remoteKey->description );
-			
-		free(remoteKey);	
-	}
-
-	if( remoteBuff != NULL)
-	{
-		if( remoteBuff->data != NULL )
-			free(remoteBuff->data);
-		
-		free(remoteBuff);
-	}
+	free(localKey);
+	free(remoteKey);
+	free(remoteBuff);
+	free(localBuff);
 	
-	if( localBuff != NULL)
-	{
-		if( localBuff->data != NULL )
-			free(localBuff->data);
-		
-		free(localBuff);
-	}
-		
 	return 0;
 	
 }

@@ -50,6 +50,11 @@ public:
      */
     virtual int videoEncode(int width, int height, uint8_t* buf, unsigned int size) =0;
 
+	/**
+ 	* Function to init the Codec with it's proper context
+ 	* 
+ 	* 
+ 	* */
     void init();
 	/**
      * Default Destructor

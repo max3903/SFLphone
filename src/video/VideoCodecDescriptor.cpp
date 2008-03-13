@@ -17,18 +17,38 @@
  *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 #include "VideoCodecDescriptor.h"
+#include "ffmpeg/avcodec.h"
+
 
  	VideoCodecDescriptor::~VideoCodecDescriptor(){}
 	
-    VideoCodecDescriptor::VideoCodecDescriptor(){}
+    VideoCodecDescriptor::VideoCodecDescriptor(){
+    
+    init();
+    
+    }
 
     
     int VideoCodecDescriptor::setDefaultOrder(){
     
+    VCMIterator mapIter;
+    
+    //Set the default order of the codec list
+    //means setting the exact same codecs as codecMap
+    vCodecOrder->clear();
+    
+    for (mapIter = vCodecMap->begin();mapIter != vCodecMap->end();mapIter++);
+    	//vCodecOrder->push_back((*mapIter)->;
+    
+    
     return 1;
     }
     
-    void VideoCodecDescriptor::init(){}
+    void VideoCodecDescriptor::init(){
+    
+    //Create lists
+    //Register codecs
+    }
 	
    
     bool VideoCodecDescriptor::isActive(enum CodecID id){
@@ -39,6 +59,7 @@
    
     int VideoCodecDescriptor::removeCodec(enum CodecID id){
     
+    
     return 1;
     }
 
@@ -46,11 +67,10 @@
     int VideoCodecDescriptor::addCodec(enum CodecID id){
     return 1;}
 	
-    VideoCodecOrder& VideoCodecDescriptor::getActiveCodecs() { return activeCodecs; }
+    VideoCodecOrder* VideoCodecDescriptor::getActiveCodecs() { return vCodecOrder; }
 	
-    void VideoCodecDescriptor::setActiveCodecs(VideoCodecOrder& activeC){}
+    void VideoCodecDescriptor::setActiveCodecs(VideoCodecOrder *activeCodecs){}
 	
-    void VideoCodecDescriptor::setCodecMap(VideoCodecMap& codec){}
+    void VideoCodecDescriptor::setCodecMap(VideoCodecMap *codec){}
     
-    int setDefaultOrder(){return 0;}
     

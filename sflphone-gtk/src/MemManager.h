@@ -21,11 +21,6 @@
 #define MEMMANAGER_H_
 
 #include <stdlib.h>
-#include <sys/types.h>
-#include <sys/ipc.h> 
-#include <sys/shm.h> 
-#include <string.h>
-#include <gtk/gtk.h>
 
 /**
  * A structure that eases the transfert of data trought the shared memory space

@@ -47,10 +47,12 @@ void Mixer::createStraightThrough(Tmixer type, vector<InputStreams*> inputs, Out
 
 void Mixer::createMixer2(Tmixer type, vector<InputStreams*> inputs, OutputStream* audioOut, OutputStream* videoOut)
 {
+
 }
 
 void Mixer::createAudio1()
 {
+
 }
 
 bool Mixer::addStream(InputStreams* input)
@@ -70,4 +72,5 @@ bool Mixer::addStream(AudioInput* input)
 
 void Mixer::updateState()
 {
+
 }

@@ -38,10 +38,8 @@ GtkToolItem * hangupButton;
 GtkToolItem * holdButton;
 GtkToolItem * transfertButton;
 GtkToolItem * unholdButton;
-//GtkToolItem * webCamButton;
 GtkToolItem * inviteButton;
 guint transfertButtonConnId; //The button toggled signal connection ID
-//guint webCamButtonConnId;	 //The webCam button toggled signal connection ID
 
 
 /**
@@ -137,7 +135,14 @@ unhold( GtkWidget *widget, gpointer   data )
 static void webCamStatusChange( GtkWidget *widget, gpointer data )
 {
 	g_print("Changing webcam status ...\n");
-	main_window_glWidget(gtk_toggle_tool_button_get_active(GTK_TOGGLE_TOOL_BUTTON (widget)));
+	gboolean value= main_window_glWidget(gtk_toggle_tool_button_get_active(GTK_TOGGLE_TOOL_BUTTON (widget)));
+	
+	// Changing button state to represent web cam status
+	gtk_signal_handler_block(GTK_TOGGLE_TOOL_BUTTON(widget),webCamButtonConnId);
+	gtk_toggle_tool_button_set_active(GTK_TOGGLE_TOOL_BUTTON (widget), value);
+	gtk_signal_handler_unblock(GTK_TOGGLE_TOOL_BUTTON(widget),webCamButtonConnId);
+	
+	//TODO: Add send signal to enabled/disable webcam
 	
 }
 
@@ -147,7 +152,7 @@ static void webCamStatusChange( GtkWidget *widget, gpointer data )
 static void inviteUser( GtkWidget *widget, gpointer data )
 {
 	//TODO: Implement Fonctionnality
-	create_Call_conf();
+	create_Join_conf();
 }
 
 	void 
@@ -160,7 +165,7 @@ toolbar_update_buttons ()
 	gtk_widget_set_sensitive( GTK_WIDGET(transfertButton),  FALSE);
 	gtk_widget_set_sensitive( GTK_WIDGET(unholdButton),     FALSE);
 	gtk_widget_set_sensitive( GTK_WIDGET(webCamButton),     TRUE);
-	gtk_widget_set_sensitive( GTK_WIDGET(inviteButton),     FALSE);	
+	gtk_widget_set_sensitive( GTK_WIDGET(inviteButton),     TRUE);	
 		g_object_ref(holdButton);
 	g_object_ref(unholdButton);
 	gtk_container_remove(GTK_CONTAINER(toolbar), GTK_WIDGET(holdButton));

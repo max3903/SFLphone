@@ -42,7 +42,6 @@ protected:
 	
 	//! Data Buffer for the audio data
     int16* buffer;
-    int sizeBuffer;
     
 private:
 	
