@@ -6,17 +6,35 @@
 
   Contrast::~Contrast(){}
 
-  bool Contrast::increase(int){
-
-    return true;
+  bool Contrast::increase(__u16 value){
+  	
+  	__u16 currentValue = this->videoDevice->getVideoPicture()->contrast;
+    
+    if( (currentValue+value) > 65535 ){ // if the contrast value is already at its maximum
+      return false; // indicate that the value is already at its maximum
+    }
+    else{
+      this->videoDevice->setContrast(currentValue+value);
+      return true; // indicate that the value has been increased
+    }
+    
   }
 
-  bool Contrast::decrease(int){
-
-    return true;
+  bool Contrast::decrease(__u16 value){
+    
+    __u16 currentValue = this->videoDevice->getVideoPicture()->contrast;
+    
+    if( (currentValue-value) < 0 ){ // if the contrast value is already at its maximum
+      return false; // indicate that the value is already at its maximum
+    }
+    else{
+      this->videoDevice->setContrast(currentValue-value);
+      return true; // indicate that the value has been increased
+    }
+    
   }
 
-  bool Contrast::setTo(int){
+  bool Contrast::setTo(__u16 value){
 
     return true;
   }
