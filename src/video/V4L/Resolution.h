@@ -25,7 +25,7 @@ public:
     /*!
      * \return a string representing the value of the resolution (i.e. 320X180)
      */
-    char* GetResolution(); 
+    char* getResolution(); 
         
     
     //! Method to set the resolution to an exact value 
@@ -33,7 +33,7 @@ public:
      * \param value that will be added (step value)
      * \return a bool representing the success of the operation
      */
-    virtual bool setTo(int valueX, int valueY);
+    virtual bool setTo(__u16 valueX, __u16 valueY);
 
 
     //! Method to reset the resolution to its initial value

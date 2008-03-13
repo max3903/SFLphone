@@ -27,6 +27,7 @@
 #include <menus.h>
 #include <screen.h>
 #include <sliders.h>
+#include <glwidget.h>
 
 #include <gtk/gtk.h>
 
@@ -39,6 +40,7 @@ GtkWidget * statusBar = NULL;
 GtkWidget * infoScreen = NULL;
 gboolean showDialpad  = FALSE; // true if the dialpad have been shown
 gboolean showInfoScreen = FALSE; // true if the info screen have been shown
+gboolean showGlWidget= FALSE; // true if the glwidget have been been shown
 
 /**
  * Terminate the main loop.
@@ -116,11 +118,11 @@ create_main_window ()
 {
   GtkWidget *widget;
   GtkWidget *vbox;
-
+  
   window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
   gtk_container_set_border_width (GTK_CONTAINER (window), 0);
   gtk_window_set_title (GTK_WINDOW (window), PACKAGE);
-  gtk_window_set_default_size (GTK_WINDOW (window), 230, 320);
+  gtk_window_set_default_size (GTK_WINDOW (window), 450, 320);
   gtk_window_set_default_icon_from_file (ICON_DIR "/sflphone.png", 
                                           NULL);
 
@@ -184,7 +186,7 @@ create_main_window ()
 
     if (response == GTK_RESPONSE_YES)
     {
-      show_config_window();
+      show_config_window(0);
     }
    
   }
@@ -268,5 +270,95 @@ void
 status_bar_message(const gchar * message)
 { 
   gtk_statusbar_push(GTK_STATUSBAR(statusBar), 0, message);
+}
+
+gboolean main_window_glWidget( gboolean show )
+{
+	call_t * selectedCall = call_get_selected();
+	
+	if (selectedCall)
+	{
+		switch(selectedCall->state)
+		{
+			// If selected call in any other state show config windows
+			case CALL_STATE_INCOMING:
+			case CALL_STATE_HOLD:
+			case CALL_STATE_RINGING:
+			case CALL_STATE_BUSY:
+			case CALL_STATE_FAILURE:
+			case CALL_STATE_DIALING:
+				g_print("No active call, showing config window\n");
+
+				// Keep button and menu in the same state as glwidget
+				main_window_update_WebcamStatus(showGlWidget);
+				//Show webcam configuration
+				show_config_window(3);
+				return FALSE;
+				
+			// If current call active enable/disable webcam
+			case CALL_STATE_CURRENT:
+				{
+					 
+					  if(show && !showGlWidget)
+					  {
+					  	g_print("Enabling visualization pannel\n");
+					    drawing_area = createGLWidget();
+					    gtk_box_pack_start (GTK_BOX (subvbox), drawing_area, FALSE /*expand*/, TRUE /*fill*/, 0 /*padding*/);
+					    gtk_box_reorder_child(GTK_BOX (subvbox), drawing_area, 0);
+					    gtk_widget_show_all (drawing_area);
+					    showGlWidget = show;
+					    
+					    // Keep button and menu in the same state as glwidget
+					    main_window_update_WebcamStatus(showGlWidget);
+					    
+					    // \TODO: Add Code to send enable webcam signal
+					    
+					    return TRUE;
+					  }
+					  else if (!show && showGlWidget)
+					  {
+					  	g_print("Disabling visualization pannel\n");
+					    gtk_container_remove(GTK_CONTAINER (subvbox), drawing_area);
+					    showGlWidget = show;
+					    
+					    // Keep button and menu in the same state as glwidget
+					    main_window_update_WebcamStatus(showGlWidget);
+					    
+					    // \TODO: Add Code to send disable webcam signal
+					    
+					    return FALSE;
+					  }
+				}
+			default:
+				g_warning("Should not happen!");
+				// Keep button and menu in the same state as glwidget
+				main_window_update_WebcamStatus(showGlWidget);
+				//Show webcam configuration
+				show_config_window(3);
+				break; 
+		}
+	}else
+	{
+		g_print("No call selected, showing config window\n");
+		// Keep button and menu in the same state as glwidget
+		main_window_update_WebcamStatus(showGlWidget);
+		//Show webcam configuration
+		show_config_window(3);
+	}
+	
+	return FALSE;
+}
+
+void main_window_update_WebcamStatus( gboolean value )
+{
+	// Change button state
+	gtk_signal_handler_block(GTK_TOGGLE_TOOL_BUTTON(webCamButton),webCamButtonConnId);
+	gtk_toggle_tool_button_set_active(GTK_TOGGLE_TOOL_BUTTON (webCamButton), value);
+	gtk_signal_handler_unblock(GTK_TOGGLE_TOOL_BUTTON(webCamButton),webCamButtonConnId);
+	
+	//Change menu item state
+	gtk_signal_handler_block(GTK_TOGGLE_TOOL_BUTTON(webCamMenu),webCamConnId);
+	gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(webCamMenu), value);
+	gtk_signal_handler_unblock(GTK_TOGGLE_TOOL_BUTTON(webCamMenu),webCamConnId);
 }
 

@@ -2,22 +2,39 @@
 
 #include "Brightness.h"
 
-
   Brightness::Brightness(){}
 
   Brightness::~Brightness(){}
 
-  bool Brightness::increase(int value){
+  bool Brightness::increase(__u16 value){
 
-    return true;
+    __u16 currentValue = this->videoDevice->getVideoPicture()->brightness;
+    
+    if( (currentValue+value) > 65535 ){ // if the brightness value is already at its maximum
+      return false; // indicate that the value is already at its maximum
+    }
+    else{
+      this->videoDevice->setBrightness(currentValue+value);
+      return true; // indicate that the value has been increased
+    }
+    
   }
 
-  bool Brightness::decrease(int value){
-
-    return true;
+  bool Brightness::decrease(__u16 value){
+    
+    __u16 currentValue = this->videoDevice->getVideoPicture()->brightness;
+    
+    if( (currentValue-value) < 0 ){ // if the brightness value is already at its maximum
+      return false; // indicate that the value is already at its maximum
+    }
+    else{
+      this->videoDevice->setBrightness(currentValue-value);
+      return true; // indicate that the value has been increased
+    }
+    
   }
 
-  bool Brightness::setTo(int value){
+  bool Brightness::setTo(__u16 value){
 
     return true;
   }
@@ -27,7 +44,7 @@
     return true;
   }
   
-  char* Brightness::GetBrightness(){
+  char* Brightness::getBrightness(){
 
     return 0;
   }

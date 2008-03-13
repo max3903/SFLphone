@@ -6,17 +6,35 @@
 
   Colour::~Colour(){}
 
-  bool Colour::increase(int value){
-
-    return true;
+  bool Colour::increase(__u16 value){
+  	
+  	__u16 currentValue = this->videoDevice->getVideoPicture()->colour;
+    
+    if( (currentValue+value) > 65535 ){ // if the colour value is already at its maximum
+      return false; // indicate that the value is already at its maximum
+    }
+    else{
+      this->videoDevice->setColour(currentValue+value);
+      return true; // indicate that the value has been increased
+    }
+    
   }
 
-  bool Colour::decrease(int value){
-
-    return true;
+  bool Colour::decrease(__u16 value){
+    
+    __u16 currentValue = this->videoDevice->getVideoPicture()->colour;
+    
+    if( (currentValue-value) < 0 ){ // if the colour value is already at its maximum
+      return false; // indicate that the value is already at its maximum
+    }
+    else{
+      this->videoDevice->setColour(currentValue-value);
+      return true; // indicate that the value has been increased
+    }
+    
   }
 
-  bool Colour::setTo(int value){
+  bool Colour::setTo(__u16 value){
 
     return true;
   }
@@ -26,7 +44,7 @@
     return true;
   }
   
-  char* Colour::GetColour(){
+  char* Colour::getColour(){
 
     return 0;
   }

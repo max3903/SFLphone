@@ -25,7 +25,7 @@ public:
      * Must be implemented by the child class
      * \return a bool representing the success of the operation
      */
-    virtual bool increase(int value) =0;
+    virtual bool increase(__u16 value) =0;
 
 
     //! Method to decrease the value of the propriety
@@ -33,7 +33,7 @@ public:
      * Must be implemented by the child class
      * \return a bool representing the success of the operation
      */
-    virtual bool decrease(int value) =0;
+    virtual bool decrease(__u16 value) =0;
 
 
     //! Method to set the propriety to an exact value
@@ -41,7 +41,7 @@ public:
      * Must be implemented by the child class
      * \return a bool representing the success of the operation
      */
-    virtual bool setTo(int value) =0;
+    virtual bool setTo(__u16 value) =0;
 
     
     //! Method to reset the propriety to its initial value
@@ -52,7 +52,7 @@ public:
     virtual bool reset() =0;
 
 
-private:
+protected:
 
     /**
      * @clientCardinality 0..*
@@ -60,7 +60,7 @@ private:
      */
     
     //! A static pointer to access to the actual VideoDevice
-    static VideoDevice* videoDev;
+    static VideoDevice* videoDevice;
 };
 #endif //COMMAND_H
 

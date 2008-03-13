@@ -118,6 +118,7 @@ public:
    * Functions which occur with a user's action
    */
   bool outgoingCall(const AccountID& accountId, const CallID& id, const std::string& to);
+  bool outgoingConfCall(const AccountID& accountId, const CallID& id, const std::string& to);
   bool answerCall(const CallID& id);
   bool hangupCall(const CallID& id);
   bool cancelCall(const CallID& id);
@@ -727,11 +728,104 @@ private:
    */
   Contact* getContact(const AccountID& accountID, const std::string& contactID);
 
-  #ifdef TEST
+#ifdef TEST
   bool testCallAccountMap();
   bool testAccountMap();
-  #endif
+#endif
 
+  /*
+   * Initialize video codec with config setting
+   */
+  void initVideoCodec(void);
+  
+  /**
+   * Inverse of serialize
+   */
+  std::vector<std::string> retrieveActiveVideoCodecs( void );
+  
+  /**
+   * Get and set the list of the active video codecs
+   */  
+  std::vector< ::DBus::String > getActiveVideoCodecList( void ); 
+  void setActiveVideoCodecList( const std::vector< ::DBus::String >& list);
+
+  /**
+   * Get the list of video codecs we supports, not ordered
+   * @return The list of the video codecs
+   */  
+  std::vector< ::DBus::String > getVideoCodecList( void );
+  /**
+   * Get the info about one video codec
+   * @param payload The payload of the codec
+   * @return The information
+   */
+  std::vector< ::DBus::String > getVideoCodecDetails( const ::DBus::Int32& payload);
+  
+  /**
+   * Get list of supported video input device
+   */
+  std::vector<std::string> getVideoInputDeviceList(void);
+
+  /**
+   * Set video input device
+   */
+  void setVideoInputDevice(const int index);
+
+  /**
+   * Get string array representing integer indexes of video input device
+   */
+  std::vector<std::string> getCurrentVideoDeviceIndex();
+
+  /**
+   * Get name, brightness, contrast, color, resolution of video device
+   */
+  std::vector<std::string> getVideoDeviceDetails(const int index);
+
+	enum modeEnum {modeNormal, modeServer};
+	modeEnum mode;
+	/* Get and Set the mode of the user
+	 * Server = the user is the server of a conference call
+	 * Normal = all other cases
+	 */
+	int getMode();
+    void setMode(int i);
+    /*
+	 * Start it when the user activates the webcam icon
+	 * Changes the status of the mixer
+	 * The mixer should now take the input from the 
+	 * local webcam instead of a black screen
+	 */
+    bool startVideo();
+    /*
+	 * Start it when the user desactivates on the webcam icon
+	 * Changes the status of the mixer
+	 * The mixer should now take the input from a 
+	 * black screen instead of the local webcam
+	 */
+    bool stopVideo();
+    /*
+	 * Start it when there is an incoming video session
+	 * Changes the status of the mixer
+	 * The mixer should now take the input from the 
+	 * video session instead of a black screen
+	 */
+    bool startIncomingVideo();
+    /*
+	 * Stop it when a video session has ended
+	 * Changes the status of the mixer
+	 * The mixer should now take the input from a 
+	 * black screen instead of the video session
+	 */
+    bool stopIncomingVideo();
+    /*
+ 	* Tells the mixer which calls to join the audio from
+ 	*/
+    bool joinAudio(const CallID& id1, const CallID& id2);
+    /*
+ 	* Tells the mixer which calls to join the video from
+ 	*/
+    bool joinVideo(const CallID& id1, const CallID& id2);
+	
 };
 
 #endif // __MANAGER_H__

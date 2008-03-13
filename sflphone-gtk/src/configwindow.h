@@ -28,6 +28,7 @@
  */
 void config_window_fill_account_list();
 void config_window_fill_codec_list();
+void config_window_fill_video_codec_list();
 void config_window_fill_input_audio_plugin_list();
 void config_window_fill_output_audio_plugin_list();
 void config_window_fill_output_audio_device_list();
@@ -35,12 +36,17 @@ void select_active_output_audio_device();
 void config_window_fill_input_audio_device_list();
 void select_active_input_audio_device();
 void select_active_output_audio_plugin();
+void config_window_fill_webcam_device_list();
+void select_active_webcam_device();
 void default_account(GtkWidget *widget, gpointer data);
 void bold_if_default_account(GtkTreeViewColumn *col, GtkCellRenderer *rend, GtkTreeModel *tree_model, GtkTreeIter *iter, gpointer data);
 void default_codecs(GtkWidget* widget, gpointer data);
 GtkWidget * create_codec_table();
 GtkWidget * create_accounts_tab();
 GtkWidget * create_audio_tab();
-void show_config_window();
+GtkWidget * create_video_tab();
+GtkWidget * create_webcam_tab();
+void show_config_window(gint page_num);
+gchar* format_percentage_scale (GtkScale *scale, gdouble value);
 
 #endif 

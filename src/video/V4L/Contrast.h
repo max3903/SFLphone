@@ -27,7 +27,7 @@ public:
      * \param value that will be added (step value)
      * \return a bool representing the success of the operation
      */
-    virtual bool increase(int value);
+    virtual bool increase(__u16 value);
 
 
     //! Method to decrease the value of the contrast
@@ -35,7 +35,7 @@ public:
      * \param value that will be subtracted (step value)
      * \return a bool representing the success of the operation
      */
-    virtual bool decrease(int value);
+    virtual bool decrease(__u16 value);
 
 
     //! Method to set the contrast to an exact value 
@@ -43,7 +43,7 @@ public:
      * \param value that will be added (step value)
      * \return a bool representing the success of the operation
      */
-    virtual bool setTo(int value);
+    virtual bool setTo(__u16 value);
 
 
     //! Method to reset the contrast to its initial value
@@ -57,6 +57,6 @@ public:
     /*!
      * \return a string representing the value of the contrast
      */
-    char* GetContrast();
+    char* getContrast();
 };
 #endif //CONTRAST_H

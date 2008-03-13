@@ -6,18 +6,11 @@
 
   Resolution::~Resolution(){}
 
-  bool Resolution::increase(int value){
-
-    return true;
-  }
-
-  bool Resolution::decrease(int value){
-
-    return true;
-  }
-
-  bool Resolution::setTo(int valueX, int valueY){
-
+  bool Resolution::setTo(__u16 valueX, __u16 valueY){
+    
+    //this->videoDevice->getVideoFormat()->fmt->pix->height
+    // to use : VIDIOC_G_FMT and VIDIOC_S_FMT ioclt
+    
     return true;
   }
 
@@ -26,7 +19,19 @@
     return true;
   }
 
-  char* Resolution::GetResolution(){
+  char* Resolution::getResolution(){
 
     return 0;
+  }
+  
+  
+  // these functions will not be used for this class
+  bool Resolution::increase(int value){
+
+    return true;
+  }
+
+  bool Resolution::decrease(int value){
+
+    return true;
   }
