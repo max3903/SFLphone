@@ -40,7 +40,7 @@
 		return false;
 	}
 
-
+	// fill the v4l2_format : videoFormat
 	videoFormat->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
 	if(ioctl(fileDescript, VIDIOC_G_FMT, videoFormat)==-1){
 		printf("error, can't set the capture image format\n");
@@ -48,9 +48,49 @@
 	}
 	videoFormat->fmt.pix.pixelformat = V4L2_PIX_FMT_YUV420;
 
+	// fill the video_picture : videoPicture
+	if(ioctl(fileDescript, VIDIOCGPICT, videoFormat)==-1){
+		printf("error, can't set the capture image format\n");
+		return false;
+	}
+
 	// return true to indicate the sucess of the operation
     return true;
   }
+
+
+  bool VideoDevice::applyChanges(unsigned char propType){
+  	
+  	switch(propType){
+  		
+  		// p means changes will be applyed to videoPicture attribute : for brightness, colour, contrast
+  		case 'p' :
+  				if(ioctl(fileDescript, VIDIOCSPICT, this->videoPicture) == -1){
+  					return false;
+  				}
+  				
+				break;
+	
+		// f means changes will be applyed to videoFormat attribute : for resolution and all related proprties
+  		case 'f' :
+				if(ioctl(fileDescript, VIDIOC_S_FMT, this->videoFormat) == -1){
+  					return false;
+  				}
+  				
+				break;
+				
+/// not sure that we will need the next case --> no need for the moment!!
+		// c means changes will be applyed to videoCapability attribute.  
+  		/*case 'c' :
+  				if(ioctl(fileDescript, TODO , this->videoCapability) == -1){
+  					return false;
+  				}
+				break;*/
+  	}
+  	
+  	return true;
+  }
+
 
   bool VideoDevice::closeDevice(){
 
