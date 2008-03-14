@@ -2167,7 +2167,7 @@ ManagerImpl::getContactEntryDetails(const std::string& accountID, const std::str
 			if(entry->getContact() == contactEntryID)
 			{
 				// Return all details in a vector
-				entryDetails.push_back(entry->getContact());
+				// Type, isShown, isSubscribed
 				entryDetails.push_back(entry->getType());
 				if(entry->getShownInCallConsole())
 					entryDetails.push_back("TRUE");

@@ -1081,3 +1081,46 @@ dbus_get_contact_details(gchar* accountID, gchar* contactID)
 		g_print ("DBus called get_contact_details() on ContactManager\n");
 	return array;
 }
+
+gchar**
+dbus_get_contact_entries(gchar* accountID, gchar* contactID)
+{
+	gchar** array;
+	GError* error = NULL;
+	org_sflphone_SFLphone_ContactManager_get_contact_entries(
+			contactManagerProxy, 
+			accountID,
+			contactID,
+			&array,
+			&error);
+	if(error)
+	{
+		g_printerr ("Failed to call get_contact_entries() on ContactManager: %s\n", error->message);
+		g_error_free (error);
+	}
+	else
+		g_print ("DBus called get_contact_entries() on ContactManager\n");
+	return array;
+}
+
+gchar**
+dbus_get_contact_entry_details(gchar* accountID, gchar* contactID, gchar* entryID)
+{
+	gchar** array;
+	GError* error = NULL;
+	org_sflphone_SFLphone_ContactManager_get_contact_entry_details(
+			contactManagerProxy,
+			accountID,
+			contactID,
+			entryID,
+			&array,
+			&error);
+	if(error)
+	{
+		g_printerr ("Failed to call get_contact_entry_details on ContactManager: %s\n", error->message);
+		g_error_free (error);
+	}
+	else
+		g_print ("DBus called get_contact_entry_details on ContactManager\n");
+	return array;
+}

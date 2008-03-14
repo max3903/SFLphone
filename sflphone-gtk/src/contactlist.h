@@ -37,6 +37,7 @@ typedef struct {
 
 typedef struct {
 	gchar*		_contact;				// Contact number, can be a phone number, an extension...
+	gchar*		_type;					// Work, home, cell...
 	gboolean	_isShownInConsole;		// Is shown in the call console
 	gboolean	_isSubscribed;			// Is contact subscribed to presence
 	presence_t*	_presence;				// Presence information obtained if entry is subscribed
@@ -47,6 +48,9 @@ typedef struct {
 	gchar*		_firstName;
 	gchar*		_lastName;
 	gchar*		_email;
+	gchar*		_group;					// Contacts can be regrouped
+	gchar*		_subGroup;				// up to two levels of hierarchy
+	GQueue*		_entryList;				// List of entries for each contact
 } contact_t;
 
 /**
@@ -63,23 +67,46 @@ GQueue* contact_hash_table_get_contact_list(gchar* accountID);
 void contact_hash_table_clear_contact_list(GQueue* contactList);
 
 /**
- * Functions to add, get, edit and remove a contact in a contact list
+ * Functions to add, edit and remove a contact in a contact list
  */
 void contact_list_add(GQueue* contactList, contact_t* contact);
 void contact_list_edit(GQueue* contactList, contact_t* oldContact, contact_t* newContact);
 void contact_list_remove(GQueue* contactList, contact_t* contact);
 
+/**
+ * Functions to get a particular contact in the list and to get the list size
+ */
 guint contact_list_get_size(GQueue* contactList);
 contact_t* contact_list_get(GQueue* contactList, const gchar* contactID);
 contact_t* contact_list_get_nth(GQueue* contactList, guint index);
 
-/** TODO
+/**
  * Functions to add, get, edit and remove a contact entry in a contact
  */
-void contact_list_entry_add(GQueue* contactList, contact_t* contact, contact_entry_t* entry);
-contact_entry_t* contact_list_entry_get(GQueue* contactList, contact_t* contact, const gchar* entryID);
-void contact_list_entry_edit(GQueue* contactList, contact_t* contact, contact_entry_t* oldEntry, contact_entry_t* newEntry);
-void contact_list_entry_remove(GQueue* contactList, contact_t* contact, contact_entry_t* entry);
+void contact_list_entry_add(contact_t* contact, contact_entry_t* entry);
+void contact_list_entry_edit(contact_t* contact, contact_entry_t* oldEntry, contact_entry_t* newEntry);
+void contact_list_entry_remove(contact_t* contact, contact_entry_t* entry);
+
+/**
+ * Functions to get a particular contact entry in the list and to get the list size
+ */
+guint contact_list_entry_get_size(contact_t* contact);
+contact_entry_t* contact_list_entry_get(contact_t* contact, const gchar* entryID);
+contact_entry_t* contact_list_entry_get_nth(contact_t* contact, guint index);
+
+/**
+ * Create contact and contact entry struct from ID and string array of details
+ */
+contact_t* contact_list_new_contact_from_details(gchar* contactID, gchar** details);
+contact_entry_t* contact_list_new_contact_entry_from_details(gchar* contactEntryID, gchar** details);
+
+/**
+ * Compare function to find contact in list by contact ID
+ */
+gint compare_contact_contactID(gconstpointer a, gconstpointer b);
+gint compare_contact_contactEntryID(gconstpointer a, gconstpointer b);
+
+#endif
 
 // TOSEE
 //void contact_show_in_console(GQueue* contactList, gchar* contactID, gboolean show);
@@ -90,7 +117,3 @@ void contact_list_entry_remove(GQueue* contactList, contact_t* contact, contact_
 //void contact_list_move_contact_down(GQueue* contactList, guint index);
 //void contact_list_update_to_daemon(GQueue* contactList);
 
-// Compare function to find contact in list by contact ID
-gint compare_contact_contactID(gconstpointer a, gconstpointer b);
-
-#endif
