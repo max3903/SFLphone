@@ -6,31 +6,35 @@
   VideoDeviceManager* VideoDeviceManager::instance = 0;
 
   VideoDeviceManager* VideoDeviceManager::getInstance(){
-
+	//\ TODO : singleton instance
     return instance; 
   }
 
-  VideoDeviceManager::VideoDeviceManager(){}
+  VideoDeviceManager::VideoDeviceManager(){
+    //\ TODO : a call to getInstance() function or vice versa
+  }
 
-  VideoDeviceManager::~VideoDeviceManager(){}
+  VideoDeviceManager::~VideoDeviceManager(){
+    //\ TODO : free allocated memory
+  }
 
   bool VideoDeviceManager::changeDevice(VideoDevice* videoDev){
-
+    //\ TODO : a call to createDevice?
     return true;
   }
 
   VideoDevice* VideoDeviceManager::createDevice(char* srcName){
-    
+    //\ TODO
     return 0;
   }
 
   VideoDevice* VideoDeviceManager::getDevice(){
-
+    //\ TODO : Just return the current device instance
     return 0;
   }
 
   Command* VideoDeviceManager::getCommand(char* ref){
-    
+    //\ TODO :  create and then return a new command (brightness, colour, capture...) 
     return 0;
   }
 

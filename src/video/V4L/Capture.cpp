@@ -3,18 +3,42 @@
 #include "Capture.h"
 #include "CaptureMode.h"
 
-  Capture::Capture(){}
+  Capture::Capture(){
+  // TODO
+  }
 
-  Capture::~Capture(){}
+  Capture::~Capture(){
+  // TODO
+  }
 
-  bool Capture::nextCaptureMode(){}
+  bool Capture::nextCaptureMode(){
+    // TODO
+  }
 
   bool Capture::forceCaptureMode(int captModePos){
-
+// TODO
     return true;
   }
 
-  void Capture::createCaptureModesVector(){}
+  void Capture::createCaptureModesVector(){
+  // TODO
+  }
+
+
+
+  char* Capture::GetCapture(){
+  	//\ TODO
+    char* test;    
+
+      *test = 't';
+
+    return test;
+  }
+  
+  
+  
+
+// These function are not used for this class
 
   bool Capture::decrease(int value){
 
@@ -29,14 +53,6 @@
   bool Capture::reset(){
 
     return true;
-  }
-
-  char* Capture::GetCapture(){
-    char* test;    
-
-      *test = 't';
-
-    return test;
   }
 
   bool Capture::increase(int value){

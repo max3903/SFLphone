@@ -15,7 +15,8 @@
     }
     else{
       this->videoDevice->setColour(currentValue+value);
-      return true; // indicate that the value has been increased
+      // ioctl call in VideoDevice to apply changes
+      return this->videoDevice->applyChanges('p'); // indicate that the value has been increased if ioctl has been correctly done (return true or false)
     }
     
   }
@@ -29,22 +30,24 @@
     }
     else{
       this->videoDevice->setColour(currentValue-value);
-      return true; // indicate that the value has been increased
+      // ioctl call in VideoDevice to apply changes
+      return this->videoDevice->applyChanges('p'); // indicate that the value has been decreased if ioctl has been correctly done (return true or false)
     }
     
   }
 
   bool Colour::setTo(__u16 value){
-
-    return true;
+    this->videoDevice->setColour(value);
+    // ioctl call in VideoDevice to apply changes
+    return this->videoDevice->applyChanges('p'); // indicate that the value has been seted if ioctl has been correctly done (return true or false)
   }
 
   bool Colour::reset(){
-
+    //\ TODO
     return true;
   }
   
   char* Colour::getColour(){
-
+    //\ TODO
     return 0;
   }

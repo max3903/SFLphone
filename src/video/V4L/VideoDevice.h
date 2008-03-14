@@ -60,6 +60,14 @@ public:
     bool openDevice();
     
 
+	//! Method to apply changes(brightness value, colou value, contrast value...) to the device, using ioctl function
+    /*!
+     * \param propType to indicate the property type to change, and then call the appropiate ioctl function.
+     * \return a bool representing the success of the opening of the video source 
+     */
+	bool applyChanges(unsigned char propType);
+
+
     //! Method to close the video source
     /*!
      * \return a bool representing the success of the closing of the video source 
