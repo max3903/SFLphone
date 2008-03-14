@@ -36,6 +36,7 @@
  * Local variables
  */
 gboolean dialogOpen = FALSE;
+gboolean ringtoneEnabled = TRUE;
 
 GtkListStore *accountStore;
 GtkWidget *codecTreeView;		// View used instead of store to get access to selection
@@ -557,6 +558,32 @@ default_account(GtkWidget *widget, gpointer data)
 		account_list_set_default(selectedAccount->accountID);
 		dbus_set_default_account(selectedAccount->accountID);
 	}
+}
+
+int 
+is_ringtone_enabled( void )
+{
+  int res =  dbus_is_ringtone_enabled();
+  return res;  
+}
+
+void 
+ringtone_enabled( void )
+{
+  dbus_ringtone_enabled();  
+}
+
+void
+ringtone_changed( GtkFileChooser *chooser , GtkLabel *label)
+{
+  gchar* tone = gtk_file_chooser_get_filename( GTK_FILE_CHOOSER( chooser ));
+  dbus_set_ringtone_choice( tone );
+}
+
+gchar*
+get_ringtone_choice( void )
+{
+  return dbus_get_ringtone_choice();
 }
 
 /**
@@ -1091,6 +1118,9 @@ create_audio_tab ()
 	GtkWidget *deviceTable;
 	GtkWidget *codecLabel;
 	GtkWidget *codecBox;
+	GtkWidget *enableTone;
+	GtkWidget *fileChooser;
+	
 	GtkWidget *titleLabel;
 
 	GtkWidget *refreshButton;
@@ -1232,6 +1262,26 @@ create_audio_tab ()
 	gtk_widget_set_size_request(GTK_WIDGET(codecTable), -1, 150);
 	gtk_box_pack_start(GTK_BOX(codecBox), codecTable, TRUE, TRUE, 0);
 	gtk_widget_show(codecTable);
+
+    // check button to enable ringtones
+	GtkWidget* box = gtk_hbox_new( TRUE , 1);
+	gtk_box_pack_start( GTK_BOX(ret) , box , TRUE , TRUE , 1);
+	enableTone = gtk_check_button_new_with_mnemonic( "_Enable ringtones");
+	gtk_toggle_button_set_active( GTK_TOGGLE_BUTTON(enableTone), dbus_is_ringtone_enabled() );
+	gtk_box_pack_start( GTK_BOX(box) , enableTone , TRUE , TRUE , 1);
+	g_signal_connect(G_OBJECT( enableTone) , "clicked" , G_CALLBACK( ringtone_enabled ) , NULL);
+    // file chooser button
+	fileChooser = gtk_file_chooser_button_new("Choose a ringtone", GTK_FILE_CHOOSER_ACTION_OPEN);
+	gtk_file_chooser_set_current_folder(GTK_FILE_CHOOSER( fileChooser) , g_get_home_dir());	
+	gtk_file_chooser_set_filename(GTK_FILE_CHOOSER( fileChooser) , get_ringtone_choice());	
+	g_signal_connect( G_OBJECT( fileChooser ) , "selection_changed" , G_CALLBACK( ringtone_changed ) , NULL );
+	GtkFileFilter *filter = gtk_file_filter_new();
+	gtk_file_filter_set_name( filter , "Audio Files" );
+	gtk_file_filter_add_pattern(filter , "*.wav" );
+	gtk_file_filter_add_pattern(filter , "*.ul" );
+	gtk_file_filter_add_pattern(filter , "*.au" );
+	gtk_file_chooser_add_filter( GTK_FILE_CHOOSER( fileChooser ) , filter);
+	gtk_box_pack_start( GTK_BOX(box) , fileChooser , TRUE , TRUE , 1);
 
 	// Show all
 	gtk_widget_show_all(ret);

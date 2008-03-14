@@ -75,6 +75,7 @@ typedef short int16;
 
 #define PCM_HW		"hw"
 #define PCM_PLUGHW	"plughw"
+#define PCM_PULSE	"pulse"
 #define PCM_FRONT	"plug:front"
 #define PCM_DEFAULT	"default"
 #define PCM_DMIX	"plug:dmix"
@@ -102,5 +103,6 @@ typedef short int16;
 
 #define GSM_STRING_DESCRIPTION	  "gsm"
 #define SPEEX_STRING_DESCRIPTION  "speex"
+#define RINGTONE_ENABLED	  1
 
 #endif	// __GLOBAL_H__
