@@ -117,11 +117,11 @@ private:
 	/**
      * Vector of all the Active codecs
      */
-    VideoCodecOrder activeCodecs;
+    VideoCodecOrder vCodecOrder;
     /**
      * Map of all codecs, active and inactive
      */
-    VideoCodecMap codecMap;
+    VideoCodecMap vCodecMap;
 
 
 
