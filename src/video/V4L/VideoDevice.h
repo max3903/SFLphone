@@ -31,11 +31,17 @@ public:
     ~VideoDevice();
 
 
-    //! Method to get the name of the video source (i.e. "/dev/video0" ).
+    //! Method to get the name of the video device
+    /*!
+     * \return the name of the video device
+     */
+    char* getName();
+    
+    //! Method to get the path to the video source (i.e. "/dev/video0" ).
     /*!
      * \return the name of the video source
      */
-    char* getName();
+    char* getPath();
 
 
     //! Method to get file descriptor
@@ -130,6 +136,9 @@ private:
 
     //! The name of the actual video source
     char* name;
+    
+    //! The name of the actual video source
+    char* path;
 
     //! The actual file descriptor of the video source
     int fileDescript;
