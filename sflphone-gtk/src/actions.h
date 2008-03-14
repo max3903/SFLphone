@@ -24,6 +24,7 @@
 #include <calllist.h>
 #include <accountlist.h>
 #include <codeclist.h>
+#include <contactlist.h>
 
 /** @file actions.h
   * @brief General functions that change the state of the application.
@@ -103,8 +104,12 @@ void sflphone_keypad ( guint keyval, gchar * key);
  */
 void sflphone_place_call ( call_t * c );
 
+/**
+ * Initially load data for accounts, codecs and contacts
+ */
 void sflphone_fill_account_list();
 void sflphone_set_default_account();
-
 void sflphone_fill_codec_list();
+void sflphone_fill_contact_list();
+
 #endif 
