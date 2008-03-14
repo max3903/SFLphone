@@ -36,7 +36,7 @@
     vCodecOrder.clear();
   
     for (mapIter = vCodecMap.begin();mapIter != vCodecMap.end();mapIter++);
-    	vCodecOrder.push_back((*mapIter)->key);
+    
 
     return 1;
     }
@@ -54,20 +54,20 @@
     }
 
    
-    int VideoCodecDescriptor::removeCodec(enum CodecID id){
+    bool VideoCodecDescriptor::removeCodec(enum CodecID id){
     
     
-    return 1;
+    return false;
     }
 
    
     int VideoCodecDescriptor::addCodec(enum CodecID id){
     return 1;}
 	
-    VideoCodecOrder& VideoCodecDescriptor::getActiveCodecs() { return activeCodecs; }
+    VideoCodecOrder VideoCodecDescriptor::getActiveCodecs() { return vCodecOrder; }
 	
-    void VideoCodecDescriptor::setActiveCodecs(VideoCodecOrder& activeCodecs){}
+    void VideoCodecDescriptor::setActiveCodecs(VideoCodecOrder *vCodecOrder){}
 	
-    void VideoCodecDescriptor::setCodecMap(VideoCodecMap& codec){}
+    void VideoCodecDescriptor::setCodecMap(VideoCodecMap *codec){}
     
     

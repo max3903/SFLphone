@@ -98,13 +98,13 @@ public:
      * @param activeC to set the Codec Map with another map
      * (not really suppose to happen)
      */
-    void setActiveCodecs(VideoCodecOrder activeCodecs);
+    void setActiveCodecs(VideoCodecOrder *vCodecOrder);
 	/**
      * Function to set the map
      * @param codecMap to set the Codec Map
      * (not really suppose to happen)
      */
-    void setCodecMap(VideoCodecMap codecMap);
+    void setCodecMap(VideoCodecMap *codec);
 	/**
      * Function to get the map
      * @return codecMap to set the Codec Map
