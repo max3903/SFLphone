@@ -36,13 +36,9 @@
     //Set the default order of the codec list
     //means setting the exact same codecs as codecMap
     vCodecOrder.clear();
-    
-    
-    
+  
     for (mapIter = vCodecMap.begin();mapIter != vCodecMap.end();mapIter++);
-    	
-    
-    
+    	vCodecOrder.push_back((*mapIter)->key);
     return 1;
     }
     
