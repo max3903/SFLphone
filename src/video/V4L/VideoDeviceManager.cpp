@@ -14,17 +14,23 @@
   }
 
   VideoDeviceManager::VideoDeviceManager(){
+
   	this->actualVideoDevice= NULL;
+
   }
 
   VideoDeviceManager::~VideoDeviceManager(){
+
   	if( this->actualVideoDevice != NULL )
   		delete this->actualVideoDevice;
+
   }
+
 
   bool VideoDeviceManager::changeDevice(char* srcName){
 
 	// \ TODO: Implement
+
     return true;
   }
 
@@ -39,6 +45,7 @@
     Command::videoDevice= actualVideoDevice;
     
     return true;
+
   }
 
   Command* VideoDeviceManager::getCommand(TCommand ref){

@@ -6,7 +6,9 @@
   
   ReadMode::ReadMode(VideoDevice* device){}
 
-  ReadMode::~ReadMode(){}
+  ReadMode::~ReadMode(){
+    	//\ TODO
+  }
 
   bool ReadMode::init(){
   	return true;

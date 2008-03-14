@@ -7,7 +7,9 @@
   	this->forced= false;
   }
 
-  Capture::~Capture(){}
+  Capture::~Capture(){
+  // TODO
+  }
 
   bool Capture::nextCaptureMode(){
   	
@@ -40,12 +42,12 @@
 			((CaptureMode*)*this->currentCaptureMode)->init();
 			this->forced= true;
 			break;
+		default:
+			forced= false;
 	}
-	
-    return true;
+	return forced;
   }
-
-  void Capture::createCaptureModesVector(){
+  void Capture::createCaptureModesVector(){
   	
   	CaptureMode* mode = NULL;
   	
