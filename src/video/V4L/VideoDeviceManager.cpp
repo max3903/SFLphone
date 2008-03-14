@@ -6,72 +6,36 @@
   VideoDeviceManager* VideoDeviceManager::instance = 0;
 
   VideoDeviceManager* VideoDeviceManager::getInstance(){
-
-	if( VideoDeviceManager::instance == 0 )
-		VideoDeviceManager::instance= new VideoDeviceManager();
-		
+	//\ TODO : singleton instance
     return instance; 
   }
 
   VideoDeviceManager::VideoDeviceManager(){
-
-  	this->actualVideoDevice= NULL;
-
+    //\ TODO : a call to getInstance() function or vice versa
   }
 
   VideoDeviceManager::~VideoDeviceManager(){
-
-  	if( this->actualVideoDevice != NULL )
-  		delete this->actualVideoDevice;
-
+    //\ TODO : free allocated memory
   }
 
-
-  bool VideoDeviceManager::changeDevice(char* srcName){
-
-	// \ TODO: Implement
-
+  bool VideoDeviceManager::changeDevice(VideoDevice* videoDev){
+    //\ TODO : a call to createDevice?
     return true;
   }
 
-  bool VideoDeviceManager::createDevice(char* srcName){
-    
-    try{
-    	this->actualVideoDevice= new VideoDevice( srcName );
-    }catch(...){
-    	return false;
-    }
-    
-    Command::videoDevice= actualVideoDevice;
-    
-    return true;
-
+  VideoDevice* VideoDeviceManager::createDevice(char* srcName){
+    //\ TODO
+    return 0;
   }
 
-  Command* VideoDeviceManager::getCommand(TCommand ref){
-    
-    Command* tmp= NULL;
-    
-    switch(ref){
-    	case CONTRAST:
-    		tmp= new Contrast();
-    		break;
-    	case BRIGHTNESS:
-    		tmp= new Brightness();
-    		break;
-		case COLOR:
-			tmp = new Colour();
-			break;
-		case CAPTURE:
-			tmp= new Capture();
-			break;
-		case RESOLUTION:
-			tmp= new Resolution();
-			break;	
-    }
-    
-    return tmp;
-    
+  VideoDevice* VideoDeviceManager::getDevice(){
+    //\ TODO : Just return the current device instance
+    return 0;
+  }
+
+  Command* VideoDeviceManager::getCommand(char* ref){
+    //\ TODO :  create and then return a new command (brightness, colour, capture...) 
+    return 0;
   }
 
 

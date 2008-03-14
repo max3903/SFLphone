@@ -29,18 +29,19 @@
 
 #ifndef VIDEOCODECDESCRIPTOR_H
 #define VIDEOCODECDESCRIPTOR_H
+
+
 #include <map>
 #include <vector>
-#include <string>
 #include <ffmpeg/avcodec.h>
 
 
 /* A codec is identified by it's AVCodec, the codec utilisation by the AVCodecContext */
-typedef std::map<AVCodec, AVCodecContext> VideoCodecMap;
+typedef std::map<AVCodec*, AVCodecContext*> VideoCodecMap;
 /* VideoCodecOrder iterator typedef*/
 typedef VideoCodecMap::iterator VCMIterator;
 /* The vector to reflect the order the user wants to use his VideoCodecs */
-typedef std::vector<AVCodec> VideoCodecOrder;
+typedef std::vector<AVCodec*> VideoCodecOrder;
 /* VideoCodecOrder iterator typedef*/
 typedef VideoCodecOrder::iterator VCOIterator;
 
@@ -48,7 +49,7 @@ class VideoCodecDescriptor {
 public:
 
 	/**
-	 * Destructor
+	 * Destructor 
      */
     ~VideoCodecDescriptor();
 	/**
@@ -69,39 +70,46 @@ public:
     bool isActive(enum CodecID id);
 
     /**
-     * Remove tdecMap& getCodecMap() { return codecMap; }
-     * he codec from the list
+     * remove a codec from the active list. to see the ffmpeg codec list
+     * : ffmpeg -formats
      * @param id :  libavcodec CodecID of the codec to erase
+     * 
      */ 
-    int removeCodec(enum CodecID id);
-
+    bool removeCodec(enum CodecID id);
+    
+    
     /**
-     * Add a codec in the list.
+     * add a codec in the active list
+     * : ffmpeg -formats
      * @param id : libavcodec CodecID of the codec to add
+     * @return int : 	-1 if encoder not found
+     * 					-2 if decoder not found
+     * 					1 if both found
      */
     int addCodec(enum CodecID id);
+   
 	/**
      * Function to send the map containing the active Codecs.
      * 
      */
-    VideoCodecOrder& getActiveCodecs();
+    VideoCodecOrder getActiveCodecs();
 	/**
      * Function to set the map
      * @param activeC to set the Codec Map with another map
      * (not really suppose to happen)
      */
-    void setActiveCodecs(VideoCodecOrder& activeCodecs);
+    void setActiveCodecs(VideoCodecOrder activeCodecs);
 	/**
      * Function to set the map
      * @param codecMap to set the Codec Map
      * (not really suppose to happen)
      */
-    void setCodecMap(VideoCodecMap& codecMap);
+    void setCodecMap(VideoCodecMap codecMap);
 	/**
      * Function to get the map
      * @return codecMap to set the Codec Map
      */
-   	VideoCodecMap& getCodecMap() { return codecMap; }
+   	VideoCodecMap getCodecMap();
 
 	/**
      * Function to get all the codec info

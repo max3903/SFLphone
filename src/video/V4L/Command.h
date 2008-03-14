@@ -52,7 +52,7 @@ public:
     virtual bool reset() =0;
 
 
-//protected:
+protected:
 
     /**
      * @clientCardinality 0..*

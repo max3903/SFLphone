@@ -45,24 +45,18 @@ public:
 
 private:
 
-	//! This method is not applicable to this class
-    /*!
-     * It is declared as a void methode because it's an abstract methode in the parent class
-     */	
-	virtual bool setTo(__u16 value);
-	
     //! This method is not applicable to this class
     /*!
      * It is declared as a void methode because it's an abstract methode in the parent class
      */
-    virtual bool increase(__u16 value);
+    virtual bool increase(int value);
 
 
     //! This method is not applicable to this class
     /*!
      * It is declared as a void methode because it's an abstract methode in the parent class
      */
-    virtual bool decrease(__u16 value);
+    virtual bool decrease(int value);
         
 };
 #endif //RESOLUTION_H
