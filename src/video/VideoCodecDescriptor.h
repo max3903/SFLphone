@@ -49,7 +49,7 @@ class VideoCodecDescriptor {
 public:
 
 	/**
-	 * Destructor
+	 * Destructor 
      */
     ~VideoCodecDescriptor();
 	/**
@@ -79,7 +79,7 @@ public:
     
     
     /**
-     * add a codec in the active list. 
+     * add a codec in the active list
      * : ffmpeg -formats
      * @param id : libavcodec CodecID of the codec to add
      * @return int : 	-1 if encoder not found
