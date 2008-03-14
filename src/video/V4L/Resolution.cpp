@@ -26,12 +26,16 @@
   
   
   // these functions will not be used for this class
-  bool Resolution::increase(int value){
+  bool Resolution::increase(__u16 value){
 
     return true;
   }
 
-  bool Resolution::decrease(int value){
+  bool Resolution::decrease(__u16 value){
 
     return true;
+  }
+  
+  bool Resolution::setTo(__u16 value){
+  	return true;
   }
