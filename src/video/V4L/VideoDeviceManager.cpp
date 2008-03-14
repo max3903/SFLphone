@@ -7,31 +7,64 @@
 
   VideoDeviceManager* VideoDeviceManager::getInstance(){
 
+	if( VideoDeviceManager::instance == 0 )
+		VideoDeviceManager::instance= new VideoDeviceManager();
+		
     return instance; 
   }
 
-  VideoDeviceManager::VideoDeviceManager(){}
+  VideoDeviceManager::VideoDeviceManager(){
+  	this->actualVideoDevice= NULL;
+  }
 
-  VideoDeviceManager::~VideoDeviceManager(){}
+  VideoDeviceManager::~VideoDeviceManager(){
+  	if( this->actualVideoDevice != NULL )
+  		delete this->actualVideoDevice;
+  }
 
-  bool VideoDeviceManager::changeDevice(VideoDevice* videoDev){
+  bool VideoDeviceManager::changeDevice(char* srcName){
 
+	// \ TODO: Implement
     return true;
   }
 
-  VideoDevice* VideoDeviceManager::createDevice(char* srcName){
+  bool VideoDeviceManager::createDevice(char* srcName){
     
-    return 0;
+    try{
+    	this->actualVideoDevice= new VideoDevice( srcName );
+    }catch(...){
+    	return false;
+    }
+    
+    Command::videoDevice= actualVideoDevice;
+    
+    return true;
   }
 
-  VideoDevice* VideoDeviceManager::getDevice(){
-
-    return 0;
-  }
-
-  Command* VideoDeviceManager::getCommand(char* ref){
+  Command* VideoDeviceManager::getCommand(TCommand ref){
     
-    return 0;
+    Command* tmp= NULL;
+    
+    switch(ref){
+    	case CONTRAST:
+    		tmp= new Contrast();
+    		break;
+    	case BRIGHTNESS:
+    		tmp= new Brightness();
+    		break;
+		case COLOR:
+			tmp = new Colour();
+			break;
+		case CAPTURE:
+			tmp= new Capture();
+			break;
+		case RESOLUTION:
+			tmp= new Resolution();
+			break;	
+    }
+    
+    return tmp;
+    
   }
 
 
