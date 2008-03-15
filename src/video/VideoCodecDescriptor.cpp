@@ -27,19 +27,18 @@
     }
 
     
-    int VideoCodecDescriptor::setDefaultOrder(){
+    bool VideoCodecDescriptor::setDefaultOrder(){
     
     VCMIterator mapIter;
     //Set the default order of the codec list
-//
     //means setting the exact same codecs as codecMap
     vCodecOrder.clear();
   
     for (mapIter = vCodecMap.begin();mapIter != vCodecMap.end();mapIter++)
     	vCodecOrder.push_back((*mapIter).first);
-    
-
-    return 1;
+    	
+    	
+    return true;
     }
     
     void VideoCodecDescriptor::init(){
@@ -70,19 +69,31 @@
     
     for (iter = vCodecOrder.begin();iter != vCodecOrder.end();iter++)
     	if ((*iter)->id == id)
+    	{
+    	vCodecOrder.erase(iter);
     	return true;
+    	}
     
     return false;
     }
 
    
     int VideoCodecDescriptor::addCodec(enum CodecID id){
+    	
+    	//find codec
+    	
+    	
     return 1;}
+    
 	
     VideoCodecOrder VideoCodecDescriptor::getActiveCodecs() { return vCodecOrder; }
+    
 	
-    void VideoCodecDescriptor::setActiveCodecs(VideoCodecOrder vCodecOrder){}
+    void VideoCodecDescriptor::setActiveCodecs(VideoCodecOrder vCodecOrder)
+    {
+    	this->vCodecOrder = vCodecOrder;
+    }
 	
-    void VideoCodecDescriptor::setCodecMap(VideoCodecMap codec){}
+    void VideoCodecDescriptor::setCodecMap(VideoCodecMap codec){this->vCodecMap = codec;}
     
     

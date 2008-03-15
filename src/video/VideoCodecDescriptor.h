@@ -40,7 +40,8 @@
 typedef std::map<AVCodec*, AVCodecContext*> VideoCodecMap;
 /* VideoCodecOrder iterator typedef*/
 typedef VideoCodecMap::iterator VCMIterator;
-/* The vector to reflect the order the user wants to use his VideoCodecs */
+/* The vector to reflect the order the user wants to use his VideoCodecs 
+ * The codecs in this list are the ACTIVE CODECS */
 typedef std::vector<AVCodec*> VideoCodecOrder;
 /* VideoCodecOrder iterator typedef*/
 typedef VideoCodecOrder::iterator VCOIterator;
@@ -57,9 +58,9 @@ public:
      */
     VideoCodecDescriptor();
     /**
-     * Set the default codecs order
+     * Set the default codecs order: All map codecs are transfered to vCodecOrder
      */   
-    int setDefaultOrder();
+    bool setDefaultOrder();
   
     /**
      * Check in the map codec if the specified codec is supported 
