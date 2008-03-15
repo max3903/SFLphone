@@ -5,10 +5,19 @@
 
 #include <vector>
 
-#include "CaptureMode.h"
 #include "Command.h"
+#include "CaptureMode.h"
+#include "CopyMode.h"
+#include "ReadMode.h"
+
 
 using namespace std;
+
+//! Defines the available capture mode
+enum TCaptureMode {READMODE= 0x1,
+					COPYMODE= 0x2
+					};
+
 //! Capture
 /*!
  * This class is used to get a capture from the video device
@@ -35,16 +44,8 @@ public:
      * \param captModePos the position of the CaptureMode in the vector
      * \return a bool representing the success of the operation
      */
-    bool forceCaptureMode(int captModePos);
-
-
-    //! Method to create and initialise the captureModes vector  
-    /*!
-     * Create the captureMode objects and then create the vector
-     */
-    void createCaptureModesVector();
-
-
+    bool forceCaptureMode(TCaptureMode captModePos);
+    
     //! Method to capture from the video source
     /*!
      * \return a pointer to the captured data
@@ -53,11 +54,17 @@ public:
 
 private:
 
+	//! Method to create and initialise the captureModes vector  
+    /*!
+     * Create the captureMode objects and then create the vector
+     */
+    void createCaptureModesVector();
+
     //! This method is not applicable to this class
     /*!
      * It is declared as a void methode because it's an abstract methode in the parent class
      */
-    virtual bool setTo(int value);
+    virtual bool setTo(__u16 value);
 
     //! This method is not applicable to this class
     /*!
@@ -69,22 +76,25 @@ private:
     /*!
      * It is declared as a void methode because it's an abstract methode in the parent class
      */
-    virtual bool decrease(int value);
+    virtual bool decrease(__u16 value);
 
     //! This method is not applicable to this class
     /*!
      * It is declared as a void methode because it's an abstract methode in the parent class
      */
-    virtual bool increase(int value);
+    virtual bool increase(__u16 value);
 
     //! The position of the CaptureMode to use in the CaptrueMode vector
-    int currentCaptureMode;
+    vector<CaptureMode*>::iterator currentCaptureMode;
 
     /**
      * @supplierCardinality 1..* 
      */
     //! Vector of pointers to the CaptureModes to use
     vector<CaptureMode*> captureModesVector;
+    
+    //! Tells if the capture mode was forced
+    bool forced;
 
 };
 #endif //CAPTURE_H

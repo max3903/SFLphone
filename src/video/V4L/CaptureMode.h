@@ -3,6 +3,38 @@
 #ifndef CAPTUREMODE_H
 #define CAPTUREMODE_H
 
+#include "VideoDevice.h"
+
+#define CLIP 320
+#define RED_NULL 128
+#define BLUE_NULL 128
+#define LUN_MUL 256
+#define RED_MUL 512
+#define BLUE_MUL 512
+
+
+#define GREEN1_MUL  (-RED_MUL/2)
+#define GREEN2_MUL  (-BLUE_MUL/6)
+#define RED_ADD     (-RED_NULL  * RED_MUL)
+#define BLUE_ADD    (-BLUE_NULL * BLUE_MUL)
+#define GREEN1_ADD  (-RED_ADD/2)
+#define GREEN2_ADD  (-BLUE_ADD/6)
+
+/* lookup tables */
+static unsigned int  ng_yuv_gray[256];
+static unsigned int  ng_yuv_red[256];
+static unsigned int  ng_yuv_blue[256];
+static unsigned int  ng_yuv_g1[256];
+static unsigned int  ng_yuv_g2[256];
+static unsigned int  ng_clip[256 + 2 * CLIP];
+
+#define GRAY(val)               ng_yuv_gray[val]
+#define RED(gray,red)           ng_clip[ CLIP + gray + ng_yuv_red[red] ]
+#define GREEN(gray,red,blue)    ng_clip[ CLIP + gray + ng_yuv_g1[red] + \
+	ng_yuv_g2[blue] ]
+#define BLUE(gray,blue)         ng_clip[ CLIP + gray + ng_yuv_blue[blue] ]
+
+#define clip(x) ( (x)<0 ? 0 : ( (x)>255 ? 255 : (x) ) )
 
 //! CaptureMode
 /*!
@@ -12,16 +44,53 @@ class CaptureMode {
 public:
 
     //! Constructor
-    CaptureMode();
+    CaptureMode( VideoDevice* device );
 
     //! Destructor
     ~CaptureMode();
+    
+    //! Initializes the capture mode
+    /*!
+     * Must be implemented by the child class. This method is called before the capture mode is used.
+     */
+    virtual bool init()= 0;
+    
+    //! Shuts down the capture mode
+    /*!
+     * Must be implemented by the child class. This method is called when the captude mode changes for an other.
+     */
+    virtual bool close()= 0;
 
     //! The capture method
     /*!
      * Must be implemented by the child class
      */
     virtual char* capture()=0;
+    
+    /** Returns if the current CaptureMode is able to capture from the current device
+     * @return If the Capture mode is able to capture
+     */
+    bool getWorking();
+    
+protected:
+
+	/** Function to perform convertion from raw data capture from the web cam
+	 */
+	void format_conversion(int format, char* in, char* out, int width, int height);
+	
+    void yuyv_rgb (unsigned char *out, unsigned char *in, int width, int height);
+    void yuv420_rgb (unsigned char *out, unsigned char *in, int width, int height);
+    void write_rgb(unsigned char **out, int Y, int U, int V);
+    void YUV2RGB_init(void);
+
+	//! Default Constructor
+    CaptureMode();
+
+	bool initialized;
+	
+	VideoDevice* device;
+	
+	bool working;
 };
 #endif //CAPTUREMODE_H
 
