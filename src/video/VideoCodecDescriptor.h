@@ -34,8 +34,7 @@
 #include <map>
 #include <vector>
 #include <ffmpeg/avcodec.h>
-
-
+#include <ffmpeg/avformat.h>
 /* A codec is identified by it's AVCodec, the codec utilisation by the AVCodecContext */
 typedef std::map<AVCodec*, AVCodecContext*> VideoCodecMap;
 /* VideoCodecOrder iterator typedef*/
@@ -45,6 +44,7 @@ typedef VideoCodecMap::iterator VCMIterator;
 typedef std::vector<AVCodec*> VideoCodecOrder;
 /* VideoCodecOrder iterator typedef*/
 typedef VideoCodecOrder::iterator VCOIterator;
+
 
 class VideoCodecDescriptor {
 public:
@@ -83,11 +83,8 @@ public:
      * add a codec in the active list
      * : ffmpeg -formats
      * @param id : libavcodec CodecID of the codec to add
-     * @return int : 	-1 if encoder not found
-     * 					-2 if decoder not found
-     * 					1 if both found
-     */
-    int addCodec(enum CodecID id);
+     * @return bool : true if found, false otherwise*/ 	
+    bool addCodec(enum CodecID id);
    
 	/**
      * Function to send the map containing the active Codecs.
@@ -111,7 +108,8 @@ public:
      * @return codecMap to set the Codec Map
      */
    	VideoCodecMap getCodecMap();
-
+   	
+	
 	/**
      * Function to get all the codec info
      * @return char*, with all the info in a structured way
@@ -123,6 +121,21 @@ private:
      * Function called by constructor, will create lists and register active codecs
      */   
     void init();
+    /**
+     *  Create Map of Codecs
+     */
+     bool initCodecMap();
+     
+     /**
+     *  return codec Name
+     */
+     const char* getCodecName();
+     
+     /**
+     *  return codec Name
+     */
+     bool checkSupported();
+     
 	/**
      * Vector of all the Active codecs
      */
@@ -131,8 +144,6 @@ private:
      * Map of all codecs, active and inactive
      */
     VideoCodecMap vCodecMap;
-
-
 
 
 };

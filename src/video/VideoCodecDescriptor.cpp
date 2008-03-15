@@ -17,15 +17,55 @@
  *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 #include "VideoCodecDescriptor.h"
-#include "ffmpeg/avcodec.h"
- 	VideoCodecDescriptor::~VideoCodecDescriptor(){}
+
+#include <string>
+#include <stdio.h>
+
+using namespace std;
+ 	VideoCodecDescriptor::~VideoCodecDescriptor(){
+ 	vCodecOrder.clear();
+ 	vCodecMap.clear();
+ 	}
 	
     VideoCodecDescriptor::VideoCodecDescriptor(){
-    
-    init();
-    
-    }
+    	av_register_all();
+    	avcodec_init();
+    	init();}
 
+    void VideoCodecDescriptor::init()
+    {
+    VCMIterator mapIter;
+    //Create map list
+    if (initCodecMap() == false)
+    {
+    	printf("CodecMap init error");
+    	exit(-1);
+    }
+    //check if user has settings for the active list, if yes load them else setDefault
+    //TODO
+
+   
+    }
+    
+     bool VideoCodecDescriptor::initCodecMap()
+    {
+		FILE *codecFile;
+		char *codec;
+		AVCodec* tmp;
+		codecFile = fopen("videoCodecs.dat","r");
+		if (codecFile == NULL)
+    		return false;
+    	
+    	while(codecFile != NULL)
+    	{
+    	fgets(codec,5,codecFile);
+    	tmp = avcodec_find_encoder_by_name(codec);
+    	vCodecMap[tmp] = avcodec_alloc_context();	
+    	}
+    
+    return true;
+    }
+    
     
     bool VideoCodecDescriptor::setDefaultOrder(){
     
@@ -41,15 +81,7 @@
     return true;
     }
     
-    void VideoCodecDescriptor::init(){
-    
-    //Create map list
-    
-    //check if user has settings for the active list, if yes load them else setDefault
-    
-    //Register codecs
-    }
-	
+   
    
     bool VideoCodecDescriptor::isActive(enum CodecID id){
    
@@ -78,12 +110,26 @@
     }
 
    
-    int VideoCodecDescriptor::addCodec(enum CodecID id){
+    bool VideoCodecDescriptor::addCodec(enum CodecID id){
     	
     	//find codec
+    	VCMIterator mapIter;
     	
+    	for (mapIter = vCodecMap.begin();mapIter != vCodecMap.end();mapIter++)
+    	if ((*mapIter).first->id == id)
+    	{
+    	vCodecOrder.push_back((*mapIter).first);
+    	return true;
+    	}
     	
-    return 1;}
+    return false;}
+    
+    char* VideoCodecDescriptor::serialize()
+    {
+    //return
+    
+    	
+    }
     
 	
     VideoCodecOrder VideoCodecDescriptor::getActiveCodecs() { return vCodecOrder; }
