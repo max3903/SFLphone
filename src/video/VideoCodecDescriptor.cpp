@@ -35,7 +35,8 @@
     //means setting the exact same codecs as codecMap
     vCodecOrder.clear();
   
-    for (mapIter = vCodecMap.begin();mapIter != vCodecMap.end();mapIter++);
+    for (mapIter = vCodecMap.begin();mapIter != vCodecMap.end();mapIter++)
+    	vCodecOrder.push_back((*mapIter).first);
     
 
     return 1;
@@ -43,19 +44,33 @@
     
     void VideoCodecDescriptor::init(){
     
-    //Create lists
+    //Create map list
+    
+    //check if user has settings for the active list, if yes load them else setDefault
+    
     //Register codecs
     }
 	
    
     bool VideoCodecDescriptor::isActive(enum CodecID id){
+   
+    VCOIterator iter;
     
-    return true;
+    for (iter = vCodecOrder.begin();iter != vCodecOrder.end();iter++)
+    	if ((*iter)->id == id)
+    	return true;
+    
+    return false;
     }
 
    
     bool VideoCodecDescriptor::removeCodec(enum CodecID id){
     
+    VCOIterator iter;
+    
+    for (iter = vCodecOrder.begin();iter != vCodecOrder.end();iter++)
+    	if ((*iter)->id == id)
+    	return true;
     
     return false;
     }
@@ -66,8 +81,8 @@
 	
     VideoCodecOrder VideoCodecDescriptor::getActiveCodecs() { return vCodecOrder; }
 	
-    void VideoCodecDescriptor::setActiveCodecs(VideoCodecOrder *vCodecOrder){}
+    void VideoCodecDescriptor::setActiveCodecs(VideoCodecOrder vCodecOrder){}
 	
-    void VideoCodecDescriptor::setCodecMap(VideoCodecMap *codec){}
+    void VideoCodecDescriptor::setCodecMap(VideoCodecMap codec){}
     
     
