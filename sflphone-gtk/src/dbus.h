@@ -59,6 +59,10 @@ gchar** dbus_codec_details(int payload);
 gchar** dbus_default_codec_list();
 gchar** dbus_get_active_codec_list( void );
 void dbus_set_active_codec_list( const gchar** list );
+gchar** dbus_video_codec_list();
+gchar** dbus_video_codec_details(int payload);
+gchar** dbus_get_active_video_codec_list( void );
+void dbus_set_active_video_codec_list( const gchar** list );
 
 // Audio devices related methods
 gchar** dbus_get_input_audio_plugin_list();

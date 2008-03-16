@@ -771,6 +771,115 @@ dbus_set_active_codec_list(const gchar** list)
   }
 }
 
+gchar**
+dbus_video_codec_list()
+{
+  g_print("Before");
+
+  GError *error = NULL;
+  gchar** array;
+  org_sflphone_SFLphone_ConfigurationManager_get_video_codec_list (
+    configurationManagerProxy,
+    &array,
+    &error);
+
+  g_print("After");
+  if (error)
+  {
+  g_printerr ("Failed to call get_video_codec_list() on ConfigurationManager: %s\n",
+              error->message);
+  g_error_free (error);
+  }
+  else
+  {
+  g_print ("DBus called get_video_codec_list() on ConfigurationManager\n");
+
+  }
+  return array;
+}
+
+gchar**
+dbus_video_codec_details( int payload )
+{
+  g_print("Before");
+
+  GError *error = NULL;
+  gchar ** array;
+  org_sflphone_SFLphone_ConfigurationManager_get_video_codec_details (
+    configurationManagerProxy,
+    payload,
+    &array,
+    &error);
+
+  g_print("After");
+  if (error)
+  {
+  g_printerr ("Failed to call get_video_codec_details() on ConfigurationManager: %s\n",
+              error->message);
+  g_error_free (error);
+  }
+  else
+  {
+  g_print ("DBus called get_video_codec_details() on ConfigurationManager\n");
+
+  }
+  return array;
+}
+
+
+
+gchar**
+dbus_get_active_video_codec_list()
+{
+  g_print("Before");
+
+  gchar ** array;
+  GError *error = NULL;
+  org_sflphone_SFLphone_ConfigurationManager_get_active_video_codec_list (
+    configurationManagerProxy,
+    &array,
+    &error);
+
+  g_print("After");
+  if (error)
+  {
+  g_printerr ("Failed to call get_active_video_codec_list() on ConfigurationManager: %s\n",
+              error->message);
+  g_error_free (error);
+  }
+  else
+  {
+  g_print ("DBus called get_active_video_codec_list() on ConfigurationManager\n");
+
+  }
+  return array;
+}
+
+void
+dbus_set_active_video_codec_list(const gchar** list)
+{
+  g_print("Before");
+
+  GError *error = NULL;
+  org_sflphone_SFLphone_ConfigurationManager_set_active_video_codec_list (
+    configurationManagerProxy,
+    list,
+    &error);
+
+  g_print("After");
+  if (error)
+  {
+  g_printerr ("Failed to call set_active_video_codec_list() on ConfigurationManager: %s\n",
+              error->message);
+  g_error_free (error);
+  }
+  else
+  {
+  g_print ("DBus called set_active_video_codec_list() on ConfigurationManager\n");
+
+  }
+}
+
 /**
  * Get a list of input supported audio plugins
  */
