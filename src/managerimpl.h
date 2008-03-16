@@ -277,6 +277,24 @@ public:
    * @return The information
    */
   std::vector< ::DBus::String > getCodecDetails( const ::DBus::Int32& payload);
+  
+  /**
+   * Get and set the list of the active video codecs
+   */  
+  std::vector< ::DBus::String > getActiveVideoCodecList( void ); 
+  void setActiveVideoCodecList( const std::vector< ::DBus::String >& list);
+
+  /**
+   * Get the list of video codecs we supports, not ordered
+   * @return The list of the video codecs
+   */  
+  std::vector< ::DBus::String > getVideoCodecList( void );
+  /**
+   * Get the info about one video codec
+   * @param payload The payload of the codec
+   * @return The information
+   */
+  std::vector< ::DBus::String > getVideoCodecDetails( const ::DBus::Int32& payload);
 
   /**
    * Get a list of supported input audio plugin
@@ -694,34 +712,8 @@ private:
    * @param the voip link from the account pointer or 0
    */
   VoIPLink* getAccountLink(const AccountID& accountID);
-
-  /*
-   * Initialize video codec with config setting
-   */
-  void initVideoCodec(void);
   
-  /**
-   * Inverse of serialize
-   */
-  std::vector<std::string> retrieveActiveVideoCodecs( void );
   
-  /**
-   * Get and set the list of the active video codecs
-   */  
-  std::vector< ::DBus::String > getActiveVideoCodecList( void ); 
-  void setActiveVideoCodecList( const std::vector< ::DBus::String >& list);
-
-  /**
-   * Get the list of video codecs we supports, not ordered
-   * @return The list of the video codecs
-   */  
-  std::vector< ::DBus::String > getVideoCodecList( void );
-  /**
-   * Get the info about one video codec
-   * @param payload The payload of the codec
-   * @return The information
-   */
-  std::vector< ::DBus::String > getVideoCodecDetails( const ::DBus::Int32& payload);
   
   /**
    * Get list of supported video input device
