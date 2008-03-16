@@ -36,6 +36,10 @@ public:
         register_method(ConfigurationManager, getCodecDetails, _getCodecDetails_stub);
         register_method(ConfigurationManager, getActiveCodecList, _getActiveCodecList_stub);
         register_method(ConfigurationManager, setActiveCodecList, _setActiveCodecList_stub);
+        register_method(ConfigurationManager, getVideoCodecList, _getVideoCodecList_stub);
+        register_method(ConfigurationManager, getVideoCodecDetails, _getVideoCodecDetails_stub);
+        register_method(ConfigurationManager, getActiveVideoCodecList, _getActiveVideoCodecList_stub);
+        register_method(ConfigurationManager, setActiveVideoCodecList, _setActiveVideoCodecList_stub);
         register_method(ConfigurationManager, getInputAudioPluginList, _getInputAudioPluginList_stub);
         register_method(ConfigurationManager, getOutputAudioPluginList, _getOutputAudioPluginList_stub);
         register_method(ConfigurationManager, setInputAudioPlugin, _setInputAudioPlugin_stub);
@@ -134,6 +138,27 @@ public:
             { "list", "as", true },
             { 0, 0, 0 }
         };
+        static ::DBus::IntrospectedArgument getVideoCodecList_args[] = 
+        {
+            { "list", "as", false },
+            { 0, 0, 0 }
+        };
+        static ::DBus::IntrospectedArgument getVideoCodecDetails_args[] = 
+        {
+            { "payload", "i", true },
+            { "details", "as", false },
+            { 0, 0, 0 }
+        };
+        static ::DBus::IntrospectedArgument getActiveVideoCodecList_args[] = 
+        {
+            { "list", "as", false },
+            { 0, 0, 0 }
+        };
+        static ::DBus::IntrospectedArgument setActiveVideoCodecList_args[] = 
+        {
+            { "list", "as", true },
+            { 0, 0, 0 }
+        };
         static ::DBus::IntrospectedArgument getInputAudioPluginList_args[] = 
         {
             { "list", "as", false },
@@ -217,6 +242,10 @@ public:
             { "getCodecDetails", getCodecDetails_args },
             { "getActiveCodecList", getActiveCodecList_args },
             { "setActiveCodecList", setActiveCodecList_args },
+            { "getVideoCodecList", getVideoCodecList_args },
+            { "getVideoCodecDetails", getVideoCodecDetails_args },
+            { "getActiveVideoCodecList", getActiveVideoCodecList_args },
+            { "setActiveVideoCodecList", setActiveVideoCodecList_args },
             { "getInputAudioPluginList", getInputAudioPluginList_args },
             { "getOutputAudioPluginList", getOutputAudioPluginList_args },
             { "setInputAudioPlugin", setInputAudioPlugin_args },
@@ -277,6 +306,10 @@ public:
     virtual std::vector< ::DBus::String > getCodecDetails( const ::DBus::Int32& payload ) = 0;
     virtual std::vector< ::DBus::String > getActiveCodecList(  ) = 0;
     virtual void setActiveCodecList( const std::vector< ::DBus::String >& list ) = 0;
+    virtual std::vector< ::DBus::String > getVideoCodecList(  ) = 0;
+    virtual std::vector< ::DBus::String > getVideoCodecDetails( const ::DBus::Int32& payload ) = 0;
+    virtual std::vector< ::DBus::String > getActiveVideoCodecList(  ) = 0;
+    virtual void setActiveVideoCodecList( const std::vector< ::DBus::String >& list ) = 0;
     virtual std::vector< ::DBus::String > getInputAudioPluginList(  ) = 0;
     virtual std::vector< ::DBus::String > getOutputAudioPluginList(  ) = 0;
     virtual void setInputAudioPlugin( const ::DBus::String& audioPlugin ) = 0;
@@ -465,6 +498,46 @@ private:
 
         std::vector< ::DBus::String > argin1; ri >> argin1;
         setActiveCodecList(argin1);
+        ::DBus::ReturnMessage reply(call);
+        return reply;
+    }
+    ::DBus::Message _getVideoCodecList_stub( const ::DBus::CallMessage& call )
+    {
+        ::DBus::MessageIter ri = call.reader();
+
+        std::vector< ::DBus::String > argout1 = getVideoCodecList();
+        ::DBus::ReturnMessage reply(call);
+        ::DBus::MessageIter wi = reply.writer();
+        wi << argout1;
+        return reply;
+    }
+    ::DBus::Message _getVideoCodecDetails_stub( const ::DBus::CallMessage& call )
+    {
+        ::DBus::MessageIter ri = call.reader();
+
+        ::DBus::Int32 argin1; ri >> argin1;
+        std::vector< ::DBus::String > argout1 = getVideoCodecDetails(argin1);
+        ::DBus::ReturnMessage reply(call);
+        ::DBus::MessageIter wi = reply.writer();
+        wi << argout1;
+        return reply;
+    }
+    ::DBus::Message _getActiveVideoCodecList_stub( const ::DBus::CallMessage& call )
+    {
+        ::DBus::MessageIter ri = call.reader();
+
+        std::vector< ::DBus::String > argout1 = getActiveVideoCodecList();
+        ::DBus::ReturnMessage reply(call);
+        ::DBus::MessageIter wi = reply.writer();
+        wi << argout1;
+        return reply;
+    }
+    ::DBus::Message _setActiveVideoCodecList_stub( const ::DBus::CallMessage& call )
+    {
+        ::DBus::MessageIter ri = call.reader();
+
+        std::vector< ::DBus::String > argin1; ri >> argin1;
+        setActiveVideoCodecList(argin1);
         ::DBus::ReturnMessage reply(call);
         return reply;
     }
