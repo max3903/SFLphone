@@ -16,21 +16,30 @@
  *  along with this program; if not, write to the Free Software
  *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
+#include "VideoCodec.h"
 
-#include "H263.h"
 
-H263::H263(){}
-H263::~H263(){}
-int H263::videoEncode(int width, int height, uint8_t* buf, unsigned int size){
+int VideoCodec::videoEncode(int width, int height, uint8_t* buf, unsigned int size){
 
 
 return 0;
 	}
 	
-int H263::videoDecode(uint8_t *in_buf, int width, int height, uint8_t* out_buf  ){
+int VideoCodec::videoDecode(uint8_t *in_buf, int width, int height, uint8_t* out_buf  ){
 
 return 0;
 }
 
+void VideoCodec::init(){
 
+//Get codec to encode decode
 
+//Getting Basic AVCodecContext settings from Codec Descriptor
+videoDesc->getInstance();
+codecCtx = videoDesc->getCodecContext(Codec);
+
+//get webcam information to encode: buffer adress, size etc...
+
+//get 
+
+}
