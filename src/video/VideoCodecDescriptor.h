@@ -30,6 +30,8 @@
 #ifndef VIDEOCODECDESCRIPTOR_H
 #define VIDEOCODECDESCRIPTOR_H
 
+//TODO GET SET DEFAULT SETTINGS FOR EACH CODEC
+
 
 #include <map>
 #include <vector>
