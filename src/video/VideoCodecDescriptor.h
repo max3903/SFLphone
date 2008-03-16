@@ -33,10 +33,12 @@
 
 #include <map>
 #include <vector>
+
 extern "C"{
 #include <ffmpeg/avcodec.h>
 #include <ffmpeg/avformat.h>
 }
+
 /* A codec is identified by it's AVCodec, the codec utilisation by the AVCodecContext */
 typedef std::map<AVCodec*, AVCodecContext*> VideoCodecMap;
 /* VideoCodecOrder iterator typedef*/
@@ -51,14 +53,20 @@ typedef VideoCodecOrder::iterator VCOIterator;
 class VideoCodecDescriptor {
 public:
 
+
+//! Method to get the instance of the VideoCodecDescriptor.
+    /*!
+     * If it does not exist, this method will create it
+     * 
+     * \return an instance of the manager
+     */
+    VideoCodecDescriptor* getInstance();
+
 	/**
 	 * Destructor 
      */
     ~VideoCodecDescriptor();
-	/**
-	 * Default Constructor
-     */
-    VideoCodecDescriptor();
+	
     /**
      * Set the default codecs order: All map codecs are transfered to vCodecOrder
      */   
@@ -111,6 +119,12 @@ public:
      */
    	VideoCodecMap getCodecMap();
    	
+   	/**
+     * Function to get the map
+     * @return codecMap to set the Codec Map
+     */
+   	AVCodecContext* getCodecContext(AVCodec* Codec);
+   	
 	/**
      * Function to get all the codec info
      * @return char*, with all the info in a structured way
@@ -118,6 +132,9 @@ public:
 	char * serialize();
 
 private:	
+
+	/** The instance of the VideoCodecDescriptor */
+    static VideoCodecDescriptor* instance;
 	/**
      * Function called by constructor, will create lists and register active codecs
      */   
@@ -146,6 +163,11 @@ private:
      */
     VideoCodecMap vCodecMap;
 
+protected:
+/**
+	 * Default Constructor
+     */
+    VideoCodecDescriptor();
 
 };
 #endif //VIDEOCODECDESCRIPTOR_H

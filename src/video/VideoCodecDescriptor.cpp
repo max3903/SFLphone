@@ -22,6 +22,20 @@
 #include <stdio.h>
 
 using namespace std;
+
+VideoCodecDescriptor* VideoCodecDescriptor::instance= 0;
+
+VideoCodecDescriptor* VideoCodecDescriptor::getInstance()
+{
+	//if no instance made create one,
+	//ref. singleton pattern
+	if (instance == 0)
+	instance = new VideoCodecDescriptor();
+
+	return instance;
+}
+
+
  	VideoCodecDescriptor::~VideoCodecDescriptor(){
  	vCodecOrder.clear();
  	vCodecMap.clear();
@@ -129,7 +143,15 @@ using namespace std;
     return "doh!";
     }
     
+	AVCodecContext* VideoCodecDescriptor::getCodecContext(AVCodec* Codec)
+	{
+		VCMIterator tmp;
 	
+	tmp = vCodecMap.find(Codec);
+	
+	return (*tmp).second;
+	
+	}
     VideoCodecOrder VideoCodecDescriptor::getActiveCodecs() { return vCodecOrder; }
     
 	
