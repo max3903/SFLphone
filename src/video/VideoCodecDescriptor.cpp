@@ -43,7 +43,6 @@ using namespace std;
     }
     //check if user has settings for the active list, if yes load them else setDefault
     //TODO
-
    
     }
     
@@ -76,7 +75,6 @@ using namespace std;
   
     for (mapIter = vCodecMap.begin();mapIter != vCodecMap.end();mapIter++)
     	vCodecOrder.push_back((*mapIter).first);
-    	
     	
     return true;
     }
@@ -127,8 +125,7 @@ using namespace std;
     char* VideoCodecDescriptor::serialize()
     {
     //return
-    
-    	
+    return "doh!";
     }
     
 	
