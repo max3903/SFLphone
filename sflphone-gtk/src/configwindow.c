@@ -159,9 +159,9 @@ config_window_fill_video_codec_list()
 
 		// Insert codecs
 		int i;
-		for(i = 0; i < codec_list_get_size(); i++)
+		for(i = 0; i < video_codec_list_get_size(); i++)
 		{
-			codec_t *c = codec_list_get_nth(i);
+			videoCodec_t *c = video_codec_list_get_nth(i);
 			printf("%s\n", c->name);
 			if(c)
 			{
