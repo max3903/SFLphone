@@ -33,8 +33,10 @@
 
 #include <map>
 #include <vector>
+extern "C"{
 #include <ffmpeg/avcodec.h>
 #include <ffmpeg/avformat.h>
+}
 /* A codec is identified by it's AVCodec, the codec utilisation by the AVCodecContext */
 typedef std::map<AVCodec*, AVCodecContext*> VideoCodecMap;
 /* VideoCodecOrder iterator typedef*/
@@ -109,7 +111,6 @@ public:
      */
    	VideoCodecMap getCodecMap();
    	
-	
 	/**
      * Function to get all the codec info
      * @return char*, with all the info in a structured way

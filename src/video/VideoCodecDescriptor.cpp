@@ -55,9 +55,9 @@ using namespace std;
 		if (codecFile == NULL)
     		return false;
     	
-    	while(codecFile != NULL)
+    	while(fgets(codec,6,codecFile) != NULL)
     	{
-    	fgets(codec,5,codecFile);
+    		printf("%s",codec);
     	tmp = avcodec_find_encoder_by_name(codec);
     	vCodecMap[tmp] = avcodec_alloc_context();	
     	}
@@ -125,6 +125,7 @@ using namespace std;
     char* VideoCodecDescriptor::serialize()
     {
     //return
+    //TODO
     return "doh!";
     }
     
