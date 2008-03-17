@@ -52,27 +52,21 @@ MemKey* createMemKeyFromChar( char* key )
 	
 	return theKey;
 
-
 }
 
 MemKey* initSpace( MemKey *key )
 {
 	int shmid;
 	
-	if ( (shmid = shmget(key->key, key->size, IPC_CREAT | 0666)) < 0)
+	key->BaseAdd= NULL;
+	key->BaseAdd= (char *)shmat(shmid, NULL, 0);
+		
+	if ( key->BaseAdd == NULL ) < 0)
 	{
 		g_print("Error: Cannot create shared memory segment");
         return NULL;
 	}
-	
-	key->BaseAdd= (char *)shmat(shmid, NULL, 0);
-	
-	if( key->BaseAdd == NULL )
-	{
-		g_print("Error: Cannot attach shared memory segment");
-		return NULL;
-	}
-				
+						
 	return key;
 }
 
