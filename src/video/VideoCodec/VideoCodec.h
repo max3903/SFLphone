@@ -39,12 +39,18 @@ public:
      * 
      */
    ~VideoCodec() ;
-	/**
+   /**
      * Default Constructor
      * 
      */
     VideoCodec();
+   /**
+     *  Constructor we force to use
+     * 
+     */
+    VideoCodec(AVCodec* codec);
 /**
+	
      * Function to decode video information
      * @param in_buf the input buffer
      * @param width of the video frame
@@ -65,13 +71,16 @@ public:
     
     
 private:
+
+/**
 	/**
  	* Function to init the Codec with it's proper context
- 	* 
- 	* 
  	* */
     void init();
     
+    /**
+ 	* instance of the videoDesc
+ 	* */
     VideoCodecDescriptor *videoDesc;
 
 	/**
