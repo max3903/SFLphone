@@ -32,9 +32,6 @@
 
 #include <gtk/gtk.h>
 
-/**
- * Local variables
- */
 gboolean dialogOpen = FALSE;
 gboolean ringtoneEnabled = TRUE;
 
@@ -920,8 +917,8 @@ create_codec_table()
 	scrolledWindow = gtk_scrolled_window_new(NULL, NULL);
 	gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(scrolledWindow), GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
 	gtk_scrolled_window_set_shadow_type(GTK_SCROLLED_WINDOW(scrolledWindow), GTK_SHADOW_IN);
-	
 	gtk_box_pack_start(GTK_BOX(ret), scrolledWindow, TRUE, TRUE, 0);
+	
 	codecStore = gtk_list_store_new(CODEC_COLUMN_COUNT,
 			G_TYPE_BOOLEAN,		// Active
 			G_TYPE_STRING,		// Name
@@ -1372,7 +1369,7 @@ create_webcam_tab ()
 	GtkWidget *brightnessHScale, *contrastHScale, *colourHScale;
 	GtkObject *brightnessAdjustment, *contrastAdjustment, *colourAdjustment;
 	
-	GtkWidget *drawingSpace;
+//	GtkWidget *drawingSpace;
 	
 	
 	GtkCellRenderer *renderer;
@@ -1489,9 +1486,9 @@ create_webcam_tab ()
 	gtk_widget_show(colourHScale);
 	
 	// \todo Add an OpenGL widget to show the local video rendering
-    drawingSpace= createGLWidget();
-    gtk_box_pack_start(GTK_BOX(settingsHBox), drawingSpace, TRUE, TRUE, 0);
-    gtk_widget_show(drawingSpace);
+//    drawingSpace= createGLWidget();
+//    gtk_box_pack_start(GTK_BOX(settingsHBox), drawingSpace, TRUE, TRUE, 0);
+//    gtk_widget_show(drawingSpace);
 	
 	g_signal_connect (G_OBJECT (colourHScale), "format-value", G_CALLBACK (format_percentage_scale), NULL); 
 	g_signal_connect (G_OBJECT (brightnessHScale), "format-value", G_CALLBACK (format_percentage_scale), NULL); 
