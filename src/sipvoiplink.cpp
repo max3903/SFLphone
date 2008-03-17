@@ -1091,7 +1091,7 @@ SIPVoIPLink::SIPStartVideo(SIPCall* call, const std::string& subject)
 
   std::ostringstream media_audio;
   std::ostringstream rtpmap_attr;
-  CodecType payload;
+  AudioCodecType payload;
   int nbChannel;
   int iter;
 

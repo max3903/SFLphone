@@ -105,7 +105,6 @@ VideoCodecDescriptor* VideoCodecDescriptor::getInstance()
     }
     
    
-   
     bool VideoCodecDescriptor::isActive(enum CodecID id){
    
     VCOIterator iter;
