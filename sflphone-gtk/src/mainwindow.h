@@ -37,6 +37,8 @@ gboolean main_window_ask_quit() ;
   */
 void main_window_dialpad(gboolean show);
 
+void main_window_show_call_console(gboolean show);
+
 void main_window_error_message(gchar * markup);
 
 void main_window_warning_message(gchar * markup);

@@ -19,6 +19,7 @@
  
 #include <config.h>
 #include <actions.h>
+#include <callconsolewindow.h>
 #include <calllist.h> 
 #include <calltree.h>
 #include <configwindow.h>
@@ -245,6 +246,12 @@ main_window_dialpad(gboolean show){
     gtk_container_remove(GTK_CONTAINER (subvbox), dialpad);
   }
   showDialpad = show;
+}
+
+void
+main_window_show_call_console(gboolean show)
+{
+	show_call_console_window(show);
 }
 
 void

@@ -17,14 +17,14 @@
  *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
-#ifndef __CONTACTWINDOW_H__
-#define __CONTACTWINDOW_H__
+#ifndef __CALLCONSOLEWINDOW_H__
+#define __CALLCONSOLEWINDOW_H__
 
 /**
  * @file contactwindow.h
  * @brief The Contacts window.
  */
-void contact_window_fill_contact_list();
-void show_contact_window();
+void call_console_window_fill_contact_list();
+GtkDialog* show_call_console_window(gboolean show);
 
 #endif 

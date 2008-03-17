@@ -182,6 +182,6 @@ show_contact_window()
 	contact_window_fill_contact_list();
 
 	gtk_dialog_run(dialog);
-
+	
 	gtk_widget_destroy(GTK_WIDGET(dialog));
 }

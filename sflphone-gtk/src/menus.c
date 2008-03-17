@@ -497,6 +497,12 @@ view_dial_pad  (GtkCheckMenuItem *checkmenuitem,
   main_window_dialpad(gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM(checkmenuitem)));
 }
 
+static void
+view_call_console(GtkCheckMenuItem* checkMenuItem, void* pointer)
+{
+	main_window_show_call_console(gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM(checkMenuItem)));
+}
+
 GtkWidget * 
 create_view_menu()
 {
@@ -506,6 +512,13 @@ create_view_menu()
   
   menu      = gtk_menu_new ();
 
+  menu_items = gtk_check_menu_item_new_with_mnemonic ("_Call console");
+  gtk_menu_shell_append (GTK_MENU_SHELL (menu), menu_items);
+  g_signal_connect(G_OBJECT (menu_items), "toggled",
+                  G_CALLBACK (view_call_console), 
+                  NULL);
+  gtk_widget_show (menu_items);
+  
   menu_items = gtk_check_menu_item_new_with_mnemonic ("_Dialpad");
   gtk_menu_shell_append (GTK_MENU_SHELL (menu), menu_items);
   g_signal_connect(G_OBJECT (menu_items), "toggled",
