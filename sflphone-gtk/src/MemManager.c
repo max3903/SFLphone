@@ -61,7 +61,7 @@ MemKey* initSpace( MemKey *key )
 	key->BaseAdd= NULL;
 	key->BaseAdd= (char *)shmat(shmid, NULL, 0);
 		
-	if ( key->BaseAdd == NULL ) < 0)
+	if ( key->BaseAdd == NULL )
 	{
 		g_print("Error: Cannot create shared memory segment");
         return NULL;
