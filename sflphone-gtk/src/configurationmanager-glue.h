@@ -466,6 +466,156 @@ static
 inline
 #endif
 gboolean
+org_sflphone_SFLphone_ConfigurationManager_is_ringtone_enabled (DBusGProxy *proxy, gint* OUT_bool, GError **error)
+
+{
+  return dbus_g_proxy_call (proxy, "isRingtoneEnabled", error, G_TYPE_INVALID, G_TYPE_INT, OUT_bool, G_TYPE_INVALID);
+}
+
+typedef void (*org_sflphone_SFLphone_ConfigurationManager_is_ringtone_enabled_reply) (DBusGProxy *proxy, gint OUT_bool, GError *error, gpointer userdata);
+
+static void
+org_sflphone_SFLphone_ConfigurationManager_is_ringtone_enabled_async_callback (DBusGProxy *proxy, DBusGProxyCall *call, void *user_data)
+{
+  DBusGAsyncData *data = (DBusGAsyncData*) user_data;
+  GError *error = NULL;
+  gint OUT_bool;
+  dbus_g_proxy_end_call (proxy, call, &error, G_TYPE_INT, &OUT_bool, G_TYPE_INVALID);
+  (*(org_sflphone_SFLphone_ConfigurationManager_is_ringtone_enabled_reply)data->cb) (proxy, OUT_bool, error, data->userdata);
+  return;
+}
+
+static
+#ifdef G_HAVE_INLINE
+inline
+#endif
+DBusGProxyCall*
+org_sflphone_SFLphone_ConfigurationManager_is_ringtone_enabled_async (DBusGProxy *proxy, org_sflphone_SFLphone_ConfigurationManager_is_ringtone_enabled_reply callback, gpointer userdata)
+
+{
+  DBusGAsyncData *stuff;
+  stuff = g_new (DBusGAsyncData, 1);
+  stuff->cb = G_CALLBACK (callback);
+  stuff->userdata = userdata;
+  return dbus_g_proxy_begin_call (proxy, "isRingtoneEnabled", org_sflphone_SFLphone_ConfigurationManager_is_ringtone_enabled_async_callback, stuff, g_free, G_TYPE_INVALID);
+}
+static
+#ifdef G_HAVE_INLINE
+inline
+#endif
+gboolean
+org_sflphone_SFLphone_ConfigurationManager_ringtone_enabled (DBusGProxy *proxy, GError **error)
+
+{
+  return dbus_g_proxy_call (proxy, "ringtoneEnabled", error, G_TYPE_INVALID, G_TYPE_INVALID);
+}
+
+typedef void (*org_sflphone_SFLphone_ConfigurationManager_ringtone_enabled_reply) (DBusGProxy *proxy, GError *error, gpointer userdata);
+
+static void
+org_sflphone_SFLphone_ConfigurationManager_ringtone_enabled_async_callback (DBusGProxy *proxy, DBusGProxyCall *call, void *user_data)
+{
+  DBusGAsyncData *data = (DBusGAsyncData*) user_data;
+  GError *error = NULL;
+  dbus_g_proxy_end_call (proxy, call, &error, G_TYPE_INVALID);
+  (*(org_sflphone_SFLphone_ConfigurationManager_ringtone_enabled_reply)data->cb) (proxy, error, data->userdata);
+  return;
+}
+
+static
+#ifdef G_HAVE_INLINE
+inline
+#endif
+DBusGProxyCall*
+org_sflphone_SFLphone_ConfigurationManager_ringtone_enabled_async (DBusGProxy *proxy, org_sflphone_SFLphone_ConfigurationManager_ringtone_enabled_reply callback, gpointer userdata)
+
+{
+  DBusGAsyncData *stuff;
+  stuff = g_new (DBusGAsyncData, 1);
+  stuff->cb = G_CALLBACK (callback);
+  stuff->userdata = userdata;
+  return dbus_g_proxy_begin_call (proxy, "ringtoneEnabled", org_sflphone_SFLphone_ConfigurationManager_ringtone_enabled_async_callback, stuff, g_free, G_TYPE_INVALID);
+}
+static
+#ifdef G_HAVE_INLINE
+inline
+#endif
+gboolean
+org_sflphone_SFLphone_ConfigurationManager_get_ringtone_choice (DBusGProxy *proxy, char ** OUT_tone, GError **error)
+
+{
+  return dbus_g_proxy_call (proxy, "getRingtoneChoice", error, G_TYPE_INVALID, G_TYPE_STRING, OUT_tone, G_TYPE_INVALID);
+}
+
+typedef void (*org_sflphone_SFLphone_ConfigurationManager_get_ringtone_choice_reply) (DBusGProxy *proxy, char * OUT_tone, GError *error, gpointer userdata);
+
+static void
+org_sflphone_SFLphone_ConfigurationManager_get_ringtone_choice_async_callback (DBusGProxy *proxy, DBusGProxyCall *call, void *user_data)
+{
+  DBusGAsyncData *data = (DBusGAsyncData*) user_data;
+  GError *error = NULL;
+  char * OUT_tone;
+  dbus_g_proxy_end_call (proxy, call, &error, G_TYPE_STRING, &OUT_tone, G_TYPE_INVALID);
+  (*(org_sflphone_SFLphone_ConfigurationManager_get_ringtone_choice_reply)data->cb) (proxy, OUT_tone, error, data->userdata);
+  return;
+}
+
+static
+#ifdef G_HAVE_INLINE
+inline
+#endif
+DBusGProxyCall*
+org_sflphone_SFLphone_ConfigurationManager_get_ringtone_choice_async (DBusGProxy *proxy, org_sflphone_SFLphone_ConfigurationManager_get_ringtone_choice_reply callback, gpointer userdata)
+
+{
+  DBusGAsyncData *stuff;
+  stuff = g_new (DBusGAsyncData, 1);
+  stuff->cb = G_CALLBACK (callback);
+  stuff->userdata = userdata;
+  return dbus_g_proxy_begin_call (proxy, "getRingtoneChoice", org_sflphone_SFLphone_ConfigurationManager_get_ringtone_choice_async_callback, stuff, g_free, G_TYPE_INVALID);
+}
+static
+#ifdef G_HAVE_INLINE
+inline
+#endif
+gboolean
+org_sflphone_SFLphone_ConfigurationManager_set_ringtone_choice (DBusGProxy *proxy, const char * IN_tone, GError **error)
+
+{
+  return dbus_g_proxy_call (proxy, "setRingtoneChoice", error, G_TYPE_STRING, IN_tone, G_TYPE_INVALID, G_TYPE_INVALID);
+}
+
+typedef void (*org_sflphone_SFLphone_ConfigurationManager_set_ringtone_choice_reply) (DBusGProxy *proxy, GError *error, gpointer userdata);
+
+static void
+org_sflphone_SFLphone_ConfigurationManager_set_ringtone_choice_async_callback (DBusGProxy *proxy, DBusGProxyCall *call, void *user_data)
+{
+  DBusGAsyncData *data = (DBusGAsyncData*) user_data;
+  GError *error = NULL;
+  dbus_g_proxy_end_call (proxy, call, &error, G_TYPE_INVALID);
+  (*(org_sflphone_SFLphone_ConfigurationManager_set_ringtone_choice_reply)data->cb) (proxy, error, data->userdata);
+  return;
+}
+
+static
+#ifdef G_HAVE_INLINE
+inline
+#endif
+DBusGProxyCall*
+org_sflphone_SFLphone_ConfigurationManager_set_ringtone_choice_async (DBusGProxy *proxy, const char * IN_tone, org_sflphone_SFLphone_ConfigurationManager_set_ringtone_choice_reply callback, gpointer userdata)
+
+{
+  DBusGAsyncData *stuff;
+  stuff = g_new (DBusGAsyncData, 1);
+  stuff->cb = G_CALLBACK (callback);
+  stuff->userdata = userdata;
+  return dbus_g_proxy_begin_call (proxy, "setRingtoneChoice", org_sflphone_SFLphone_ConfigurationManager_set_ringtone_choice_async_callback, stuff, g_free, G_TYPE_STRING, IN_tone, G_TYPE_INVALID);
+}
+static
+#ifdef G_HAVE_INLINE
+inline
+#endif
+gboolean
 org_sflphone_SFLphone_ConfigurationManager_get_codec_list (DBusGProxy *proxy, char *** OUT_list, GError **error)
 
 {
@@ -1176,6 +1326,44 @@ org_sflphone_SFLphone_ConfigurationManager_get_current_audio_output_plugin_async
   stuff->cb = G_CALLBACK (callback);
   stuff->userdata = userdata;
   return dbus_g_proxy_begin_call (proxy, "getCurrentAudioOutputPlugin", org_sflphone_SFLphone_ConfigurationManager_get_current_audio_output_plugin_async_callback, stuff, g_free, G_TYPE_INVALID);
+}
+static
+#ifdef G_HAVE_INLINE
+inline
+#endif
+gboolean
+org_sflphone_SFLphone_ConfigurationManager_is_iax2_enabled (DBusGProxy *proxy, gint* OUT_res, GError **error)
+
+{
+  return dbus_g_proxy_call (proxy, "isIax2Enabled", error, G_TYPE_INVALID, G_TYPE_INT, OUT_res, G_TYPE_INVALID);
+}
+
+typedef void (*org_sflphone_SFLphone_ConfigurationManager_is_iax2_enabled_reply) (DBusGProxy *proxy, gint OUT_res, GError *error, gpointer userdata);
+
+static void
+org_sflphone_SFLphone_ConfigurationManager_is_iax2_enabled_async_callback (DBusGProxy *proxy, DBusGProxyCall *call, void *user_data)
+{
+  DBusGAsyncData *data = (DBusGAsyncData*) user_data;
+  GError *error = NULL;
+  gint OUT_res;
+  dbus_g_proxy_end_call (proxy, call, &error, G_TYPE_INT, &OUT_res, G_TYPE_INVALID);
+  (*(org_sflphone_SFLphone_ConfigurationManager_is_iax2_enabled_reply)data->cb) (proxy, OUT_res, error, data->userdata);
+  return;
+}
+
+static
+#ifdef G_HAVE_INLINE
+inline
+#endif
+DBusGProxyCall*
+org_sflphone_SFLphone_ConfigurationManager_is_iax2_enabled_async (DBusGProxy *proxy, org_sflphone_SFLphone_ConfigurationManager_is_iax2_enabled_reply callback, gpointer userdata)
+
+{
+  DBusGAsyncData *stuff;
+  stuff = g_new (DBusGAsyncData, 1);
+  stuff->cb = G_CALLBACK (callback);
+  stuff->userdata = userdata;
+  return dbus_g_proxy_begin_call (proxy, "isIax2Enabled", org_sflphone_SFLphone_ConfigurationManager_is_iax2_enabled_async_callback, stuff, g_free, G_TYPE_INVALID);
 }
 #endif /* defined DBUS_GLIB_CLIENT_WRAPPERS_org_sflphone_SFLphone_ConfigurationManager */
 

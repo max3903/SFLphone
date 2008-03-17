@@ -18,21 +18,52 @@
  */
 
 #include "contact.h"
-#include <string>
 
 Contact::Contact()
 {
 }
 
-Contact::Contact(const std::string contactID, const std::string name, const std::string url)
+Contact::Contact(const std::string contactID, const std::string firstName, const std::string lastName, const std::string email)
 {
 	_contactID = contactID;
-	_name = name;
-	_url = url;
-	_suscribeToPresence = true;
-	_presence = NULL;
+	_firstName = firstName;
+	_lastName = lastName;
+	_email = email;
+}
+
+Contact::Contact(const std::string contactID, const std::string firstName, const std::string lastName,
+		const std::string email, const std::string group, const std::string subGroup)
+{
+	_contactID = contactID;
+	_firstName = firstName;
+	_lastName = lastName;
+	_email = email;
+	_group = group;
+	_subGroup = subGroup;
 }
 
 Contact::~Contact()
 {
+	// Delete contact entries
+	std::vector<ContactEntry*>::iterator iter;
+	
+	iter = _entries.begin();
+	while (iter != _entries.end())
+	{
+		delete *iter;
+		*iter = NULL;
+		iter++;
+	}
+}
+
+const std::vector<ContactEntry*>
+Contact::getEntries()
+{
+	return _entries;
+}
+
+void
+Contact::addEntry(ContactEntry* entry)
+{
+	_entries.push_back(entry);
 }

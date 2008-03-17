@@ -32,6 +32,7 @@ DBusManagerImpl::exec(){
 
     _callManager = new CallManager(conn);
     _configurationManager = new ConfigurationManager(conn);
+    _contactManager = new ContactManager(conn);
     _instanceManager = new Instance(conn);
 
     // Register accounts
@@ -39,7 +40,7 @@ DBusManagerImpl::exec(){
 
     _debug("Starting DBus event loop\n");
     _dispatcher.enter();
-
+    
     return 1;
 }
         

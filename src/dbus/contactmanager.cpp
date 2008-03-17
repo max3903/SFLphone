@@ -20,16 +20,49 @@
 #include <contactmanager.h>
 #include "../manager.h"
 
+#include <vector>
+#include <string>
+
 const char* ContactManager::SERVER_PATH = "/org/sflphone/SFLphone/ContactManager";
 
-std::map< ::DBus::String, ::DBus::String >
+ContactManager::ContactManager(DBus::Connection& connection)
+: DBus::ObjectAdaptor(connection, SERVER_PATH)
+{
+}
+
+std::vector< ::DBus::String >
 ContactManager::getContacts( const ::DBus::String& accountID )
+{
+	// NOW
+	return Manager::instance().getContacts(accountID);
+}
+
+std::vector< ::DBus::String >
+ContactManager::getContactDetails( const ::DBus::String& accountID, const ::DBus::String& contactID )
+{
+	return Manager::instance().getContactDetails(accountID, contactID);
+}
+
+std::vector< ::DBus::String >
+ContactManager::getContactEntries( const ::DBus::String& accountID, const ::DBus::String& contactID )
+{
+	return Manager::instance().getContactEntries(accountID, contactID);
+}
+
+std::vector< ::DBus::String >
+ContactManager::getContactEntryDetails( const ::DBus::String& accountID, const ::DBus::String& contactID, const ::DBus::String& contactEntryID )
+{
+	return Manager::instance().getContactEntryDetails(accountID, contactID, contactEntryID);
+}
+
+void
+ContactManager::setContacts( const ::DBus::String& accountID, const std::vector< ::DBus::String >& details )
 {
 	// TODO
 }
 
 void
-ContactManager::setContacts( const ::DBus::String& accountID, const std::map< ::DBus::String, ::DBus::String >& details )
+ContactManager::setContactEntries( const ::DBus::String& contactID, const std::vector< ::DBus::String >& details )
 {
 	// TODO
 }

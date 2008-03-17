@@ -24,6 +24,7 @@
 #include <calllist.h>
 #include <accountlist.h>
 #include <codeclist.h>
+#include <contactlist.h>
 #include <videocodeclist.h>
 
 /** @file actions.h
@@ -104,9 +105,13 @@ void sflphone_keypad ( guint keyval, gchar * key);
  */
 void sflphone_place_call ( call_t * c );
 
+/**
+ * Initially load data for accounts, codecs and contacts
+ */
 void sflphone_fill_account_list();
 void sflphone_set_default_account();
-
 void sflphone_fill_codec_list();
+void sflphone_fill_contact_list();
+
 void sflphone_fill_video_codec_list();
 #endif 

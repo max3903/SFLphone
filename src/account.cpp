@@ -2,6 +2,7 @@
  *  Copyright (C) 2006-2007 Savoir-Faire Linux inc.
  *  Author: Alexandre Bourget <alexandre.bourget@savoirfairelinux.com>
  *  Author: Yan Morin <yan.morin@savoirfairelinux.com>
+ *  Author: Guillaume Carmel-Archambault <guillaume.carmel-archambault@savoirfairelinux.com>
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -31,12 +32,30 @@ Account::Account(const AccountID& accountID) : _accountID(accountID)
 
 Account::~Account()
 {
+	// Delete contacts
+	std::vector<Contact*>::iterator iter;
+	
+	iter = _contacts.begin();
+	while (iter != _contacts.end())
+	{
+		delete *iter;
+		*iter = NULL;
+		iter++;
+	}
 }
 
 void
 Account::loadConfig()
 {
-	_enabled = Manager::instance().getConfigInt(_accountID, CONFIG_ACCOUNT_ENABLE) ? true : false;
+	std::string p =  Manager::instance().getConfigString( _accountID , CONFIG_ACCOUNT_TYPE );
+#ifdef USE_IAX	
+	  _enabled = Manager::instance().getConfigInt(_accountID, CONFIG_ACCOUNT_ENABLE) ? true : false;
+#else
+	if( p.c_str() == "IAX" )
+	  _enabled = false;
+	else
+	  _enabled = Manager::instance().getConfigInt(_accountID, CONFIG_ACCOUNT_ENABLE) ? true : false;
+#endif
 }
 
 // NOW
@@ -44,17 +63,28 @@ void
 Account::loadContacts()
 {
 	// TMP
-	Contact* contact1 = new Contact("1223345", "Guillaume140", "<sip:140@asterix.inside.savoirfairelinux.net>");
+	// Exemple de chargement de contacts pour account 203
+	Contact* contact1 = new Contact("GuillaumeID", "Guillaume", "Carmel-Archambault", "guillaume.carmel-archambault@savoirfairelinux.com");
+	ContactEntry* entry1 = new ContactEntry("201", "work", true, true);
+	contact1->addEntry(entry1);
+	ContactEntry* entry2 = new ContactEntry("514-123-1234", "home", false, false);
+	contact1->addEntry(entry2);
 	_contacts.push_back(contact1);
-	Contact* contact2 = new Contact("9876543", "SFLphone131", "<sip:131@asterix.inside.savoirfairelinux.net>");
-	_contacts.push_back(contact2);
-	Contact* contact3 = new Contact("6867823", "Guillaume201", "<sip:201@192.168.1.202:5066>");
-	_contacts.push_back(contact3);
-	Contact* contact4 = new Contact("3417928", "SFLphone203", "<sip:203@192.168.1.202:5066>");
-	_contacts.push_back(contact4);
 	
+	Contact* contact2 = new Contact("JeromeID", "Jerome", "Oufella", "jerome.oufella@savoirfairelinux.com");
+	ContactEntry* entry3 = new ContactEntry("204", "work", true, true);
+	contact2->addEntry(entry3);
+	ContactEntry* entry4 = new ContactEntry("514-987-9876", "home", true, false);
+	contact2->addEntry(entry4);
+	_contacts.push_back(contact2);
+
 	// TODO Load contact file containing list of contacts
-	// or a configuration for LDAP contacts
+}
+
+const std::vector<Contact*>
+Account::getContacts()
+{
+	return _contacts;
 }
 
 void
@@ -62,8 +92,8 @@ Account::subscribeContactsPresence()
 {
 	if(_link->isContactPresenceSupported())
 	{
-		// Subscribe to presence for each contact that presence is enabled
-		std::vector<Contact*>::iterator iter;
+		// Subscribe to presence for each contact entry that presence is enabled
+		std::vector<Contact*>::const_iterator iter;
 		
 		for(iter = _contacts.begin(); iter != _contacts.end(); iter++)
 		{

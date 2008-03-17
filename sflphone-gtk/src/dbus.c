@@ -23,6 +23,7 @@
 #include <calllist.h>
 #include <callmanager-glue.h>
 #include <configurationmanager-glue.h>
+#include <contactmanager-glue.h>
 #include <instance-glue.h>
 #include <configwindow.h>
 #include <mainwindow.h>
@@ -37,6 +38,7 @@
 DBusGConnection * connection;
 DBusGProxy * callManagerProxy;
 DBusGProxy * configurationManagerProxy;
+DBusGProxy * contactManagerProxy;
 DBusGProxy * instanceProxy;
 
 static void  
@@ -243,6 +245,17 @@ dbus_connect ()
     "accountsChanged", G_TYPE_INVALID);
   dbus_g_proxy_connect_signal (configurationManagerProxy,
     "accountsChanged", G_CALLBACK(accounts_changed_cb), NULL, NULL);
+  
+  contactManagerProxy = dbus_g_proxy_new_for_name (connection,
+                                  "org.sflphone.SFLphone",
+                                  "/org/sflphone/SFLphone/ContactManager",
+                                  "org.sflphone.SFLphone.ContactManager");
+  if (!contactManagerProxy)
+  {
+    g_printerr("Failed to get proxy to ContactManager\n");
+    return FALSE;
+  }
+  g_print("DBus connected to ContactManager\n");
    
   return TRUE;
 }
@@ -252,6 +265,7 @@ dbus_clean ()
 {
     g_object_unref (callManagerProxy);
     g_object_unref (configurationManagerProxy);
+    g_object_unref (contactManagerProxy);
 }
 
 void
@@ -1134,4 +1148,180 @@ dbus_get_current_audio_output_plugin()
 	else
 		g_print("DBus called get_current_audio_output_plugin() on ConfigurationManager\n");
 	return plugin;
+}
+
+
+gchar*
+dbus_get_ringtone_choice()
+{
+	gchar* tone;
+	GError* error = NULL;
+	org_sflphone_SFLphone_ConfigurationManager_get_ringtone_choice(
+			configurationManagerProxy,
+			&tone,
+			&error);
+	g_print("After");
+	if(error)
+	{
+		g_error_free(error);
+	}
+	else
+		g_print("DBus called get_ringtone_choice() on ConfigurationManager\n");
+	return tone;
+}
+
+void
+dbus_set_ringtone_choice( const gchar* tone )
+{
+	GError* error = NULL;
+	org_sflphone_SFLphone_ConfigurationManager_set_ringtone_choice(
+			configurationManagerProxy,
+			tone,
+			&error);
+	g_print("After");
+	if(error)
+	{
+		g_error_free(error);
+	}
+	else
+		g_print("DBus called set_ringtone_choice() on ConfigurationManager\n");
+}
+
+int
+dbus_is_ringtone_enabled()
+{
+	int res;
+	GError* error = NULL;
+	org_sflphone_SFLphone_ConfigurationManager_is_ringtone_enabled(
+			configurationManagerProxy,
+			&res,
+			&error);
+	g_print("After");
+	if(error)
+	{
+		g_error_free(error);
+	}
+	else
+		g_print("DBus called is_ringtone_enabled() on ConfigurationManager\n");
+	return res;
+}
+
+void
+dbus_ringtone_enabled()
+{
+	GError* error = NULL;
+	org_sflphone_SFLphone_ConfigurationManager_ringtone_enabled(
+			configurationManagerProxy,
+			&error);
+	g_print("After");
+	if(error)
+	{
+		g_error_free(error);
+	}
+	else
+		g_print("DBus called ringtone_enabled() on ConfigurationManager\n");
+}
+
+int
+dbus_is_iax2_enabled()
+{
+	int res;
+	GError* error = NULL;
+	org_sflphone_SFLphone_ConfigurationManager_is_iax2_enabled(
+			configurationManagerProxy,
+			&res,
+			&error);
+	g_print("After");
+	if(error)
+	{
+		g_error_free(error);
+	}
+	else
+		g_print("DBus called is_iax2_enabled() on ConfigurationManager\n");
+	return res;
+}
+
+gchar**
+dbus_get_contacts(gchar* accountID)
+{
+	gchar** array;
+	GError* error = NULL;
+	org_sflphone_SFLphone_ContactManager_get_contacts(
+			contactManagerProxy, 
+			accountID,
+			&array,
+			&error);
+	if(error)
+	{
+		g_printerr ("Failed to call get_contacts() on ContactManager: %s\n", error->message);
+		g_error_free (error);
+	}
+	else
+		g_print ("DBus called get_contacts() on ContactManager\n");
+	return array;
+}
+
+
+gchar**
+dbus_get_contact_details(gchar* accountID, gchar* contactID)
+{
+	gchar** array;
+	GError* error = NULL;
+	org_sflphone_SFLphone_ContactManager_get_contact_details(
+			contactManagerProxy,
+			accountID,
+			contactID,
+			&array,
+			&error);
+	if(error)
+	{
+		g_printerr ("Failed to call get_contact_details() on ContactManager: %s\n", error->message);
+		g_error_free (error);
+	}
+	else
+		g_print ("DBus called get_contact_details() on ContactManager\n");
+	return array;
+}
+
+gchar**
+dbus_get_contact_entries(gchar* accountID, gchar* contactID)
+{
+	gchar** array;
+	GError* error = NULL;
+	org_sflphone_SFLphone_ContactManager_get_contact_entries(
+			contactManagerProxy, 
+			accountID,
+			contactID,
+			&array,
+			&error);
+	if(error)
+	{
+		g_printerr ("Failed to call get_contact_entries() on ContactManager: %s\n", error->message);
+		g_error_free (error);
+	}
+	else
+		g_print ("DBus called get_contact_entries() on ContactManager\n");
+	return array;
+}
+
+gchar**
+dbus_get_contact_entry_details(gchar* accountID, gchar* contactID, gchar* entryID)
+{
+	gchar** array;
+	GError* error = NULL;
+	org_sflphone_SFLphone_ContactManager_get_contact_entry_details(
+			contactManagerProxy,
+			accountID,
+			contactID,
+			entryID,
+			&array,
+			&error);
+	if(error)
+	{
+		g_printerr ("Failed to call get_contact_entry_details on ContactManager: %s\n", error->message);
+		g_error_free (error);
+	}
+	else
+		g_print ("DBus called get_contact_entry_details on ContactManager\n");
+	return array;
 }

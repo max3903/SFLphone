@@ -982,7 +982,8 @@ SIPVoIPLink::subscribePresenceForContact(Contact* contact)
 	
 	int i;
 	
-	std::string to   = contact->getUrl().data();
+	// NOW change for contact entry
+	std::string to   = "todo";	// Take entry instead of contact
 	std::ostringstream from;
 	
 	// Build URL of sender
@@ -1101,7 +1102,7 @@ SIPVoIPLink::SIPStartCall(SIPCall* call, const std::string& subject)
 
   std::ostringstream media_audio;
   std::ostringstream rtpmap_attr;
-  CodecType payload;
+  AudioCodecType payload;
   int nbChannel;
   int iter;
 

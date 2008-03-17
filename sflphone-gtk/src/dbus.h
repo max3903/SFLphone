@@ -77,24 +77,32 @@ void dbus_set_audio_input_device(const int index);
 gchar** dbus_get_current_audio_devices_index();
 int dbus_get_audio_device_index(const gchar* name);
 gchar* dbus_get_current_audio_output_plugin();
-
+int dbus_is_iax2_enabled( void );
+int dbus_is_ringtone_enabled( void );
+gchar* dbus_get_ringtone_choice( void );
+void dbus_set_ringtone_choice( const gchar* tone );
 
 /*
 // TODO: Add other function to manage d-bus communication
 
 //Webcam Status change
-void dbus_enable_WebCam();
-void dbus_disable_Webcam();
+void dbus_enable_webcam();
+void dbus_disable_webcam();
 
 //Video Information
-void dbus_video_Available();
-void dbus_video_Not_Available();
+void dbus_video_available();
+void dbus_video_not_available();
 
 //Invite 3rd person
-void dbus_invite_Person( const call_t * c );
-void dbus_invite_Response( const call_t * c );
-
+void dbus_invite_person( const call_t * c );
+void dbus_invite_response( const call_t * c );
 */
+
+/** ContactManager */
+gchar** dbus_get_contacts(gchar* accountID);
+gchar** dbus_get_contact_details(gchar* accountID, gchar* contactID);
+gchar** dbus_get_contact_entries(gchar* accountID, gchar* contactID);
+gchar** dbus_get_contact_entry_details(gchar* accountID, gchar* contactID, gchar* entryID);
 
 /* Instance */
 void dbus_register( int pid, gchar * name);

@@ -1,6 +1,6 @@
 /*
- *  Copyright (C) 2007 Savoir-Faire Linux inc.
- *  Author: Pierre-Luc Beaudoin <pierre-luc@squidy.info>
+ *  Copyright (C) 2008 Savoir-Faire Linux inc.
+ *  Author: Guillaume Carmel-Archambault <guillaume.carmel-archambault@savoirfairelinux.com>
  *                                                                              
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -17,29 +17,16 @@
  *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
-#ifndef __DBUSMANAGERIMPL_H__
-#define __DBUSMANAGERIMPL_H__
+#ifndef __CONTACTWINDOW_H__
+#define __CONTACTWINDOW_H__
 
-#include "callmanager.h"
-#include "configurationmanager.h"
-#include "contactmanager.h"
-#include "instance.h"
+#include <calllist.h>
 
-class DBusManagerImpl {
-    public:
-        CallManager * getCallManager(){ return _callManager; };
-        ConfigurationManager * getConfigurationManager(){ return _configurationManager; };
-        ContactManager* getContactManager() { return _contactManager; };
-        int exec();
-        void exit();
-        static const char* SERVER_NAME;
-        
-    private:
-        CallManager*          _callManager;
-        ConfigurationManager* _configurationManager;
-        ContactManager*       _contactManager;
-        Instance*             _instanceManager;
-        DBus::BusDispatcher   _dispatcher;
-};
+/**
+ * @file contactwindow.h
+ * @brief The Contacts window.
+ */
+void contact_window_fill_contact_list();
+void show_contact_window();
 
-#endif
+#endif 
