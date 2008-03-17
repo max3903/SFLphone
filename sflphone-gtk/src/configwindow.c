@@ -870,6 +870,26 @@ codec_move_down(GtkButton *button, gpointer data)
 }
 
 /**
+ * Called from move up video codec button signal
+ */
+static void
+video_codec_move_up(GtkButton *button, gpointer data)
+{
+	// Change tree view ordering and get indice changed
+	video_codec_move(TRUE, data);
+}
+
+/**
+ * Called from move down video codec button signal
+ */
+static void
+video_codec_move_down(GtkButton *button, gpointer data)
+{
+	// Change tree view ordering and get indice changed
+	video_codec_move(FALSE, data);
+}
+
+/**
  * Select default account that is rendered in bold
  */
 void
@@ -995,12 +1015,12 @@ create_video_codec_table()
 	moveUpButtonVideo = gtk_button_new_from_stock(GTK_STOCK_GO_UP);
 	gtk_widget_set_sensitive(GTK_WIDGET(moveUpButtonVideo), FALSE);
 	gtk_box_pack_start(GTK_BOX(buttonBox), moveUpButtonVideo, FALSE, FALSE, 0);
-	g_signal_connect(G_OBJECT(moveUpButtonVideo), "clicked", G_CALLBACK(codec_move_up), videoCodecTreeView);
+	g_signal_connect(G_OBJECT(moveUpButtonVideo), "clicked", G_CALLBACK(video_codec_move_up), videoCodecTreeView);
 	
 	moveDownButtonVideo = gtk_button_new_from_stock(GTK_STOCK_GO_DOWN);
 	gtk_widget_set_sensitive(GTK_WIDGET(moveDownButtonVideo), FALSE);
 	gtk_box_pack_start(GTK_BOX(buttonBox), moveDownButtonVideo, FALSE, FALSE, 0);
-	g_signal_connect(G_OBJECT(moveDownButtonVideo), "clicked", G_CALLBACK(codec_move_down), videoCodecTreeView);
+	g_signal_connect(G_OBJECT(moveDownButtonVideo), "clicked", G_CALLBACK(video_codec_move_down), videoCodecTreeView);
 	
 	config_window_fill_video_codec_list();
 	
