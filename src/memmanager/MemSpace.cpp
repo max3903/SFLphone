@@ -43,6 +43,7 @@ bool MemSpace::putData(void * Data, int size)
 {
 	strcpy(this->baseAddress,(char*)Data);
 	this->theKey->setSize(size);
+	return true;
 }
 
 MemData* MemSpace::fetchData()
