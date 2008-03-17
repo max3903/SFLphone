@@ -3,34 +3,45 @@
 #include "VideoInput.h"
 #include "TimeInfo.h"
 
-
-int VideoInput::fetchData(char* data) const 
+// TODO: Impossible de mettre des semaphores dans des fonction Const, je l'ai donc enlevé! ok ?
+int VideoInput::fetchData(char* data)
 { 
-  return 0;
+  sem_wait(&semaphore);
+  memcpy(buffer,data,sizeBuffer);
+  sem_post(&semaphore);
+  return 0;		// TODO: Et le return il sert à quoi ??
 }
 
 TimeInfo VideoInput::fetchTimeInfo() const 
 { 
-  TimeInfo tmp(0);
-  return tmp;
+  return (*infoTemps);
 }
 
-void VideoInput::putData(char * data, int size)
+void VideoInput::putData(char * data, int size, int leTemps)
 { 
-
+  sem_wait(&semaphore);
+  buffer = new char[size];
+  infoTemps = new TimeInfo(leTemps);
+  memcpy(data,buffer,size);
+  sizeBuffer=size;
+  sem_post(&semaphore);
 }
 
 VideoInput::VideoInput()
 {
-
+  sem_init(&semaphore,0,1);
+  // J'initie buffer et infoTemps  null ???? et je teste non null dans fetch?
 }
 
 VideoInput::~VideoInput()
 {
-
+  // verifier que c'est null avant.
+  delete []buffer;
+  delete infoTemps;
+  sem_destroy(&semaphore);
 }
 
 void VideoInput::putTimeInfo(TimeInfo* infos)
 {
-
+  infoTemps = infos;
 }
