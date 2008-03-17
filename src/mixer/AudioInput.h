@@ -41,7 +41,7 @@ public:
      * \param data a pointer to a data buffer
      * \param size the size of the buffer
      */
-    virtual void putData(int16 *data, int size);
+    virtual void putData(int16 *data, int size, int leTemps);
 
     //! Access the data contained the the buffer
     /*!
@@ -50,7 +50,7 @@ public:
      * \param data a pointer to where the data must be copied
      * \return the size of the fetched data 
      */
-    virtual int fetchData(int16 *data) const;
+    virtual int fetchData(int16 *data);
 
     void putTimeInfo(TimeInfo* infos);
 
@@ -63,6 +63,7 @@ private:
 
     TimeInfo* infoTemps;
     int16 * buffer;
+    int sizeBuffer;
     
 };
 #endif //AUDIOINPUT_H

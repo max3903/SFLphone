@@ -2,33 +2,47 @@
 
 #include "AudioInput.h"
 #include "TimeInfo.h"
+#include <string.h>
 
 TimeInfo AudioInput::fetchTimeInfo() const
 {
-  TimeInfo tmp(0);
-  return tmp;
+  return (*infoTemps);   // TODO: AJOUTER LE SEMAPHORE semophore ! Mais comment encore ?
 }
 
-void AudioInput::putData(int16 *data, int size)
-{ 
+void AudioInput::putData(int16 *data, int size, int leTemps)
+{
+  sem_wait(&semaphore);
+  buffer = new int16[size];   // Ca consomme beaucoup un new a cette frequence dappel?
+  infoTemps = new TimeInfo(leTemps);
+  memcpy(data,buffer,size);
+  sizeBuffer=size;
+  sem_post(&semaphore);
 }
 
-int AudioInput::fetchData(int16 *data) const 
+// TODO: Impossible de mettre des semaphore dans des fonction Const, je l'ai donc enlevé! ok ?
+int AudioInput::fetchData(int16 *data) 
 { 
-  return 0;
+  sem_wait(&semaphore);
+  memcpy(buffer,data,sizeBuffer);
+  sem_post(&semaphore);
+  return 0;		// TODO: Et le return, il sert à quoi ??
 }
 
 AudioInput::AudioInput()
 {
-  
+  sem_init(&semaphore,0,1);
+  // J'initie buffer et infoTemps  null ????  et je teste non null dans fetch?
 }
 
 AudioInput::~AudioInput()
 {
-  
+  // verifier que c'est null avant???
+  delete []buffer;
+  delete infoTemps;
+  sem_destroy(&semaphore);
 }
 
 void AudioInput::putTimeInfo(TimeInfo* infos)
 {
-  
+  infoTemps = infos;
 }

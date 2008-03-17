@@ -42,6 +42,8 @@ protected:
 	
 	//! Data Buffer for the video data
     char * buffer;
+    int sizeBuffer;
+    sem_t semaphore;
     
 private:
 	
