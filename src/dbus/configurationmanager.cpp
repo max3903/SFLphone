@@ -107,7 +107,7 @@ ConfigurationManager::getCodecList(  )
 	std::vector< ::DBus::String > 
 ConfigurationManager::getCodecDetails( const ::DBus::Int32& payload )
 {
-	_debug("ConfigurationManager::getCodecList received\n");
+	_debug("ConfigurationManager::getCodecDetails received\n");
 	return Manager::instance().getCodecDetails( payload );
 }
 
@@ -123,6 +123,34 @@ ConfigurationManager::setActiveCodecList( const std::vector< ::DBus::String >& l
 {
 	_debug("ConfigurationManager::setActiveCodecList received\n");
 	 Manager::instance().setActiveCodecList(list);
+}
+
+	std::vector< ::DBus::String  > 
+ConfigurationManager::getVideoCodecList(  )
+{
+	_debug("ConfigurationManager::getVideoCodecList received\n");
+	return Manager::instance().getVideoCodecList();
+}
+
+	std::vector< ::DBus::String > 
+ConfigurationManager::getVideoCodecDetails( const ::DBus::Int32& payload )
+{
+	_debug("ConfigurationManager::getVideoCodecDetails received\n");
+	return Manager::instance().getVideoCodecDetails( payload );
+}
+
+	std::vector< ::DBus::String > 
+ConfigurationManager::getActiveVideoCodecList(  )
+{
+	_debug("ConfigurationManager::getActiveVideoCodecList received\n");
+	return Manager::instance().getActiveVideoCodecList();
+}
+
+void 
+ConfigurationManager::setActiveVideoCodecList( const std::vector< ::DBus::String >& list )
+{
+	_debug("ConfigurationManager::setActiveVideoCodecList received\n");
+	 Manager::instance().setActiveVideoCodecList(list);
 }
 
 // Audio devices related methods
@@ -230,3 +258,34 @@ ConfigurationManager::setDefaultAccount( const ::DBus::String& accountID )
 	Manager::instance().setDefaultAccount(accountID);
 
 }
+
+::DBus::Int32
+ConfigurationManager::isIax2Enabled( void )
+{
+  return Manager::instance().isIax2Enabled(  ); 
+}
+
+void
+ConfigurationManager::ringtoneEnabled( void )
+{
+  Manager::instance().ringtoneEnabled(  ); 
+}
+
+::DBus::Int32
+ConfigurationManager::isRingtoneEnabled( void )
+{
+  return Manager::instance().isRingtoneEnabled(  ); 
+}
+
+::DBus::String
+ConfigurationManager::getRingtoneChoice( void )
+{
+  return Manager::instance().getRingtoneChoice(  ); 
+}
+
+void
+ConfigurationManager::setRingtoneChoice( const ::DBus::String& tone )
+{
+  Manager::instance().setRingtoneChoice( tone ); 
+}
+

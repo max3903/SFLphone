@@ -15,7 +15,8 @@
     }
     else{
       this->videoDevice->setBrightness(currentValue+value);
-      return true; // indicate that the value has been increased
+      // ioctl call in VideoDevice to apply changes
+      return this->videoDevice->applyChanges('p'); // indicate that the value has been increased and if ioctl has been correctly done (return true or false)
     }
     
   }
@@ -29,23 +30,25 @@
     }
     else{
       this->videoDevice->setBrightness(currentValue-value);
-      return true; // indicate that the value has been increased
+      // ioctl call in VideoDevice to apply changes
+      return this->videoDevice->applyChanges('p'); // indicate that the value has been decreased and if ioctl has been correctly done (return true or false)
     }
     
   }
 
   bool Brightness::setTo(__u16 value){
-
-    return true;
+    this->videoDevice->setBrightness(value);
+    // ioctl call in VideoDevice to apply changes
+    return this->videoDevice->applyChanges('p'); // indicate that the value has been seted and if ioctl has been correctly done (return true or false)
   }
 
   bool Brightness::reset(){
-
+    //\ TODO
     return true;
   }
   
   char* Brightness::getBrightness(){
-
+    //\ TODO
     return 0;
   }
 

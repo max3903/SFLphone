@@ -70,6 +70,19 @@ public:
      * \param size the size of data
      */
     void putData(char * data, int size);
+    
+    
+    //! Method to get the data in the buffer
+    /*!
+     * Method get the data
+     */
+     char* getData();
+     
+     //! Method to set the data in the buffer
+    /*!
+     * Method set the data
+     */
+     void setData(char * data);
         
 private:
 	

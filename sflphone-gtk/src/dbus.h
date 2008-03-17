@@ -59,6 +59,10 @@ gchar** dbus_codec_details(int payload);
 gchar** dbus_default_codec_list();
 gchar** dbus_get_active_codec_list( void );
 void dbus_set_active_codec_list( const gchar** list );
+gchar** dbus_video_codec_list();
+gchar** dbus_video_codec_details(int payload);
+gchar** dbus_get_active_video_codec_list( void );
+void dbus_set_active_video_codec_list( const gchar** list );
 
 // Audio devices related methods
 gchar** dbus_get_input_audio_plugin_list();
@@ -73,6 +77,11 @@ void dbus_set_audio_input_device(const int index);
 gchar** dbus_get_current_audio_devices_index();
 int dbus_get_audio_device_index(const gchar* name);
 gchar* dbus_get_current_audio_output_plugin();
+int dbus_is_iax2_enabled( void );
+int dbus_is_ringtone_enabled( void );
+void dbus_ringtone_enabled( void );
+gchar* dbus_get_ringtone_choice( void );
+void dbus_set_ringtone_choice( const gchar* tone );
 
 /*
 // TODO: Add other function to manage d-bus communication

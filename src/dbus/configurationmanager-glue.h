@@ -32,10 +32,18 @@ public:
         register_method(ConfigurationManager, getRingtoneList, _getRingtoneList_stub);
         register_method(ConfigurationManager, getPlaybackDeviceList, _getPlaybackDeviceList_stub);
         register_method(ConfigurationManager, getRecordDeviceList, _getRecordDeviceList_stub);
+        register_method(ConfigurationManager, isRingtoneEnabled, _isRingtoneEnabled_stub);
+        register_method(ConfigurationManager, ringtoneEnabled, _ringtoneEnabled_stub);
+        register_method(ConfigurationManager, getRingtoneChoice, _getRingtoneChoice_stub);
+        register_method(ConfigurationManager, setRingtoneChoice, _setRingtoneChoice_stub);
         register_method(ConfigurationManager, getCodecList, _getCodecList_stub);
         register_method(ConfigurationManager, getCodecDetails, _getCodecDetails_stub);
         register_method(ConfigurationManager, getActiveCodecList, _getActiveCodecList_stub);
         register_method(ConfigurationManager, setActiveCodecList, _setActiveCodecList_stub);
+        register_method(ConfigurationManager, getVideoCodecList, _getVideoCodecList_stub);
+        register_method(ConfigurationManager, getVideoCodecDetails, _getVideoCodecDetails_stub);
+        register_method(ConfigurationManager, getActiveVideoCodecList, _getActiveVideoCodecList_stub);
+        register_method(ConfigurationManager, setActiveVideoCodecList, _setActiveVideoCodecList_stub);
         register_method(ConfigurationManager, getInputAudioPluginList, _getInputAudioPluginList_stub);
         register_method(ConfigurationManager, getOutputAudioPluginList, _getOutputAudioPluginList_stub);
         register_method(ConfigurationManager, setInputAudioPlugin, _setInputAudioPlugin_stub);
@@ -47,6 +55,7 @@ public:
         register_method(ConfigurationManager, getCurrentAudioDevicesIndex, _getCurrentAudioDevicesIndex_stub);
         register_method(ConfigurationManager, getAudioDeviceIndex, _getAudioDeviceIndex_stub);
         register_method(ConfigurationManager, getCurrentAudioOutputPlugin, _getCurrentAudioOutputPlugin_stub);
+        register_method(ConfigurationManager, isIax2Enabled, _isIax2Enabled_stub);
     }
 
     ::DBus::IntrospectedInterface* const introspect() const 
@@ -113,6 +122,25 @@ public:
             { "list", "as", false },
             { 0, 0, 0 }
         };
+        static ::DBus::IntrospectedArgument isRingtoneEnabled_args[] = 
+        {
+            { "bool", "i", false },
+            { 0, 0, 0 }
+        };
+        static ::DBus::IntrospectedArgument ringtoneEnabled_args[] = 
+        {
+            { 0, 0, 0 }
+        };
+        static ::DBus::IntrospectedArgument getRingtoneChoice_args[] = 
+        {
+            { "tone", "s", false },
+            { 0, 0, 0 }
+        };
+        static ::DBus::IntrospectedArgument setRingtoneChoice_args[] = 
+        {
+            { "tone", "s", true },
+            { 0, 0, 0 }
+        };
         static ::DBus::IntrospectedArgument getCodecList_args[] = 
         {
             { "list", "as", false },
@@ -130,6 +158,27 @@ public:
             { 0, 0, 0 }
         };
         static ::DBus::IntrospectedArgument setActiveCodecList_args[] = 
+        {
+            { "list", "as", true },
+            { 0, 0, 0 }
+        };
+        static ::DBus::IntrospectedArgument getVideoCodecList_args[] = 
+        {
+            { "list", "as", false },
+            { 0, 0, 0 }
+        };
+        static ::DBus::IntrospectedArgument getVideoCodecDetails_args[] = 
+        {
+            { "payload", "i", true },
+            { "details", "as", false },
+            { 0, 0, 0 }
+        };
+        static ::DBus::IntrospectedArgument getActiveVideoCodecList_args[] = 
+        {
+            { "list", "as", false },
+            { 0, 0, 0 }
+        };
+        static ::DBus::IntrospectedArgument setActiveVideoCodecList_args[] = 
         {
             { "list", "as", true },
             { 0, 0, 0 }
@@ -190,6 +239,11 @@ public:
             { "plugin", "s", false },
             { 0, 0, 0 }
         };
+        static ::DBus::IntrospectedArgument isIax2Enabled_args[] = 
+        {
+            { "res", "i", false },
+            { 0, 0, 0 }
+        };
         static ::DBus::IntrospectedArgument parametersChanged_args[] = 
         {
             { "list", "a{ss}", false },
@@ -213,10 +267,18 @@ public:
             { "getRingtoneList", getRingtoneList_args },
             { "getPlaybackDeviceList", getPlaybackDeviceList_args },
             { "getRecordDeviceList", getRecordDeviceList_args },
+            { "isRingtoneEnabled", isRingtoneEnabled_args },
+            { "ringtoneEnabled", ringtoneEnabled_args },
+            { "getRingtoneChoice", getRingtoneChoice_args },
+            { "setRingtoneChoice", setRingtoneChoice_args },
             { "getCodecList", getCodecList_args },
             { "getCodecDetails", getCodecDetails_args },
             { "getActiveCodecList", getActiveCodecList_args },
             { "setActiveCodecList", setActiveCodecList_args },
+            { "getVideoCodecList", getVideoCodecList_args },
+            { "getVideoCodecDetails", getVideoCodecDetails_args },
+            { "getActiveVideoCodecList", getActiveVideoCodecList_args },
+            { "setActiveVideoCodecList", setActiveVideoCodecList_args },
             { "getInputAudioPluginList", getInputAudioPluginList_args },
             { "getOutputAudioPluginList", getOutputAudioPluginList_args },
             { "setInputAudioPlugin", setInputAudioPlugin_args },
@@ -228,6 +290,7 @@ public:
             { "getCurrentAudioDevicesIndex", getCurrentAudioDevicesIndex_args },
             { "getAudioDeviceIndex", getAudioDeviceIndex_args },
             { "getCurrentAudioOutputPlugin", getCurrentAudioOutputPlugin_args },
+            { "isIax2Enabled", isIax2Enabled_args },
             { 0, 0 }
         };
         static ::DBus::IntrospectedMethod ConfigurationManager_signals[] = 
@@ -273,10 +336,18 @@ public:
     virtual std::vector< ::DBus::String > getRingtoneList(  ) = 0;
     virtual std::vector< ::DBus::String > getPlaybackDeviceList(  ) = 0;
     virtual std::vector< ::DBus::String > getRecordDeviceList(  ) = 0;
+    virtual ::DBus::Int32 isRingtoneEnabled(  ) = 0;
+    virtual void ringtoneEnabled(  ) = 0;
+    virtual ::DBus::String getRingtoneChoice(  ) = 0;
+    virtual void setRingtoneChoice( const ::DBus::String& tone ) = 0;
     virtual std::vector< ::DBus::String > getCodecList(  ) = 0;
     virtual std::vector< ::DBus::String > getCodecDetails( const ::DBus::Int32& payload ) = 0;
     virtual std::vector< ::DBus::String > getActiveCodecList(  ) = 0;
     virtual void setActiveCodecList( const std::vector< ::DBus::String >& list ) = 0;
+    virtual std::vector< ::DBus::String > getVideoCodecList(  ) = 0;
+    virtual std::vector< ::DBus::String > getVideoCodecDetails( const ::DBus::Int32& payload ) = 0;
+    virtual std::vector< ::DBus::String > getActiveVideoCodecList(  ) = 0;
+    virtual void setActiveVideoCodecList( const std::vector< ::DBus::String >& list ) = 0;
     virtual std::vector< ::DBus::String > getInputAudioPluginList(  ) = 0;
     virtual std::vector< ::DBus::String > getOutputAudioPluginList(  ) = 0;
     virtual void setInputAudioPlugin( const ::DBus::String& audioPlugin ) = 0;
@@ -288,6 +359,7 @@ public:
     virtual std::vector< ::DBus::String > getCurrentAudioDevicesIndex(  ) = 0;
     virtual ::DBus::Int32 getAudioDeviceIndex( const ::DBus::String& name ) = 0;
     virtual ::DBus::String getCurrentAudioOutputPlugin(  ) = 0;
+    virtual ::DBus::Int32 isIax2Enabled(  ) = 0;
 
 public:
 
@@ -428,6 +500,43 @@ private:
         wi << argout1;
         return reply;
     }
+    ::DBus::Message _isRingtoneEnabled_stub( const ::DBus::CallMessage& call )
+    {
+        ::DBus::MessageIter ri = call.reader();
+
+        ::DBus::Int32 argout1 = isRingtoneEnabled();
+        ::DBus::ReturnMessage reply(call);
+        ::DBus::MessageIter wi = reply.writer();
+        wi << argout1;
+        return reply;
+    }
+    ::DBus::Message _ringtoneEnabled_stub( const ::DBus::CallMessage& call )
+    {
+        ::DBus::MessageIter ri = call.reader();
+
+        ringtoneEnabled();
+        ::DBus::ReturnMessage reply(call);
+        return reply;
+    }
+    ::DBus::Message _getRingtoneChoice_stub( const ::DBus::CallMessage& call )
+    {
+        ::DBus::MessageIter ri = call.reader();
+
+        ::DBus::String argout1 = getRingtoneChoice();
+        ::DBus::ReturnMessage reply(call);
+        ::DBus::MessageIter wi = reply.writer();
+        wi << argout1;
+        return reply;
+    }
+    ::DBus::Message _setRingtoneChoice_stub( const ::DBus::CallMessage& call )
+    {
+        ::DBus::MessageIter ri = call.reader();
+
+        ::DBus::String argin1; ri >> argin1;
+        setRingtoneChoice(argin1);
+        ::DBus::ReturnMessage reply(call);
+        return reply;
+    }
     ::DBus::Message _getCodecList_stub( const ::DBus::CallMessage& call )
     {
         ::DBus::MessageIter ri = call.reader();
@@ -465,6 +574,46 @@ private:
 
         std::vector< ::DBus::String > argin1; ri >> argin1;
         setActiveCodecList(argin1);
+        ::DBus::ReturnMessage reply(call);
+        return reply;
+    }
+    ::DBus::Message _getVideoCodecList_stub( const ::DBus::CallMessage& call )
+    {
+        ::DBus::MessageIter ri = call.reader();
+
+        std::vector< ::DBus::String > argout1 = getVideoCodecList();
+        ::DBus::ReturnMessage reply(call);
+        ::DBus::MessageIter wi = reply.writer();
+        wi << argout1;
+        return reply;
+    }
+    ::DBus::Message _getVideoCodecDetails_stub( const ::DBus::CallMessage& call )
+    {
+        ::DBus::MessageIter ri = call.reader();
+
+        ::DBus::Int32 argin1; ri >> argin1;
+        std::vector< ::DBus::String > argout1 = getVideoCodecDetails(argin1);
+        ::DBus::ReturnMessage reply(call);
+        ::DBus::MessageIter wi = reply.writer();
+        wi << argout1;
+        return reply;
+    }
+    ::DBus::Message _getActiveVideoCodecList_stub( const ::DBus::CallMessage& call )
+    {
+        ::DBus::MessageIter ri = call.reader();
+
+        std::vector< ::DBus::String > argout1 = getActiveVideoCodecList();
+        ::DBus::ReturnMessage reply(call);
+        ::DBus::MessageIter wi = reply.writer();
+        wi << argout1;
+        return reply;
+    }
+    ::DBus::Message _setActiveVideoCodecList_stub( const ::DBus::CallMessage& call )
+    {
+        ::DBus::MessageIter ri = call.reader();
+
+        std::vector< ::DBus::String > argin1; ri >> argin1;
+        setActiveVideoCodecList(argin1);
         ::DBus::ReturnMessage reply(call);
         return reply;
     }
@@ -570,6 +719,16 @@ private:
         ::DBus::MessageIter ri = call.reader();
 
         ::DBus::String argout1 = getCurrentAudioOutputPlugin();
+        ::DBus::ReturnMessage reply(call);
+        ::DBus::MessageIter wi = reply.writer();
+        wi << argout1;
+        return reply;
+    }
+    ::DBus::Message _isIax2Enabled_stub( const ::DBus::CallMessage& call )
+    {
+        ::DBus::MessageIter ri = call.reader();
+
+        ::DBus::Int32 argout1 = isIax2Enabled();
         ::DBus::ReturnMessage reply(call);
         ::DBus::MessageIter wi = reply.writer();
         wi << argout1;

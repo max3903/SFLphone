@@ -51,6 +51,10 @@ public:
     std::vector< ::DBus::String > getCodecDetails( const ::DBus::Int32& payload );
     std::vector< ::DBus::String > getActiveCodecList(  );
     void setActiveCodecList( const std::vector< ::DBus::String >& list );
+    std::vector< ::DBus::String > getVideoCodecList(  );
+    std::vector< ::DBus::String > getVideoCodecDetails( const ::DBus::Int32& payload );
+    std::vector< ::DBus::String > getActiveVideoCodecList(  );
+    void setActiveVideoCodecList( const std::vector< ::DBus::String >& list );
     
     std::vector< ::DBus::String > getInputAudioPluginList();
     std::vector< ::DBus::String > getOutputAudioPluginList();
@@ -71,6 +75,11 @@ public:
     ::DBus::String getVersion(  );
     std::vector< ::DBus::String > getRingtoneList(  );
 
+    ::DBus::Int32 isIax2Enabled( void );
+    ::DBus::Int32 isRingtoneEnabled( void );
+    void ringtoneEnabled( void );
+    ::DBus::String getRingtoneChoice( void );
+    void setRingtoneChoice( const ::DBus::String& tone );
 };
 
 

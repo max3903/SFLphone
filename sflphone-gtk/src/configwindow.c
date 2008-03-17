@@ -33,6 +33,7 @@
 #include <gtk/gtk.h>
 
 gboolean dialogOpen = FALSE;
+gboolean ringtoneEnabled = TRUE;
 
 GtkListStore *accountStore;
 GtkWidget *codecTreeView;		// View used instead of store to get access to selection
@@ -57,6 +58,8 @@ GtkWidget *webcamDeviceComboBox;
 
 GtkWidget *moveUpButton;
 GtkWidget *moveDownButton;
+GtkWidget *moveUpButtonVideo;
+GtkWidget *moveDownButtonVideo;
 
 account_t *selectedAccount;
 
@@ -156,9 +159,9 @@ config_window_fill_video_codec_list()
 
 		// Insert codecs
 		int i;
-		for(i = 0; i < codec_list_get_size(); i++)
+		for(i = 0; i < video_codec_list_get_size(); i++)
 		{
-			codec_t *c = codec_list_get_nth(i);
+			videoCodec_t *c = video_codec_list_get_nth(i);
 			printf("%s\n", c->name);
 			if(c)
 			{
@@ -556,6 +559,32 @@ default_account(GtkWidget *widget, gpointer data)
 	}
 }
 
+int 
+is_ringtone_enabled( void )
+{
+  int res =  dbus_is_ringtone_enabled();
+  return res;  
+}
+
+void 
+ringtone_enabled( void )
+{
+  dbus_ringtone_enabled();  
+}
+
+void
+ringtone_changed( GtkFileChooser *chooser , GtkLabel *label)
+{
+  gchar* tone = gtk_file_chooser_get_filename( GTK_FILE_CHOOSER( chooser ));
+  dbus_set_ringtone_choice( tone );
+}
+
+gchar*
+get_ringtone_choice( void )
+{
+  return dbus_get_ringtone_choice();
+}
+
 /**
  * Call back when the user click on an account in the list
  */
@@ -588,6 +617,7 @@ select_account(GtkTreeSelection *selection, GtkTreeModel *model)
 
 /**
  * Toggle move buttons on if a codec is selected, off elsewise
+ * For the Audio Settings tab
  */
 static void
 select_codec(GtkTreeSelection *selection, GtkTreeModel *model)
@@ -607,8 +637,31 @@ select_codec(GtkTreeSelection *selection, GtkTreeModel *model)
 }
 
 /**
+ * Toggle move buttons on if a video codec is selected, off elsewise
+ * For the Video Settings tab
+ */
+static void
+select_codec_video(GtkTreeSelection *selection, GtkTreeModel *model)
+{
+	GtkTreeIter iter;
+	
+	if(!gtk_tree_selection_get_selected(selection, &model, &iter))
+	{
+		gtk_widget_set_sensitive(GTK_WIDGET(moveUpButtonVideo), FALSE);
+		gtk_widget_set_sensitive(GTK_WIDGET(moveDownButtonVideo), FALSE);
+	}
+	else
+	{
+		gtk_widget_set_sensitive(GTK_WIDGET(moveUpButtonVideo), TRUE);
+		gtk_widget_set_sensitive(GTK_WIDGET(moveDownButtonVideo), TRUE);
+	}
+}
+
+
+/**
  * Toggle active value of codec on click and update changes to the deamon
  * and in configuration files
+ * For the Audio Settings Tab
  */
 static void
 codec_active_toggled(GtkCellRendererToggle *renderer, gchar *path, gpointer data)
@@ -653,8 +706,56 @@ codec_active_toggled(GtkCellRendererToggle *renderer, gchar *path, gpointer data
 }
 
 /**
+ * Toggle active value of video codec on click and update changes to the deamon
+ * and in configuration files
+ * For the Video Settings tab
+ */
+static void
+video_codec_active_toggled(GtkCellRendererToggle *renderer, gchar *path, gpointer data)
+{
+	GtkTreeIter iter;
+	GtkTreePath *treePath;
+	GtkTreeModel *model;
+	gboolean active;
+	char* name;
+	
+	// Get path of clicked codec active toggle box
+	treePath = gtk_tree_path_new_from_string(path);
+	model = gtk_tree_view_get_model(GTK_TREE_VIEW(data));
+	gtk_tree_model_get_iter(model, &iter, treePath);
+
+	// Get active value and name at iteration
+	gtk_tree_model_get(model, &iter,
+			COLUMN_CODEC_ACTIVE, &active,
+			COLUMN_CODEC_NAME, &name,
+			-1);
+	
+	printf("%s\n", name);
+
+	// Toggle active value
+	active = !active;
+	
+	// Store value
+	gtk_list_store_set(GTK_LIST_STORE(model), &iter,
+			COLUMN_CODEC_ACTIVE, active,
+			-1);
+
+	gtk_tree_path_free(treePath);
+
+	// Modify codec queue to represent change	
+	if(active)
+		video_codec_set_active(name);
+	else
+		video_codec_set_inactive(name);
+	
+	// Perpetuate changes to the deamon
+	video_codec_list_update_to_daemon();
+}
+
+/**
  * Move codec in list depending on direction and selected codec and
  * update changes in the deamon list and the configuration files
+ * For the Audio Settings tab
  */
 static void
 codec_move(gboolean moveUp, gpointer data)
@@ -712,6 +813,66 @@ codec_move(gboolean moveUp, gpointer data)
 }
 
 /**
+ * Move codec in list depending on direction and selected video codec and
+ * update changes in the deamon list and the configuration files
+ * For the Video Settings tab
+ */
+static void
+video_codec_move(gboolean moveUp, gpointer data)
+{
+	GtkTreeIter iter;
+	GtkTreeIter *iter2;
+	GtkTreeView *treeView;
+	GtkTreeModel *model;
+	GtkTreeSelection *selection;
+	GtkTreePath *treePath;
+	gchar *path;
+	
+	// Get view, model and selection of codec store
+	treeView = GTK_TREE_VIEW(data);
+	model = gtk_tree_view_get_model(GTK_TREE_VIEW(treeView));
+	selection = gtk_tree_view_get_selection(GTK_TREE_VIEW(treeView));
+	
+	// Find selected iteration and create a copy
+	gtk_tree_selection_get_selected(GTK_TREE_SELECTION(selection), &model, &iter);
+	iter2 = gtk_tree_iter_copy(&iter);
+	
+	// Find path of iteration
+	path = gtk_tree_model_get_string_from_iter(GTK_TREE_MODEL(model), &iter);
+	treePath = gtk_tree_path_new_from_string(path);
+	gint *indices = gtk_tree_path_get_indices(treePath);
+	gint indice = indices[0];
+	
+	// Depending on button direction get new path
+	if(moveUp)
+		gtk_tree_path_prev(treePath);
+	else
+		gtk_tree_path_next(treePath);
+	gtk_tree_model_get_iter(model, &iter, treePath);
+	
+	// Swap iterations if valid
+	if(gtk_list_store_iter_is_valid(GTK_LIST_STORE(model), &iter))
+		gtk_list_store_swap(GTK_LIST_STORE(model), &iter, iter2);
+	
+	// Scroll to new position
+	gtk_tree_view_scroll_to_cell(treeView, treePath, NULL, FALSE, 0, 0);
+	
+	// Free resources
+	gtk_tree_path_free(treePath);
+	gtk_tree_iter_free(iter2);
+	g_free(path);
+	
+	// Perpetuate changes in codec queue
+	if(moveUp)
+		video_codec_list_move_codec_up(indice);
+	else
+		video_codec_list_move_codec_down(indice);
+	
+	// Perpetuate changes to the deamon
+	video_codec_list_update_to_daemon();
+}
+
+/**
  * Called from move up codec button signal
  */
 static void
@@ -729,6 +890,26 @@ codec_move_down(GtkButton *button, gpointer data)
 {
 	// Change tree view ordering and get indice changed
 	codec_move(FALSE, data);
+}
+
+/**
+ * Called from move up video codec button signal
+ */
+static void
+video_codec_move_up(GtkButton *button, gpointer data)
+{
+	// Change tree view ordering and get indice changed
+	video_codec_move(TRUE, data);
+}
+
+/**
+ * Called from move down video codec button signal
+ */
+static void
+video_codec_move_down(GtkButton *button, gpointer data)
+{
+	// Change tree view ordering and get indice changed
+	video_codec_move(FALSE, data);
 }
 
 /**
@@ -830,7 +1011,7 @@ create_video_codec_table()
 	// Get tree selection manager
 	treeSelection = gtk_tree_view_get_selection(GTK_TREE_VIEW(videoCodecTreeView));
 	g_signal_connect(G_OBJECT(treeSelection), "changed",
-			G_CALLBACK (select_codec),
+			G_CALLBACK (select_codec_video),
 			codecStore);
 	
 	// Active column
@@ -839,7 +1020,7 @@ create_video_codec_table()
 	gtk_tree_view_append_column(GTK_TREE_VIEW(videoCodecTreeView), treeViewColumn);
 
 	// Toggle codec active property on clicked
-	g_signal_connect(G_OBJECT(renderer), "toggled", G_CALLBACK(codec_active_toggled), (gpointer)videoCodecTreeView);
+	g_signal_connect(G_OBJECT(renderer), "toggled", G_CALLBACK(video_codec_active_toggled), (gpointer)videoCodecTreeView);
 	
 	// Name column
 	renderer = gtk_cell_renderer_text_new();
@@ -854,15 +1035,15 @@ create_video_codec_table()
 	gtk_container_set_border_width(GTK_CONTAINER(buttonBox), 10);
 	gtk_box_pack_start(GTK_BOX(ret), buttonBox, FALSE, FALSE, 0);
 	
-	moveUpButton = gtk_button_new_from_stock(GTK_STOCK_GO_UP);
-	gtk_widget_set_sensitive(GTK_WIDGET(moveUpButton), FALSE);
-	gtk_box_pack_start(GTK_BOX(buttonBox), moveUpButton, FALSE, FALSE, 0);
-	g_signal_connect(G_OBJECT(moveUpButton), "clicked", G_CALLBACK(codec_move_up), videoCodecTreeView);
+	moveUpButtonVideo = gtk_button_new_from_stock(GTK_STOCK_GO_UP);
+	gtk_widget_set_sensitive(GTK_WIDGET(moveUpButtonVideo), FALSE);
+	gtk_box_pack_start(GTK_BOX(buttonBox), moveUpButtonVideo, FALSE, FALSE, 0);
+	g_signal_connect(G_OBJECT(moveUpButtonVideo), "clicked", G_CALLBACK(video_codec_move_up), videoCodecTreeView);
 	
-	moveDownButton = gtk_button_new_from_stock(GTK_STOCK_GO_DOWN);
-	gtk_widget_set_sensitive(GTK_WIDGET(moveDownButton), FALSE);
-	gtk_box_pack_start(GTK_BOX(buttonBox), moveDownButton, FALSE, FALSE, 0);
-	g_signal_connect(G_OBJECT(moveDownButton), "clicked", G_CALLBACK(codec_move_down), videoCodecTreeView);
+	moveDownButtonVideo = gtk_button_new_from_stock(GTK_STOCK_GO_DOWN);
+	gtk_widget_set_sensitive(GTK_WIDGET(moveDownButtonVideo), FALSE);
+	gtk_box_pack_start(GTK_BOX(buttonBox), moveDownButtonVideo, FALSE, FALSE, 0);
+	g_signal_connect(G_OBJECT(moveDownButtonVideo), "clicked", G_CALLBACK(video_codec_move_down), videoCodecTreeView);
 	
 	config_window_fill_video_codec_list();
 	
@@ -1088,6 +1269,9 @@ create_audio_tab ()
 	GtkWidget *deviceTable;
 	GtkWidget *codecLabel;
 	GtkWidget *codecBox;
+	GtkWidget *enableTone;
+	GtkWidget *fileChooser;
+	
 	GtkWidget *titleLabel;
 
 	GtkWidget *refreshButton;
@@ -1229,6 +1413,26 @@ create_audio_tab ()
 	gtk_widget_set_size_request(GTK_WIDGET(codecTable), -1, 150);
 	gtk_box_pack_start(GTK_BOX(codecBox), codecTable, TRUE, TRUE, 0);
 	gtk_widget_show(codecTable);
+
+    // check button to enable ringtones
+	GtkWidget* box = gtk_hbox_new( TRUE , 1);
+	gtk_box_pack_start( GTK_BOX(ret) , box , FALSE , FALSE , 1);
+	enableTone = gtk_check_button_new_with_mnemonic( "_Enable ringtones");
+	gtk_toggle_button_set_active( GTK_TOGGLE_BUTTON(enableTone), dbus_is_ringtone_enabled() );
+	gtk_box_pack_start( GTK_BOX(box) , enableTone , TRUE , TRUE , 1);
+	g_signal_connect(G_OBJECT( enableTone) , "clicked" , G_CALLBACK( ringtone_enabled ) , NULL);
+    // file chooser button
+	fileChooser = gtk_file_chooser_button_new("Choose a ringtone", GTK_FILE_CHOOSER_ACTION_OPEN);
+	gtk_file_chooser_set_current_folder(GTK_FILE_CHOOSER( fileChooser) , g_get_home_dir());	
+	gtk_file_chooser_set_filename(GTK_FILE_CHOOSER( fileChooser) , get_ringtone_choice());	
+	g_signal_connect( G_OBJECT( fileChooser ) , "selection_changed" , G_CALLBACK( ringtone_changed ) , NULL );
+	GtkFileFilter *filter = gtk_file_filter_new();
+	gtk_file_filter_set_name( filter , "Audio Files" );
+	gtk_file_filter_add_pattern(filter , "*.wav" );
+	gtk_file_filter_add_pattern(filter , "*.ul" );
+	gtk_file_filter_add_pattern(filter , "*.au" );
+	gtk_file_chooser_add_filter( GTK_FILE_CHOOSER( fileChooser ) , filter);
+	gtk_box_pack_start( GTK_BOX(box) , fileChooser , TRUE , TRUE , 1);
 
 	// Show all
 	gtk_widget_show_all(ret);
@@ -1468,13 +1672,13 @@ show_config_window (gint page_num)
 
 	dialog = GTK_DIALOG(gtk_dialog_new_with_buttons ("Preferences",
 				GTK_WINDOW(get_main_window()),
-				GTK_DIALOG_MODAL | GTK_DIALOG_DESTROY_WITH_PARENT,
+				GTK_DIALOG_DESTROY_WITH_PARENT,
 				GTK_STOCK_CLOSE,
 				GTK_RESPONSE_ACCEPT,
 				NULL));
 
 	// Set window properties
-	gtk_dialog_set_has_separator(dialog, FALSE);
+      	gtk_dialog_set_has_separator(dialog, FALSE);
 	gtk_window_set_default_size(GTK_WINDOW(dialog), 400, 400);
 	gtk_container_set_border_width(GTK_CONTAINER(dialog), 0);
 	
@@ -1511,9 +1715,10 @@ show_config_window (gint page_num)
 	gtk_widget_show(tab);
 
 	gtk_notebook_set_current_page(GTK_NOTEBOOK(notebook),page_num);
-	gtk_dialog_run(dialog);
-	
+	gtk_widget_show( GTK_WIDGET(dialog) );
+	g_signal_connect_swapped( dialog , "response" , G_CALLBACK( gtk_widget_destroy ), dialog );
+
 	dialogOpen = FALSE;
 
-	gtk_widget_destroy(GTK_WIDGET(dialog));
+	//gtk_widget_destroy(GTK_WIDGET(dialog));
 }

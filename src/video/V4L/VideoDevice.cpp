@@ -3,19 +3,24 @@
 #include "VideoDevice.h"
 
   VideoDevice::VideoDevice(char* srcName){
-     
+    
+    //\ TODO : TOCOMPLET 
     initDevice(srcName);
     openDevice();
   
   }
 
-  VideoDevice::~VideoDevice(){}
+  VideoDevice::~VideoDevice(){
+    //\ TODO : to free allocated memory in function initDevice
+  }
 
   void VideoDevice::initDevice(char* srcName){
     
     // initiate the name (i.e. "/dev/video0" )
-    name = new char[strlen(srcName)+1];
-    name = srcName;
+    path = new char[strlen(srcName)+1];
+    strcpy(path, srcName);
+    
+    this->name= NULL;
 
     // initiate videoCapability, videoFormat and videPicture attributes 
 	this->videoCapability = new v4l2_capability;
@@ -40,7 +45,7 @@
 		return false;
 	}
 
-
+	// fill the v4l2_format : videoFormat
 	videoFormat->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
 	if(ioctl(fileDescript, VIDIOC_G_FMT, videoFormat)==-1){
 		printf("error, can't set the capture image format\n");
@@ -48,12 +53,51 @@
 	}
 	videoFormat->fmt.pix.pixelformat = V4L2_PIX_FMT_YUV420;
 
+	// fill the video_picture : videoPicture
+	if(ioctl(fileDescript, VIDIOCGPICT, videoFormat)==-1){
+		printf("error, can't set the capture image format\n");
+		return false;
+	}
+
 	// return true to indicate the sucess of the operation
     return true;
   }
 
-  bool VideoDevice::closeDevice(){
+  bool VideoDevice::applyChanges(unsigned char propType){
+  	
+  	switch(propType){
+  		
+  		// p means changes will be applyed to videoPicture attribute : for brightness, colour, contrast
+  		case 'p' :
+  				if(ioctl(fileDescript, VIDIOCSPICT, this->videoPicture) == -1){
+  					return false;
+  				}
+  				
+				break;
+	
+		// f means changes will be applyed to videoFormat attribute : for resolution and all related proprties
+  		case 'f' :
+				if(ioctl(fileDescript, VIDIOC_S_FMT, this->videoFormat) == -1){
+  					return false;
+  				}
+  				
+				break;
+				
+/// not sure that we will need the next case --> no need for the moment!!
+		// c means changes will be applyed to videoCapability attribute.  
+  		/*case 'c' :
+  				if(ioctl(fileDescript, TODO , this->videoCapability) == -1){
+  					return false;
+  				}
+				break;*/
+  	}
+  	
+  	return true;
+  }
 
+
+  bool VideoDevice::closeDevice(){
+	close(this->fileDescript);
     return true;
   }
   
@@ -110,7 +154,20 @@
   
   char* VideoDevice::getName(){
 
+	if( this->name == NULL ){
+	  	v4l2_input* getinput=(v4l2_input *) calloc(1, sizeof(v4l2_input));
+	  	memset(getinput, 0, sizeof(struct v4l2_input));
+	  	getinput->index=0;
+	  	ioctl(this->fileDescript,VIDIOC_ENUMINPUT , getinput);
+	  	this->name= new char[ 32 ];
+	  	memcpy(this->name, getinput->name, 32);
+  	}
+  	
     return this->name;
+  }
+  
+  char* VideoDevice::getPath(){
+  	return this->path;
   }
 
   int VideoDevice::getFileDescript(){

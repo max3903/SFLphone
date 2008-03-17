@@ -31,11 +31,17 @@ public:
     ~VideoDevice();
 
 
-    //! Method to get the name of the video source (i.e. "/dev/video0" ).
+    //! Method to get the name of the video device
+    /*!
+     * \return the name of the video device
+     */
+    char* getName();
+    
+    //! Method to get the path to the video source (i.e. "/dev/video0" ).
     /*!
      * \return the name of the video source
      */
-    char* getName();
+    char* getPath();
 
 
     //! Method to get file descriptor
@@ -59,6 +65,14 @@ public:
      */
     bool openDevice();
     
+
+	//! Method to apply changes(brightness value, colou value, contrast value...) to the device, using ioctl function
+    /*!
+     * \param propType to indicate the property type to change, and then call the appropiate ioctl function.
+     * \return a bool representing the success of the opening of the video source 
+     */
+	bool applyChanges(unsigned char propType);
+
 
     //! Method to close the video source
     /*!
@@ -122,6 +136,9 @@ private:
 
     //! The name of the actual video source
     char* name;
+    
+    //! The name of the actual video source
+    char* path;
 
     //! The actual file descriptor of the video source
     int fileDescript;

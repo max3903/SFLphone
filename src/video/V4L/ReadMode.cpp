@@ -3,13 +3,55 @@
 #include "ReadMode.h"
 
   ReadMode::ReadMode(){}
+  
+  ReadMode::ReadMode(VideoDevice* device){}
 
-  ReadMode::~ReadMode(){}
+  ReadMode::~ReadMode(){
+    	//\ TODO
+  }
 
+  bool ReadMode::init(){
+  	return true;
+  }
+ 
+  bool ReadMode::close(){
+  	return true;
+  }
+  
   char* ReadMode::capture(){
-    char* test;    
-
-      *test = 't';
-
-    return test;
+	
+	int imageSize= this->device->getVideoFormat()->fmt.pix.sizeimage;
+	
+	// Initiating raw_data buffer
+	char* raw_data= (char*)malloc(imageSize);
+	
+	if( raw_data == NULL ){
+		printf("Error: Unable to allocate space for buffer");
+		return NULL;
+	}
+	
+	// Reteving the data from the web cam
+	int n = read( this->device->getFileDescript(), raw_data, imageSize);
+	
+	if(n==-1){
+		printf("Error, can't read the webcam\n");
+		this->working= false;
+		return NULL;
+	}
+	
+	int width= this->device->getVideoFormat()->fmt.pix.width;
+	int height= this->device->getVideoFormat()->fmt.pix.height;
+	
+	// Allocate memory for the final image
+	char* img_data = (char*)malloc(width*height*3*sizeof(unsigned char));
+	
+	if( img_data == NULL ){
+		printf("Error: Unable to allocate space for buffer");
+		return NULL;
+	}
+	
+	// launch image format conversion
+	format_conversion(this->device->getVideoFormat()->fmt.pix.pixelformat, raw_data, img_data, width, height);
+    return img_data;
+    
   }
