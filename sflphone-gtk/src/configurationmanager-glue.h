@@ -767,6 +767,157 @@ static
 inline
 #endif
 gboolean
+org_sflphone_SFLphone_ConfigurationManager_get_video_codec_list (DBusGProxy *proxy, char *** OUT_list, GError **error)
+
+{
+  return dbus_g_proxy_call (proxy, "getVideoCodecList", error, G_TYPE_INVALID, G_TYPE_STRV, OUT_list, G_TYPE_INVALID);
+}
+
+typedef void (*org_sflphone_SFLphone_ConfigurationManager_get_video_codec_list_reply) (DBusGProxy *proxy, char * *OUT_list, GError *error, gpointer userdata);
+
+static void
+org_sflphone_SFLphone_ConfigurationManager_get_video_codec_list_async_callback (DBusGProxy *proxy, DBusGProxyCall *call, void *user_data)
+{
+  DBusGAsyncData *data = (DBusGAsyncData*) user_data;
+  GError *error = NULL;
+  char ** OUT_list;
+  dbus_g_proxy_end_call (proxy, call, &error, G_TYPE_STRV, &OUT_list, G_TYPE_INVALID);
+  (*(org_sflphone_SFLphone_ConfigurationManager_get_video_codec_list_reply)data->cb) (proxy, OUT_list, error, data->userdata);
+  return;
+}
+
+static
+#ifdef G_HAVE_INLINE
+inline
+#endif
+DBusGProxyCall*
+org_sflphone_SFLphone_ConfigurationManager_get_video_codec_list_async (DBusGProxy *proxy, org_sflphone_SFLphone_ConfigurationManager_get_video_codec_list_reply callback, gpointer userdata)
+
+{
+  DBusGAsyncData *stuff;
+  stuff = g_new (DBusGAsyncData, 1);
+  stuff->cb = G_CALLBACK (callback);
+  stuff->userdata = userdata;
+  return dbus_g_proxy_begin_call (proxy, "getVideoCodecList", org_sflphone_SFLphone_ConfigurationManager_get_video_codec_list_async_callback, stuff, g_free, G_TYPE_INVALID);
+}
+static
+#ifdef G_HAVE_INLINE
+inline
+#endif
+gboolean
+org_sflphone_SFLphone_ConfigurationManager_get_video_codec_details (DBusGProxy *proxy, const gint IN_payload, char *** OUT_details, GError **error)
+
+{
+  return dbus_g_proxy_call (proxy, "getVideoCodecDetails", error, G_TYPE_INT, IN_payload, G_TYPE_INVALID, G_TYPE_STRV, OUT_details, G_TYPE_INVALID);
+}
+
+typedef void (*org_sflphone_SFLphone_ConfigurationManager_get_video_codec_details_reply) (DBusGProxy *proxy, char * *OUT_details, GError *error, gpointer userdata);
+
+static void
+org_sflphone_SFLphone_ConfigurationManager_get_video_codec_details_async_callback (DBusGProxy *proxy, DBusGProxyCall *call, void *user_data)
+{
+  DBusGAsyncData *data = (DBusGAsyncData*) user_data;
+  GError *error = NULL;
+  char ** OUT_details;
+  dbus_g_proxy_end_call (proxy, call, &error, G_TYPE_STRV, &OUT_details, G_TYPE_INVALID);
+  (*(org_sflphone_SFLphone_ConfigurationManager_get_video_codec_details_reply)data->cb) (proxy, OUT_details, error, data->userdata);
+  return;
+}
+
+static
+#ifdef G_HAVE_INLINE
+inline
+#endif
+DBusGProxyCall*
+org_sflphone_SFLphone_ConfigurationManager_get_video_codec_details_async (DBusGProxy *proxy, const gint IN_payload, org_sflphone_SFLphone_ConfigurationManager_get_video_codec_details_reply callback, gpointer userdata)
+
+{
+  DBusGAsyncData *stuff;
+  stuff = g_new (DBusGAsyncData, 1);
+  stuff->cb = G_CALLBACK (callback);
+  stuff->userdata = userdata;
+  return dbus_g_proxy_begin_call (proxy, "getVideoCodecDetails", org_sflphone_SFLphone_ConfigurationManager_get_video_codec_details_async_callback, stuff, g_free, G_TYPE_INT, IN_payload, G_TYPE_INVALID);
+}
+static
+#ifdef G_HAVE_INLINE
+inline
+#endif
+gboolean
+org_sflphone_SFLphone_ConfigurationManager_get_active_video_codec_list (DBusGProxy *proxy, char *** OUT_list, GError **error)
+
+{
+  return dbus_g_proxy_call (proxy, "getActiveVideoCodecList", error, G_TYPE_INVALID, G_TYPE_STRV, OUT_list, G_TYPE_INVALID);
+}
+
+typedef void (*org_sflphone_SFLphone_ConfigurationManager_get_active_video_codec_list_reply) (DBusGProxy *proxy, char * *OUT_list, GError *error, gpointer userdata);
+
+static void
+org_sflphone_SFLphone_ConfigurationManager_get_active_video_codec_list_async_callback (DBusGProxy *proxy, DBusGProxyCall *call, void *user_data)
+{
+  DBusGAsyncData *data = (DBusGAsyncData*) user_data;
+  GError *error = NULL;
+  char ** OUT_list;
+  dbus_g_proxy_end_call (proxy, call, &error, G_TYPE_STRV, &OUT_list, G_TYPE_INVALID);
+  (*(org_sflphone_SFLphone_ConfigurationManager_get_active_video_codec_list_reply)data->cb) (proxy, OUT_list, error, data->userdata);
+  return;
+}
+
+static
+#ifdef G_HAVE_INLINE
+inline
+#endif
+DBusGProxyCall*
+org_sflphone_SFLphone_ConfigurationManager_get_active_video_codec_list_async (DBusGProxy *proxy, org_sflphone_SFLphone_ConfigurationManager_get_active_video_codec_list_reply callback, gpointer userdata)
+
+{
+  DBusGAsyncData *stuff;
+  stuff = g_new (DBusGAsyncData, 1);
+  stuff->cb = G_CALLBACK (callback);
+  stuff->userdata = userdata;
+  return dbus_g_proxy_begin_call (proxy, "getActiveVideoCodecList", org_sflphone_SFLphone_ConfigurationManager_get_active_video_codec_list_async_callback, stuff, g_free, G_TYPE_INVALID);
+}
+static
+#ifdef G_HAVE_INLINE
+inline
+#endif
+gboolean
+org_sflphone_SFLphone_ConfigurationManager_set_active_video_codec_list (DBusGProxy *proxy, const char ** IN_list, GError **error)
+
+{
+  return dbus_g_proxy_call (proxy, "setActiveVideoCodecList", error, G_TYPE_STRV, IN_list, G_TYPE_INVALID, G_TYPE_INVALID);
+}
+
+typedef void (*org_sflphone_SFLphone_ConfigurationManager_set_active_video_codec_list_reply) (DBusGProxy *proxy, GError *error, gpointer userdata);
+
+static void
+org_sflphone_SFLphone_ConfigurationManager_set_active_video_codec_list_async_callback (DBusGProxy *proxy, DBusGProxyCall *call, void *user_data)
+{
+  DBusGAsyncData *data = (DBusGAsyncData*) user_data;
+  GError *error = NULL;
+  dbus_g_proxy_end_call (proxy, call, &error, G_TYPE_INVALID);
+  (*(org_sflphone_SFLphone_ConfigurationManager_set_active_video_codec_list_reply)data->cb) (proxy, error, data->userdata);
+  return;
+}
+
+static
+#ifdef G_HAVE_INLINE
+inline
+#endif
+DBusGProxyCall*
+org_sflphone_SFLphone_ConfigurationManager_set_active_video_codec_list_async (DBusGProxy *proxy, const char ** IN_list, org_sflphone_SFLphone_ConfigurationManager_set_active_video_codec_list_reply callback, gpointer userdata)
+
+{
+  DBusGAsyncData *stuff;
+  stuff = g_new (DBusGAsyncData, 1);
+  stuff->cb = G_CALLBACK (callback);
+  stuff->userdata = userdata;
+  return dbus_g_proxy_begin_call (proxy, "setActiveVideoCodecList", org_sflphone_SFLphone_ConfigurationManager_set_active_video_codec_list_async_callback, stuff, g_free, G_TYPE_STRV, IN_list, G_TYPE_INVALID);
+}
+static
+#ifdef G_HAVE_INLINE
+inline
+#endif
+gboolean
 org_sflphone_SFLphone_ConfigurationManager_get_input_audio_plugin_list (DBusGProxy *proxy, char *** OUT_list, GError **error)
 
 {

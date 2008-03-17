@@ -17,66 +17,149 @@
  *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 #include "VideoCodecDescriptor.h"
-#include "ffmpeg/avcodec.h"
+
+#include <string>
+#include <stdio.h>
+
+using namespace std;
+
+VideoCodecDescriptor* VideoCodecDescriptor::instance= 0;
+
+VideoCodecDescriptor* VideoCodecDescriptor::getInstance()
+{
+	//if no instance made create one,
+	//ref. singleton pattern
+	if (instance == 0)
+	instance = new VideoCodecDescriptor();
+
+	return instance;
+}
 
 
- 	VideoCodecDescriptor::~VideoCodecDescriptor(){}
+ 	VideoCodecDescriptor::~VideoCodecDescriptor(){
+ 	vCodecOrder.clear();
+ 	vCodecMap.clear();
+ 	}
 	
     VideoCodecDescriptor::VideoCodecDescriptor(){
-    
-    init();
-    
-    }
+    	av_register_all();
+    	avcodec_init();
+    	init();}
 
+    void VideoCodecDescriptor::init()
+    {
+    VCMIterator mapIter;
+    //Create map list
+    if (initCodecMap() == false)
+    {
+    	printf("CodecMap init error");
+    	exit(-1);
+    }
+    //check if user has settings for the active list, if yes load them else setDefault
+    //TODO
+   
+    }
     
-    int VideoCodecDescriptor::setDefaultOrder(){
+     bool VideoCodecDescriptor::initCodecMap()
+    {
+		FILE *codecFile;
+		char *codec;
+		AVCodec* tmp;
+		codecFile = fopen("videoCodecs.dat","r");
+		if (codecFile == NULL)
+    		return false;
+    	
+    	while(fgets(codec,6,codecFile) != NULL)
+    	{
+    		printf("%s",codec);
+    	tmp = avcodec_find_encoder_by_name(codec);
+    	vCodecMap[tmp] = avcodec_alloc_context();	
+    	}
+    
+    return true;
+    }
+    
+    
+    bool VideoCodecDescriptor::setDefaultOrder(){
     
     VCMIterator mapIter;
-    
     //Set the default order of the codec list
     //means setting the exact same codecs as codecMap
     vCodecOrder.clear();
-    
-    
-    
-    for (mapIter = vCodecMap.begin();mapIter != vCodecMap.end();mapIter++);
+  
+    for (mapIter = vCodecMap.begin();mapIter != vCodecMap.end();mapIter++)
+    	vCodecOrder.push_back((*mapIter).first);
     	
-    
-    
-    return 1;
+    return true;
     }
     
-    void VideoCodecDescriptor::init(){
-    
-    //Create lists
-    //Register codecs
-    }
-	
+   
    
     bool VideoCodecDescriptor::isActive(enum CodecID id){
+   
+    VCOIterator iter;
     
-    return true;
+    for (iter = vCodecOrder.begin();iter != vCodecOrder.end();iter++)
+    	if ((*iter)->id == id)
+    	return true;
+    
+    return false;
     }
 
    
     bool VideoCodecDescriptor::removeCodec(enum CodecID id){
     
+    VCOIterator iter;
+    
+    for (iter = vCodecOrder.begin();iter != vCodecOrder.end();iter++)
+    	if ((*iter)->id == id)
+    	{
+    	vCodecOrder.erase(iter);
+    	return true;
+    	}
     
     return false;
     }
 
-	
    
-    int VideoCodecDescriptor::addCodec(enum CodecID id)
-    {
+    bool VideoCodecDescriptor::addCodec(enum CodecID id){
     	
+    	//find codec
+    	VCMIterator mapIter;
+    	
+    	for (mapIter = vCodecMap.begin();mapIter != vCodecMap.end();mapIter++)
+    	if ((*mapIter).first->id == id)
+    	{
+    	vCodecOrder.push_back((*mapIter).first);
+    	return true;
+    	}
+    	
+    return false;}
+    
+    char* VideoCodecDescriptor::serialize()
+    {
+    //return
+    //TODO
+    return "doh!";
     }
     
+	AVCodecContext* VideoCodecDescriptor::getCodecContext(AVCodec* Codec)
+	{
+		VCMIterator tmp;
 	
+	tmp = vCodecMap.find(Codec);
+	
+	return (*tmp).second;
+	
+	}
     VideoCodecOrder VideoCodecDescriptor::getActiveCodecs() { return vCodecOrder; }
+    
 	
-    void VideoCodecDescriptor::setActiveCodecs(VideoCodecOrder activeCodecs){}
+    void VideoCodecDescriptor::setActiveCodecs(VideoCodecOrder vCodecOrder)
+    {
+    	this->vCodecOrder = vCodecOrder;
+    }
 	
-    void VideoCodecDescriptor::setCodecMap(VideoCodecMap codec){}
+    void VideoCodecDescriptor::setCodecMap(VideoCodecMap codec){this->vCodecMap = codec;}
     
     

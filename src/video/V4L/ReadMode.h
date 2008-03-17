@@ -12,15 +12,32 @@ class ReadMode : public CaptureMode {
 public:
 
     //! Constructor
-    ReadMode();
+    ReadMode(VideoDevice* device);
 
     //! Destructor
     ~ReadMode();
+    
+    //! Initializes the capture mode
+    /*!
+     * This method is called before the capture mode is used.
+     */
+    virtual bool init();
+    
+    //! Shuts down the capture mode
+    /*!
+     * This method is called when the captude mode changes for an other.
+     */
+    virtual bool close();
 
     //! Method to capture from the video source
     /*!
      * \return a pointer to the captured data
      */
-     char* capture();
+     virtual char* capture();
+     
+protected:
+
+     //! Default Constructor
+    ReadMode();
 };
 #endif //READMODE_H

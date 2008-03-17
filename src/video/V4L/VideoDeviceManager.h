@@ -2,8 +2,21 @@
 
 #ifndef VIDEODEVICEMANAGER_H
 #define VIDEODEVICEMANAGER_H
+
 #include "Command.h"
+#include "Colour.h"
+#include "Resolution.h"
+#include "Brightness.h"
+#include "Capture.h"
+#include "Contrast.h"
 #include "VideoDevice.h"
+
+enum TCommand{	CONTRAST= 	0x1,
+				BRIGHTNESS= 0x2,
+				COLOR= 		0x3,
+				CAPTURE=	0x4,
+				RESOLUTION= 0x5			
+				};
 
 //! VideoDeviceManager
 /*!
@@ -28,30 +41,22 @@ public:
      * \param ref the reference of the command
      * \return a pointer to the created command
      */
-    Command* getCommand(char* ref);
-
-
-    //! Method to get the instance of the actual VideoDevice.
-    /*!
-     * \return an instance of the actual VideoDevice
-     */
-    VideoDevice* getDevice();
-
+    Command* getCommand(TCommand ref);
 
     //! Method to create a new VideoDevice.
     /*!
      * \param srcName the name of the camera that the new VideoDevice will use as a source.
-     * \return a pointer to the new VideoDevice (needed to change the device)
+     * \return the success of the operation
      */
-    VideoDevice* createDevice(char* srcName);
+   bool createDevice(char* srcName);
 
 
     //! Method to change the VideoDevice.
     /*!
-     * \param videoDev the pointer to the new VideoDevice
+     * \param srcName the pointer to a char array containing the path to the device
      * \return a bool representing the success of the VideoDevice change
      */
-    bool changeDevice(VideoDevice* videoDev);
+    bool changeDevice(char* srcName);
 
 
     //! Method to get the instance of the VideoDeviceManager.

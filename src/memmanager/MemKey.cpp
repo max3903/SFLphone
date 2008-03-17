@@ -68,7 +68,6 @@ MemKey::MemKey(MemKey& key)
 	
 	this->size = key.size;
 	this->index = key.index;
-	this->size = key.size;
 	this->description = serialize();
 }
 

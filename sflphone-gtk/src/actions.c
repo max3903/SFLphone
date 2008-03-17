@@ -148,6 +148,7 @@ sflphone_init()
 	account_list_init ();
 	codec_list_init();
 	contact_hash_table_init();
+	video_codec_list_init();
 	if(!dbus_connect ())
 	{
 		main_window_error_message("Unable to connect to the SFLphone server.\nMake sure the daemon is running.");
@@ -160,6 +161,7 @@ sflphone_init()
 		sflphone_set_default_account();
 		sflphone_fill_codec_list();
 		sflphone_fill_contact_list();
+		sflphone_fill_video_codec_list();
 		return TRUE;
 	}
 }
@@ -700,3 +702,42 @@ sflphone_fill_contact_list()
 //		}
 //	}
 }
+
+/* Internal to action - get the codec list */
+void	
+sflphone_fill_video_codec_list()
+{
+  video_codec_list_clear();
+    
+  gchar** codecs = (gchar**)dbus_video_codec_list();
+  gchar** order = (gchar**)dbus_get_active_video_codec_list();
+  gchar** details;
+  gchar** pl;
+
+  for(pl=order; *order; order++)
+  {
+    videoCodec_t * c = g_new0(videoCodec_t, 1);
+    c->_payload = atoi(*order);
+    details = (gchar **)dbus_video_codec_details(c->_payload);
+    //printf("Codec details: %s / %s / %s / %s\n",details[0],details[1],details[2],details[3]);
+    c->name = details[0];
+    c->is_active = TRUE;
+    video_codec_list_add(c);
+  }
+ 
+  for(pl=codecs; *codecs; codecs++)
+  {
+    details = (gchar **)dbus_video_codec_details(atoi(*codecs));
+    if(video_codec_list_get(details[0])!=NULL){
+      // does nothing - the codec is already in the list, so is active.
+    }
+    else{
+      videoCodec_t* c = g_new0(videoCodec_t, 1);
+      c->_payload = atoi(*codecs);
+      c->name = details[0];
+      c->is_active = FALSE;
+      video_codec_list_add(c);
+    }
+  }
+}
+  

@@ -17,8 +17,10 @@
   void VideoDevice::initDevice(char* srcName){
     
     // initiate the name (i.e. "/dev/video0" )
-    name = new char[strlen(srcName)+1];
-    name = srcName;
+    path = new char[strlen(srcName)+1];
+    strcpy(path, srcName);
+    
+    this->name= NULL;
 
     // initiate videoCapability, videoFormat and videPicture attributes 
 	this->videoCapability = new v4l2_capability;
@@ -61,7 +63,6 @@
     return true;
   }
 
-
   bool VideoDevice::applyChanges(unsigned char propType){
   	
   	switch(propType){
@@ -96,7 +97,7 @@
 
 
   bool VideoDevice::closeDevice(){
-//\ TODO
+	close(this->fileDescript);
     return true;
   }
   
@@ -153,7 +154,20 @@
   
   char* VideoDevice::getName(){
 
+	if( this->name == NULL ){
+	  	v4l2_input* getinput=(v4l2_input *) calloc(1, sizeof(v4l2_input));
+	  	memset(getinput, 0, sizeof(struct v4l2_input));
+	  	getinput->index=0;
+	  	ioctl(this->fileDescript,VIDIOC_ENUMINPUT , getinput);
+	  	this->name= new char[ 32 ];
+	  	memcpy(this->name, getinput->name, 32);
+  	}
+  	
     return this->name;
+  }
+  
+  char* VideoDevice::getPath(){
+  	return this->path;
   }
 
   int VideoDevice::getFileDescript(){

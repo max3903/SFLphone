@@ -4,6 +4,8 @@
 #define COPYMODE_H
 #include "CaptureMode.h"
 
+#include <sys/mman.h>
+
 //! CopyMode
 /*!
  * This class capture from the video source using a copy mode
@@ -12,15 +14,34 @@ class CopyMode : public CaptureMode {
 public:
 
     //! Constructor
-    CopyMode();
+    CopyMode(VideoDevice* device);
 
     //! Destructor
     ~CopyMode();
 
+    //! Initializes the capture mode
+    /*!
+     * This method is called before the capture mode is used.
+     */
+    virtual bool init();
+    
+    //! Shuts down the capture mode
+    /*!
+     * This method is called when the captude mode changes for an other.
+     */
+    virtual bool close();
+    
     //! Method to capture from the video source
     /*!
      * \return a pointer to the captured data
      */
-     char* capture();
+     virtual char* capture();
+     
+protected:
+
+	//! Default Constructor
+    CopyMode();
+    
+    void* baseAddr;
 };
 #endif //COPYMODE_H

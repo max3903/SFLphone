@@ -2553,62 +2553,91 @@ bool ManagerImpl::testAccountMap()
   return true;
 }
 
-/**
- * Initialization: Main Thread
- */
-void
-ManagerImpl::initVideoCodec (void)
-{
-  _debugInit("Active Video Codecs List");
-  // \todo Initialize Video Codec
-}
+#endif
 
-std::vector<std::string>
-ManagerImpl::retrieveActiveVideoCodecs()
-{
-  std::vector<std::string> order; 
-  // \todo Retrieve active video codec
-  return order;
-}
-
-void
+  void
 ManagerImpl::setActiveVideoCodecList(const std::vector<std::string>& list)
 {
-	// \todo set active video codec list
+	// TODO: replace with video codec list
+	// the following code is only there to avoid errors
+  _debug("Set active codecs list\n");
+  _codecDescriptorMap.saveActiveCodecs(list);
+  // setConfig
+  std::string s = serialize(list);
+  printf("%s\n", s.c_str());
+  setConfig("Audio", "ActiveCodecs", s);
 }
 
 
-std::vector <std::string>
+  std::vector <std::string>
 ManagerImpl::getActiveVideoCodecList( void )
 {
-  _debug("Get Active video codecs list");
+	// TODO: replace with video codec list
+	// the following code is only there to avoid errors
+  _debug("Get Active codecs list\n");
   std::vector< std::string > v;
-  // \todo get active video codec list
-  
+  CodecOrder active = _codecDescriptorMap.getActiveCodecs();
+  int i=0;
+  size_t size = active.size();
+  while(i<size)
+  {
+    std::stringstream ss;
+    ss << active[i];
+    v.push_back((ss.str()).data());
+    i++;
+  }
   return v;
 }
 
 
 /**
- * Send the list of video codecs to the client through DBus.
+ * Send the list of codecs to the client through DBus.
  */
-std::vector< std::string >
+  std::vector< std::string >
 ManagerImpl::getVideoCodecList( void )
 {
+	// TODO: replace with video codec list
+	// the following code is only there to avoid errors
   std::vector<std::string> list;
-  // \todo get video codec list
+  //CodecMap codecs = _codecDescriptorMap.getCodecMap();
+  CodecsMap codecs = _codecDescriptorMap.getCodecsMap();
+  CodecOrder order = _codecDescriptorMap.getActiveCodecs();
+  CodecsMap::iterator iter = codecs.begin();  
+
+  while(iter!=codecs.end())
+  {
+    std::stringstream ss;
+    if( iter->second != NULL )
+    {
+      ss << iter->first;
+      list.push_back((ss.str()).data());
+    }
+    iter++;
+  }
   return list;
 }
 
-std::vector<std::string>
+  std::vector<std::string>
 ManagerImpl::getVideoCodecDetails( const ::DBus::Int32& payload )
 {
-
+	// TODO: replace with video codec details
+	// the following code is only there to avoid errors
   std::vector<std::string> v;
-  // \todo get video codec details
+  std::stringstream ss;
+
+  v.push_back(_codecDescriptorMap.getCodecName((CodecType)payload));
+  ss << _codecDescriptorMap.getSampleRate((CodecType)payload);
+  v.push_back((ss.str()).data()); 
+  ss.str("");
+  ss << _codecDescriptorMap.getBitRate((CodecType)payload);
+  v.push_back((ss.str()).data());
+  ss.str("");
+  ss << _codecDescriptorMap.getBandwidthPerCall((CodecType)payload);
+  v.push_back((ss.str()).data());
+  ss.str("");
 
   return v;
-}  
+}
   /**
  * Get list of supported video input device
  */
@@ -2618,7 +2647,7 @@ ManagerImpl::getVideoInputDeviceList(void)
 	_debug("Get video input device list");
 	// \todo get video input device list
 	// returns the audio input device for testing only
-	return _audiodriver->getAudioDeviceList(paALSA, _audiodriver->InputDevice);
+  	return _audiodriver->getSoundCardsInfo(SFL_PCM_CAPTURE);
 }
 
 /**
@@ -2712,4 +2741,3 @@ bool joinVideo(const CallID& id1, const CallID& id2)
 	
 }
 
-#endif

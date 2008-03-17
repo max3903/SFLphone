@@ -19,14 +19,14 @@ sflphone_gtk_SOURCES = \
   sliders.c \
   statusicon.c \
   codeclist.c \
+  videocodeclist.c \
   glwidget.c \
   MemManager.c \
   invitewindow.c
   
-noinst_HEADERS =  actions.h dbus.h mainwindow.h calllist.h dialpad.h codeclist.h \
-                  callmanager-glue.h configurationmanager-glue.h contactmanager-glue.h instance-glue.h \
-                  menus.h calltree.h screen.h configwindow.h contactlist.h contactwindow.h \
-                  accountlist.h accountwindow.h marshaller.h sliders.h statusicon.h
+noinst_HEADERS =  actions.h dbus.h mainwindow.h calllist.h dialpad.h codeclist.h videocodeclist.h \
+                  callmanager-glue.h configurationmanager-glue.h contactmanager-glue.h instance-glue.h menus.h calltree.h screen.h configwindow.h \
+                  accountlist.h accountwindow.h marshaller.h sliders.h statusicon.h contactlist.h contactwindow.h
 EXTRA_DIST   = marshaller.list  
 sflphone_gtk_LDADD = $(DEPS_LIBS)
 

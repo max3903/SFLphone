@@ -5,3 +5,97 @@
 CaptureMode::CaptureMode(){}
 
 CaptureMode::~CaptureMode(){}
+
+bool CaptureMode::getWorking()
+{
+	return this->working;
+}
+
+void YUV2RGB_init(void)
+{
+	int i;
+
+	/* init Lookup tables */
+	for (i = 0; i < 256; i++) {
+		ng_yuv_gray[i] = i * LUN_MUL >> 8;
+		ng_yuv_red[i]  = (RED_ADD    + i * RED_MUL)    >> 8;
+		ng_yuv_blue[i] = (BLUE_ADD   + i * BLUE_MUL)   >> 8;
+		ng_yuv_g1[i]   = (GREEN1_ADD + i * GREEN1_MUL) >> 8;
+		ng_yuv_g2[i]   = (GREEN2_ADD + i * GREEN2_MUL) >> 8;
+	}
+	for (i = 0; i < CLIP; i++)
+		ng_clip[i] = 0;
+	for (; i < CLIP + 256; i++)
+		ng_clip[i] = i - CLIP;
+	for (; i < 2 * CLIP + 256; i++)
+		ng_clip[i] = 255;
+}
+
+
+void write_rgb(unsigned char **out, int Y, int U, int V)
+{
+	int R,G,B;
+	R=(76284*Y+104595*V)>>16;
+	G=(76284*Y -25625*U-53281*V)>>16;
+	B=(76284*Y+132252*U)>>16;
+
+	*(*out)=clip(R);
+	*(*out+1)=clip(G);
+	*(*out+2)=clip(B);
+	*out+=3;
+}
+
+
+void yuv420_rgb (unsigned char *out, unsigned char *in, int width, int height)
+{
+	unsigned char *u,*u1,*v,*v1;
+	int Y=0,U=0,V=0,i,j;
+
+	u=in+width*height;
+	v=u+(width*height)/4;
+
+	for(i=0;i<height;i++) {
+		u1=u;
+		v1=v;
+		for(j=0;j<width;j++) {
+			Y=(*in++)-16;
+			if((j&1)==0) {
+				U=(*u++)-128;
+				V=(*v++)-128;
+			}
+			write_rgb(&out,Y,U,V);
+		}
+		if((i&1)==0) { u=u1; v=v1; }
+	}
+}
+
+void yuyv_rgb (unsigned char *out, unsigned char *in, int width, int height)
+{
+	unsigned char *u,*u1,*v,*v1;
+	int Y=0,U=0,V=0,i,j;
+
+	u=in+1; v=in+3;
+	for(i=0;i<width*height;i++) {
+		Y=(*in)-16;
+		U=(*u)-128;
+		V=(*v)-128;
+		write_rgb(&out,Y,U,V);
+		in+=2;
+		if((i&1)==1) { u+=4; v+=4; }
+	}
+}
+
+
+void format_conversion(int format, char* in, char* out, int width, int height){
+
+	YUV2RGB_init();
+
+	switch(format){
+		case V4L2_PIX_FMT_YUV420:
+			yuv420_rgb((unsigned char*)out,(unsigned char*)in,width,height);
+			break;
+		case V4L2_PIX_FMT_YUYV:
+                        yuyv_rgb((unsigned char*)out,(unsigned char*)in,width,height);
+                        break;
+	}
+}

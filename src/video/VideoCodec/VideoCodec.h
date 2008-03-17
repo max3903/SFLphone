@@ -25,13 +25,32 @@
 
 #ifndef VIDEOCODEC_H
 #define VIDEOCODEC_H
+extern "C"{
 #include <ffmpeg/avcodec.h>
 #include <ffmpeg/avformat.h>
+}
+#include "../VideoCodecDescriptor.h"
 /**
  * @author Jean-Francois Blanchard-Dionne */
 class VideoCodec {
 public:
+	/**
+     * Default Destructor
+     * 
+     */
+   ~VideoCodec() ;
+   /**
+     * Default Constructor
+     * 
+     */
+    VideoCodec();
+   /**
+     *  Constructor we force to use
+     * 
+     */
+    VideoCodec(AVCodec* codec);
 /**
+	
      * Function to decode video information
      * @param in_buf the input buffer
      * @param width of the video frame
@@ -39,7 +58,7 @@ public:
      * @param out_buf the output buffer
      * 
      */
-    virtual int videoDecode(uint8_t *in_buf, int width, int height, uint8_t* out_buf ) =0;
+     int videoDecode(uint8_t *in_buf, int width, int height, uint8_t* out_buf );
 /**
      * Function to encode video information
      * @param width of the video frame
@@ -48,25 +67,22 @@ public:
      * @param size buffer size
      * 
      */
-    virtual int videoEncode(int width, int height, uint8_t* buf, unsigned int size) =0;
+    int videoEncode(int width, int height, uint8_t* buf, unsigned int size);
+    
+    
+private:
 
+/**
 	/**
  	* Function to init the Codec with it's proper context
- 	* 
- 	* 
  	* */
     void init();
-	/**
-     * Default Destructor
-     * 
-     */
-    virtual ~VideoCodec() =0;
-	/**
-     * Default Constructor
-     * 
-     */
-    VideoCodec();
-private:
+    
+    /**
+ 	* instance of the videoDesc
+ 	* */
+    VideoCodecDescriptor *videoDesc;
+
 	/**
      * Libavcodec Codec type
      */
@@ -78,7 +94,7 @@ private:
      /**
      * Libavcodec packet
      */
-    AVPacket pkt;
+    AVPacket* pkt;
      /**
      * Libavcodec frame
      */

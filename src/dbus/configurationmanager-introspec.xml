@@ -93,6 +93,22 @@
       <arg type="as" name="list" direction="in"/>
     </method>
 
+	<method name="getVideoCodecList">
+      <arg type="as" name="list" direction="out"/>
+    </method>
+   
+   <method name="getVideoCodecDetails">
+     <arg type="i" name="payload" direction="in"/>
+     <arg type="as" name="details" direction="out"/>
+   </method>
+ 
+    <method name="getActiveVideoCodecList">
+      <arg type="as" name="list" direction="out"/>
+    </method>
+
+    <method name="setActiveVideoCodecList">
+      <arg type="as" name="list" direction="in"/>
+    </method>
 
 	<!-- Audio devices methods -->
 	
