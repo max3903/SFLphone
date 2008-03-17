@@ -35,7 +35,6 @@ VideoCodecDescriptor* VideoCodecDescriptor::getInstance()
 	return instance;
 }
 
-
  	VideoCodecDescriptor::~VideoCodecDescriptor(){
  	vCodecOrder.clear();
  	vCodecMap.clear();
@@ -65,15 +64,27 @@ VideoCodecDescriptor* VideoCodecDescriptor::getInstance()
 		FILE *codecFile;
 		char *codec;
 		AVCodec* tmp;
+		//open videoDescriptor File
 		codecFile = fopen("videoCodecs.dat","r");
 		if (codecFile == NULL)
     		return false;
     	
     	while(fgets(codec,6,codecFile) != NULL)
     	{
-    		printf("%s",codec);
+    	printf("%s ",codec);
+    	//make sure you can encode with codec read in file
     	tmp = avcodec_find_encoder_by_name(codec);
-    	vCodecMap[tmp] = avcodec_alloc_context();	
+    	
+    		if(tmp != NULL)
+    		{
+    		//make sure you can decode with codec read in file
+    		tmp = avcodec_find_decoder_by_name(codec);
+    			if(tmp != NULL)
+    			{
+    			//map Codec
+    			vCodecMap[tmp] = avcodec_alloc_context();	
+    			}
+    		}
     	}
     
     return true;
