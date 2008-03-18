@@ -458,6 +458,33 @@ ManagerImpl::refuseCall (const CallID& id)
   return returnValue;
 }
 
+bool 
+ManagerImpl::inviteConference( const AccountID& accountId, const CallID& id, const std::string& to )
+{
+	//TODO
+	return true;	
+}
+
+bool 
+ManagerImpl::joinConference( const CallID& onHoldCallID, const CallID& newCallID )
+{
+	//TODO
+	return true;
+}
+
+bool
+ManagerImpl::changeVideoAvaibility(  )
+{
+	//TODO
+	return true;	
+}
+
+void
+ManagerImpl::changeWebcamStatus( const bool status )
+{
+	//TODO
+}
+
 //THREAD=Main
   bool
 ManagerImpl::saveConfig (void)
@@ -2681,6 +2708,69 @@ ManagerImpl::getVideoDeviceDetails(const int index)
 	std::vector<std::string> v;
 	// \todo get video device details
 	return v;
+}
+
+std::string 
+ManagerImpl::getLocalSharedMemoryKey()
+{
+	std::string key = "key local";
+	return key;
+}
+
+std::string 
+ManagerImpl::getRemoteSharedMemoryKey()
+{
+	std::string key = "key remote";
+	return key;
+}
+
+int 
+ManagerImpl::getBrightness(  )
+{
+	return 0;	
+}
+
+void 
+ManagerImpl::setBrightness( const int value )
+{
+	
+}
+
+int 
+ManagerImpl::getContrast(  )
+{
+	return 0;	
+}
+
+void 
+ManagerImpl::setContrast( const int value )
+{
+	
+}
+
+int 
+ManagerImpl::getColour(  )
+{
+	return 0;	
+}
+
+void 
+ManagerImpl::setColour( const int value )
+{
+	
+}
+
+std::vector<std::string> 
+ManagerImpl::getWebcamDeviceList(  )
+{
+	std::vector<std::string> v;
+	return v;
+}
+
+void 
+ManagerImpl::setWebcamDevice( const int index )
+{
+	
 }
 
 /*

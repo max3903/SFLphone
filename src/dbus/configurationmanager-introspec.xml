@@ -152,6 +152,43 @@
     </method>
 
   <!--        /////////////////////////////       -->
+  
+  <!-- Webcam Settings methods -->
+  
+  	<method name="getBrightness">
+      <arg type="i" name="value" direction="out"/>
+    </method>
+    
+    <method name="setBrightness">
+      <arg type="i" name="value" direction="in"/>
+    </method>
+    
+    <method name="getContrast">
+      <arg type="i" name="value" direction="out"/>
+    </method>
+    
+    <method name="setContrast">
+      <arg type="i" name="value" direction="in"/>
+    </method>
+    
+    <method name="getColour">
+      <arg type="i" name="value" direction="out"/>
+    </method>
+    
+    <method name="setColour">
+      <arg type="i" name="value" direction="in"/>
+    </method>
+    
+    <method name="getWebcamDeviceList">
+      <arg type="as" name="list" direction="out"/>
+    </method>
+    
+    <method name="setWebcamDevice">
+      <arg type="i" name="index" direction="in"/>
+    </method>
+  
+  
+  <!--        /////////////////////////////       -->
  
     <method name="isIax2Enabled">
       <arg type="i" name="res" direction="out"/>

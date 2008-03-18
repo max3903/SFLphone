@@ -56,6 +56,47 @@
       <arg type="s" name="callID" direction="out"/>
     </method>
     
+    <!-- Shared Memory related methods -->
+    
+    <method name="getLocalSharedMemoryKey">
+      <arg type="s" name="key" direction="out"/>
+    </method>
+    
+    <method name="getRemoteSharedMemoryKey">
+      <arg type="s" name="key" direction="out"/>
+    </method>
+    
+    <!--      ///////////////////////               -->
+    
+    <!-- Conference related methods -->
+    
+    <method name="inviteConference">
+      <arg type="s" name="accountID" direction="in"/>
+      <arg type="s" name="callID" direction="in"/>
+      <arg type="s" name="to" direction="in"/>
+      <arg type="b" name="response" direction="out"/>
+    </method>
+    
+    <method name="joinConference">
+      <arg type="s" name="onHoldCallID" direction="in"/>
+      <arg type="s" name="newCallID" direction="in"/>
+      <arg type="b" name="response" direction="out"/>
+    </method>
+    
+    <!--      ///////////////////////               -->
+    
+    <!-- Webcam related methods -->
+    
+    <method name="changeVideoAvaibility">
+      <arg type="b" name="status" direction="out"/>
+    </method>
+    
+    <method name="changeWebcamStatus">
+      <arg type="b" name="status" direction="in"/>
+    </method>
+    
+    <!--      ///////////////////////               -->
+    
     <signal name="incomingCall">
       <arg type="s" name="accountID" />
       <arg type="s" name="callID" />

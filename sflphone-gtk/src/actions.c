@@ -143,7 +143,7 @@ sflphone_fill_account_list()
 
 	gboolean
 sflphone_init()
-{
+{	
 	call_list_init ();
 	account_list_init ();
 	codec_list_init();
