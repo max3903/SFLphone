@@ -25,6 +25,7 @@
  * @brief The Contacts window.
  */
 void contact_window_fill_contact_list();
+void contact_window_clear_contact_list();
 void show_contact_window();
 
 #endif 
