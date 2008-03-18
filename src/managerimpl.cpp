@@ -2509,6 +2509,20 @@ ManagerImpl::getVideoDeviceDetails(const int index)
 	return v;
 }
 
+std::string 
+ManagerImpl::getLocalSharedMemoryKey()
+{
+	std::string key = "key local";
+	return key;
+}
+
+std::string 
+ManagerImpl::getRemoteSharedMemoryKey()
+{
+	std::string key = "key remote";
+	return key;
+}
+
 /*
  * Start it when the user activates the webcam icon
  * Changes the status of the mixer

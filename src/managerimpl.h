@@ -495,6 +495,10 @@ public:
    * @return if the id is the current call
    */
   bool isCurrentCall(const CallID& callId);
+  
+  /* Shared Memory Key exchange on D-Bus */
+  std::string getLocalSharedMemoryKey( void );
+  std::string getRemoteSharedMemoryKey( void );
 
 private:
  /**

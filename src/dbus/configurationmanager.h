@@ -74,6 +74,16 @@ public:
     std::vector< ::DBus::String > getRecordDeviceList(  );
     ::DBus::String getVersion(  );
     std::vector< ::DBus::String > getRingtoneList(  );
+    
+    /* Webcam Settings */
+    ::DBus::Int32 getBrightness(  );
+    void setBrightness( const ::DBus::Int32& value );
+    ::DBus::Int32 getContrast(  );
+    void setContrast( const ::DBus::Int32& value );
+    ::DBus::Int32 getColour(  );
+    void setColour( const ::DBus::Int32& value );
+    std::vector< ::DBus::String > getWebcamDeviceList(  );
+    void setWebcamDevice( const ::DBus::Int32& index );
 
 };
 

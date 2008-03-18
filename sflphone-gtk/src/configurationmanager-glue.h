@@ -1177,6 +1177,306 @@ org_sflphone_SFLphone_ConfigurationManager_get_current_audio_output_plugin_async
   stuff->userdata = userdata;
   return dbus_g_proxy_begin_call (proxy, "getCurrentAudioOutputPlugin", org_sflphone_SFLphone_ConfigurationManager_get_current_audio_output_plugin_async_callback, stuff, g_free, G_TYPE_INVALID);
 }
+static
+#ifdef G_HAVE_INLINE
+inline
+#endif
+gboolean
+org_sflphone_SFLphone_ConfigurationManager_get_brightness (DBusGProxy *proxy, gint* OUT_value, GError **error)
+
+{
+  return dbus_g_proxy_call (proxy, "getBrightness", error, G_TYPE_INVALID, G_TYPE_INT, OUT_value, G_TYPE_INVALID);
+}
+
+typedef void (*org_sflphone_SFLphone_ConfigurationManager_get_brightness_reply) (DBusGProxy *proxy, gint OUT_value, GError *error, gpointer userdata);
+
+static void
+org_sflphone_SFLphone_ConfigurationManager_get_brightness_async_callback (DBusGProxy *proxy, DBusGProxyCall *call, void *user_data)
+{
+  DBusGAsyncData *data = (DBusGAsyncData*) user_data;
+  GError *error = NULL;
+  gint OUT_value;
+  dbus_g_proxy_end_call (proxy, call, &error, G_TYPE_INT, &OUT_value, G_TYPE_INVALID);
+  (*(org_sflphone_SFLphone_ConfigurationManager_get_brightness_reply)data->cb) (proxy, OUT_value, error, data->userdata);
+  return;
+}
+
+static
+#ifdef G_HAVE_INLINE
+inline
+#endif
+DBusGProxyCall*
+org_sflphone_SFLphone_ConfigurationManager_get_brightness_async (DBusGProxy *proxy, org_sflphone_SFLphone_ConfigurationManager_get_brightness_reply callback, gpointer userdata)
+
+{
+  DBusGAsyncData *stuff;
+  stuff = g_new (DBusGAsyncData, 1);
+  stuff->cb = G_CALLBACK (callback);
+  stuff->userdata = userdata;
+  return dbus_g_proxy_begin_call (proxy, "getBrightness", org_sflphone_SFLphone_ConfigurationManager_get_brightness_async_callback, stuff, g_free, G_TYPE_INVALID);
+}
+static
+#ifdef G_HAVE_INLINE
+inline
+#endif
+gboolean
+org_sflphone_SFLphone_ConfigurationManager_set_brightness (DBusGProxy *proxy, const gint IN_value, GError **error)
+
+{
+  return dbus_g_proxy_call (proxy, "setBrightness", error, G_TYPE_INT, IN_value, G_TYPE_INVALID, G_TYPE_INVALID);
+}
+
+typedef void (*org_sflphone_SFLphone_ConfigurationManager_set_brightness_reply) (DBusGProxy *proxy, GError *error, gpointer userdata);
+
+static void
+org_sflphone_SFLphone_ConfigurationManager_set_brightness_async_callback (DBusGProxy *proxy, DBusGProxyCall *call, void *user_data)
+{
+  DBusGAsyncData *data = (DBusGAsyncData*) user_data;
+  GError *error = NULL;
+  dbus_g_proxy_end_call (proxy, call, &error, G_TYPE_INVALID);
+  (*(org_sflphone_SFLphone_ConfigurationManager_set_brightness_reply)data->cb) (proxy, error, data->userdata);
+  return;
+}
+
+static
+#ifdef G_HAVE_INLINE
+inline
+#endif
+DBusGProxyCall*
+org_sflphone_SFLphone_ConfigurationManager_set_brightness_async (DBusGProxy *proxy, const gint IN_value, org_sflphone_SFLphone_ConfigurationManager_set_brightness_reply callback, gpointer userdata)
+
+{
+  DBusGAsyncData *stuff;
+  stuff = g_new (DBusGAsyncData, 1);
+  stuff->cb = G_CALLBACK (callback);
+  stuff->userdata = userdata;
+  return dbus_g_proxy_begin_call (proxy, "setBrightness", org_sflphone_SFLphone_ConfigurationManager_set_brightness_async_callback, stuff, g_free, G_TYPE_INT, IN_value, G_TYPE_INVALID);
+}
+static
+#ifdef G_HAVE_INLINE
+inline
+#endif
+gboolean
+org_sflphone_SFLphone_ConfigurationManager_get_contrast (DBusGProxy *proxy, gint* OUT_value, GError **error)
+
+{
+  return dbus_g_proxy_call (proxy, "getContrast", error, G_TYPE_INVALID, G_TYPE_INT, OUT_value, G_TYPE_INVALID);
+}
+
+typedef void (*org_sflphone_SFLphone_ConfigurationManager_get_contrast_reply) (DBusGProxy *proxy, gint OUT_value, GError *error, gpointer userdata);
+
+static void
+org_sflphone_SFLphone_ConfigurationManager_get_contrast_async_callback (DBusGProxy *proxy, DBusGProxyCall *call, void *user_data)
+{
+  DBusGAsyncData *data = (DBusGAsyncData*) user_data;
+  GError *error = NULL;
+  gint OUT_value;
+  dbus_g_proxy_end_call (proxy, call, &error, G_TYPE_INT, &OUT_value, G_TYPE_INVALID);
+  (*(org_sflphone_SFLphone_ConfigurationManager_get_contrast_reply)data->cb) (proxy, OUT_value, error, data->userdata);
+  return;
+}
+
+static
+#ifdef G_HAVE_INLINE
+inline
+#endif
+DBusGProxyCall*
+org_sflphone_SFLphone_ConfigurationManager_get_contrast_async (DBusGProxy *proxy, org_sflphone_SFLphone_ConfigurationManager_get_contrast_reply callback, gpointer userdata)
+
+{
+  DBusGAsyncData *stuff;
+  stuff = g_new (DBusGAsyncData, 1);
+  stuff->cb = G_CALLBACK (callback);
+  stuff->userdata = userdata;
+  return dbus_g_proxy_begin_call (proxy, "getContrast", org_sflphone_SFLphone_ConfigurationManager_get_contrast_async_callback, stuff, g_free, G_TYPE_INVALID);
+}
+static
+#ifdef G_HAVE_INLINE
+inline
+#endif
+gboolean
+org_sflphone_SFLphone_ConfigurationManager_set_contrast (DBusGProxy *proxy, const gint IN_value, GError **error)
+
+{
+  return dbus_g_proxy_call (proxy, "setContrast", error, G_TYPE_INT, IN_value, G_TYPE_INVALID, G_TYPE_INVALID);
+}
+
+typedef void (*org_sflphone_SFLphone_ConfigurationManager_set_contrast_reply) (DBusGProxy *proxy, GError *error, gpointer userdata);
+
+static void
+org_sflphone_SFLphone_ConfigurationManager_set_contrast_async_callback (DBusGProxy *proxy, DBusGProxyCall *call, void *user_data)
+{
+  DBusGAsyncData *data = (DBusGAsyncData*) user_data;
+  GError *error = NULL;
+  dbus_g_proxy_end_call (proxy, call, &error, G_TYPE_INVALID);
+  (*(org_sflphone_SFLphone_ConfigurationManager_set_contrast_reply)data->cb) (proxy, error, data->userdata);
+  return;
+}
+
+static
+#ifdef G_HAVE_INLINE
+inline
+#endif
+DBusGProxyCall*
+org_sflphone_SFLphone_ConfigurationManager_set_contrast_async (DBusGProxy *proxy, const gint IN_value, org_sflphone_SFLphone_ConfigurationManager_set_contrast_reply callback, gpointer userdata)
+
+{
+  DBusGAsyncData *stuff;
+  stuff = g_new (DBusGAsyncData, 1);
+  stuff->cb = G_CALLBACK (callback);
+  stuff->userdata = userdata;
+  return dbus_g_proxy_begin_call (proxy, "setContrast", org_sflphone_SFLphone_ConfigurationManager_set_contrast_async_callback, stuff, g_free, G_TYPE_INT, IN_value, G_TYPE_INVALID);
+}
+static
+#ifdef G_HAVE_INLINE
+inline
+#endif
+gboolean
+org_sflphone_SFLphone_ConfigurationManager_get_colour (DBusGProxy *proxy, gint* OUT_value, GError **error)
+
+{
+  return dbus_g_proxy_call (proxy, "getColour", error, G_TYPE_INVALID, G_TYPE_INT, OUT_value, G_TYPE_INVALID);
+}
+
+typedef void (*org_sflphone_SFLphone_ConfigurationManager_get_colour_reply) (DBusGProxy *proxy, gint OUT_value, GError *error, gpointer userdata);
+
+static void
+org_sflphone_SFLphone_ConfigurationManager_get_colour_async_callback (DBusGProxy *proxy, DBusGProxyCall *call, void *user_data)
+{
+  DBusGAsyncData *data = (DBusGAsyncData*) user_data;
+  GError *error = NULL;
+  gint OUT_value;
+  dbus_g_proxy_end_call (proxy, call, &error, G_TYPE_INT, &OUT_value, G_TYPE_INVALID);
+  (*(org_sflphone_SFLphone_ConfigurationManager_get_colour_reply)data->cb) (proxy, OUT_value, error, data->userdata);
+  return;
+}
+
+static
+#ifdef G_HAVE_INLINE
+inline
+#endif
+DBusGProxyCall*
+org_sflphone_SFLphone_ConfigurationManager_get_colour_async (DBusGProxy *proxy, org_sflphone_SFLphone_ConfigurationManager_get_colour_reply callback, gpointer userdata)
+
+{
+  DBusGAsyncData *stuff;
+  stuff = g_new (DBusGAsyncData, 1);
+  stuff->cb = G_CALLBACK (callback);
+  stuff->userdata = userdata;
+  return dbus_g_proxy_begin_call (proxy, "getColour", org_sflphone_SFLphone_ConfigurationManager_get_colour_async_callback, stuff, g_free, G_TYPE_INVALID);
+}
+static
+#ifdef G_HAVE_INLINE
+inline
+#endif
+gboolean
+org_sflphone_SFLphone_ConfigurationManager_set_colour (DBusGProxy *proxy, const gint IN_value, GError **error)
+
+{
+  return dbus_g_proxy_call (proxy, "setColour", error, G_TYPE_INT, IN_value, G_TYPE_INVALID, G_TYPE_INVALID);
+}
+
+typedef void (*org_sflphone_SFLphone_ConfigurationManager_set_colour_reply) (DBusGProxy *proxy, GError *error, gpointer userdata);
+
+static void
+org_sflphone_SFLphone_ConfigurationManager_set_colour_async_callback (DBusGProxy *proxy, DBusGProxyCall *call, void *user_data)
+{
+  DBusGAsyncData *data = (DBusGAsyncData*) user_data;
+  GError *error = NULL;
+  dbus_g_proxy_end_call (proxy, call, &error, G_TYPE_INVALID);
+  (*(org_sflphone_SFLphone_ConfigurationManager_set_colour_reply)data->cb) (proxy, error, data->userdata);
+  return;
+}
+
+static
+#ifdef G_HAVE_INLINE
+inline
+#endif
+DBusGProxyCall*
+org_sflphone_SFLphone_ConfigurationManager_set_colour_async (DBusGProxy *proxy, const gint IN_value, org_sflphone_SFLphone_ConfigurationManager_set_colour_reply callback, gpointer userdata)
+
+{
+  DBusGAsyncData *stuff;
+  stuff = g_new (DBusGAsyncData, 1);
+  stuff->cb = G_CALLBACK (callback);
+  stuff->userdata = userdata;
+  return dbus_g_proxy_begin_call (proxy, "setColour", org_sflphone_SFLphone_ConfigurationManager_set_colour_async_callback, stuff, g_free, G_TYPE_INT, IN_value, G_TYPE_INVALID);
+}
+static
+#ifdef G_HAVE_INLINE
+inline
+#endif
+gboolean
+org_sflphone_SFLphone_ConfigurationManager_get_webcam_device_list (DBusGProxy *proxy, char *** OUT_list, GError **error)
+
+{
+  return dbus_g_proxy_call (proxy, "getWebcamDeviceList", error, G_TYPE_INVALID, G_TYPE_STRV, OUT_list, G_TYPE_INVALID);
+}
+
+typedef void (*org_sflphone_SFLphone_ConfigurationManager_get_webcam_device_list_reply) (DBusGProxy *proxy, char * *OUT_list, GError *error, gpointer userdata);
+
+static void
+org_sflphone_SFLphone_ConfigurationManager_get_webcam_device_list_async_callback (DBusGProxy *proxy, DBusGProxyCall *call, void *user_data)
+{
+  DBusGAsyncData *data = (DBusGAsyncData*) user_data;
+  GError *error = NULL;
+  char ** OUT_list;
+  dbus_g_proxy_end_call (proxy, call, &error, G_TYPE_STRV, &OUT_list, G_TYPE_INVALID);
+  (*(org_sflphone_SFLphone_ConfigurationManager_get_webcam_device_list_reply)data->cb) (proxy, OUT_list, error, data->userdata);
+  return;
+}
+
+static
+#ifdef G_HAVE_INLINE
+inline
+#endif
+DBusGProxyCall*
+org_sflphone_SFLphone_ConfigurationManager_get_webcam_device_list_async (DBusGProxy *proxy, org_sflphone_SFLphone_ConfigurationManager_get_webcam_device_list_reply callback, gpointer userdata)
+
+{
+  DBusGAsyncData *stuff;
+  stuff = g_new (DBusGAsyncData, 1);
+  stuff->cb = G_CALLBACK (callback);
+  stuff->userdata = userdata;
+  return dbus_g_proxy_begin_call (proxy, "getWebcamDeviceList", org_sflphone_SFLphone_ConfigurationManager_get_webcam_device_list_async_callback, stuff, g_free, G_TYPE_INVALID);
+}
+static
+#ifdef G_HAVE_INLINE
+inline
+#endif
+gboolean
+org_sflphone_SFLphone_ConfigurationManager_set_webcam_device (DBusGProxy *proxy, const gint IN_index, GError **error)
+
+{
+  return dbus_g_proxy_call (proxy, "setWebcamDevice", error, G_TYPE_INT, IN_index, G_TYPE_INVALID, G_TYPE_INVALID);
+}
+
+typedef void (*org_sflphone_SFLphone_ConfigurationManager_set_webcam_device_reply) (DBusGProxy *proxy, GError *error, gpointer userdata);
+
+static void
+org_sflphone_SFLphone_ConfigurationManager_set_webcam_device_async_callback (DBusGProxy *proxy, DBusGProxyCall *call, void *user_data)
+{
+  DBusGAsyncData *data = (DBusGAsyncData*) user_data;
+  GError *error = NULL;
+  dbus_g_proxy_end_call (proxy, call, &error, G_TYPE_INVALID);
+  (*(org_sflphone_SFLphone_ConfigurationManager_set_webcam_device_reply)data->cb) (proxy, error, data->userdata);
+  return;
+}
+
+static
+#ifdef G_HAVE_INLINE
+inline
+#endif
+DBusGProxyCall*
+org_sflphone_SFLphone_ConfigurationManager_set_webcam_device_async (DBusGProxy *proxy, const gint IN_index, org_sflphone_SFLphone_ConfigurationManager_set_webcam_device_reply callback, gpointer userdata)
+
+{
+  DBusGAsyncData *stuff;
+  stuff = g_new (DBusGAsyncData, 1);
+  stuff->cb = G_CALLBACK (callback);
+  stuff->userdata = userdata;
+  return dbus_g_proxy_begin_call (proxy, "setWebcamDevice", org_sflphone_SFLphone_ConfigurationManager_set_webcam_device_async_callback, stuff, g_free, G_TYPE_INT, IN_index, G_TYPE_INVALID);
+}
 #endif /* defined DBUS_GLIB_CLIENT_WRAPPERS_org_sflphone_SFLphone_ConfigurationManager */
 
 G_END_DECLS

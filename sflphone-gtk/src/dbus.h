@@ -41,6 +41,17 @@ void dbus_transfert (const call_t * c);
 void dbus_accept (const call_t * c);
 void dbus_refuse (const call_t * c);
 void dbus_place_call (const call_t * c);
+/* Shared Memory */
+gchar* dbus_get_local_shared_memory_key();
+gchar* dbus_get_remote_shared_memory_key();
+//Invite 3rd person in a conference
+gboolean dbus_invite_conference( const call_t * c );
+gboolean dbus_join_conference( const call_t * onHoldCall,  const call_t * newCall);
+//Remote video status change - enable or disable remote video display
+gboolean dbus_change_video_avaibility();
+//Webcam Status change - enable or disable video capture
+void dbus_change_webcam_status(gboolean status);
+
 
 /* ConfigurationManager */
 /** Returns a NULL terminated array of gchar pointers */
@@ -59,10 +70,23 @@ gchar** dbus_codec_details(int payload);
 gchar** dbus_default_codec_list();
 gchar** dbus_get_active_codec_list( void );
 void dbus_set_active_codec_list( const gchar** list );
+//Video codec list in Video Settings
 gchar** dbus_video_codec_list();
 gchar** dbus_video_codec_details(int payload);
 gchar** dbus_get_active_video_codec_list( void );
 void dbus_set_active_video_codec_list( const gchar** list );
+//Brightness of the video capture
+int dbus_get_brightness();
+void dbus_set_brightness(int value);
+//Contrast of the video capture
+int dbus_get_contrast();
+void dbus_set_contrast(int value);
+//Colour of the video capture
+int dbus_get_colour();
+void dbus_set_colour(int value);
+//Webcam list
+gchar** dbus_get_webcam_device_list();
+void dbus_set_webcam_device(const int index);
 
 // Audio devices related methods
 gchar** dbus_get_input_audio_plugin_list();
@@ -78,23 +102,6 @@ gchar** dbus_get_current_audio_devices_index();
 int dbus_get_audio_device_index(const gchar* name);
 gchar* dbus_get_current_audio_output_plugin();
 
-
-/*
-// TODO: Add other function to manage d-bus communication
-
-//Webcam Status change
-void dbus_enable_WebCam();
-void dbus_disable_Webcam();
-
-//Video Information
-void dbus_video_Available();
-void dbus_video_Not_Available();
-
-//Invite 3rd person
-void dbus_invite_Person( const call_t * c );
-void dbus_invite_Response( const call_t * c );
-
-*/
 
 /* Instance */
 void dbus_register( int pid, gchar * name);

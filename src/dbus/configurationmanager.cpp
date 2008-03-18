@@ -258,3 +258,61 @@ ConfigurationManager::setDefaultAccount( const ::DBus::String& accountID )
 	Manager::instance().setDefaultAccount(accountID);
 
 }
+
+/* Webcam Settings */
+
+::DBus::Int32 
+ConfigurationManager::getBrightness(  )
+{
+	_debug("ConfigurationManager::getBrightness received\n");
+	return Manager::instance().getBrightness();
+}
+
+void 
+ConfigurationManager::setBrightness( const ::DBus::Int32& value )
+{
+	 _debug("ConfigurationManager::setBrightness received\n");
+	Manager::instance().setBrightness(value);
+}
+
+::DBus::Int32 
+ConfigurationManager::getContrast(  )
+{
+	_debug("ConfigurationManager::getContrast received\n");
+	return Manager::instance().getContrast();
+}
+
+void 
+ConfigurationManager::setContrast( const ::DBus::Int32& value )
+{
+	 _debug("ConfigurationManager::setContrast received\n");
+	Manager::instance().setContrast(value);
+}
+
+::DBus::Int32 
+ConfigurationManager::getColour(  )
+{
+	_debug("ConfigurationManager::getColour received\n");
+	return Manager::instance().getColour();
+}
+
+void 
+ConfigurationManager::setColour( const ::DBus::Int32& value )
+{
+	 _debug("ConfigurationManager::setColour received\n");
+	Manager::instance().setColour(value);
+}
+
+std::vector< ::DBus::String > 
+ConfigurationManager::getWebcamDeviceList(  )
+{
+	_debug("ConfigurationManager::getWebcamDeviceList received\n");
+	return Manager::instance().getWebcamDeviceList();
+}
+
+void 
+ConfigurationManager::setWebcamDevice( const ::DBus::Int32& index )
+{
+	_debug("ConfigurationManager::setWebcamDevice received\n");
+	Manager::instance().setWebcamDevice(index);
+}

@@ -142,7 +142,7 @@ sflphone_fill_account_list()
 
 	gboolean
 sflphone_init()
-{
+{	
 	call_list_init ();
 	account_list_init ();
     codec_list_init();
@@ -158,7 +158,7 @@ sflphone_init()
 		sflphone_fill_account_list();
 		sflphone_set_default_account();
 		sflphone_fill_codec_list();
-		sflphone_fill_video_codec_list();
+		sflphone_fill_video_codec_list();	
 		return TRUE;
 	}
 }
