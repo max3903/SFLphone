@@ -35,7 +35,8 @@
 
 #include <map>
 #include <vector>
-
+#include <string>
+#include "../tracePrint.h"
 extern "C"{
 #include <ffmpeg/avcodec.h>
 #include <ffmpeg/avformat.h>
@@ -50,6 +51,10 @@ typedef VideoCodecMap::iterator VCMIterator;
 typedef std::vector<AVCodec*> VideoCodecOrder;
 /* VideoCodecOrder iterator typedef*/
 typedef VideoCodecOrder::iterator VCOIterator;
+
+typedef std::vector<std::string> StringVector;
+/* VideoCodecOrder iterator typedef*/
+typedef StringVector::iterator StringVectorIterator;
 
 
 class VideoCodecDescriptor {
@@ -81,28 +86,14 @@ public:
      * 	     false otherwise
      */
     bool isActive(enum CodecID id);
+    
 
-    /**
-     * remove a codec from the active list. to see the ffmpeg codec list
-     * : ffmpeg -formats
-     * @param id :  libavcodec CodecID of the codec to erase
-     * 
-     */ 
-    bool removeCodec(enum CodecID id);
-    
-    
-    /**
-     * add a codec in the active list
-     * : ffmpeg -formats
-     * @param id : libavcodec CodecID of the codec to add
-     * @return bool : true if found, false otherwise*/ 	
-    bool addCodec(enum CodecID id);
-   
 	/**
-     * Function to send the map containing the active Codecs.
+     * Function to send the vector containing the active Codecs.
      * 
      */
     VideoCodecOrder getActiveCodecs();
+    
 	/**
      * Function to set the map
      * @param activeC to set the Codec Map with another map
@@ -110,19 +101,19 @@ public:
      */
     void setActiveCodecs(VideoCodecOrder vCodecOrder);
 	/**
-     * Function to set the map
+     * Function to set the map with all the codecs used by sflphone
      * @param codecMap to set the Codec Map
      * (not really suppose to happen)
      */
     void setCodecMap(VideoCodecMap codec);
 	/**
-     * Function to get the map
+     * Function to get the map containing all the videoCodecsUsed
      * @return codecMap to set the Codec Map
      */
    	VideoCodecMap getCodecMap();
    	
    	/**
-     * Function to get the map
+     * Function to get the context of a Codec
      * @return codecMap to set the Codec Map
      */
    	AVCodecContext* getCodecContext(AVCodec* Codec);
@@ -132,6 +123,37 @@ public:
      * @return char*, with all the info in a structured way
      */
 	char * serialize();
+	
+	 /********************************************
+     * Functions for MEMMANAGER
+     *********************************************
+     */
+	
+	 /**
+     * Function to send the vector containing the active Codecs IN A STRING VECTOR
+     * @return a string vector with all the codec Names in it
+     */
+    StringVector getStringActiveCodecs();
+    
+    /**
+     * Function to save the the vector containing the active Codecs
+     * @param activeCodecs a string list of vectors
+     */
+    bool saveActiveCodecs(StringVector sActiveCodecs);
+    
+    /**
+     * Function to get the map
+     * @return StringVector a string vector copntaining all the vector
+     */
+   	StringVector getStringCodecMap();
+   	
+   	/**
+     * Function to save the a map containing the active Codecs
+     * @param sCodecMap a string list of vectors
+     */
+    bool saveCodecMap(StringVector sCodecMap);
+   	
+    
 
 private:	
 
@@ -146,16 +168,13 @@ private:
      */
      bool initCodecMap();
      
-     /**
-     *  return codec Name
-     */
-     const char* getCodecName();
      
      /**
      *  return codec Name
      */
      bool checkSupported();
      
+    
 	/**
      * Vector of all the Active codecs
      */
@@ -170,6 +189,8 @@ protected:
 	 * Default Constructor
      */
     VideoCodecDescriptor();
+    
+    
 
 };
 #endif //VIDEOCODECDESCRIPTOR_H

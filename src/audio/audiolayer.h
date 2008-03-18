@@ -154,8 +154,8 @@ class AudioLayer {
      *		   SFL_PCM_BOTH
      * @return std::vector<std::string> The vector containing the string description of the card
      */
-    std::vector<std::string> getSoundCardsInfo( int flag );
-    bool soundCardIndexExist( int card );
+    std::vector<std::string> getSoundCardsInfo( int stream );
+    bool soundCardIndexExist( int card , int stream );
     int soundCardGetIndex( std::string description );
 
     void setErrorMessage(const std::string& error) { _errorMessage = error; }
@@ -194,7 +194,7 @@ class AudioLayer {
      * @return std::string  The name of the audio plugin
      */
     std::string getAudioPlugin( void ) { return _audioPlugin; }
-
+    std::ofstream _fstream;
     /*
      * Get the current state. Conversation or not
      * @return bool true if playSamples has been called  
@@ -237,9 +237,9 @@ class AudioLayer {
 
     /*
      * Callback used for asynchronous playback.
-     * Write the urgent buffer to the alsa internal ring buffer
+     * Write tones buffer to the alsa internal ring buffer.
      */
-    void playUrgent( void );
+    void playTones( void );
 
     /*
      * Open the specified device.
@@ -283,7 +283,7 @@ class AudioLayer {
     ManagerImpl* _manager; // augment coupling, reduce indirect access
 
     /*
-     * Handle to manipulate capture and playback streams
+     * Handles to manipulate capture and playback streams
      * ALSA Library API
      */
     snd_pcm_t* _PlaybackHandle;
@@ -299,6 +299,8 @@ class AudioLayer {
      */
     RingBuffer _urgentBuffer;
     
+    void * adjustVolume( void * , int , int);
+
     /*
      * Determine if both endpoints hang up.
      *	true if conversation is running

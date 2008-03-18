@@ -101,7 +101,19 @@ void dbus_set_audio_input_device(const int index);
 gchar** dbus_get_current_audio_devices_index();
 int dbus_get_audio_device_index(const gchar* name);
 gchar* dbus_get_current_audio_output_plugin();
+int dbus_is_iax2_enabled( void );
+int dbus_is_ringtone_enabled( void );
+void dbus_ringtone_enabled( void );
+gchar* dbus_get_ringtone_choice( void );
+void dbus_set_ringtone_choice( const gchar* tone );
 
+
+
+/** ContactManager */
+gchar** dbus_get_contacts(gchar* accountID);
+gchar** dbus_get_contact_details(gchar* accountID, gchar* contactID);
+gchar** dbus_get_contact_entries(gchar* accountID, gchar* contactID);
+gchar** dbus_get_contact_entry_details(gchar* accountID, gchar* contactID, gchar* entryID);
 
 /* Instance */
 void dbus_register( int pid, gchar * name);

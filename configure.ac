@@ -189,7 +189,7 @@ SFLPHONE_CFLAGS="$SFLPHONE_CFLAGS $libdbuscpp_CFLAGS"
 SFLPHONE_LIBS="$SFLPHONE_LIBS $libdbuscpp_LIBS"
 
 FFPMEG_MIN_VERSION=3.0
-PKG_CHECK_MODULES(FFMPEG, libavutil libavformat libavcodec >= ${FFPMEG_MIN_VERSION})
+PKG_CHECK_MODULES(ffmpeg, libavutil libavformat libavcodec >= ${FFPMEG_MIN_VERSION})
 SFLPHONE_CFLAGS="$SFLPHONE_CFLAGS $ffmpeg_CFLAGS"
 SFLPHONE_LIBS="$SFLPHONE_LIBS $ffmpeg_LIBS"
 
@@ -197,7 +197,7 @@ SFLPHONE_LIBS="$SFLPHONE_LIBS $ffmpeg_LIBS"
 AC_CHECK_HEADER(boost/tokenizer.hpp, , AC_MSG_ERROR("Unable to find the libboost tokenizer headers; you may need to install the libboost-dev package" ) )
 
 # check for libgsm1 (doesn't use pkg-config)
-dnl Check for libspeex
+dnl Check for libgsm
 AC_ARG_WITH([gsm],
   [AS_HELP_STRING([--without-gsm],
     [disable support for gsm codec])],
@@ -239,6 +239,14 @@ AS_IF([test "x$with_speex" != xno],
 AC_DEFINE([HAVE_SPEEX], test "x$with_speex" = "xyes", [Define if you have libspeex])
 AM_CONDITIONAL(BUILD_SPEEX, test "x$with_speex" = "xyes" )
 
+dnl Check for ilbc support
+AC_ARG_WITH([ilbc],
+  [AS_HELP_STRING([--without-ilbc],
+    [disable support for the ilbc codec])],
+  [],
+  [with_ilbc=no])
+
+AM_CONDITIONAL(BUILD_ILBC, test "x$with_ilbc" = "xyes" )
 
 dnl Check for IAX
 AC_ARG_WITH([iax2],

@@ -24,8 +24,6 @@ MemKey::MemKey()
 	this->key = this->genKey();
 	//TODO get index from memmanager
 	//TODO put DEFAULT size
-	//TODO put DEFAULT width
-	//TODO put DEFAULT height
 	this->description = serialize();
 }
 
@@ -33,15 +31,13 @@ MemKey::MemKey(char* serializedData)
 {
 	
 	//TODO read serializedData and create MemKey with parameters
-	//"%i %i %i %i",size,width,height,key
+	//"%i %i",size,key
 }
 
 MemKey::MemKey(int size)
 {
 	this->size = size;
-
 	this->key = this->genKey();
-	//TODO get index from memmanager
 	this->description = serialize();
 	
 }
@@ -68,6 +64,7 @@ MemKey::MemKey(MemKey& key)
 	
 	this->size = key.size;
 	this->index = key.index;
+	this->size = key.size;
 	this->description = serialize();
 }
 
@@ -76,7 +73,7 @@ MemKey::~MemKey()
 {
 }
 
-int MemKey::getKey()
+key_t MemKey::getKey() const
 {
 	return this->key;
 }
@@ -91,7 +88,7 @@ const char * MemKey::getDescription() const
 	return this->description ;
 }
 
-vectMemSpaceIterator MemKey::getIndex()
+vectMemSpaceIterator MemKey::getIndex() const
 {
 	return this->index;
 }
@@ -101,7 +98,7 @@ void MemKey::setIndex(vectMemSpaceIterator index)
 	this->index = index;
 }
 
-int MemKey::getSize()
+int MemKey::getSize() const
 {
 	return this->size;
 }
@@ -112,14 +109,25 @@ void MemKey::setSize(int size)
 	
 }
 
+void MemKey::setShmid(int shmid)
+{
+	this->shmid = shmid;
+
+}
+
+int MemKey::getShmid() const
+{
+	return this->shmid;
+}
+
 char* MemKey::serialize()
 {
 	char* tmp;
-	sprintf(tmp,"%i %i",this->size,this->key);
+	sprintf(tmp,"%i %i",this->shmid,this->size);
 	return tmp;
 }
 
-int MemKey::genKey()
+key_t MemKey::genKey()
 {
-	return rand();	
+	return ftok("/tmp/sflPhone",rand());	
 }

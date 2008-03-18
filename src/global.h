@@ -75,6 +75,7 @@ typedef short int16;
 
 #define PCM_HW		"hw"
 #define PCM_PLUGHW	"plughw"
+#define PCM_PULSE	"pulse"
 #define PCM_FRONT	"plug:front"
 #define PCM_DEFAULT	"default"
 #define PCM_DMIX	"plug:dmix"
@@ -93,5 +94,16 @@ typedef short int16;
 #define SFL_PCM_BOTH		0x0021
 #define SFL_PCM_PLAYBACK	0x0022
 #define SFL_PCM_CAPTURE		0x0023
+
+#ifdef USE_IAX
+#define	IAX2_ENABLED  true
+#else
+#define	IAX2_ENABLED  false
+#endif
+
+#define GSM_STRING_DESCRIPTION	  "gsm"
+#define SPEEX_STRING_DESCRIPTION  "speex"
+#define ILBC_STRING_DESCRIPTION  "ilbc"
+#define RINGTONE_ENABLED	  1
 
 #endif	// __GLOBAL_H__

@@ -30,8 +30,7 @@ extern "C"{
 #include <ffmpeg/avformat.h>
 }
 #include "../VideoCodecDescriptor.h"
-/**
- * @author Jean-Francois Blanchard-Dionne */
+
 class VideoCodec {
 public:
 	/**

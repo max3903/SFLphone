@@ -43,11 +43,13 @@
 #include "audio/audiofile.h"
 #include "audio/dtmf.h"
 #include "audio/codecDescriptor.h"
+#include "video/VideoCodecDescriptor.h"
 
 
 
 class AudioLayer;
 class CodecDescriptor;
+class VideoCodecDescriptor;
 class GuiFramework;
 class TelephoneTone;
 class VoIPLink;
@@ -270,6 +272,32 @@ public:
   std::string getDefaultAccount();
 
 
+  /** Contact related methods */
+  
+  /** 
+   * Get contact list for a given account
+   * @return A list of contactID
+   */
+  std::vector<std::string> getContacts(const AccountID& accountID);
+
+  /**
+   * Retrieve details about a given contact
+   * @return first name, last name, group, subgroup
+   */
+  std::vector<std::string> getContactDetails(const std::string& accountID, const std::string& contactID);
+  
+  /**
+   * Get contact entries for a given contact
+   * @return A list of contact entries (phone number, extension, url..)
+   */
+  std::vector<std::string> getContactEntries(const std::string& accountID, const std::string& contactID);
+  
+  /**
+   * Get contact entry details
+   * @return type of entry (home, work...), show entry in call console, subscribe to entry for presence
+   */
+  std::vector<std::string> getContactEntryDetails(const std::string& accountID, const std::string& contactID, const std::string& contactEntryID);
+  
   /**
    * Get the list of codecs we supports, not ordered
    * @return The list of the codecs
@@ -365,6 +393,11 @@ public:
    */
   std::string serialize(std::vector<std::string> v);
 
+  int isIax2Enabled( void ); 
+  int isRingtoneEnabled( void ); 
+  void ringtoneEnabled( void ); 
+  std::string getRingtoneChoice( void );
+  void setRingtoneChoice( const std::string& );
   /**
    * Inverse of serialize
    */
@@ -530,7 +563,8 @@ private:
    * Initialize audiocodec with config setting
    */
   void initAudioCodec(void);
-
+  
+  
   /*
    * Initialize audiodriver
    */
@@ -603,6 +637,9 @@ private:
 
   // map of codec (for configlist request)
   CodecDescriptor _codecDescriptorMap;
+  
+  // videoCodecDescriptor
+  VideoCodecDescriptor *_videoCodecDescriptor;
 
   /////////////////////
   // Protected by Mutex
@@ -732,6 +769,23 @@ private:
    */
   VoIPLink* getAccountLink(const AccountID& accountID);
   
+  /**
+   * Get a contact pointer
+   * @param id of the account
+   * @param id of the contact
+   */
+  Contact* getContact(const AccountID& accountID, const std::string& contactID);
+
+#ifdef TEST
+  bool testCallAccountMap();
+  bool testAccountMap();
+#endif
+
+  /*
+   * Initialize video codec with config setting
+   */
+  void initVideoCodec(void);
+  
   
   
   /**
@@ -748,16 +802,11 @@ private:
    * Get string array representing integer indexes of video input device
    */
   std::vector<std::string> getCurrentVideoDeviceIndex();
-  
+
   /**
    * Get name, brightness, contrast, color, resolution of video device
    */
   std::vector<std::string> getVideoDeviceDetails(const int index);
-
-  #ifdef TEST
-  bool testCallAccountMap();
-  bool testAccountMap();
-  #endif
 
 	enum modeEnum {modeNormal, modeServer};
 	modeEnum mode;

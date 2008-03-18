@@ -32,10 +32,8 @@
 
 #include <gtk/gtk.h>
 
-/**
- * Local variables
- */
 gboolean dialogOpen = FALSE;
+gboolean ringtoneEnabled = TRUE;
 
 GtkListStore *accountStore;
 GtkWidget *codecTreeView;		// View used instead of store to get access to selection
@@ -387,7 +385,6 @@ select_active_output_audio_plugin()
 {
 	GtkTreeModel* model;
 	GtkTreeIter iter;
-	//gchar** devices;  //unused
 	gchar* plugin;
 	gchar* tmp;
 
@@ -560,6 +557,32 @@ default_account(GtkWidget *widget, gpointer data)
 		account_list_set_default(selectedAccount->accountID);
 		dbus_set_default_account(selectedAccount->accountID);
 	}
+}
+
+int 
+is_ringtone_enabled( void )
+{
+  int res =  dbus_is_ringtone_enabled();
+  return res;  
+}
+
+void 
+ringtone_enabled( void )
+{
+  dbus_ringtone_enabled();  
+}
+
+void
+ringtone_changed( GtkFileChooser *chooser , GtkLabel *label)
+{
+  gchar* tone = gtk_file_chooser_get_filename( GTK_FILE_CHOOSER( chooser ));
+  dbus_set_ringtone_choice( tone );
+}
+
+gchar*
+get_ringtone_choice( void )
+{
+  return dbus_get_ringtone_choice();
 }
 
 /**
@@ -1048,8 +1071,8 @@ create_codec_table()
 	scrolledWindow = gtk_scrolled_window_new(NULL, NULL);
 	gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(scrolledWindow), GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
 	gtk_scrolled_window_set_shadow_type(GTK_SCROLLED_WINDOW(scrolledWindow), GTK_SHADOW_IN);
-	
 	gtk_box_pack_start(GTK_BOX(ret), scrolledWindow, TRUE, TRUE, 0);
+	
 	codecStore = gtk_list_store_new(CODEC_COLUMN_COUNT,
 			G_TYPE_BOOLEAN,		// Active
 			G_TYPE_STRING,		// Name
@@ -1246,9 +1269,11 @@ create_audio_tab ()
 	GtkWidget *deviceTable;
 	GtkWidget *codecLabel;
 	GtkWidget *codecBox;
+	GtkWidget *enableTone;
+	GtkWidget *fileChooser;
 	
 	GtkWidget *titleLabel;
-	//GtkWidget *comboBox;  //unused
+
 	GtkWidget *refreshButton;
 	GtkCellRenderer *renderer;
 	
@@ -1389,6 +1414,26 @@ create_audio_tab ()
 	gtk_box_pack_start(GTK_BOX(codecBox), codecTable, TRUE, TRUE, 0);
 	gtk_widget_show(codecTable);
 
+    // check button to enable ringtones
+	GtkWidget* box = gtk_hbox_new( TRUE , 1);
+	gtk_box_pack_start( GTK_BOX(ret) , box , FALSE , FALSE , 1);
+	enableTone = gtk_check_button_new_with_mnemonic( "_Enable ringtones");
+	gtk_toggle_button_set_active( GTK_TOGGLE_BUTTON(enableTone), dbus_is_ringtone_enabled() );
+	gtk_box_pack_start( GTK_BOX(box) , enableTone , TRUE , TRUE , 1);
+	g_signal_connect(G_OBJECT( enableTone) , "clicked" , G_CALLBACK( ringtone_enabled ) , NULL);
+    // file chooser button
+	fileChooser = gtk_file_chooser_button_new("Choose a ringtone", GTK_FILE_CHOOSER_ACTION_OPEN);
+	gtk_file_chooser_set_current_folder(GTK_FILE_CHOOSER( fileChooser) , g_get_home_dir());	
+	gtk_file_chooser_set_filename(GTK_FILE_CHOOSER( fileChooser) , get_ringtone_choice());	
+	g_signal_connect( G_OBJECT( fileChooser ) , "selection_changed" , G_CALLBACK( ringtone_changed ) , NULL );
+	GtkFileFilter *filter = gtk_file_filter_new();
+	gtk_file_filter_set_name( filter , "Audio Files" );
+	gtk_file_filter_add_pattern(filter , "*.wav" );
+	gtk_file_filter_add_pattern(filter , "*.ul" );
+	gtk_file_filter_add_pattern(filter , "*.au" );
+	gtk_file_chooser_add_filter( GTK_FILE_CHOOSER( fileChooser ) , filter);
+	gtk_box_pack_start( GTK_BOX(box) , fileChooser , TRUE , TRUE , 1);
+
 	// Show all
 	gtk_widget_show_all(ret);
 
@@ -1478,7 +1523,7 @@ create_webcam_tab ()
 	GtkWidget *brightnessHScale, *contrastHScale, *colourHScale;
 	GtkObject *brightnessAdjustment, *contrastAdjustment, *colourAdjustment;
 	
-	GtkWidget *drawingSpace;
+//	GtkWidget *drawingSpace;
 	
 	
 	GtkCellRenderer *renderer;
@@ -1595,9 +1640,9 @@ create_webcam_tab ()
 	gtk_widget_show(colourHScale);
 	
 	// \todo Add an OpenGL widget to show the local video rendering
-    drawingSpace= createGLWidget();
-    gtk_box_pack_start(GTK_BOX(settingsHBox), drawingSpace, TRUE, TRUE, 0);
-    gtk_widget_show(drawingSpace);
+//    drawingSpace= createGLWidget();
+//    gtk_box_pack_start(GTK_BOX(settingsHBox), drawingSpace, TRUE, TRUE, 0);
+//    gtk_widget_show(drawingSpace);
 	
 	g_signal_connect (G_OBJECT (colourHScale), "format-value", G_CALLBACK (format_percentage_scale), NULL); 
 	g_signal_connect (G_OBJECT (brightnessHScale), "format-value", G_CALLBACK (format_percentage_scale), NULL); 
@@ -1627,13 +1672,13 @@ show_config_window (gint page_num)
 
 	dialog = GTK_DIALOG(gtk_dialog_new_with_buttons ("Preferences",
 				GTK_WINDOW(get_main_window()),
-				GTK_DIALOG_MODAL | GTK_DIALOG_DESTROY_WITH_PARENT,
+				GTK_DIALOG_DESTROY_WITH_PARENT,
 				GTK_STOCK_CLOSE,
 				GTK_RESPONSE_ACCEPT,
 				NULL));
 
 	// Set window properties
-	gtk_dialog_set_has_separator(dialog, FALSE);
+      	gtk_dialog_set_has_separator(dialog, FALSE);
 	gtk_window_set_default_size(GTK_WINDOW(dialog), 400, 400);
 	gtk_container_set_border_width(GTK_CONTAINER(dialog), 0);
 	
@@ -1670,9 +1715,10 @@ show_config_window (gint page_num)
 	gtk_widget_show(tab);
 
 	gtk_notebook_set_current_page(GTK_NOTEBOOK(notebook),page_num);
-	gtk_dialog_run(dialog);
-	
+	gtk_widget_show( GTK_WIDGET(dialog) );
+	g_signal_connect_swapped( dialog , "response" , G_CALLBACK( gtk_widget_destroy ), dialog );
+
 	dialogOpen = FALSE;
 
-	gtk_widget_destroy(GTK_WIDGET(dialog));
+	//gtk_widget_destroy(GTK_WIDGET(dialog));
 }

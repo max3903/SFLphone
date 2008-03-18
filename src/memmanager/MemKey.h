@@ -88,7 +88,7 @@ public:
     /*!
      * \return the key to the memory space
      */
-    key_t getKey();
+    key_t getKey() const;
     
     //! Access method to set the key of the shared memory space
     /*!
@@ -105,7 +105,7 @@ public:
     /*!
      * \return the index in the MemManager
      */
-    vectMemSpaceIterator getIndex();
+    vectMemSpaceIterator getIndex() const;
 
     //! Modification method to the index of the memory space in the MemManager
     /*!
@@ -117,13 +117,25 @@ public:
     /*!
      * \return the maximum size of the shared memory space
      */
-    int getSize();
+    int getSize() const;
     
     //! Modification method to the size of the memory space in the MemManager
     /*!
      * \param index the index in the MemManager
      */
     void setSize(int size);
+    
+     //! Access method to the Shmid
+    /*!
+     * \return the maximum size of the shared memory space
+     */
+    int getShmid() const;
+    
+    //! Modification method to set the key's shmid
+    /*!
+     * \param shmid 
+     */
+    void setShmid(int shmid);
 
     //! Method to serialize the MemKeyObject
     /*!
@@ -142,7 +154,7 @@ private:
 	/*!
 	 * Will create a key if needed
 	 */
-    int genKey();
+    key_t genKey();
     
     //! The key to access the shared memory space
     key_t key;
@@ -156,6 +168,9 @@ private:
     
     //! The maximum size of the shared memory space
     int size;
+    
+    //! The space's id
+    int shmid;
     
     
 };

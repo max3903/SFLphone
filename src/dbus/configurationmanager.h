@@ -85,6 +85,11 @@ public:
     std::vector< ::DBus::String > getWebcamDeviceList(  );
     void setWebcamDevice( const ::DBus::Int32& index );
 
+    ::DBus::Int32 isIax2Enabled( void );
+    ::DBus::Int32 isRingtoneEnabled( void );
+    void ringtoneEnabled( void );
+    ::DBus::String getRingtoneChoice( void );
+    void setRingtoneChoice( const ::DBus::String& tone );
 };
 
 

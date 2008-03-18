@@ -57,6 +57,21 @@
       <arg type="as" name="list" direction="out"/>
     </method>
     
+    <method name="isRingtoneEnabled">
+      <arg type="i" name="bool" direction="out"/>
+    </method>
+
+    <method name="ringtoneEnabled">
+    </method>
+
+    <method name="getRingtoneChoice">
+      <arg type="s" name="tone" direction="out"/>
+    </method>
+
+    <method name="setRingtoneChoice">
+      <arg type="s" name="tone" direction="in"/>
+    </method>
+
    <!--      ///////////////////////               -->
    
    <!-- Codecs-related methods -->
@@ -175,6 +190,11 @@
   
   <!--        /////////////////////////////       -->
  
+    <method name="isIax2Enabled">
+      <arg type="i" name="res" direction="out"/>
+    </method>
+
+  <!--        /////////////////////////////       -->
     <signal name="parametersChanged">
       <arg type="a{ss}" name="list" direction="out"/>
     </signal>

@@ -111,6 +111,11 @@ class Account{
   void loadContacts();
   
   /**
+   * Return contacts loaded for account
+   */
+  const std::vector<Contact*> getContacts();
+  
+  /**
    * Suscribe presence information for selected contacts if supported
    */
   void subscribeContactsPresence();

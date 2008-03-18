@@ -25,7 +25,6 @@
 #include <fstream>
 #include <math.h>
 #include <samplerate.h>
-#include <dlfcn.h>
 
 AudioFile::AudioFile()
  : AudioLoop()
@@ -36,7 +35,6 @@ AudioFile::AudioFile()
 
 AudioFile::~AudioFile()
 {
-   delete  _codec;
 }
 
 // load file in mono format
@@ -55,6 +53,8 @@ AudioFile::loadFile(const std::string& filename, AudioCodec* codec , unsigned in
     _size = 0;
     _pos = 0;
   }
+
+
 
   // no filename to load
   if (filename.empty()) {

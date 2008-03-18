@@ -23,6 +23,7 @@
 #include <calltree.h>
 #include <config.h>
 #include <configwindow.h>
+#include <contactwindow.h>
 #include <dbus.h>
 #include <mainwindow.h>
 #include <screen.h>
@@ -305,6 +306,12 @@ create_call_menu()
 }
 /* ----------------------------------------------------------------- */
 
+static void
+edit_contacts()
+{
+	show_contact_window();
+}
+
 static void 
 edit_preferences ( void * foo)
 {
@@ -461,6 +468,14 @@ create_edit_menu()
   menu_items = gtk_separator_menu_item_new ();
   gtk_menu_shell_append (GTK_MENU_SHELL (menu), menu_items);
   
+  // Contacts
+  menu_items = gtk_menu_item_new_with_mnemonic("C_ontacts");
+  gtk_menu_shell_append(GTK_MENU_SHELL(menu), menu_items);
+  g_signal_connect_swapped(G_OBJECT(menu_items), "activate",
+		  G_CALLBACK(edit_contacts),
+		  NULL);
+  
+  // Preferences
   menu_items = gtk_image_menu_item_new_from_stock( GTK_STOCK_PREFERENCES, get_accel_group());
   gtk_menu_shell_append (GTK_MENU_SHELL (menu), menu_items);
   g_signal_connect_swapped (G_OBJECT (menu_items), "activate",

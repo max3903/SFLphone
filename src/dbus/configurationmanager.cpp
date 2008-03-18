@@ -259,6 +259,36 @@ ConfigurationManager::setDefaultAccount( const ::DBus::String& accountID )
 
 }
 
+::DBus::Int32
+ConfigurationManager::isIax2Enabled( void )
+{
+  return Manager::instance().isIax2Enabled(  ); 
+}
+
+void
+ConfigurationManager::ringtoneEnabled( void )
+{
+  Manager::instance().ringtoneEnabled(  ); 
+}
+
+::DBus::Int32
+ConfigurationManager::isRingtoneEnabled( void )
+{
+  return Manager::instance().isRingtoneEnabled(  ); 
+}
+
+::DBus::String
+ConfigurationManager::getRingtoneChoice( void )
+{
+  return Manager::instance().getRingtoneChoice(  ); 
+}
+
+void
+ConfigurationManager::setRingtoneChoice( const ::DBus::String& tone )
+{
+  Manager::instance().setRingtoneChoice( tone ); 
+}
+
 /* Webcam Settings */
 
 ::DBus::Int32 

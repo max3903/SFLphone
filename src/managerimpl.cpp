@@ -130,6 +130,9 @@ void ManagerImpl::init()
   // Initialize the list of supported audio codecs
   initAudioCodec();
   
+  //Initialize Video Codec
+  //initVideoCodec();
+  
   // \todo Initialize the list of supported video codec
   // \todo Allocate memory
   
@@ -498,22 +501,22 @@ ManagerImpl::saveConfig (void)
   bool
 ManagerImpl::initRegisterAccounts() 
 {
-	_debugInit("Initiate VoIP Links Registration");
-	AccountMap::iterator iter = _accountMap.begin();
-	while( iter != _accountMap.end() ) {
-		if ( iter->second) {
-			iter->second->loadConfig();
-			if ( iter->second->isEnabled() ) {
-				// NOW
-				iter->second->registerVoIPLink();
-				iter->second->loadContacts();
-				iter->second->publishPresence(PRESENCE_ONLINE);
-				iter->second->subscribeContactsPresence();
-			}
-		}
-		iter++;
-	}
-	return true;
+  _debugInit("Initiate VoIP Links Registration");
+  AccountMap::iterator iter = _accountMap.begin();
+  while( iter != _accountMap.end() ) {
+    if ( iter->second) {
+      iter->second->loadConfig();
+      if ( iter->second->isEnabled() ) {
+	// NOW
+	iter->second->registerVoIPLink();
+	iter->second->loadContacts();
+	iter->second->publishPresence(PRESENCE_ONLINE);
+	iter->second->subscribeContactsPresence();
+      }
+    }
+    iter++;
+  }
+  return true;
 }
 
 //THREAD=Main
@@ -631,17 +634,17 @@ ManagerImpl::playDtmf(char code)
 
     // We activate the stream if it's not active yet.
     //if (!audiolayer->isStreamActive()) {
-      //audiolayer->startStream();
+    //audiolayer->startStream();
     //} else {
-      //_debugAlsa("send dtmf - sleep\n");
-      //audiolayer->sleep(pulselen); // in milliseconds
+    //_debugAlsa("send dtmf - sleep\n");
+    //audiolayer->sleep(pulselen); // in milliseconds
     //}
   }
   returnValue = true;
 
-// TODO: add caching
-delete[] _buf; _buf = 0;
-return returnValue;
+  // TODO: add caching
+  delete[] _buf; _buf = 0;
+  return returnValue;
 }
 
 // Multi-thread 
@@ -694,7 +697,6 @@ ManagerImpl::incomingCall(Call* call, const AccountID& accountId)
 
   if ( !hasCurrentCall() ) {
     call->setConnectionState(Call::Ringing);
-    _debugAlsa(" call ringtone() method\n ");
     ringtone();
     switchCall(call->getCallId());
   } else {
@@ -893,9 +895,9 @@ ManagerImpl::playATone(Tone::TONEID toneId) {
     unsigned int nbSampling = audioloop->getSize();
     AudioLayer* audiolayer = getAudioDriver();
     SFLDataFormat buf[nbSampling];
-    audioloop->getNext(buf, (int) nbSampling);
+    //audioloop->getNext(buf, (int) nbSampling);
     if ( audiolayer ) { 
-      //audiolayer->putUrgent( buf, sizeof(SFLDataFormat)*nbSampling );
+      audiolayer->putUrgent( buf, nbSampling );
     }
     else 
       return false;
@@ -960,33 +962,38 @@ ManagerImpl::ringback () {
   void
 ManagerImpl::ringtone() 
 {
-  int hasToPlayTone = getConfigInt(SIGNALISATION, PLAY_TONES);
-  if (!hasToPlayTone) { return; }
+  // int hasToPlayTone = getConfigInt(SIGNALISATION, PLAY_TONES);
+  if( isRingtoneEnabled() )
+  {
+    std::string ringchoice = getConfigString(AUDIO, RING_CHOICE);
+    //if there is no / inside the path
+    if ( ringchoice.find(DIR_SEPARATOR_CH) == std::string::npos ) {
+      // check inside global share directory
+      ringchoice = std::string(PROGSHAREDIR) + DIR_SEPARATOR_STR + RINGDIR + DIR_SEPARATOR_STR + ringchoice; 
+    }
 
-  std::string ringchoice = getConfigString(AUDIO, RING_CHOICE);
-  //if there is no / inside the path
-  if ( ringchoice.find(DIR_SEPARATOR_CH) == std::string::npos ) {
-    // check inside global share directory
-    ringchoice = std::string(PROGSHAREDIR) + DIR_SEPARATOR_STR + RINGDIR + DIR_SEPARATOR_STR + ringchoice; 
-  }
+    AudioLayer* audiolayer = getAudioDriver();
+    if (audiolayer==0) { return; }
+    int sampleRate  = audiolayer->getSampleRate();
+    AudioCodec* codecForTone = _codecDescriptorMap.getFirstCodecAvailable();
 
-  AudioLayer* audiolayer = getAudioDriver();
-  if (audiolayer==0) { return; }
-  int sampleRate  = audiolayer->getSampleRate();
-  AudioCodec* codecForTone = _codecDescriptorMap.getFirstCodecAvailable();
-
-  _toneMutex.enterMutex(); 
-  bool loadFile = _audiofile.loadFile(ringchoice, codecForTone , sampleRate);
-  _toneMutex.leaveMutex(); 
-  if (loadFile) {
     _toneMutex.enterMutex(); 
-    _audiofile.start();
+    bool loadFile = _audiofile.loadFile(ringchoice, codecForTone , sampleRate);
     _toneMutex.leaveMutex(); 
-    int size = _audiofile.getSize();
-    SFLDataFormat output[ size ];
-    _audiofile.getNext(output, size , 100);
-    //audiolayer->putUrgent( output , size );
-  } else {
+    if (loadFile) {
+      _toneMutex.enterMutex(); 
+      _audiofile.start();
+      _toneMutex.leaveMutex(); 
+      int size = _audiofile.getSize();
+      SFLDataFormat output[ size ];
+      _audiofile.getNext(output, size , 100);
+      audiolayer->putUrgent( output , size );
+    } else {
+      ringback();
+    }
+  }
+  else
+  {
     ringback();
   }
 }
@@ -1142,12 +1149,10 @@ ManagerImpl::initConfigFile (void)
   fill_config_int(VOLUME_MICRO, DFT_VOL_MICRO_STR);
 
   section = PREFERENCES;
-  fill_config_str(SKIN_CHOICE, DFT_SKIN);
-  fill_config_int(CONFIRM_QUIT, YES_STR);
   fill_config_str(ZONE_TONE, DFT_ZONE);
-  fill_config_int(CHECKED_TRAY, NO_STR);
   fill_config_str(VOICEMAIL_NUM, DFT_VOICEMAIL);
   fill_config_int(CONFIG_ZEROCONF, CONFIG_ZEROCONF_DEFAULT_STR);
+  fill_config_int(CONFIG_RINGTONE, YES_STR);
 
   // Loads config from ~/.sflphone/sflphonedrc or so..
   if (createSettingsPath() == 1) {
@@ -1188,7 +1193,6 @@ ManagerImpl::retrieveActiveCodecs()
   tokenizer tokens(s, slash); 
   for(tokenizer::iterator tok_iter = tokens.begin(); tok_iter!= tokens.end(); ++tok_iter)
   {
-    printf("%s\n", (*tok_iter).c_str());
     order.push_back(*tok_iter);
   }
   return order;
@@ -1269,14 +1273,14 @@ ManagerImpl::getCodecDetails( const ::DBus::Int32& payload )
   std::vector<std::string> v;
   std::stringstream ss;
 
-  v.push_back(_codecDescriptorMap.getCodecName((CodecType)payload));
-  ss << _codecDescriptorMap.getSampleRate((CodecType)payload);
+  v.push_back(_codecDescriptorMap.getCodecName((AudioCodecType)payload));
+  ss << _codecDescriptorMap.getSampleRate((AudioCodecType)payload);
   v.push_back((ss.str()).data()); 
   ss.str("");
-  ss << _codecDescriptorMap.getBitRate((CodecType)payload);
+  ss << _codecDescriptorMap.getBitRate((AudioCodecType)payload);
   v.push_back((ss.str()).data());
   ss.str("");
-  ss << _codecDescriptorMap.getBandwidthPerCall((CodecType)payload);
+  ss << _codecDescriptorMap.getBandwidthPerCall((AudioCodecType)payload);
   v.push_back((ss.str()).data());
   ss.str("");
 
@@ -1308,10 +1312,9 @@ ManagerImpl::getOutputAudioPluginList(void)
   std::vector<std::string> v;
   _debug("Get output audio plugin list");
 
-  v.push_back("default");
-  v.push_back("plug:hw");
-  v.push_back("plug:dmix");
-  v.push_back("plug:surround40");
+  v.push_back( PCM_DEFAULT );
+  v.push_back( PCM_PLUGHW );
+  v.push_back( PCM_DMIX );
 
   return v;
 }
@@ -1324,11 +1327,11 @@ ManagerImpl::setInputAudioPlugin(const std::string& audioPlugin)
 {
   _debug("Set input audio plugin\n");
   _audiodriver -> openDevice( _audiodriver -> getIndexIn(),
-			      _audiodriver -> getIndexOut(),
-			      _audiodriver -> getSampleRate(),
-			      _audiodriver -> getFrameSize(),
-			      SFL_PCM_CAPTURE,
-			      audioPlugin);
+      _audiodriver -> getIndexOut(),
+      _audiodriver -> getSampleRate(),
+      _audiodriver -> getFrameSize(),
+      SFL_PCM_CAPTURE,
+      audioPlugin);
 }
 
 /**
@@ -1339,11 +1342,11 @@ ManagerImpl::setOutputAudioPlugin(const std::string& audioPlugin)
 {
   _debug("Set output audio plugin\n");
   _audiodriver -> openDevice( _audiodriver -> getIndexIn(),
-			      _audiodriver -> getIndexOut(),
-			      _audiodriver -> getSampleRate(),
-			      _audiodriver -> getFrameSize(),
-			      SFL_PCM_PLAYBACK,
-			      audioPlugin);
+      _audiodriver -> getIndexOut(),
+      _audiodriver -> getSampleRate(),
+      _audiodriver -> getFrameSize(),
+      SFL_PCM_PLAYBACK,
+      audioPlugin);
   // set config
   setConfig( AUDIO , ALSA_PLUGIN , audioPlugin );
 }
@@ -1418,20 +1421,68 @@ ManagerImpl::getCurrentAudioDevicesIndex()
   return v;
 }
 
+  int 
+ManagerImpl::isIax2Enabled( void )
+{
+  //return ( IAX2_ENABLED ) ? true : false;
+#ifdef USE_IAX
+  return true;
+#else
+  return false;
+#endif
+}
+
+  int
+ManagerImpl::isRingtoneEnabled( void )
+{
+  return getConfigInt( PREFERENCES , CONFIG_RINGTONE );
+}
+
+  void
+ManagerImpl::ringtoneEnabled( void )
+{
+  ( getConfigInt( PREFERENCES , CONFIG_RINGTONE ) == RINGTONE_ENABLED )? setConfig(PREFERENCES , CONFIG_RINGTONE , NO_STR ) : setConfig( PREFERENCES , CONFIG_RINGTONE , YES_STR );
+}
+
+std::string
+ManagerImpl::getRingtoneChoice( void )
+{
+  // we need the absolute path
+  std::string tone_name = getConfigString( AUDIO , RING_CHOICE );
+  std::string tone_path ;
+  if( tone_name.find( DIR_SEPARATOR_CH ) == std::string::npos )
+  {
+    // check in ringtone directory ($(PREFIX)/share/sflphone/ringtones)
+    tone_path = std::string(PROGSHAREDIR) + DIR_SEPARATOR_STR + RINGDIR + DIR_SEPARATOR_STR + tone_name ; 
+  }
+  else
+  {
+    // the absolute has been saved; do nothing
+    tone_path = tone_name ;
+  }   
+  _debug("%s\n", tone_path.c_str());
+  return tone_path;
+}
+
+void
+ManagerImpl::setRingtoneChoice( const std::string& tone )
+{
+  // we save the absolute path 
+  setConfig( AUDIO , RING_CHOICE , tone ); 
+}
+
   int
 ManagerImpl::getAudioDeviceIndex(const std::string name)
 {
   _debug("Get audio device index\n");
   int num = _audiodriver -> soundCardGetIndex( name );
-  _debug(" %s has number %i\n" , name.c_str() , num );
   return num;
-  //return _audiodriver -> soundCardGetIndex( name );
 }
 
-std::string 
+  std::string 
 ManagerImpl::getCurrentAudioOutputPlugin( void )
 {
-  _debug("Get alsa plugin \n");
+  _debug("Get alsa plugin\n");
   return _audiodriver -> getAudioPlugin();
 }
 
@@ -1469,15 +1520,17 @@ ManagerImpl::selectAudioDriver (void)
   }
   int frameSize = getConfigInt( AUDIO , ALSA_FRAME_SIZE );
 
-  if( !_audiodriver -> soundCardIndexExist( numCardIn ) )
+  if( !_audiodriver -> soundCardIndexExist( numCardIn , SFL_PCM_CAPTURE ) )
   {
-    _debug(" Index %i is not a valid card number. Switch to 0.\n", numCardIn);
+    _debug(" Card with index %i doesn't exist or cannot capture. Switch to 0.\n", numCardIn);
     numCardIn = ALSA_DFT_CARD_ID ;
+    setConfig( AUDIO , ALSA_CARD_ID_IN , ALSA_DFT_CARD_ID );
   }
-  if( !_audiodriver -> soundCardIndexExist( numCardOut ) )
+  if( !_audiodriver -> soundCardIndexExist( numCardOut , SFL_PCM_PLAYBACK ) )
   {  
-    _debug(" Index %i is not a valid card number. Switch to 0.\n", numCardOut);
+    _debug(" Card with index %i doesn't exist or cannot playback . Switch to 0.\n", numCardOut);
     numCardOut = ALSA_DFT_CARD_ID ;
+    setConfig( AUDIO , ALSA_CARD_ID_OUT , ALSA_DFT_CARD_ID );
   }
 
   _debugInit(" AudioLayer Opening Device");
@@ -2103,8 +2156,115 @@ ManagerImpl::setDefaultAccount(const AccountID& accountID)
   setConfig("Preferences", "DefaultAccount", accountID);
 }
 
+std::vector<std::string>
+ManagerImpl::getContacts(const AccountID& accountID)
+{
+	std::vector<std::string> contactIDList;
 
+	// Get contacts for corresponding account
+	Account* account = getAccount(accountID);
+	if(account == NULL) return contactIDList;
+	std::vector<Contact*> contacts;
+	contacts = account->getContacts();
+	if(contacts.empty()) return contactIDList;
+	
+	// Return all contact id in a vector
+	std::vector<Contact*>::const_iterator iter = contacts.begin();
+	while(iter != contacts.end())
+	{
+		Contact* contact = (Contact*)*iter;
+		contactIDList.push_back(contact->getContactID());
+		iter++;
+	}
+	return contactIDList;
+}
 
+std::vector<std::string>
+ManagerImpl::getContactDetails(const std::string& accountID, const std::string& contactID)
+{
+	std::vector<std::string> contactDetails;
+
+	// Get contact for corresponding account
+	Contact* contact = getContact(accountID, contactID);
+
+	if(contact != NULL)
+	{
+		// Return all contact details in a vector
+		contactDetails.push_back(contact->getFirstName());
+		contactDetails.push_back(contact->getLastName());
+		contactDetails.push_back(contact->getEmail());
+		contactDetails.push_back(contact->getGroup());
+		contactDetails.push_back(contact->getSubGroup());
+	}
+	return contactDetails;
+}
+
+std::vector<std::string>
+ManagerImpl::getContactEntries(const std::string& accountID, const std::string& contactID)
+{
+	std::vector<std::string> entries;
+
+	// Get contact for corresponding account
+	Contact* contact = getContact(accountID, contactID);
+
+	if(contact != NULL)
+	{
+		std::vector<ContactEntry*> contactEntries;
+		contactEntries = contact->getEntries();
+		std::vector<ContactEntry*>::const_iterator iter;
+		iter = contactEntries.begin();
+		
+		// Return all entries id in a vector
+		while(iter != contactEntries.end())
+		{
+			ContactEntry* entry;
+			entry = (ContactEntry*)*iter;
+			entries.push_back(entry->getContact());
+			iter++;
+		}
+	}
+	return entries;
+}
+
+std::vector<std::string>
+ManagerImpl::getContactEntryDetails(const std::string& accountID, const std::string& contactID, const std::string& contactEntryID)
+{
+	std::vector<std::string> entryDetails;
+
+	// Get contact for corresponding account and contact id
+	Contact* contact = getContact(accountID, contactID);
+
+	if(contact != NULL)
+	{
+		std::vector<ContactEntry*> contactEntries;
+		contactEntries = contact->getEntries();
+		std::vector<ContactEntry*>::const_iterator iter;
+		iter = contactEntries.begin();
+
+		while(iter != contactEntries.end())
+		{
+			ContactEntry* entry;
+			entry = (ContactEntry*)*iter;
+			if(entry->getContact() == contactEntryID)
+			{
+				// Return all details in a vector
+				// Type, isShown, isSubscribed
+				entryDetails.push_back(entry->getType());
+				if(entry->getShownInCallConsole())
+					entryDetails.push_back("TRUE");
+				else
+					entryDetails.push_back("FALSE");
+				if(entry->getSubscribedToPresence())
+					entryDetails.push_back("TRUE");
+				else
+					entryDetails.push_back("FALSE");
+				break;
+			}
+			iter++;
+		}
+	}
+	return entryDetails;
+}
 
 //THREAD=Main
 /*
@@ -2342,6 +2502,27 @@ ManagerImpl::getAccountLink(const AccountID& accountID)
   return 0;
 }
 
+Contact*
+ManagerImpl::getContact(const AccountID& accountID, const std::string& contactID)
+{
+	// Get contact for corresponding account
+	Account* account = getAccount(accountID);
+	if(account == NULL) return NULL;
+	std::vector<Contact*> contacts;
+	contacts = account->getContacts();
+	if(contacts.empty()) return NULL;
+	
+	// Find contact corresponding to contactID
+	std::vector<Contact*>::const_iterator iter = contacts.begin();
+	while(iter != contacts.end())
+	{
+		Contact* contact = (Contact*)*iter;
+		if(contact->getContactID() == contactID)
+			return contact;
+		iter++;
+	}
+	return NULL;
+}
 
 #ifdef TEST
 /** 
@@ -2404,6 +2585,25 @@ bool ManagerImpl::testAccountMap()
 }
 
 #endif
+
+/**
+ * Initialization: Main Thread
+ */
+  void
+ManagerImpl::initVideoCodec (void)
+{
+	//TODO
+  _videoCodecDescriptor =  _videoCodecDescriptor->getInstance();
+  // if the user never set the codec list, use the default configuration
+  //if(getConfigString(AUDIO, "ActiveCodecs") == ""){
+    _videoCodecDescriptor->setDefaultOrder();
+  //}
+  // else retrieve the one set in the user config file
+ // else{
+   // std::vector<std::string> active_list = retrieveActiveCodecs(); 
+   // setActiveCodecList(active_list);
+ // }
+}
 
   void
 ManagerImpl::setActiveVideoCodecList(const std::vector<std::string>& list)
@@ -2475,14 +2675,14 @@ ManagerImpl::getVideoCodecDetails( const ::DBus::Int32& payload )
   std::vector<std::string> v;
   std::stringstream ss;
 
-  v.push_back(_codecDescriptorMap.getCodecName((CodecType)payload));
-  ss << _codecDescriptorMap.getSampleRate((CodecType)payload);
+  v.push_back(_codecDescriptorMap.getCodecName((AudioCodecType)payload));
+  ss << _codecDescriptorMap.getSampleRate((AudioCodecType)payload);
   v.push_back((ss.str()).data()); 
   ss.str("");
-  ss << _codecDescriptorMap.getBitRate((CodecType)payload);
+  ss << _codecDescriptorMap.getBitRate((AudioCodecType)payload);
   v.push_back((ss.str()).data());
   ss.str("");
-  ss << _codecDescriptorMap.getBandwidthPerCall((CodecType)payload);
+  ss << _codecDescriptorMap.getBandwidthPerCall((AudioCodecType)payload);
   v.push_back((ss.str()).data());
   ss.str("");
 
