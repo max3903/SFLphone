@@ -2189,7 +2189,7 @@ ManagerImpl::getContactEntries(const std::string& accountID, const std::string& 
 		{
 			ContactEntry* entry;
 			entry = (ContactEntry*)*iter;
-			entries.push_back(entry->getContact());
+			entries.push_back(entry->getEntryID());
 			iter++;
 		}
 	}
@@ -2215,10 +2215,11 @@ ManagerImpl::getContactEntryDetails(const std::string& accountID, const std::str
 		{
 			ContactEntry* entry;
 			entry = (ContactEntry*)*iter;
-			if(entry->getContact() == contactEntryID)
+			if(entry->getEntryID() == contactEntryID)
 			{
 				// Return all details in a vector
-				// Type, isShown, isSubscribed
+				// Text, type, isShown, isSubscribed
+				entryDetails.push_back(entry->getText());
 				entryDetails.push_back(entry->getType());
 				if(entry->getShownInCallConsole())
 					entryDetails.push_back("TRUE");

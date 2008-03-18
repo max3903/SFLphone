@@ -17,11 +17,12 @@
  *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
+#include "../../src/contact/presencestatus.h"
+
 #include <accountlist.h>
 #include <contactlist.h>
 #include <config.h>
 #include <mainwindow.h>
-//#include <presencestatus.h>
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -83,7 +84,7 @@ call_console_window_fill_contact_list()
 						gtk_list_store_set(contactListStore, &iter,
 								CALL_CONSOLE_WINDOW_ICON, gdk_pixbuf_new_from_file(PRESENCE_STATUS_ONLINE_ICON, NULL),
 								CALL_CONSOLE_WINDOW_NAME, contact->_firstName,
-								CALL_CONSOLE_WINDOW_CONTACT, entry->_contact,
+								CALL_CONSOLE_WINDOW_CONTACT, entry->_entryID,
 								CALL_CONSOLE_WINDOW_PRESENCE_STATUS, "Put the presence status in text and additional info",
 								-1);
 					}
@@ -119,7 +120,7 @@ show_call_console_window(gboolean show)
 				NULL));
 	gtk_window_set_modal(GTK_WINDOW(dialog), FALSE);
 	gtk_dialog_set_has_separator(dialog, FALSE);
-	gtk_window_set_default_size(GTK_WINDOW(dialog), 400, 400);
+	gtk_window_set_default_size(GTK_WINDOW(dialog), 600, 400);
 	gtk_container_set_border_width(GTK_CONTAINER(dialog), 0);
 	
 	// Put contacts in a scrollable window

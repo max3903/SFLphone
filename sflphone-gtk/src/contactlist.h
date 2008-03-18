@@ -36,7 +36,8 @@ typedef struct {
 } presence_t;
 
 typedef struct {
-	gchar*		_contact;				// Contact number, can be a phone number, an extension...
+	gchar*		_entryID;				// Contact number, can be a phone number, an extension... (202, 5141231234, sip:141@...)
+	gchar*		_text;					// Simplified textual presentation, UNUSED yet (Poste 202, 514-123-1234, Poste 141)
 	gchar*		_type;					// Work, home, cell...
 	gboolean	_isShownInConsole;		// Is shown in the call console
 	gboolean	_isSubscribed;			// Is contact subscribed to presence
