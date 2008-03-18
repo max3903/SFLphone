@@ -131,7 +131,7 @@ void ManagerImpl::init()
   initAudioCodec();
   
   //Initialize Video Codec
-  initVideoCodec();
+  //initVideoCodec();
   
   // \todo Initialize the list of supported video codec
   // \todo Allocate memory

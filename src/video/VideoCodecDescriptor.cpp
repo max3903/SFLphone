@@ -51,8 +51,7 @@ VideoCodecDescriptor* VideoCodecDescriptor::getInstance()
     //Create map list
     if (initCodecMap() == false)
     {
-    	printf("CodecMap init error");
-    	exit(-1);
+    	ptrace("videoCodecInit error",MT_FATAL,2,true);
     }
     //check if user has settings for the active list, if yes load them else setDefault
     //TODO
@@ -65,14 +64,16 @@ VideoCodecDescriptor* VideoCodecDescriptor::getInstance()
 		char *codec;
 		AVCodec* tmp;
 		//open videoDescriptor File
-		codecFile = fopen("videoCodecs.dat","r");
-		if (codecFile == NULL)
-    		return false;
-    	
+		codecFile = fopen("video/videoCodecs.dat","r");
+		if (codecFile == NULL){
+			ptrace("Codec File Not found",MT_ERROR,2,false);
+			return false;
+			}
+			
     	while(fgets(codec,6,codecFile) != NULL)
     	{
     	ptrace("Codec : ",MT_NONE,2,false);
-    	ptrace(codec,MT_INFO,2,false);
+    	ptrace(codec,MT_INFO,2,true);
     	//make sure you can encode with codec read in file
     	tmp = avcodec_find_encoder_by_name(codec);
     	

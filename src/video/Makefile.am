@@ -9,4 +9,3 @@ libvideo_la_SOURCES =  	VideoCodecDescriptor.cpp \
 
 AM_CXXFLAGS = -I$(top_srcdir)/include $(libccext2_CFLAGS) $(LIBAVCODEC_CFLAGS) "/usr/include/ffmpeg" $(USER_INCLUDES)
 
-LDADD = -lavcodec -lavformat
