@@ -128,6 +128,11 @@ public:
   void mute();
   void unmute();
   bool refuseCall(const CallID& id);
+  
+  bool inviteConference( const AccountID& accountId, const CallID& id, const std::string& to );
+  bool joinConference( const CallID& onHoldCallID, const CallID& newCallID );
+  bool changeVideoAvaibility(  );
+  void changeWebcamStatus( const bool status );
 
   /** Save config to file */
   bool saveConfig (void);
@@ -499,6 +504,16 @@ public:
   /* Shared Memory Key exchange on D-Bus */
   std::string getLocalSharedMemoryKey( void );
   std::string getRemoteSharedMemoryKey( void );
+  
+  /* Webcam Settings */
+	int getBrightness(  );
+	void setBrightness( const int value );
+	int getContrast(  );
+	void setContrast( const int value );
+	int getColour(  );
+	void setColour( const int value );
+	std::vector<std::string> getWebcamDeviceList(  );
+	void setWebcamDevice( const int index );
 
 private:
  /**
