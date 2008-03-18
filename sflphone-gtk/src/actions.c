@@ -717,24 +717,24 @@ sflphone_fill_video_codec_list()
   for(pl=order; *order; order++)
   {
     videoCodec_t * c = g_new0(videoCodec_t, 1);
-    c->_payload = atoi(*order);
-    details = (gchar **)dbus_video_codec_details(c->_payload);
-    //printf("Codec details: %s / %s / %s / %s\n",details[0],details[1],details[2],details[3]);
-    c->name = details[0];
+    //c->_payload = NULL;
+    //details = (gchar **)dbus_video_codec_details(c->_payload);
+    printf("Codec details: %s / %s / %s / %s\n",details[0],details[1],details[2],details[3]);
+    c->name = *order;
     c->is_active = TRUE;
     video_codec_list_add(c);
   }
  
   for(pl=codecs; *codecs; codecs++)
   {
-    details = (gchar **)dbus_video_codec_details(atoi(*codecs));
+    //details = (gchar **)dbus_video_codec_details(atoi(*codecs));
     if(video_codec_list_get(details[0])!=NULL){
       // does nothing - the codec is already in the list, so is active.
     }
     else{
       videoCodec_t* c = g_new0(videoCodec_t, 1);
-      c->_payload = atoi(*codecs);
-      c->name = details[0];
+      //c->_payload = ;
+      c->name = *codecs;
       c->is_active = FALSE;
       video_codec_list_add(c);
     }

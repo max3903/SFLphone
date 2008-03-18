@@ -36,6 +36,8 @@
 #include <map>
 #include <vector>
 #include <string>
+#include <iostream>
+#include <fstream>
 #include "../tracePrint.h"
 extern "C"{
 #include <ffmpeg/avcodec.h>

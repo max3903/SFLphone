@@ -35,15 +35,18 @@ VideoCodecDescriptor* VideoCodecDescriptor::getInstance()
 	return instance;
 }
 
- 	VideoCodecDescriptor::~VideoCodecDescriptor(){
+ 	VideoCodecDescriptor::~VideoCodecDescriptor()
+ 	{
  	vCodecOrder.clear();
  	vCodecMap.clear();
  	}
 	
-    VideoCodecDescriptor::VideoCodecDescriptor(){
+    VideoCodecDescriptor::VideoCodecDescriptor()
+    {
     	av_register_all();
     	avcodec_init();
-    	init();}
+    	init();
+    }
 
     void VideoCodecDescriptor::init()
     {
@@ -63,32 +66,41 @@ VideoCodecDescriptor* VideoCodecDescriptor::getInstance()
 		FILE *codecFile;
 		char *codec;
 		AVCodec* tmp;
+		//TODO!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1
 		//open videoDescriptor File
-		codecFile = fopen("video/videoCodecs.dat","r");
-		if (codecFile == NULL){
-			ptrace("Codec File Not found",MT_ERROR,2,false);
-			return false;
-			}
-			
-    	while(fgets(codec,6,codecFile) != NULL)
-    	{
-    	ptrace("Codec : ",MT_NONE,2,false);
-    	ptrace(codec,MT_INFO,2,true);
-    	//make sure you can encode with codec read in file
-    	tmp = avcodec_find_encoder_by_name(codec);
-    	
-    		if(tmp != NULL)
-    		{
-    		//make sure you can decode with codec read in file
-    		tmp = avcodec_find_decoder_by_name(codec);
+//		codecFile = fopen("videoCodecs.dat","b");
+//		if (codecFile == NULL){
+//			ptrace("Codec File Not found",MT_ERROR,2,false);
+//			return false;
+//			}
+//			
+//    	while(fgets(codec,6,codecFile) != NULL)
+//    	{
+//    	ptrace("Codec : ",MT_NONE,2,false);
+//    	ptrace(codec,MT_INFO,2,true);
+//    	//make sure you can encode with codec read in file
+//    	tmp = avcodec_find_encoder_by_name(codec);
+//    	
+//    		if(tmp != NULL)
+//    		{
+//    		//make sure you can decode with codec read in file
+    		
+    			tmp = avcodec_find_decoder_by_name("h264");
     			if(tmp != NULL)
     			{
     			//map Codec
     			ptrace(" Found",MT_NONE,2,true);
     			vCodecMap[tmp] = avcodec_alloc_context();	
     			}
-    		}
-    	}
+    			tmp = avcodec_find_decoder_by_name("h263");
+    			if(tmp != NULL)
+    			{
+    			//map Codec
+    			ptrace(" Found",MT_NONE,2,true);
+    			vCodecMap[tmp] = avcodec_alloc_context();	
+    			}
+//    		}
+//    	}
     
     return true;
     }
@@ -160,7 +172,7 @@ VideoCodecDescriptor* VideoCodecDescriptor::getInstance()
     	
     	for ( iter = this->vCodecOrder.begin(); iter != this->vCodecOrder.end();iter++)
     		tmp.push_back((*iter)->name);
-  	
+    	
   		return tmp;
     }
     
@@ -192,7 +204,7 @@ VideoCodecDescriptor* VideoCodecDescriptor::getInstance()
     VCMIterator iter;
     
     for ( iter = this->vCodecMap.begin(); iter != this->vCodecMap.end();iter++)
-    		tmp.push_back((*iter).first->name);
+    		tmp.push_back((string)(*iter).first->name);
   	
   		return tmp;
     
