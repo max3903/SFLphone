@@ -34,6 +34,9 @@
  * Defines the column of the tree model for each renderer of a row
  */
 enum {
+	CALL_CONSOLE_ACCOUNT_ID,				// ID of related account
+	CALL_CONSOLE_CONTACT_ID,				// ID of related contact
+	CALL_CONSOLE_ENTRY_ID,					// ID of entry (All ID are mandatory to retreive information on current row)
 	CALL_CONSOLE_WINDOW_ICON,				// Icon for presence status
 	CALL_CONSOLE_WINDOW_NAME,				// Name of the contact for the entry
 	CALL_CONSOLE_WINDOW_CONTACT,			// Contact entry (extension, phone number...)
@@ -82,6 +85,9 @@ call_console_window_fill_contact_list()
 					{
 						gtk_list_store_append(contactListStore, &iter);
 						gtk_list_store_set(contactListStore, &iter,
+								CALL_CONSOLE_ACCOUNT_ID, account->accountID,
+								CALL_CONSOLE_CONTACT_ID, contact->_contactID,
+								CALL_CONSOLE_ENTRY_ID, entry->_entryID,
 								CALL_CONSOLE_WINDOW_ICON, gdk_pixbuf_new_from_file(PRESENCE_STATUS_ONLINE_ICON, NULL),
 								CALL_CONSOLE_WINDOW_NAME, contact->_firstName,
 								CALL_CONSOLE_WINDOW_CONTACT, entry->_text,
@@ -132,6 +138,9 @@ show_call_console_window(gboolean show)
 	
 	// Create list store with contact entries regrouped by accounts and contacts
 	contactListStore = gtk_list_store_new(COUNT_CALL_CONSOLE_WINDOW,
+			G_TYPE_STRING,		// Account ID
+			G_TYPE_STRING,		// Contact ID
+			G_TYPE_STRING,		// Entry ID
 			GDK_TYPE_PIXBUF,	// Icon
 			G_TYPE_STRING,		// Shown in call console active property
 			G_TYPE_STRING,		// Shown in call console inconsistent property
