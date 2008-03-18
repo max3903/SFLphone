@@ -1,6 +1,6 @@
 /*
- *  Copyright (C) 2007 Savoir-Faire Linux inc.
- *  Author: Pierre-Luc Beaudoin <pierre-luc@squidy.info>
+ *  Copyright (C) 2008 Savoir-Faire Linux inc.
+ *  Author: Emmanuel Milou <emmanuel.milou@savoirfairelinux.net>
  *                                                                              
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -16,31 +16,15 @@
  *  along with this program; if not, write to the Free Software
  *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
- 
-#ifndef INSTANCE_H
-#define INSTANCE_H
 
-#include "instance-glue.h"
-#include <dbus-c++/dbus.h>
+#ifndef __QUIT_H__
+#define __QUIT_H__
 
-    
-class Instance
-: public org::sflphone::SFLphone::Instance,
-  public DBus::IntrospectableAdaptor,
-  public DBus::ObjectAdaptor
-{
-private:
-  int count;
+#include <gtk/gtk.h>
+/** @file quit.h
+ * @brief Display a progress bar when quiting.
+ */
+GtkWidget * display_progress_bar();
 
-public:
-  Instance(DBus::Connection& connection);
-  static const char* SERVER_PATH;
-  
-  void Register( const ::DBus::Int32& pid, const ::DBus::String& name ); 
-  void Unregister( const ::DBus::Int32& pid );
-  DBus::Int32 getRegistrationCount( void );
-    
-};
+#endif
 
-
-#endif//INSTANCE_H
