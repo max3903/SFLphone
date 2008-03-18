@@ -130,6 +130,9 @@ void ManagerImpl::init()
   // Initialize the list of supported audio codecs
   initAudioCodec();
   
+  //Initialize Video Codec
+  initVideoCodec();
+  
   // \todo Initialize the list of supported video codec
   // \todo Allocate memory
   
@@ -2555,6 +2558,25 @@ bool ManagerImpl::testAccountMap()
 }
 
 #endif
+
+/**
+ * Initialization: Main Thread
+ */
+  void
+ManagerImpl::initVideoCodec (void)
+{
+	//TODO
+  _videoCodecDescriptor =  _videoCodecDescriptor->getInstance();
+  // if the user never set the codec list, use the default configuration
+  //if(getConfigString(AUDIO, "ActiveCodecs") == ""){
+    _videoCodecDescriptor->setDefaultOrder();
+  //}
+  // else retrieve the one set in the user config file
+ // else{
+   // std::vector<std::string> active_list = retrieveActiveCodecs(); 
+   // setActiveCodecList(active_list);
+ // }
+}
 
   void
 ManagerImpl::setActiveVideoCodecList(const std::vector<std::string>& list)

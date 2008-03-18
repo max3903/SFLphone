@@ -43,11 +43,13 @@
 #include "audio/audiofile.h"
 #include "audio/dtmf.h"
 #include "audio/codecDescriptor.h"
+#include "video/VideoCodecDescriptor.h"
 
 
 
 class AudioLayer;
 class CodecDescriptor;
+class VideoCodecDescriptor;
 class GuiFramework;
 class TelephoneTone;
 class VoIPLink;
@@ -542,7 +544,8 @@ private:
    * Initialize audiocodec with config setting
    */
   void initAudioCodec(void);
-
+  
+  
   /*
    * Initialize audiodriver
    */
@@ -615,6 +618,9 @@ private:
 
   // map of codec (for configlist request)
   CodecDescriptor _codecDescriptorMap;
+  
+  // videoCodecDescriptor
+  VideoCodecDescriptor *_videoCodecDescriptor;
 
   /////////////////////
   // Protected by Mutex
