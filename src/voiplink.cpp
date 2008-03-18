@@ -109,9 +109,8 @@ VoIPLink::setRegistrationState(const enum RegistrationState state)
   setRegistrationState(state, "");
 }
 
-// NOW
 void
-VoIPLink::subscribePresenceForContact(Contact* contact)
+VoIPLink::subscribePresenceForContact(ContactEntry* contactEntry)
 {
 	// Nothing to do if presence is not supported
 	// or the function will be overidden

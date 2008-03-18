@@ -468,25 +468,24 @@ ManagerImpl::saveConfig (void)
 }
 
 //THREAD=Main
-  bool
+bool
 ManagerImpl::initRegisterAccounts() 
 {
-  _debugInit("Initiate VoIP Links Registration");
-  AccountMap::iterator iter = _accountMap.begin();
-  while( iter != _accountMap.end() ) {
-    if ( iter->second) {
-      iter->second->loadConfig();
-      if ( iter->second->isEnabled() ) {
-	// NOW
-	iter->second->registerVoIPLink();
-	iter->second->loadContacts();
-	iter->second->publishPresence(PRESENCE_ONLINE);
-	iter->second->subscribeContactsPresence();
-      }
-    }
-    iter++;
-  }
-  return true;
+	_debugInit("Initiate VoIP Links Registration");
+	AccountMap::iterator iter = _accountMap.begin();
+	while( iter != _accountMap.end() ) {
+		if ( iter->second) {
+			iter->second->loadConfig();
+			if ( iter->second->isEnabled() ) {
+				iter->second->registerVoIPLink();
+				iter->second->loadContacts();
+				iter->second->publishPresence(PRESENCE_ONLINE);
+				iter->second->subscribeContactsPresence();
+			}
+		}
+		iter++;
+	}
+	return true;
 }
 
 //THREAD=Main
@@ -507,7 +506,6 @@ ManagerImpl::registerAccount(const AccountID& accountId)
       }
       iter++;
     }
-    // NOW
     account->registerVoIPLink();
     account->loadContacts();
     account->publishPresence(PRESENCE_ONLINE);

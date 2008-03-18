@@ -968,7 +968,6 @@ SIPVoIPLink::sendMessage(const std::string& to, const std::string& body)
   return returnValue;
 }
 
-// NOW
 bool
 SIPVoIPLink::isContactPresenceSupported()
 {
@@ -976,22 +975,20 @@ SIPVoIPLink::isContactPresenceSupported()
 }
 
 void
-SIPVoIPLink::subscribePresenceForContact(Contact* contact)
+SIPVoIPLink::subscribePresenceForContact(ContactEntry* contactEntry)
 {
-	osip_message_t* subscription;
-	
 	int i;
-	
-	// NOW change for contact entry
-	std::string to   = "todo";	// Take entry instead of contact
+	osip_message_t* subscription;
+	std::ostringstream to;
 	std::ostringstream from;
 	
-	// Build URL of sender
+	// Build URL of receiver and sender
+	to << "sip:" << contactEntry->getEntryID() << "@" << getHostName().data();
 	from << "sip:" << _userpart.data() << "@" << getHostName().data();
 
-	// Subscribe for changes on server but also polls at every 5000 interval
+	// Subscribe for changes on server but also polls at every 5000 interval (time unit unknown)
 	i = eXosip_subscribe_build_initial_request(&subscription,
-			to.data(),
+			to.str().c_str(),
 			from.str().c_str(),
 			NULL,
 			"presence", 5000);
@@ -1003,7 +1000,7 @@ SIPVoIPLink::subscribePresenceForContact(Contact* contact)
 	// Send subscription
 	eXosip_lock();
 	i = eXosip_subscribe_send_initial_request(subscription);
-	if(i!=0) _debug("Sending of subscription tp %s failed\n", to.data());
+	if(i!=0) _debug("Sending of subscription tp %s failed\n", to.str().c_str());
 	eXosip_unlock();
 }
 
@@ -1033,16 +1030,16 @@ SIPVoIPLink::publishPresenceStatus(std::string status)
 <presence xmlns=\"urn:ietf:params:xml:ns:pidf\"\n\
           xmlns:es=\"urn:ietf:params:xml:ns:pidf:status:rpid-status\"\n\
           entity=\"%s\">\n\
-	<tuple id=\"sg89ae\">\n\
-		<status>\n\
-			<basic>%s</basic>\n\
-			<es:activities>\n\
-				<es:activity>in-transit</es:activity>\n\
-			</es:activities>\n\
-		</status>\n\
-		<contact priority=\"0.8\">%s</contact>\n\
-		<note>%s</note>\n\
-	</tuple>\n\
+    <tuple id=\"sg89ae\">\n\
+        <status>\n\
+            <basic>%s</basic>\n\
+            <es:activities>\n\
+                <es:activity>in-transit</es:activity>\n\
+            </es:activities>\n\
+        </status>\n\
+        <contact priority=\"0.8\">%s</contact>\n\
+        <note>%s</note>\n\
+    </tuple>\n\
 </presence>"
 			, url.str().c_str(), basic.data(), url.str().c_str(), note.data());
 	

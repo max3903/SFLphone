@@ -33,7 +33,6 @@ ContactManager::ContactManager(DBus::Connection& connection)
 std::vector< ::DBus::String >
 ContactManager::getContacts( const ::DBus::String& accountID )
 {
-	// NOW
 	return Manager::instance().getContacts(accountID);
 }
 

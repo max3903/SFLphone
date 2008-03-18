@@ -58,7 +58,6 @@ Account::loadConfig()
 #endif
 }
 
-// NOW
 void
 Account::loadContacts()
 {
@@ -93,11 +92,18 @@ Account::subscribeContactsPresence()
 	if(_link->isContactPresenceSupported())
 	{
 		// Subscribe to presence for each contact entry that presence is enabled
-		std::vector<Contact*>::const_iterator iter;
-		
-		for(iter = _contacts.begin(); iter != _contacts.end(); iter++)
+		std::vector<Contact*>::const_iterator contactIter;		
+		for(contactIter = _contacts.begin(); contactIter != _contacts.end(); contactIter++)
 		{
-			_link->subscribePresenceForContact(*iter);
+			Contact* contact = (Contact*)*contactIter;
+			std::vector<ContactEntry*> entries = contact->getEntries();
+			std::vector<ContactEntry*>::const_iterator contactEntryIter;
+			for(contactEntryIter = entries.begin(); contactEntryIter != entries.end(); contactEntryIter++)
+			{
+				ContactEntry* entry = (ContactEntry*)*contactEntryIter;
+				if(entry->getSubscribedToPresence())
+					_link->subscribePresenceForContact(entry);
+			}
 		}
 	}
 }

@@ -61,7 +61,7 @@ public:
   bool carryingDTMFdigits(const CallID& id, char code);
   bool sendMessage(const std::string& to, const std::string& body);
   bool isContactPresenceSupported();
-  void subscribePresenceForContact(Contact* contact);
+  void subscribePresenceForContact(ContactEntry* contactEntry);
   void publishPresenceStatus(std::string status);
   
   // TODO Not used yet
