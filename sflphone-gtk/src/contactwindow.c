@@ -107,7 +107,7 @@ contact_window_fill_contact_list()
 							CONTACT_WINDOW_CALL_CONSOLE_ACTIVE, entry->_isShownInConsole,
 							CONTACT_WINDOW_CALL_CONSOLE_INCONSISTENT, FALSE,	// Never inconsistent because at bottom level of tree
 							CONTACT_WINDOW_ICON, gdk_pixbuf_new_from_file(CONTACT_WINDOW_ENTRY_ICON, NULL),
-							CONTACT_WINDOW_TEXT, entry->_entryID,
+							CONTACT_WINDOW_TEXT, entry->_text,
 							-1);
 				}
 			}

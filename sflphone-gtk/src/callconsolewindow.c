@@ -84,7 +84,7 @@ call_console_window_fill_contact_list()
 						gtk_list_store_set(contactListStore, &iter,
 								CALL_CONSOLE_WINDOW_ICON, gdk_pixbuf_new_from_file(PRESENCE_STATUS_ONLINE_ICON, NULL),
 								CALL_CONSOLE_WINDOW_NAME, contact->_firstName,
-								CALL_CONSOLE_WINDOW_CONTACT, entry->_entryID,
+								CALL_CONSOLE_WINDOW_CONTACT, entry->_text,
 								CALL_CONSOLE_WINDOW_PRESENCE_STATUS, "Put the presence status in text and additional info",
 								-1);
 					}
