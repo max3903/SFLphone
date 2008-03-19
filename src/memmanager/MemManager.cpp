@@ -33,10 +33,12 @@ MemManager* MemManager::getInstance()
 
 MemManager::MemManager()
 {
+	
 }
 
 MemManager::~MemManager()
 {
+	CleanSpaces();
 	delete instance;
 }
 

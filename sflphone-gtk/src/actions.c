@@ -718,7 +718,6 @@ sflphone_fill_video_codec_list()
   {
     videoCodec_t * c = g_new0(videoCodec_t, 1);
     //c->_payload = NULL;
-    //details = (gchar **)dbus_video_codec_details(c->_payload);
     c->name = *order;
     c->is_active = TRUE;
     video_codec_list_add(c);
@@ -732,7 +731,6 @@ sflphone_fill_video_codec_list()
     }
     else{
       videoCodec_t* c = g_new0(videoCodec_t, 1);
-      //c->_payload = ;
       c->name = *codecs;
       c->is_active = FALSE;
       video_codec_list_add(c);

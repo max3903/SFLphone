@@ -38,7 +38,7 @@
 #include <string>
 #include <iostream>
 #include <fstream>
-#include "../tracePrint.h"
+#include "../tracePrintSFL.h"
 extern "C"{
 #include <ffmpeg/avcodec.h>
 #include <ffmpeg/avformat.h>

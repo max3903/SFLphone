@@ -185,7 +185,7 @@ video_codec_list_update_to_daemon()
 					videoCodecList = (void*)realloc(videoCodecList, (c+1)*sizeof(void*));
 				// Allocate memory for the payload
 				*(videoCodecList+c) = (gchar*)malloc(sizeof(gchar*));
-				char name[10];
+			//	char name[10];
 				// Put name  in char array
 				strcpy((char*)*(videoCodecList+c), currentCodec->name);
 				g_print(" %s", *(videoCodecList+c));

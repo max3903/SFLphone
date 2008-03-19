@@ -2613,7 +2613,7 @@ ManagerImpl::setActiveVideoCodecList(const std::vector<std::string>& list)
   _debug("Set active Video codecs list\n");
   
 	if(_videoCodecDescriptor->saveActiveCodecs(list))
-		ptrace("videoCodecs saved",MT_INFO,5,true);
+		ptracesfl("videoCodecs saved",MT_INFO,5,true);
   // setConfig
   //TODO
 //  std::string s = serialize(list);
@@ -2622,12 +2622,10 @@ ManagerImpl::setActiveVideoCodecList(const std::vector<std::string>& list)
 }
 
 
-  std::vector <std::string>
+std::vector <std::string>
 ManagerImpl::getActiveVideoCodecList( void )
 {
-
   _debug("Get Active VideoCodecs list\n");
-
   return _videoCodecDescriptor->getStringActiveCodecs();
 }
 
