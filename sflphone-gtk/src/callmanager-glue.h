@@ -456,6 +456,233 @@ org_sflphone_SFLphone_CallManager_get_current_call_id_async (DBusGProxy *proxy, 
   stuff->userdata = userdata;
   return dbus_g_proxy_begin_call (proxy, "getCurrentCallID", org_sflphone_SFLphone_CallManager_get_current_call_id_async_callback, stuff, g_free, G_TYPE_INVALID);
 }
+static
+#ifdef G_HAVE_INLINE
+inline
+#endif
+gboolean
+org_sflphone_SFLphone_CallManager_get_local_shared_memory_key (DBusGProxy *proxy, char ** OUT_key, GError **error)
+
+{
+  return dbus_g_proxy_call (proxy, "getLocalSharedMemoryKey", error, G_TYPE_INVALID, G_TYPE_STRING, OUT_key, G_TYPE_INVALID);
+}
+
+typedef void (*org_sflphone_SFLphone_CallManager_get_local_shared_memory_key_reply) (DBusGProxy *proxy, char * OUT_key, GError *error, gpointer userdata);
+
+static void
+org_sflphone_SFLphone_CallManager_get_local_shared_memory_key_async_callback (DBusGProxy *proxy, DBusGProxyCall *call, void *user_data)
+{
+  DBusGAsyncData *data = (DBusGAsyncData*) user_data;
+  GError *error = NULL;
+  char * OUT_key;
+  dbus_g_proxy_end_call (proxy, call, &error, G_TYPE_STRING, &OUT_key, G_TYPE_INVALID);
+  (*(org_sflphone_SFLphone_CallManager_get_local_shared_memory_key_reply)data->cb) (proxy, OUT_key, error, data->userdata);
+  return;
+}
+
+static
+#ifdef G_HAVE_INLINE
+inline
+#endif
+DBusGProxyCall*
+org_sflphone_SFLphone_CallManager_get_local_shared_memory_key_async (DBusGProxy *proxy, org_sflphone_SFLphone_CallManager_get_local_shared_memory_key_reply callback, gpointer userdata)
+
+{
+  DBusGAsyncData *stuff;
+  stuff = g_new (DBusGAsyncData, 1);
+  stuff->cb = G_CALLBACK (callback);
+  stuff->userdata = userdata;
+  return dbus_g_proxy_begin_call (proxy, "getLocalSharedMemoryKey", org_sflphone_SFLphone_CallManager_get_local_shared_memory_key_async_callback, stuff, g_free, G_TYPE_INVALID);
+}
+static
+#ifdef G_HAVE_INLINE
+inline
+#endif
+gboolean
+org_sflphone_SFLphone_CallManager_get_remote_shared_memory_key (DBusGProxy *proxy, char ** OUT_key, GError **error)
+
+{
+  return dbus_g_proxy_call (proxy, "getRemoteSharedMemoryKey", error, G_TYPE_INVALID, G_TYPE_STRING, OUT_key, G_TYPE_INVALID);
+}
+
+typedef void (*org_sflphone_SFLphone_CallManager_get_remote_shared_memory_key_reply) (DBusGProxy *proxy, char * OUT_key, GError *error, gpointer userdata);
+
+static void
+org_sflphone_SFLphone_CallManager_get_remote_shared_memory_key_async_callback (DBusGProxy *proxy, DBusGProxyCall *call, void *user_data)
+{
+  DBusGAsyncData *data = (DBusGAsyncData*) user_data;
+  GError *error = NULL;
+  char * OUT_key;
+  dbus_g_proxy_end_call (proxy, call, &error, G_TYPE_STRING, &OUT_key, G_TYPE_INVALID);
+  (*(org_sflphone_SFLphone_CallManager_get_remote_shared_memory_key_reply)data->cb) (proxy, OUT_key, error, data->userdata);
+  return;
+}
+
+static
+#ifdef G_HAVE_INLINE
+inline
+#endif
+DBusGProxyCall*
+org_sflphone_SFLphone_CallManager_get_remote_shared_memory_key_async (DBusGProxy *proxy, org_sflphone_SFLphone_CallManager_get_remote_shared_memory_key_reply callback, gpointer userdata)
+
+{
+  DBusGAsyncData *stuff;
+  stuff = g_new (DBusGAsyncData, 1);
+  stuff->cb = G_CALLBACK (callback);
+  stuff->userdata = userdata;
+  return dbus_g_proxy_begin_call (proxy, "getRemoteSharedMemoryKey", org_sflphone_SFLphone_CallManager_get_remote_shared_memory_key_async_callback, stuff, g_free, G_TYPE_INVALID);
+}
+static
+#ifdef G_HAVE_INLINE
+inline
+#endif
+gboolean
+org_sflphone_SFLphone_CallManager_invite_conference (DBusGProxy *proxy, const char * IN_accountID, const char * IN_callID, const char * IN_to, gboolean* OUT_response, GError **error)
+
+{
+  return dbus_g_proxy_call (proxy, "inviteConference", error, G_TYPE_STRING, IN_accountID, G_TYPE_STRING, IN_callID, G_TYPE_STRING, IN_to, G_TYPE_INVALID, G_TYPE_BOOLEAN, OUT_response, G_TYPE_INVALID);
+}
+
+typedef void (*org_sflphone_SFLphone_CallManager_invite_conference_reply) (DBusGProxy *proxy, gboolean OUT_response, GError *error, gpointer userdata);
+
+static void
+org_sflphone_SFLphone_CallManager_invite_conference_async_callback (DBusGProxy *proxy, DBusGProxyCall *call, void *user_data)
+{
+  DBusGAsyncData *data = (DBusGAsyncData*) user_data;
+  GError *error = NULL;
+  gboolean OUT_response;
+  dbus_g_proxy_end_call (proxy, call, &error, G_TYPE_BOOLEAN, &OUT_response, G_TYPE_INVALID);
+  (*(org_sflphone_SFLphone_CallManager_invite_conference_reply)data->cb) (proxy, OUT_response, error, data->userdata);
+  return;
+}
+
+static
+#ifdef G_HAVE_INLINE
+inline
+#endif
+DBusGProxyCall*
+org_sflphone_SFLphone_CallManager_invite_conference_async (DBusGProxy *proxy, const char * IN_accountID, const char * IN_callID, const char * IN_to, org_sflphone_SFLphone_CallManager_invite_conference_reply callback, gpointer userdata)
+
+{
+  DBusGAsyncData *stuff;
+  stuff = g_new (DBusGAsyncData, 1);
+  stuff->cb = G_CALLBACK (callback);
+  stuff->userdata = userdata;
+  return dbus_g_proxy_begin_call (proxy, "inviteConference", org_sflphone_SFLphone_CallManager_invite_conference_async_callback, stuff, g_free, G_TYPE_STRING, IN_accountID, G_TYPE_STRING, IN_callID, G_TYPE_STRING, IN_to, G_TYPE_INVALID);
+}
+static
+#ifdef G_HAVE_INLINE
+inline
+#endif
+gboolean
+org_sflphone_SFLphone_CallManager_join_conference (DBusGProxy *proxy, const char * IN_onHoldCallID, const char * IN_newCallID, gboolean* OUT_response, GError **error)
+
+{
+  return dbus_g_proxy_call (proxy, "joinConference", error, G_TYPE_STRING, IN_onHoldCallID, G_TYPE_STRING, IN_newCallID, G_TYPE_INVALID, G_TYPE_BOOLEAN, OUT_response, G_TYPE_INVALID);
+}
+
+typedef void (*org_sflphone_SFLphone_CallManager_join_conference_reply) (DBusGProxy *proxy, gboolean OUT_response, GError *error, gpointer userdata);
+
+static void
+org_sflphone_SFLphone_CallManager_join_conference_async_callback (DBusGProxy *proxy, DBusGProxyCall *call, void *user_data)
+{
+  DBusGAsyncData *data = (DBusGAsyncData*) user_data;
+  GError *error = NULL;
+  gboolean OUT_response;
+  dbus_g_proxy_end_call (proxy, call, &error, G_TYPE_BOOLEAN, &OUT_response, G_TYPE_INVALID);
+  (*(org_sflphone_SFLphone_CallManager_join_conference_reply)data->cb) (proxy, OUT_response, error, data->userdata);
+  return;
+}
+
+static
+#ifdef G_HAVE_INLINE
+inline
+#endif
+DBusGProxyCall*
+org_sflphone_SFLphone_CallManager_join_conference_async (DBusGProxy *proxy, const char * IN_onHoldCallID, const char * IN_newCallID, org_sflphone_SFLphone_CallManager_join_conference_reply callback, gpointer userdata)
+
+{
+  DBusGAsyncData *stuff;
+  stuff = g_new (DBusGAsyncData, 1);
+  stuff->cb = G_CALLBACK (callback);
+  stuff->userdata = userdata;
+  return dbus_g_proxy_begin_call (proxy, "joinConference", org_sflphone_SFLphone_CallManager_join_conference_async_callback, stuff, g_free, G_TYPE_STRING, IN_onHoldCallID, G_TYPE_STRING, IN_newCallID, G_TYPE_INVALID);
+}
+static
+#ifdef G_HAVE_INLINE
+inline
+#endif
+gboolean
+org_sflphone_SFLphone_CallManager_change_video_avaibility (DBusGProxy *proxy, gboolean* OUT_status, GError **error)
+
+{
+  return dbus_g_proxy_call (proxy, "changeVideoAvaibility", error, G_TYPE_INVALID, G_TYPE_BOOLEAN, OUT_status, G_TYPE_INVALID);
+}
+
+typedef void (*org_sflphone_SFLphone_CallManager_change_video_avaibility_reply) (DBusGProxy *proxy, gboolean OUT_status, GError *error, gpointer userdata);
+
+static void
+org_sflphone_SFLphone_CallManager_change_video_avaibility_async_callback (DBusGProxy *proxy, DBusGProxyCall *call, void *user_data)
+{
+  DBusGAsyncData *data = (DBusGAsyncData*) user_data;
+  GError *error = NULL;
+  gboolean OUT_status;
+  dbus_g_proxy_end_call (proxy, call, &error, G_TYPE_BOOLEAN, &OUT_status, G_TYPE_INVALID);
+  (*(org_sflphone_SFLphone_CallManager_change_video_avaibility_reply)data->cb) (proxy, OUT_status, error, data->userdata);
+  return;
+}
+
+static
+#ifdef G_HAVE_INLINE
+inline
+#endif
+DBusGProxyCall*
+org_sflphone_SFLphone_CallManager_change_video_avaibility_async (DBusGProxy *proxy, org_sflphone_SFLphone_CallManager_change_video_avaibility_reply callback, gpointer userdata)
+
+{
+  DBusGAsyncData *stuff;
+  stuff = g_new (DBusGAsyncData, 1);
+  stuff->cb = G_CALLBACK (callback);
+  stuff->userdata = userdata;
+  return dbus_g_proxy_begin_call (proxy, "changeVideoAvaibility", org_sflphone_SFLphone_CallManager_change_video_avaibility_async_callback, stuff, g_free, G_TYPE_INVALID);
+}
+static
+#ifdef G_HAVE_INLINE
+inline
+#endif
+gboolean
+org_sflphone_SFLphone_CallManager_change_webcam_status (DBusGProxy *proxy, const gboolean IN_status, GError **error)
+
+{
+  return dbus_g_proxy_call (proxy, "changeWebcamStatus", error, G_TYPE_BOOLEAN, IN_status, G_TYPE_INVALID, G_TYPE_INVALID);
+}
+
+typedef void (*org_sflphone_SFLphone_CallManager_change_webcam_status_reply) (DBusGProxy *proxy, GError *error, gpointer userdata);
+
+static void
+org_sflphone_SFLphone_CallManager_change_webcam_status_async_callback (DBusGProxy *proxy, DBusGProxyCall *call, void *user_data)
+{
+  DBusGAsyncData *data = (DBusGAsyncData*) user_data;
+  GError *error = NULL;
+  dbus_g_proxy_end_call (proxy, call, &error, G_TYPE_INVALID);
+  (*(org_sflphone_SFLphone_CallManager_change_webcam_status_reply)data->cb) (proxy, error, data->userdata);
+  return;
+}
+
+static
+#ifdef G_HAVE_INLINE
+inline
+#endif
+DBusGProxyCall*
+org_sflphone_SFLphone_CallManager_change_webcam_status_async (DBusGProxy *proxy, const gboolean IN_status, org_sflphone_SFLphone_CallManager_change_webcam_status_reply callback, gpointer userdata)
+
+{
+  DBusGAsyncData *stuff;
+  stuff = g_new (DBusGAsyncData, 1);
+  stuff->cb = G_CALLBACK (callback);
+  stuff->userdata = userdata;
+  return dbus_g_proxy_begin_call (proxy, "changeWebcamStatus", org_sflphone_SFLphone_CallManager_change_webcam_status_async_callback, stuff, g_free, G_TYPE_BOOLEAN, IN_status, G_TYPE_INVALID);
+}
 #endif /* defined DBUS_GLIB_CLIENT_WRAPPERS_org_sflphone_SFLphone_CallManager */
 
 G_END_DECLS

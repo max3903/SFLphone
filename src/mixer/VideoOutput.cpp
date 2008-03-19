@@ -5,29 +5,38 @@
 
 int VideoOutput::fetchData(char* data)
 {
+  sem_wait(&semaphore);
+  memcpy(buffer,data,sizeBuffer);
+  sem_post(&semaphore);
   return 0;
 }
 
 void VideoOutput::putData(char * data, int size)
 { 
-  
+  sem_wait(&semaphore);
+  buffer = new char[size]; 
+  memcpy(data,buffer,size);
+  sizeBuffer=size;
+  sem_post(&semaphore);
 }
 
 VideoOutput::VideoOutput()
 {
-  
+  sem_init(&semaphore,0,1);
 }
 
 VideoOutput::~VideoOutput()
 {
-  
+  // verifier que c'est null avant.
+  delete []buffer;
 }
 
+// DEPRECIATED !!!!!
 int VideoOutput::fetchData(int16 *data)
 { 
-  return 0;
+  return 0; 
 }
-
+// DEPRECIATED !!!!!
 void VideoOutput::putData(int16 * data, int size)
 { 
   

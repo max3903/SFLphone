@@ -413,6 +413,137 @@ dbus_place_call (const call_t * c)
 
 }
 
+gchar*
+dbus_get_local_shared_memory_key()
+{
+	g_print("Before get local shared memory key");
+	gchar* key;
+	GError* error = NULL;
+	org_sflphone_SFLphone_CallManager_get_local_shared_memory_key(
+			callManagerProxy,
+			&key,
+			&error);
+	g_print("After");
+	if(error)
+	{
+		g_printerr("Failed to call get_local_shared_memory_key() on CallManager: %s\n", error->message);
+		g_error_free(error);
+	}
+	else
+		g_print("DBus called get_local_shared_memory_key() on CallManager\n");
+	return key;
+	
+}
+
+gchar*
+dbus_get_remote_shared_memory_key()
+{
+	g_print("Before get remote shared memory key");
+	gchar* key;
+	GError* error = NULL;
+	org_sflphone_SFLphone_CallManager_get_remote_shared_memory_key(
+			callManagerProxy,
+			&key,
+			&error);
+	g_print("After");
+	if(error)
+	{
+		g_printerr("Failed to call get_remote_shared_memory_key() on CallManager: %s\n", error->message);
+		g_error_free(error);
+	}
+	else
+		g_print("DBus called get_remote_shared_memory_key() on CallManager\n");
+	return key;
+	
+}
+
+//Remote video status change - enable or disable remote video display
+gboolean 
+dbus_change_video_avaibility()
+{
+	g_print("Before change video avaibility");
+	gboolean response;
+	GError* error = NULL;
+	org_sflphone_SFLphone_CallManager_change_video_avaibility(
+			callManagerProxy,
+			&response,
+			&error);
+	g_print("After");
+	if(error)
+	{
+		g_printerr("Failed to call change_video_avaibility() on CallManager: %s\n", error->message);
+		g_error_free(error);
+	}
+	else
+		g_print("DBus called change_video_avaibility() on CallManager\n");
+	return response;
+}
+
+//Webcam Status change - enable or disable video capture
+void 
+dbus_change_webcam_status(gboolean status)
+{
+	g_print("Before change webcam status");
+	GError* error = NULL;
+	org_sflphone_SFLphone_CallManager_change_webcam_status(
+			callManagerProxy,
+			status,
+			&error);
+	g_print("After");
+	if(error)
+	{
+		g_printerr("Failed to call change_webcam_status() on CallManager: %s\n", error->message);
+		g_error_free(error);
+	}
+	else
+		g_print("DBus called change_webcam_status() on CallManager\n");
+}
+
+//Invite 3rd person for a conference
+gboolean 
+dbus_invite_conference( const call_t * c )
+{
+	g_print("Before invite conference");
+	gboolean response;
+	GError* error = NULL;
+	org_sflphone_SFLphone_CallManager_invite_conference(
+			callManagerProxy,
+			c->accountID, c->callID, c->to,
+			&response,
+			&error);
+	g_print("After");
+	if(error)
+	{
+		g_printerr("Failed to call invite_conference() on CallManager: %s\n", error->message);
+		g_error_free(error);
+	}
+	else
+		g_print("DBus called invite_conference() on CallManager\n");
+	return response;	
+}
+
+gboolean 
+dbus_join_conference( const call_t * onHoldCall,  const call_t * newCall)
+{
+	g_print("Before join conference");
+	gboolean response;
+	GError* error = NULL;
+	org_sflphone_SFLphone_CallManager_join_conference(
+			callManagerProxy,
+			onHoldCall->callID, newCall->callID,
+			&response,
+			&error);
+	g_print("After");
+	if(error)
+	{
+		g_printerr("Failed to call join_conference() on CallManager: %s\n", error->message);
+		g_error_free(error);
+	}
+	else
+		g_print("DBus called join_conference() on CallManager\n");
+	return response;	
+}
+
 gchar ** 
 dbus_account_list()
 {
@@ -1189,7 +1320,6 @@ dbus_get_current_audio_output_plugin()
 	return plugin;
 }
 
-
 gchar*
 dbus_get_ringtone_choice()
 {
@@ -1364,3 +1494,171 @@ dbus_get_contact_entry_details(gchar* accountID, gchar* contactID, gchar* entryI
 		g_print ("DBus called get_contact_entry_details on ContactManager\n");
 	return array;
 }
+
+
+
+
+//Brightness of the video capture
+int 
+dbus_get_brightness()
+{
+	g_print("Before get brightness");
+	int value;
+	GError* error = NULL;
+	org_sflphone_SFLphone_ConfigurationManager_get_brightness(
+			configurationManagerProxy,
+			&value,
+			&error);
+	g_print("After");
+	if(error)
+	{
+		g_printerr("Failed to call get_brightness() on ConfigurationManager: %s\n", error->message);
+		g_error_free(error);
+	}
+	else
+		g_print("DBus called get_brightness() on ConfigurationManager\n");
+	return value;	
+}
+
+void 
+dbus_set_brightness(int value)
+{
+	g_print("Before set brightness");
+	GError* error = NULL;
+	org_sflphone_SFLphone_ConfigurationManager_set_brightness(
+			configurationManagerProxy,
+			value,
+			&error);
+	g_print("After");
+	if(error)
+	{
+		g_printerr("Failed to call set_brightness() on ConfigurationManager: %s\n", error->message);
+		g_error_free(error);
+	}
+	else
+		g_print("DBus called set_brightness() on ConfigurationManager\n");
+}
+
+//Contrast of the video capture
+int 
+dbus_get_contrast()
+{
+	g_print("Before get contrast");
+	int value;
+	GError* error = NULL;
+	org_sflphone_SFLphone_ConfigurationManager_get_contrast(
+			configurationManagerProxy,
+			&value,
+			&error);
+	g_print("After");
+	if(error)
+	{
+		g_printerr("Failed to call get_contrast() on ConfigurationManager: %s\n", error->message);
+		g_error_free(error);
+	}
+	else
+		g_print("DBus called get_contrast() on ConfigurationManager\n");
+	return value;
+}
+
+void 
+dbus_set_contrast(int value)
+{
+	g_print("Before set contrast");
+	GError* error = NULL;
+	org_sflphone_SFLphone_ConfigurationManager_set_contrast(
+			configurationManagerProxy,
+			value,
+			&error);
+	g_print("After");
+	if(error)
+	{
+		g_printerr("Failed to call set_contrast() on ConfigurationManager: %s\n", error->message);
+		g_error_free(error);
+	}
+	else
+		g_print("DBus called set_contrast() on ConfigurationManager\n");
+}
+
+//Colour of the video capture
+int 
+dbus_get_colour()
+{
+	g_print("Before get colour");
+	int value;
+	GError* error = NULL;
+	org_sflphone_SFLphone_ConfigurationManager_get_colour(
+			configurationManagerProxy,
+			&value,
+			&error);
+	g_print("After");
+	if(error)
+	{
+		g_printerr("Failed to call get_colour() on ConfigurationManager: %s\n", error->message);
+		g_error_free(error);
+	}
+	else
+		g_print("DBus called get_colour() on ConfigurationManager\n");
+	return value;	
+}
+
+void 
+dbus_set_colour(int value)
+{
+	g_print("Before set colour");
+	GError* error = NULL;
+	org_sflphone_SFLphone_ConfigurationManager_set_colour(
+			configurationManagerProxy,
+			value,
+			&error);
+	g_print("After");
+	if(error)
+	{
+		g_printerr("Failed to call set_colour() on ConfigurationManager: %s\n", error->message);
+		g_error_free(error);
+	}
+	else
+		g_print("DBus called set_colour() on ConfigurationManager\n");
+}
+
+//Webcam list
+gchar** 
+dbus_get_webcam_device_list()
+{
+	g_print("Before get webcam device list");
+	gchar** array;
+	GError* error = NULL;
+	org_sflphone_SFLphone_ConfigurationManager_get_webcam_device_list(
+			configurationManagerProxy,
+			&array,
+			&error);
+	g_print("After");
+	if(error)
+	{
+		g_printerr("Failed to call get_webcam_device_list() on ConfigurationManager: %s\n", error->message);
+		g_error_free(error);
+	}
+	else
+		g_print("DBus called get_webcam_device_list() on ConfigurationManager\n");
+	return array;	
+}
+
+void 
+dbus_set_webcam_device(const int index)
+{
+	g_print("Before set webcam device");
+	GError* error = NULL;
+	org_sflphone_SFLphone_ConfigurationManager_set_webcam_device(
+			configurationManagerProxy,
+			index,
+			&error);
+	g_print("After");
+	if(error)
+	{
+		g_printerr("Failed to call set_webcam_device() on ConfigurationManager: %s\n", error->message);
+		g_error_free(error);
+	}
+	else
+		g_print("DBus called set_webcam_device() on ConfigurationManager\n");
+}
+

@@ -43,6 +43,9 @@ gboolean showDialpad  = FALSE; // true if the dialpad have been shown
 gboolean showInfoScreen = FALSE; // true if the info screen have been shown
 gboolean showGlWidget= FALSE; // true if the glwidget have been been shown
 
+//! The glwidget it self
+GtkWidget* drawing_area;
+
 /**
  * Terminate the main loop.
  */
@@ -261,7 +264,7 @@ main_window_callinfo(gboolean show, call_t* current)
   if(show && !showInfoScreen)
   {
     infoScreen = create_screen();
-    gtk_box_pack_start (GTK_BOX (subvbox), infoScreen, FALSE , TRUE , 0 );
+    gtk_box_pack_start (GTK_BOX (subvbox), infoScreetkCn, FALSE , TRUE , 0 );
     gtk_widget_show_all(infoScreen);
     screen_set_call(current);
   }
@@ -364,8 +367,8 @@ void main_window_update_WebcamStatus( gboolean value )
 	gtk_signal_handler_unblock(GTK_TOGGLE_TOOL_BUTTON(webCamButton),webCamButtonConnId);
 	
 	//Change menu item state
-	gtk_signal_handler_block(GTK_TOGGLE_TOOL_BUTTON(webCamMenu),webCamConnId);
+	gtk_signal_handler_block(GTK_CHECK_MENU_ITEM(webCamMenu),webCamConnId);
 	gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(webCamMenu), value);
-	gtk_signal_handler_unblock(GTK_TOGGLE_TOOL_BUTTON(webCamMenu),webCamConnId);
+	gtk_signal_handler_unblock(GTK_CHECK_MENU_ITEM(webCamMenu),webCamConnId);
 }
 

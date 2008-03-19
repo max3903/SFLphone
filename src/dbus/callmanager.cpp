@@ -134,4 +134,47 @@ CallManager::playDTMF( const ::DBus::String& key )
   Manager::instance().sendDtmf(Manager::instance().getCurrentCallId(), key.c_str()[0]);
 }
 
+::DBus::String
+CallManager::getLocalSharedMemoryKey()
+{
+	_debug("CallManager::getLocalSharedMemoryKey() received\n");
+    return Manager::instance().getLocalSharedMemoryKey();
+}
+
+::DBus::String
+CallManager::getRemoteSharedMemoryKey()
+{
+	_debug("CallManager::getRemoteSharedMemoryKey() received\n");
+    return Manager::instance().getRemoteSharedMemoryKey();
+}
+
+::DBus::Bool 
+CallManager::inviteConference( const ::DBus::String& accountID, const ::DBus::String& callID, const ::DBus::String& to )
+{
+	_debug("CallManager::inviteConference received\n");
+    return Manager::instance().inviteConference(accountID, callID, to);
+}
+    
+::DBus::Bool 
+CallManager::joinConference( const ::DBus::String& onHoldCallID, const ::DBus::String& newCallID )
+{
+	_debug("CallManager::joinConference received\n");
+    return Manager::instance().joinConference(onHoldCallID, newCallID);
+}
+
+/* Video avaibility */
+::DBus::Bool 
+CallManager::changeVideoAvaibility(  )
+{
+	_debug("CallManager::getRemoteSharedMemoryKey() received\n");
+    return Manager::instance().changeVideoAvaibility();
+}
+
+void 
+CallManager::changeWebcamStatus( const ::DBus::Bool& status )
+{
+	_debug("CallManager::getRemoteSharedMemoryKey() received\n");
+    Manager::instance().changeWebcamStatus(status);
+}
+
 

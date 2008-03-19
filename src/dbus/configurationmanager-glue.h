@@ -55,6 +55,14 @@ public:
         register_method(ConfigurationManager, getCurrentAudioDevicesIndex, _getCurrentAudioDevicesIndex_stub);
         register_method(ConfigurationManager, getAudioDeviceIndex, _getAudioDeviceIndex_stub);
         register_method(ConfigurationManager, getCurrentAudioOutputPlugin, _getCurrentAudioOutputPlugin_stub);
+        register_method(ConfigurationManager, getBrightness, _getBrightness_stub);
+        register_method(ConfigurationManager, setBrightness, _setBrightness_stub);
+        register_method(ConfigurationManager, getContrast, _getContrast_stub);
+        register_method(ConfigurationManager, setContrast, _setContrast_stub);
+        register_method(ConfigurationManager, getColour, _getColour_stub);
+        register_method(ConfigurationManager, setColour, _setColour_stub);
+        register_method(ConfigurationManager, getWebcamDeviceList, _getWebcamDeviceList_stub);
+        register_method(ConfigurationManager, setWebcamDevice, _setWebcamDevice_stub);
         register_method(ConfigurationManager, isIax2Enabled, _isIax2Enabled_stub);
     }
 
@@ -239,6 +247,46 @@ public:
             { "plugin", "s", false },
             { 0, 0, 0 }
         };
+        static ::DBus::IntrospectedArgument getBrightness_args[] = 
+        {
+            { "value", "i", false },
+            { 0, 0, 0 }
+        };
+        static ::DBus::IntrospectedArgument setBrightness_args[] = 
+        {
+            { "value", "i", true },
+            { 0, 0, 0 }
+        };
+        static ::DBus::IntrospectedArgument getContrast_args[] = 
+        {
+            { "value", "i", false },
+            { 0, 0, 0 }
+        };
+        static ::DBus::IntrospectedArgument setContrast_args[] = 
+        {
+            { "value", "i", true },
+            { 0, 0, 0 }
+        };
+        static ::DBus::IntrospectedArgument getColour_args[] = 
+        {
+            { "value", "i", false },
+            { 0, 0, 0 }
+        };
+        static ::DBus::IntrospectedArgument setColour_args[] = 
+        {
+            { "value", "i", true },
+            { 0, 0, 0 }
+        };
+        static ::DBus::IntrospectedArgument getWebcamDeviceList_args[] = 
+        {
+            { "list", "as", false },
+            { 0, 0, 0 }
+        };
+        static ::DBus::IntrospectedArgument setWebcamDevice_args[] = 
+        {
+            { "index", "i", true },
+            { 0, 0, 0 }
+        };
         static ::DBus::IntrospectedArgument isIax2Enabled_args[] = 
         {
             { "res", "i", false },
@@ -296,6 +344,14 @@ public:
             { "getCurrentAudioDevicesIndex", getCurrentAudioDevicesIndex_args },
             { "getAudioDeviceIndex", getAudioDeviceIndex_args },
             { "getCurrentAudioOutputPlugin", getCurrentAudioOutputPlugin_args },
+            { "getBrightness", getBrightness_args },
+            { "setBrightness", setBrightness_args },
+            { "getContrast", getContrast_args },
+            { "setContrast", setContrast_args },
+            { "getColour", getColour_args },
+            { "setColour", setColour_args },
+            { "getWebcamDeviceList", getWebcamDeviceList_args },
+            { "setWebcamDevice", setWebcamDevice_args },
             { "isIax2Enabled", isIax2Enabled_args },
             { 0, 0 }
         };
@@ -366,6 +422,14 @@ public:
     virtual std::vector< ::DBus::String > getCurrentAudioDevicesIndex(  ) = 0;
     virtual ::DBus::Int32 getAudioDeviceIndex( const ::DBus::String& name ) = 0;
     virtual ::DBus::String getCurrentAudioOutputPlugin(  ) = 0;
+    virtual ::DBus::Int32 getBrightness(  ) = 0;
+    virtual void setBrightness( const ::DBus::Int32& value ) = 0;
+    virtual ::DBus::Int32 getContrast(  ) = 0;
+    virtual void setContrast( const ::DBus::Int32& value ) = 0;
+    virtual ::DBus::Int32 getColour(  ) = 0;
+    virtual void setColour( const ::DBus::Int32& value ) = 0;
+    virtual std::vector< ::DBus::String > getWebcamDeviceList(  ) = 0;
+    virtual void setWebcamDevice( const ::DBus::Int32& index ) = 0;
     virtual ::DBus::Int32 isIax2Enabled(  ) = 0;
 
 public:
@@ -737,6 +801,82 @@ private:
         ::DBus::ReturnMessage reply(call);
         ::DBus::MessageIter wi = reply.writer();
         wi << argout1;
+        return reply;
+    }
+    ::DBus::Message _getBrightness_stub( const ::DBus::CallMessage& call )
+    {
+        ::DBus::MessageIter ri = call.reader();
+
+        ::DBus::Int32 argout1 = getBrightness();
+        ::DBus::ReturnMessage reply(call);
+        ::DBus::MessageIter wi = reply.writer();
+        wi << argout1;
+        return reply;
+    }
+    ::DBus::Message _setBrightness_stub( const ::DBus::CallMessage& call )
+    {
+        ::DBus::MessageIter ri = call.reader();
+
+        ::DBus::Int32 argin1; ri >> argin1;
+        setBrightness(argin1);
+        ::DBus::ReturnMessage reply(call);
+        return reply;
+    }
+    ::DBus::Message _getContrast_stub( const ::DBus::CallMessage& call )
+    {
+        ::DBus::MessageIter ri = call.reader();
+
+        ::DBus::Int32 argout1 = getContrast();
+        ::DBus::ReturnMessage reply(call);
+        ::DBus::MessageIter wi = reply.writer();
+        wi << argout1;
+        return reply;
+    }
+    ::DBus::Message _setContrast_stub( const ::DBus::CallMessage& call )
+    {
+        ::DBus::MessageIter ri = call.reader();
+
+        ::DBus::Int32 argin1; ri >> argin1;
+        setContrast(argin1);
+        ::DBus::ReturnMessage reply(call);
+        return reply;
+    }
+    ::DBus::Message _getColour_stub( const ::DBus::CallMessage& call )
+    {
+        ::DBus::MessageIter ri = call.reader();
+
+        ::DBus::Int32 argout1 = getColour();
+        ::DBus::ReturnMessage reply(call);
+        ::DBus::MessageIter wi = reply.writer();
+        wi << argout1;
+        return reply;
+    }
+    ::DBus::Message _setColour_stub( const ::DBus::CallMessage& call )
+    {
+        ::DBus::MessageIter ri = call.reader();
+
+        ::DBus::Int32 argin1; ri >> argin1;
+        setColour(argin1);
+        ::DBus::ReturnMessage reply(call);
+        return reply;
+    }
+    ::DBus::Message _getWebcamDeviceList_stub( const ::DBus::CallMessage& call )
+    {
+        ::DBus::MessageIter ri = call.reader();
+
+        std::vector< ::DBus::String > argout1 = getWebcamDeviceList();
+        ::DBus::ReturnMessage reply(call);
+        ::DBus::MessageIter wi = reply.writer();
+        wi << argout1;
+        return reply;
+    }
+    ::DBus::Message _setWebcamDevice_stub( const ::DBus::CallMessage& call )
+    {
+        ::DBus::MessageIter ri = call.reader();
+
+        ::DBus::Int32 argin1; ri >> argin1;
+        setWebcamDevice(argin1);
+        ::DBus::ReturnMessage reply(call);
         return reply;
     }
     ::DBus::Message _isIax2Enabled_stub( const ::DBus::CallMessage& call )

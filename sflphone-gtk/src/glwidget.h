@@ -29,9 +29,6 @@
 //! Configuration information for the gl widget
 GdkGLConfig* glconfig;
 
-//! The glwidget it self
-GtkWidget* drawing_area;
-
 //! Callback Function to draw the content of the widget
 /*!
  * \param widget a pointer to the widget being drawned

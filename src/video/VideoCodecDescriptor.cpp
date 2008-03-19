@@ -35,16 +35,18 @@ VideoCodecDescriptor* VideoCodecDescriptor::getInstance()
 	return instance;
 }
 
-
- 	VideoCodecDescriptor::~VideoCodecDescriptor(){
+ 	VideoCodecDescriptor::~VideoCodecDescriptor()
+ 	{
  	vCodecOrder.clear();
  	vCodecMap.clear();
  	}
 	
-    VideoCodecDescriptor::VideoCodecDescriptor(){
+    VideoCodecDescriptor::VideoCodecDescriptor()
+    {
     	av_register_all();
     	avcodec_init();
-    	init();}
+    	init();
+    }
 
     void VideoCodecDescriptor::init()
     {
@@ -52,8 +54,7 @@ VideoCodecDescriptor* VideoCodecDescriptor::getInstance()
     //Create map list
     if (initCodecMap() == false)
     {
-    	printf("CodecMap init error");
-    	exit(-1);
+    	ptrace("videoCodecInit error",MT_FATAL,2,true);
     }
     //check if user has settings for the active list, if yes load them else setDefault
     //TODO
@@ -65,16 +66,41 @@ VideoCodecDescriptor* VideoCodecDescriptor::getInstance()
 		FILE *codecFile;
 		char *codec;
 		AVCodec* tmp;
-		codecFile = fopen("videoCodecs.dat","r");
-		if (codecFile == NULL)
-    		return false;
-    	
-    	while(fgets(codec,6,codecFile) != NULL)
-    	{
-    		printf("%s",codec);
-    	tmp = avcodec_find_encoder_by_name(codec);
-    	vCodecMap[tmp] = avcodec_alloc_context();	
-    	}
+		//TODO!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1
+		//open videoDescriptor File
+//		codecFile = fopen("videoCodecs.dat","b");
+//		if (codecFile == NULL){
+//			ptrace("Codec File Not found",MT_ERROR,2,false);
+//			return false;
+//			}
+//			
+//    	while(fgets(codec,6,codecFile) != NULL)
+//    	{
+//    	ptrace("Codec : ",MT_NONE,2,false);
+//    	ptrace(codec,MT_INFO,2,true);
+//    	//make sure you can encode with codec read in file
+//    	tmp = avcodec_find_encoder_by_name(codec);
+//    	
+//    		if(tmp != NULL)
+//    		{
+//    		//make sure you can decode with codec read in file
+    		
+    			tmp = avcodec_find_decoder_by_name("h264");
+    			if(tmp != NULL)
+    			{
+    			//map Codec
+    			ptrace(" Found",MT_NONE,2,true);
+    			vCodecMap[tmp] = avcodec_alloc_context();	
+    			}
+    			tmp = avcodec_find_decoder_by_name("h263");
+    			if(tmp != NULL)
+    			{
+    			//map Codec
+    			ptrace(" Found",MT_NONE,2,true);
+    			vCodecMap[tmp] = avcodec_alloc_context();	
+    			}
+//    		}
+//    	}
     
     return true;
     }
@@ -94,7 +120,6 @@ VideoCodecDescriptor* VideoCodecDescriptor::getInstance()
     }
     
    
-   
     bool VideoCodecDescriptor::isActive(enum CodecID id){
    
     VCOIterator iter;
@@ -106,35 +131,6 @@ VideoCodecDescriptor* VideoCodecDescriptor::getInstance()
     return false;
     }
 
-   
-    bool VideoCodecDescriptor::removeCodec(enum CodecID id){
-    
-    VCOIterator iter;
-    
-    for (iter = vCodecOrder.begin();iter != vCodecOrder.end();iter++)
-    	if ((*iter)->id == id)
-    	{
-    	vCodecOrder.erase(iter);
-    	return true;
-    	}
-    
-    return false;
-    }
-
-   
-    bool VideoCodecDescriptor::addCodec(enum CodecID id){
-    	
-    	//find codec
-    	VCMIterator mapIter;
-    	
-    	for (mapIter = vCodecMap.begin();mapIter != vCodecMap.end();mapIter++)
-    	if ((*mapIter).first->id == id)
-    	{
-    	vCodecOrder.push_back((*mapIter).first);
-    	return true;
-    	}
-    	
-    return false;}
     
     char* VideoCodecDescriptor::serialize()
     {
@@ -161,5 +157,82 @@ VideoCodecDescriptor* VideoCodecDescriptor::getInstance()
     }
 	
     void VideoCodecDescriptor::setCodecMap(VideoCodecMap codec){this->vCodecMap = codec;}
+    
+    
+    /********************************************
+     * Functions for MEMMANAGER
+     ********************************************
+    */
+     
+     
+    StringVector VideoCodecDescriptor::getStringActiveCodecs()
+    {
+    	StringVector tmp;
+    	VCOIterator iter;
+    	
+    	for ( iter = this->vCodecOrder.begin(); iter != this->vCodecOrder.end();iter++)
+    		tmp.push_back((*iter)->name);
+    	
+  		return tmp;
+    }
+    
+    bool VideoCodecDescriptor::saveActiveCodecs(StringVector sActiveCodecs)
+    {
+    	
+    	StringVectorIterator iter;
+    	AVCodec *tmp;
+    	bool saveOk =true;
+    	vCodecOrder.clear();
+    	
+    	for ( iter = sActiveCodecs.begin(); iter != sActiveCodecs.end();iter++)
+    		{
+    			tmp = avcodec_find_decoder_by_name((*iter).c_str());
+    			if(tmp != NULL)
+    				vCodecOrder.push_back(tmp);
+    			else
+    			{
+    			ptrace("Codec Not Found",MT_ERROR,2,true);
+    			saveOk =false;
+    			}
+    		}
+    		return saveOk;
+    }
+    
+    StringVector VideoCodecDescriptor::getStringCodecMap()
+    {
+    StringVector tmp;
+    VCMIterator iter;
+    
+    for ( iter = this->vCodecMap.begin(); iter != this->vCodecMap.end();iter++)
+    		tmp.push_back((string)(*iter).first->name);
+  	
+  		return tmp;
+    
+    }
+    
+ 
+    bool VideoCodecDescriptor::saveCodecMap(StringVector sCodecMap)
+    {
+    	StringVectorIterator iter;
+    	AVCodec *tmp;
+    	bool saveOk =true;
+    	
+    	vCodecMap.clear();
+    
+    for ( iter = sCodecMap.begin(); iter != sCodecMap.end();iter++)
+    	{
+	    	tmp = avcodec_find_decoder_by_name((*iter).c_str());
+	    	
+	    	if(tmp != NULL)
+	    			vCodecMap[tmp] = avcodec_alloc_context();
+	    		else
+	    		{
+	    			ptrace("Codec Not Found",MT_ERROR,2,true);
+	    			saveOk =false;	
+	    		}
+    	}
+  
+    }
+    
     
     
