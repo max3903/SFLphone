@@ -2,7 +2,9 @@
  *  Copyright (C) 2007 Savoir-Faire Linux inc.
  *  Author: Pierre-Luc Beaudoin <pierre-luc@squidy.info>
  *  Author: Emmanuel Milou <emmanuel.milou@savoirfairelinux.com>
- *                                                                              
+ *  Author: Jean-Francois Blanchard-Dionne <jean-francois.blanchard-dionne@polymtl.ca>
+ *  Author: marilyne Mercier <marilyne.mercier@polymtl.ca> 
+ *                                                                           
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation; either version 3 of the License, or
@@ -727,7 +729,6 @@ sflphone_fill_video_codec_list()
     
     if(video_codec_list_get(*codecs)!=NULL){
       // does nothing - the codec is already in the list, so is active.
-      printf("NOT FOUND NOT FOUND");
     }
     else{
       videoCodec_t* c = g_new0(videoCodec_t, 1);
