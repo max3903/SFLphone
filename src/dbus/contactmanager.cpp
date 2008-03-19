@@ -71,9 +71,3 @@ ContactManager::setPresence( const ::DBus::String& accountID, const ::DBus::Stri
 {
 	// TODO
 }
-
-void
-ContactManager::setContactPresence( const ::DBus::String& accountID, const ::DBus::String& presence, const ::DBus::String& additionalInfo )
-{
-	// TODO
-}

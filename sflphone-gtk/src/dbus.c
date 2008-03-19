@@ -152,6 +152,18 @@ accounts_changed_cb (DBusGProxy *proxy,
   config_window_fill_account_list();
 }
 
+static void
+contact_entry_presence_changed(DBusGProxy* proxy,
+		const gchar* accountID,
+		const gchar* entryID,
+		const gchar* presence,
+		const gchar* additionalInfo,
+		void* nothing)
+{
+	// TODO
+	g_print("%s : %s is %s\n", accountID, entryID, presence);
+}
+
 gboolean 
 dbus_connect ()
 {
@@ -255,8 +267,14 @@ dbus_connect ()
     g_printerr("Failed to get proxy to ContactManager\n");
     return FALSE;
   }
+  dbus_g_object_register_marshaller(g_cclosure_user_marshal_VOID__STRING_STRING_STRING_STRING, 
+    G_TYPE_NONE, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_INVALID);
   g_print("DBus connected to ContactManager\n");
-   
+  dbus_g_proxy_add_signal (contactManagerProxy,
+    "contactEntryPresenceChanged", G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_INVALID);
+  dbus_g_proxy_connect_signal (contactManagerProxy,
+    "contactEntryPresenceChanged", G_CALLBACK(contact_entry_presence_changed), NULL, NULL);
+  
   return TRUE;
 }
 
