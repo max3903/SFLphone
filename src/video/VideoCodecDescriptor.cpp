@@ -147,14 +147,11 @@ VideoCodecDescriptor* VideoCodecDescriptor::getInstance()
 	AVCodecContext* VideoCodecDescriptor::getCodecContext(AVCodec* Codec)
 	{
 		VCMIterator tmp;
-	
-	tmp = vCodecMap.find(Codec);
-	
-	return (*tmp).second;
-	
+		tmp = vCodecMap.find(Codec);
+		return (*tmp).second;
 	}
+	
     VideoCodecOrder VideoCodecDescriptor::getActiveCodecs() { return vCodecOrder; }
-    
 	
     void VideoCodecDescriptor::setActiveCodecs(VideoCodecOrder vCodecOrder)
     {
@@ -162,8 +159,7 @@ VideoCodecDescriptor* VideoCodecDescriptor::getInstance()
     }
 	
     void VideoCodecDescriptor::setCodecMap(VideoCodecMap codec){this->vCodecMap = codec;}
-    
-    
+
     /********************************************
      * Functions for MEMMANAGER
      ********************************************
@@ -210,12 +206,9 @@ VideoCodecDescriptor* VideoCodecDescriptor::getInstance()
     
     for ( iter = this->vCodecMap.begin(); iter != this->vCodecMap.end();iter++)
     		tmp.push_back((string)(*iter).first->name);
-  	
   		return tmp;
-    
     }
     
- 
     bool VideoCodecDescriptor::saveCodecMap(StringVector sCodecMap)
     {
     	StringVectorIterator iter;
