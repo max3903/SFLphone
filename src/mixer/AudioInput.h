@@ -32,7 +32,7 @@ public:
     /*!
      * This method returns the timestamp for the data contained in the buffer. The data is used by the synchonization manager to mix the streams 
      */
-    virtual TimeInfo fetchTimeInfo() const;
+    virtual TimeInfo fetchTimeInfo();
 
     //! Changes the data contained in the buffer
     /*!
@@ -52,7 +52,9 @@ public:
      */
     virtual int fetchData(int16 *data);
 
-    void putTimeInfo(TimeInfo* infos);
+    void putTimeInfo(TimeInfo* infos); // TODO: virtual???
+ 
+    int getSizeBuffer(); // TODO: virtual???
 
 private:
 	

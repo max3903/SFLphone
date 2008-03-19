@@ -5,28 +5,51 @@
 
 int AudioOuput::fetchData(int16 *data)
 { 
-  return 0;
+  if (buffer!=NULL && data!=NULL)
+  {
+    sem_wait(&semaphore);
+    memcpy(buffer,data,sizeBuffer);
+    sem_post(&semaphore);
+    return 0;
+  }
+  else
+    return 1;
 }
 
 void AudioOuput::putData(int16 * data, int size)
 { 
-  
+  if (data!=NULL && size>0)
+  {
+    sem_wait(&semaphore);
+    buffer = new int16[size]; 
+    memcpy(data,buffer,size);
+    sizeBuffer=size;
+    sem_post(&semaphore);
+  }
 }
 
 AudioOuput::AudioOuput()
 {
-  
+  sem_init(&semaphore,0,1);
+  buffer=NULL;
+  sizeBuffer=0;
 }
 
 AudioOuput::~AudioOuput()
 {
-  
+  if (buffer!=NULL){
+    delete []buffer;
+    buffer=NULL;
+  }
+  sem_destroy(&semaphore);
 }
+
+// DEPRECIATED !!!!!
 int AudioOuput::fetchData(char* data)
 {
   return 0; 
 }
-
+// DEPRECIATED !!!!!
 void AudioOuput::putData(char * data, int size)
 { 
   

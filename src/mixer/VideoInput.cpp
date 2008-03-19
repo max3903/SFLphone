@@ -2,46 +2,76 @@
 
 #include "VideoInput.h"
 #include "TimeInfo.h"
-
-// TODO: Impossible de mettre des semaphores dans des fonction Const, je l'ai donc enlevé! ok ?
-int VideoInput::fetchData(char* data)
-{ 
-  sem_wait(&semaphore);
-  memcpy(buffer,data,sizeBuffer);
-  sem_post(&semaphore);
-  return 0;		// TODO: Et le return il sert à quoi ??
-}
-
-TimeInfo VideoInput::fetchTimeInfo() const 
-{ 
-  return (*infoTemps);
-}
+#include <string.h>
 
 void VideoInput::putData(char * data, int size, int leTemps)
 { 
+  if (data!=NULL && size>0)
+  {
+    sem_wait(&semaphore);
+    buffer = new char[size];
+    infoTemps = new TimeInfo(leTemps);
+    memcpy(data,buffer,size);
+    sizeBuffer=size;
+    sem_post(&semaphore);
+  }
+}
+
+int VideoInput::fetchData(char* data)
+{ 
+  if (buffer!=NULL && data!=NULL)
+  {
+    sem_wait(&semaphore);
+    memcpy(buffer,data,sizeBuffer);
+    sem_post(&semaphore);
+    return 0;
+  }
+  else
+    return 1;
+}
+
+int VideoInput::getSizeBuffer()
+{
+  int leSize;
   sem_wait(&semaphore);
-  buffer = new char[size];
-  infoTemps = new TimeInfo(leTemps);
-  memcpy(data,buffer,size);
-  sizeBuffer=size;
+  leSize = sizeBuffer;
   sem_post(&semaphore);
+  return leSize;
 }
 
 VideoInput::VideoInput()
 {
   sem_init(&semaphore,0,1);
-  // J'initie buffer et infoTemps  null ???? et je teste non null dans fetch?
+  buffer=NULL;
+  infoTemps=NULL;
+  sizeBuffer=0;
 }
 
 VideoInput::~VideoInput()
 {
-  // verifier que c'est null avant.
-  delete []buffer;
-  delete infoTemps;
+  if (buffer!=NULL){
+    delete []buffer;
+    buffer=NULL;
+  }
+  if (infoTemps!=NULL){
+    delete infoTemps;
+    infoTemps=NULL;
+  }
   sem_destroy(&semaphore);
 }
 
 void VideoInput::putTimeInfo(TimeInfo* infos)
 {
+  sem_wait(&semaphore);
   infoTemps = infos;
+  sem_post(&semaphore);
+}
+
+TimeInfo VideoInput::fetchTimeInfo()
+{ 
+  TimeInfo* leTemps;
+  sem_wait(&semaphore);
+  leTemps = infoTemps;
+  sem_post(&semaphore);
+  return (*leTemps);
 }

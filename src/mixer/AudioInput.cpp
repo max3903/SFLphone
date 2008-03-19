@@ -4,45 +4,75 @@
 #include "TimeInfo.h"
 #include <string.h>
 
-TimeInfo AudioInput::fetchTimeInfo() const
-{
-  return (*infoTemps);   // TODO: AJOUTER LE SEMAPHORE semophore ! Mais comment encore ?
-}
-
 void AudioInput::putData(int16 *data, int size, int leTemps)
 {
-  sem_wait(&semaphore);
-  buffer = new int16[size];   // Ca consomme beaucoup un new a cette frequence dappel?
-  infoTemps = new TimeInfo(leTemps);
-  memcpy(data,buffer,size);
-  sizeBuffer=size;
-  sem_post(&semaphore);
+  if (data!=NULL && size>0)
+  {
+    sem_wait(&semaphore);
+    buffer = new int16[size];
+    infoTemps = new TimeInfo(leTemps);
+    memcpy(data,buffer,size);
+    sizeBuffer=size;
+    sem_post(&semaphore);
+  }
 }
 
-// TODO: Impossible de mettre des semaphore dans des fonction Const, je l'ai donc enlevé! ok ?
 int AudioInput::fetchData(int16 *data) 
 { 
+  if (buffer!=NULL && data!=NULL)
+  {
+    sem_wait(&semaphore);
+    memcpy(buffer,data,sizeBuffer);
+    sem_post(&semaphore);
+    return 0;
+  }
+  else
+    return 1;
+}
+
+int AudioInput::getSizeBuffer()
+{
+  int leSize;
   sem_wait(&semaphore);
-  memcpy(buffer,data,sizeBuffer);
+  leSize = sizeBuffer;
   sem_post(&semaphore);
-  return 0;		// TODO: Et le return, il sert à quoi ??
+  return leSize;
 }
 
 AudioInput::AudioInput()
 {
   sem_init(&semaphore,0,1);
-  // J'initie buffer et infoTemps  null ????  et je teste non null dans fetch?
+  buffer=NULL;
+  infoTemps=NULL;
+  sizeBuffer=0;
 }
 
 AudioInput::~AudioInput()
 {
-  // verifier que c'est null avant???
-  delete []buffer;
-  delete infoTemps;
+  if (buffer!=NULL){
+    delete []buffer;
+    buffer=NULL;
+  }
+  if (infoTemps!=NULL){
+    delete infoTemps;
+    infoTemps=NULL;
+  }
   sem_destroy(&semaphore);
 }
 
 void AudioInput::putTimeInfo(TimeInfo* infos)
 {
+  sem_wait(&semaphore);
   infoTemps = infos;
+  sem_post(&semaphore);
 }
+
+TimeInfo AudioInput::fetchTimeInfo()
+{
+  TimeInfo* leTemps;
+  sem_wait(&semaphore);
+  leTemps = infoTemps;
+  sem_post(&semaphore);
+  return (*leTemps);
+}
+
