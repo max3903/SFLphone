@@ -719,7 +719,6 @@ sflphone_fill_video_codec_list()
     videoCodec_t * c = g_new0(videoCodec_t, 1);
     //c->_payload = NULL;
     //details = (gchar **)dbus_video_codec_details(c->_payload);
-    printf("Codec details: %s / %s / %s / %s\n",details[0],details[1],details[2],details[3]);
     c->name = *order;
     c->is_active = TRUE;
     video_codec_list_add(c);
