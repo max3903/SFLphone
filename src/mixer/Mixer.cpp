@@ -2,75 +2,137 @@
 
 #include "Mixer.h"
 
-Mixer::Mixer()
-{
-}
-
 Mixer::Mixer(Tmixer type, vector<InputStreams*> inputs, OutputStream* audioOut, OutputStream* videoOut)
 {
+  //theType=0;
+  audioTranscoder=NULL;
+  videoTranscoder=NULL;
+  //streamsInput=NULL;
+  audioOutput=NULL;
+  videoOutput=NULL;
+  inputFlux=NULL;
+  // Initialisation du mixer
+  init(type,inputs,audioOut,videoOut);
 }
 
 Mixer::~Mixer()
 {
+  delete audioTranscoder;
+  delete videoTranscoder;
 }
-
 
 void Mixer::init(Tmixer type, vector<InputStreams*> inputs, OutputStream* audioOut, OutputStream* videoOut)
 {
+  theType=type;
+  //streamsInput=inputs;
+  audioOutput=audioOut;
+  videoOutput=videoOut;
+
+  // TODO: Declaration dans le .h ?? Ou on les DELETE???????
+  InternalBuffer* internalAudioBuffer = new InternalBuffer();
+  InternalBuffer* internalVideoBuffer = new InternalBuffer();
+
+  // TODO: Il peut avoir plus qu'un InputStreams
+  inputFlux = inputs[0];
+  
+  switch(theType)
+  {
+    case NOSYNCH_AV_STRAIGHTTHROUGH:
+      // Creation des deux Mixer StraightThrough
+      audioTranscoder = new StraightThrough_AT(internalAudioBuffer,audioOutput);
+      videoTranscoder = new StraightThrough_VT(internalVideoBuffer,videoOutput,NULL);    // TODO: ajouter les Codec Infos
+      // Creation du SynchManager NoSynch
+      NoSynch* managerNoSynch = new NoSynch(inputFlux,internalVideoBuffer,internalAudioBuffer); // TODO: Declaration dans le .h ??
+      // Ajout du SynchManager dans la liste
+      synchManagers.push_back(managerNoSynch);
+        break;
+    /*
+    case SYNCH_AV_STRAIGHTTHROUG: //TODO: humm...
+        break;
+    case NOSYNCH_AV_MIXER2: //TODO: humm...
+        break;
+    case SYNCH_AV_MIXER2: //TODO: humm...
+        break;
+    case NOSYNCH_AUTOSENSE: //TODO: humm...
+        break;
+    case SYNCH_AUTOSENSE: //TODO: humm...
+        break;
+    */
+  }
 }
 
 void Mixer::start()
 {
+  audioTranscoder->start();
+  videoTranscoder->start();
+  for(int i=0; i<synchManagers.size();i++)
+  {
+    synchManagers[i]->start();
+  }
 }
 
 bool Mixer::changeCodecConfig(CodecInfo* infos)
 {
-	return true;
+  return true;
 }
 
 bool Mixer::changeOverallSettings(Tmixer type, vector<InputStreams*> inputs, OutputStream* audioOut, OutputStream* videoOut)
 {
-	return true;
+  return true;
 }
 
 void Mixer::terminateThreads()
 {
+  // TODO: VRAIMENT PAS SUR !!!
+  audioTranscoder->stop();
+  videoTranscoder->stop();
+  for(int i=0; i<synchManagers.size();i++)
+  {
+    synchManagers[i]->stop();
+  }
 }
 
 void Mixer::createAutoSense(Tmixer type, vector<InputStreams*> inputs, OutputStream* audioOut, OutputStream* videoOut)
 {
+  
 }
 
 void Mixer::createStraightThrough(Tmixer type, vector<InputStreams*> inputs, OutputStream* audioOut, OutputStream* videoOut)
 {
+  
 }
 
 void Mixer::createMixer2(Tmixer type, vector<InputStreams*> inputs, OutputStream* audioOut, OutputStream* videoOut)
 {
-
+  
 }
 
 void Mixer::createAudio1()
 {
-
+  
 }
 
 bool Mixer::addStream(InputStreams* input)
 {
-	return true;
+  return true;
 }
 
 bool Mixer::addStream(VideoInput* input)
 {
-	return true;
+  return true;
 }
 
 bool Mixer::addStream(AudioInput* input)
 {
-	return true;
+  return true;
 }
 
 void Mixer::updateState()
 {
+  
+}
 
+// DEPRECATED!!!
+Mixer::Mixer()
+{
 }

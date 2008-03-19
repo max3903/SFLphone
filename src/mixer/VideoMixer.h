@@ -44,6 +44,9 @@ public:
 	 */
     virtual void restart() = 0;
 
+    //! Stop and Kill the thread
+    virtual void stop();
+
 protected:
     
 	//! Resets the buffer

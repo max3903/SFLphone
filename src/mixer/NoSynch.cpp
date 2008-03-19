@@ -5,20 +5,62 @@
 
 void NoSynch::run()
 { 
-  
+  OkToKill = false;
+  while(Active)
+  {
+    //Recuperation des Stream Audio et Video
+    audioInput = inputStreams->fetchAudioStream();
+    videoInput = inputStreams->fetchVideoStream();
+
+    //Recuperation des grandeurs pour les datas audio/video
+    sizeBufferAudio=audioInput->getSizeBuffer();
+    sizeBufferVideo=videoInput->getSizeBuffer();
+
+    //Creation des datas audio/video
+    dataAudio = new int16[sizeBufferAudio];
+    dataVideo = new char[sizeBufferVideo];
+
+    // Recuperation des donnes Audio et Video
+    audioInput->fetchData(dataAudio);
+    videoInput->fetchData(dataVideo);
+
+    //Depot dans les buffers internes audio/video
+    if (!bufferAudio->putData((void*)dataAudio,sizeBufferAudio))
+      ;//"Impossible de déposer les donnes dans le buffer audio interne"
+    if (!bufferVideo->putData((void*)dataVideo,sizeBufferVideo))
+      ;//"Impossible de déposer les donnes dans le buffer audio interne"
+
+    delete dataAudio;
+    delete dataVideo;
+  }
+  OkToKill=true;
+}
+
+void NoSynch::stop()
+{ 
+  Active=false;
+  while(!OkToKill);
+  terminate();
 }
 
 NoSynch::~NoSynch()
 {
-  
+  if (dataAudio!=NULL)
+    delete dataAudio;
+  if (dataVideo!=NULL)
+    delete dataVideo;
 }
 
-NoSynch::NoSynch(InputStreams* inputStreams, InternalBuffer* video, InternalBuffer* audio)
+NoSynch::NoSynch(InputStreams* Streams, InternalBuffer* video, InternalBuffer* audio)
 {
-  
+  inputStreams = Streams;
+  bufferAudio = audio;
+  bufferVideo = video;
+  Active=true;
+  OkToKill=true;
 }
 
 NoSynch::NoSynch()
 {
-  
+  // Deprecated
 }

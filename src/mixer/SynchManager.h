@@ -21,6 +21,9 @@ public:
 	 */
     virtual void run() = 0;
 
+    //! Stop and Kill the thread
+    virtual void stop();
+
 protected:
 	
 	//! The inputs to the synchronization manager

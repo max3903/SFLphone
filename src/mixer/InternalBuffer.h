@@ -30,25 +30,28 @@ public:
      * \param size the size of the data
      * \return the success of the operation
      */
-    bool putData(char * data, int size);
+    bool putData(void * data, int size);
 
     //! Gets the data contained in the buffer
     /*!
      * \param data a pointer to put the data
      * \return the size of the data
      */
-    int fetchData(char * data);
+    bool fetchData(void * data);
 
     //! Intializes the buffer
     void Init();
 
+    // Retourne la grtandeur du buffer;
+    int getSizeBuffer();
+
 private:
 	
 	//! Internal buffer
-    char * data;
+    void * buffer;
     
     //! Size of the current buffer
-    int size;
+    int sizeBuffer;
     
     //! Semaphore to protect from multiple simultaneous access
     sem_t semaphore;

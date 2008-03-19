@@ -2,18 +2,53 @@
 
 #include "StraightThrough_AT.h"
 
+void StraightThrough_AT::run()
+{ 
+  OkToKill=false;
+  while(Active)
+  {
+    sizeBuffer = inputBuffer->getSizeBuffer();
+    data = (void*) malloc(sizeBuffer);
+    inputBuffer->fetchData(data);
+    outputBuffer->putData((int16*)data,sizeBuffer);
+    free(data);
+  }
+  OkToKill=true;
+}
+
+void StraightThrough_AT::pause()
+{ 
+  Active=false;
+}
+
+void StraightThrough_AT::restart()
+{
+  Active=true;
+  run();
+}
+
+void StraightThrough_AT::stop()
+{ 
+  Active=false;
+  OkToKill=false;
+  while(!OkToKill);
+  terminate();
+}
+
 StraightThrough_AT::StraightThrough_AT(InternalBuffer* input, OutputStream* output)
 {
+  inputBuffer = input;
+  outputBuffer = output;
+  Active=true;
+  OkToKill=true;
 }
 
 StraightThrough_AT::~StraightThrough_AT()
 {
+  free(data); // Verifier Null ?
 }
 
-void StraightThrough_AT::run()
-{ 
-}
-
+// DEPRECATED!!!!!!!
 StraightThrough_AT::StraightThrough_AT()
 {
 }

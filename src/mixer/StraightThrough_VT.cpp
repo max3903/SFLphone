@@ -4,26 +4,53 @@
 #include "InternalBuffer.h"
 #include "OutputStream.h"
 
-StraightThrough_VT::~StraightThrough_VT()
-{
-}
-
 void StraightThrough_VT::run()
 { 
+  OkToKill=false;
+  while(Active)
+  {
+    sizeBuffer = inputBuffer->getSizeBuffer();
+    data = (void*) malloc(sizeBuffer);
+    inputBuffer->fetchData(data);
+    outputBuffer->putData((char*)data,sizeBuffer);
+    free(data);
+  }
+  OkToKill=true;
 }
 
 void StraightThrough_VT::pause()
 { 
+  Active=false;
 }
 
 void StraightThrough_VT::restart()
+{
+  Active=true;
+  run();
+}
+
+void StraightThrough_VT::stop()
 { 
+  Active=false;
+  while(!OkToKill);
+  terminate();
 }
 
 StraightThrough_VT::StraightThrough_VT(InternalBuffer* video,  OutputStream* output, CodecInfo* infos)
 {
+  inputBuffer = video;
+  outputBuffer = output;
+  infoCodecs = infos;
+  Active=true;
+  OkToKill=true;
 }
 
+StraightThrough_VT::~StraightThrough_VT()
+{
+  free(data);
+}
+
+//DEPRECATED!!!
 StraightThrough_VT::StraightThrough_VT()
 {
 }

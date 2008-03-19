@@ -15,7 +15,7 @@ public:
 	/*!
 	 * Initialises the Synchronization Manager.
 	 */
-    NoSynch(InputStreams* inputStreams, InternalBuffer* video, InternalBuffer* audio);
+    NoSynch(InputStreams* Streams, InternalBuffer* video, InternalBuffer* audio);
 
     //! Destructor
     /*!
@@ -28,6 +28,9 @@ public:
 	 * Actually does the work in the thread.
 	 */
     virtual void run();
+
+    //! Stop and Kill the thread
+    virtual void stop();
     
 private:
 	
@@ -37,5 +40,26 @@ private:
 		 */
     NoSynch();
     
+    //Declaration des Inputsteams
+    InputStreams* inputStreams;
+    AudioInput* audioInput;
+    VideoInput* videoInput;
+
+    // Declaration des conteneurs de datas
+    int16* dataAudio;
+    char* dataVideo;
+
+    // Grandeur des buffers de data
+    int sizeBufferAudio;
+    int sizeBufferVideo;
+
+    //Declaration des buffer Internes
+    InternalBuffer* bufferVideo;
+    InternalBuffer* bufferAudio;
+
+    // Variable de controle
+    bool Active;
+    bool OkToKill;
+
 };
 #endif //NOSYNCH_H
