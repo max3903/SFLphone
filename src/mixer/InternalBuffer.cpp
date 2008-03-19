@@ -3,45 +3,63 @@
 #include "InternalBuffer.h"
 #include <string.h>
 #include <stdlib.h>
+#include "../tracePrintSFL.h"
 
 bool InternalBuffer::putData(void * data, int size)
 {
   if (data!=NULL && size>0)
   {
+    ptracesfl("InternalBuffer - putData(): Demande semaphore",MT_INFO,true);
     sem_wait(&semaphore);
+    ptracesfl("InternalBuffer - putData(): Zone Critique",MT_INFO,true);
     buffer = (void*) malloc(size);
     memcpy(data,buffer,size);
     sizeBuffer=size;
     sem_post(&semaphore);
+    ptracesfl("InternalBuffer - putData(): Sortie Zone Critique",MT_INFO,true);
     return true;
   }
+  else
+  {
+    ptracesfl("InternalBuffer - putData(): Erreur parametre",MT_ERROR,true);
     return false;
+  }
 }
 
 bool InternalBuffer::fetchData(void * data)
 {
   if (buffer!=NULL && data!=NULL)
   {
+    ptracesfl("InternalBuffer - fetchData(): Demande semaphore",MT_INFO,true);
     sem_wait(&semaphore);
+    ptracesfl("InternalBuffer - fetchData(): Zone Critique",MT_INFO,true);
     memcpy(buffer,data,sizeBuffer);
     sem_post(&semaphore);
+    ptracesfl("InternalBuffer - fetchData(): Sortie Zone Critique",MT_INFO,true);
     return true;
   }
   else
+  {
+    ptracesfl("InternalBuffer - fetchData(): Erreur parametre",MT_ERROR,true);
     return false;
+  }
 }
 
 int InternalBuffer::getSizeBuffer()
 {
   int leSize;
+  ptracesfl("InternalBuffer - getSizeBuffer(): Demande semaphore",MT_INFO,true);
   sem_wait(&semaphore);
+  ptracesfl("InternalBuffer - getSizeBuffer(): Zone Critique",MT_INFO,true);
   leSize = sizeBuffer;
   sem_post(&semaphore);
+  ptracesfl("InternalBuffer - getSizeBuffer(): Sortie Zone Critique",MT_INFO,true);
   return leSize;
 }
 
 InternalBuffer::InternalBuffer()
 {
+  ptracesfl("InternalBuffer - InternalBuffer(): Creation de l'objet",MT_INFO,true);
   sem_init(&semaphore,0,1);
   buffer=NULL;
   sizeBuffer=0;
@@ -49,6 +67,7 @@ InternalBuffer::InternalBuffer()
 
 InternalBuffer::~InternalBuffer()
 {
+  ptracesfl("InternalBuffer - ~InternalBuffer(): Destruction de l'objet",MT_INFO,true);
   if (buffer!=NULL)
     free(buffer);
   sem_destroy(&semaphore);
