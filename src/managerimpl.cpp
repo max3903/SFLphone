@@ -130,6 +130,9 @@ void ManagerImpl::init()
   // Initialize the list of supported audio codecs
   initAudioCodec();
   
+  //Initialize Video Codec
+  initVideoCodec();
+  
   // \todo Initialize the list of supported video codec
   // \todo Allocate memory
   
@@ -453,6 +456,33 @@ ManagerImpl::refuseCall (const CallID& id)
     switchCall("");
   }
   return returnValue;
+}
+
+bool 
+ManagerImpl::inviteConference( const AccountID& accountId, const CallID& id, const std::string& to )
+{
+	//TODO
+	return true;	
+}
+
+bool 
+ManagerImpl::joinConference( const CallID& onHoldCallID, const CallID& newCallID )
+{
+	//TODO
+	return true;
+}
+
+bool
+ManagerImpl::changeVideoAvaibility(  )
+{
+	//TODO
+	return true;	
+}
+
+void
+ManagerImpl::changeWebcamStatus( const bool status )
+{
+	//TODO
 }
 
 //THREAD=Main
@@ -2556,38 +2586,49 @@ bool ManagerImpl::testAccountMap()
 
 #endif
 
+/**
+ * Initialization: Main Thread
+ */
+  void
+ManagerImpl::initVideoCodec (void)
+{
+	//TODO
+  _videoCodecDescriptor =  _videoCodecDescriptor->getInstance();
+  // if the user never set the codec list, use the default configuration
+  //if(getConfigString(AUDIO, "ActiveCodecs") == ""){
+    _videoCodecDescriptor->setDefaultOrder();
+  //}
+  // else retrieve the one set in the user config file
+ // else{
+   // std::vector<std::string> active_list = retrieveActiveCodecs(); 
+   // setActiveCodecList(active_list);
+ // }
+}
+
   void
 ManagerImpl::setActiveVideoCodecList(const std::vector<std::string>& list)
 {
 	// TODO: replace with video codec list
 	// the following code is only there to avoid errors
-  _debug("Set active codecs list\n");
-  _codecDescriptorMap.saveActiveCodecs(list);
+  _debug("Set active Video codecs list\n");
+  
+	if(_videoCodecDescriptor->saveActiveCodecs(list))
+		ptrace("videoCodecs saved",MT_INFO,5,true);
   // setConfig
-  std::string s = serialize(list);
-  printf("%s\n", s.c_str());
-  setConfig("Audio", "ActiveCodecs", s);
+  //TODO
+//  std::string s = serialize(list);
+//  printf("%s\n", s.c_str());
+//  setConfig("Audio", "ActiveCodecs", s);
 }
 
 
   std::vector <std::string>
 ManagerImpl::getActiveVideoCodecList( void )
 {
-	// TODO: replace with video codec list
-	// the following code is only there to avoid errors
-  _debug("Get Active codecs list\n");
-  std::vector< std::string > v;
-  CodecOrder active = _codecDescriptorMap.getActiveCodecs();
-  int i=0;
-  size_t size = active.size();
-  while(i<size)
-  {
-    std::stringstream ss;
-    ss << active[i];
-    v.push_back((ss.str()).data());
-    i++;
-  }
-  return v;
+
+  _debug("Get Active VideoCodecs list\n");
+
+  return _videoCodecDescriptor->getStringActiveCodecs();
 }
 
 
@@ -2597,25 +2638,7 @@ ManagerImpl::getActiveVideoCodecList( void )
   std::vector< std::string >
 ManagerImpl::getVideoCodecList( void )
 {
-	// TODO: replace with video codec list
-	// the following code is only there to avoid errors
-  std::vector<std::string> list;
-  //CodecMap codecs = _codecDescriptorMap.getCodecMap();
-  CodecsMap codecs = _codecDescriptorMap.getCodecsMap();
-  CodecOrder order = _codecDescriptorMap.getActiveCodecs();
-  CodecsMap::iterator iter = codecs.begin();  
-
-  while(iter!=codecs.end())
-  {
-    std::stringstream ss;
-    if( iter->second != NULL )
-    {
-      ss << iter->first;
-      list.push_back((ss.str()).data());
-    }
-    iter++;
-  }
-  return list;
+  return _videoCodecDescriptor->getStringCodecMap();
 }
 
   std::vector<std::string>
@@ -2685,6 +2708,69 @@ ManagerImpl::getVideoDeviceDetails(const int index)
 	std::vector<std::string> v;
 	// \todo get video device details
 	return v;
+}
+
+std::string 
+ManagerImpl::getLocalSharedMemoryKey()
+{
+	std::string key = "key local";
+	return key;
+}
+
+std::string 
+ManagerImpl::getRemoteSharedMemoryKey()
+{
+	std::string key = "key remote";
+	return key;
+}
+
+int 
+ManagerImpl::getBrightness(  )
+{
+	return 0;	
+}
+
+void 
+ManagerImpl::setBrightness( const int value )
+{
+	
+}
+
+int 
+ManagerImpl::getContrast(  )
+{
+	return 0;	
+}
+
+void 
+ManagerImpl::setContrast( const int value )
+{
+	
+}
+
+int 
+ManagerImpl::getColour(  )
+{
+	return 0;	
+}
+
+void 
+ManagerImpl::setColour( const int value )
+{
+	
+}
+
+std::vector<std::string> 
+ManagerImpl::getWebcamDeviceList(  )
+{
+	std::vector<std::string> v;
+	return v;
+}
+
+void 
+ManagerImpl::setWebcamDevice( const int index )
+{
+	
 }
 
 /*

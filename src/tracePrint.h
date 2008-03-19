@@ -23,7 +23,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#define TRACE_LEVEL		1				/*Default trace level*/
+#define TRACE_LEVEL		2				/*Default trace level*/
 
 #define HEADER_ERROR	"Error: "		/*Error message Tag*/
 #define HEADER_WARNING	"Warning: "		/*Warning message Tag*/
