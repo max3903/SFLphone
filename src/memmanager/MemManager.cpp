@@ -183,14 +183,12 @@ bool MemManager::deleteSpace(MemKey* key)
 
 bool MemManager::CleanSpaces(){
 
-//TODO
 vector<MemSpace*>::iterator iter;
 int i;
 
 	//for each mespace detach memory
 	for( iter = spaces.begin(); iter != spaces.end() ;iter++)
 	{
-		
 		i = shmdt((*iter)->getBaseAddress());
 		
 		if(i == -1) 

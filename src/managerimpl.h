@@ -44,6 +44,7 @@
 #include "audio/dtmf.h"
 #include "audio/codecDescriptor.h"
 #include "video/VideoCodecDescriptor.h"
+#include "memmanager/MemManager.h"
 
 
 
@@ -58,6 +59,11 @@ class VoIPLink;
 class DNSService;
 #endif
 
+struct KeyHolder{
+
+const MemKey* localKey;
+const MemKey* remoteKey;
+};
 /**
  * Define a type for a AccountMap container
  */
@@ -641,6 +647,10 @@ private:
   // videoCodecDescriptor
   VideoCodecDescriptor *_videoCodecDescriptor;
 
+  // MEMMANAGER
+  MemManager *_memManager;
+  KeyHolder _keyHolder;
+  
   /////////////////////
   // Protected by Mutex
   /////////////////////
@@ -786,7 +796,10 @@ private:
    */
   void initVideoCodec(void);
   
-  
+    /*
+   * Initialize the memmanager -> the shared memory interface
+   */
+  void initMemManager(void);
   
   /**
    * Get list of supported video input device

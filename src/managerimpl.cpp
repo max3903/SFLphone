@@ -134,8 +134,8 @@ void ManagerImpl::init()
   //Initialize Video Codec
   initVideoCodec();
   
-  // \todo Allocate memory
-  
+  // Allocate memory
+  initMemManager();
 
 
   getAudioInputDeviceList();
@@ -172,10 +172,14 @@ void ManagerImpl::terminate()
   _debug("Unload Telephone Tone\n");
   delete _telephoneTone; _telephoneTone = NULL;
   
-  // \todo delete memory allocation
-  // \todo End threads
-  // \todo Probably need to unload video driver too
+  // \TODO delete memory allocation
+	_memManager->CleanSpaces();
+	delete _memManager; _memManager = NULL;  
+  // \TODO End threads
+  // \TODO Probably need to unload video driver too
 
+ _debug("Unload VideoCodecDescriptor\n");
+ delete _videoCodecDescriptor; _videoCodecDescriptor = NULL;
 
   _debug("Unload Audio Codecs\n");
   _codecDescriptorMap.deleteHandlePointer();
@@ -2708,18 +2712,29 @@ ManagerImpl::getVideoDeviceDetails(const int index)
 	return v;
 }
 
+void ManagerImpl::initMemManager(void)
+{
+	int dummySize = 1024;
+
+	_memManager->getInstance();
+	
+	//TODO GET SIZE FROM WEBCAM 
+	//SetSpace and attach to running process
+	_keyHolder.localKey = _memManager->initSpace(dummySize);
+	_keyHolder.remoteKey = _memManager->initSpace(dummySize);
+
+}
+
 std::string 
 ManagerImpl::getLocalSharedMemoryKey()
 {
-	std::string key = "key local";
-	return key;
+	return _keyHolder.localKey->getDescription();
 }
 
 std::string 
 ManagerImpl::getRemoteSharedMemoryKey()
 {
-	std::string key = "key remote";
-	return key;
+return _keyHolder.remoteKey->getDescription();
 }
 
 int 
