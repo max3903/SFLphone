@@ -49,7 +49,7 @@ GtkWidget* contactTreeView;
 GtkTreeStore* contactTreeStore;
 
 /**
- * Fills the treelist with accounts
+ * Fills the treelist with contacts and entries grouped by accounts
  */
 void
 contact_window_fill_contact_list()
@@ -82,12 +82,14 @@ contact_window_fill_contact_list()
 				contact_t* contact = contact_list_get_nth(contactList, j);
 				GtkTreeIter contactIter;
 				// Append the contact in the list
+				gchar fullName[1000];
+				sprintf(fullName, "%s %s", contact->_firstName, contact->_lastName);
 				gtk_tree_store_append(contactTreeStore, &contactIter, &accountIter);
 				gtk_tree_store_set(contactTreeStore, &contactIter,
 						CONTACT_WINDOW_CALL_CONSOLE_ACTIVE, TRUE,
 						CONTACT_WINDOW_CALL_CONSOLE_INCONSISTENT, TRUE,		// Should be a function to pass all contacts if all selected or not
 						CONTACT_WINDOW_ICON, gdk_pixbuf_new_from_file(CONTACT_WINDOW_CONTACT_ICON, NULL),
-						CONTACT_WINDOW_TEXT, strcat(contact->_firstName, contact->_lastName),
+						CONTACT_WINDOW_TEXT, fullName,
 						-1);
 				
 				int k;
@@ -107,6 +109,16 @@ contact_window_fill_contact_list()
 			}
 		}
 	}
+}
+
+/**
+ * Clear the model
+ */
+void
+contact_window_clear_contact_list()
+{
+	gtk_tree_store_clear(contactTreeStore);
+	contactTreeStore = NULL;
 }
 
 /**
@@ -182,6 +194,8 @@ show_contact_window()
 	contact_window_fill_contact_list();
 
 	gtk_dialog_run(dialog);
-
+	
+	contact_window_clear_contact_list();
+	
 	gtk_widget_destroy(GTK_WIDGET(dialog));
 }

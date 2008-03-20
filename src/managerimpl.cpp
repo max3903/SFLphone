@@ -108,6 +108,7 @@ ManagerImpl::~ManagerImpl (void)
   delete _DNSService; _DNSService = 0;
 #endif
 
+  //notifyErrClient( " done " );
   _debug("%s stop correctly.\n", PROGNAME);
 }
 
@@ -516,6 +517,9 @@ ManagerImpl::initRegisterAccounts()
     }
     iter++;
   }
+  // calls the client notification here in case of errors at startup...
+  if( _audiodriver -> getErrorMessage() != "" )
+    notifyErrClient( _audiodriver -> getErrorMessage() );
   return true;
 }
 
@@ -1326,12 +1330,15 @@ ManagerImpl::getOutputAudioPluginList(void)
 ManagerImpl::setInputAudioPlugin(const std::string& audioPlugin)
 {
   _debug("Set input audio plugin\n");
+  _audiodriver -> setErrorMessage( "" );
   _audiodriver -> openDevice( _audiodriver -> getIndexIn(),
       _audiodriver -> getIndexOut(),
       _audiodriver -> getSampleRate(),
       _audiodriver -> getFrameSize(),
       SFL_PCM_CAPTURE,
       audioPlugin);
+  if( _audiodriver -> getErrorMessage() != "")
+    notifyErrClient( _audiodriver -> getErrorMessage() );
 }
 
 /**
@@ -1341,12 +1348,15 @@ ManagerImpl::setInputAudioPlugin(const std::string& audioPlugin)
 ManagerImpl::setOutputAudioPlugin(const std::string& audioPlugin)
 {
   _debug("Set output audio plugin\n");
+  _audiodriver -> setErrorMessage( "" );
   _audiodriver -> openDevice( _audiodriver -> getIndexIn(),
       _audiodriver -> getIndexOut(),
       _audiodriver -> getSampleRate(),
       _audiodriver -> getFrameSize(),
       SFL_PCM_PLAYBACK,
       audioPlugin);
+  if( _audiodriver -> getErrorMessage() != "")
+    notifyErrClient( _audiodriver -> getErrorMessage() );
   // set config
   setConfig( AUDIO , ALSA_PLUGIN , audioPlugin );
 }
@@ -1368,12 +1378,15 @@ ManagerImpl::getAudioOutputDeviceList(void)
 ManagerImpl::setAudioOutputDevice(const int index)
 {
   _debug("Set audio output device: %i\n", index);
+  _audiodriver -> setErrorMessage( "" );
   _audiodriver->openDevice(_audiodriver->getIndexIn(), 
       index, 
       _audiodriver->getSampleRate(), 
       _audiodriver->getFrameSize(), 
       SFL_PCM_PLAYBACK,
       _audiodriver->getAudioPlugin());
+  if( _audiodriver -> getErrorMessage() != "")
+    notifyErrClient( _audiodriver -> getErrorMessage() );
   // set config
   setConfig( AUDIO , ALSA_CARD_ID_OUT , index );
 }
@@ -1395,12 +1408,15 @@ ManagerImpl::getAudioInputDeviceList(void)
 ManagerImpl::setAudioInputDevice(const int index)
 {
   _debug("Set audio input device %i\n", index);
+  _audiodriver -> setErrorMessage( "" );
   _audiodriver->openDevice(index, 
       _audiodriver->getIndexOut(), 
       _audiodriver->getSampleRate(), 
       _audiodriver->getFrameSize(), 
       SFL_PCM_CAPTURE,
       _audiodriver->getAudioPlugin());
+  if( _audiodriver -> getErrorMessage() != "")
+    notifyErrClient( _audiodriver -> getErrorMessage() );
   // set config
   setConfig( AUDIO , ALSA_CARD_ID_IN , index );
 }
@@ -1471,6 +1487,15 @@ ManagerImpl::setRingtoneChoice( const std::string& tone )
   setConfig( AUDIO , RING_CHOICE , tone ); 
 }
 
+void
+ManagerImpl::notifyErrClient( const std::string& errMsg )
+{
+  if( _dbus ) {
+    _debug("Call notifyErrClient: %s\n" , errMsg.c_str());
+    _dbus -> getConfigurationManager() -> errorAlert( errMsg , 0 );
+  }
+}
+
   int
 ManagerImpl::getAudioDeviceIndex(const std::string name)
 {
@@ -1536,6 +1561,8 @@ ManagerImpl::selectAudioDriver (void)
   _debugInit(" AudioLayer Opening Device");
   _audiodriver->setErrorMessage("");
   _audiodriver->openDevice( numCardIn , numCardOut, sampleRate, frameSize, SFL_PCM_BOTH, alsaPlugin ); 
+  if( _audiodriver -> getErrorMessage() != "")
+    notifyErrClient( _audiodriver -> getErrorMessage());
 }
 
 /**
