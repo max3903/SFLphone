@@ -30,7 +30,7 @@ VideoCodecDescriptor* VideoCodecDescriptor::getInstance()
 	//if no instance made create one,
 	//ref. singleton pattern
 	if (instance == 0)
-	instance = new VideoCodecDescriptor();
+	instance = new VideoCodecDescriptor;
 
 	return instance;
 }

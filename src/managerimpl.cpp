@@ -136,7 +136,7 @@ void ManagerImpl::init()
   initVideoCodec();
   
   // Allocate memory BUG right now
-  //initMemManager();
+  initMemManager();
 
 
   getAudioInputDeviceList();
@@ -174,7 +174,6 @@ void ManagerImpl::terminate()
   delete _telephoneTone; _telephoneTone = NULL;
   
   // \TODO delete memory allocation
-	_memManager->CleanSpaces();
 	delete _memManager; _memManager = NULL;  
   // \TODO End threads
   // \TODO Probably need to unload video driver too
@@ -2624,7 +2623,7 @@ bool ManagerImpl::testAccountMap()
 ManagerImpl::initVideoCodec (void)
 {
 	//TODO
-  _videoCodecDescriptor =  _videoCodecDescriptor->getInstance();
+  _videoCodecDescriptor =  VideoCodecDescriptor::getInstance();
   // if the user never set the codec list, use the default configuration
   //if(getConfigString(AUDIO, "ActiveCodecs") == ""){
     _videoCodecDescriptor->setDefaultOrder();
@@ -2743,7 +2742,7 @@ void ManagerImpl::initMemManager(void)
 {
 	int dummySize = 1024;
 
-	_memManager->getInstance();
+	_memManager = MemManager::getInstance();
 	
 	//TODO GET SIZE FROM WEBCAM 
 	//SetSpace and attach to running process

@@ -25,6 +25,7 @@
 #include <iterator>
 #include "MemSpace.h"
 #include "MemSorter.h"
+#include "../tracePrintSFL.h"
 
 
 typedef std::vector<MemSpace*> vectMemSpace;
@@ -53,7 +54,7 @@ public:
      * 
      * \return an instance of the manager
      */
-    MemManager* getInstance();
+    static MemManager* getInstance();
 
     //! Initialise a shared memory space with the specified size
     /*!
