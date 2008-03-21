@@ -26,6 +26,18 @@
 #include "configurationmanager-glue.h"
 #include <dbus-c++/dbus.h>
 
+//TODO: remove when it will be linked to the struct in V4L
+//typedef struct  {
+  /** Minimum value for the slider */
+  //int *minValue;
+  /** Maximum value for the slider */
+  //int *maxValue;
+  /** Step increment value for the slider */
+  //int *stepValue;
+  /** Current value of the slider */
+  //int *currentValue;
+//} slider_t;*/
+
     
 class ConfigurationManager
 : public org::sflphone::SFLphone::ConfigurationManager,
@@ -76,12 +88,15 @@ public:
     std::vector< ::DBus::String > getRingtoneList(  );
     
     /* Webcam Settings */
-    ::DBus::Int32 getBrightness(  );
-    void setBrightness( const ::DBus::Int32& value );
-    ::DBus::Int32 getContrast(  );
-    void setContrast( const ::DBus::Int32& value );
-    ::DBus::Int32 getColour(  );
-    void setColour( const ::DBus::Int32& value );
+    void getBrightness( ::DBus::Int32& minValue, ::DBus::Int32& maxValue, 
+    			::DBus::Int32& stepValue, ::DBus::Int32& currentValue );
+    void setBrightness( const ::DBus::Int32& value);
+    void getContrast( ::DBus::Int32& minValue, ::DBus::Int32& maxValue, 
+    			::DBus::Int32& stepValue, ::DBus::Int32& currentValue );
+    void setContrast( const ::DBus::Int32& value);
+    void getColour( ::DBus::Int32& minValue, ::DBus::Int32& maxValue, 
+    			::DBus::Int32& stepValue, ::DBus::Int32& currentValue );
+    void setColour( const ::DBus::Int32& value);
     std::vector< ::DBus::String > getWebcamDeviceList(  );
     void setWebcamDevice( const ::DBus::Int32& index );
 

@@ -1190,10 +1190,10 @@ ManagerImpl::retrieveActiveCodecs()
 	  
 	while (s.find("/", 0) != std::string::npos)
 	{
-		size_t  pos = s.find("/", 0); 			//store the position of the delimiter
-		temp = s.substr(0, pos);      			//get the token
-		s.erase(0, pos + 1);          			//erase it from the source 
-		order.push_back(temp);                	//and put it into the array
+		size_t  pos = s.find("/", 0); 			
+		temp = s.substr(0, pos);      			
+		s.erase(0, pos + 1);          			
+		order.push_back(temp);                	
 	}
 	
 	return order;
@@ -2673,10 +2673,10 @@ ManagerImpl::retrieveActiveVideoCodecs()
 	  
 	while (s.find("/", 0) != std::string::npos)
 	{
-		size_t  pos = s.find("/", 0); 			//store the position of the delimiter
-		temp = s.substr(0, pos);      			//get the token
-		s.erase(0, pos + 1);          			//erase it from the source 
-		order.push_back(temp);                	//and put it into the array
+		size_t  pos = s.find("/", 0); 			
+		temp = s.substr(0, pos);      	
+		s.erase(0, pos + 1);          		
+		order.push_back(temp);                	
 	}
 	
 	return order;
@@ -2744,10 +2744,16 @@ ManagerImpl::getRemoteSharedMemoryKey()
 	return key;
 }
 
-int 
+slider_t 
 ManagerImpl::getBrightness(  )
 {
-	return 0;	
+	slider_t values;
+	values.minValue = 5;	
+	values.maxValue = 100;
+	values.stepValue = 15;
+	values.currentValue = 25;
+	return values;
+	
 }
 
 void 
@@ -2756,10 +2762,15 @@ ManagerImpl::setBrightness( const int value )
 	
 }
 
-int 
+slider_t 
 ManagerImpl::getContrast(  )
 {
-	return 0;	
+	slider_t values;
+	values.minValue = 5;	
+	values.maxValue = 100;
+	values.stepValue = 15;
+	values.currentValue = 25;
+	return values;	
 }
 
 void 
@@ -2768,10 +2779,15 @@ ManagerImpl::setContrast( const int value )
 	
 }
 
-int 
+slider_t
 ManagerImpl::getColour(  )
 {
-	return 0;	
+	slider_t values;
+	values.minValue = 5;	
+	values.maxValue = 100;
+	values.stepValue = 15;
+	values.currentValue = 25;
+	return values;	
 }
 
 void 

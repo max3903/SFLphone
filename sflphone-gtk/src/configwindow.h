@@ -22,6 +22,17 @@
 
 #include <calllist.h>
 
+typedef struct  {
+  /** Minimum value for the slider */
+  int minValue;
+  /** Maximum value for the slider */
+  int maxValue;
+  /** Step increment value for the slider */
+  int stepValue;
+  /** Current value of the slider */
+  int currentValue;
+} slider_t;
+
 /**
  * @file configwindow.h
  * @brief The Preferences window.
@@ -48,9 +59,4 @@ GtkWidget * create_video_tab();
 GtkWidget * create_webcam_tab();
 void show_config_window(gint page_num);
 gchar* format_percentage_scale (GtkScale *scale, gdouble value);
-void select_codec_video(GtkTreeSelection *selection, GtkTreeModel *model);
-void video_codec_move(gboolean moveUp, gpointer data);
-void video_codec_active_toggled(GtkCellRendererToggle *renderer, gchar *path, gpointer data);
-void video_codec_move_down(GtkButton *button, gpointer data);
-void video_codec_move_up(GtkButton *button, gpointer data);
 #endif 

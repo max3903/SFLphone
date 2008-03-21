@@ -1460,15 +1460,16 @@ dbus_get_contact_entry_details(gchar* accountID, gchar* contactID, gchar* entryI
 
 
 //Brightness of the video capture
-int 
+slider_t
 dbus_get_brightness()
 {
 	g_print("Before get brightness");
-	int value;
+	slider_t values;
 	GError* error = NULL;
 	org_sflphone_SFLphone_ConfigurationManager_get_brightness(
 			configurationManagerProxy,
-			&value,
+			&values.minValue, &values.maxValue, 
+			&values.stepValue, &values.currentValue,
 			&error);
 	g_print("After");
 	if(error)
@@ -1477,8 +1478,12 @@ dbus_get_brightness()
 		g_error_free(error);
 	}
 	else
+	{
 		g_print("DBus called get_brightness() on ConfigurationManager\n");
-	return value;	
+		g_print("%i %i %i %i", values.minValue, values.maxValue, 
+			values.stepValue, values.currentValue);
+	}
+	return values;	
 }
 
 void 
@@ -1501,15 +1506,16 @@ dbus_set_brightness(int value)
 }
 
 //Contrast of the video capture
-int 
+slider_t 
 dbus_get_contrast()
 {
 	g_print("Before get contrast");
-	int value;
+	slider_t values;
 	GError* error = NULL;
 	org_sflphone_SFLphone_ConfigurationManager_get_contrast(
 			configurationManagerProxy,
-			&value,
+			&values.minValue, &values.maxValue, 
+			&values.stepValue, &values.currentValue,
 			&error);
 	g_print("After");
 	if(error)
@@ -1519,7 +1525,7 @@ dbus_get_contrast()
 	}
 	else
 		g_print("DBus called get_contrast() on ConfigurationManager\n");
-	return value;
+	return values;
 }
 
 void 
@@ -1542,15 +1548,16 @@ dbus_set_contrast(int value)
 }
 
 //Colour of the video capture
-int 
+slider_t
 dbus_get_colour()
 {
 	g_print("Before get colour");
-	int value;
+	slider_t values;
 	GError* error = NULL;
 	org_sflphone_SFLphone_ConfigurationManager_get_colour(
 			configurationManagerProxy,
-			&value,
+			&values.minValue, &values.maxValue, 
+			&values.stepValue, &values.currentValue,
 			&error);
 	g_print("After");
 	if(error)
@@ -1560,7 +1567,7 @@ dbus_get_colour()
 	}
 	else
 		g_print("DBus called get_colour() on ConfigurationManager\n");
-	return value;	
+	return values;	
 }
 
 void 

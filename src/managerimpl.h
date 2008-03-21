@@ -58,6 +58,18 @@ class VoIPLink;
 class DNSService;
 #endif
 
+//TODO: remove when it will be linked to the struct in V4L
+typedef struct  {
+  /** Minimum value for the slider */
+  int minValue;
+  /** Maximum value for the slider */
+  int maxValue;
+  /** Step increment value for the slider */
+  int stepValue;
+  /** Current value of the slider */
+  int currentValue;
+} slider_t;
+
 /**
  * Define a type for a AccountMap container
  */
@@ -545,11 +557,11 @@ public:
   std::string getRemoteSharedMemoryKey( void );
   
   /* Webcam Settings */
-	int getBrightness(  );
+	slider_t getBrightness(  );
 	void setBrightness( const int value );
-	int getContrast(  );
+	slider_t getContrast(  );
 	void setContrast( const int value );
-	int getColour(  );
+	slider_t getColour(  );
 	void setColour( const int value );
 	std::vector<std::string> getWebcamDeviceList(  );
 	void setWebcamDevice( const int index );

@@ -155,8 +155,11 @@
   
   <!-- Webcam Settings methods -->
   
-  	<method name="getBrightness">
-      <arg type="i" name="value" direction="out"/>
+    <method name="getBrightness">
+      	<arg type="i" name="minValue" direction="out"/>
+	<arg type="i" name="maxValue" direction="out"/>
+	<arg type="i" name="stepValue" direction="out"/>
+	<arg type="i" name="currentValue" direction="out"/>
     </method>
     
     <method name="setBrightness">
@@ -164,7 +167,10 @@
     </method>
     
     <method name="getContrast">
-      <arg type="i" name="value" direction="out"/>
+	<arg type="i" name="minValue" direction="out"/>
+	<arg type="i" name="maxValue" direction="out"/>
+	<arg type="i" name="stepValue" direction="out"/>
+	<arg type="i" name="currentValue" direction="out"/>
     </method>
     
     <method name="setContrast">
@@ -172,7 +178,10 @@
     </method>
     
     <method name="getColour">
-      <arg type="i" name="value" direction="out"/>
+      	<arg type="i" name="minValue" direction="out"/>
+	<arg type="i" name="maxValue" direction="out"/>
+	<arg type="i" name="stepValue" direction="out"/>
+	<arg type="i" name="currentValue" direction="out"/>
     </method>
     
     <method name="setColour">

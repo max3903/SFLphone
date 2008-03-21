@@ -249,7 +249,10 @@ public:
         };
         static ::DBus::IntrospectedArgument getBrightness_args[] = 
         {
-            { "value", "i", false },
+            { "minValue", "i", false },
+            { "maxValue", "i", false },
+            { "stepValue", "i", false },
+            { "currentValue", "i", false },
             { 0, 0, 0 }
         };
         static ::DBus::IntrospectedArgument setBrightness_args[] = 
@@ -259,7 +262,10 @@ public:
         };
         static ::DBus::IntrospectedArgument getContrast_args[] = 
         {
-            { "value", "i", false },
+            { "minValue", "i", false },
+            { "maxValue", "i", false },
+            { "stepValue", "i", false },
+            { "currentValue", "i", false },
             { 0, 0, 0 }
         };
         static ::DBus::IntrospectedArgument setContrast_args[] = 
@@ -269,7 +275,10 @@ public:
         };
         static ::DBus::IntrospectedArgument getColour_args[] = 
         {
-            { "value", "i", false },
+            { "minValue", "i", false },
+            { "maxValue", "i", false },
+            { "stepValue", "i", false },
+            { "currentValue", "i", false },
             { 0, 0, 0 }
         };
         static ::DBus::IntrospectedArgument setColour_args[] = 
@@ -415,11 +424,11 @@ public:
     virtual std::vector< ::DBus::String > getCurrentAudioDevicesIndex(  ) = 0;
     virtual ::DBus::Int32 getAudioDeviceIndex( const ::DBus::String& name ) = 0;
     virtual ::DBus::String getCurrentAudioOutputPlugin(  ) = 0;
-    virtual ::DBus::Int32 getBrightness(  ) = 0;
+    virtual void getBrightness( ::DBus::Int32& minValue, ::DBus::Int32& maxValue, ::DBus::Int32& stepValue, ::DBus::Int32& currentValue ) = 0;
     virtual void setBrightness( const ::DBus::Int32& value ) = 0;
-    virtual ::DBus::Int32 getContrast(  ) = 0;
+    virtual void getContrast( ::DBus::Int32& minValue, ::DBus::Int32& maxValue, ::DBus::Int32& stepValue, ::DBus::Int32& currentValue ) = 0;
     virtual void setContrast( const ::DBus::Int32& value ) = 0;
-    virtual ::DBus::Int32 getColour(  ) = 0;
+    virtual void getColour( ::DBus::Int32& minValue, ::DBus::Int32& maxValue, ::DBus::Int32& stepValue, ::DBus::Int32& currentValue ) = 0;
     virtual void setColour( const ::DBus::Int32& value ) = 0;
     virtual std::vector< ::DBus::String > getWebcamDeviceList(  ) = 0;
     virtual void setWebcamDevice( const ::DBus::Int32& index ) = 0;
@@ -792,10 +801,17 @@ private:
     {
         ::DBus::MessageIter ri = call.reader();
 
-        ::DBus::Int32 argout1 = getBrightness();
+        ::DBus::Int32 argout1;
+        ::DBus::Int32 argout2;
+        ::DBus::Int32 argout3;
+        ::DBus::Int32 argout4;
+        getBrightness(argout1, argout2, argout3, argout4);
         ::DBus::ReturnMessage reply(call);
         ::DBus::MessageIter wi = reply.writer();
         wi << argout1;
+        wi << argout2;
+        wi << argout3;
+        wi << argout4;
         return reply;
     }
     ::DBus::Message _setBrightness_stub( const ::DBus::CallMessage& call )
@@ -811,10 +827,17 @@ private:
     {
         ::DBus::MessageIter ri = call.reader();
 
-        ::DBus::Int32 argout1 = getContrast();
+        ::DBus::Int32 argout1;
+        ::DBus::Int32 argout2;
+        ::DBus::Int32 argout3;
+        ::DBus::Int32 argout4;
+        getContrast(argout1, argout2, argout3, argout4);
         ::DBus::ReturnMessage reply(call);
         ::DBus::MessageIter wi = reply.writer();
         wi << argout1;
+        wi << argout2;
+        wi << argout3;
+        wi << argout4;
         return reply;
     }
     ::DBus::Message _setContrast_stub( const ::DBus::CallMessage& call )
@@ -830,10 +853,17 @@ private:
     {
         ::DBus::MessageIter ri = call.reader();
 
-        ::DBus::Int32 argout1 = getColour();
+        ::DBus::Int32 argout1;
+        ::DBus::Int32 argout2;
+        ::DBus::Int32 argout3;
+        ::DBus::Int32 argout4;
+        getColour(argout1, argout2, argout3, argout4);
         ::DBus::ReturnMessage reply(call);
         ::DBus::MessageIter wi = reply.writer();
         wi << argout1;
+        wi << argout2;
+        wi << argout3;
+        wi << argout4;
         return reply;
     }
     ::DBus::Message _setColour_stub( const ::DBus::CallMessage& call )
