@@ -25,10 +25,10 @@
 #include <iterator>
 #include "MemSpace.h"
 #include "MemSorter.h"
-#include "MemData.h"
-#include "MemSpace.h"
-#include "MemKey.h"
 
+
+typedef std::vector<MemSpace*> vectMemSpace;
+typedef vectMemSpace::iterator vectMemSpaceIterator;
 
 using namespace std;
 

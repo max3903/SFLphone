@@ -20,9 +20,10 @@
 #ifndef MEMSPACE_H
 #define MEMSPACE_H
 
-#include "MemKey.h"
+
 #include "MemData.h"
 
+class MemKey;
 //! Shared memory space frontend
 /*
  *  This class hides the fucntionnalities of the shared memory management.

@@ -134,8 +134,8 @@ void ManagerImpl::init()
   //Initialize Video Codec
   initVideoCodec();
   
-  // Allocate memory
-  initMemManager();
+  // Allocate memory BUG right now
+  //initMemManager();
 
 
   getAudioInputDeviceList();

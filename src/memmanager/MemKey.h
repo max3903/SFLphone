@@ -24,14 +24,15 @@
 #include <sys/types.h>
 #include <sys/ipc.h> 
 #include <sys/shm.h> 
-#include <string>
 #include <vector>
 #include <iterator>
+#include <stdio.h>
+#include <string>
+#include <sstream>
+#include "MemSpace.h"
 
-class MemSpace;
 typedef std::vector<MemSpace*> vectMemSpace;
 typedef vectMemSpace::iterator vectMemSpaceIterator;
-
 
 //! Represent a unique key associated to a shared memory space
 /*!
@@ -77,7 +78,7 @@ public:
     /*!
      * \param serializedData a char pointer to the representation of a MemKey
      */
-    MemKey(char* serializedData);
+    MemKey(std::string serializedData);
 
     //! Destructor
     /*!
@@ -100,7 +101,7 @@ public:
     /*!
      * \return a constant char pointer to the description
      */
-    const char * getDescription() const;
+    const std::string getDescription() const;
 
     //! Access method to the index of the memory space in the MemManager
     /*!
@@ -142,7 +143,7 @@ public:
     /*!
      * \return a char pointer reprensenting the state of the key
      */
-    char * serialize();
+    std::string serialize();
 
 private:
 	
@@ -162,7 +163,7 @@ private:
     
     
     //! The description of the shared memory space
-    char * description;
+    std::string description;
     
     //! The index of the MemSpace in the MemManager
     vectMemSpaceIterator index;
