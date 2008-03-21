@@ -329,6 +329,12 @@ public:
    */
   std::vector< ::DBus::String > getVideoCodecDetails( const ::DBus::Int32& payload);
 
+	/**
+   * Get the list of video codecs active saved in the config file
+   * @return The list of the video codecs
+   */ 
+  std::vector<std::string> retrieveActiveVideoCodecs();
+  
   /**
    * Get a list of supported input audio plugin
    * @return List of names

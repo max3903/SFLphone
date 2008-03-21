@@ -35,7 +35,6 @@
 #include <ccrtp/rtp.h>     // why do I need this here?
 #include <cc++/file.h>
 
-#include <boost/tokenizer.hpp>
 
 #include "manager.h"
 #include "account.h"
@@ -1185,17 +1184,19 @@ ManagerImpl::initAudioCodec (void)
   std::vector<std::string>
 ManagerImpl::retrieveActiveCodecs()
 {
-  std::vector<std::string> order; 
-  std::string list;
-  std::string s = getConfigString(AUDIO, "ActiveCodecs");
-  typedef boost::tokenizer<boost::char_separator<char> > tokenizer; 
-  boost::char_separator<char> slash("/");
-  tokenizer tokens(s, slash); 
-  for(tokenizer::iterator tok_iter = tokens.begin(); tok_iter!= tokens.end(); ++tok_iter)
-  {
-    order.push_back(*tok_iter);
-  }
-  return order;
+   	std::vector<std::string> order; 
+	std::string  temp;
+	std::string s = getConfigString(AUDIO, "ActiveCodecs");
+	  
+	while (s.find("/", 0) != std::string::npos)
+	{
+		size_t  pos = s.find("/", 0); 			//store the position of the delimiter
+		temp = s.substr(0, pos);      			//get the token
+		s.erase(0, pos + 1);          			//erase it from the source 
+		order.push_back(temp);                	//and put it into the array
+	}
+	
+	return order;
 }
 
   void
@@ -2593,16 +2594,16 @@ bool ManagerImpl::testAccountMap()
 ManagerImpl::initVideoCodec (void)
 {
 	//TODO
-  _videoCodecDescriptor =  _videoCodecDescriptor->getInstance();
-  // if the user never set the codec list, use the default configuration
-  //if(getConfigString(AUDIO, "ActiveCodecs") == ""){
-    _videoCodecDescriptor->setDefaultOrder();
-  //}
-  // else retrieve the one set in the user config file
- // else{
-   // std::vector<std::string> active_list = retrieveActiveCodecs(); 
-   // setActiveCodecList(active_list);
- // }
+  	_videoCodecDescriptor =  _videoCodecDescriptor->getInstance();
+  	// if the user never set the codec list, use the default configuration
+	if(getConfigString(AUDIO, "ActiveCodecs") == ""){
+    	_videoCodecDescriptor->setDefaultOrder();
+	}
+  	// else retrieve the one set in the user config file
+	else{
+		std::vector<std::string> active_list = retrieveActiveVideoCodecs(); 
+		setActiveVideoCodecList(active_list);
+  	}
 }
 
   void
@@ -2616,9 +2617,9 @@ ManagerImpl::setActiveVideoCodecList(const std::vector<std::string>& list)
 		ptracesfl("videoCodecs saved",MT_INFO,5,true);
   // setConfig
   //TODO
-//  std::string s = serialize(list);
-//  printf("%s\n", s.c_str());
-//  setConfig("Audio", "ActiveCodecs", s);
+  std::string s = serialize(list);
+  printf("%s\n", s.c_str());
+  setConfig("Video", "ActiveCodecs", s);
 }
 
 
@@ -2660,6 +2661,27 @@ ManagerImpl::getVideoCodecDetails( const ::DBus::Int32& payload )
 
   return v;
 }
+
+
+std::vector<std::string>
+ManagerImpl::retrieveActiveVideoCodecs()
+{
+	ptracesfl("retrieving video codecs",MT_INFO,5,true);
+	  std::vector<std::string> order; 
+	  std::string  temp;
+	  std::string s = getConfigString(VIDEO, "ActiveCodecs");
+	  
+	while (s.find("/", 0) != std::string::npos)
+	{
+		size_t  pos = s.find("/", 0); 			//store the position of the delimiter
+		temp = s.substr(0, pos);      			//get the token
+		s.erase(0, pos + 1);          			//erase it from the source 
+		order.push_back(temp);                	//and put it into the array
+	}
+	
+	return order;
+}
+
   /**
  * Get list of supported video input device
  */
