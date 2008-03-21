@@ -23,7 +23,6 @@
  */
 
 #include <errno.h>
-#include <time.h>
 #include <cstdlib>
 #include <iostream>
 #include <fstream>
@@ -2743,11 +2742,14 @@ void ManagerImpl::initMemManager(void)
 	int dummySize = 1024;
 
 	_memManager = MemManager::getInstance();
-	
+	ptracesfl("MEMSPACE INIT MANAGER",MT_INFO,1,true);
 	//TODO GET SIZE FROM WEBCAM 
 	//SetSpace and attach to running process
+	srand ( time(NULL) );
 	_keyHolder.localKey = _memManager->initSpace(dummySize);
+	ptracesfl("LOCAL MEMSPACE started",MT_INFO,2,true);
 	_keyHolder.remoteKey = _memManager->initSpace(dummySize);
+	ptracesfl("REMOTE MEMSPACE started",MT_INFO,2,true);
 
 }
 
@@ -2755,12 +2757,14 @@ std::string
 ManagerImpl::getLocalSharedMemoryKey()
 {
 	return _keyHolder.localKey->getDescription();
+	ptracesfl("LOCAL Memspace shmid sent",MT_INFO,2,true);
 }
 
 std::string 
 ManagerImpl::getRemoteSharedMemoryKey()
 {
 return _keyHolder.remoteKey->getDescription();
+ptracesfl("REMOTE Memspace shmid sent",MT_INFO,2,true);
 }
 
 int 

@@ -22,7 +22,7 @@
 #define MEMDATA_H
 
 #include <string>
-
+#include "../tracePrintSFL.h"
 //! Memmory data container
 /*!
  * Contains a copy of the data in the shared memory. It contains the data it self and the size. This class acts like a container.

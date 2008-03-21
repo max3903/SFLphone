@@ -29,6 +29,7 @@
 #include <stdio.h>
 #include <string>
 #include <sstream>
+
 #include "MemSpace.h"
 
 typedef std::vector<MemSpace*> vectMemSpace;

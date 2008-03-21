@@ -30,6 +30,7 @@
 #include <set>
 #include <map>
 #include <cc++/thread.h>
+#include <time.h>
 #include "dbus/dbusmanager.h"
 
 #include "stund/stun.h"

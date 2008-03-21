@@ -129,5 +129,6 @@ std::string MemKey::serialize()
 
 key_t MemKey::genKey()
 {
-	return ftok("/tmp",rand());	
+	 
+	return ftok("/tmp",rand() % 100);	
 }
