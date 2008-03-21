@@ -118,6 +118,7 @@ gchar** dbus_get_contact_entry_details(gchar* accountID, gchar* contactID, gchar
 /* Instance */
 void dbus_register( int pid, gchar * name);
 void dbus_unregister(int pid);
+int dbus_get_registration_count( void );
 
 
 

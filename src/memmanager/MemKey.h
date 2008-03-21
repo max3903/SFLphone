@@ -1,7 +1,8 @@
 /*
  *  Copyright (C) 2006-2007 Savoir-Faire Linux inc.
  *  Author: Jean-Francois Blanchard-Dionne <jean-francois.blanchard-dionne@polymtl.ca>
- *                                                                              
+ *  Author: Jean Tessier <jean.tessier@polymtl.ca> 
+ *                                                                             
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation; either version 3 of the License, or
@@ -23,14 +24,16 @@
 #include <sys/types.h>
 #include <sys/ipc.h> 
 #include <sys/shm.h> 
-#include <string>
 #include <vector>
 #include <iterator>
+#include <stdio.h>
+#include <string>
+#include <sstream>
 
-class MemSpace;
+#include "MemSpace.h"
+
 typedef std::vector<MemSpace*> vectMemSpace;
 typedef vectMemSpace::iterator vectMemSpaceIterator;
-
 
 //! Represent a unique key associated to a shared memory space
 /*!
@@ -76,7 +79,7 @@ public:
     /*!
      * \param serializedData a char pointer to the representation of a MemKey
      */
-    MemKey(char* serializedData);
+    MemKey(std::string serializedData);
 
     //! Destructor
     /*!
@@ -99,7 +102,7 @@ public:
     /*!
      * \return a constant char pointer to the description
      */
-    const char * getDescription() const;
+    const std::string getDescription() const;
 
     //! Access method to the index of the memory space in the MemManager
     /*!
@@ -141,7 +144,7 @@ public:
     /*!
      * \return a char pointer reprensenting the state of the key
      */
-    char * serialize();
+    std::string serialize();
 
 private:
 	
@@ -161,7 +164,7 @@ private:
     
     
     //! The description of the shared memory space
-    char * description;
+    std::string description;
     
     //! The index of the MemSpace in the MemManager
     vectMemSpaceIterator index;

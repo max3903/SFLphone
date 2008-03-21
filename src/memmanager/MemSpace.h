@@ -1,7 +1,7 @@
 /*
  *  Copyright (C) 2006-2007 Savoir-Faire Linux inc.
  *  Author: Jean-Francois Blanchard-Dionne <jean-francois.blanchard-dionne@polymtl.ca>
- *                                                                              
+ *  Author: Jean Tessier <jean.tessier@polymtl.ca>                                                                            
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation; either version 3 of the License, or
@@ -20,9 +20,10 @@
 #ifndef MEMSPACE_H
 #define MEMSPACE_H
 
-#include "MemKey.h"
+
 #include "MemData.h"
 
+class MemKey;
 //! Shared memory space frontend
 /*
  *  This class hides the fucntionnalities of the shared memory management.

@@ -26,7 +26,7 @@ MemManager* MemManager::getInstance()
 	//if no instance made create one,
 	//ref. singleton pattern
 	if (instance == 0)
-	MemManager::instance = new MemManager();
+	MemManager::instance = new MemManager;
 
 	return instance;
 }
@@ -183,14 +183,12 @@ bool MemManager::deleteSpace(MemKey* key)
 
 bool MemManager::CleanSpaces(){
 
-//TODO
 vector<MemSpace*>::iterator iter;
 int i;
 
 	//for each mespace detach memory
 	for( iter = spaces.begin(); iter != spaces.end() ;iter++)
 	{
-		
 		i = shmdt((*iter)->getBaseAddress());
 		
 		if(i == -1) 

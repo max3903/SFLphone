@@ -5,7 +5,8 @@
  *  Author: Laurielle Lea <laurielle.lea@savoirfairelinux.com>
  *  Author: Emmanuel Milou <emmanuel.milou@savoirfairelinux.com>
  *  Author: Guillaume Carmel-Archambault <guillaume.carmel-archambault@savoirfairelinux.com>
- *
+ *  Author: Jean-Francois Blanchard-Dionne <jean-francois.blanchard-dionne@polymtl.ca>
+ * 
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation; either version 3 of the License, or
@@ -22,7 +23,6 @@
  */
 
 #include <errno.h>
-#include <time.h>
 #include <cstdlib>
 #include <iostream>
 #include <fstream>
@@ -107,6 +107,7 @@ ManagerImpl::~ManagerImpl (void)
   delete _DNSService; _DNSService = 0;
 #endif
 
+  //notifyErrClient( " done " );
   _debug("%s stop correctly.\n", PROGNAME);
 }
 
@@ -132,9 +133,8 @@ void ManagerImpl::init()
   //Initialize Video Codec
   initVideoCodec();
   
-  // \todo Initialize the list of supported video codec
-  // \todo Allocate memory
-  
+  // Allocate memory BUG right now
+  initMemManager();
 
 
   getAudioInputDeviceList();
@@ -171,10 +171,13 @@ void ManagerImpl::terminate()
   _debug("Unload Telephone Tone\n");
   delete _telephoneTone; _telephoneTone = NULL;
   
-  // \todo delete memory allocation
-  // \todo End threads
-  // \todo Probably need to unload video driver too
+  // \TODO delete memory allocation
+	delete _memManager; _memManager = NULL;  
+  // \TODO End threads
+  // \TODO Probably need to unload video driver too
 
+ _debug("Unload VideoCodecDescriptor\n");
+ delete _videoCodecDescriptor; _videoCodecDescriptor = NULL;
 
   _debug("Unload Audio Codecs\n");
   _codecDescriptorMap.deleteHandlePointer();
@@ -515,6 +518,9 @@ ManagerImpl::initRegisterAccounts()
     }
     iter++;
   }
+  // calls the client notification here in case of errors at startup...
+  if( _audiodriver -> getErrorMessage() != "" )
+    notifyErrClient( _audiodriver -> getErrorMessage() );
   return true;
 }
 
@@ -1327,12 +1333,15 @@ ManagerImpl::getOutputAudioPluginList(void)
 ManagerImpl::setInputAudioPlugin(const std::string& audioPlugin)
 {
   _debug("Set input audio plugin\n");
+  _audiodriver -> setErrorMessage( "" );
   _audiodriver -> openDevice( _audiodriver -> getIndexIn(),
       _audiodriver -> getIndexOut(),
       _audiodriver -> getSampleRate(),
       _audiodriver -> getFrameSize(),
       SFL_PCM_CAPTURE,
       audioPlugin);
+  if( _audiodriver -> getErrorMessage() != "")
+    notifyErrClient( _audiodriver -> getErrorMessage() );
 }
 
 /**
@@ -1342,12 +1351,15 @@ ManagerImpl::setInputAudioPlugin(const std::string& audioPlugin)
 ManagerImpl::setOutputAudioPlugin(const std::string& audioPlugin)
 {
   _debug("Set output audio plugin\n");
+  _audiodriver -> setErrorMessage( "" );
   _audiodriver -> openDevice( _audiodriver -> getIndexIn(),
       _audiodriver -> getIndexOut(),
       _audiodriver -> getSampleRate(),
       _audiodriver -> getFrameSize(),
       SFL_PCM_PLAYBACK,
       audioPlugin);
+  if( _audiodriver -> getErrorMessage() != "")
+    notifyErrClient( _audiodriver -> getErrorMessage() );
   // set config
   setConfig( AUDIO , ALSA_PLUGIN , audioPlugin );
 }
@@ -1369,12 +1381,15 @@ ManagerImpl::getAudioOutputDeviceList(void)
 ManagerImpl::setAudioOutputDevice(const int index)
 {
   _debug("Set audio output device: %i\n", index);
+  _audiodriver -> setErrorMessage( "" );
   _audiodriver->openDevice(_audiodriver->getIndexIn(), 
       index, 
       _audiodriver->getSampleRate(), 
       _audiodriver->getFrameSize(), 
       SFL_PCM_PLAYBACK,
       _audiodriver->getAudioPlugin());
+  if( _audiodriver -> getErrorMessage() != "")
+    notifyErrClient( _audiodriver -> getErrorMessage() );
   // set config
   setConfig( AUDIO , ALSA_CARD_ID_OUT , index );
 }
@@ -1396,12 +1411,15 @@ ManagerImpl::getAudioInputDeviceList(void)
 ManagerImpl::setAudioInputDevice(const int index)
 {
   _debug("Set audio input device %i\n", index);
+  _audiodriver -> setErrorMessage( "" );
   _audiodriver->openDevice(index, 
       _audiodriver->getIndexOut(), 
       _audiodriver->getSampleRate(), 
       _audiodriver->getFrameSize(), 
       SFL_PCM_CAPTURE,
       _audiodriver->getAudioPlugin());
+  if( _audiodriver -> getErrorMessage() != "")
+    notifyErrClient( _audiodriver -> getErrorMessage() );
   // set config
   setConfig( AUDIO , ALSA_CARD_ID_IN , index );
 }
@@ -1472,6 +1490,15 @@ ManagerImpl::setRingtoneChoice( const std::string& tone )
   setConfig( AUDIO , RING_CHOICE , tone ); 
 }
 
+void
+ManagerImpl::notifyErrClient( const std::string& errMsg )
+{
+  if( _dbus ) {
+    _debug("Call notifyErrClient: %s\n" , errMsg.c_str());
+    _dbus -> getConfigurationManager() -> errorAlert( errMsg , 0 );
+  }
+}
+
   int
 ManagerImpl::getAudioDeviceIndex(const std::string name)
 {
@@ -1537,6 +1564,8 @@ ManagerImpl::selectAudioDriver (void)
   _debugInit(" AudioLayer Opening Device");
   _audiodriver->setErrorMessage("");
   _audiodriver->openDevice( numCardIn , numCardOut, sampleRate, frameSize, SFL_PCM_BOTH, alsaPlugin ); 
+  if( _audiodriver -> getErrorMessage() != "")
+    notifyErrClient( _audiodriver -> getErrorMessage());
 }
 
 /**
@@ -2730,18 +2759,34 @@ ManagerImpl::getVideoDeviceDetails(const int index)
 	return v;
 }
 
+void ManagerImpl::initMemManager(void)
+{
+	int dummySize = 1024;
+
+	_memManager = MemManager::getInstance();
+	ptracesfl("MEMSPACE INIT MANAGER",MT_INFO,1,true);
+	//TODO GET SIZE FROM WEBCAM 
+	//SetSpace and attach to running process
+	srand ( time(NULL) );
+	_keyHolder.localKey = _memManager->initSpace(dummySize);
+	ptracesfl("LOCAL MEMSPACE started",MT_INFO,2,true);
+	_keyHolder.remoteKey = _memManager->initSpace(dummySize);
+	ptracesfl("REMOTE MEMSPACE started",MT_INFO,2,true);
+
+}
+
 std::string 
 ManagerImpl::getLocalSharedMemoryKey()
 {
-	std::string key = "key local";
-	return key;
+	return _keyHolder.localKey->getDescription();
+	ptracesfl("LOCAL Memspace shmid sent",MT_INFO,2,true);
 }
 
 std::string 
 ManagerImpl::getRemoteSharedMemoryKey()
 {
-	std::string key = "key remote";
-	return key;
+return _keyHolder.remoteKey->getDescription();
+ptracesfl("REMOTE Memspace shmid sent",MT_INFO,2,true);
 }
 
 slider_t 

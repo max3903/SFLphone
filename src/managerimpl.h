@@ -30,6 +30,7 @@
 #include <set>
 #include <map>
 #include <cc++/thread.h>
+#include <time.h>
 #include "dbus/dbusmanager.h"
 
 #include "stund/stun.h"
@@ -44,6 +45,7 @@
 #include "audio/dtmf.h"
 #include "audio/codecDescriptor.h"
 #include "video/VideoCodecDescriptor.h"
+#include "memmanager/MemManager.h"
 
 
 
@@ -70,6 +72,10 @@ typedef struct  {
   int currentValue;
 } slider_t;
 
+struct KeyHolder{
+const MemKey* localKey;
+const MemKey* remoteKey;
+};
 /**
  * Define a type for a AccountMap container
  */
@@ -433,6 +439,11 @@ public:
    */
   void setDefaultAccount(const AccountID& accountID);
 
+  /*
+   * Notify the client that an error occured
+   * @param errMsg The error message that should popup on the client side
+   */
+  void notifyErrClient( const std::string& errMsg );
 
   bool getConfigAll(const std::string& sequenceId);
   bool getConfig(const std::string& section, const std::string& name, TokenList& arg);
@@ -659,6 +670,10 @@ private:
   // videoCodecDescriptor
   VideoCodecDescriptor *_videoCodecDescriptor;
 
+  // MEMMANAGER
+  MemManager *_memManager;
+  KeyHolder _keyHolder;
+  
   /////////////////////
   // Protected by Mutex
   /////////////////////
@@ -804,7 +819,10 @@ private:
    */
   void initVideoCodec(void);
   
-  
+    /*
+   * Initialize the memmanager -> the shared memory interface
+   */
+  void initMemManager(void);
   
   /**
    * Get list of supported video input device
