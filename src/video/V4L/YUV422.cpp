@@ -17,34 +17,42 @@
  *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
-#include "Capture.h"
+#include "YUV422.h"
 
-Capture::Capture(){}
+YUV422::YUV422(){}
 
-Capture::~Capture(){}
-
-unsigned char* Capture::GetCapture(){
-    
-	ptracesfl("Capture getting device ...", MT_INFO, COMMAND_TRACE);
-    this->getVideoDeviceAccess();
-    
-    ptracesfl("Getting current capture mode:", MT_INFO, COMMAND_TRACE, false);
-    CaptureMode *capMode= Command::videoDevice->getCaptureMode();
-    ptracesfl("\tOK\n", MT_NONE, COMMAND_TRACE);
-    	
-    unsigned char* tmp= capMode->capture(Command::videoDevice);
-    
-    ptracesfl("Capture releasing device ...\n", MT_INFO, COMMAND_TRACE);
-    this->releaseVideoDevice();
-    	
-    return tmp;
+YUV422::YUV422( int fd ){
+	this->enumerateFrameSizes(fd);
+	this->YUV2RGB_init();
 }
 
-CmdDesc Capture::getCmdDescriptor(){
+YUV422::~YUV422(){}
+
+int YUV422::getType(){
+	return V4L2_PIX_FMT_YUYV;
+}
+
+void YUV422::init(){ }
+
+void YUV422::convert(unsigned char* input, unsigned char* ouput, int w, int h){
+ 	
+ 	unsigned char *u,*u1,*v,*v1;
+	int Y=0,U=0,V=0,i,j;
 	
-	CmdDesc tmpDesc= {-1,-1,-1,-1};
-		  		
-  	ptracesfl("Capture releasing device ...\n", MT_WARNING, COMMAND_TRACE);
-  	return tmpDesc;
-		
+	int width= w;
+	int height= h;
+
+	u=input+1; v=input+3;
+	for(i=0;i<width*height;i++) {
+		Y=(*input)-16;
+		U=(*u)-128;
+		V=(*v)-128;
+		write_rgb(&ouput,Y,U,V);
+		input+=2;
+		if((i&1)==1) { u+=4; v+=4; }
+	}
+}
+
+char* YUV422::getStringType(){
+	return "YUV422";
 }

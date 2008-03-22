@@ -291,11 +291,18 @@ ConfigurationManager::setRingtoneChoice( const ::DBus::String& tone )
 
 /* Webcam Settings */
 
-::DBus::Int32 
-ConfigurationManager::getBrightness(  )
+void
+ConfigurationManager::getBrightness( ::DBus::Int32& minValue, ::DBus::Int32& maxValue, 
+    			::DBus::Int32& stepValue, ::DBus::Int32& currentValue )
 {
 	_debug("ConfigurationManager::getBrightness received\n");
-	return Manager::instance().getBrightness();
+	slider_t values;
+	
+	minValue = Manager::instance().getBrightness().minValue;
+	maxValue = Manager::instance().getBrightness().maxValue;
+	stepValue = Manager::instance().getBrightness().stepValue;
+	currentValue = Manager::instance().getBrightness().currentValue;
+	printf("%i %i %i %i", minValue, maxValue,stepValue, currentValue);
 }
 
 void 
@@ -305,11 +312,17 @@ ConfigurationManager::setBrightness( const ::DBus::Int32& value )
 	Manager::instance().setBrightness(value);
 }
 
-::DBus::Int32 
-ConfigurationManager::getContrast(  )
+void 
+ConfigurationManager::getContrast( ::DBus::Int32& minValue, ::DBus::Int32& maxValue, 
+    			::DBus::Int32& stepValue, ::DBus::Int32& currentValue )
 {
 	_debug("ConfigurationManager::getContrast received\n");
-	return Manager::instance().getContrast();
+	slider_t values;
+	
+	minValue = Manager::instance().getContrast().minValue;
+	maxValue = Manager::instance().getContrast().maxValue;
+	stepValue = Manager::instance().getContrast().stepValue;
+	currentValue = Manager::instance().getContrast().currentValue;
 }
 
 void 
@@ -319,11 +332,17 @@ ConfigurationManager::setContrast( const ::DBus::Int32& value )
 	Manager::instance().setContrast(value);
 }
 
-::DBus::Int32 
-ConfigurationManager::getColour(  )
+void 
+ConfigurationManager::getColour( ::DBus::Int32& minValue, ::DBus::Int32& maxValue, 
+    			::DBus::Int32& stepValue, ::DBus::Int32& currentValue )
 {
 	_debug("ConfigurationManager::getColour received\n");
-	return Manager::instance().getColour();
+	slider_t values;
+	
+	minValue = Manager::instance().getColour().minValue;
+	maxValue = Manager::instance().getColour().maxValue;
+	stepValue = Manager::instance().getColour().stepValue;
+	currentValue = Manager::instance().getColour().currentValue;
 }
 
 void 

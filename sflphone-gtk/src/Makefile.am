@@ -6,6 +6,7 @@ sflphone_gtk_SOURCES = \
   mainwindow.c \
   calllist.c \
   dialpad.c \
+  quit.c \
   menus.c \
   calltree.c \
   screen.c \
@@ -15,6 +16,7 @@ sflphone_gtk_SOURCES = \
   accountlist.c \
   accountwindow.c \
   contactwindow.c \
+  callconsolewindow.c \
   marshaller.c \
   sliders.c \
   statusicon.c \
@@ -23,13 +25,17 @@ sflphone_gtk_SOURCES = \
   glwidget.c \
   MemManager.c \
   invitewindow.c
-  
+
 noinst_HEADERS =  actions.h dbus.h mainwindow.h calllist.h dialpad.h codeclist.h videocodeclist.h \
-                  callmanager-glue.h configurationmanager-glue.h contactmanager-glue.h instance-glue.h menus.h calltree.h screen.h configwindow.h \
-                  accountlist.h accountwindow.h marshaller.h sliders.h statusicon.h contactlist.h contactwindow.h
-EXTRA_DIST   = marshaller.list  
+                  callmanager-glue.h configurationmanager-glue.h contactmanager-glue.h instance-glue.h \
+                  menus.h calltree.h screen.h configwindow.h contactlist.h contactwindow.h callconsolewindow.c \
+                  accountlist.h accountwindow.h marshaller.h sliders.h statusicon.h quit.h
+
+EXTRA_DIST   = marshaller.list
+  
 sflphone_gtk_LDADD = $(DEPS_LIBS)
 
 AM_CPPFLAGS = $(DEPS_CFLAGS) \
               -DICONS_DIR=\""$(datadir)/sflphone"\" \
-              -DICON_DIR=\""$(datadir)/pixmaps"\"
+              -DICON_DIR=\""$(datadir)/pixmaps"\" \
+	      -DCODECS_DIR=\""$(libdir)/sflphone/codecs"\"

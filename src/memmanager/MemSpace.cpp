@@ -41,7 +41,7 @@ MemKey* MemSpace::getMemKey()
 
 bool MemSpace::putData(void * Data, int size)
 {
-	strcpy(this->baseAddress,(char*)Data);
+	memcpy(this->baseAddress,Data, size);
 	this->theKey->setSize(size);
 	return true;
 }
@@ -72,10 +72,10 @@ MemSpace::~MemSpace()
 }
 
 
-char* MemSpace::getBaseAddress(){
+unsigned char* MemSpace::getBaseAddress(){
 return this->baseAddress;
 }
 
-void MemSpace::setBaseAddress(char* Address){
+void MemSpace::setBaseAddress(unsigned char* Address){
 this->baseAddress = Address;
 }

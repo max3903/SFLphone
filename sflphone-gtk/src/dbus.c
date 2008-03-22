@@ -152,6 +152,16 @@ accounts_changed_cb (DBusGProxy *proxy,
   config_window_fill_account_list();
 }
 
+static void  
+error_alert(DBusGProxy *proxy,
+		  gchar* errMsg,
+		  int err,
+                  void * foo  )
+{
+  g_print ("Error notifying : (%s)\n" , errMsg);
+  sflphone_throw_exception( errMsg , err );
+}
+
 gboolean 
 dbus_connect ()
 {
@@ -257,6 +267,12 @@ dbus_connect ()
   }
   g_print("DBus connected to ContactManager\n");
    
+  dbus_g_object_register_marshaller(g_cclosure_user_marshal_VOID__STRING_INT,
+          G_TYPE_NONE, G_TYPE_STRING, G_TYPE_INT , G_TYPE_INVALID);
+  dbus_g_proxy_add_signal (configurationManagerProxy, 
+    "errorAlert", G_TYPE_STRING , G_TYPE_INT , G_TYPE_INVALID);
+  dbus_g_proxy_connect_signal (configurationManagerProxy,
+    "errorAlert", G_CALLBACK(error_alert), NULL, NULL);
   return TRUE;
 }
 
@@ -806,6 +822,29 @@ dbus_unregister(int pid)
   }
 }
 
+int
+dbus_get_registration_count( void )
+{
+  GError *error = NULL;
+  int n;
+
+  org_sflphone_SFLphone_Instance_get_registration_count(
+    instanceProxy, 
+    &n, 
+    &error);
+
+  if (error) 
+  {
+    g_printerr ("Failed to call get_registration_count() on instanceProxy: %s\n",
+                error->message);
+    g_error_free (error);
+  } 
+  else 
+  {
+    g_print ("DBus called get_registration_count() on instanceProxy\n");
+  }
+  return n;
+}
 
 gchar**
 dbus_codec_list()
@@ -1460,15 +1499,16 @@ dbus_get_contact_entry_details(gchar* accountID, gchar* contactID, gchar* entryI
 
 
 //Brightness of the video capture
-int 
+slider_t
 dbus_get_brightness()
 {
 	g_print("Before get brightness");
-	int value;
+	slider_t values;
 	GError* error = NULL;
 	org_sflphone_SFLphone_ConfigurationManager_get_brightness(
 			configurationManagerProxy,
-			&value,
+			&values.minValue, &values.maxValue, 
+			&values.stepValue, &values.currentValue,
 			&error);
 	g_print("After");
 	if(error)
@@ -1477,8 +1517,12 @@ dbus_get_brightness()
 		g_error_free(error);
 	}
 	else
+	{
 		g_print("DBus called get_brightness() on ConfigurationManager\n");
-	return value;	
+		g_print("%i %i %i %i", values.minValue, values.maxValue, 
+			values.stepValue, values.currentValue);
+	}
+	return values;	
 }
 
 void 
@@ -1501,15 +1545,16 @@ dbus_set_brightness(int value)
 }
 
 //Contrast of the video capture
-int 
+slider_t 
 dbus_get_contrast()
 {
 	g_print("Before get contrast");
-	int value;
+	slider_t values;
 	GError* error = NULL;
 	org_sflphone_SFLphone_ConfigurationManager_get_contrast(
 			configurationManagerProxy,
-			&value,
+			&values.minValue, &values.maxValue, 
+			&values.stepValue, &values.currentValue,
 			&error);
 	g_print("After");
 	if(error)
@@ -1519,7 +1564,7 @@ dbus_get_contrast()
 	}
 	else
 		g_print("DBus called get_contrast() on ConfigurationManager\n");
-	return value;
+	return values;
 }
 
 void 
@@ -1542,15 +1587,16 @@ dbus_set_contrast(int value)
 }
 
 //Colour of the video capture
-int 
+slider_t
 dbus_get_colour()
 {
 	g_print("Before get colour");
-	int value;
+	slider_t values;
 	GError* error = NULL;
 	org_sflphone_SFLphone_ConfigurationManager_get_colour(
 			configurationManagerProxy,
-			&value,
+			&values.minValue, &values.maxValue, 
+			&values.stepValue, &values.currentValue,
 			&error);
 	g_print("After");
 	if(error)
@@ -1560,7 +1606,7 @@ dbus_get_colour()
 	}
 	else
 		g_print("DBus called get_colour() on ConfigurationManager\n");
-	return value;	
+	return values;	
 }
 
 void 

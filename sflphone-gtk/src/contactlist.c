@@ -32,10 +32,20 @@ contact_hash_table_init()
 }
 
 void
+contact_hash_table_clear_list(void* a, void* b)
+{
+	// Clear function called by GList
+	gchar* key = (gchar*)a;
+	contact_hash_table_clear_contact_list(contact_hash_table_get_contact_list(key));
+}
+
+void
 contact_hash_table_clear()
 {
-	// TODO Unregister observers
-	// TODO Clear all contact lists
+	// TODO Unregister observers (contact and call console windows)
+	// Clear all contact lists
+	GList* list = g_hash_table_get_keys(contactHashTable);
+	g_list_foreach(list, contact_hash_table_clear_list, NULL);
 	g_hash_table_destroy(contactHashTable);
 	contactHashTable = NULL;
 }

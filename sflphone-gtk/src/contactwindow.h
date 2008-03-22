@@ -20,13 +20,12 @@
 #ifndef __CONTACTWINDOW_H__
 #define __CONTACTWINDOW_H__
 
-#include <calllist.h>
-
 /**
  * @file contactwindow.h
  * @brief The Contacts window.
  */
 void contact_window_fill_contact_list();
+void contact_window_clear_contact_list();
 void show_contact_window();
 
 #endif 

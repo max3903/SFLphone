@@ -1332,22 +1332,25 @@ static
 inline
 #endif
 gboolean
-org_sflphone_SFLphone_ConfigurationManager_get_brightness (DBusGProxy *proxy, gint* OUT_value, GError **error)
+org_sflphone_SFLphone_ConfigurationManager_get_brightness (DBusGProxy *proxy, gint* OUT_minValue, gint* OUT_maxValue, gint* OUT_stepValue, gint* OUT_currentValue, GError **error)
 
 {
-  return dbus_g_proxy_call (proxy, "getBrightness", error, G_TYPE_INVALID, G_TYPE_INT, OUT_value, G_TYPE_INVALID);
+  return dbus_g_proxy_call (proxy, "getBrightness", error, G_TYPE_INVALID, G_TYPE_INT, OUT_minValue, G_TYPE_INT, OUT_maxValue, G_TYPE_INT, OUT_stepValue, G_TYPE_INT, OUT_currentValue, G_TYPE_INVALID);
 }
 
-typedef void (*org_sflphone_SFLphone_ConfigurationManager_get_brightness_reply) (DBusGProxy *proxy, gint OUT_value, GError *error, gpointer userdata);
+typedef void (*org_sflphone_SFLphone_ConfigurationManager_get_brightness_reply) (DBusGProxy *proxy, gint OUT_minValue, gint OUT_maxValue, gint OUT_stepValue, gint OUT_currentValue, GError *error, gpointer userdata);
 
 static void
 org_sflphone_SFLphone_ConfigurationManager_get_brightness_async_callback (DBusGProxy *proxy, DBusGProxyCall *call, void *user_data)
 {
   DBusGAsyncData *data = (DBusGAsyncData*) user_data;
   GError *error = NULL;
-  gint OUT_value;
-  dbus_g_proxy_end_call (proxy, call, &error, G_TYPE_INT, &OUT_value, G_TYPE_INVALID);
-  (*(org_sflphone_SFLphone_ConfigurationManager_get_brightness_reply)data->cb) (proxy, OUT_value, error, data->userdata);
+  gint OUT_minValue;
+  gint OUT_maxValue;
+  gint OUT_stepValue;
+  gint OUT_currentValue;
+  dbus_g_proxy_end_call (proxy, call, &error, G_TYPE_INT, &OUT_minValue, G_TYPE_INT, &OUT_maxValue, G_TYPE_INT, &OUT_stepValue, G_TYPE_INT, &OUT_currentValue, G_TYPE_INVALID);
+  (*(org_sflphone_SFLphone_ConfigurationManager_get_brightness_reply)data->cb) (proxy, OUT_minValue, OUT_maxValue, OUT_stepValue, OUT_currentValue, error, data->userdata);
   return;
 }
 
@@ -1407,22 +1410,25 @@ static
 inline
 #endif
 gboolean
-org_sflphone_SFLphone_ConfigurationManager_get_contrast (DBusGProxy *proxy, gint* OUT_value, GError **error)
+org_sflphone_SFLphone_ConfigurationManager_get_contrast (DBusGProxy *proxy, gint* OUT_minValue, gint* OUT_maxValue, gint* OUT_stepValue, gint* OUT_currentValue, GError **error)
 
 {
-  return dbus_g_proxy_call (proxy, "getContrast", error, G_TYPE_INVALID, G_TYPE_INT, OUT_value, G_TYPE_INVALID);
+  return dbus_g_proxy_call (proxy, "getContrast", error, G_TYPE_INVALID, G_TYPE_INT, OUT_minValue, G_TYPE_INT, OUT_maxValue, G_TYPE_INT, OUT_stepValue, G_TYPE_INT, OUT_currentValue, G_TYPE_INVALID);
 }
 
-typedef void (*org_sflphone_SFLphone_ConfigurationManager_get_contrast_reply) (DBusGProxy *proxy, gint OUT_value, GError *error, gpointer userdata);
+typedef void (*org_sflphone_SFLphone_ConfigurationManager_get_contrast_reply) (DBusGProxy *proxy, gint OUT_minValue, gint OUT_maxValue, gint OUT_stepValue, gint OUT_currentValue, GError *error, gpointer userdata);
 
 static void
 org_sflphone_SFLphone_ConfigurationManager_get_contrast_async_callback (DBusGProxy *proxy, DBusGProxyCall *call, void *user_data)
 {
   DBusGAsyncData *data = (DBusGAsyncData*) user_data;
   GError *error = NULL;
-  gint OUT_value;
-  dbus_g_proxy_end_call (proxy, call, &error, G_TYPE_INT, &OUT_value, G_TYPE_INVALID);
-  (*(org_sflphone_SFLphone_ConfigurationManager_get_contrast_reply)data->cb) (proxy, OUT_value, error, data->userdata);
+  gint OUT_minValue;
+  gint OUT_maxValue;
+  gint OUT_stepValue;
+  gint OUT_currentValue;
+  dbus_g_proxy_end_call (proxy, call, &error, G_TYPE_INT, &OUT_minValue, G_TYPE_INT, &OUT_maxValue, G_TYPE_INT, &OUT_stepValue, G_TYPE_INT, &OUT_currentValue, G_TYPE_INVALID);
+  (*(org_sflphone_SFLphone_ConfigurationManager_get_contrast_reply)data->cb) (proxy, OUT_minValue, OUT_maxValue, OUT_stepValue, OUT_currentValue, error, data->userdata);
   return;
 }
 
@@ -1482,22 +1488,25 @@ static
 inline
 #endif
 gboolean
-org_sflphone_SFLphone_ConfigurationManager_get_colour (DBusGProxy *proxy, gint* OUT_value, GError **error)
+org_sflphone_SFLphone_ConfigurationManager_get_colour (DBusGProxy *proxy, gint* OUT_minValue, gint* OUT_maxValue, gint* OUT_stepValue, gint* OUT_currentValue, GError **error)
 
 {
-  return dbus_g_proxy_call (proxy, "getColour", error, G_TYPE_INVALID, G_TYPE_INT, OUT_value, G_TYPE_INVALID);
+  return dbus_g_proxy_call (proxy, "getColour", error, G_TYPE_INVALID, G_TYPE_INT, OUT_minValue, G_TYPE_INT, OUT_maxValue, G_TYPE_INT, OUT_stepValue, G_TYPE_INT, OUT_currentValue, G_TYPE_INVALID);
 }
 
-typedef void (*org_sflphone_SFLphone_ConfigurationManager_get_colour_reply) (DBusGProxy *proxy, gint OUT_value, GError *error, gpointer userdata);
+typedef void (*org_sflphone_SFLphone_ConfigurationManager_get_colour_reply) (DBusGProxy *proxy, gint OUT_minValue, gint OUT_maxValue, gint OUT_stepValue, gint OUT_currentValue, GError *error, gpointer userdata);
 
 static void
 org_sflphone_SFLphone_ConfigurationManager_get_colour_async_callback (DBusGProxy *proxy, DBusGProxyCall *call, void *user_data)
 {
   DBusGAsyncData *data = (DBusGAsyncData*) user_data;
   GError *error = NULL;
-  gint OUT_value;
-  dbus_g_proxy_end_call (proxy, call, &error, G_TYPE_INT, &OUT_value, G_TYPE_INVALID);
-  (*(org_sflphone_SFLphone_ConfigurationManager_get_colour_reply)data->cb) (proxy, OUT_value, error, data->userdata);
+  gint OUT_minValue;
+  gint OUT_maxValue;
+  gint OUT_stepValue;
+  gint OUT_currentValue;
+  dbus_g_proxy_end_call (proxy, call, &error, G_TYPE_INT, &OUT_minValue, G_TYPE_INT, &OUT_maxValue, G_TYPE_INT, &OUT_stepValue, G_TYPE_INT, &OUT_currentValue, G_TYPE_INVALID);
+  (*(org_sflphone_SFLphone_ConfigurationManager_get_colour_reply)data->cb) (proxy, OUT_minValue, OUT_maxValue, OUT_stepValue, OUT_currentValue, error, data->userdata);
   return;
 }
 

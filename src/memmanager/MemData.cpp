@@ -20,43 +20,70 @@
 #include "MemData.h"
 MemData::MemData()
 {	
+	this->data= NULL;
+	this->size= -1;
+	this->height= -1;
+	this->width= -1;
 }
 
 MemData::~MemData()
 {
-	// TODO: Use memcpy to copy data
+	if(this->data != NULL)
+		delete this->data;
+		
 }
 
 MemData::MemData(MemData* data)
 {
-	// TODO: Use memcpy to copy data
-	strcpy(this->data,data->data);
+		
+	this->data= new unsigned char[data->size];
+	
+	memcpy(this->data,data->data, data->size);
+	
+	this->size= data->size;
 }
 
 MemData::MemData(MemData& data)
 {
-	strcpy(this->data,data.data);
+		
+	this->data= new unsigned char[data.size];
+	
+	memcpy(this->data,data.data, data.size);
+	
+	this->size= data.size;
 }
 
-int MemData::fetchData(char* data)
+int MemData::fetchData(unsigned char* dataOuput)
 {
-	strcpy(data,this->data);
-	return size;
+	if( data != NULL ){
+		
+		memcpy(dataOuput,this->data, this->size);
+		return this->size;
+		
+	}
+	
+	return -1;
 }
-void MemData::putData(char * data, int size)
+void MemData::putData(unsigned char * dataInput, int sizeInput)
 {
-	strcpy(this->data,data);
-	this->size = size;
+	if( this->data != NULL )
+		delete data;
+	
+	this->data= (unsigned char*)malloc(sizeInput);
+	
+	memcpy(this->data,dataInput, sizeInput);
+	
+	this->size = sizeInput;
 	
 }
 
-void MemData::setData(char* data)
+void MemData::setData(unsigned char* data)
 {
 this->data = data;	
 	
 }
 
-char* MemData::getData()
+unsigned char* MemData::getData()
 {
 return this->data ;	
 	

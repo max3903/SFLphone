@@ -69,7 +69,7 @@ public:
      * 
      * \return an instance of the manager
      */
-    VideoCodecDescriptor* getInstance();
+    static VideoCodecDescriptor* getInstance();
 
 	/**
 	 * Destructor 
