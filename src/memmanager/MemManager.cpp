@@ -63,9 +63,9 @@ const MemKey* MemManager::initSpace(key_t key,int size)
 	
 	//Attach shared memory to baseAddress shmat returns pointer to the
 	// shared memory segment
-    newSpace->setBaseAddress((char *)shmat(newKey->getShmid(), (void *) 0, 0));
+    newSpace->setBaseAddress((unsigned char *)shmat(newKey->getShmid(), (void *) 0, 0));
     
-    if ( newSpace->getBaseAddress() == (char *) -1) {
+    if ( newSpace->getBaseAddress() == (unsigned char *) -1) {
         perror("shmat");
         exit(1);
     } 
@@ -100,9 +100,9 @@ const MemKey* MemManager::initSpace(MemKey* key)
     }
     
     //attach shared memory to baseAddress
-    newSpace->setBaseAddress((char *)shmat(key->getShmid(), 0, 0));
+    newSpace->setBaseAddress((unsigned char *)shmat(key->getShmid(), 0, 0));
     
-    if ( newSpace->getBaseAddress() == (char *) -1) {
+    if ( newSpace->getBaseAddress() == (unsigned char *) -1) {
         perror("shmat");
         exit(1);
     }
@@ -142,9 +142,9 @@ const MemKey* MemManager::initSpace(int size)
     
 
     //attach shared memory to baseAddress
-    newSpace->setBaseAddress((char *)shmat(newKey->getShmid(), 0, 0));
+    newSpace->setBaseAddress((unsigned char *)shmat(newKey->getShmid(), 0, 0));
     
-    if ( newSpace->getBaseAddress() == (char *) -1) {
+    if ( newSpace->getBaseAddress() == (unsigned char *) -1) {
         perror("shmat");
         exit(1);
     }
@@ -261,13 +261,13 @@ MemData* MemManager::fetchData(MemKey* key)
 	return (*(key->getIndex()))->fetchData();
 }
 
-bool MemManager::putData(char * Data, int size)
+bool MemManager::putData(unsigned char * Data, int size)
 {
 	(*defaultIndex)->putData(Data,size);
 	return true;
 }
 
-bool MemManager::putData(key_t key, char * Data, int size)
+bool MemManager::putData(key_t key, unsigned char * Data, int size)
 {
 	vector<MemSpace*>::iterator iter;
 
@@ -282,7 +282,7 @@ bool MemManager::putData(key_t key, char * Data, int size)
 		return false;
 }
 
-bool MemManager::putData(MemKey* key, char * Data, int size)
+bool MemManager::putData(MemKey* key, unsigned char * Data, int size)
 {
 	(*(key->getIndex()))->putData(Data,size);
 

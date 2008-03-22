@@ -148,7 +148,7 @@ public:
      * \param size the size of Data
      * \return the success of the operation
      */
-    bool putData(char * Data, int size);
+    bool putData(unsigned char * Data, int size);
 
     //! Changes the data in the MemSpace specified by the key
     /*!
@@ -157,7 +157,7 @@ public:
      * \param size the size of Data
      * \return the success of the operation
      */
-    bool putData(key_t key, char * Data, int size);
+    bool putData(key_t key, unsigned char * Data, int size);
 
     //! Changes the data in the MemSpace specified by the key
     /*!
@@ -166,7 +166,7 @@ public:
      * \param size the size of Data
      * \return the success of the operation
      */
-    bool putData(MemKey* key, char * Data, int size);
+    bool putData(MemKey* key, unsigned char * Data, int size);
 
     //! Gets a list of the available MemKeys
     /*!

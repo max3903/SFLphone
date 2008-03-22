@@ -85,12 +85,12 @@ public:
     /*!
      * \return a MemKey containing the information for this MemSpace
      */
-    char* getBaseAddress();
+    unsigned char* getBaseAddress();
    //! Sets the char * baseAddress associated with this MemSpace
     /*!
      * \param Address containing the information to set the baseAddress
      */
-    void setBaseAddress(char *Address);
+    void setBaseAddress(unsigned char *Address);
     
 
 private:
@@ -103,7 +103,7 @@ private:
     MemSpace();
     
     //! The base address of the shared memory space
-    char * baseAddress;
+    unsigned char * baseAddress;
     
     //! The Memkey Associated with this MemSpace
     MemKey* theKey;

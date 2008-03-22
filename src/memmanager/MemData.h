@@ -63,32 +63,36 @@ public:
      * \param data a pointer to where the data will be copied
      * \return the size of data
      */
-    int fetchData(char * data);
+    int fetchData(unsigned char * dataOuput);
 
     //! Method to change the data in the buffer
     /*!
      * \param data a pointer to the new data
      * \param size the size of data
      */
-    void putData(char * data, int size);
+    void putData(unsigned char * dataInput, int sizeInput);
     
     
     //! Method to get the data in the buffer
     /*!
      * Method get the data
      */
-     char* getData();
+     unsigned char* getData();
      
      //! Method to set the data in the buffer
     /*!
      * Method set the data
      */
-     void setData(char * data);
+     void setData(unsigned char * data);
+     
+     int getSize(){
+     		return this->size;
+     }
         
 private:
 	
 	 //! Pointer to the data
-    char *data;
+    unsigned char *data;
     //! The current size of the data in the buffer
     int size;
     //! The current size of the data in the buffer
