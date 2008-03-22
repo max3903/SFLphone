@@ -65,7 +65,7 @@ public:
      * 
      * \param key a pointer to a MemKey object
      */
-    MemKey(MemKey* key);
+    MemKey(const MemKey* key);
    
     //! Reference copy constructor
     /*!
@@ -73,7 +73,7 @@ public:
      * 
      * \param key a reference to a MemKey object
      */
-    MemKey(MemKey& key);
+    MemKey(const MemKey& key);
     
     //! Constructor from serialized data
     /*!

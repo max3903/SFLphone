@@ -51,7 +51,7 @@ MemKey::MemKey(int size,key_t key)
 }
 
 
-MemKey::MemKey(MemKey* key)
+MemKey::MemKey( const MemKey* key)
 {	
 	this->index = key->index;
 	this->size = key->size;
@@ -59,7 +59,7 @@ MemKey::MemKey(MemKey* key)
 }
 
 
-MemKey::MemKey(MemKey& key)
+MemKey::MemKey(const MemKey& key)
 {
 	
 	this->size = key.size;
