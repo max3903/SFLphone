@@ -4,7 +4,7 @@
 #include "../tracePrintSFL.h"
 
 
-int AudioOuput::fetchData(int16 *data)
+int AudioOuput::fetchData(short *data)
 { 
   if (buffer!=NULL && data!=NULL)
   {
@@ -23,14 +23,14 @@ int AudioOuput::fetchData(int16 *data)
   }
 }
 
-void AudioOuput::putData(int16 * data, int size)
+void AudioOuput::putData(short * data, int size)
 { 
   if (data!=NULL && size>0)
   {
     ptracesfl("AudioOuput - putData(): Demande semaphore",MT_INFO,true);
     sem_wait(&semaphore);
     ptracesfl("AudioOuput - putData(): Zone Critique",MT_INFO,true);
-    buffer = new int16[size]; 
+    buffer = new short[size]; 
     memcpy(data,buffer,size);
     sizeBuffer=size;
     sem_post(&semaphore);

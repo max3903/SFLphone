@@ -59,12 +59,12 @@ VideoOutput::~VideoOutput()
 }
 
 // DEPRECIATED !!!!!
-int VideoOutput::fetchData(int16 *data)
+int VideoOutput::fetchData(short *data)
 { 
   return 0; 
 }
 // DEPRECIATED !!!!!
-void VideoOutput::putData(int16 * data, int size)
+void VideoOutput::putData(short * data, int size)
 { 
   
 }

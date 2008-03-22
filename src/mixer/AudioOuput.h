@@ -29,19 +29,19 @@ public:
      * \param data a pointer to the where the data will be put
      * \return the size of the buffer
      */
-    virtual int fetchData(int16 *data);
+    virtual int fetchData(short *data);
 
     //! Method to change the data contained in the buffer
     /*!
      * \param data a pointer to the data to copy
      * \param size th size of the buffer
      */ 
-    virtual void putData(int16 * data, int size);
+    virtual void putData(short * data, int size);
 
 protected:
 	
 	//! Data Buffer for the audio data
-    int16* buffer;
+    short* buffer;
     int sizeBuffer;
     sem_t semaphore;
     

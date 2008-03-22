@@ -3,12 +3,12 @@
 #include "LocalAudioOuput.h"
 
 
-int LocalAudioOuput::fetchData(int16 *data)
+int LocalAudioOuput::fetchData(short *data)
 { 
   return 0;
 }
 
-void LocalAudioOuput::putData(int16 * data, int size)
+void LocalAudioOuput::putData(short * data, int size)
 { 
   
 }

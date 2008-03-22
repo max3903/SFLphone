@@ -6,14 +6,14 @@
 #include "../tracePrintSFL.h"
 
 
-void AudioInput::putData(int16 *data, int size, int leTemps)
+void AudioInput::putData(short *data, int size, int leTemps)
 {
   if (data!=NULL && size>0)
   {
     ptracesfl("AudioInput - putData(): Demande semaphore",MT_INFO,true);
     sem_wait(&semaphore);
     ptracesfl("AudioInput - putData(): Zone Critique",MT_INFO,true);
-    buffer = new int16[size];
+    buffer = new short[size];
     infoTemps = new TimeInfo(leTemps);
     memcpy(data,buffer,size);
     sizeBuffer=size;
@@ -24,7 +24,7 @@ void AudioInput::putData(int16 *data, int size, int leTemps)
     ptracesfl("AudioInput - putData(): Erreur parametre",MT_ERROR,true);
 }
 
-int AudioInput::fetchData(int16 *data) 
+int AudioInput::fetchData(short *data) 
 { 
   if (buffer!=NULL && data!=NULL)
   {
