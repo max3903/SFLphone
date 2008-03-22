@@ -41,7 +41,7 @@ MemKey* MemSpace::getMemKey()
 
 bool MemSpace::putData(void * Data, int size)
 {
-	memcpy(this->baseAddress,(char*)Data, size);
+	memcpy(this->baseAddress,Data, size);
 	this->theKey->setSize(size);
 	return true;
 }

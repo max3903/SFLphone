@@ -71,7 +71,7 @@ void MemData::putData(unsigned char * dataInput, int sizeInput)
 	
 	this->data= (unsigned char*)malloc(sizeInput);
 	
-	memcpy(this->data,data, sizeInput);
+	memcpy(this->data,dataInput, sizeInput);
 	
 	this->size = sizeInput;
 	
