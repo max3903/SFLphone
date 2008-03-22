@@ -31,7 +31,7 @@
 #include "VideoRtp.h"
 #include <cc++/thread.h>
 #include <ccrtp/rtp.h>
-class SIPCall;
+class SIPCall; //TODO: pourquoi pas de include ???? dans Audio aussi...
 /**
  * @author Jean-Francois Blanchard-Dionne 
  */
@@ -45,7 +45,7 @@ public:
 	/**
 	 * Default Constructor
 	 */ 
-    VideoRtpRTX();
+    VideoRtpRTX(SIPCall *sipcall, bool sym);
 	/**
 	 * Main function to init RTPSession, send and receive data
 	 */ 
@@ -58,7 +58,27 @@ public:
 	 * Function to create RTP Session to send Video Packets
 	 */ 
     void initVideoRtpSession();
+
 private:
+
+    ost::Mutex          threadMutex;
+    SIPCall* 		vidCall;
+    /** RTP Session to send */
+    ost::RTPSession* 	videoSessionSend;
+    /** RTP Session to receive */
+    ost::RTPSession* 	videoSessionReceive;
+    /** System Semaphore */
+    ost::Semaphore 	semStart;
+    /** Codec for encoding */
+    VideoCodec* 	encodeCodec;
+    /** Codec for decoding */
+    VideoCodec* 	decodeCodec;
+
+    /** buffer for received Data */
+   char* receiveDataDecoded;
+
+    /** Buffer for Data to send */
+    char* sendDataEncoded;
 
 	/**
 	 * Get the data from V4l, send it to the mixer, encode and send to RTP
@@ -85,26 +105,5 @@ private:
 	 */
 	void unloadCodec(enum CodecID id,int type);
 
-private:
-
-	
-    ost::Mutex          threadMutex;
-    SIPCall* 			vidCall;
-    /** RTP Session to send */
-    ost::RTPSession* 	videoSessionSend;
-    /** RTP Session to receive */
-    ost::RTPSession* 	videoSessionReceive;
-    /** System Semaphore */
-    ost::Semaphore 		start;
-    /** Codec for encoding */
-    VideoCodec* 		encodeCodec;
-    /** Codec for decoding */
-    VideoCodec* 		decodeCodec;
-
-	/** buffer for received Data */
-	char* receiveDataDecoded;
-
-	/** Buffer for Data to send */
-	char* sendDataEncoded;
 };
 #endif //VIDEORTPRTX_H
