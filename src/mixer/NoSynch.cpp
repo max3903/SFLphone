@@ -45,7 +45,6 @@ void NoSynch::stop()
   Active=false;
   while(!OkToKill);
   ptracesfl("NoSynch - stop(): Killing Thread now!",MT_INFO,true);
-  terminate();
 }
 
 NoSynch::~NoSynch()

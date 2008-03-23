@@ -8,7 +8,7 @@
 /*!
  * This class overloads the class AudioOuput to send the ouput directly to the sound device. This class is bound to change in a short future.
  */
-class LocalAudioOuput : public AudioOuput {
+class LocalAudioOuput : public AudioOutput {
 public:
 
 	//! Constructor

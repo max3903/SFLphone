@@ -4,7 +4,7 @@
 #include "../tracePrintSFL.h"
 
 
-int AudioOuput::fetchData(short *data)
+int AudioOutput::fetchData(short *data)
 { 
   if (buffer!=NULL && data!=NULL)
   {
@@ -23,7 +23,7 @@ int AudioOuput::fetchData(short *data)
   }
 }
 
-void AudioOuput::putData(short * data, int size)
+void AudioOutput::putData(short * data, int size)
 { 
   if (data!=NULL && size>0)
   {
@@ -40,7 +40,7 @@ void AudioOuput::putData(short * data, int size)
     ptracesfl("AudioOuput - putData(): Erreur parametre",MT_ERROR,true);
 }
 
-AudioOuput::AudioOuput()
+AudioOutput::AudioOutput()
 {
   ptracesfl("AudioOuput - AudioOuput(): Creation de l'objet",MT_INFO,true);
   sem_init(&semaphore,0,1);
@@ -48,7 +48,7 @@ AudioOuput::AudioOuput()
   sizeBuffer=0;
 }
 
-AudioOuput::~AudioOuput()
+AudioOutput::~AudioOutput()
 {
   ptracesfl("AudioOuput - ~AudioOuput(): Destruction de l'objet",MT_INFO,true);
   if (buffer!=NULL){
@@ -59,12 +59,12 @@ AudioOuput::~AudioOuput()
 }
 
 // DEPRECIATED !!!!!
-int AudioOuput::fetchData(char* data)
+int AudioOutput::fetchData(char* data)
 {
   return 0; 
 }
 // DEPRECIATED !!!!!
-void AudioOuput::putData(char * data, int size)
+void AudioOutput::putData(char * data, int size)
 { 
   
 }

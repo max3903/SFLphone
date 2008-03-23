@@ -9,20 +9,20 @@
 /*!
  * This class acts as an Audio output buffer. It implements the OutputStream interface
  */
-class AudioOuput : public OutputStream {
+class AudioOutput : public OutputStream {
 public:
 
 	//! Default constructor
 	/*!
 	 * Initialises the internal buffer
 	 */
-    AudioOuput();
+    AudioOutput();
 
     //! Destructor
     /*!
      * Cleanly diposes of the buffer
      */
-    ~AudioOuput();
+    ~AudioOutput();
 
     //! Method to get the data contained by the buffer
     /*!
