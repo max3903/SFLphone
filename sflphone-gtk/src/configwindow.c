@@ -1706,11 +1706,11 @@ create_webcam_tab ()
 	
 	// Set choices of webcam
 	webcamDeviceStore = gtk_list_store_new(2, G_TYPE_STRING, G_TYPE_INT);
-	config_window_fill_webcam_device_list();
+	//config_window_fill_webcam_device_list();
 	webcamDeviceComboBox = gtk_combo_box_new_with_model(GTK_TREE_MODEL(webcamDeviceStore));
-	select_active_webcam_device();
+	//select_active_webcam_device();
   	gtk_label_set_mnemonic_widget(GTK_LABEL(titleLabel), webcamDeviceComboBox);
-	g_signal_connect(G_OBJECT(webcamDeviceComboBox), "changed", G_CALLBACK(select_webcam_device), webcamDeviceComboBox);
+	//g_signal_connect(G_OBJECT(webcamDeviceComboBox), "changed", G_CALLBACK(select_webcam_device), webcamDeviceComboBox);
 	
   	// Set rendering
 	deviceRenderer = gtk_cell_renderer_text_new();
@@ -1793,11 +1793,11 @@ create_webcam_tab ()
     gtk_widget_show(resolutionLabel);
     
     resolutionStore = gtk_list_store_new(2, G_TYPE_STRING, G_TYPE_INT);
-	config_window_fill_resolution_list();
+	//config_window_fill_resolution_list();
 	resolutionComboBox = gtk_combo_box_new_with_model(GTK_TREE_MODEL(resolutionStore));
-	select_active_resolution();
+	//select_active_resolution();
   	gtk_label_set_mnemonic_widget(GTK_LABEL(resolutionLabel), resolutionComboBox);
-	g_signal_connect(G_OBJECT(resolutionComboBox), "changed", G_CALLBACK(select_webcam_device), resolutionComboBox);
+	//g_signal_connect(G_OBJECT(resolutionComboBox), "changed", G_CALLBACK(select_webcam_device), resolutionComboBox);
 	
 	resolutionRenderer = gtk_cell_renderer_text_new();
 	gtk_cell_layout_pack_start(GTK_CELL_LAYOUT(resolutionComboBox), resolutionRenderer, TRUE);
