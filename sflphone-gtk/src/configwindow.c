@@ -477,7 +477,7 @@ select_webcam_device(GtkComboBox* comboBox, gpointer data)
 		gtk_combo_box_get_active_iter(comboBox, &iter);
 		gtk_tree_model_get(model, &iter, 1, &deviceIndex, -1);
 		
-		dbus_set_audio_input_device(deviceIndex);
+		dbus_set_webcam_device(deviceIndex);
 	}
 }
 
@@ -487,7 +487,22 @@ select_webcam_device(GtkComboBox* comboBox, gpointer data)
 void
 config_window_fill_webcam_device_list()
 {
-	// \todo
+	GtkTreeIter iter;
+	gchar** list;
+	gchar** webcamDevice;
+	int index ;
+	gtk_list_store_clear(webcamDeviceStore);
+	
+	// Call dbus to retrieve list
+	list = dbus_get_webcam_device_list();
+	
+	// For each device name included in list
+	for(webcamDevice = list; *list; list++)
+	{
+		index = dbus_get_webcam_device_index( *list );
+		gtk_list_store_append(webcamDeviceStore, &iter);
+		gtk_list_store_set(webcamDeviceStore, &iter, 0, *list, 1, index, -1);
+	}
 }
 
 /**
@@ -496,7 +511,55 @@ config_window_fill_webcam_device_list()
 void
 select_active_webcam_device()
 {
-	// \todo
+	GtkTreeModel* model;
+	GtkTreeIter iter;
+	gchar** device;
+	int currentDeviceIndex;
+	int deviceIndex;
+
+	// Select active webcam device on server
+	device = dbus_get_current_webcam_device_index();
+	currentDeviceIndex = atoi(device[1]);
+	model = gtk_combo_box_get_model(GTK_COMBO_BOX(webcamDeviceComboBox));
+	
+	// Find the currently set webcam device
+	gtk_tree_model_get_iter_first(model, &iter);
+	do {
+		gtk_tree_model_get(model, &iter, 1, &deviceIndex, -1);
+		if(deviceIndex == currentDeviceIndex)
+		{
+			// Set current iteration the active one
+			gtk_combo_box_set_active_iter(GTK_COMBO_BOX(webcamDeviceComboBox), &iter);
+			return;
+		}
+	} while(gtk_tree_model_iter_next(model, &iter));
+
+	// No index was found, select first one
+	g_print("Warning : No active webcam device found");
+	gtk_combo_box_set_active(GTK_COMBO_BOX(webcamDeviceComboBox), 0);
+}
+
+/**
+ * Set the webcam device on the server with its index
+ */
+static void
+select_resolution(GtkComboBox* comboBox, gpointer data)
+{
+	GtkTreeModel* model;
+	GtkTreeIter iter;
+	int comboBoxIndex;
+	int resolutionIndex;
+	
+	comboBoxIndex = gtk_combo_box_get_active(comboBox);
+	
+	if(comboBoxIndex >= 0)
+	{
+		model = gtk_combo_box_get_model(comboBox);
+		gtk_combo_box_get_active_iter(comboBox, &iter);
+		gtk_tree_model_get(model, &iter, 1, &resolutionIndex, -1);
+		
+		dbus_set_resolution(resolutionIndex);
+	}
 }
 
 /**
@@ -505,7 +568,22 @@ select_active_webcam_device()
 void
 config_window_fill_resolution_list()
 {
-	// \todo
+	GtkTreeIter iter;
+	gchar** list;
+	gchar** resolution;
+	int index ;
+	gtk_list_store_clear(resolutionStore);
+	
+	// Call dbus to retrieve list
+	list = dbus_get_resolution_list();
+	
+	// For each resolution included in list
+	for(resolution = list; *list; list++)
+	{
+		index = dbus_get_resolution_index( *list );
+		gtk_list_store_append(resolutionStore, &iter);
+		gtk_list_store_set(resolutionStore, &iter, 0, *list, 1, index, -1);
+	}
 }
 
 /**
@@ -514,7 +592,32 @@ config_window_fill_resolution_list()
 void
 select_active_resolution()
 {
-	// \todo
+	GtkTreeModel* model;
+	GtkTreeIter iter;
+	gchar** resolution;
+	int currentResolutionIndex;
+	int resolutionIndex;
+
+	// Select active resolution on server
+	resolution = dbus_get_current_resolution_index();
+	currentResolutionIndex = atoi(resolution[1]);
+	model = gtk_combo_box_get_model(GTK_COMBO_BOX(resolutionComboBox));
+	
+	// Find the currently set resolution
+	gtk_tree_model_get_iter_first(model, &iter);
+	do {
+		gtk_tree_model_get(model, &iter, 1, &resolutionIndex, -1);
+		if(resolutionIndex == currentResolutionIndex)
+		{
+			// Set current iteration the active one
+			gtk_combo_box_set_active_iter(GTK_COMBO_BOX(resolutionComboBox), &iter);
+			return;
+		}
+	} while(gtk_tree_model_iter_next(model, &iter));
+
+	// No index was found, select first one
+	g_print("Warning : No active webcam device found");
+	gtk_combo_box_set_active(GTK_COMBO_BOX(resolutionComboBox), 0);
 }
 
 /**
