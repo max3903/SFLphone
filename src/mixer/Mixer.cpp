@@ -63,7 +63,7 @@ void Mixer::init(Tmixer type, vector<InputStreams*> inputs, OutputStream* audioO
 
 void Mixer::start()
 {
-  audioTranscoder->start();
+ // audioTranscoder->run();
   videoTranscoder->start();
   for(int i=0; i<synchManagers.size();i++)
   {

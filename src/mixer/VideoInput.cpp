@@ -12,9 +12,11 @@ void VideoInput::putData(char * data, int size, int leTemps)
     ptracesfl("VideoInput - putData(): Demande semaphore",MT_INFO,true);
     sem_wait(&semaphore);
     ptracesfl("VideoInput - putData(): Zone Critique",MT_INFO,true);
+    if( buffer != NULL )
+    	delete buffer;
     buffer = new char[size];
     infoTemps = new TimeInfo(leTemps);
-    memcpy(data,buffer,size);
+    memcpy(buffer, data,size);
     sizeBuffer=size;
     sem_post(&semaphore);
     ptracesfl("VideoInput - putData(): Sortie Zone Critique",MT_INFO,true);
@@ -30,7 +32,7 @@ int VideoInput::fetchData(char* data)
     ptracesfl("VideoInput - fetchData(): Demande semaphore",MT_INFO,true);
     sem_wait(&semaphore);
     ptracesfl("VideoInput - fetchData(): Zone Critique",MT_INFO,true);
-    memcpy(buffer,data,sizeBuffer);
+    memcpy(data, buffer,sizeBuffer);
     sem_post(&semaphore);
     ptracesfl("VideoInput - fetchData(): Sortie Zone Critique",MT_INFO,true);
     return 0;

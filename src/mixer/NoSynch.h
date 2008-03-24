@@ -21,7 +21,7 @@ public:
     /*!
      * Terminates the thread, you can also call the terminate method explicitly
      */
-    ~NoSynch();
+    virtual ~NoSynch();
 
     //! Thread main method
 	/*!
