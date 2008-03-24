@@ -576,6 +576,12 @@ public:
 	void setColour( const int value );
 	std::vector<std::string> getWebcamDeviceList(  );
 	void setWebcamDevice( const int index );
+	std::vector< std::string > getCurrentWebcamDeviceIndex(  );
+    int getWebcamDeviceIndex( const std::string name );
+    std::vector< std::string > getResolutionList(  );
+    void setResolution( const int index );
+    std::vector< std::string > getCurrentResolutionIndex(  );
+    int getResolutionIndex( const std::string name );
 
 private:
  /**

@@ -63,6 +63,12 @@ public:
         register_method(ConfigurationManager, setColour, _setColour_stub);
         register_method(ConfigurationManager, getWebcamDeviceList, _getWebcamDeviceList_stub);
         register_method(ConfigurationManager, setWebcamDevice, _setWebcamDevice_stub);
+        register_method(ConfigurationManager, getCurrentWebcamDeviceIndex, _getCurrentWebcamDeviceIndex_stub);
+        register_method(ConfigurationManager, getWebcamDeviceIndex, _getWebcamDeviceIndex_stub);
+        register_method(ConfigurationManager, getResolutionList, _getResolutionList_stub);
+        register_method(ConfigurationManager, setResolution, _setResolution_stub);
+        register_method(ConfigurationManager, getCurrentResolutionIndex, _getCurrentResolutionIndex_stub);
+        register_method(ConfigurationManager, getResolutionIndex, _getResolutionIndex_stub);
         register_method(ConfigurationManager, isIax2Enabled, _isIax2Enabled_stub);
     }
 
@@ -296,6 +302,38 @@ public:
             { "index", "i", true },
             { 0, 0, 0 }
         };
+        static ::DBus::IntrospectedArgument getCurrentWebcamDeviceIndex_args[] = 
+        {
+            { "list", "as", false },
+            { 0, 0, 0 }
+        };
+        static ::DBus::IntrospectedArgument getWebcamDeviceIndex_args[] = 
+        {
+            { "name", "s", true },
+            { "index", "i", false },
+            { 0, 0, 0 }
+        };
+        static ::DBus::IntrospectedArgument getResolutionList_args[] = 
+        {
+            { "list", "as", false },
+            { 0, 0, 0 }
+        };
+        static ::DBus::IntrospectedArgument setResolution_args[] = 
+        {
+            { "index", "i", true },
+            { 0, 0, 0 }
+        };
+        static ::DBus::IntrospectedArgument getCurrentResolutionIndex_args[] = 
+        {
+            { "list", "as", false },
+            { 0, 0, 0 }
+        };
+        static ::DBus::IntrospectedArgument getResolutionIndex_args[] = 
+        {
+            { "name", "s", true },
+            { "index", "i", false },
+            { 0, 0, 0 }
+        };
         static ::DBus::IntrospectedArgument isIax2Enabled_args[] = 
         {
             { "res", "i", false },
@@ -361,6 +399,12 @@ public:
             { "setColour", setColour_args },
             { "getWebcamDeviceList", getWebcamDeviceList_args },
             { "setWebcamDevice", setWebcamDevice_args },
+            { "getCurrentWebcamDeviceIndex", getCurrentWebcamDeviceIndex_args },
+            { "getWebcamDeviceIndex", getWebcamDeviceIndex_args },
+            { "getResolutionList", getResolutionList_args },
+            { "setResolution", setResolution_args },
+            { "getCurrentResolutionIndex", getCurrentResolutionIndex_args },
+            { "getResolutionIndex", getResolutionIndex_args },
             { "isIax2Enabled", isIax2Enabled_args },
             { 0, 0 }
         };
@@ -439,6 +483,12 @@ public:
     virtual void setColour( const ::DBus::Int32& value ) = 0;
     virtual std::vector< ::DBus::String > getWebcamDeviceList(  ) = 0;
     virtual void setWebcamDevice( const ::DBus::Int32& index ) = 0;
+    virtual std::vector< ::DBus::String > getCurrentWebcamDeviceIndex(  ) = 0;
+    virtual ::DBus::Int32 getWebcamDeviceIndex( const ::DBus::String& name ) = 0;
+    virtual std::vector< ::DBus::String > getResolutionList(  ) = 0;
+    virtual void setResolution( const ::DBus::Int32& index ) = 0;
+    virtual std::vector< ::DBus::String > getCurrentResolutionIndex(  ) = 0;
+    virtual ::DBus::Int32 getResolutionIndex( const ::DBus::String& name ) = 0;
     virtual ::DBus::Int32 isIax2Enabled(  ) = 0;
 
 public:
@@ -907,6 +957,67 @@ private:
         ::DBus::Int32 argin1; ri >> argin1;
         setWebcamDevice(argin1);
         ::DBus::ReturnMessage reply(call);
+        return reply;
+    }
+    ::DBus::Message _getCurrentWebcamDeviceIndex_stub( const ::DBus::CallMessage& call )
+    {
+        ::DBus::MessageIter ri = call.reader();
+
+        std::vector< ::DBus::String > argout1 = getCurrentWebcamDeviceIndex();
+        ::DBus::ReturnMessage reply(call);
+        ::DBus::MessageIter wi = reply.writer();
+        wi << argout1;
+        return reply;
+    }
+    ::DBus::Message _getWebcamDeviceIndex_stub( const ::DBus::CallMessage& call )
+    {
+        ::DBus::MessageIter ri = call.reader();
+
+        ::DBus::String argin1; ri >> argin1;
+        ::DBus::Int32 argout1 = getWebcamDeviceIndex(argin1);
+        ::DBus::ReturnMessage reply(call);
+        ::DBus::MessageIter wi = reply.writer();
+        wi << argout1;
+        return reply;
+    }
+    ::DBus::Message _getResolutionList_stub( const ::DBus::CallMessage& call )
+    {
+        ::DBus::MessageIter ri = call.reader();
+
+        std::vector< ::DBus::String > argout1 = getResolutionList();
+        ::DBus::ReturnMessage reply(call);
+        ::DBus::MessageIter wi = reply.writer();
+        wi << argout1;
+        return reply;
+    }
+    ::DBus::Message _setResolution_stub( const ::DBus::CallMessage& call )
+    {
+        ::DBus::MessageIter ri = call.reader();
+
+        ::DBus::Int32 argin1; ri >> argin1;
+        setResolution(argin1);
+        ::DBus::ReturnMessage reply(call);
+        return reply;
+    }
+    ::DBus::Message _getCurrentResolutionIndex_stub( const ::DBus::CallMessage& call )
+    {
+        ::DBus::MessageIter ri = call.reader();
+
+        std::vector< ::DBus::String > argout1 = getCurrentResolutionIndex();
+        ::DBus::ReturnMessage reply(call);
+        ::DBus::MessageIter wi = reply.writer();
+        wi << argout1;
+        return reply;
+    }
+    ::DBus::Message _getResolutionIndex_stub( const ::DBus::CallMessage& call )
+    {
+        ::DBus::MessageIter ri = call.reader();
+
+        ::DBus::String argin1; ri >> argin1;
+        ::DBus::Int32 argout1 = getResolutionIndex(argin1);
+        ::DBus::ReturnMessage reply(call);
+        ::DBus::MessageIter wi = reply.writer();
+        wi << argout1;
         return reply;
     }
     ::DBus::Message _isIax2Enabled_stub( const ::DBus::CallMessage& call )
