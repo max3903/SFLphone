@@ -1671,7 +1671,7 @@ create_webcam_tab ()
 	GtkWidget *brightnessHScale, *contrastHScale, *colourHScale;
 	GtkObject *brightnessAdjustment, *contrastAdjustment, *colourAdjustment;
 	
-	//GtkWidget *drawingSpace;
+	GtkWidget *drawingSpace;
 	
 	
 	GtkCellRenderer *deviceRenderer, *resolutionRenderer;
@@ -1806,9 +1806,9 @@ create_webcam_tab ()
 	gtk_widget_show(resolutionComboBox);
 	
 	// \todo Add an OpenGL widget to show the local video rendering
-    //drawingSpace= createGLWidget();
-    //gtk_box_pack_start(GTK_BOX(settingsHBox), drawingSpace, FALSE, FALSE, 0);
-    //gtk_widget_show(drawingSpace);
+    drawingSpace= createGLWidget();
+    gtk_box_pack_start(GTK_BOX(settingsHBox), drawingSpace, FALSE, FALSE, 0);
+    gtk_widget_show(drawingSpace);
 	
 	g_signal_connect (G_OBJECT (colourHScale), "format-value", G_CALLBACK (format_percentage_scale), NULL); 
 	g_signal_connect (G_OBJECT (brightnessHScale), "format-value", G_CALLBACK (format_percentage_scale), NULL); 
