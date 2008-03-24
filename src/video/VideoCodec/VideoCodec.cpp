@@ -19,14 +19,14 @@
 #include "VideoCodec.h"
 
 
-int VideoCodec::videoEncode(int width, int height, uint8_t* buf, unsigned int size)
+int VideoCodec::videoDecode(uint8_t *in_buf,uint8_t* out_buf);
 {
 
 
 	return 0;
 	}
 	
-int VideoCodec::videoDecode(uint8_t *in_buf, int width, int height, uint8_t* out_buf  )
+int VideoCodec::videoEncode(uint8_t *in_buf,uint8_t* out_buf
 {
 
 	return 0;
@@ -37,7 +37,7 @@ void VideoCodec::init(){
 	//Get codec to encode decode
 	
 	//Getting Basic AVCodecContext settings from Codec Descriptor
-	videoDesc->getInstance();
+	videoDesc = VideoCodecDescriptor::getInstance();
 	codecCtx = videoDesc->getCodecContext(Codec);
 	
 	//get webcam information to encode: buffer adress, size etc...

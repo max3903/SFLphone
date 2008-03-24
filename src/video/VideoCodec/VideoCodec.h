@@ -52,21 +52,18 @@ public:
 	
      * Function to decode video information
      * @param in_buf the input buffer
-     * @param width of the video frame
-     * @param height of the video frame
      * @param out_buf the output buffer
      * 
      */
-     int videoDecode(uint8_t *in_buf, int width, int height, uint8_t* out_buf );
+     int videoDecode(uint8_t *in_buf,uint8_t* out_buf);
 /**
      * Function to encode video information
-     * @param width of the video frame
-     * @param height of the video frame
      * @param buf the buffer to encode
-     * @param size buffer size
+     * @param in_buf the input buffer
+     * @param out_buf the output buffer
      * 
      */
-    int videoEncode(int width, int height, uint8_t* buf, unsigned int size);
+    int videoEncode(uint8_t *in_buf,uint8_t* out_buf);
     
     
 private:
