@@ -92,8 +92,8 @@ int dbus_get_webcam_device_index(const gchar* name);
 //Resolution list
 gchar** dbus_get_resolution_list();
 void dbus_set_resolution(const int index);
+int dbus_get_resolution_index(const gchar* name);
 gchar** dbus_get_current_resolution_index();
-int dbus_get_webcam_device_index(const gchar* name);
 
 // Audio devices related methods
 gchar** dbus_get_input_audio_plugin_list();
