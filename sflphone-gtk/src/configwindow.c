@@ -1509,14 +1509,6 @@ create_video_tab ()
 	gtk_widget_show(videoBox);	
 	gtk_container_add(videoFrame,videoBox);
 	
-	activateCheckBox = gtk_check_button_new_with_label("Always ask before activating the video capture");
-	gtk_box_pack_start(GTK_BOX(videoBox), activateCheckBox, FALSE, FALSE, 0);
-	gtk_widget_show(activateCheckBox);
-	
-	cancelCheckBox = gtk_check_button_new_with_label("Always ask before cancelling the video capture");
-	gtk_box_pack_start(GTK_BOX(videoBox), cancelCheckBox, FALSE, FALSE, 0);
-	gtk_widget_show(cancelCheckBox);
-	
 	//Bitrate slider
 	bitrateLabel = gtk_label_new(NULL);
     gtk_label_set_markup(GTK_LABEL(bitrateLabel), "<b>Bitrate :</b>");
@@ -1530,6 +1522,14 @@ create_video_tab ()
     bitrateHScale = gtk_hscale_new(GTK_ADJUSTMENT (bitrateAdjustment));
     gtk_box_pack_start(GTK_BOX(videoBox), bitrateHScale, FALSE, FALSE, 0);
 	gtk_widget_show(bitrateHScale);
+	
+	activateCheckBox = gtk_check_button_new_with_label("Always ask before activating the video capture");
+	gtk_box_pack_start(GTK_BOX(videoBox), activateCheckBox, FALSE, FALSE, 0);
+	gtk_widget_show(activateCheckBox);
+	
+	cancelCheckBox = gtk_check_button_new_with_label("Always ask before cancelling the video capture");
+	gtk_box_pack_start(GTK_BOX(videoBox), cancelCheckBox, FALSE, FALSE, 0);
+	gtk_widget_show(cancelCheckBox);
 
 	// Show all
 	gtk_widget_show_all(ret);
@@ -1622,24 +1622,21 @@ create_webcam_tab ()
 	gtk_table_attach(GTK_TABLE(deviceTable), refreshButton, 3, 4, 0, 3, GTK_EXPAND, GTK_EXPAND, 0, 0);
 	
     // Settings section
-    settingsFrame = gtk_frame_new("Settings");
-	gtk_box_pack_start(GTK_BOX(ret), settingsFrame, FALSE, FALSE, 0);
-	gtk_widget_show(settingsFrame);
-      
+	
     settingsHBox = gtk_hbox_new (TRUE, 10);
-    gtk_box_pack_start (GTK_BOX (settingsFrame), settingsHBox, TRUE, FALSE, 0);
-    gtk_container_add(settingsFrame,settingsHBox);
+    gtk_box_pack_start (GTK_BOX (ret), settingsHBox, TRUE, TRUE, 0);
     
-    //settingsVBox = gtk_vbox_new (FALSE, 10);
-    //gtk_container_set_border_width (GTK_CONTAINER (settingsVBox), 10);
-    //gtk_box_pack_start (GTK_BOX (settingsHBox), settingsVBox, TRUE, TRUE, 0);
-    //gtk_widget_show (settingsVBox);
+    settingsFrame = gtk_frame_new("Settings");
+	gtk_box_pack_start(GTK_BOX(settingsHBox), settingsFrame, TRUE, TRUE, 0);
+	gtk_widget_show(settingsFrame);
     
     settingsTable = gtk_table_new(8,1,TRUE);
     gtk_table_set_col_spacing(GTK_TABLE(settingsTable), 0, 40);
 	gtk_box_set_spacing(GTK_BOX(settingsTable), 0);
-	gtk_box_pack_start(GTK_BOX(settingsHBox), settingsTable, TRUE, TRUE, 0);
+	gtk_box_pack_start(GTK_BOX(settingsFrame), settingsTable, TRUE, TRUE, 0);
 	gtk_widget_show(settingsTable);
+	gtk_container_add(settingsFrame,settingsTable);
+	
     
     //Brightness slider section
     brightnessLabel = gtk_label_new(NULL);
@@ -1707,7 +1704,7 @@ create_webcam_tab ()
 	
 	// \todo Add an OpenGL widget to show the local video rendering
     //drawingSpace= createGLWidget();
-    //gtk_box_pack_start(GTK_BOX(settingsHBox), drawingSpace, TRUE, TRUE, 0);
+    //gtk_box_pack_start(GTK_BOX(settingsHBox), drawingSpace, FALSE, FALSE, 0);
     //gtk_widget_show(drawingSpace);
 	
 	g_signal_connect (G_OBJECT (colourHScale), "format-value", G_CALLBACK (format_percentage_scale), NULL); 
