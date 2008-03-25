@@ -1,5 +1,6 @@
 /*
  *  Copyright (C) 2006-2007 Savoir-Faire Linux inc.
+ *  Author: Alexis S. Bourrelle <bourrelle@polymtl.ca>
  *  Author: Jean-Francois Blanchard-Dionne <jean-francois.blanchard-dionne@polymtl.ca>
  *                                                                              
  *  This program is free software; you can redistribute it and/or modify
@@ -17,6 +18,7 @@
  *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 #include "VideoRtpRTX.h"
+
 
 
 VideoRtpRTX::VideoRtpRTX(SIPCall *sipcall, bool sym)
@@ -43,7 +45,7 @@ VideoRtpRTX::~VideoRtpRTX()
     //_debugException("! ARTP: Thread destructor didn't terminate correctly");
     throw;
   }
-  //_debug("terminate audiortprtx ended...\n");
+  //_debug("terminate videortprtx ended...\n");
   vidCall = 0;
 
    //TODO: Symmetric session
@@ -53,29 +55,85 @@ VideoRtpRTX::~VideoRtpRTX()
   delete [] sendDataEncoded; sendDataEncoded = NULL;
   delete [] receiveDataDecoded; receiveDataDecoded = NULL;
 
-  //delete time; time = NULL;
-
 }
 
 
 void VideoRtpRTX::run(){
-	//test Commit
+  	
+  //Getting Basic AVCodecContext settings from Video Call
+  codecCtx = vidCall->getVideoCodecContext();
+
+  // Loading codecs
+  loadCodec(codecCtx->codec_id,0);
+  loadCodec(codecCtx->codec_id,1);
+  
+  initBuffers();
+  int step;
+
+  try {
+    // Init the session
+    initVideoRtpSession();
+    step = (int) ( codecCtx->frame_size * codecCtx->sample_rate / 1000 ); // TODO: à vérifier!!!!
+    
+    // start running the packet queue scheduler.
+    videoSessionReceive->startRunning();
+    videoSessionSend->startRunning();
+
+    int timestamp = 0; // pour V4L
+    TimerPort::setTimer(codecCtx->frame_size); // TODO: à vérifier si nescessaire
+
+    //_start.post();
+    // TODO: MIXER START
+    // _debug("- ARTP Action: Start\n");
+    while (true) { // a changer jimagine...
+
+      ////////////////////////////
+      // Send session
+      ////////////////////////////
+      sendSession(timestamp);
+      timestamp += step;
+
+      ////////////////////////////
+      // Recv session
+      ////////////////////////////
+      receiveSession();
+
+      // Let's wait for the next transmit cycle
+      Thread::sleep(TimerPort::getTimer());
+      TimerPort::incTimer(codecCtx->frame_size); // 'frameSize' ms
+    }
+    //unloadCodec();
+    //_debug("stop stream for audiortp loop\n");
+    // TODO: MIXER STOP
+  } catch(std::exception &e) {
+    //_start.post();
+    _debug("! ARTP: Stop %s\n", e.what());
+    throw;
+  } catch(...) {
+    //_start.post();
+    _debugException("* ARTP Action: Stop");
+    throw;
+  }
 }
 	
-void VideoRtpRTX::initBuffers(){}
+void VideoRtpRTX::initBuffers()
+{
+  // Input & output for the mixers TODO: Il faut les associer au mixer!!!
+    localVideoInput = new VideoInput();
+    remoteVideoInput = new VideoInput();
+    localVideoOutput = new VideoOutput();
+    remoteVideoOutput = new VideoOutput();
+
+  // TODO: à faire
+  // sendDataDecoded = new ...
+  // sendDataEncoded = new ...
+}
 	
 void VideoRtpRTX::initVideoRtpSession()
 {
   
   try {
     if (vidCall == 0) { return; }
-
-    //Getting Basic AVCodecContext settings from Video Call
-    codecCtx = vidCall->getVideoCodecContext();
-   
-    // TODO: à vérifier si c'est les mêmes codec tout le temps... V4L pour decode?
-    encodeCodec = new VideoCodec(avcodec_find_encoder(codecCtx->codec_id));
-    decodeCodec = new VideoCodec(avcodec_find_decoder(codecCtx->codec_id));
 
     // TODO: J'imagine qu'il ne faudrait pas le hardcoder, checker CodecContext...
     codecClockRate = 90000;
@@ -127,74 +185,90 @@ void VideoRtpRTX::sendSession(int timestamp)
     return; 
   }
  
-  //VideoDeviceManager::TCommand test(VideoDeviceManager::CAPTURE);
-  Command* cmdCapture = VideoDevMng->getCommand(VideoDeviceManager::CAPTURE); // enum....
-  //unsigned char* test =  cmdCapture->GetCapture();
+  try{
+  
+  // Get Data from V4l, send it to the mixer input
+  Command* cmdCapture = VideoDevMng->getCommand(VideoDeviceManager::CAPTURE);
+  char* charFromV4L; // =  cmdCapture->GetCapture(); A FAIRE!!!
+  int sizeV4L; // A prendre de quelque part!
+  // Send it to the mixer
+  localVideoInput->putData(charFromV4L,sizeV4L,timestamp);
 
-  //TODO: Symmetric session
-      //videoSessionSend->putData(timestamp, _sendDataEncoded, compSize);
+  // Encode it TODO: Verifier largeur, longeur
+  encodeCodec->videoEncode(codecCtx->width,codecCtx->height,(uint8_t*)charFromV4L,sizeV4L);
 
+  //TODO: sendDataEncoded = ???????
 
-  /*
-  try {
-    int16* toSIP = NULL;
+  // Send it
+  //TODO: ajouter Symmetric session
+      videoSessionSend->putData(timestamp, sendDataEncoded, sizeV4L);
 
-    timestamp += time->getSecond();
-    if (_ca==0) { _debug(" !ARTP: No call associated (mic)\n"); return; } // no call, so we do nothing
-    AudioLayer* audiolayer = Manager::instance().getAudioDriver();
-    if (!audiolayer) { _debug(" !ARTP: No audiolayer available for mic\n"); return; }
-
-    if (!_audiocodec) { _debug(" !ARTP: No audiocodec available for mic\n"); return; }
-
-    // we have to get 20ms of data from the mic *20/1000 = /50
-    int maxBytesToGet = _layerSampleRate * _layerFrameSize * sizeof(SFLDataFormat) / 1000;
-    // available bytes inside ringbuffer
-    int availBytesFromMic = audiolayer->canGetMic();
-    //printf("%i \n", availBytesFromMic);
-
-    // take the lowest
-    int bytesAvail = (availBytesFromMic < maxBytesToGet) ? availBytesFromMic : maxBytesToGet;
-    //printf("%i\n", bytesAvail);
-    // Get bytes from micRingBuffer to data_from_mic
-    int nbSample = audiolayer->getMic(_dataAudioLayer, bytesAvail) / sizeof(SFLDataFormat);
-    int nb_sample_up = nbSample;
-    int nbSamplesMax = _layerFrameSize * _audiocodec->getClockRate() / 1000;
-
-    nbSample = reSampleData(_audiocodec->getClockRate(), nb_sample_up, DOWN_SAMPLING);	
-
-    toSIP = _intBufferDown;
-
-    if ( nbSample < nbSamplesMax - 10 ) { // if only 10 is missing, it's ok
-      // fill end with 0...
-      //_debug("begin: %p, nbSample: %d\n", toSIP, nbSample);
-      memset(toSIP + nbSample, 0, (nbSamplesMax-nbSample)*sizeof(int16));
-      nbSample = nbSamplesMax;
-    }
-    // debug - dump sound in a file
-    //_debug("AR: Nb sample: %d int, [0]=%d [1]=%d [2]=%d\n", nbSample, toSIP[0], toSIP[1], toSIP[2]);
-    // for the mono: range = 0 to RTP_FRAME2SEND * sizeof(int16)
-    // codecEncode(char *dest, int16* src, size in bytes of the src)
-    int compSize = _audiocodec->codecEncode(_sendDataEncoded, toSIP, nbSample*sizeof(int16));
-    //printf("jusqu'ici tout vas bien\n");
-
-    // encode divise by two
-    // Send encoded audio sample over the network
-    if (compSize > nbSamplesMax) { _debug("! ARTP: %d should be %d\n", compSize, nbSamplesMax);}
-    if (!_sym) {
-      _sessionSend->putData(timestamp, _sendDataEncoded, compSize);
-    } else {
-      _session->putData(timestamp, _sendDataEncoded, compSize);
-    }
-    toSIP = NULL;
   } catch(...) {
     _debugException("! ARTP: sending failed");
     throw;
-  } */
+  }
 }
 
 		
-void VideoRtpRTX::receiveSession(){}
+void VideoRtpRTX::receiveSession()
+{
+  
+  // no call, so we do nothing
+  if (vidCall==0) { 
+    _debug(" !ARTP: No call associated (video)\n");
+    return; 
+  }
+  
+  try {
+    const ost::AppDataUnit* adu = NULL;
 
-void VideoRtpRTX::loadCodec(enum CodecID id,int type){}
+    //TODO: ajouter Symmetric session
+      adu = videoSessionReceive->getData(videoSessionReceive->getFirstTimestamp());
 
-void VideoRtpRTX::unloadCodec(enum CodecID id,int type){}
+    if (adu == NULL) {
+      //_debug("No RTP video stream\n");
+      return;
+    }
+
+    int payload = adu->getType(); // codec type
+    char* data  = (char*)adu->getData(); // data in char
+    unsigned int size = adu->getSize(); // size in char
+    int timestamp=0; //TODO: a lire sur le paquet ! important...
+
+    // DECODE
+    // A mes yeux il manque les size des buffers sur cet appel.
+    //decodeCodec->videoDecode(data,codecCtx->width,codecCtx->height,...);  //TODO: a faire!!
+
+    // Envoyer dans le input du mixer!
+    remoteVideoInput->putData(data,size,timestamp);
+   
+    delete adu; adu = NULL;
+  } catch(...) {
+    _debugException("! ARTP: receiving failed");
+    throw;
+  }
+
+
+}
+
+void VideoRtpRTX::loadCodec(enum CodecID id,int type)
+{
+  if (type==0)  //decode
+    decodeCodec = new VideoCodec(avcodec_find_decoder(id));
+  else  //encode
+    encodeCodec = new VideoCodec(avcodec_find_encoder(id));
+}
+
+void VideoRtpRTX::unloadCodec(enum CodecID id,int type)
+{
+  if (type==0)  //decode
+  {
+    delete decodeCodec;
+    decodeCodec = NULL;
+  }
+  else  //encode
+  {
+    delete encodeCodec;
+    encodeCodec = NULL;
+  }
+}

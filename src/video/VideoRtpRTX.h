@@ -34,6 +34,8 @@
 #include <ccrtp/rtp.h>
 #include <ffmpeg/avcodec.h>
 #include "V4L/VideoDeviceManager.h"
+#include "../mixer/VideoInput.h"
+#include "../mixer/VideoOutput.h"
 
 class SIPCall; //TODO: pourquoi pas de include SipCall..h????
 /**
@@ -81,6 +83,11 @@ private:
     AVCodecContext*	codecCtx;
     /** Video Device manager **/
     VideoDeviceManager* VideoDevMng;
+    /** Input and Output buffers for the mixers**/
+    VideoInput* localVideoInput;
+    VideoInput* remoteVideoInput;
+    VideoOutput* localVideoOutput;
+    VideoOutput* remoteVideoOutput;
 
     int codecClockRate; // sample rate of the codec we use to encode and decode (most of time 90000HZ)
 
@@ -88,7 +95,7 @@ private:
    char* receiveDataDecoded;
 
     /** Buffer for Data to send */
-    char* sendDataEncoded;
+    unsigned char* sendDataEncoded;
 
 	/**
 	 * Get the data from V4l, send it to the mixer, encode and send to RTP
