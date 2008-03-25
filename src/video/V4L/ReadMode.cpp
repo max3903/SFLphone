@@ -46,19 +46,21 @@ bool ReadMode::stopCapture(int fd){
 unsigned char* ReadMode::capture(VideoDevice* device){
 	
 	char buff[100];
+	v4l2_format* vFormat = device->getVideoFormat();
 
   	ptracesfl( "Begining Read Mode i/o capture:",MT_INFO, CAPTUREMODE_TRACE - 1); 
 	
 	ptracesfl( "Getting image buffer size: ",MT_INFO, CAPTUREMODE_TRACE, false);
-	int imageSize= device->getVideoFormat()->fmt.pix.sizeimage;
+	
+	int imageSize= vFormat->fmt.pix.sizeimage;
 	
     sprintf(buff, "%u\0", imageSize );
 	ptracesfl( buff,MT_NONE, CAPTUREMODE_TRACE);
 		
 	ptracesfl( "Getting width and height of picture: ",MT_INFO, CAPTUREMODE_TRACE, false);
 	
-	int width= device->getVideoFormat()->fmt.pix.width;
-	int height= device->getVideoFormat()->fmt.pix.height;
+	int width= vFormat->fmt.pix.width;
+	int height= vFormat->fmt.pix.height;
 	
     sprintf(buff, "%hd x %hd\0", width, height );
 	ptracesfl( buff,MT_NONE, CAPTUREMODE_TRACE);
@@ -105,6 +107,8 @@ unsigned char* ReadMode::capture(VideoDevice* device){
 	device->getFormat()->convert(raw_data, img_data, width, height);
 	
 	free(raw_data);
+	// free ajouté
+	free(vFormat);
 	
 	ptracesfl( "End of read Mode i/o capture",MT_INFO, CAPTUREMODE_TRACE - 1);
 	
