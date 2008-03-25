@@ -48,6 +48,8 @@
 
 #include "contact/presencestatus.h"
 
+#include "video/V4L/VideoDeviceManager.h"
+
 #ifdef USE_ZEROCONF
 #include "zeroconf/DNSService.h"
 #include "zeroconf/DNSServiceTXTRecord.h"
@@ -135,6 +137,9 @@ void ManagerImpl::init()
   
   // Allocate memory BUG right now
   initMemManager();
+  
+  // Allocate instance of Video Device Manager
+  initVideoDeviceManager();
 
 
   getAudioInputDeviceList();
@@ -175,6 +180,9 @@ void ManagerImpl::terminate()
 	delete _memManager; _memManager = NULL;  
   // \TODO End threads
   // \TODO Probably need to unload video driver too
+  
+   _debug("Unload VideoDeviceManager\n");
+  delete _videoDeviceManager; _videoDeviceManager = NULL; 
 
  _debug("Unload VideoCodecDescriptor\n");
  delete _videoCodecDescriptor; _videoCodecDescriptor = NULL;
@@ -2757,6 +2765,14 @@ ManagerImpl::getVideoDeviceDetails(const int index)
 	std::vector<std::string> v;
 	// \todo get video device details
 	return v;
+}
+
+void ManagerImpl::initVideoDeviceManager(void)
+{
+
+	_videoDeviceManager = VideoDeviceManager::getInstance();
+	ptracesfl("Video Device Manager init",MT_INFO,5,true);
+
 }
 
 void ManagerImpl::initMemManager(void)

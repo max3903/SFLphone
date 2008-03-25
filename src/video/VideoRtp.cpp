@@ -19,8 +19,6 @@
 #include <cstdio>
 #include <cstdlib>
 #include "VideoRtp.h"
-#include "VideoRtpRTX.h"
-
 
 VideoRtp::VideoRtp()
 {
