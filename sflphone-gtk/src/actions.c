@@ -44,7 +44,7 @@ sflphone_notify_voice_mail (guint count)
 	if(count > 0)
 	{
 		gchar * message = g_new0(gchar, 50);
-		g_sprintf(message, "%d new voice mail%s", count, (count > 1? "s" : "")); 
+		g_sprintf(message, _("%d new voice mail%s"), count, (count > 1? "s" : "")); 
 		status_bar_message(message);
 		g_free(message);
 	}
@@ -73,7 +73,7 @@ sflphone_quit ()
 		//call_list_clean(); TODO
 		//account_list_clean()
 		contact_hash_table_clear();
-		display_progress_bar();
+		//display_progress_bar();
 		gtk_main_quit ();
 	}
 	return quit;
@@ -227,6 +227,9 @@ sflphone_pick_up()
 				dbus_transfert (selectedCall);
 				break;
 			case CALL_STATE_CURRENT:
+				sflphone_new_call();
+				break;
+			case CALL_STATE_RINGING:
 				sflphone_new_call();
 				break;
 			default:
