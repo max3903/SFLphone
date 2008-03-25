@@ -135,7 +135,7 @@ void ManagerImpl::init()
   //Initialize Video Codec
   initVideoCodec();
   
-  // Allocate memory BUG right now
+  // Allocate memory right now
   initMemManager();
   
   // Allocate instance of Video Device Manager
@@ -2631,7 +2631,7 @@ bool ManagerImpl::testAccountMap()
 ManagerImpl::initVideoCodec (void)
 {
 	//TODO
-  	_videoCodecDescriptor =  _videoCodecDescriptor->getInstance();
+  	_videoCodecDescriptor =  VideoCodecDescriptor::getInstance();
   	// if the user never set the codec list, use the default configuration
 	if(getConfigString(AUDIO, "ActiveCodecs") == ""){
     	_videoCodecDescriptor->setDefaultOrder();

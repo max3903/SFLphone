@@ -48,10 +48,8 @@
 #include "memmanager/MemManager.h"
 #include "video/V4L/VideoDeviceManager.h"
 
-
 class AudioLayer;
 class CodecDescriptor;
-class VideoCodecDescriptor;
 class GuiFramework;
 class TelephoneTone;
 class VoIPLink;
