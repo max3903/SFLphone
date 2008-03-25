@@ -193,9 +193,6 @@ PKG_CHECK_MODULES(ffmpeg, libavutil libavformat libavcodec >= ${FFPMEG_MIN_VERSI
 SFLPHONE_CFLAGS="$SFLPHONE_CFLAGS $ffmpeg_CFLAGS"
 SFLPHONE_LIBS="$SFLPHONE_LIBS $ffmpeg_LIBS"
 
-# check for libboost (doesn't use pkg-config)
-AC_CHECK_HEADER(boost/tokenizer.hpp, , AC_MSG_ERROR("Unable to find the libboost tokenizer headers; you may need to install the libboost-dev package" ) )
-
 # check for libgsm1 (doesn't use pkg-config)
 dnl Check for libgsm
 AC_ARG_WITH([gsm],

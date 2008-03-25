@@ -31,17 +31,19 @@
 class ContactEntry {
 public:
 	ContactEntry();
-	ContactEntry(std::string contact, std::string type, bool showInCallConsole, bool subscribeToPresence);
+	ContactEntry(std::string contact, std::string text, std::string type, bool showInCallConsole, bool subscribeToPresence);
 	virtual ~ContactEntry();
 	
-	std::string getContact() { return _contact; }
+	std::string getEntryID() { return _entryID; }
+	std::string getText() { return _text; }
 	std::string getType() { return _type; }
 	bool getShownInCallConsole() { return _shownInCallConsole; }
 	bool getSubscribedToPresence() { return _subscribedToPresence; }	
 	
 private:
 	// Attributes used for presence and call console
-	std::string _contact;			// Can be an extension, phone number, url...
+	std::string _entryID;			// Can be an extension, phone number, url...
+	std::string _text;				// Simplified textual representation of ID, can be the same
 	std::string _type;				// Work, mobile, home...
 	bool _shownInCallConsole;		// Contact entry will be shown in call console if true
 	bool _subscribedToPresence;		// Account link will try to subscribe to presence status if true

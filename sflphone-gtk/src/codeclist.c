@@ -126,12 +126,6 @@ codec_list_move_codec_up(guint index)
 		gpointer codec = g_queue_pop_nth(codecQueue, index);
 		g_queue_push_nth(codecQueue, codec, index-1);
 	}
-	
-	// DEBUG
-	int i;
-	printf("\nCodec list\n");
-	for(i=0; i < codecQueue->length; i++)
-		printf("%s\n", codec_list_get_nth(i)->name);
 }
 
 /**
@@ -145,12 +139,6 @@ codec_list_move_codec_down(guint index)
 		gpointer codec = g_queue_pop_nth(codecQueue, index);
 		g_queue_push_nth(codecQueue, codec, index+1);
 	}
-
-	// PRINT
-	int i;
-	printf("\nCodec list\n");
-	for(i=0; i < codecQueue->length; i++)
-		printf("%s\n", codec_list_get_nth(i)->name);
 }
 
 /**

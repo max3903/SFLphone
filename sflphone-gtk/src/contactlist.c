@@ -34,7 +34,6 @@ contact_hash_table_init()
 void
 contact_hash_table_clear_list(void* a, void* b)
 {
-	// Clear function called by GList
 	gchar* key = (gchar*)a;
 	contact_hash_table_clear_contact_list(contact_hash_table_get_contact_list(key));
 }
@@ -169,13 +168,14 @@ contact_entry_t*
 contact_list_new_contact_entry_from_details(gchar* contactEntryID, gchar** contactEntryDetails)
 {
 	contact_entry_t* contactEntry = g_new0(contact_entry_t, 1);
-	contactEntry->_contact = contactEntryID;
-	contactEntry->_type = contactEntryDetails[0];
-	if(strcmp(contactEntryDetails[1], "TRUE") == 0)
+	contactEntry->_entryID = contactEntryID;
+	contactEntry->_text = contactEntryDetails[0];
+	contactEntry->_type = contactEntryDetails[1];
+	if(strcmp(contactEntryDetails[2], "TRUE") == 0)
 		contactEntry->_isShownInConsole = TRUE;
 	else
 		contactEntry->_isShownInConsole = FALSE;
-	if(strcmp(contactEntryDetails[2], "TRUE") == 0)
+	if(strcmp(contactEntryDetails[3], "TRUE") == 0)
 		contactEntry->_isSubscribed = TRUE;
 	else
 		contactEntry->_isSubscribed = FALSE;
@@ -197,7 +197,7 @@ gint
 compare_contact_contactEntryID(gconstpointer a, gconstpointer b)
 {
 	contact_entry_t* contactEntry = (contact_entry_t*)a;
-	if(strcmp(contactEntry->_contact, (gchar*)b) == 0)
+	if(strcmp(contactEntry->_entryID, (gchar*)b) == 0)
 		return 0;
 	else
 		return 1;

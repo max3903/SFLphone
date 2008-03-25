@@ -32,6 +32,7 @@
  * Defines the column of the tree model for each renderer of a row
  */
 enum {
+	CONTACT_WINDOW_ID,							// ID of the account, the contact or the entry
 	CONTACT_WINDOW_CALL_CONSOLE_ACTIVE,			// Toggle renderer active
 	CONTACT_WINDOW_CALL_CONSOLE_INCONSISTENT,	// Toggle renderer inconsistent
 	CONTACT_WINDOW_ICON,						// String of icon
@@ -68,6 +69,7 @@ contact_window_fill_contact_list()
 			// Append the account in the list
 			gtk_tree_store_append(contactTreeStore, &accountIter, NULL);
 			gtk_tree_store_set(contactTreeStore, &accountIter,
+					CONTACT_WINDOW_ID, account->accountID,
 					CONTACT_WINDOW_CALL_CONSOLE_ACTIVE, TRUE,
 					CONTACT_WINDOW_CALL_CONSOLE_INCONSISTENT, TRUE,		// Should be a function to pass all contacts if all selected or not
 					CONTACT_WINDOW_ICON, gdk_pixbuf_new_from_file(CONTACT_WINDOW_ACCOUNT_ICON, NULL),
@@ -86,6 +88,7 @@ contact_window_fill_contact_list()
 				sprintf(fullName, "%s %s", contact->_firstName, contact->_lastName);
 				gtk_tree_store_append(contactTreeStore, &contactIter, &accountIter);
 				gtk_tree_store_set(contactTreeStore, &contactIter,
+						CONTACT_WINDOW_ID, contact->_contactID,
 						CONTACT_WINDOW_CALL_CONSOLE_ACTIVE, TRUE,
 						CONTACT_WINDOW_CALL_CONSOLE_INCONSISTENT, TRUE,		// Should be a function to pass all contacts if all selected or not
 						CONTACT_WINDOW_ICON, gdk_pixbuf_new_from_file(CONTACT_WINDOW_CONTACT_ICON, NULL),
@@ -100,10 +103,11 @@ contact_window_fill_contact_list()
 					// Append the contact entry in the list
 					gtk_tree_store_append(contactTreeStore, &contactEntryIter, &contactIter);
 					gtk_tree_store_set(contactTreeStore, &contactEntryIter,
+							CONTACT_WINDOW_ID, entry->_entryID,					// The contact string is also used as a unique ID
 							CONTACT_WINDOW_CALL_CONSOLE_ACTIVE, entry->_isShownInConsole,
 							CONTACT_WINDOW_CALL_CONSOLE_INCONSISTENT, FALSE,	// Never inconsistent because at bottom level of tree
 							CONTACT_WINDOW_ICON, gdk_pixbuf_new_from_file(CONTACT_WINDOW_ENTRY_ICON, NULL),
-							CONTACT_WINDOW_TEXT, entry->_contact,
+							CONTACT_WINDOW_TEXT, entry->_text,
 							-1);
 				}
 			}
@@ -152,6 +156,7 @@ show_contact_window()
 	
 	// Create tree store with contact entries regrouped by accounts and contacts
 	contactTreeStore = gtk_tree_store_new(COUNT_CONTACT_WINDOW,
+			G_TYPE_STRING,	// ID of the account, contact or entry not shown in tree view
 			G_TYPE_BOOLEAN,	// Shown in call console active property
 			G_TYPE_BOOLEAN,	// Shown in call console inconsistent property
 			GDK_TYPE_PIXBUF,// Icon

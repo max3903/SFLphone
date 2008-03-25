@@ -148,18 +148,30 @@ accounts_changed_cb (DBusGProxy *proxy,
                   void * foo  )
 {
   g_print ("Accounts changed\n");
-  sflphone_fill_account_list();
+  sflphone_fill_account_list(TRUE);
   config_window_fill_account_list();
 }
 
-static void  
-error_alert(DBusGProxy *proxy,
-		  gchar* errMsg,
-		  int err,
-                  void * foo  )
+static void
+contact_entry_presence_changed(DBusGProxy* proxy,
+		const gchar* accountID,
+		const gchar* entryID,
+		const gchar* presence,
+		const gchar* additionalInfo,
+		void* nothing)
 {
-  g_print ("Error notifying : (%s)\n" , errMsg);
-  sflphone_throw_exception( errMsg , err );
+	// TMP
+	g_print("%s : %s is %s\n", accountID, entryID, presence);
+}
+
+static void
+error_alert(DBusGProxy *proxy,
+		gchar* errMsg,
+		int err,
+		void * foo)
+{
+	g_print ("Error notifying : (%s)\n" , errMsg);
+	sflphone_throw_exception( errMsg , err );
 }
 
 gboolean 
@@ -180,8 +192,7 @@ dbus_connect ()
     return FALSE;
   }
 
-  /* Create a proxy object for the "bus driver" (name "org.freedesktop.DBus") */
-  
+  // Create a proxy object for the "bus driver" (name "org.freedesktop.DBus")
   instanceProxy = dbus_g_proxy_new_for_name (connection,
                                      "org.sflphone.SFLphone",
                                      "/org/sflphone/SFLphone/Instance",
@@ -191,10 +202,9 @@ dbus_connect ()
     g_printerr ("Failed to get proxy to Instance\n");
     return FALSE;
   }
-  
   g_print ("DBus connected to Instance\n");
   
-  
+  // Create the call manager proxy
   callManagerProxy = dbus_g_proxy_new_for_name (connection,
                                      "org.sflphone.SFLphone",
                                      "/org/sflphone/SFLphone/CallManager",
@@ -204,8 +214,8 @@ dbus_connect ()
     g_printerr ("Failed to get proxy to CallManagers\n");
     return FALSE;
   }
-  
   g_print ("DBus connected to CallManager\n");
+  
   /* Incoming call */
   dbus_g_object_register_marshaller(g_cclosure_user_marshal_VOID__STRING_STRING_STRING, 
     G_TYPE_NONE, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_INVALID);
@@ -214,7 +224,7 @@ dbus_connect ()
   dbus_g_proxy_connect_signal (callManagerProxy,
     "incomingCall", G_CALLBACK(incoming_call_cb), NULL, NULL);
 
-  /* Register a marshaller for STRING,STRING */
+  /* Function call state changed and register a marshaller for STRING,STRING */
   dbus_g_object_register_marshaller(g_cclosure_user_marshal_VOID__STRING_STRING, 
     G_TYPE_NONE, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_INVALID);
   dbus_g_proxy_add_signal (callManagerProxy, 
@@ -222,6 +232,7 @@ dbus_connect ()
   dbus_g_proxy_connect_signal (callManagerProxy,
     "callStateChanged", G_CALLBACK(call_state_cb), NULL, NULL);
 
+  /* Function voice mail notify and register a marshaller for STRING, INT */
   dbus_g_object_register_marshaller(g_cclosure_user_marshal_VOID__STRING_INT, 
     G_TYPE_NONE, G_TYPE_STRING, G_TYPE_INT, G_TYPE_INVALID);
   dbus_g_proxy_add_signal (callManagerProxy, 
@@ -229,11 +240,13 @@ dbus_connect ()
   dbus_g_proxy_connect_signal (callManagerProxy,
     "voiceMailNotify", G_CALLBACK(voice_mail_cb), NULL, NULL);
   
+  /* Function incoming message */
   dbus_g_proxy_add_signal (callManagerProxy, 
     "incomingMessage", G_TYPE_STRING, G_TYPE_STRING, G_TYPE_INVALID);
   dbus_g_proxy_connect_signal (callManagerProxy,
     "incomingMessage", G_CALLBACK(incoming_message_cb), NULL, NULL);
-    
+  
+  /* Function volume changed and register a marshaller for STRING, DOUBLE */
   dbus_g_object_register_marshaller(g_cclosure_user_marshal_VOID__STRING_DOUBLE, 
     G_TYPE_NONE, G_TYPE_STRING, G_TYPE_DOUBLE, G_TYPE_INVALID);
   dbus_g_proxy_add_signal (callManagerProxy, 
@@ -241,21 +254,33 @@ dbus_connect ()
   dbus_g_proxy_connect_signal (callManagerProxy,
     "volumeChanged", G_CALLBACK(volume_changed_cb), NULL, NULL);
     
+  // Create the configuration manager proxy
   configurationManagerProxy = dbus_g_proxy_new_for_name (connection,
                                   "org.sflphone.SFLphone",
                                   "/org/sflphone/SFLphone/ConfigurationManager",
                                   "org.sflphone.SFLphone.ConfigurationManager");
-  if (!configurationManagerProxy) 
+  if (!configurationManagerProxy)
   {
     g_printerr ("Failed to get proxy to ConfigurationManager\n");
     return FALSE;
   }
   g_print ("DBus connected to ConfigurationManager\n");
+  
+  /* Function accounts changed */
   dbus_g_proxy_add_signal (configurationManagerProxy, 
     "accountsChanged", G_TYPE_INVALID);
   dbus_g_proxy_connect_signal (configurationManagerProxy,
     "accountsChanged", G_CALLBACK(accounts_changed_cb), NULL, NULL);
   
+  /* Function error alert and register a marshaller for STRING, INT */
+  dbus_g_object_register_marshaller(g_cclosure_user_marshal_VOID__STRING_INT,
+          G_TYPE_NONE, G_TYPE_STRING, G_TYPE_INT , G_TYPE_INVALID);
+  dbus_g_proxy_add_signal (configurationManagerProxy, 
+    "errorAlert", G_TYPE_STRING , G_TYPE_INT , G_TYPE_INVALID);
+  dbus_g_proxy_connect_signal (configurationManagerProxy,
+    "errorAlert", G_CALLBACK(error_alert), NULL, NULL);
+  
+  // Create the contact manager proxy
   contactManagerProxy = dbus_g_proxy_new_for_name (connection,
                                   "org.sflphone.SFLphone",
                                   "/org/sflphone/SFLphone/ContactManager",
@@ -266,13 +291,15 @@ dbus_connect ()
     return FALSE;
   }
   g_print("DBus connected to ContactManager\n");
-   
-  dbus_g_object_register_marshaller(g_cclosure_user_marshal_VOID__STRING_INT,
-          G_TYPE_NONE, G_TYPE_STRING, G_TYPE_INT , G_TYPE_INVALID);
-  dbus_g_proxy_add_signal (configurationManagerProxy, 
-    "errorAlert", G_TYPE_STRING , G_TYPE_INT , G_TYPE_INVALID);
-  dbus_g_proxy_connect_signal (configurationManagerProxy,
-    "errorAlert", G_CALLBACK(error_alert), NULL, NULL);
+  
+  /* Function contact entry presence changed and register a marshaller for 4 STRING */
+  dbus_g_object_register_marshaller(g_cclosure_user_marshal_VOID__STRING_STRING_STRING_STRING, 
+    G_TYPE_NONE, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_INVALID);
+  dbus_g_proxy_add_signal (contactManagerProxy,
+    "contactEntryPresenceChanged", G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_INVALID);
+  dbus_g_proxy_connect_signal (contactManagerProxy,
+    "contactEntryPresenceChanged", G_CALLBACK(contact_entry_presence_changed), NULL, NULL);
+  
   return TRUE;
 }
 
