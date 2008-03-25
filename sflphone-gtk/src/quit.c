@@ -18,6 +18,7 @@
  */
 
 #include "quit.h"
+#include <unistd.h>
 
 #define ITERATIONS  1700
 
@@ -70,6 +71,7 @@ display_progress_bar( void )
   gtk_widget_show_all( top );
   
   update_progress_bar( progressBar );
-
-} 
+  
+  return NULL;
+}
 

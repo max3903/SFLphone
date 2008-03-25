@@ -1022,7 +1022,6 @@ SIPVoIPLink::subscriptionNotificationReceived(eXosip_event_t* event, char* body)
 	
 	// Send the new updated contact entry presence for this account
 	Manager::instance().contactEntryPresenceChanged(getAccountID(), from->username, status, "");
-	osip_free(from);
 }
 
 // EN CONSTRUCTION!! NE PAS APPELER
