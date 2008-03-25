@@ -30,6 +30,8 @@
 #include "VideoRtpRTX.h"
 #include <cc++/thread.h>
 #include <samplerate.h>
+#include "../sipcall.h"
+
 class VideoRtpRTX;
 /**
  * @author Jean-Francois Blanchard-Dionne 
@@ -51,14 +53,13 @@ public:
 	 * note : must have an initial normal thread going on
 	 * @return 0 if success , -1 if failure
 	 */ 
-    int createNewVideoSession(bool conf);
+    int createNewVideoSession(SIPCall *call, bool Conf);
 	/**
 	 * Function to close a Vrtxthread
 	 * @param conf is 0 to create a a conference video session thread
 	 * note : must have an initial normal thread going on
-	 *@return 0 if success , -1 if failure
 	 */ 
-    int closeVideoSession(bool conf);
+    void closeVideoSession(bool Conf);
 
 private:
     VideoRtpRTX* vRTXThread;

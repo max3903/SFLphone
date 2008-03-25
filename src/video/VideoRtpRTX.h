@@ -28,10 +28,16 @@
 #define VIDEORTPRTX_H
 
 #include "VideoCodec/VideoCodec.h"
+#include "VideoCodecDescriptor.h"
 #include "VideoRtp.h"
 #include <cc++/thread.h>
 #include <ccrtp/rtp.h>
-class SIPCall;
+#include <ffmpeg/avcodec.h>
+#include "V4L/VideoDeviceManager.h"
+#include "../mixer/VideoInput.h"
+#include "../mixer/VideoOutput.h"
+
+class SIPCall; //TODO: pourquoi pas de include SipCall..h????
 /**
  * @author Jean-Francois Blanchard-Dionne 
  */
@@ -45,7 +51,7 @@ public:
 	/**
 	 * Default Constructor
 	 */ 
-    VideoRtpRTX();
+    VideoRtpRTX(SIPCall *sipcall, bool sym);
 	/**
 	 * Main function to init RTPSession, send and receive data
 	 */ 
@@ -58,21 +64,51 @@ public:
 	 * Function to create RTP Session to send Video Packets
 	 */ 
     void initVideoRtpSession();
+
 private:
+
+    ost::Mutex          threadMutex;
+    SIPCall* 		vidCall;
+    /** RTP Session to send */
+    ost::RTPSession* 	videoSessionSend;
+    /** RTP Session to receive */
+    ost::RTPSession* 	videoSessionReceive;
+    /** System Semaphore */
+    ost::Semaphore 	semStart;
+    /** Codec for encoding */
+    VideoCodec* 	encodeCodec;
+    /** Codec for decoding */
+    VideoCodec* 	decodeCodec;
+    /** Codec Context **/
+    AVCodecContext*	codecCtx;
+    /** Video Device manager **/
+    VideoDeviceManager* VideoDevMng;
+    /** Input and Output buffers for the mixers**/
+    VideoInput* localVideoInput;
+    VideoInput* remoteVideoInput;
+    VideoOutput* localVideoOutput;
+    VideoOutput* remoteVideoOutput;
+
+    int codecClockRate; // sample rate of the codec we use to encode and decode (most of time 90000HZ)
+
+    /** buffer for received Data */
+   char* receiveDataDecoded;
+
+    /** Buffer for Data to send */
+    unsigned char* sendDataEncoded;
 
 	/**
 	 * Get the data from V4l, send it to the mixer, encode and send to RTP
 	 * @param timestamp : puts the current time
-	 */ 		 	
-	void sendSession(int timestamp);
-
+	 */
+	void sendSession(int timestamp);
 	/**
 	 * Receive RTP packet, decode it, send it to mixer
-	 */		 	
+	 */
 	void receiveSession();
 
 	/**
-	 * Load  a codec  
+	 * Load  a codec
 	 * @param id : The ID of the codec you want to load
 	 * @param type : 0 decode codec, 1 encode codec
 	 */
@@ -85,26 +121,5 @@ private:
 	 */
 	void unloadCodec(enum CodecID id,int type);
 
-private:
-
-	
-    ost::Mutex          threadMutex;
-    SIPCall* 			vidCall;
-    /** RTP Session to send */
-    ost::RTPSession* 	videoSessionSend;
-    /** RTP Session to receive */
-    ost::RTPSession* 	videoSessionReceive;
-    /** System Semaphore */
-    ost::Semaphore 		start;
-    /** Codec for encoding */
-    VideoCodec* 		encodeCodec;
-    /** Codec for decoding */
-    VideoCodec* 		decodeCodec;
-
-	/** buffer for received Data */
-	char* receiveDataDecoded;
-
-	/** Buffer for Data to send */
-	char* sendDataEncoded;
 };
 #endif //VIDEORTPRTX_H

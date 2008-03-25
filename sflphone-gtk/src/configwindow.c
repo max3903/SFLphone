@@ -1571,7 +1571,7 @@ create_video_tab ()
 {
 	GtkWidget *ret;
 
-	GtkWidget *codecLabel, *bitrateLabel;
+	GtkWidget *bitrateLabel;
 	GtkWidget *codecBox, *videoBox;
 	GtkWidget *activateCheckBox;
 	GtkWidget *cancelCheckBox;
@@ -1592,10 +1592,10 @@ create_video_tab ()
 
     // Main codec widget
 	codecBox = gtk_hbox_new(FALSE, 10);
-	gtk_box_pack_start(GTK_CONTAINER(codecFrame), codecBox, FALSE, FALSE, 0);
+	gtk_box_pack_start(GTK_BOX(codecFrame), codecBox, FALSE, FALSE, 0);
 	gtk_widget_show(codecBox);
 	
-	gtk_container_add(codecFrame,codecBox);
+	gtk_container_add(GTK_CONTAINER(codecFrame),codecBox);
 	
 	// Codec : List
 	codecTable = create_video_codec_table();
@@ -1608,9 +1608,9 @@ create_video_tab ()
 	gtk_widget_show(videoFrame);
 	
 	videoBox = gtk_vbox_new(FALSE, 10);
-	gtk_box_pack_start(GTK_CONTAINER(videoFrame), videoBox, FALSE, FALSE, 0);
+	gtk_box_pack_start(GTK_BOX(videoFrame), videoBox, FALSE, FALSE, 0);
 	gtk_widget_show(videoBox);	
-	gtk_container_add(videoFrame,videoBox);
+	gtk_container_add(GTK_CONTAINER(videoFrame),videoBox);
 	
 	//Bitrate slider
 	bitrateLabel = gtk_label_new(NULL);
@@ -1671,7 +1671,7 @@ create_webcam_tab ()
 	GtkWidget *brightnessHScale, *contrastHScale, *colourHScale;
 	GtkObject *brightnessAdjustment, *contrastAdjustment, *colourAdjustment;
 	
-	//GtkWidget *drawingSpace;
+	GtkWidget *drawingSpace;
 	
 	
 	GtkCellRenderer *deviceRenderer, *resolutionRenderer;
@@ -1688,7 +1688,7 @@ create_webcam_tab ()
     // Main device widget
 	deviceBox = gtk_hbox_new(FALSE, 10);
 	gtk_box_pack_start(GTK_BOX(deviceFrame), deviceBox, FALSE, FALSE, 0);
-	gtk_container_add(deviceFrame,deviceBox);
+	gtk_container_add(GTK_CONTAINER(deviceFrame),deviceBox);
     
     // Main device widget
 	deviceTable = gtk_table_new(4, 3, FALSE);
@@ -1710,7 +1710,7 @@ create_webcam_tab ()
 	webcamDeviceComboBox = gtk_combo_box_new_with_model(GTK_TREE_MODEL(webcamDeviceStore));
 	//select_active_webcam_device();
   	gtk_label_set_mnemonic_widget(GTK_LABEL(titleLabel), webcamDeviceComboBox);
-	//g_signal_connect(G_OBJECT(webcamDeviceComboBox), "changed", G_CALLBACK(select_webcam_device), webcamDeviceComboBox);
+	g_signal_connect(G_OBJECT(webcamDeviceComboBox), "changed", G_CALLBACK(select_webcam_device), webcamDeviceComboBox);
 	
   	// Set rendering
 	deviceRenderer = gtk_cell_renderer_text_new();
@@ -1738,7 +1738,7 @@ create_webcam_tab ()
 	gtk_box_set_spacing(GTK_BOX(settingsTable), 0);
 	gtk_box_pack_start(GTK_BOX(settingsFrame), settingsTable, TRUE, TRUE, 0);
 	gtk_widget_show(settingsTable);
-	gtk_container_add(settingsFrame,settingsTable);
+	gtk_container_add(GTK_CONTAINER(settingsFrame),settingsTable);
 	
     
     //Brightness slider section
@@ -1797,7 +1797,7 @@ create_webcam_tab ()
 	resolutionComboBox = gtk_combo_box_new_with_model(GTK_TREE_MODEL(resolutionStore));
 	//select_active_resolution();
   	gtk_label_set_mnemonic_widget(GTK_LABEL(resolutionLabel), resolutionComboBox);
-	//g_signal_connect(G_OBJECT(resolutionComboBox), "changed", G_CALLBACK(select_webcam_device), resolutionComboBox);
+	g_signal_connect(G_OBJECT(resolutionComboBox), "changed", G_CALLBACK(select_resolution), resolutionComboBox);
 	
 	resolutionRenderer = gtk_cell_renderer_text_new();
 	gtk_cell_layout_pack_start(GTK_CELL_LAYOUT(resolutionComboBox), resolutionRenderer, TRUE);
@@ -1806,9 +1806,9 @@ create_webcam_tab ()
 	gtk_widget_show(resolutionComboBox);
 	
 	// \todo Add an OpenGL widget to show the local video rendering
-    //drawingSpace= createGLWidget();
-    //gtk_box_pack_start(GTK_BOX(settingsHBox), drawingSpace, FALSE, FALSE, 0);
-    //gtk_widget_show(drawingSpace);
+    drawingSpace= createGLWidget();
+    gtk_box_pack_start(GTK_BOX(settingsHBox), drawingSpace, FALSE, FALSE, 0);
+    gtk_widget_show(drawingSpace);
 	
 	g_signal_connect (G_OBJECT (colourHScale), "format-value", G_CALLBACK (format_percentage_scale), NULL); 
 	g_signal_connect (G_OBJECT (brightnessHScale), "format-value", G_CALLBACK (format_percentage_scale), NULL); 
