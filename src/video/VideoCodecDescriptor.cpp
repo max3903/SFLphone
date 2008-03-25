@@ -39,7 +39,7 @@ VideoCodecDescriptor* VideoCodecDescriptor::getInstance()
  	{
  	vCodecOrder.clear();
  	vCodecMap.clear();
- 	delete instance;
+
  	}
 	
     VideoCodecDescriptor::VideoCodecDescriptor()
@@ -159,6 +159,20 @@ VideoCodecDescriptor* VideoCodecDescriptor::getInstance()
     }
 	
     void VideoCodecDescriptor::setCodecMap(VideoCodecMap codec){this->vCodecMap = codec;}
+
+	AVCodec* VideoCodecDescriptor::getActiveCodec(char* CodecName)
+	{
+	VCOIterator iter;
+    	
+    	for ( iter = this->vCodecOrder.begin(); iter != this->vCodecOrder.end();iter++)
+    		if ((*iter)->name = CodecName)
+    			return (*iter);
+    			
+    			
+    return NULL;
+	
+	}
+
 
     /********************************************
      * Functions for MEMMANAGER

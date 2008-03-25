@@ -89,7 +89,6 @@ public:
      */
     bool isActive(enum CodecID id);
     
-
 	/**
      * Function to send the vector containing the active Codecs.
      * 
@@ -120,6 +119,11 @@ public:
      */
    	AVCodecContext* getCodecContext(AVCodec* Codec);
    	
+   	/**
+     * Function to get a Codec
+     * @return codecMap to set the Codec Map
+     */
+   	AVCodec* getActiveCodec(char* CodecName);
 	/**
      * Function to get all the codec info
      * @return char*, with all the info in a structured way
