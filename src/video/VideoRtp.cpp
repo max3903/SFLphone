@@ -57,7 +57,7 @@ int VideoRtp::createNewVideoSession(SIPCall *call, bool Conf)
 
   if (!Conf){
     // Start RTP Send/Receive threads, CONVERSATION
-    // TODO: Lire sur symmetric RTP video session!
+    // TODO: Lire sur les session symmetric!
     //_symmetric = Manager::instance().getConfigInt(SIGNALISATION,SYMMETRIC) ? true : false; 
     //vRTXThread = new VideoRtpRTX (call, _symmetric);
     vRTXThread = new VideoRtpRTX (call, false);

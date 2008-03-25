@@ -28,10 +28,14 @@
 #define VIDEORTPRTX_H
 
 #include "VideoCodec/VideoCodec.h"
+#include "VideoCodecDescriptor.h"
 #include "VideoRtp.h"
 #include <cc++/thread.h>
 #include <ccrtp/rtp.h>
-class SIPCall; //TODO: pourquoi pas de include ???? dans Audio aussi...
+#include <ffmpeg/avcodec.h>
+#include "V4L/VideoDeviceManager.h"
+
+class SIPCall; //TODO: pourquoi pas de include SipCall..h????
 /**
  * @author Jean-Francois Blanchard-Dionne 
  */
@@ -73,6 +77,12 @@ private:
     VideoCodec* 	encodeCodec;
     /** Codec for decoding */
     VideoCodec* 	decodeCodec;
+    /** Codec Context **/
+    AVCodecContext*	codecCtx;
+    /** Video Device manager **/
+    VideoDeviceManager* VideoDevMng;
+
+    int codecClockRate; // sample rate of the codec we use to encode and decode (most of time 90000HZ)
 
     /** buffer for received Data */
    char* receiveDataDecoded;
@@ -83,16 +93,15 @@ private:
 	/**
 	 * Get the data from V4l, send it to the mixer, encode and send to RTP
 	 * @param timestamp : puts the current time
-	 */ 		 	
-	void sendSession(int timestamp);
-
+	 */
+	void sendSession(int timestamp);
 	/**
 	 * Receive RTP packet, decode it, send it to mixer
-	 */		 	
+	 */
 	void receiveSession();
 
 	/**
-	 * Load  a codec  
+	 * Load  a codec
 	 * @param id : The ID of the codec you want to load
 	 * @param type : 0 decode codec, 1 encode codec
 	 */
