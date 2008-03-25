@@ -142,7 +142,17 @@ static void webCamStatusChange( GtkWidget *widget, gpointer data )
 	gtk_toggle_tool_button_set_active(GTK_TOGGLE_TOOL_BUTTON (widget), value);
 	gtk_signal_handler_unblock(GTK_TOGGLE_TOOL_BUTTON(widget),webCamButtonConnId);
 	
-	//TODO: Add send signal to enabled/disable webcam
+	//TODO: Add send signal to enable/disable webcam
+	if(value)
+	{
+		sflphone_set_video();
+		g_print("Info: enabling webcam");	
+	}
+	else
+	{
+		sflphone_unset_video();	
+		g_print("Info: disabling webcam");
+	}
 	
 }
 

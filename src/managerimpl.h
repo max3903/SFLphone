@@ -152,7 +152,7 @@ public:
   bool inviteConference( const AccountID& accountId, const CallID& id, const std::string& to );
   bool joinConference( const CallID& onHoldCallID, const CallID& newCallID );
   bool changeVideoAvaibility(  );
-  void changeWebcamStatus( const bool status );
+  void changeWebcamStatus( const bool status , const CallID& id);
 
   /** Save config to file */
   bool saveConfig (void);

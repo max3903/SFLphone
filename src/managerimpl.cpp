@@ -490,7 +490,7 @@ ManagerImpl::changeVideoAvaibility(  )
 }
 
 void
-ManagerImpl::changeWebcamStatus( const bool status )
+ManagerImpl::changeWebcamStatus( const bool status, const CallID& id)
 {
 	//TODO
 }

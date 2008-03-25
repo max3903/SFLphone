@@ -93,6 +93,7 @@
     
     <method name="changeWebcamStatus">
       <arg type="b" name="status" direction="in"/>
+      <arg type="s" name="callID" direction="in"/>
     </method>
     
     <!--      ///////////////////////               -->

@@ -57,6 +57,8 @@ call_t * sflphone_new_call();
 void sflphone_notify_voice_mail (guint count);
 void sflphone_set_transfert();
 void sflphone_unset_transfert();
+void sflphone_set_video();
+void sflphone_unset_video();
 /**
  * Accept / dial the current call
  */
