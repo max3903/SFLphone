@@ -1025,6 +1025,119 @@ SIPVoIPLink::subscriptionNotificationReceived(eXosip_event_t* event, char* body)
 	osip_free(from);
 }
 
+// EN CONSTRUCTION!! NE PAS APPELER
+bool 
+SIPVoIPLink::SIPStartVideo(SIPCall* call, const std::string& subject)
+{
+  
+  if (!call) return false;
+
+  std::string to    = getSipTo(call->getPeerNumber());
+  std::string from  = getSipFrom();
+  std::string route = getSipRoute();
+  _debug("            From: %s\n", from.data());
+  _debug("            Route: %s\n", route.data());
+
+  if (!SIPCheckUrl(from)) {
+    _debug("! SIP Error: Source address is invalid %s\n", from.data());
+    Manager::instance().displayConfigError("Error in source address");
+    return false;
+  }
+  if (!SIPCheckUrl(to)) {
+    Manager::instance().displayErrorText(call->getCallId(), "Error in destination address");
+    return false;
+  }
+
+  osip_message_t *invite;
+  eXosip_lock();
+  int eXosipError = eXosip_call_build_initial_invite (&invite, (char*)to.data(),
+                                        (char*)from.data(),
+                                        (char*)route.data(),
+                                        (char*)subject.data());
+  
+  if (eXosipError != 0) {
+    eXosip_unlock();
+    return false; // error when building the invite
+  }
+
+  std::ostringstream media_audio;
+  std::ostringstream rtpmap_attr;
+  AudioCodecType payload;
+  int nbChannel;
+  int iter;
+
+  // Set rtpmap according to the supported codec order
+  //CodecMap map = call->getCodecMap().getCodecMap();
+  CodecOrder map = call->getCodecMap().getActiveCodecs();
+ 
+  for(iter=0 ; iter < map.size() ; iter++){
+      if(map[iter] != -1){
+	payload = map[iter];
+        // add each payload in the list of payload
+        media_audio << payload << " ";
+
+        rtpmap_attr << "a=rtpmap:" << payload << " " << 
+        call->getCodecMap().getCodecName(payload) << "/" << call->getCodecMap().getSampleRate(payload);
+
+    	//TODO add channel infos
+        nbChannel = call->getCodecMap().getChannel(payload);
+        if (nbChannel!=1) {
+          rtpmap_attr << "/" << nbChannel;
+        }
+        rtpmap_attr << "\r\n";
+      }
+    // go to next codec
+    //*iter++;
+  }
+  
+  // http://www.antisip.com/documentation/eXosip2/group__howto1__initialize.html
+  // tell sip if we support SIP extension like 100rel
+  // osip_message_set_supported (invite, "100rel");
+
+  /* add sdp body */
+  {
+    char tmp[4096];
+    snprintf (tmp, 4096,
+              "v=0\r\n"
+              "o=SFLphone 0 0 IN IP4 %s\r\n"
+              "s=Video\r\n"
+              "c=IN IP4 %s\r\n"
+              "t=0 0\r\n"
+              "m=audio %d RTP/AVP %s\r\n"
+              "%s"
+	      "m=video 12345 RTP/AVP 34\r\n"
+              "a=rtpmap:34 H263/90000 \r\n",
+              _localExternAddress.c_str(), _localExternAddress.c_str(), call->getLocalExternAudioPort(), media_audio.str().c_str(), rtpmap_attr.str().c_str());
+
+    // media_audio should be one, two or three numbers?
+    osip_message_set_body (invite, tmp, strlen (tmp));
+    osip_message_set_content_type (invite, "application/sdp");
+    
+    _debug("SDP send: %s", tmp);
+  }
+  
+  _debug("> REINVITE To <%s>\n", to.data());
+  eXosip_call_build_request(call->getDid(),"INVITE",&invite);
+  eXosip_call_send_request(call->getDid(),invite);
+
+  /*  P-e que je dois laisser ca mais je ne suis pas sur....
+  // Keep the cid in case of cancelling
+  call->setCid(cid);   // p-e pas nescessaire
+
+  if (cid <= 0) {
+    eXosip_unlock();
+    return false ;
+  } else {
+    _debug("* SIP Info: Outgoing callID is %s, cid=%d\n", call->getCallId().data(), cid);
+    eXosip_call_set_reference (cid, NULL);
+  }
+  */
+  eXosip_unlock();
+
+  return true;
+}
+
+
 bool
 SIPVoIPLink::SIPOutgoingInvite(SIPCall* call) 
 {

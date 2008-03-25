@@ -1,0 +1,192 @@
+# Main menu items
+msgid "About SFLphone"
+msgstr "A propos de SFLphone"
+
+msgid "SFLphone is a VoIP client compatible with SIP and IAX2 protocols."
+msgstr "SFLphone est un client VoIP compatible avec les protocoles SIP et IAX2." 
+
+msgid "_Help" 
+msgstr "A_ide"
+
+msgid "_Hang up"
+msgstr "_Raccrocher"
+
+msgid "Hang up"
+msgstr "Raccrocher"
+
+msgid "_Pick up" 
+msgstr "_Décrocher"
+
+msgid "Pick up" 
+msgstr "Décrocher"
+
+msgid "Place a call"
+msgstr "Appeler"
+
+msgid "On _Hold" 
+msgstr "_Mettre en attente"
+
+msgid "On Hold"
+msgstr "Mettre en attente"
+
+msgid "Off Hold"
+msgstr "Reprendre"
+
+msgid "Transfer"
+msgstr "Transférer"
+
+msgid "_New call"
+msgstr "_Nouvel appel"
+
+msgid "_Call"
+msgstr "_Actions"
+
+msgid "_Edit"
+msgstr "_Options"
+
+msgid "_Dialpad"
+msgstr "_Clavier"
+
+msgid "_Volume controls"
+msgstr "_Contrôle du volume"
+
+msgid "_Toolbar"
+msgstr "_Barre d'outils"
+
+msgid "_View"
+msgstr "A_ffichage"
+
+# configwindow.c
+# account settings
+msgid "Accounts previously setup."
+msgstr "Liste des comptes existants."
+
+msgid "Protocol"
+msgstr "Protocole"
+
+msgid "_Protocol"
+msgstr "_Protocole"
+
+msgid "Status"
+msgstr "Statut"
+
+msgid "Default"
+msgstr "Défaut"
+
+msgid "Account settings"
+msgstr "Configuration des comptes"
+
+msgid "_Enabled"
+msgstr "_Activé"
+
+msgid "_Alias"
+msgstr "A_lias"
+
+
+msgid "Unknown"
+msgstr "Inconnu"
+
+msgid "_Full Name"
+msgstr "_Nom"
+
+msgid "_User part"
+msgstr ""
+
+msgid "_Host part"
+msgstr "_Serveur"
+
+msgid "U_sername"
+msgstr "Usa_ger"
+
+msgid "_Password"
+msgstr "_Mot de passe"
+
+msgid "<b>NAT Detection</b>"
+msgstr "<b>Détection NAT</b>"
+
+msgid "E_nable STUN"
+msgstr "A_ctiver STUN"
+
+msgid "S_TUN Server"
+msgstr "S_erveur STUN"
+
+msgid "Format: name.server:port"
+msgstr "Format: nom.serveur:port"
+
+msgid "Enable it if you are behind a firewall, then restart SFLphone"
+msgstr "À activer si vous êtes derrière un pare-feu, puis redémarrez SFLphone"
+
+msgid "Set the selected account as the default one to make calls"
+msgstr "Utiliser le compte sélectionné pour passer des appels par défaut"
+
+# audio settings
+msgid "Output peripheral"
+msgstr "Périphérique de sortie"
+
+msgid "Input peripheral"
+msgstr "Périphérique d'entrée"
+
+msgid "Name"
+msgstr "Nom"
+
+msgid "Frequency"
+msgstr "Fréquence"
+
+msgid "Bitrate"
+msgstr "Bitrate"
+
+msgid "Bandwidth"
+msgstr "Bande passante"
+
+msgid "<b>Devices</b>"
+msgstr "<b>Matériel</b>"
+
+msgid "ALSA plugin"
+msgstr "Greffon ALSA"
+
+msgid "Detect all"
+msgstr "Détecter"
+
+msgid "_Enable ringtones"
+msgstr "_Activer les sonneries"
+
+msgid "Choose a ringtone"
+msgstr "Sélectionner une sonnerie"
+
+msgid "Audio Files"
+msgstr "Fichier Audio"
+
+msgid "Preferences"
+msgstr "Préférences"
+
+msgid "Accounts"
+msgstr "Comptes"
+
+msgid "Audio Settings"
+msgstr "Paramètres Audio"
+
+msgid "%d new voice mail%s"
+msgstr "%d nouveaux messages vocaux%s"
+
+# SIP registration state
+msgid "Registered"
+msgstr "Enregistré"
+
+msgid "Not Registered"
+msgstr "Non Enregistré"
+
+msgid "Error"
+msgstr "Erreur"
+
+msgid "Trying..."
+msgstr "En cours..."
+
+msgid "Invalid"
+msgstr "Non valide"
+
+# Sliders
+msgid "Speakers volume"
+msgstr "Volume des hauts-parleurs"
+
+msgid "Mic volume"
+msgstr "Volume du micro"

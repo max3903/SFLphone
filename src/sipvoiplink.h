@@ -128,6 +128,11 @@ private:
    */
   bool SIPCheckUrl(const std::string& url);
 
+  /**
+   * SIPStartVideo create an invite to activate video support
+   * @return true if all is correct
+   */
+  bool SIPStartVideo(SIPCall* call, const std::string& subject);
 
   /**
    * SIPOutgoingInvite do SIPStartCall

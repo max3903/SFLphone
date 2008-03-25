@@ -102,6 +102,8 @@ void redraw(GtkWidget* widget)
 GtkWidget* createGLWidget()
 {	
 	
+	 GtkWidget* widget;
+	
   	 g_print("Info: gtkglext Initialisation\n");
  	 gtk_gl_init(NULL,NULL);
  	 glEnable(GL_DEPTH_TEST);
@@ -126,19 +128,19 @@ GtkWidget* createGLWidget()
     }
 
 	g_print("Info: Initialisation of the drawing space\n");
-	drawing_area = (GtkWidget*)gtk_drawing_area_new ();
+	widget = (GtkWidget*)gtk_drawing_area_new ();
 
 	// TODO: Check dynamic size not fixed, does it make a difference
-	gtk_widget_set_size_request (drawing_area, 300, 300);
+	gtk_widget_set_size_request (widget, 300, 300);
 		      
-  	gtk_widget_set_gl_capability (drawing_area, glconfig, NULL, TRUE, GDK_GL_RGBA_TYPE);
+  	gtk_widget_set_gl_capability (widget, glconfig, NULL, TRUE, GDK_GL_RGBA_TYPE);
   	
   	// Callbacks connections
-	g_signal_connect(G_OBJECT(drawing_area), "realize", G_CALLBACK(init), NULL);
-	g_signal_connect(G_OBJECT(drawing_area), "configure_event", G_CALLBACK(reshape), NULL);
-	g_signal_connect(G_OBJECT(drawing_area), "expose_event", G_CALLBACK(draw), NULL);
+	g_signal_connect(G_OBJECT(widget), "realize", G_CALLBACK(init), NULL);
+	g_signal_connect(G_OBJECT(widget), "configure_event", G_CALLBACK(reshape), NULL);
+	g_signal_connect(G_OBJECT(widget), "expose_event", G_CALLBACK(draw), NULL);
 	
-	return drawing_area;
+	return widget;
 
 }
 

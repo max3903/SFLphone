@@ -55,6 +55,20 @@ public:
         register_method(ConfigurationManager, getCurrentAudioDevicesIndex, _getCurrentAudioDevicesIndex_stub);
         register_method(ConfigurationManager, getAudioDeviceIndex, _getAudioDeviceIndex_stub);
         register_method(ConfigurationManager, getCurrentAudioOutputPlugin, _getCurrentAudioOutputPlugin_stub);
+        register_method(ConfigurationManager, getBrightness, _getBrightness_stub);
+        register_method(ConfigurationManager, setBrightness, _setBrightness_stub);
+        register_method(ConfigurationManager, getContrast, _getContrast_stub);
+        register_method(ConfigurationManager, setContrast, _setContrast_stub);
+        register_method(ConfigurationManager, getColour, _getColour_stub);
+        register_method(ConfigurationManager, setColour, _setColour_stub);
+        register_method(ConfigurationManager, getWebcamDeviceList, _getWebcamDeviceList_stub);
+        register_method(ConfigurationManager, setWebcamDevice, _setWebcamDevice_stub);
+        register_method(ConfigurationManager, getCurrentWebcamDeviceIndex, _getCurrentWebcamDeviceIndex_stub);
+        register_method(ConfigurationManager, getWebcamDeviceIndex, _getWebcamDeviceIndex_stub);
+        register_method(ConfigurationManager, getResolutionList, _getResolutionList_stub);
+        register_method(ConfigurationManager, setResolution, _setResolution_stub);
+        register_method(ConfigurationManager, getCurrentResolutionIndex, _getCurrentResolutionIndex_stub);
+        register_method(ConfigurationManager, getResolutionIndex, _getResolutionIndex_stub);
         register_method(ConfigurationManager, isIax2Enabled, _isIax2Enabled_stub);
     }
 
@@ -239,6 +253,87 @@ public:
             { "plugin", "s", false },
             { 0, 0, 0 }
         };
+        static ::DBus::IntrospectedArgument getBrightness_args[] = 
+        {
+            { "minValue", "i", false },
+            { "maxValue", "i", false },
+            { "stepValue", "i", false },
+            { "currentValue", "i", false },
+            { 0, 0, 0 }
+        };
+        static ::DBus::IntrospectedArgument setBrightness_args[] = 
+        {
+            { "value", "i", true },
+            { 0, 0, 0 }
+        };
+        static ::DBus::IntrospectedArgument getContrast_args[] = 
+        {
+            { "minValue", "i", false },
+            { "maxValue", "i", false },
+            { "stepValue", "i", false },
+            { "currentValue", "i", false },
+            { 0, 0, 0 }
+        };
+        static ::DBus::IntrospectedArgument setContrast_args[] = 
+        {
+            { "value", "i", true },
+            { 0, 0, 0 }
+        };
+        static ::DBus::IntrospectedArgument getColour_args[] = 
+        {
+            { "minValue", "i", false },
+            { "maxValue", "i", false },
+            { "stepValue", "i", false },
+            { "currentValue", "i", false },
+            { 0, 0, 0 }
+        };
+        static ::DBus::IntrospectedArgument setColour_args[] = 
+        {
+            { "value", "i", true },
+            { 0, 0, 0 }
+        };
+        static ::DBus::IntrospectedArgument getWebcamDeviceList_args[] = 
+        {
+            { "list", "as", false },
+            { 0, 0, 0 }
+        };
+        static ::DBus::IntrospectedArgument setWebcamDevice_args[] = 
+        {
+            { "index", "i", true },
+            { 0, 0, 0 }
+        };
+        static ::DBus::IntrospectedArgument getCurrentWebcamDeviceIndex_args[] = 
+        {
+            { "list", "as", false },
+            { 0, 0, 0 }
+        };
+        static ::DBus::IntrospectedArgument getWebcamDeviceIndex_args[] = 
+        {
+            { "name", "s", true },
+            { "index", "i", false },
+            { 0, 0, 0 }
+        };
+        static ::DBus::IntrospectedArgument getResolutionList_args[] = 
+        {
+            { "list", "as", false },
+            { 0, 0, 0 }
+        };
+        static ::DBus::IntrospectedArgument setResolution_args[] = 
+        {
+            { "index", "i", true },
+            { 0, 0, 0 }
+        };
+        static ::DBus::IntrospectedArgument getCurrentResolutionIndex_args[] = 
+        {
+            { "list", "as", false },
+            { 0, 0, 0 }
+        };
+        static ::DBus::IntrospectedArgument getResolutionIndex_args[] = 
+        {
+            { "name", "s", true },
+            { "index", "i", false },
+            { 0, 0, 0 }
+        };
         static ::DBus::IntrospectedArgument isIax2Enabled_args[] = 
         {
             { "res", "i", false },
@@ -251,6 +346,12 @@ public:
         };
         static ::DBus::IntrospectedArgument accountsChanged_args[] = 
         {
+            { 0, 0, 0 }
+        };
+        static ::DBus::IntrospectedArgument errorAlert_args[] = 
+        {
+            { "errMsg", "s", false },
+            { "code", "i", false },
             { 0, 0, 0 }
         };
         static ::DBus::IntrospectedMethod ConfigurationManager_methods[] = 
@@ -290,6 +391,20 @@ public:
             { "getCurrentAudioDevicesIndex", getCurrentAudioDevicesIndex_args },
             { "getAudioDeviceIndex", getAudioDeviceIndex_args },
             { "getCurrentAudioOutputPlugin", getCurrentAudioOutputPlugin_args },
+            { "getBrightness", getBrightness_args },
+            { "setBrightness", setBrightness_args },
+            { "getContrast", getContrast_args },
+            { "setContrast", setContrast_args },
+            { "getColour", getColour_args },
+            { "setColour", setColour_args },
+            { "getWebcamDeviceList", getWebcamDeviceList_args },
+            { "setWebcamDevice", setWebcamDevice_args },
+            { "getCurrentWebcamDeviceIndex", getCurrentWebcamDeviceIndex_args },
+            { "getWebcamDeviceIndex", getWebcamDeviceIndex_args },
+            { "getResolutionList", getResolutionList_args },
+            { "setResolution", setResolution_args },
+            { "getCurrentResolutionIndex", getCurrentResolutionIndex_args },
+            { "getResolutionIndex", getResolutionIndex_args },
             { "isIax2Enabled", isIax2Enabled_args },
             { 0, 0 }
         };
@@ -297,6 +412,7 @@ public:
         {
             { "parametersChanged", parametersChanged_args },
             { "accountsChanged", accountsChanged_args },
+            { "errorAlert", errorAlert_args },
             { 0, 0 }
         };
         static ::DBus::IntrospectedProperty ConfigurationManager_properties[] = 
@@ -359,6 +475,20 @@ public:
     virtual std::vector< ::DBus::String > getCurrentAudioDevicesIndex(  ) = 0;
     virtual ::DBus::Int32 getAudioDeviceIndex( const ::DBus::String& name ) = 0;
     virtual ::DBus::String getCurrentAudioOutputPlugin(  ) = 0;
+    virtual void getBrightness( ::DBus::Int32& minValue, ::DBus::Int32& maxValue, ::DBus::Int32& stepValue, ::DBus::Int32& currentValue ) = 0;
+    virtual void setBrightness( const ::DBus::Int32& value ) = 0;
+    virtual void getContrast( ::DBus::Int32& minValue, ::DBus::Int32& maxValue, ::DBus::Int32& stepValue, ::DBus::Int32& currentValue ) = 0;
+    virtual void setContrast( const ::DBus::Int32& value ) = 0;
+    virtual void getColour( ::DBus::Int32& minValue, ::DBus::Int32& maxValue, ::DBus::Int32& stepValue, ::DBus::Int32& currentValue ) = 0;
+    virtual void setColour( const ::DBus::Int32& value ) = 0;
+    virtual std::vector< ::DBus::String > getWebcamDeviceList(  ) = 0;
+    virtual void setWebcamDevice( const ::DBus::Int32& index ) = 0;
+    virtual std::vector< ::DBus::String > getCurrentWebcamDeviceIndex(  ) = 0;
+    virtual ::DBus::Int32 getWebcamDeviceIndex( const ::DBus::String& name ) = 0;
+    virtual std::vector< ::DBus::String > getResolutionList(  ) = 0;
+    virtual void setResolution( const ::DBus::Int32& index ) = 0;
+    virtual std::vector< ::DBus::String > getCurrentResolutionIndex(  ) = 0;
+    virtual ::DBus::Int32 getResolutionIndex( const ::DBus::String& name ) = 0;
     virtual ::DBus::Int32 isIax2Enabled(  ) = 0;
 
 public:
@@ -375,6 +505,14 @@ public:
     void accountsChanged(  )
     {
         ::DBus::SignalMessage sig("accountsChanged");
+        emit_signal(sig);
+    }
+    void errorAlert( const ::DBus::String& arg1, const ::DBus::Int32& arg2 )
+    {
+        ::DBus::SignalMessage sig("errorAlert");
+        ::DBus::MessageIter wi = sig.writer();
+        wi << arg1;
+        wi << arg2;
         emit_signal(sig);
     }
 
@@ -719,6 +857,164 @@ private:
         ::DBus::MessageIter ri = call.reader();
 
         ::DBus::String argout1 = getCurrentAudioOutputPlugin();
+        ::DBus::ReturnMessage reply(call);
+        ::DBus::MessageIter wi = reply.writer();
+        wi << argout1;
+        return reply;
+    }
+    ::DBus::Message _getBrightness_stub( const ::DBus::CallMessage& call )
+    {
+        ::DBus::MessageIter ri = call.reader();
+
+        ::DBus::Int32 argout1;
+        ::DBus::Int32 argout2;
+        ::DBus::Int32 argout3;
+        ::DBus::Int32 argout4;
+        getBrightness(argout1, argout2, argout3, argout4);
+        ::DBus::ReturnMessage reply(call);
+        ::DBus::MessageIter wi = reply.writer();
+        wi << argout1;
+        wi << argout2;
+        wi << argout3;
+        wi << argout4;
+        return reply;
+    }
+    ::DBus::Message _setBrightness_stub( const ::DBus::CallMessage& call )
+    {
+        ::DBus::MessageIter ri = call.reader();
+
+        ::DBus::Int32 argin1; ri >> argin1;
+        setBrightness(argin1);
+        ::DBus::ReturnMessage reply(call);
+        return reply;
+    }
+    ::DBus::Message _getContrast_stub( const ::DBus::CallMessage& call )
+    {
+        ::DBus::MessageIter ri = call.reader();
+
+        ::DBus::Int32 argout1;
+        ::DBus::Int32 argout2;
+        ::DBus::Int32 argout3;
+        ::DBus::Int32 argout4;
+        getContrast(argout1, argout2, argout3, argout4);
+        ::DBus::ReturnMessage reply(call);
+        ::DBus::MessageIter wi = reply.writer();
+        wi << argout1;
+        wi << argout2;
+        wi << argout3;
+        wi << argout4;
+        return reply;
+    }
+    ::DBus::Message _setContrast_stub( const ::DBus::CallMessage& call )
+    {
+        ::DBus::MessageIter ri = call.reader();
+
+        ::DBus::Int32 argin1; ri >> argin1;
+        setContrast(argin1);
+        ::DBus::ReturnMessage reply(call);
+        return reply;
+    }
+    ::DBus::Message _getColour_stub( const ::DBus::CallMessage& call )
+    {
+        ::DBus::MessageIter ri = call.reader();
+
+        ::DBus::Int32 argout1;
+        ::DBus::Int32 argout2;
+        ::DBus::Int32 argout3;
+        ::DBus::Int32 argout4;
+        getColour(argout1, argout2, argout3, argout4);
+        ::DBus::ReturnMessage reply(call);
+        ::DBus::MessageIter wi = reply.writer();
+        wi << argout1;
+        wi << argout2;
+        wi << argout3;
+        wi << argout4;
+        return reply;
+    }
+    ::DBus::Message _setColour_stub( const ::DBus::CallMessage& call )
+    {
+        ::DBus::MessageIter ri = call.reader();
+
+        ::DBus::Int32 argin1; ri >> argin1;
+        setColour(argin1);
+        ::DBus::ReturnMessage reply(call);
+        return reply;
+    }
+    ::DBus::Message _getWebcamDeviceList_stub( const ::DBus::CallMessage& call )
+    {
+        ::DBus::MessageIter ri = call.reader();
+
+        std::vector< ::DBus::String > argout1 = getWebcamDeviceList();
+        ::DBus::ReturnMessage reply(call);
+        ::DBus::MessageIter wi = reply.writer();
+        wi << argout1;
+        return reply;
+    }
+    ::DBus::Message _setWebcamDevice_stub( const ::DBus::CallMessage& call )
+    {
+        ::DBus::MessageIter ri = call.reader();
+
+        ::DBus::Int32 argin1; ri >> argin1;
+        setWebcamDevice(argin1);
+        ::DBus::ReturnMessage reply(call);
+        return reply;
+    }
+    ::DBus::Message _getCurrentWebcamDeviceIndex_stub( const ::DBus::CallMessage& call )
+    {
+        ::DBus::MessageIter ri = call.reader();
+
+        std::vector< ::DBus::String > argout1 = getCurrentWebcamDeviceIndex();
+        ::DBus::ReturnMessage reply(call);
+        ::DBus::MessageIter wi = reply.writer();
+        wi << argout1;
+        return reply;
+    }
+    ::DBus::Message _getWebcamDeviceIndex_stub( const ::DBus::CallMessage& call )
+    {
+        ::DBus::MessageIter ri = call.reader();
+
+        ::DBus::String argin1; ri >> argin1;
+        ::DBus::Int32 argout1 = getWebcamDeviceIndex(argin1);
+        ::DBus::ReturnMessage reply(call);
+        ::DBus::MessageIter wi = reply.writer();
+        wi << argout1;
+        return reply;
+    }
+    ::DBus::Message _getResolutionList_stub( const ::DBus::CallMessage& call )
+    {
+        ::DBus::MessageIter ri = call.reader();
+
+        std::vector< ::DBus::String > argout1 = getResolutionList();
+        ::DBus::ReturnMessage reply(call);
+        ::DBus::MessageIter wi = reply.writer();
+        wi << argout1;
+        return reply;
+    }
+    ::DBus::Message _setResolution_stub( const ::DBus::CallMessage& call )
+    {
+        ::DBus::MessageIter ri = call.reader();
+
+        ::DBus::Int32 argin1; ri >> argin1;
+        setResolution(argin1);
+        ::DBus::ReturnMessage reply(call);
+        return reply;
+    }
+    ::DBus::Message _getCurrentResolutionIndex_stub( const ::DBus::CallMessage& call )
+    {
+        ::DBus::MessageIter ri = call.reader();
+
+        std::vector< ::DBus::String > argout1 = getCurrentResolutionIndex();
+        ::DBus::ReturnMessage reply(call);
+        ::DBus::MessageIter wi = reply.writer();
+        wi << argout1;
+        return reply;
+    }
+    ::DBus::Message _getResolutionIndex_stub( const ::DBus::CallMessage& call )
+    {
+        ::DBus::MessageIter ri = call.reader();
+
+        ::DBus::String argin1; ri >> argin1;
+        ::DBus::Int32 argout1 = getResolutionIndex(argin1);
         ::DBus::ReturnMessage reply(call);
         ::DBus::MessageIter wi = reply.writer();
         wi << argout1;

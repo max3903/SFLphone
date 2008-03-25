@@ -27,6 +27,9 @@ public:
 	 */
     virtual void run() =0;
 
+   //! Stop and Kill the thread
+    virtual void stop()=0;
+
 protected:
 	
 	//! Output buffer(s) for the mixed data

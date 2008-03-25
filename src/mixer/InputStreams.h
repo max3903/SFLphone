@@ -32,13 +32,13 @@ public:
     /*!
      * \return the video stream
      */
-    const VideoInput* fetchVideoStream() const;
+    VideoInput* fetchVideoStream() const;
 
     //! Access the audio stream
     /*!
      * \return the audio stream
      */
-    const AudioInput* fetchAudioStream() const;
+    AudioInput* fetchAudioStream() const;
 
 private:
 	

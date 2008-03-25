@@ -33,6 +33,18 @@ public:
 	 */
     virtual void run();
 
+    //! Pauses the work done by the run method
+    virtual void pause();
+
+    //! Resumes the work done by the run method
+    /*!
+     * Normally used after a pause.
+     */
+    virtual void restart();
+
+    //! Stop and Kill the thread
+    virtual void stop();
+
 private:
 	
 	//! Default Constructor
@@ -40,6 +52,14 @@ private:
 	 * Implemented as private to prevent declaration without the proper buffers
 	 */
     StraightThrough_AT();
+
+    InternalBuffer* inputBuffer;
+    OutputStream* outputBuffer;
+
+    void* data;
+    int sizeBuffer;
+    bool Active;
+    bool OkToKill;
     
 };
 #endif //STRAIGHTTHROUGH_AT_H

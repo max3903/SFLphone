@@ -1,7 +1,8 @@
 /*
  *  Copyright (C) 2006-2007 Savoir-Faire Linux inc.
  *  Author: Jean-Francois Blanchard-Dionne <jean-francois.blanchard-dionne@polymtl.ca>
- *                                                                              
+ *  Author: Jean Tessier <jean.tessier@polymtl.ca> 
+ *                                                                             
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation; either version 3 of the License, or
@@ -24,10 +25,11 @@
 #include <iterator>
 #include "MemSpace.h"
 #include "MemSorter.h"
-#include "MemData.h"
-#include "MemSpace.h"
-#include "MemKey.h"
+#include "../tracePrintSFL.h"
 
+
+typedef std::vector<MemSpace*> vectMemSpace;
+typedef vectMemSpace::iterator vectMemSpaceIterator;
 
 using namespace std;
 
@@ -52,7 +54,7 @@ public:
      * 
      * \return an instance of the manager
      */
-    MemManager* getInstance();
+    static MemManager* getInstance();
 
     //! Initialise a shared memory space with the specified size
     /*!
@@ -146,7 +148,7 @@ public:
      * \param size the size of Data
      * \return the success of the operation
      */
-    bool putData(char * Data, int size);
+    bool putData(unsigned char * Data, int size);
 
     //! Changes the data in the MemSpace specified by the key
     /*!
@@ -155,7 +157,7 @@ public:
      * \param size the size of Data
      * \return the success of the operation
      */
-    bool putData(key_t key, char * Data, int size);
+    bool putData(key_t key, unsigned char * Data, int size);
 
     //! Changes the data in the MemSpace specified by the key
     /*!
@@ -164,7 +166,7 @@ public:
      * \param size the size of Data
      * \return the success of the operation
      */
-    bool putData(MemKey* key, char * Data, int size);
+    bool putData(MemKey* key, unsigned char * Data, int size);
 
     //! Gets a list of the available MemKeys
     /*!

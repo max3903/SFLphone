@@ -13,6 +13,8 @@ Makefile.in
 /config.*
 *.swp
 *.so
+# Binary translation files
+*.mo
 
 # Ignore rendered docs
 doc/doxygen/html-everything
@@ -62,6 +64,7 @@ sflphone-gtk/doc/html/*
 /libs/dbus/install-sh
 /libs/dbus/ltmain.sh
 /libs/dbus/missing
+/src/dbus/org.sflphone.SFLphone.service
 
 
 # Ignore sflphone-gtk stuff
@@ -112,3 +115,4 @@ tools/portaudio
 
 # Les foutus .svn
 *.svn*
+

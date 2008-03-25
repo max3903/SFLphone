@@ -3,23 +3,34 @@
 #include "InputStreams.h"
 #include "VideoInput.h"
 #include "AudioInput.h"
+#include "../tracePrintSFL.h"
 
 InputStreams::InputStreams()
 {
+  audioInput = new AudioInput();
+  videoInput = new VideoInput();
 }
 
 InputStreams::InputStreams(VideoInput* videoData, AudioInput* audioData)
 {
+  audioInput = audioData;
+  videoInput = videoData;
 }
 
 InputStreams::~InputStreams()
 {
+  delete audioInput;
+  delete videoInput;
 }
 
-const VideoInput* InputStreams::fetchVideoStream() const 
+VideoInput* InputStreams::fetchVideoStream() const
 {
+  ptracesfl("InputStreams - fetchVideoStream(): Demande du Stream Video recu!",MT_INFO,true);
+  return videoInput;
 }
 
-const AudioInput* InputStreams::fetchAudioStream() const 
+AudioInput* InputStreams::fetchAudioStream() const
 {
+  ptracesfl("InputStreams - fetchAudioStream(): Demande du Stream Audio recu!",MT_INFO,true);
+  return audioInput;
 }

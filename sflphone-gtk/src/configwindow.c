@@ -44,6 +44,7 @@ GtkListStore *outputAudioPluginStore;
 GtkListStore *outputAudioDeviceManagerStore;
 GtkListStore *inputAudioDeviceManagerStore;
 GtkListStore *webcamDeviceStore;
+GtkListStore *resolutionStore;
 
 GtkWidget *addButton;
 GtkWidget *editButton;
@@ -55,6 +56,7 @@ GtkWidget *outputDeviceComboBox;
 GtkWidget *inputDeviceComboBox;
 GtkWidget *pluginComboBox;
 GtkWidget *webcamDeviceComboBox;
+GtkWidget *resolutionComboBox;
 
 GtkWidget *moveUpButton;
 GtkWidget *moveDownButton;
@@ -266,7 +268,7 @@ select_active_output_audio_device()
 	// Select active output device on server
 	devices = dbus_get_current_audio_devices_index();
 	currentDeviceIndex = atoi(devices[0]);
-	printf("audio device index for output = %d\n", currentDeviceIndex);
+	printf(_("audio device index for output = %d\n"), currentDeviceIndex);
 	model = gtk_combo_box_get_model(GTK_COMBO_BOX(outputDeviceComboBox));
 	
 	// Find the currently set output device
@@ -475,7 +477,7 @@ select_webcam_device(GtkComboBox* comboBox, gpointer data)
 		gtk_combo_box_get_active_iter(comboBox, &iter);
 		gtk_tree_model_get(model, &iter, 1, &deviceIndex, -1);
 		
-		dbus_set_audio_input_device(deviceIndex);
+		dbus_set_webcam_device(deviceIndex);
 	}
 }
 
@@ -485,7 +487,22 @@ select_webcam_device(GtkComboBox* comboBox, gpointer data)
 void
 config_window_fill_webcam_device_list()
 {
-	// \todo
+	GtkTreeIter iter;
+	gchar** list;
+	gchar** webcamDevice;
+	int index ;
+	gtk_list_store_clear(webcamDeviceStore);
+	
+	// Call dbus to retrieve list
+	list = dbus_get_webcam_device_list();
+	
+	// For each device name included in list
+	for(webcamDevice = list; *list; list++)
+	{
+		index = dbus_get_webcam_device_index( *list );
+		gtk_list_store_append(webcamDeviceStore, &iter);
+		gtk_list_store_set(webcamDeviceStore, &iter, 0, *list, 1, index, -1);
+	}
 }
 
 /**
@@ -494,7 +511,113 @@ config_window_fill_webcam_device_list()
 void
 select_active_webcam_device()
 {
-	// \todo
+	GtkTreeModel* model;
+	GtkTreeIter iter;
+	gchar** device;
+	int currentDeviceIndex;
+	int deviceIndex;
+
+	// Select active webcam device on server
+	device = dbus_get_current_webcam_device_index();
+	currentDeviceIndex = atoi(device[1]);
+	model = gtk_combo_box_get_model(GTK_COMBO_BOX(webcamDeviceComboBox));
+	
+	// Find the currently set webcam device
+	gtk_tree_model_get_iter_first(model, &iter);
+	do {
+		gtk_tree_model_get(model, &iter, 1, &deviceIndex, -1);
+		if(deviceIndex == currentDeviceIndex)
+		{
+			// Set current iteration the active one
+			gtk_combo_box_set_active_iter(GTK_COMBO_BOX(webcamDeviceComboBox), &iter);
+			return;
+		}
+	} while(gtk_tree_model_iter_next(model, &iter));
+
+	// No index was found, select first one
+	g_print("Warning : No active webcam device found");
+	gtk_combo_box_set_active(GTK_COMBO_BOX(webcamDeviceComboBox), 0);
+}
+
+/**
+ * Set the webcam device on the server with its index
+ */
+static void
+select_resolution(GtkComboBox* comboBox, gpointer data)
+{
+	GtkTreeModel* model;
+	GtkTreeIter iter;
+	int comboBoxIndex;
+	int resolutionIndex;
+	
+	comboBoxIndex = gtk_combo_box_get_active(comboBox);
+	
+	if(comboBoxIndex >= 0)
+	{
+		model = gtk_combo_box_get_model(comboBox);
+		gtk_combo_box_get_active_iter(comboBox, &iter);
+		gtk_tree_model_get(model, &iter, 1, &resolutionIndex, -1);
+		
+		dbus_set_resolution(resolutionIndex);
+	}
+}
+
+/**
+ * Fill resolution store
+ */
+void
+config_window_fill_resolution_list()
+{
+	GtkTreeIter iter;
+	gchar** list;
+	gchar** resolution;
+	int index ;
+	gtk_list_store_clear(resolutionStore);
+	
+	// Call dbus to retrieve list
+	list = dbus_get_resolution_list();
+	
+	// For each resolution included in list
+	for(resolution = list; *list; list++)
+	{
+		index = dbus_get_resolution_index( *list );
+		gtk_list_store_append(resolutionStore, &iter);
+		gtk_list_store_set(resolutionStore, &iter, 0, *list, 1, index, -1);
+	}
+}
+
+/**
+ * Select active resolution
+ */
+void
+select_active_resolution()
+{
+	GtkTreeModel* model;
+	GtkTreeIter iter;
+	gchar** resolution;
+	int currentResolutionIndex;
+	int resolutionIndex;
+
+	// Select active resolution on server
+	resolution = dbus_get_current_resolution_index();
+	currentResolutionIndex = atoi(resolution[1]);
+	model = gtk_combo_box_get_model(GTK_COMBO_BOX(resolutionComboBox));
+	
+	// Find the currently set resolution
+	gtk_tree_model_get_iter_first(model, &iter);
+	do {
+		gtk_tree_model_get(model, &iter, 1, &resolutionIndex, -1);
+		if(resolutionIndex == currentResolutionIndex)
+		{
+			// Set current iteration the active one
+			gtk_combo_box_set_active_iter(GTK_COMBO_BOX(resolutionComboBox), &iter);
+			return;
+		}
+	} while(gtk_tree_model_iter_next(model, &iter));
+
+	// No index was found, select first one
+	g_print("Warning : No active webcam device found");
+	gtk_combo_box_set_active(GTK_COMBO_BOX(resolutionComboBox), 0);
 }
 
 /**
@@ -1100,22 +1223,22 @@ create_codec_table()
 	
 	// Name column
 	renderer = gtk_cell_renderer_text_new();
-	treeViewColumn = gtk_tree_view_column_new_with_attributes("Name", renderer, "markup", COLUMN_CODEC_NAME, NULL);
+	treeViewColumn = gtk_tree_view_column_new_with_attributes(_("Name"), renderer, "markup", COLUMN_CODEC_NAME, NULL);
 	gtk_tree_view_append_column(GTK_TREE_VIEW(codecTreeView), treeViewColumn);
 	
 	// Bit rate column
 	renderer = gtk_cell_renderer_text_new();
-	treeViewColumn = gtk_tree_view_column_new_with_attributes("Frequency", renderer, "text", COLUMN_CODEC_FREQUENCY, NULL);
+	treeViewColumn = gtk_tree_view_column_new_with_attributes(_("Frequency"), renderer, "text", COLUMN_CODEC_FREQUENCY, NULL);
 	gtk_tree_view_append_column(GTK_TREE_VIEW(codecTreeView), treeViewColumn);
 	
 	// Bandwith column
 	renderer = gtk_cell_renderer_text_new();
-	treeViewColumn = gtk_tree_view_column_new_with_attributes("Bitrate", renderer, "text", COLUMN_CODEC_BITRATE, NULL);
+	treeViewColumn = gtk_tree_view_column_new_with_attributes(_("Bitrate"), renderer, "text", COLUMN_CODEC_BITRATE, NULL);
 	gtk_tree_view_append_column(GTK_TREE_VIEW(codecTreeView), treeViewColumn);
 	
 	// Frequency column
 	renderer = gtk_cell_renderer_text_new();
-	treeViewColumn = gtk_tree_view_column_new_with_attributes("Bandwidth", renderer, "text", COLUMN_CODEC_BANDWIDTH, NULL);
+	treeViewColumn = gtk_tree_view_column_new_with_attributes(_("Bandwidth"), renderer, "text", COLUMN_CODEC_BANDWIDTH, NULL);
 	gtk_tree_view_append_column(GTK_TREE_VIEW(codecTreeView), treeViewColumn);
 	
 	g_object_unref(G_OBJECT(codecStore));
@@ -1161,7 +1284,7 @@ create_accounts_tab()
 	ret = gtk_vbox_new(FALSE, 10); 
 	gtk_container_set_border_width(GTK_CONTAINER (ret), 10);
 
-	label = gtk_label_new("This is the list of accounts previously setup.");
+	label = gtk_label_new(_("Accounts previously setup."));
 
 	gtk_misc_set_alignment(GTK_MISC(label), 0, 0.5);
 	gtk_label_set_line_wrap(GTK_LABEL(label), TRUE);
@@ -1183,7 +1306,7 @@ create_accounts_tab()
 			);
 
 	treeView = gtk_tree_view_new_with_model(GTK_TREE_MODEL(accountStore));
-
+	//gtk_widget_set_tooltip_text( GTK_WIDGET( treeView ) , _("Double-click to edit the information on this account"));
 	treeSelection = gtk_tree_view_get_selection(GTK_TREE_VIEW (treeView));
 	g_signal_connect(G_OBJECT (treeSelection), "changed",
 			G_CALLBACK (select_account),
@@ -1199,9 +1322,12 @@ create_accounts_tab()
 			NULL);
 	gtk_tree_view_append_column (GTK_TREE_VIEW(treeView), treeViewColumn);
 	gtk_tree_view_column_set_cell_data_func(treeViewColumn, renderer, bold_if_default_account, NULL,NULL);
+	
+	// A double click on the account line opens the window to edit the account
+	g_signal_connect( G_OBJECT( treeView ) , "row-activated" , G_CALLBACK( edit_account ) , NULL );
 
 	renderer = gtk_cell_renderer_text_new();
-	treeViewColumn = gtk_tree_view_column_new_with_attributes ("Protocol",
+	treeViewColumn = gtk_tree_view_column_new_with_attributes (_("Protocol"),
 			renderer,
 			"markup", 1,
 			NULL);
@@ -1209,7 +1335,7 @@ create_accounts_tab()
 	gtk_tree_view_column_set_cell_data_func(treeViewColumn, renderer, bold_if_default_account, NULL,NULL);
 
 	renderer = gtk_cell_renderer_text_new();
-	treeViewColumn = gtk_tree_view_column_new_with_attributes ("Status",
+	treeViewColumn = gtk_tree_view_column_new_with_attributes (_("Status"),
 			renderer,
 			"markup", 2,
 			NULL);
@@ -1243,7 +1369,8 @@ create_accounts_tab()
 	gtk_box_pack_start(GTK_BOX(buttonBox), deleteButton, FALSE, FALSE, 0);
 	gtk_widget_show(deleteButton);
 	
-	defaultButton = gtk_button_new_with_mnemonic("Set as Default");
+	defaultButton = gtk_button_new_with_mnemonic(_("Default"));
+	gtk_widget_set_tooltip_text( GTK_WIDGET( defaultButton ) , _("Set the selected account as the default one to make calls"));
 	g_signal_connect_swapped(G_OBJECT(defaultButton), "clicked", 
 			G_CALLBACK(default_account), NULL);
 	gtk_box_pack_start(GTK_BOX(buttonBox), defaultButton, FALSE, FALSE, 0);
@@ -1285,7 +1412,7 @@ create_audio_tab ()
     
     // Device section label
     deviceLabel = gtk_label_new(NULL);
-    gtk_label_set_markup(GTK_LABEL(deviceLabel), "<b>Devices</b>");
+    gtk_label_set_markup(GTK_LABEL(deviceLabel), _("<b>Devices</b>"));
 	gtk_label_set_line_wrap(GTK_LABEL(deviceLabel), TRUE);
 	gtk_misc_set_alignment(GTK_MISC(deviceLabel), 0, 0.5);
 	gtk_label_set_justify(GTK_LABEL(deviceLabel), GTK_JUSTIFY_LEFT);
@@ -1326,7 +1453,7 @@ create_audio_tab ()
 	gtk_widget_show(comboBox);
 	*/
 	// Create title label
-	titleLabel = gtk_label_new("Alsa plug-OUT:");
+	titleLabel = gtk_label_new(_("ALSA plugin"));
 	gtk_misc_set_alignment(GTK_MISC(titleLabel), 0, 0.5);
 	gtk_table_attach(GTK_TABLE(deviceTable), titleLabel, 1, 2, 0, 1, GTK_FILL | GTK_EXPAND, GTK_SHRINK, 0, 0);
 	gtk_widget_show(titleLabel);
@@ -1347,7 +1474,7 @@ create_audio_tab ()
 	
 	// Device : Output device
 	// Create title label
-	titleLabel = gtk_label_new("Output peripheral:");
+	titleLabel = gtk_label_new(_("Output peripheral"));
     gtk_misc_set_alignment(GTK_MISC(titleLabel), 0, 0.5);
     gtk_table_attach(GTK_TABLE(deviceTable), titleLabel, 1, 2, 1, 2, GTK_FILL | GTK_EXPAND, GTK_SHRINK, 0, 0);
     gtk_widget_show(titleLabel);
@@ -1368,7 +1495,7 @@ create_audio_tab ()
 	
 	// Device : Input device
 	// Create title label
-	titleLabel = gtk_label_new("Input peripheral:");
+	titleLabel = gtk_label_new(_("Input peripheral"));
     gtk_misc_set_alignment(GTK_MISC(titleLabel), 0, 0.5);
     gtk_table_attach(GTK_TABLE(deviceTable), titleLabel, 1, 2, 2, 3, GTK_FILL | GTK_EXPAND, GTK_SHRINK, 0, 0);
 	gtk_widget_show(titleLabel);
@@ -1388,7 +1515,7 @@ create_audio_tab ()
 	gtk_widget_show(inputDeviceComboBox);
 	
 	// Create detect button
-	refreshButton = gtk_button_new_with_label("Detect all");
+	refreshButton = gtk_button_new_with_label(_("Detect all"));
 	gtk_button_set_image(GTK_BUTTON(refreshButton), gtk_image_new_from_stock(GTK_STOCK_REFRESH, GTK_ICON_SIZE_BUTTON));
 	gtk_table_attach(GTK_TABLE(deviceTable), refreshButton, 3, 4, 3, 4, GTK_EXPAND, GTK_EXPAND, 0, 0);
 	// Set event on selection
@@ -1417,17 +1544,17 @@ create_audio_tab ()
     // check button to enable ringtones
 	GtkWidget* box = gtk_hbox_new( TRUE , 1);
 	gtk_box_pack_start( GTK_BOX(ret) , box , FALSE , FALSE , 1);
-	enableTone = gtk_check_button_new_with_mnemonic( "_Enable ringtones");
+	enableTone = gtk_check_button_new_with_mnemonic( _("_Enable ringtones"));
 	gtk_toggle_button_set_active( GTK_TOGGLE_BUTTON(enableTone), dbus_is_ringtone_enabled() );
 	gtk_box_pack_start( GTK_BOX(box) , enableTone , TRUE , TRUE , 1);
 	g_signal_connect(G_OBJECT( enableTone) , "clicked" , G_CALLBACK( ringtone_enabled ) , NULL);
     // file chooser button
-	fileChooser = gtk_file_chooser_button_new("Choose a ringtone", GTK_FILE_CHOOSER_ACTION_OPEN);
+	fileChooser = gtk_file_chooser_button_new(_("Choose a ringtone"), GTK_FILE_CHOOSER_ACTION_OPEN);
 	gtk_file_chooser_set_current_folder(GTK_FILE_CHOOSER( fileChooser) , g_get_home_dir());	
 	gtk_file_chooser_set_filename(GTK_FILE_CHOOSER( fileChooser) , get_ringtone_choice());	
 	g_signal_connect( G_OBJECT( fileChooser ) , "selection_changed" , G_CALLBACK( ringtone_changed ) , NULL );
 	GtkFileFilter *filter = gtk_file_filter_new();
-	gtk_file_filter_set_name( filter , "Audio Files" );
+	gtk_file_filter_set_name( filter , _("Audio Files") );
 	gtk_file_filter_add_pattern(filter , "*.wav" );
 	gtk_file_filter_add_pattern(filter , "*.ul" );
 	gtk_file_filter_add_pattern(filter , "*.au" );
@@ -1448,30 +1575,31 @@ create_video_tab ()
 {
 	GtkWidget *ret;
 
-	GtkWidget *codecLabel;
-	GtkWidget *codecBox;
+	GtkWidget *bitrateLabel;
+	GtkWidget *codecBox, *videoBox;
 	GtkWidget *activateCheckBox;
 	GtkWidget *cancelCheckBox;
+	GtkWidget *codecFrame, *videoFrame;
+	GtkObject *bitrateAdjustment;
+	GtkWidget *bitrateHScale;
 	
 	GtkWidget *codecTable;
 	
 	// Main widget
 	ret = gtk_vbox_new(FALSE, 10);
     gtk_container_set_border_width(GTK_CONTAINER(ret), 10);
-	
-    // Codec section label
-    codecLabel = gtk_label_new(NULL);
-    gtk_label_set_markup(GTK_LABEL(codecLabel), "<b>Codecs</b>");
-    gtk_label_set_line_wrap(GTK_LABEL(codecLabel), TRUE);
-    gtk_misc_set_alignment(GTK_MISC(codecLabel), 0, 0.5);
-    gtk_label_set_justify(GTK_LABEL(codecLabel), GTK_JUSTIFY_LEFT);
-    gtk_box_pack_start(GTK_BOX(ret), codecLabel, FALSE, FALSE, 0);
-    gtk_widget_show(codecLabel);
+
+	// Codec section label
+	codecFrame = gtk_frame_new("Codecs");
+	gtk_box_pack_start(GTK_BOX(ret), codecFrame, FALSE, FALSE, 0);
+	gtk_widget_show(codecFrame);
 
     // Main codec widget
 	codecBox = gtk_hbox_new(FALSE, 10);
-	gtk_box_pack_start(GTK_BOX(ret), codecBox, FALSE, FALSE, 0);
+	gtk_box_pack_start(GTK_BOX(codecFrame), codecBox, FALSE, FALSE, 0);
 	gtk_widget_show(codecBox);
+	
+	gtk_container_add(GTK_CONTAINER(codecFrame),codecBox);
 	
 	// Codec : List
 	codecTable = create_video_codec_table();
@@ -1479,12 +1607,35 @@ create_video_tab ()
 	gtk_box_pack_start(GTK_BOX(codecBox), codecTable, TRUE, TRUE, 0);
 	gtk_widget_show(codecTable);
 	
+	videoFrame = gtk_frame_new("Video Capture");
+	gtk_box_pack_start(GTK_BOX(ret), videoFrame, FALSE, FALSE, 0);
+	gtk_widget_show(videoFrame);
+	
+	videoBox = gtk_vbox_new(FALSE, 10);
+	gtk_box_pack_start(GTK_BOX(videoFrame), videoBox, FALSE, FALSE, 0);
+	gtk_widget_show(videoBox);	
+	gtk_container_add(GTK_CONTAINER(videoFrame),videoBox);
+	
+	//Bitrate slider
+	bitrateLabel = gtk_label_new(NULL);
+    gtk_label_set_markup(GTK_LABEL(bitrateLabel), "<b>Bitrate :</b>");
+    gtk_label_set_line_wrap(GTK_LABEL(bitrateLabel), TRUE);
+    gtk_misc_set_alignment(GTK_MISC(bitrateLabel), 0, 0.5);
+    gtk_label_set_justify(GTK_LABEL(bitrateLabel), GTK_JUSTIFY_LEFT);
+    gtk_box_pack_start(GTK_BOX(videoBox), bitrateLabel, FALSE, FALSE, 0);
+    gtk_widget_show(bitrateLabel);
+    
+	bitrateAdjustment = gtk_adjustment_new (0.0, 0.0, 101.0, 1.0, 1.0, 1.0);
+    bitrateHScale = gtk_hscale_new(GTK_ADJUSTMENT (bitrateAdjustment));
+    gtk_box_pack_start(GTK_BOX(videoBox), bitrateHScale, FALSE, FALSE, 0);
+	gtk_widget_show(bitrateHScale);
+	
 	activateCheckBox = gtk_check_button_new_with_label("Always ask before activating the video capture");
-	gtk_box_pack_start(GTK_BOX(ret), activateCheckBox, FALSE, FALSE, 0);
+	gtk_box_pack_start(GTK_BOX(videoBox), activateCheckBox, FALSE, FALSE, 0);
 	gtk_widget_show(activateCheckBox);
 	
 	cancelCheckBox = gtk_check_button_new_with_label("Always ask before cancelling the video capture");
-	gtk_box_pack_start(GTK_BOX(ret), cancelCheckBox, FALSE, FALSE, 0);
+	gtk_box_pack_start(GTK_BOX(videoBox), cancelCheckBox, FALSE, FALSE, 0);
 	gtk_widget_show(cancelCheckBox);
 
 	// Show all
@@ -1510,39 +1661,38 @@ create_webcam_tab ()
 {
 	GtkWidget *ret;
 	
-	GtkWidget *deviceLabel;
+	GtkWidget *deviceFrame, *settingsFrame;
 	GtkWidget *deviceBox;
 	GtkWidget *deviceTable;
 	
 	GtkWidget *titleLabel;
 	GtkWidget *refreshButton;
 	
-	GtkWidget *settingsHBox, *settingsVBox;
-	GtkWidget *settingsLabel, *brightnessLabel;
+	GtkWidget *settingsHBox;
+	GtkWidget *settingsTable;
+	GtkWidget *brightnessLabel, *resolutionLabel;
 	GtkWidget *contrastLabel, *colourLabel;
 	GtkWidget *brightnessHScale, *contrastHScale, *colourHScale;
 	GtkObject *brightnessAdjustment, *contrastAdjustment, *colourAdjustment;
 	
-//	GtkWidget *drawingSpace;
+	GtkWidget *drawingSpace;
 	
 	
-	GtkCellRenderer *renderer;
+	GtkCellRenderer *deviceRenderer, *resolutionRenderer;
 	
 	// Main widget
 	ret = gtk_vbox_new(FALSE, 10);
     gtk_container_set_border_width(GTK_CONTAINER(ret), 10);
     
-    // Device section label
-    deviceLabel = gtk_label_new(NULL);
-    gtk_label_set_markup(GTK_LABEL(deviceLabel), "<b>Devices</b>");
-	gtk_label_set_line_wrap(GTK_LABEL(deviceLabel), TRUE);
-	gtk_misc_set_alignment(GTK_MISC(deviceLabel), 0, 0.5);
-	gtk_label_set_justify(GTK_LABEL(deviceLabel), GTK_JUSTIFY_LEFT);
-	gtk_box_pack_start(GTK_BOX(ret), deviceLabel, FALSE, FALSE, 0);
+    // Device section
+    deviceFrame = gtk_frame_new("Devices");
+	gtk_box_pack_start(GTK_BOX(ret), deviceFrame, FALSE, FALSE, 0);
+	gtk_widget_show(deviceFrame);
 	
     // Main device widget
 	deviceBox = gtk_hbox_new(FALSE, 10);
-	gtk_box_pack_start(GTK_BOX(ret), deviceBox, FALSE, FALSE, 0);
+	gtk_box_pack_start(GTK_BOX(deviceFrame), deviceBox, FALSE, FALSE, 0);
+	gtk_container_add(GTK_CONTAINER(deviceFrame),deviceBox);
     
     // Main device widget
 	deviceTable = gtk_table_new(4, 3, FALSE);
@@ -1560,16 +1710,16 @@ create_webcam_tab ()
 	
 	// Set choices of webcam
 	webcamDeviceStore = gtk_list_store_new(2, G_TYPE_STRING, G_TYPE_INT);
-	config_window_fill_webcam_device_list();
+	//config_window_fill_webcam_device_list();
 	webcamDeviceComboBox = gtk_combo_box_new_with_model(GTK_TREE_MODEL(webcamDeviceStore));
-	select_active_webcam_device();
+	//select_active_webcam_device();
   	gtk_label_set_mnemonic_widget(GTK_LABEL(titleLabel), webcamDeviceComboBox);
 	g_signal_connect(G_OBJECT(webcamDeviceComboBox), "changed", G_CALLBACK(select_webcam_device), webcamDeviceComboBox);
 	
   	// Set rendering
-	renderer = gtk_cell_renderer_text_new();
-	gtk_cell_layout_pack_start(GTK_CELL_LAYOUT(webcamDeviceComboBox), renderer, TRUE);
-	gtk_cell_layout_set_attributes(GTK_CELL_LAYOUT(webcamDeviceComboBox), renderer, "text", 0, NULL);
+	deviceRenderer = gtk_cell_renderer_text_new();
+	gtk_cell_layout_pack_start(GTK_CELL_LAYOUT(webcamDeviceComboBox), deviceRenderer, TRUE);
+	gtk_cell_layout_set_attributes(GTK_CELL_LAYOUT(webcamDeviceComboBox), deviceRenderer, "text", 0, NULL);
 	gtk_table_attach(GTK_TABLE(deviceTable), webcamDeviceComboBox, 2, 3, 0, 1, GTK_FILL | GTK_EXPAND, GTK_SHRINK, 0, 0);
 	gtk_widget_show(webcamDeviceComboBox);
 	
@@ -1578,24 +1728,22 @@ create_webcam_tab ()
 	gtk_button_set_image(GTK_BUTTON(refreshButton), gtk_image_new_from_stock(GTK_STOCK_REFRESH, GTK_ICON_SIZE_BUTTON));
 	gtk_table_attach(GTK_TABLE(deviceTable), refreshButton, 3, 4, 0, 3, GTK_EXPAND, GTK_EXPAND, 0, 0);
 	
-    // Settings section label
-    settingsLabel = gtk_label_new(NULL);
-    gtk_label_set_markup(GTK_LABEL(settingsLabel), "<b>Settings</b>");
-    gtk_label_set_line_wrap(GTK_LABEL(settingsLabel), TRUE);
-    gtk_misc_set_alignment(GTK_MISC(settingsLabel), 0, 0.5);
-    gtk_label_set_justify(GTK_LABEL(settingsLabel), GTK_JUSTIFY_LEFT);
-    gtk_box_pack_start(GTK_BOX(ret), settingsLabel, FALSE, FALSE, 0);
-    gtk_widget_show(settingsLabel);
-      
+    // Settings section
+	
     settingsHBox = gtk_hbox_new (TRUE, 10);
-    gtk_container_set_border_width (GTK_CONTAINER (settingsHBox), 10);
-    gtk_box_pack_start (GTK_BOX (ret), settingsHBox, TRUE, FALSE, 0);
-    gtk_widget_show (settingsHBox);
+    gtk_box_pack_start (GTK_BOX (ret), settingsHBox, TRUE, TRUE, 0);
     
-    settingsVBox = gtk_vbox_new (FALSE, 10);
-    gtk_container_set_border_width (GTK_CONTAINER (settingsVBox), 10);
-    gtk_box_pack_start (GTK_BOX (settingsHBox), settingsVBox, TRUE, TRUE, 0);
-    gtk_widget_show (settingsVBox);
+    settingsFrame = gtk_frame_new("Settings");
+	gtk_box_pack_start(GTK_BOX(settingsHBox), settingsFrame, TRUE, TRUE, 0);
+	gtk_widget_show(settingsFrame);
+    
+    settingsTable = gtk_table_new(8,1,TRUE);
+    gtk_table_set_col_spacing(GTK_TABLE(settingsTable), 0, 40);
+	gtk_box_set_spacing(GTK_BOX(settingsTable), 0);
+	gtk_box_pack_start(GTK_BOX(settingsFrame), settingsTable, TRUE, TRUE, 0);
+	gtk_widget_show(settingsTable);
+	gtk_container_add(GTK_CONTAINER(settingsFrame),settingsTable);
+	
     
     //Brightness slider section
     brightnessLabel = gtk_label_new(NULL);
@@ -1603,12 +1751,12 @@ create_webcam_tab ()
     gtk_label_set_line_wrap(GTK_LABEL(brightnessLabel), TRUE);
     gtk_misc_set_alignment(GTK_MISC(brightnessLabel), 0, 0.5);
     gtk_label_set_justify(GTK_LABEL(brightnessLabel), GTK_JUSTIFY_LEFT);
-    gtk_box_pack_start(GTK_BOX(settingsVBox), brightnessLabel, FALSE, FALSE, 0);
+    gtk_table_attach(GTK_TABLE(settingsTable), brightnessLabel, 0, 1, 0, 1, GTK_FILL | GTK_EXPAND, GTK_SHRINK, 0, 0);
     gtk_widget_show(brightnessLabel);
 
 	brightnessAdjustment = gtk_adjustment_new (0.0, 0.0, 101.0, 1.0, 1.0, 1.0);
     brightnessHScale = gtk_hscale_new(GTK_ADJUSTMENT (brightnessAdjustment));
-    gtk_box_pack_start(GTK_BOX(settingsVBox), brightnessHScale, TRUE, TRUE, 0);
+    gtk_table_attach(GTK_TABLE(settingsTable), brightnessHScale, 0, 1, 1, 2, GTK_FILL | GTK_EXPAND, GTK_SHRINK, 0, 0);
 	gtk_widget_show(brightnessHScale);
 
 	//Contrast slider section
@@ -1617,12 +1765,12 @@ create_webcam_tab ()
     gtk_label_set_line_wrap(GTK_LABEL(contrastLabel), TRUE);
     gtk_misc_set_alignment(GTK_MISC(contrastLabel), 0, 0.5);
     gtk_label_set_justify(GTK_LABEL(contrastLabel), GTK_JUSTIFY_LEFT);
-    gtk_box_pack_start(GTK_BOX(settingsVBox), contrastLabel, FALSE, FALSE, 0);
+    gtk_table_attach(GTK_TABLE(settingsTable), contrastLabel, 0, 1, 2, 3, GTK_FILL | GTK_EXPAND, GTK_SHRINK, 0, 0);
     gtk_widget_show(contrastLabel);
     
     contrastAdjustment = gtk_adjustment_new (0.0, 0.0, 101.0, 1.0, 1.0, 1.0);
     contrastHScale = gtk_hscale_new(GTK_ADJUSTMENT (contrastAdjustment));
-    gtk_box_pack_start(GTK_BOX(settingsVBox), contrastHScale, TRUE, TRUE, 0);
+    gtk_table_attach(GTK_TABLE(settingsTable), contrastHScale, 0, 1, 3, 4, GTK_FILL | GTK_EXPAND, GTK_SHRINK, 0, 0);
 	gtk_widget_show(contrastHScale);
 	
 	//Colour slider section
@@ -1631,18 +1779,40 @@ create_webcam_tab ()
     gtk_label_set_line_wrap(GTK_LABEL(colourLabel), TRUE);
     gtk_misc_set_alignment(GTK_MISC(colourLabel), 0, 0.5);
     gtk_label_set_justify(GTK_LABEL(colourLabel), GTK_JUSTIFY_LEFT);
-    gtk_box_pack_start(GTK_BOX(settingsVBox), colourLabel, FALSE, FALSE, 0);
+    gtk_table_attach(GTK_TABLE(settingsTable), colourLabel, 0, 1, 4, 5, GTK_FILL | GTK_EXPAND, GTK_SHRINK, 0, 0);
     gtk_widget_show(colourLabel);
     
     colourAdjustment = gtk_adjustment_new (0.0, 0.0, 101.0, 1.0, 1.0, 1.0);
     colourHScale = gtk_hscale_new(GTK_ADJUSTMENT (colourAdjustment));
-    gtk_box_pack_start(GTK_BOX(settingsVBox), colourHScale, TRUE, TRUE, 0);
+    gtk_table_attach(GTK_TABLE(settingsTable), colourHScale, 0, 1, 5, 6, GTK_FILL | GTK_EXPAND, GTK_SHRINK, 0, 0);
 	gtk_widget_show(colourHScale);
 	
+	//Resolution combo box section
+	resolutionLabel = gtk_label_new(NULL);
+    gtk_label_set_markup(GTK_LABEL(resolutionLabel), "<b>Resolution:</b>");
+    gtk_label_set_line_wrap(GTK_LABEL(resolutionLabel), TRUE);
+    gtk_misc_set_alignment(GTK_MISC(resolutionLabel), 0, 0.5);
+    gtk_label_set_justify(GTK_LABEL(resolutionLabel), GTK_JUSTIFY_LEFT);
+    gtk_table_attach(GTK_TABLE(settingsTable), resolutionLabel, 0, 1, 6, 7, GTK_FILL | GTK_EXPAND, GTK_SHRINK, 0, 0);
+    gtk_widget_show(resolutionLabel);
+    
+    resolutionStore = gtk_list_store_new(2, G_TYPE_STRING, G_TYPE_INT);
+	//config_window_fill_resolution_list();
+	resolutionComboBox = gtk_combo_box_new_with_model(GTK_TREE_MODEL(resolutionStore));
+	//select_active_resolution();
+  	gtk_label_set_mnemonic_widget(GTK_LABEL(resolutionLabel), resolutionComboBox);
+	g_signal_connect(G_OBJECT(resolutionComboBox), "changed", G_CALLBACK(select_resolution), resolutionComboBox);
+	
+	resolutionRenderer = gtk_cell_renderer_text_new();
+	gtk_cell_layout_pack_start(GTK_CELL_LAYOUT(resolutionComboBox), resolutionRenderer, TRUE);
+	gtk_cell_layout_set_attributes(GTK_CELL_LAYOUT(resolutionComboBox), resolutionRenderer, "text", 0, NULL);
+	gtk_table_attach(GTK_TABLE(settingsTable), resolutionComboBox, 0, 1, 7, 8, GTK_FILL | GTK_EXPAND, GTK_SHRINK, 0, 0);
+	gtk_widget_show(resolutionComboBox);
+	
 	// \todo Add an OpenGL widget to show the local video rendering
-//    drawingSpace= createGLWidget();
-//    gtk_box_pack_start(GTK_BOX(settingsHBox), drawingSpace, TRUE, TRUE, 0);
-//    gtk_widget_show(drawingSpace);
+    drawingSpace= createGLWidget();
+    gtk_box_pack_start(GTK_BOX(settingsHBox), drawingSpace, FALSE, FALSE, 0);
+    gtk_widget_show(drawingSpace);
 	
 	g_signal_connect (G_OBJECT (colourHScale), "format-value", G_CALLBACK (format_percentage_scale), NULL); 
 	g_signal_connect (G_OBJECT (brightnessHScale), "format-value", G_CALLBACK (format_percentage_scale), NULL); 
@@ -1670,7 +1840,7 @@ show_config_window (gint page_num)
 
 	dialogOpen = TRUE;
 
-	dialog = GTK_DIALOG(gtk_dialog_new_with_buttons ("Preferences",
+	dialog = GTK_DIALOG(gtk_dialog_new_with_buttons (_("Preferences"),
 				GTK_WINDOW(get_main_window()),
 				GTK_DIALOG_DESTROY_WITH_PARENT,
 				GTK_STOCK_CLOSE,
@@ -1691,13 +1861,13 @@ show_config_window (gint page_num)
 
 	// Accounts tab
 	tab = create_accounts_tab();
-	gtk_notebook_append_page(GTK_NOTEBOOK(notebook), tab, gtk_label_new("Accounts"));
+	gtk_notebook_append_page(GTK_NOTEBOOK(notebook), tab, gtk_label_new(_("Accounts")));
 	gtk_notebook_page_num(GTK_NOTEBOOK(notebook), tab);
 	gtk_widget_show(tab);
 	
 	// Audio tab
 	tab = create_audio_tab();	
-	gtk_notebook_append_page(GTK_NOTEBOOK(notebook), tab, gtk_label_new("Audio Settings"));
+	gtk_notebook_append_page(GTK_NOTEBOOK(notebook), tab, gtk_label_new(_("Audio Settings")));
 	gtk_notebook_page_num(GTK_NOTEBOOK(notebook), tab);
 	gtk_widget_show(tab);
 	
@@ -1715,10 +1885,11 @@ show_config_window (gint page_num)
 	gtk_widget_show(tab);
 
 	gtk_notebook_set_current_page(GTK_NOTEBOOK(notebook),page_num);
-	gtk_widget_show( GTK_WIDGET(dialog) );
-	g_signal_connect_swapped( dialog , "response" , G_CALLBACK( gtk_widget_destroy ), dialog );
+	gtk_dialog_run(dialog);
+	//gtk_widget_show( GTK_WIDGET(dialog) );
+	//g_signal_connect_swapped( dialog , "response" , G_CALLBACK( gtk_widget_destroy ), dialog );
 
 	dialogOpen = FALSE;
 
-	//gtk_widget_destroy(GTK_WIDGET(dialog));
+	gtk_widget_destroy(GTK_WIDGET(dialog));
 }

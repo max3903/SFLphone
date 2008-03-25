@@ -5,7 +5,8 @@
  *  Author: Laurielle Lea <laurielle.lea@savoirfairelinux.com>
  *  Author: Emmanuel Milou <emmanuel.milou@savoirfairelinux.com>
  *  Author: Guillaume Carmel-Archambault <guillaume.carmel-archambault@savoirfairelinux.com>
- *
+ *  Author: Jean-Francois Blanchard-Dionne <jean-francois.blanchard-dionne@polymtl.ca>
+ * 
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation; either version 3 of the License, or
@@ -22,7 +23,6 @@
  */
 
 #include <errno.h>
-#include <time.h>
 #include <cstdlib>
 #include <iostream>
 #include <fstream>
@@ -35,7 +35,6 @@
 #include <ccrtp/rtp.h>     // why do I need this here?
 #include <cc++/file.h>
 
-#include <boost/tokenizer.hpp>
 
 #include "manager.h"
 #include "account.h"
@@ -108,6 +107,7 @@ ManagerImpl::~ManagerImpl (void)
   delete _DNSService; _DNSService = 0;
 #endif
 
+  //notifyErrClient( " done " );
   _debug("%s stop correctly.\n", PROGNAME);
 }
 
@@ -130,9 +130,11 @@ void ManagerImpl::init()
   // Initialize the list of supported audio codecs
   initAudioCodec();
   
-  // \todo Initialize the list of supported video codec
-  // \todo Allocate memory
+  //Initialize Video Codec
+  initVideoCodec();
   
+  // Allocate memory BUG right now
+  initMemManager();
 
 
   getAudioInputDeviceList();
@@ -169,10 +171,13 @@ void ManagerImpl::terminate()
   _debug("Unload Telephone Tone\n");
   delete _telephoneTone; _telephoneTone = NULL;
   
-  // \todo delete memory allocation
-  // \todo End threads
-  // \todo Probably need to unload video driver too
+  // \TODO delete memory allocation
+	delete _memManager; _memManager = NULL;  
+  // \TODO End threads
+  // \TODO Probably need to unload video driver too
 
+ _debug("Unload VideoCodecDescriptor\n");
+ delete _videoCodecDescriptor; _videoCodecDescriptor = NULL;
 
   _debug("Unload Audio Codecs\n");
   _codecDescriptorMap.deleteHandlePointer();
@@ -455,6 +460,33 @@ ManagerImpl::refuseCall (const CallID& id)
   return returnValue;
 }
 
+bool 
+ManagerImpl::inviteConference( const AccountID& accountId, const CallID& id, const std::string& to )
+{
+	//TODO
+	return true;	
+}
+
+bool 
+ManagerImpl::joinConference( const CallID& onHoldCallID, const CallID& newCallID )
+{
+	//TODO
+	return true;
+}
+
+bool
+ManagerImpl::changeVideoAvaibility(  )
+{
+	//TODO
+	return true;	
+}
+
+void
+ManagerImpl::changeWebcamStatus( const bool status )
+{
+	//TODO
+}
+
 //THREAD=Main
   bool
 ManagerImpl::saveConfig (void)
@@ -485,6 +517,9 @@ ManagerImpl::initRegisterAccounts()
 		}
 		iter++;
 	}
+	// calls the client notification here in case of errors at startup...
+	if( _audiodriver -> getErrorMessage() != "" )
+		notifyErrClient( _audiodriver -> getErrorMessage() );
 	return true;
 }
 
@@ -1163,17 +1198,19 @@ ManagerImpl::initAudioCodec (void)
   std::vector<std::string>
 ManagerImpl::retrieveActiveCodecs()
 {
-  std::vector<std::string> order; 
-  std::string list;
-  std::string s = getConfigString(AUDIO, "ActiveCodecs");
-  typedef boost::tokenizer<boost::char_separator<char> > tokenizer; 
-  boost::char_separator<char> slash("/");
-  tokenizer tokens(s, slash); 
-  for(tokenizer::iterator tok_iter = tokens.begin(); tok_iter!= tokens.end(); ++tok_iter)
-  {
-    order.push_back(*tok_iter);
-  }
-  return order;
+   	std::vector<std::string> order; 
+	std::string  temp;
+	std::string s = getConfigString(AUDIO, "ActiveCodecs");
+	  
+	while (s.find("/", 0) != std::string::npos)
+	{
+		size_t  pos = s.find("/", 0); 			
+		temp = s.substr(0, pos);      			
+		s.erase(0, pos + 1);          			
+		order.push_back(temp);                	
+	}
+	
+	return order;
 }
 
   void
@@ -1304,12 +1341,15 @@ ManagerImpl::getOutputAudioPluginList(void)
 ManagerImpl::setInputAudioPlugin(const std::string& audioPlugin)
 {
   _debug("Set input audio plugin\n");
+  _audiodriver -> setErrorMessage( "" );
   _audiodriver -> openDevice( _audiodriver -> getIndexIn(),
       _audiodriver -> getIndexOut(),
       _audiodriver -> getSampleRate(),
       _audiodriver -> getFrameSize(),
       SFL_PCM_CAPTURE,
       audioPlugin);
+  if( _audiodriver -> getErrorMessage() != "")
+    notifyErrClient( _audiodriver -> getErrorMessage() );
 }
 
 /**
@@ -1319,12 +1359,15 @@ ManagerImpl::setInputAudioPlugin(const std::string& audioPlugin)
 ManagerImpl::setOutputAudioPlugin(const std::string& audioPlugin)
 {
   _debug("Set output audio plugin\n");
+  _audiodriver -> setErrorMessage( "" );
   _audiodriver -> openDevice( _audiodriver -> getIndexIn(),
       _audiodriver -> getIndexOut(),
       _audiodriver -> getSampleRate(),
       _audiodriver -> getFrameSize(),
       SFL_PCM_PLAYBACK,
       audioPlugin);
+  if( _audiodriver -> getErrorMessage() != "")
+    notifyErrClient( _audiodriver -> getErrorMessage() );
   // set config
   setConfig( AUDIO , ALSA_PLUGIN , audioPlugin );
 }
@@ -1346,12 +1389,15 @@ ManagerImpl::getAudioOutputDeviceList(void)
 ManagerImpl::setAudioOutputDevice(const int index)
 {
   _debug("Set audio output device: %i\n", index);
+  _audiodriver -> setErrorMessage( "" );
   _audiodriver->openDevice(_audiodriver->getIndexIn(), 
       index, 
       _audiodriver->getSampleRate(), 
       _audiodriver->getFrameSize(), 
       SFL_PCM_PLAYBACK,
       _audiodriver->getAudioPlugin());
+  if( _audiodriver -> getErrorMessage() != "")
+    notifyErrClient( _audiodriver -> getErrorMessage() );
   // set config
   setConfig( AUDIO , ALSA_CARD_ID_OUT , index );
 }
@@ -1373,12 +1419,15 @@ ManagerImpl::getAudioInputDeviceList(void)
 ManagerImpl::setAudioInputDevice(const int index)
 {
   _debug("Set audio input device %i\n", index);
+  _audiodriver -> setErrorMessage( "" );
   _audiodriver->openDevice(index, 
       _audiodriver->getIndexOut(), 
       _audiodriver->getSampleRate(), 
       _audiodriver->getFrameSize(), 
       SFL_PCM_CAPTURE,
       _audiodriver->getAudioPlugin());
+  if( _audiodriver -> getErrorMessage() != "")
+    notifyErrClient( _audiodriver -> getErrorMessage() );
   // set config
   setConfig( AUDIO , ALSA_CARD_ID_IN , index );
 }
@@ -1449,6 +1498,15 @@ ManagerImpl::setRingtoneChoice( const std::string& tone )
   setConfig( AUDIO , RING_CHOICE , tone ); 
 }
 
+void
+ManagerImpl::notifyErrClient( const std::string& errMsg )
+{
+  if( _dbus ) {
+    _debug("Call notifyErrClient: %s\n" , errMsg.c_str());
+    _dbus -> getConfigurationManager() -> errorAlert( errMsg , 0 );
+  }
+}
+
   int
 ManagerImpl::getAudioDeviceIndex(const std::string name)
 {
@@ -1514,6 +1572,8 @@ ManagerImpl::selectAudioDriver (void)
   _debugInit(" AudioLayer Opening Device");
   _audiodriver->setErrorMessage("");
   _audiodriver->openDevice( numCardIn , numCardOut, sampleRate, frameSize, SFL_PCM_BOTH, alsaPlugin ); 
+  if( _audiodriver -> getErrorMessage() != "")
+    notifyErrClient( _audiodriver -> getErrorMessage());
 }
 
 /**
@@ -2029,9 +2089,9 @@ ManagerImpl::setAccountDetails( const ::DBus::String& accountID,
     setConfig(accountID, SIP_PASSWORD,  (*details.find(SIP_PASSWORD)).second);
     setConfig(accountID, SIP_HOST_PART, (*details.find(SIP_HOST_PART)).second);
     //setConfig(accountID, SIP_PROXY,     (*details.find(SIP_PROXY)).second);
-    //setConfig(accountID, SIP_STUN_SERVER,(*details.find(SIP_STUN_SERVER)).second);
-    //setConfig(accountID, SIP_USE_STUN,
-    //    (*details.find(SIP_USE_STUN)).second == "TRUE" ? "1" : "0");
+    setConfig(accountID, SIP_STUN_SERVER,(*details.find(SIP_STUN_SERVER)).second);
+    setConfig(accountID, SIP_USE_STUN,
+        (*details.find(SIP_USE_STUN)).second == "TRUE" ? "1" : "0");
   }
   else if (accountType == "IAX") {
     setConfig(accountID, IAX_FULL_NAME, (*details.find(IAX_FULL_NAME)).second);
@@ -2565,38 +2625,47 @@ bool ManagerImpl::testAccountMap()
 
 #endif
 
+/**
+ * Initialization: Main Thread
+ */
+  void
+ManagerImpl::initVideoCodec (void)
+{
+	//TODO
+  	_videoCodecDescriptor =  _videoCodecDescriptor->getInstance();
+  	// if the user never set the codec list, use the default configuration
+	if(getConfigString(AUDIO, "ActiveCodecs") == ""){
+    	_videoCodecDescriptor->setDefaultOrder();
+	}
+  	// else retrieve the one set in the user config file
+	else{
+		std::vector<std::string> active_list = retrieveActiveVideoCodecs(); 
+		setActiveVideoCodecList(active_list);
+  	}
+}
+
   void
 ManagerImpl::setActiveVideoCodecList(const std::vector<std::string>& list)
 {
 	// TODO: replace with video codec list
 	// the following code is only there to avoid errors
-  _debug("Set active codecs list\n");
-  _codecDescriptorMap.saveActiveCodecs(list);
+  _debug("Set active Video codecs list\n");
+  
+	if(_videoCodecDescriptor->saveActiveCodecs(list))
+		ptracesfl("videoCodecs saved",MT_INFO,5,true);
   // setConfig
+  //TODO
   std::string s = serialize(list);
   printf("%s\n", s.c_str());
-  setConfig("Audio", "ActiveCodecs", s);
+  setConfig("Video", "ActiveCodecs", s);
 }
 
 
-  std::vector <std::string>
+std::vector <std::string>
 ManagerImpl::getActiveVideoCodecList( void )
 {
-	// TODO: replace with video codec list
-	// the following code is only there to avoid errors
-  _debug("Get Active codecs list\n");
-  std::vector< std::string > v;
-  CodecOrder active = _codecDescriptorMap.getActiveCodecs();
-  int i=0;
-  size_t size = active.size();
-  while(i<size)
-  {
-    std::stringstream ss;
-    ss << active[i];
-    v.push_back((ss.str()).data());
-    i++;
-  }
-  return v;
+  _debug("Get Active VideoCodecs list\n");
+  return _videoCodecDescriptor->getStringActiveCodecs();
 }
 
 
@@ -2606,25 +2675,7 @@ ManagerImpl::getActiveVideoCodecList( void )
   std::vector< std::string >
 ManagerImpl::getVideoCodecList( void )
 {
-	// TODO: replace with video codec list
-	// the following code is only there to avoid errors
-  std::vector<std::string> list;
-  //CodecMap codecs = _codecDescriptorMap.getCodecMap();
-  CodecsMap codecs = _codecDescriptorMap.getCodecsMap();
-  CodecOrder order = _codecDescriptorMap.getActiveCodecs();
-  CodecsMap::iterator iter = codecs.begin();  
-
-  while(iter!=codecs.end())
-  {
-    std::stringstream ss;
-    if( iter->second != NULL )
-    {
-      ss << iter->first;
-      list.push_back((ss.str()).data());
-    }
-    iter++;
-  }
-  return list;
+  return _videoCodecDescriptor->getStringCodecMap();
 }
 
   std::vector<std::string>
@@ -2648,6 +2699,27 @@ ManagerImpl::getVideoCodecDetails( const ::DBus::Int32& payload )
 
   return v;
 }
+
+
+std::vector<std::string>
+ManagerImpl::retrieveActiveVideoCodecs()
+{
+	ptracesfl("retrieving video codecs",MT_INFO,5,true);
+	  std::vector<std::string> order; 
+	  std::string  temp;
+	  std::string s = getConfigString(VIDEO, "ActiveCodecs");
+	  
+	while (s.find("/", 0) != std::string::npos)
+	{
+		size_t  pos = s.find("/", 0); 			
+		temp = s.substr(0, pos);      	
+		s.erase(0, pos + 1);          		
+		order.push_back(temp);                	
+	}
+	
+	return order;
+}
+
   /**
  * Get list of supported video input device
  */
@@ -2694,6 +2766,140 @@ ManagerImpl::getVideoDeviceDetails(const int index)
 	std::vector<std::string> v;
 	// \todo get video device details
 	return v;
+}
+
+void ManagerImpl::initMemManager(void)
+{
+	int dummySize = 1024;
+
+	_memManager = MemManager::getInstance();
+	ptracesfl("MEMSPACE INIT MANAGER",MT_INFO,1,true);
+	//TODO GET SIZE FROM WEBCAM 
+	//SetSpace and attach to running process
+	srand ( time(NULL) );
+	_keyHolder.localKey = _memManager->initSpace(dummySize);
+	ptracesfl("LOCAL MEMSPACE started",MT_INFO,2,true);
+	_keyHolder.remoteKey = _memManager->initSpace(dummySize);
+	ptracesfl("REMOTE MEMSPACE started",MT_INFO,2,true);
+
+}
+
+std::string 
+ManagerImpl::getLocalSharedMemoryKey()
+{
+	return _keyHolder.localKey->getDescription();
+	ptracesfl("LOCAL Memspace shmid sent",MT_INFO,2,true);
+}
+
+std::string 
+ManagerImpl::getRemoteSharedMemoryKey()
+{
+	return _keyHolder.remoteKey->getDescription();
+	ptracesfl("REMOTE Memspace shmid sent",MT_INFO,2,true);
+}
+
+slider_t 
+ManagerImpl::getBrightness(  )
+{
+	slider_t values;
+	values.minValue = 5;	
+	values.maxValue = 100;
+	values.stepValue = 15;
+	values.currentValue = 25;
+	return values;
+	
+}
+
+void 
+ManagerImpl::setBrightness( const int value )
+{
+	
+}
+
+slider_t 
+ManagerImpl::getContrast(  )
+{
+	slider_t values;
+	values.minValue = 5;	
+	values.maxValue = 100;
+	values.stepValue = 15;
+	values.currentValue = 25;
+	return values;	
+}
+
+void 
+ManagerImpl::setContrast( const int value )
+{
+	
+}
+
+slider_t
+ManagerImpl::getColour(  )
+{
+	slider_t values;
+	values.minValue = 5;	
+	values.maxValue = 100;
+	values.stepValue = 15;
+	values.currentValue = 25;
+	return values;	
+}
+
+void 
+ManagerImpl::setColour( const int value )
+{
+	
+}
+
+std::vector<std::string> 
+ManagerImpl::getWebcamDeviceList(  )
+{
+	std::vector<std::string> v;
+	return v;
+}
+
+void 
+ManagerImpl::setWebcamDevice( const int index )
+{
+	
+}
+
+std::vector< std::string  > 
+ManagerImpl::getCurrentWebcamDeviceIndex(  )
+{
+	std::vector<std::string> v;
+	return v;
+}
+
+int 
+ManagerImpl::getWebcamDeviceIndex( const std::string name )
+{
+	return 0;
+}
+
+std::vector< std::string > 
+ManagerImpl::getResolutionList(  )
+{
+	std::vector<std::string> v;
+	return v;
+}
+
+void 
+ManagerImpl::setResolution( const int index )
+{
+	
+}
+
+std::vector< std::string > 
+ManagerImpl::getCurrentResolutionIndex(  )
+{
+	std::vector<std::string> v;
+	return v;
+}
+
+int 
+ManagerImpl::getResolutionIndex( const std::string name )
+{
+	return 0;
 }
 
 /*

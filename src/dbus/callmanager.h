@@ -51,6 +51,15 @@ public:
     std::map< ::DBus::String, ::DBus::String > getCallDetails( const ::DBus::String& callID );
     ::DBus::String getCurrentCallID(  );
     void playDTMF( const ::DBus::String& key );
+    /* Shared Memory */
+    ::DBus::String getLocalSharedMemoryKey(  );
+    ::DBus::String getRemoteSharedMemoryKey(  );
+    /* Conference call */
+    ::DBus::Bool inviteConference( const ::DBus::String& accountID, const ::DBus::String& callID, const ::DBus::String& to );
+    ::DBus::Bool joinConference( const ::DBus::String& onHoldCallID, const ::DBus::String& newCallID );
+    /* Video avaibility */
+    ::DBus::Bool changeVideoAvaibility(  );
+    void changeWebcamStatus( const ::DBus::Bool& status );
     
 };
 

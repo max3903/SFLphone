@@ -30,6 +30,7 @@
 #include <set>
 #include <map>
 #include <cc++/thread.h>
+#include <time.h>
 #include "dbus/dbusmanager.h"
 
 #include "stund/stun.h"
@@ -43,11 +44,14 @@
 #include "audio/audiofile.h"
 #include "audio/dtmf.h"
 #include "audio/codecDescriptor.h"
+#include "video/VideoCodecDescriptor.h"
+#include "memmanager/MemManager.h"
 
 
 
 class AudioLayer;
 class CodecDescriptor;
+class VideoCodecDescriptor;
 class GuiFramework;
 class TelephoneTone;
 class VoIPLink;
@@ -56,6 +60,22 @@ class VoIPLink;
 class DNSService;
 #endif
 
+//TODO: remove when it will be linked to the struct in V4L
+typedef struct  {
+  /** Minimum value for the slider */
+  int minValue;
+  /** Maximum value for the slider */
+  int maxValue;
+  /** Step increment value for the slider */
+  int stepValue;
+  /** Current value of the slider */
+  int currentValue;
+} slider_t;
+
+struct KeyHolder{
+const MemKey* localKey;
+const MemKey* remoteKey;
+};
 /**
  * Define a type for a AccountMap container
  */
@@ -128,6 +148,11 @@ public:
   void mute();
   void unmute();
   bool refuseCall(const CallID& id);
+  
+  bool inviteConference( const AccountID& accountId, const CallID& id, const std::string& to );
+  bool joinConference( const CallID& onHoldCallID, const CallID& newCallID );
+  bool changeVideoAvaibility(  );
+  void changeWebcamStatus( const bool status );
 
   /** Save config to file */
   bool saveConfig (void);
@@ -322,6 +347,12 @@ public:
    */
   std::vector< ::DBus::String > getVideoCodecDetails( const ::DBus::Int32& payload);
 
+	/**
+   * Get the list of video codecs active saved in the config file
+   * @return The list of the video codecs
+   */ 
+  std::vector<std::string> retrieveActiveVideoCodecs();
+  
   /**
    * Get a list of supported input audio plugin
    * @return List of names
@@ -408,6 +439,11 @@ public:
    */
   void setDefaultAccount(const AccountID& accountID);
 
+  /*
+   * Notify the client that an error occured
+   * @param errMsg The error message that should popup on the client side
+   */
+  void notifyErrClient( const std::string& errMsg );
 
   bool getConfigAll(const std::string& sequenceId);
   bool getConfig(const std::string& section, const std::string& name, TokenList& arg);
@@ -532,6 +568,26 @@ public:
    * @return if the id is the current call
    */
   bool isCurrentCall(const CallID& callId);
+  
+  /* Shared Memory Key exchange on D-Bus */
+  std::string getLocalSharedMemoryKey( void );
+  std::string getRemoteSharedMemoryKey( void );
+  
+  /* Webcam Settings */
+	slider_t getBrightness(  );
+	void setBrightness( const int value );
+	slider_t getContrast(  );
+	void setContrast( const int value );
+	slider_t getColour(  );
+	void setColour( const int value );
+	std::vector<std::string> getWebcamDeviceList(  );
+	void setWebcamDevice( const int index );
+	std::vector< std::string > getCurrentWebcamDeviceIndex(  );
+    int getWebcamDeviceIndex( const std::string name );
+    std::vector< std::string > getResolutionList(  );
+    void setResolution( const int index );
+    std::vector< std::string > getCurrentResolutionIndex(  );
+    int getResolutionIndex( const std::string name );
 
 private:
  /**
@@ -548,7 +604,8 @@ private:
    * Initialize audiocodec with config setting
    */
   void initAudioCodec(void);
-
+  
+  
   /*
    * Initialize audiodriver
    */
@@ -621,7 +678,14 @@ private:
 
   // map of codec (for configlist request)
   CodecDescriptor _codecDescriptorMap;
+  
+  // videoCodecDescriptor
+  VideoCodecDescriptor *_videoCodecDescriptor;
 
+  // MEMMANAGER
+  MemManager *_memManager;
+  KeyHolder _keyHolder;
+  
   /////////////////////
   // Protected by Mutex
   /////////////////////
@@ -767,7 +831,10 @@ private:
    */
   void initVideoCodec(void);
   
-  
+    /*
+   * Initialize the memmanager -> the shared memory interface
+   */
+  void initMemManager(void);
   
   /**
    * Get list of supported video input device

@@ -160,8 +160,18 @@ contact_entry_presence_changed(DBusGProxy* proxy,
 		const gchar* additionalInfo,
 		void* nothing)
 {
-	// TODO
+	// TMP
 	g_print("%s : %s is %s\n", accountID, entryID, presence);
+}
+
+static void
+error_alert(DBusGProxy *proxy,
+		gchar* errMsg,
+		int err,
+		void * foo)
+{
+	g_print ("Error notifying : (%s)\n" , errMsg);
+	sflphone_throw_exception( errMsg , err );
 }
 
 gboolean 
@@ -182,8 +192,7 @@ dbus_connect ()
     return FALSE;
   }
 
-  /* Create a proxy object for the "bus driver" (name "org.freedesktop.DBus") */
-  
+  // Create a proxy object for the "bus driver" (name "org.freedesktop.DBus")
   instanceProxy = dbus_g_proxy_new_for_name (connection,
                                      "org.sflphone.SFLphone",
                                      "/org/sflphone/SFLphone/Instance",
@@ -193,10 +202,9 @@ dbus_connect ()
     g_printerr ("Failed to get proxy to Instance\n");
     return FALSE;
   }
-  
   g_print ("DBus connected to Instance\n");
   
-  
+  // Create the call manager proxy
   callManagerProxy = dbus_g_proxy_new_for_name (connection,
                                      "org.sflphone.SFLphone",
                                      "/org/sflphone/SFLphone/CallManager",
@@ -206,8 +214,8 @@ dbus_connect ()
     g_printerr ("Failed to get proxy to CallManagers\n");
     return FALSE;
   }
-  
   g_print ("DBus connected to CallManager\n");
+  
   /* Incoming call */
   dbus_g_object_register_marshaller(g_cclosure_user_marshal_VOID__STRING_STRING_STRING, 
     G_TYPE_NONE, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_INVALID);
@@ -216,7 +224,7 @@ dbus_connect ()
   dbus_g_proxy_connect_signal (callManagerProxy,
     "incomingCall", G_CALLBACK(incoming_call_cb), NULL, NULL);
 
-  /* Register a marshaller for STRING,STRING */
+  /* Function call state changed and register a marshaller for STRING,STRING */
   dbus_g_object_register_marshaller(g_cclosure_user_marshal_VOID__STRING_STRING, 
     G_TYPE_NONE, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_INVALID);
   dbus_g_proxy_add_signal (callManagerProxy, 
@@ -224,6 +232,7 @@ dbus_connect ()
   dbus_g_proxy_connect_signal (callManagerProxy,
     "callStateChanged", G_CALLBACK(call_state_cb), NULL, NULL);
 
+  /* Function voice mail notify and register a marshaller for STRING, INT */
   dbus_g_object_register_marshaller(g_cclosure_user_marshal_VOID__STRING_INT, 
     G_TYPE_NONE, G_TYPE_STRING, G_TYPE_INT, G_TYPE_INVALID);
   dbus_g_proxy_add_signal (callManagerProxy, 
@@ -231,11 +240,13 @@ dbus_connect ()
   dbus_g_proxy_connect_signal (callManagerProxy,
     "voiceMailNotify", G_CALLBACK(voice_mail_cb), NULL, NULL);
   
+  /* Function incoming message */
   dbus_g_proxy_add_signal (callManagerProxy, 
     "incomingMessage", G_TYPE_STRING, G_TYPE_STRING, G_TYPE_INVALID);
   dbus_g_proxy_connect_signal (callManagerProxy,
     "incomingMessage", G_CALLBACK(incoming_message_cb), NULL, NULL);
-    
+  
+  /* Function volume changed and register a marshaller for STRING, DOUBLE */
   dbus_g_object_register_marshaller(g_cclosure_user_marshal_VOID__STRING_DOUBLE, 
     G_TYPE_NONE, G_TYPE_STRING, G_TYPE_DOUBLE, G_TYPE_INVALID);
   dbus_g_proxy_add_signal (callManagerProxy, 
@@ -243,21 +254,33 @@ dbus_connect ()
   dbus_g_proxy_connect_signal (callManagerProxy,
     "volumeChanged", G_CALLBACK(volume_changed_cb), NULL, NULL);
     
+  // Create the configuration manager proxy
   configurationManagerProxy = dbus_g_proxy_new_for_name (connection,
                                   "org.sflphone.SFLphone",
                                   "/org/sflphone/SFLphone/ConfigurationManager",
                                   "org.sflphone.SFLphone.ConfigurationManager");
-  if (!configurationManagerProxy) 
+  if (!configurationManagerProxy)
   {
     g_printerr ("Failed to get proxy to ConfigurationManager\n");
     return FALSE;
   }
   g_print ("DBus connected to ConfigurationManager\n");
+  
+  /* Function accounts changed */
   dbus_g_proxy_add_signal (configurationManagerProxy, 
     "accountsChanged", G_TYPE_INVALID);
   dbus_g_proxy_connect_signal (configurationManagerProxy,
     "accountsChanged", G_CALLBACK(accounts_changed_cb), NULL, NULL);
   
+  /* Function error alert and register a marshaller for STRING, INT */
+  dbus_g_object_register_marshaller(g_cclosure_user_marshal_VOID__STRING_INT,
+          G_TYPE_NONE, G_TYPE_STRING, G_TYPE_INT , G_TYPE_INVALID);
+  dbus_g_proxy_add_signal (configurationManagerProxy, 
+    "errorAlert", G_TYPE_STRING , G_TYPE_INT , G_TYPE_INVALID);
+  dbus_g_proxy_connect_signal (configurationManagerProxy,
+    "errorAlert", G_CALLBACK(error_alert), NULL, NULL);
+  
+  // Create the contact manager proxy
   contactManagerProxy = dbus_g_proxy_new_for_name (connection,
                                   "org.sflphone.SFLphone",
                                   "/org/sflphone/SFLphone/ContactManager",
@@ -267,9 +290,11 @@ dbus_connect ()
     g_printerr("Failed to get proxy to ContactManager\n");
     return FALSE;
   }
+  g_print("DBus connected to ContactManager\n");
+  
+  /* Function contact entry presence changed and register a marshaller for 4 STRING */
   dbus_g_object_register_marshaller(g_cclosure_user_marshal_VOID__STRING_STRING_STRING_STRING, 
     G_TYPE_NONE, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_INVALID);
-  g_print("DBus connected to ContactManager\n");
   dbus_g_proxy_add_signal (contactManagerProxy,
     "contactEntryPresenceChanged", G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_INVALID);
   dbus_g_proxy_connect_signal (contactManagerProxy,
@@ -413,6 +438,137 @@ dbus_place_call (const call_t * c)
   
   }
 
+}
+
+gchar*
+dbus_get_local_shared_memory_key()
+{
+	g_print("Before get local shared memory key");
+	gchar* key;
+	GError* error = NULL;
+	org_sflphone_SFLphone_CallManager_get_local_shared_memory_key(
+			callManagerProxy,
+			&key,
+			&error);
+	g_print("After");
+	if(error)
+	{
+		g_printerr("Failed to call get_local_shared_memory_key() on CallManager: %s\n", error->message);
+		g_error_free(error);
+	}
+	else
+		g_print("DBus called get_local_shared_memory_key() on CallManager\n");
+	return key;
+	
+}
+
+gchar*
+dbus_get_remote_shared_memory_key()
+{
+	g_print("Before get remote shared memory key");
+	gchar* key;
+	GError* error = NULL;
+	org_sflphone_SFLphone_CallManager_get_remote_shared_memory_key(
+			callManagerProxy,
+			&key,
+			&error);
+	g_print("After");
+	if(error)
+	{
+		g_printerr("Failed to call get_remote_shared_memory_key() on CallManager: %s\n", error->message);
+		g_error_free(error);
+	}
+	else
+		g_print("DBus called get_remote_shared_memory_key() on CallManager\n");
+	return key;
+	
+}
+
+//Remote video status change - enable or disable remote video display
+gboolean 
+dbus_change_video_avaibility()
+{
+	g_print("Before change video avaibility");
+	gboolean response;
+	GError* error = NULL;
+	org_sflphone_SFLphone_CallManager_change_video_avaibility(
+			callManagerProxy,
+			&response,
+			&error);
+	g_print("After");
+	if(error)
+	{
+		g_printerr("Failed to call change_video_avaibility() on CallManager: %s\n", error->message);
+		g_error_free(error);
+	}
+	else
+		g_print("DBus called change_video_avaibility() on CallManager\n");
+	return response;
+}
+
+//Webcam Status change - enable or disable video capture
+void 
+dbus_change_webcam_status(gboolean status)
+{
+	g_print("Before change webcam status");
+	GError* error = NULL;
+	org_sflphone_SFLphone_CallManager_change_webcam_status(
+			callManagerProxy,
+			status,
+			&error);
+	g_print("After");
+	if(error)
+	{
+		g_printerr("Failed to call change_webcam_status() on CallManager: %s\n", error->message);
+		g_error_free(error);
+	}
+	else
+		g_print("DBus called change_webcam_status() on CallManager\n");
+}
+
+//Invite 3rd person for a conference
+gboolean 
+dbus_invite_conference( const call_t * c )
+{
+	g_print("Before invite conference");
+	gboolean response;
+	GError* error = NULL;
+	org_sflphone_SFLphone_CallManager_invite_conference(
+			callManagerProxy,
+			c->accountID, c->callID, c->to,
+			&response,
+			&error);
+	g_print("After");
+	if(error)
+	{
+		g_printerr("Failed to call invite_conference() on CallManager: %s\n", error->message);
+		g_error_free(error);
+	}
+	else
+		g_print("DBus called invite_conference() on CallManager\n");
+	return response;	
+}
+
+gboolean 
+dbus_join_conference( const call_t * onHoldCall,  const call_t * newCall)
+{
+	g_print("Before join conference");
+	gboolean response;
+	GError* error = NULL;
+	org_sflphone_SFLphone_CallManager_join_conference(
+			callManagerProxy,
+			onHoldCall->callID, newCall->callID,
+			&response,
+			&error);
+	g_print("After");
+	if(error)
+	{
+		g_printerr("Failed to call join_conference() on CallManager: %s\n", error->message);
+		g_error_free(error);
+	}
+	else
+		g_print("DBus called join_conference() on CallManager\n");
+	return response;	
 }
 
 gchar ** 
@@ -693,6 +849,29 @@ dbus_unregister(int pid)
   }
 }
 
+int
+dbus_get_registration_count( void )
+{
+  GError *error = NULL;
+  int n;
+
+  org_sflphone_SFLphone_Instance_get_registration_count(
+    instanceProxy, 
+    &n, 
+    &error);
+
+  if (error) 
+  {
+    g_printerr ("Failed to call get_registration_count() on instanceProxy: %s\n",
+                error->message);
+    g_error_free (error);
+  } 
+  else 
+  {
+    g_print ("DBus called get_registration_count() on instanceProxy\n");
+  }
+  return n;
+}
 
 gchar**
 dbus_codec_list()
@@ -1168,7 +1347,6 @@ dbus_get_current_audio_output_plugin()
 	return plugin;
 }
 
-
 gchar*
 dbus_get_ringtone_choice()
 {
@@ -1343,3 +1521,317 @@ dbus_get_contact_entry_details(gchar* accountID, gchar* contactID, gchar* entryI
 		g_print ("DBus called get_contact_entry_details on ContactManager\n");
 	return array;
 }
+
+
+
+
+//Brightness of the video capture
+slider_t
+dbus_get_brightness()
+{
+	g_print("Before get brightness");
+	slider_t values;
+	GError* error = NULL;
+	org_sflphone_SFLphone_ConfigurationManager_get_brightness(
+			configurationManagerProxy,
+			&values.minValue, &values.maxValue, 
+			&values.stepValue, &values.currentValue,
+			&error);
+	g_print("After");
+	if(error)
+	{
+		g_printerr("Failed to call get_brightness() on ConfigurationManager: %s\n", error->message);
+		g_error_free(error);
+	}
+	else
+	{
+		g_print("DBus called get_brightness() on ConfigurationManager\n");
+		g_print("%i %i %i %i", values.minValue, values.maxValue, 
+			values.stepValue, values.currentValue);
+	}
+	return values;	
+}
+
+void 
+dbus_set_brightness(int value)
+{
+	g_print("Before set brightness");
+	GError* error = NULL;
+	org_sflphone_SFLphone_ConfigurationManager_set_brightness(
+			configurationManagerProxy,
+			value,
+			&error);
+	g_print("After");
+	if(error)
+	{
+		g_printerr("Failed to call set_brightness() on ConfigurationManager: %s\n", error->message);
+		g_error_free(error);
+	}
+	else
+		g_print("DBus called set_brightness() on ConfigurationManager\n");
+}
+
+//Contrast of the video capture
+slider_t 
+dbus_get_contrast()
+{
+	g_print("Before get contrast");
+	slider_t values;
+	GError* error = NULL;
+	org_sflphone_SFLphone_ConfigurationManager_get_contrast(
+			configurationManagerProxy,
+			&values.minValue, &values.maxValue, 
+			&values.stepValue, &values.currentValue,
+			&error);
+	g_print("After");
+	if(error)
+	{
+		g_printerr("Failed to call get_contrast() on ConfigurationManager: %s\n", error->message);
+		g_error_free(error);
+	}
+	else
+		g_print("DBus called get_contrast() on ConfigurationManager\n");
+	return values;
+}
+
+void 
+dbus_set_contrast(int value)
+{
+	g_print("Before set contrast");
+	GError* error = NULL;
+	org_sflphone_SFLphone_ConfigurationManager_set_contrast(
+			configurationManagerProxy,
+			value,
+			&error);
+	g_print("After");
+	if(error)
+	{
+		g_printerr("Failed to call set_contrast() on ConfigurationManager: %s\n", error->message);
+		g_error_free(error);
+	}
+	else
+		g_print("DBus called set_contrast() on ConfigurationManager\n");
+}
+
+//Colour of the video capture
+slider_t
+dbus_get_colour()
+{
+	g_print("Before get colour");
+	slider_t values;
+	GError* error = NULL;
+	org_sflphone_SFLphone_ConfigurationManager_get_colour(
+			configurationManagerProxy,
+			&values.minValue, &values.maxValue, 
+			&values.stepValue, &values.currentValue,
+			&error);
+	g_print("After");
+	if(error)
+	{
+		g_printerr("Failed to call get_colour() on ConfigurationManager: %s\n", error->message);
+		g_error_free(error);
+	}
+	else
+		g_print("DBus called get_colour() on ConfigurationManager\n");
+	return values;	
+}
+
+void 
+dbus_set_colour(int value)
+{
+	g_print("Before set colour");
+	GError* error = NULL;
+	org_sflphone_SFLphone_ConfigurationManager_set_colour(
+			configurationManagerProxy,
+			value,
+			&error);
+	g_print("After");
+	if(error)
+	{
+		g_printerr("Failed to call set_colour() on ConfigurationManager: %s\n", error->message);
+		g_error_free(error);
+	}
+	else
+		g_print("DBus called set_colour() on ConfigurationManager\n");
+}
+
+//Webcam list
+gchar** 
+dbus_get_webcam_device_list()
+{
+	g_print("Before get webcam device list");
+	gchar** array;
+	GError* error = NULL;
+	org_sflphone_SFLphone_ConfigurationManager_get_webcam_device_list(
+			configurationManagerProxy,
+			&array,
+			&error);
+	g_print("After");
+	if(error)
+	{
+		g_printerr("Failed to call get_webcam_device_list() on ConfigurationManager: %s\n", error->message);
+		g_error_free(error);
+	}
+	else
+		g_print("DBus called get_webcam_device_list() on ConfigurationManager\n");
+	return array;	
+}
+
+void 
+dbus_set_webcam_device(const int index)
+{
+	g_print("Before set webcam device");
+	GError* error = NULL;
+	org_sflphone_SFLphone_ConfigurationManager_set_webcam_device(
+			configurationManagerProxy,
+			index,
+			&error);
+	g_print("After");
+	if(error)
+	{
+		g_printerr("Failed to call set_webcam_device() on ConfigurationManager: %s\n", error->message);
+		g_error_free(error);
+	}
+	else
+		g_print("DBus called set_webcam_device() on ConfigurationManager\n");
+}
+
+/**
+ * Get webcam device index
+ */
+gchar**
+dbus_get_current_webcam_device_index()
+{
+	g_print("Before get current webcam device index");
+	gchar** array;
+	GError* error = NULL;
+	org_sflphone_SFLphone_ConfigurationManager_get_current_webcam_device_index(
+			configurationManagerProxy,
+			&array,
+			&error);
+	g_print("After");
+	if(error)
+	{
+		g_printerr("Failed to call get_current_webcam_device_index() on ConfigurationManager: %s\n", error->message);
+		g_error_free(error);
+	}
+	else
+		g_print("DBus called get_current_webcam_device_index() on ConfigurationManager\n");
+	return array;
+}
+
+/**
+ * Get webcam index
+ */
+int
+dbus_get_webcam_device_index(const gchar *name)
+{
+	g_print("Before get webcam device index");
+	int index;
+	GError* error = NULL;
+	org_sflphone_SFLphone_ConfigurationManager_get_webcam_device_index(
+			configurationManagerProxy,
+			name,
+			&index,
+			&error);
+	g_print("After");
+	if(error)
+	{
+		g_printerr("Failed to call get_webcam_device_index() on ConfigurationManager: %s\n", error->message);
+		g_error_free(error);
+	}
+	else
+		g_print("DBus called get_webcam_device_index() on ConfigurationManager\n");
+	return index;
+}
+
+//Resolution list
+gchar** 
+dbus_get_resolution_list()
+{
+	g_print("Before get resolution list");
+	gchar** array;
+	GError* error = NULL;
+	org_sflphone_SFLphone_ConfigurationManager_get_resolution_list(
+			configurationManagerProxy,
+			&array,
+			&error);
+	g_print("After");
+	if(error)
+	{
+		g_printerr("Failed to call get_resolution_list() on ConfigurationManager: %s\n", error->message);
+		g_error_free(error);
+	}
+	else
+		g_print("DBus called get_resolution_list() on ConfigurationManager\n");
+	return array;	
+}
+
+void 
+dbus_set_resolution(const int index)
+{
+	g_print("Before set resolution");
+	GError* error = NULL;
+	org_sflphone_SFLphone_ConfigurationManager_set_resolution(
+			configurationManagerProxy,
+			index,
+			&error);
+	g_print("After");
+	if(error)
+	{
+		g_printerr("Failed to call set_resolution() on ConfigurationManager: %s\n", error->message);
+		g_error_free(error);
+	}
+	else
+		g_print("DBus called set_resolution() on ConfigurationManager\n");
+}
+
+/**
+ * Get resolution index
+ */
+gchar**
+dbus_get_current_resolution_index()
+{
+	g_print("Before get current resolution index");
+	gchar** array;
+	GError* error = NULL;
+	org_sflphone_SFLphone_ConfigurationManager_get_current_resolution_index(
+			configurationManagerProxy,
+			&array,
+			&error);
+	g_print("After");
+	if(error)
+	{
+		g_printerr("Failed to call get_current_resolution_index() on ConfigurationManager: %s\n", error->message);
+		g_error_free(error);
+	}
+	else
+		g_print("DBus called get_current_resolution_index() on ConfigurationManager\n");
+	return array;
+}
+
+/**
+ * Get resolution index
+ */
+int
+dbus_get_resolution_index(const gchar *name)
+{
+	g_print("Before get audio device index");
+	int index;
+	GError* error = NULL;
+	org_sflphone_SFLphone_ConfigurationManager_get_resolution_index(
+			configurationManagerProxy,
+			name,
+			&index,
+			&error);
+	g_print("After");
+	if(error)
+	{
+		g_printerr("Failed to call get_resolution_index() on ConfigurationManager: %s\n", error->message);
+		g_error_free(error);
+	}
+	else
+		g_print("DBus called get_resolution_index() on ConfigurationManager\n");
+	return index;
+}
+

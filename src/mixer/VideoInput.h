@@ -5,6 +5,7 @@
 
 #include <semaphore.h>
 #include "TimeInfo.h"
+#include <string.h>
 
 //!  Video input buffer
 /*!
@@ -33,13 +34,13 @@ public:
      * \param data a pointer to where the data must be copied
      * \return the size of the fetched data 
      */
-    virtual int fetchData(char* data) const;
+    virtual int fetchData(char* data);
 
     //! Access the timing information
     /*!
      * This method returns the timestamp for the data contained in the buffer. The data is used by the synchonization manager to mix the streams 
      */
-    virtual TimeInfo fetchTimeInfo() const;
+    virtual TimeInfo fetchTimeInfo();
 
     //! Changes the data contained in the buffer
     /*!
@@ -48,9 +49,11 @@ public:
      * \param data a pointer to a data buffer
      * \param size the size of the buffer
      */
-    virtual void putData(char * data, int size);
+    virtual void putData(char * data, int size, int leTemps);
 
-    void putTimeInfo(TimeInfo* infos);
+    void putTimeInfo(TimeInfo* infos); // TODO: virtual??
+
+    int getSizeBuffer(); // TODO: virtual???
 
 private:
 	
@@ -59,6 +62,7 @@ private:
     
     //! Internal data buffer
     char * buffer;
-    TimeInfo* infoTemps;    
+    TimeInfo* infoTemps;
+    int sizeBuffer;
 };
 #endif //VIDEOINPUT_H

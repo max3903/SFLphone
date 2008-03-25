@@ -39,7 +39,6 @@ CodecDescriptor::~CodecDescriptor()
   void
 CodecDescriptor::deleteHandlePointer( void )
 {
-  //_debug("Destroy codecs handles\n");
   int i;
   for( i = 0 ; i < _CodecInMemory.size() ; i++)
   {
@@ -54,8 +53,8 @@ CodecDescriptor::init()
   std::vector<AudioCodec*> CodecDynamicList = scanCodecDirectory();
   _nbCodecs = CodecDynamicList.size();
   if( _nbCodecs <= 0 ){
-    _debug("Error - No codecs available in directory %s\n", CODECS_DIR);
-    exit(0);
+    _debug(" Error - No codecs available in directory %s\n" , CODECS_DIR);
+    //exit(0);
   }
 
   int i;
@@ -114,16 +113,6 @@ CodecDescriptor::isActive(AudioCodecType payload)
   void 
 CodecDescriptor::removeCodec(AudioCodecType payload)
 {
-  CodecMap::iterator iter = _codecMap.begin();
-  while(iter!=_codecMap.end()) {
-    if (iter->first == payload) {
-      _debug("Codec %s removed from the list", getCodecName(payload).data());
-      _codecMap.erase(iter);
-      break;
-    }
-    iter++;
-  }
-
 }
 
   void
@@ -282,6 +271,16 @@ CodecDescriptor::seemsValid( std::string lib)
   // We check this  
   std::string begin = SFL_CODEC_VALID_PREFIX;
   std::string end = SFL_CODEC_VALID_EXTEN;
+
+  // First : check the length of the file name. 
+  // If it is shorter than begin.length() + end.length() , not a SFL shared library
+  if( lib.length() <= begin.length() + end.length() )
+    return false;
+
+  // Second: check the extension of the file name.
+  // If it is different than SFL_CODEC_VALID_EXTEN , not a SFL shared library
+  if( lib.substr( lib.length() - end.length() , lib.length()) != end )
+    return false;
 
 #ifdef BUILD_SPEEX
   // Nothing special

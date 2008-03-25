@@ -2,7 +2,9 @@
  *  Copyright (C) 2007 Savoir-Faire Linux inc.
  *  Author: Pierre-Luc Beaudoin <pierre-luc@squidy.info>
  *  Author: Emmanuel Milou <emmanuel.milou@savoirfairelinux.com>
- *                                                                              
+ *  Author: Jean-Francois Blanchard-Dionne <jean-francois.blanchard-dionne@polymtl.ca>
+ *  Author: marilyne Mercier <marilyne.mercier@polymtl.ca> 
+ *                                                                           
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation; either version 3 of the License, or
@@ -25,6 +27,7 @@
 #include <menus.h>
 #include <screen.h>
 #include <statusicon.h>
+#include <quit.h>
 
 #include <gtk/gtk.h>
 #include <string.h>
@@ -33,6 +36,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 
+#define ALSA_ERROR  0
 
 	void
 sflphone_notify_voice_mail (guint count)
@@ -40,7 +44,7 @@ sflphone_notify_voice_mail (guint count)
 	if(count > 0)
 	{
 		gchar * message = g_new0(gchar, 50);
-		g_sprintf(message, "%d new voice mail%s", count, (count > 1? "s" : "")); 
+		g_sprintf(message, _("%d new voice mail%s"), count, (count > 1? "s" : "")); 
 		status_bar_message(message);
 		g_free(message);
 	}
@@ -69,6 +73,7 @@ sflphone_quit ()
 		//call_list_clean(); TODO
 		//account_list_clean()
 		contact_hash_table_clear();
+		//display_progress_bar();
 		gtk_main_quit ();
 	}
 	return quit;
@@ -143,7 +148,7 @@ sflphone_fill_account_list()
 
 	gboolean
 sflphone_init()
-{
+{	
 	call_list_init ();
 	account_list_init ();
 	codec_list_init();
@@ -222,6 +227,9 @@ sflphone_pick_up()
 				dbus_transfert (selectedCall);
 				break;
 			case CALL_STATE_CURRENT:
+				sflphone_new_call();
+				break;
+			case CALL_STATE_RINGING:
 				sflphone_new_call();
 				break;
 			default:
@@ -580,6 +588,20 @@ sflphone_set_default_account( )
 	account_list_set_default(default_id);	
 }
 
+void
+sflphone_throw_exception( gchar* msg , int err )
+{
+  gchar* markup = malloc(1000);
+  switch( err ){
+    case ALSA_ERROR:
+      sprintf( markup , "<b>ALSA notification</b>\n\n");
+      break;
+  }
+  sprintf( markup , "%s%s" , markup , msg );
+  main_window_error_message( markup );  
+  free( markup );
+}
+
 
 /* Internal to action - get the codec list */
 void	
@@ -623,6 +645,14 @@ sflphone_fill_codec_list()
       c->_bandwidth = atof(details[3]);
       codec_list_add(c);
     }
+  }
+  if( codec_list_get_size() == 0) {
+    gchar* markup = malloc(1000);
+    sprintf(markup , "<b>Error: No audio codecs found.\n\n</b> SFL audio codecs have to be placed in <i>%s</i> or in the <b>.sflphone</b> directory in your home( <i>%s</i> )", CODECS_DIR , g_get_home_dir());
+    main_window_error_message( markup );
+    g_free( markup );
+    dbus_unregister(getpid());
+    exit(0);
   }
 }
 
@@ -711,30 +741,26 @@ sflphone_fill_video_codec_list()
     
   gchar** codecs = (gchar**)dbus_video_codec_list();
   gchar** order = (gchar**)dbus_get_active_video_codec_list();
-  gchar** details;
+  //gchar** details;
   gchar** pl;
 
   for(pl=order; *order; order++)
   {
     videoCodec_t * c = g_new0(videoCodec_t, 1);
-    c->_payload = atoi(*order);
-    details = (gchar **)dbus_video_codec_details(c->_payload);
-    //printf("Codec details: %s / %s / %s / %s\n",details[0],details[1],details[2],details[3]);
-    c->name = details[0];
+    c->name = *order;
     c->is_active = TRUE;
     video_codec_list_add(c);
   }
  
   for(pl=codecs; *codecs; codecs++)
   {
-    details = (gchar **)dbus_video_codec_details(atoi(*codecs));
-    if(video_codec_list_get(details[0])!=NULL){
+    
+    if(video_codec_list_get(*codecs)!=NULL){
       // does nothing - the codec is already in the list, so is active.
     }
     else{
       videoCodec_t* c = g_new0(videoCodec_t, 1);
-      c->_payload = atoi(*codecs);
-      c->name = details[0];
+      c->name = *codecs;
       c->is_active = FALSE;
       video_codec_list_add(c);
     }

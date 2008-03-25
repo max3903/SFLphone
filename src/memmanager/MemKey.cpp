@@ -27,7 +27,7 @@ MemKey::MemKey()
 	this->description = serialize();
 }
 
-MemKey::MemKey(char* serializedData)
+MemKey::MemKey(std::string serializedData)
 {
 	
 	//TODO read serializedData and create MemKey with parameters
@@ -51,7 +51,7 @@ MemKey::MemKey(int size,key_t key)
 }
 
 
-MemKey::MemKey(MemKey* key)
+MemKey::MemKey( const MemKey* key)
 {	
 	this->index = key->index;
 	this->size = key->size;
@@ -59,7 +59,7 @@ MemKey::MemKey(MemKey* key)
 }
 
 
-MemKey::MemKey(MemKey& key)
+MemKey::MemKey(const MemKey& key)
 {
 	
 	this->size = key.size;
@@ -83,7 +83,7 @@ void MemKey::setKey(key_t key)
 	this->key = key;
 }
 
-const char * MemKey::getDescription() const 
+const std::string MemKey::getDescription() const 
 {
 	return this->description ;
 }
@@ -120,14 +120,15 @@ int MemKey::getShmid() const
 	return this->shmid;
 }
 
-char* MemKey::serialize()
+std::string MemKey::serialize()
 {
-	char* tmp;
-	sprintf(tmp,"%i %i %i",this->shmid,this->size,this->key);
-	return tmp;
+	std::stringstream out;
+	out << this->shmid << " " << this->size;
+	return out.str();
 }
 
 key_t MemKey::genKey()
 {
-	return ftok("/tmp/sflPhone",rand());	
+	 
+	return ftok("/tmp",rand() % 100);	
 }

@@ -21,6 +21,11 @@
 #ifndef __ACTIONS_H__
 #define __ACTIONS_H__
 
+#define _(STRING)   gettext( STRING )   
+
+#include <libintl.h>
+#include <locale.h>
+
 #include <calllist.h>
 #include <accountlist.h>
 #include <codeclist.h>
@@ -110,6 +115,8 @@ void sflphone_place_call ( call_t * c );
  */
 void sflphone_fill_account_list();
 void sflphone_set_default_account();
+
+void sflphone_throw_exception( gchar* msg , int err );
 void sflphone_fill_codec_list();
 void sflphone_fill_contact_list();
 
