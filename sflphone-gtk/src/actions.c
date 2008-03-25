@@ -96,7 +96,7 @@ sflphone_ringing(call_t * c )
 
 /** Internal to actions: Fill account list */
 	void
-sflphone_fill_account_list()
+sflphone_fill_account_list(gboolean toolbarInitialized)
 {
 	account_list_clear ( );
 
@@ -141,7 +141,9 @@ sflphone_fill_account_list()
 
 	}
 
-	toolbar_update_buttons();
+	// Prevent update being called when toolbar is not yet initialized
+	if(toolbarInitialized)
+		toolbar_update_buttons();
 }
 
 	gboolean
@@ -160,7 +162,7 @@ sflphone_init()
 	else 
 	{
 		dbus_register(getpid(), "Gtk+ Client");
-		sflphone_fill_account_list();
+		sflphone_fill_account_list(FALSE);
 		sflphone_set_default_account();
 		sflphone_fill_codec_list();
 		sflphone_fill_contact_list();

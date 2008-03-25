@@ -507,7 +507,6 @@ create_view_menu()
   GtkWidget * menu;
   GtkWidget * root_menu;
   GtkWidget * menu_items;
-  GtkWidget * submenu;
   GtkWidget * submenu_items;
 
   menu      = gtk_menu_new ();
@@ -539,6 +538,8 @@ create_view_menu()
   menu_items = gtk_menu_item_new_with_mnemonic(_("_Toolbar"));
 
   // ICON / TEXT / BOTH
+  // TODO Gtk-CRITICAL **: gtk_menu_item_set_submenu: assertion `submenu == NULL || GTK_IS_MENU (submenu)' failed
+  // menu_items is a GtkMenuItem but should be a GtkMenu which causes preceding error
   submenu_items = gtk_check_menu_item_new_with_mnemonic(_("Only Icons"));
   gtk_menu_item_set_submenu (GTK_MENU_ITEM (submenu_items), menu_items);
   submenu_items = gtk_check_menu_item_new_with_mnemonic(_("Only Text"));

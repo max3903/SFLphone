@@ -113,7 +113,7 @@ void sflphone_place_call ( call_t * c );
 /**
  * Initially load data for accounts, codecs and contacts
  */
-void sflphone_fill_account_list();
+void sflphone_fill_account_list(gboolean toolbarInitialized);
 void sflphone_set_default_account();
 
 void sflphone_throw_exception( gchar* msg , int err );

@@ -28,20 +28,40 @@
  * 
  * If a presence status identified by a string cannot be identified
  * when sent from a presence server, we directly use the raw string
- * without any formating or translation process possible
+ * without any formating or translation process possible.
+ * 
+ * It is important to distinguish between active and passive presence
+ * status. Online, offline, away, busy, do not disturb and such are
+ * passive status set by the user or that can change automatically.
+ * Ready, ringing, on hold, on the phone,
+ * in conference call are status that change according to its actions. 
+ * Thus a user always has two status, but for now only the most
+ * significative would be represented graphically. 
+ * For example a away user ready and a busy user on the phone would
+ * present a away user and a user on the phone. So only when the user
+ * is in the ready active state, we show its passive state.
+ * 
+ * Usually a user will publish its passive state manually or it can be
+ * triggered automatically as for the away state after a period of
+ * inactivity. The active state is usually triggered by the call manager
+ * when calls are made or when the phone goes offline for example. 
+ * The user listens for both active and passive presence status
+ * from subscribed presentities that will usually transit through
+ * the call manager. 
  */
-// Same presence status as defined in Asterisk
+
+// Same active presence status as defined in Asterisk
 #define PRESENCE_UNKNOWN			"UNKNOWN"
-#define PRESENCE_NOT_IN_USE			"NOT_IN_USE"
-#define PRESENCE_INUSE				"INUSE"
-#define PRESENCE_BUSY				"BUSY"
+#define PRESENCE_READY				"READY"					// Aka NOT_IN_USE
+#define PRESENCE_ON_THE_PHONE		"ON_THE_PHONE"			// Aka INUSE
+//#define PRESENCE_BUSY				"BUSY"
 #define PRESENCE_INVALID			"INVALID"
 #define PRESENCE_UNAVAILABLE		"UNAVAILABLE"
 #define PRESENCE_RINGING			"RINGING"
 #define PRESENCE_RING_IN_USE		"RING_IN_USE"
 #define PRESENCE_HOLD_IN_USE		"HOLD_IN_USE"
 #define PRESENCE_ON_HOLD			"ON_HOLD"
-// Presence status defined on some hardware phones
+// Passive presence status defined on some hardware phones
 #define PRESENCE_ONLINE				"ONLINE"
 #define PRESENCE_BUSY				"BUSY"
 #define PRESENCE_BE_RIGHT_BACK		"BE_RIGHT_BACK"
@@ -49,10 +69,10 @@
 #define PRESENCE_OUT_TO_LUNCH		"OUT_TO_LUNCH"
 #define PRESENCE_OFFLINE			"OFFLINE"
 #define PRESENCE_DO_NOT_DISTURB		"DO_NOT_DISTURB"
-// Other presence status defined supported
-#define PRESENCE_IN_REUNION			"IN_REUNION"
-#define PRESENCE_IN_CONFERENCE_CALL	"IN_CONFERENCE_CALL"
-#define PRESENCE_IN_VIDEO_CALL		"IN_VIDEO_CALL"
-#define PRESENCE_IN_VIDEO_CONF_CALL	"IN_VIDEO_CONF_CALL"
+#define PRESENCE_IN_REUNION			"IN_REUNION"			// UNUSED
+// Other active presence status defined
+#define PRESENCE_IN_CONFERENCE_CALL	"IN_CONFERENCE_CALL"	// UNUSED
+#define PRESENCE_IN_VIDEO_CALL		"IN_VIDEO_CALL"			// UNUSED
+#define PRESENCE_IN_VIDEO_CONF_CALL	"IN_VIDEO_CONF_CALL"	// UNUSED
 
 #endif

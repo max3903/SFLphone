@@ -28,8 +28,8 @@
     </method>
     
     <!-- Called for each contact entry to get its details -->
-    <!-- type, shown in console, is subscribed to presence -->
-    <!-- Example can be : work, true, false -->
+    <!-- text, type, shown in console, is subscribed to presence -->
+    <!-- Example can be : Poste 140, work, true, false -->
     <method name="getContactEntryDetails">
       <arg type="s" name="accountID" direction="in"/>
       <arg type="s" name="contactID" direction="in"/>
@@ -37,7 +37,7 @@
       <arg type="as" name="details" direction="out"/>
     </method>
     
-    
+        
     <!-- TODO Same as get (4 functions) -->
     <!-- Called by the client to save all local contacts -->
     <method name="setContacts">
@@ -54,21 +54,21 @@
   <!--      ///////////////////////               -->
 
   <!-- Presence related methods -->
- 
+  
     <!-- Called by the client to set its new presence status -->
     <method name="setPresence">
       <arg type="s" name="accountID" direction="in"/>
       <arg type="s" name="presence" direction="in"/>
       <arg type="s" name="additionalInfo" direction="in"/>
     </method>
-  
-    <!-- Called by the daemon when a contact presence changes -->
-    <!-- To be changed missing information on contact to pass by contact ID or contact number-->
-    <method name="setContactPresence">
-      <arg type="s" name="accountID" direction="in"/>
-      <arg type="s" name="presence" direction="in"/>
-      <arg type="s" name="additionalInfo" direction="in"/>
-    </method>
+    
+    <!-- Signal from the daemon when a contact presence changes -->
+    <signal name="contactEntryPresenceChanged">
+      <arg type="s" name="accountID"/>
+      <arg type="s" name="entryID"/>
+      <arg type="s" name="presence"/>
+      <arg type="s" name="additionalInfo"/>
+    </signal>
 
   </interface>
 </node>

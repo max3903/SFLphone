@@ -30,18 +30,20 @@ endif
 
 ALSAFLAG= -lasound
 
+EXPATFLAG= -lexpat
+
 SUBDIRS = audio config contact dbus memmanager video mixer $(ZEROCONFDIR)
 
 sflphoned_SOURCES = eventthread.cpp 	main.cpp 	voiplink.cpp \
 		managerimpl.cpp	observer.cpp \
 		account.cpp sipaccount.cpp accountcreator.cpp \
-                sipvoiplink.cpp call.cpp sipcall.cpp tracePrintSFL.cpp \
+		sipvoiplink.cpp call.cpp sipcall.cpp sippresencemanager.cpp tracePrintSFL.cpp \
 		$(IAXSOURCES)
 
 sflphoned_CXXFLAGS = -DPREFIX=\"$(prefix)\" -DPROGSHAREDIR=\"${datadir}/sflphone\" $(ZEROCONFFLAGS) $(IAX_FLAGS) $(SFLPHONE_CFLAGS) $(SIP_CFLAGS)
 
 #sflphoned_LDFLAGS = -static
-sflphoned_LDADD =  ./libsflphone.la $(SFLPHONE_LIBS) $(ZEROCONFLIB) $(LIB_DNSSD) $(IAX_LIBS) $(EXOSIP_LIBS) $(ALSAFLAG) 
+sflphoned_LDADD =  ./libsflphone.la $(SFLPHONE_LIBS) $(ZEROCONFLIB) $(LIB_DNSSD) $(IAX_LIBS) $(EXOSIP_LIBS) $(ALSAFLAG) $(EXPATFLAG)
 AM_CPPFLAGS = -I$(top_srcdir)/include -I$(top_srcdir)/libs $(libccext2_CFLAGS) $(libccgnu2_CFLAGS) $(IAX_CFLAGS) $(USER_INCLUDES) $(libdbuscpp_CFLAGS) \
 	      -DCODECS_DIR=\""$(sflcodecdir)"\" 
 
@@ -63,8 +65,8 @@ libsflphone_la_SOURCES =
 
 noinst_LTLIBRARIES = libsflphone.la
 noinst_HEADERS = managerimpl.h manager.h global.h observer.h eventthread.h user_cfg.h \
-                 voiplink.h \
-		 account.h sipaccount.h accountcreator.h \
-                 sipvoiplink.h  call.h  sipcall.h \
-		 $(IAXHEADERS)
+		voiplink.h \
+		account.h sipaccount.h accountcreator.h \
+		sipvoiplink.h  call.h  sipcall.h sippresencemanager.h \
+		$(IAXHEADERS)
 

@@ -499,28 +499,27 @@ ManagerImpl::saveConfig (void)
 }
 
 //THREAD=Main
-  bool
+bool
 ManagerImpl::initRegisterAccounts() 
 {
-  _debugInit("Initiate VoIP Links Registration");
-  AccountMap::iterator iter = _accountMap.begin();
-  while( iter != _accountMap.end() ) {
-    if ( iter->second) {
-      iter->second->loadConfig();
-      if ( iter->second->isEnabled() ) {
-	// NOW
-	iter->second->registerVoIPLink();
-	iter->second->loadContacts();
-	iter->second->publishPresence(PRESENCE_ONLINE);
-	iter->second->subscribeContactsPresence();
-      }
-    }
-    iter++;
-  }
-  // calls the client notification here in case of errors at startup...
-  if( _audiodriver -> getErrorMessage() != "" )
-    notifyErrClient( _audiodriver -> getErrorMessage() );
-  return true;
+	_debugInit("Initiate VoIP Links Registration");
+	AccountMap::iterator iter = _accountMap.begin();
+	while( iter != _accountMap.end() ) {
+		if ( iter->second) {
+			iter->second->loadConfig();
+			if ( iter->second->isEnabled() ) {
+				iter->second->registerVoIPLink();
+				iter->second->loadContacts();
+				iter->second->publishPresence(PRESENCE_ONLINE);
+				iter->second->subscribeContactsPresence();
+			}
+		}
+		iter++;
+	}
+	// calls the client notification here in case of errors at startup...
+	if( _audiodriver -> getErrorMessage() != "" )
+		notifyErrClient( _audiodriver -> getErrorMessage() );
+	return true;
 }
 
 //THREAD=Main
@@ -541,7 +540,6 @@ ManagerImpl::registerAccount(const AccountID& accountId)
       }
       iter++;
     }
-    // NOW
     account->registerVoIPLink();
     account->loadContacts();
     account->publishPresence(PRESENCE_ONLINE);
@@ -797,6 +795,16 @@ ManagerImpl::callFailure(const CallID& id)
   removeCallAccount(id);
   removeWaitingCall(id);
 
+}
+
+void
+ManagerImpl::contactEntryPresenceChanged(
+		const AccountID& accountID, const std::string entryID,
+		const std::string presence, const std::string additionalInfo)
+{
+	if(_dbus) _dbus->getContactManager()->contactEntryPresenceChanged(
+			accountID, entryID,
+			presence, additionalInfo);
 }
 
 //THREAD=VoIP
@@ -2248,7 +2256,7 @@ ManagerImpl::getContactEntries(const std::string& accountID, const std::string& 
 		{
 			ContactEntry* entry;
 			entry = (ContactEntry*)*iter;
-			entries.push_back(entry->getContact());
+			entries.push_back(entry->getEntryID());
 			iter++;
 		}
 	}
@@ -2274,10 +2282,11 @@ ManagerImpl::getContactEntryDetails(const std::string& accountID, const std::str
 		{
 			ContactEntry* entry;
 			entry = (ContactEntry*)*iter;
-			if(entry->getContact() == contactEntryID)
+			if(entry->getEntryID() == contactEntryID)
 			{
 				// Return all details in a vector
-				// Type, isShown, isSubscribed
+				// Text, type, isShown, isSubscribed
+				entryDetails.push_back(entry->getText());
 				entryDetails.push_back(entry->getType());
 				if(entry->getShownInCallConsole())
 					entryDetails.push_back("TRUE");
