@@ -63,9 +63,9 @@ void VideoRtpRTX::run(){
   //Getting Basic AVCodecContext settings from Video Call
   codecCtx = vidCall->getVideoCodecContext();
 
-  // Loading codecs
-  loadCodec(codecCtx->codec_id,0);
-  loadCodec(codecCtx->codec_id,1);
+  // Loading codecs  TODO: ATTENTE DE JF!
+  //loadCodec(codecCtx->codec_id,0);
+  //loadCodec(codecCtx->codec_id,1);
   
   initBuffers();
   int step;
@@ -83,9 +83,8 @@ void VideoRtpRTX::run(){
     TimerPort::setTimer(codecCtx->frame_size); // TODO: à vérifier si nescessaire
 
     //_start.post();
-    // TODO: MIXER START
     // _debug("- ARTP Action: Start\n");
-    while (true) { // a changer jimagine...
+    while (true) { // TODO: a changer jimagine...
 
       ////////////////////////////
       // Send session
@@ -104,7 +103,6 @@ void VideoRtpRTX::run(){
     }
     //unloadCodec();
     //_debug("stop stream for audiortp loop\n");
-    // TODO: MIXER STOP
   } catch(std::exception &e) {
     //_start.post();
     _debug("! ARTP: Stop %s\n", e.what());
@@ -118,11 +116,7 @@ void VideoRtpRTX::run(){
 	
 void VideoRtpRTX::initBuffers()
 {
-  // Input & output for the mixers TODO: Il faut les associer au mixer!!!
-    localVideoInput = new VideoInput();
-    remoteVideoInput = new VideoInput();
-    localVideoOutput = new VideoOutput();
-    remoteVideoOutput = new VideoOutput();
+
 
   // TODO: à faire
   // sendDataDecoded = new ...
@@ -139,7 +133,7 @@ void VideoRtpRTX::initVideoRtpSession()
     codecClockRate = 90000;
 
     // TODO: A verifier!
-    VideoDevMng = VideoDevMng->getInstance();
+    VideoDevMng = VideoDeviceManager::getInstance();
 
     ost::InetHostAddress remote_ip(vidCall->getRemoteIp().c_str());
     if (!remote_ip) {
@@ -186,22 +180,27 @@ void VideoRtpRTX::sendSession(int timestamp)
   }
  
   try{
-  
   // Get Data from V4l, send it to the mixer input
-  Command* cmdCapture = VideoDevMng->getCommand(VideoDeviceManager::CAPTURE);
-  char* charFromV4L; // =  cmdCapture->GetCapture(); A FAIRE!!!
-  int sizeV4L; // A prendre de quelque part!
-  // Send it to the mixer
-  localVideoInput->putData(charFromV4L,sizeV4L,timestamp);
+  Capture* cmdCapture = (Capture*) VideoDevMng->getCommand(VideoDeviceManager::CAPTURE);
+  Resolution* cmdRes = (Resolution*) VideoDevMng->getCommand(VideoDeviceManager::RESOLUTION);
+  unsigned char* charFromV4L = cmdCapture->GetCapture();
+  pair<int,int> tmp = cmdRes->getResolution();
+  int sizeV4L = tmp.first * tmp.second * 3 * sizeof(unsigned char); // TODO: a verifier
 
-  // Encode it TODO: Verifier largeur, longeur
-  encodeCodec->videoEncode(codecCtx->width,codecCtx->height,(uint8_t*)charFromV4L,sizeV4L);
+  // Depose les data de V4L dans le Input buffer du mixer correspondant
+  vidCall->getRemoteIntputStreams()->fetchVideoStream()->putData((char*)charFromV4L,sizeV4L,timestamp);
 
-  //TODO: sendDataEncoded = ???????
+  // Prend les donnes de la sortie du mixer correspondant
+  vidCall->getRemoteVideoOutputStream()->fetchData((char*)sendDataEncoded);
+
+  // Encode it TODO: Verifier largeur, longeur AVEC JF !!!
+  //encodeCodec->videoEncode(codecCtx->width,codecCtx->height,(uint8_t*)charFromV4L,sizeV4L);
+  //TODO: sendDataEncoded = ???? TODO: attente VideoCodec ......
 
   // Send it
-  //TODO: ajouter Symmetric session
-      videoSessionSend->putData(timestamp, sendDataEncoded, sizeV4L);
+  videoSessionSend->putData(timestamp, sendDataEncoded, sizeV4L);
+
+  free(charFromV4L); // A verifier !!!!
 
   } catch(...) {
     _debugException("! ARTP: sending failed");
@@ -222,8 +221,8 @@ void VideoRtpRTX::receiveSession()
   try {
     const ost::AppDataUnit* adu = NULL;
 
-    //TODO: ajouter Symmetric session
-      adu = videoSessionReceive->getData(videoSessionReceive->getFirstTimestamp());
+    // Lit les donnes recues
+    adu = videoSessionReceive->getData(videoSessionReceive->getFirstTimestamp());
 
     if (adu == NULL) {
       //_debug("No RTP video stream\n");
@@ -237,17 +236,19 @@ void VideoRtpRTX::receiveSession()
 
     // DECODE
     // A mes yeux il manque les size des buffers sur cet appel.
-    //decodeCodec->videoDecode(data,codecCtx->width,codecCtx->height,...);  //TODO: a faire!!
+    // decodeCodec->videoDecode(data,codecCtx->width,codecCtx->height,...);  //TODO: a faire!!
 
-    // Envoyer dans le input du mixer!
-    remoteVideoInput->putData(data,size,timestamp);
-   
+    // Envoyer dans le input du mixer local! // TODO: a verifier
+    vidCall->getLocalIntputStreams()->fetchVideoStream()->putData(data,size,timestamp);
+    
+    // Prend les donnes de la sortie du mixer correspondant TODO: A MODIFIER NON FONCTIONNEL!!!!!!!!!
+    vidCall->getLocalVideoOutputStream()->fetchData((char*)sendDataEncoded);
+
     delete adu; adu = NULL;
   } catch(...) {
     _debugException("! ARTP: receiving failed");
     throw;
   }
-
 
 }
 
