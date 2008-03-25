@@ -28,7 +28,7 @@
 extern "C"{
 #include <ffmpeg/avcodec.h>
 #include <ffmpeg/avformat.h>
-#include <ffmpeg/swscale.h>
+//#include <ffmpeg/swscale.h>
 }
 #include "../VideoCodecDescriptor.h"
 
