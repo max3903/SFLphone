@@ -21,10 +21,18 @@
 #define CALL_H
 
 #include <string>
+#include <vector>
 #include <cc++/thread.h> // for mutex
 #include "audio/codecDescriptor.h"
 #include "video/VideoCodecDescriptor.h"
 #include <ffmpeg/avcodec.h>
+#include "mixer/Mixer.h"
+#include "mixer/VideoInput.h"
+#include "mixer/AudioInput.h"
+#include "mixer/VideoOutput.h"
+#include "mixer/AudioOuput.h"
+#include "mixer/InputStreams.h"
+#include "mixer/OutputStream.h"
 
 
 typedef std::string CallID;
@@ -182,6 +190,18 @@ public:
 
     /** Return IP of destination [mutex protected] */
     const std::string& getRemoteIp();
+ 
+    /** Return the local Mixer */
+    InputStreams* getLocalIntputStreams() { return localInputStreams; }
+
+    /** Return the local Mixer */
+    InputStreams* getRemoteIntputStreams() { return remoteInputStreams; }
+
+    /** Return the remote Mixer */
+    OutputStream* getLocalVideoOutputStream() { return localVidOutput; }
+
+    /** Return the remote Mixer */
+    OutputStream* getRemoteVideoOutputStream() { return remoteVidOutput; }
 
     /** Return audio codec [mutex protected] */
     AudioCodecType getAudioCodec();
@@ -265,6 +285,25 @@ private:
 
     /** Number of the peer */
     std::string _peerNumber;
+
+    /** The mixers **/
+    Mixer* localMixer;
+    Mixer* remoteMixer;
+
+    /* The Mixer's buffers */
+    VideoInput* localVidIntput;
+    AudioInput* localAudIntput;
+    VideoOutput* localVidOutput;
+    AudioOutput* localAudOutput;
+    VideoInput* remoteVidIntput;
+    AudioInput* remoteAudIntput;
+    VideoOutput* remoteVidOutput;
+    AudioOutput* remoteAudOutput;
+
+    InputStreams* localInputStreams;
+    InputStreams* remoteInputStreams;
+    //OutputStream* localOutputStreams;
+    //OutputStream* remoteOutputStreams;
 
 };
 
