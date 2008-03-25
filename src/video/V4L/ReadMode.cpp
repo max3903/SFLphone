@@ -107,7 +107,7 @@ unsigned char* ReadMode::capture(VideoDevice* device){
 	device->getFormat()->convert(raw_data, img_data, width, height);
 	
 	free(raw_data);
-	// free ajouté
+	
 	free(vFormat);
 	
 	ptracesfl( "End of read Mode i/o capture",MT_INFO, CAPTUREMODE_TRACE - 1);
