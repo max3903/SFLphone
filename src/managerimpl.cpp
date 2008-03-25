@@ -5,7 +5,8 @@
  *  Author: Laurielle Lea <laurielle.lea@savoirfairelinux.com>
  *  Author: Emmanuel Milou <emmanuel.milou@savoirfairelinux.com>
  *  Author: Guillaume Carmel-Archambault <guillaume.carmel-archambault@savoirfairelinux.com>
- *
+ *  Author: Jean-Francois Blanchard-Dionne <jean-francois.blanchard-dionne@polymtl.ca>
+ * 
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation; either version 3 of the License, or
@@ -22,7 +23,6 @@
  */
 
 #include <errno.h>
-#include <time.h>
 #include <cstdlib>
 #include <iostream>
 #include <fstream>
@@ -35,7 +35,6 @@
 #include <ccrtp/rtp.h>     // why do I need this here?
 #include <cc++/file.h>
 
-#include <boost/tokenizer.hpp>
 
 #include "manager.h"
 #include "account.h"
@@ -134,9 +133,8 @@ void ManagerImpl::init()
   //Initialize Video Codec
   initVideoCodec();
   
-  // \todo Initialize the list of supported video codec
-  // \todo Allocate memory
-  
+  // Allocate memory BUG right now
+  initMemManager();
 
 
   getAudioInputDeviceList();
@@ -173,10 +171,13 @@ void ManagerImpl::terminate()
   _debug("Unload Telephone Tone\n");
   delete _telephoneTone; _telephoneTone = NULL;
   
-  // \todo delete memory allocation
-  // \todo End threads
-  // \todo Probably need to unload video driver too
+  // \TODO delete memory allocation
+	delete _memManager; _memManager = NULL;  
+  // \TODO End threads
+  // \TODO Probably need to unload video driver too
 
+ _debug("Unload VideoCodecDescriptor\n");
+ delete _videoCodecDescriptor; _videoCodecDescriptor = NULL;
 
   _debug("Unload Audio Codecs\n");
   _codecDescriptorMap.deleteHandlePointer();
@@ -1189,17 +1190,19 @@ ManagerImpl::initAudioCodec (void)
   std::vector<std::string>
 ManagerImpl::retrieveActiveCodecs()
 {
-  std::vector<std::string> order; 
-  std::string list;
-  std::string s = getConfigString(AUDIO, "ActiveCodecs");
-  typedef boost::tokenizer<boost::char_separator<char> > tokenizer; 
-  boost::char_separator<char> slash("/");
-  tokenizer tokens(s, slash); 
-  for(tokenizer::iterator tok_iter = tokens.begin(); tok_iter!= tokens.end(); ++tok_iter)
-  {
-    order.push_back(*tok_iter);
-  }
-  return order;
+   	std::vector<std::string> order; 
+	std::string  temp;
+	std::string s = getConfigString(AUDIO, "ActiveCodecs");
+	  
+	while (s.find("/", 0) != std::string::npos)
+	{
+		size_t  pos = s.find("/", 0); 			
+		temp = s.substr(0, pos);      			
+		s.erase(0, pos + 1);          			
+		order.push_back(temp);                	
+	}
+	
+	return order;
 }
 
   void
@@ -2620,16 +2623,16 @@ bool ManagerImpl::testAccountMap()
 ManagerImpl::initVideoCodec (void)
 {
 	//TODO
-  _videoCodecDescriptor =  _videoCodecDescriptor->getInstance();
-  // if the user never set the codec list, use the default configuration
-  //if(getConfigString(AUDIO, "ActiveCodecs") == ""){
-    _videoCodecDescriptor->setDefaultOrder();
-  //}
-  // else retrieve the one set in the user config file
- // else{
-   // std::vector<std::string> active_list = retrieveActiveCodecs(); 
-   // setActiveCodecList(active_list);
- // }
+  	_videoCodecDescriptor =  _videoCodecDescriptor->getInstance();
+  	// if the user never set the codec list, use the default configuration
+	if(getConfigString(AUDIO, "ActiveCodecs") == ""){
+    	_videoCodecDescriptor->setDefaultOrder();
+	}
+  	// else retrieve the one set in the user config file
+	else{
+		std::vector<std::string> active_list = retrieveActiveVideoCodecs(); 
+		setActiveVideoCodecList(active_list);
+  	}
 }
 
   void
@@ -2640,21 +2643,19 @@ ManagerImpl::setActiveVideoCodecList(const std::vector<std::string>& list)
   _debug("Set active Video codecs list\n");
   
 	if(_videoCodecDescriptor->saveActiveCodecs(list))
-		ptrace("videoCodecs saved",MT_INFO,5,true);
+		ptracesfl("videoCodecs saved",MT_INFO,5,true);
   // setConfig
   //TODO
-//  std::string s = serialize(list);
-//  printf("%s\n", s.c_str());
-//  setConfig("Audio", "ActiveCodecs", s);
+  std::string s = serialize(list);
+  printf("%s\n", s.c_str());
+  setConfig("Video", "ActiveCodecs", s);
 }
 
 
-  std::vector <std::string>
+std::vector <std::string>
 ManagerImpl::getActiveVideoCodecList( void )
 {
-
   _debug("Get Active VideoCodecs list\n");
-
   return _videoCodecDescriptor->getStringActiveCodecs();
 }
 
@@ -2689,6 +2690,27 @@ ManagerImpl::getVideoCodecDetails( const ::DBus::Int32& payload )
 
   return v;
 }
+
+
+std::vector<std::string>
+ManagerImpl::retrieveActiveVideoCodecs()
+{
+	ptracesfl("retrieving video codecs",MT_INFO,5,true);
+	  std::vector<std::string> order; 
+	  std::string  temp;
+	  std::string s = getConfigString(VIDEO, "ActiveCodecs");
+	  
+	while (s.find("/", 0) != std::string::npos)
+	{
+		size_t  pos = s.find("/", 0); 			
+		temp = s.substr(0, pos);      	
+		s.erase(0, pos + 1);          		
+		order.push_back(temp);                	
+	}
+	
+	return order;
+}
+
   /**
  * Get list of supported video input device
  */
@@ -2737,24 +2759,46 @@ ManagerImpl::getVideoDeviceDetails(const int index)
 	return v;
 }
 
+void ManagerImpl::initMemManager(void)
+{
+	int dummySize = 1024;
+
+	_memManager = MemManager::getInstance();
+	ptracesfl("MEMSPACE INIT MANAGER",MT_INFO,1,true);
+	//TODO GET SIZE FROM WEBCAM 
+	//SetSpace and attach to running process
+	srand ( time(NULL) );
+	_keyHolder.localKey = _memManager->initSpace(dummySize);
+	ptracesfl("LOCAL MEMSPACE started",MT_INFO,2,true);
+	_keyHolder.remoteKey = _memManager->initSpace(dummySize);
+	ptracesfl("REMOTE MEMSPACE started",MT_INFO,2,true);
+
+}
+
 std::string 
 ManagerImpl::getLocalSharedMemoryKey()
 {
-	std::string key = "key local";
-	return key;
+	return _keyHolder.localKey->getDescription();
+	ptracesfl("LOCAL Memspace shmid sent",MT_INFO,2,true);
 }
 
 std::string 
 ManagerImpl::getRemoteSharedMemoryKey()
 {
-	std::string key = "key remote";
-	return key;
+	return _keyHolder.remoteKey->getDescription();
+	ptracesfl("REMOTE Memspace shmid sent",MT_INFO,2,true);
 }
 
-int 
+slider_t 
 ManagerImpl::getBrightness(  )
 {
-	return 0;	
+	slider_t values;
+	values.minValue = 5;	
+	values.maxValue = 100;
+	values.stepValue = 15;
+	values.currentValue = 25;
+	return values;
+	
 }
 
 void 
@@ -2763,10 +2807,15 @@ ManagerImpl::setBrightness( const int value )
 	
 }
 
-int 
+slider_t 
 ManagerImpl::getContrast(  )
 {
-	return 0;	
+	slider_t values;
+	values.minValue = 5;	
+	values.maxValue = 100;
+	values.stepValue = 15;
+	values.currentValue = 25;
+	return values;	
 }
 
 void 
@@ -2775,10 +2824,15 @@ ManagerImpl::setContrast( const int value )
 	
 }
 
-int 
+slider_t
 ManagerImpl::getColour(  )
 {
-	return 0;	
+	slider_t values;
+	values.minValue = 5;	
+	values.maxValue = 100;
+	values.stepValue = 15;
+	values.currentValue = 25;
+	return values;	
 }
 
 void 
@@ -2798,6 +2852,45 @@ void
 ManagerImpl::setWebcamDevice( const int index )
 {
 	
+}
+
+std::vector< std::string  > 
+ManagerImpl::getCurrentWebcamDeviceIndex(  )
+{
+	std::vector<std::string> v;
+	return v;
+}
+
+int 
+ManagerImpl::getWebcamDeviceIndex( const std::string name )
+{
+	return 0;
+}
+
+std::vector< std::string > 
+ManagerImpl::getResolutionList(  )
+{
+	std::vector<std::string> v;
+	return v;
+}
+
+void 
+ManagerImpl::setResolution( const int index )
+{
+	
+}
+
+std::vector< std::string > 
+ManagerImpl::getCurrentResolutionIndex(  )
+{
+	std::vector<std::string> v;
+	return v;
+}
+
+int 
+ManagerImpl::getResolutionIndex( const std::string name )
+{
+	return 0;
 }
 
 /*

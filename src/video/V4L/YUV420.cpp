@@ -17,34 +17,50 @@
  *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
-#include "Capture.h"
+#include "YUV420.h"
 
-Capture::Capture(){}
-
-Capture::~Capture(){}
-
-unsigned char* Capture::GetCapture(){
-    
-	ptracesfl("Capture getting device ...", MT_INFO, COMMAND_TRACE);
-    this->getVideoDeviceAccess();
-    
-    ptracesfl("Getting current capture mode:", MT_INFO, COMMAND_TRACE, false);
-    CaptureMode *capMode= Command::videoDevice->getCaptureMode();
-    ptracesfl("\tOK\n", MT_NONE, COMMAND_TRACE);
-    	
-    unsigned char* tmp= capMode->capture(Command::videoDevice);
-    
-    ptracesfl("Capture releasing device ...\n", MT_INFO, COMMAND_TRACE);
-    this->releaseVideoDevice();
-    	
-    return tmp;
+YUV420::YUV420(){
 }
 
-CmdDesc Capture::getCmdDescriptor(){
+YUV420::YUV420(int fd){
+	this->enumerateFrameSizes(fd);
+	this->YUV2RGB_init();
+}
+YUV420::~YUV420(){}
+
+int YUV420::getType(){
+	return V4L2_PIX_FMT_YUV420;
+}
+
+void YUV420::init(){ 
+}
+
+void YUV420::convert( unsigned char* input, unsigned char* ouput, int w, int h){
 	
-	CmdDesc tmpDesc= {-1,-1,-1,-1};
-		  		
-  	ptracesfl("Capture releasing device ...\n", MT_WARNING, COMMAND_TRACE);
-  	return tmpDesc;
-		
+	unsigned char *u,*u1,*v,*v1;
+	int Y=0,U=0,V=0,i,j;
+	
+	int width= w;
+	int height= h;
+
+	u=input+width*height;
+	v=u+(width*height)/4;
+
+	for(i=0;i<height;i++) {
+		u1=u;
+		v1=v;
+		for(j=0;j<width;j++) {
+			Y=(*input++)-16;
+			if((j&1)==0) {
+				U=(*u++)-128;
+				V=(*v++)-128;
+			}
+			write_rgb(&ouput,Y,U,V);
+		}
+		if((i&1)==0) { u=u1; v=v1; }
+	}
+}
+
+char* YUV420::getStringType(){
+	return "YUV420";
 }

@@ -2,7 +2,9 @@
  *  Copyright (C) 2007 Savoir-Faire Linux inc.
  *  Author: Pierre-Luc Beaudoin <pierre-luc@squidy.info>
  *  Author: Emmanuel Milou <emmanuel.milou@savoirfairelinux.com>
- *                                                                              
+ *  Author: Jean-Francois Blanchard-Dionne <jean-francois.blanchard-dionne@polymtl.ca>
+ *  Author: marilyne Mercier <marilyne.mercier@polymtl.ca> 
+ *                                                                           
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation; either version 3 of the License, or
@@ -736,14 +738,12 @@ sflphone_fill_video_codec_list()
     
   gchar** codecs = (gchar**)dbus_video_codec_list();
   gchar** order = (gchar**)dbus_get_active_video_codec_list();
-  gchar** details;
+  //gchar** details;
   gchar** pl;
 
   for(pl=order; *order; order++)
   {
     videoCodec_t * c = g_new0(videoCodec_t, 1);
-    //c->_payload = NULL;
-    //details = (gchar **)dbus_video_codec_details(c->_payload);
     c->name = *order;
     c->is_active = TRUE;
     video_codec_list_add(c);
@@ -751,13 +751,12 @@ sflphone_fill_video_codec_list()
  
   for(pl=codecs; *codecs; codecs++)
   {
-    //details = (gchar **)dbus_video_codec_details(atoi(*codecs));
-    if(video_codec_list_get(details[0])!=NULL){
+    
+    if(video_codec_list_get(*codecs)!=NULL){
       // does nothing - the codec is already in the list, so is active.
     }
     else{
       videoCodec_t* c = g_new0(videoCodec_t, 1);
-      //c->_payload = ;
       c->name = *codecs;
       c->is_active = FALSE;
       video_codec_list_add(c);

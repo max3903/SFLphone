@@ -6,8 +6,6 @@
 #include <semaphore.h>
 #include "TimeInfo.h"
 
-#define int16 short int
-
 //!  Audio input buffer
 /*!
   This class is the audio input buffer of a mixer InputStreams
@@ -32,7 +30,7 @@ public:
     /*!
      * This method returns the timestamp for the data contained in the buffer. The data is used by the synchonization manager to mix the streams 
      */
-    virtual TimeInfo fetchTimeInfo() const;
+    virtual TimeInfo fetchTimeInfo();
 
     //! Changes the data contained in the buffer
     /*!
@@ -41,7 +39,7 @@ public:
      * \param data a pointer to a data buffer
      * \param size the size of the buffer
      */
-    virtual void putData(int16 *data, int size, int leTemps);
+    virtual void putData(short *data, int size, int leTemps);
 
     //! Access the data contained the the buffer
     /*!
@@ -50,9 +48,11 @@ public:
      * \param data a pointer to where the data must be copied
      * \return the size of the fetched data 
      */
-    virtual int fetchData(int16 *data);
+    virtual int fetchData(short *data);
 
-    void putTimeInfo(TimeInfo* infos);
+    void putTimeInfo(TimeInfo* infos); // TODO: virtual???
+ 
+    int getSizeBuffer(); // TODO: virtual???
 
 private:
 	
@@ -62,7 +62,7 @@ private:
     //! Internal data buffer
 
     TimeInfo* infoTemps;
-    int16 * buffer;
+    short * buffer;
     int sizeBuffer;
     
 };

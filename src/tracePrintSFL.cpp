@@ -17,11 +17,11 @@
  *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
  
-#include "tracePrint.h"
+#include "tracePrintSFL.h"
 
-void tracePrint::operator()(const char* Message, int type, int level, bool ret){
+void tracePrintSfl::operator()(const char* Message, int type, int level, bool ret){
 	
-	if(level > TRACE_LEVEL && type != MT_ERROR && type != MT_FATAL)
+	if(level > SFLTRACE_LEVEL && type != MT_ERROR && type != MT_FATAL)
 		return;
 	
 	switch(type){
@@ -42,7 +42,7 @@ void tracePrint::operator()(const char* Message, int type, int level, bool ret){
 			printf(SOFT_HEADER);
 			printf(HEADER_INFO);
 			for(int i= 0; i < level; i++)
-				perror("\t");
+				printf("\t");
 			printf(Message);
 			if(ret) printf("\n");
 			break;			
@@ -50,7 +50,7 @@ void tracePrint::operator()(const char* Message, int type, int level, bool ret){
 			printf(SOFT_HEADER);
 			printf(HEADER_WARNING);
 			for(int i= 0; i < level; i++)
-				perror("\t");
+				printf("\t");
 			printf(Message);
 			if(ret) printf("\n");
 			break;

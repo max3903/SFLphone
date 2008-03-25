@@ -3,27 +3,61 @@
 #include "StraightThrough_VT.h"
 #include "InternalBuffer.h"
 #include "OutputStream.h"
-
-StraightThrough_VT::~StraightThrough_VT()
-{
-}
+#include "../tracePrintSFL.h"
 
 void StraightThrough_VT::run()
 { 
+  OkToKill=false;
+  while(Active)
+  {
+    ptracesfl("StraightThrough_VT - run(): Tente de copier des donnees videos",MT_INFO,true); 
+    sizeBuffer = inputBuffer->getSizeBuffer();
+    data = (void*) malloc(sizeBuffer);
+    inputBuffer->fetchData(data);
+    outputBuffer->putData((char*)data,sizeBuffer);
+    free(data);
+  }
+  ptracesfl("StraightThrough_VT - run(): Le thread travail plus :(",MT_INFO,true);
+  OkToKill=true;
 }
 
 void StraightThrough_VT::pause()
 { 
+  ptracesfl("StraightThrough_VT - pause(): Demande de pause recu...",MT_INFO,true);
+  Active=false;
 }
 
 void StraightThrough_VT::restart()
+{
+  ptracesfl("StraightThrough_VT - restart(): Demande de restart recu...",MT_INFO,true);
+  Active=true;
+  run();
+}
+
+void StraightThrough_VT::stop()
 { 
+  ptracesfl("StraightThrough_VT - stop(): Demande de stop recu...",MT_INFO,true);
+  Active=false;
+  while(!OkToKill);
 }
 
 StraightThrough_VT::StraightThrough_VT(InternalBuffer* video,  OutputStream* output, CodecInfo* infos)
 {
+  ptracesfl("StraightThrough_VT - StraightThrough_VT(): Creation de l'objet",MT_INFO,true);
+  inputBuffer = video;
+  outputBuffer = output;
+  infoCodecs = infos;
+  Active=true;
+  OkToKill=true;
 }
 
+StraightThrough_VT::~StraightThrough_VT()
+{
+  ptracesfl("StraightThrough_VT - ~StraightThrough_VT(): Destruction de l'objet",MT_INFO,true);
+  free(data);
+}
+
+//DEPRECATED!!!
 StraightThrough_VT::StraightThrough_VT()
 {
 }

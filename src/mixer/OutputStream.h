@@ -3,10 +3,9 @@
 #ifndef OUTPUTSTREAM_H
 #define OUTPUTSTREAM_H
 
+#include <stdio.h>
+#include <string.h>
 #include <semaphore.h>
-
-//#include "../global.h"
-#include <cc++/config.h>
 
 /** @interface */
 //! Interface for the output buffers.
@@ -32,7 +31,7 @@ public:
 	 * \param data a pointer to where the data is to be copied
 	 * \return the size of data
 	 */
-    virtual int fetchData(int16* data) =0;
+    virtual int fetchData(short* data) =0;
 
     //! Method to change the data in the buffer
 	/*!
@@ -50,7 +49,7 @@ public:
 	 * \param data a pointer to the new data
 	 * \param size the size of data
 	 */
-    virtual void putData(int16 * data, int size) =0;
+    virtual void putData(short * data, int size) =0;
 
 protected:
 	

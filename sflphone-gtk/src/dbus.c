@@ -1499,15 +1499,16 @@ dbus_get_contact_entry_details(gchar* accountID, gchar* contactID, gchar* entryI
 
 
 //Brightness of the video capture
-int 
+slider_t
 dbus_get_brightness()
 {
 	g_print("Before get brightness");
-	int value;
+	slider_t values;
 	GError* error = NULL;
 	org_sflphone_SFLphone_ConfigurationManager_get_brightness(
 			configurationManagerProxy,
-			&value,
+			&values.minValue, &values.maxValue, 
+			&values.stepValue, &values.currentValue,
 			&error);
 	g_print("After");
 	if(error)
@@ -1516,8 +1517,12 @@ dbus_get_brightness()
 		g_error_free(error);
 	}
 	else
+	{
 		g_print("DBus called get_brightness() on ConfigurationManager\n");
-	return value;	
+		g_print("%i %i %i %i", values.minValue, values.maxValue, 
+			values.stepValue, values.currentValue);
+	}
+	return values;	
 }
 
 void 
@@ -1540,15 +1545,16 @@ dbus_set_brightness(int value)
 }
 
 //Contrast of the video capture
-int 
+slider_t 
 dbus_get_contrast()
 {
 	g_print("Before get contrast");
-	int value;
+	slider_t values;
 	GError* error = NULL;
 	org_sflphone_SFLphone_ConfigurationManager_get_contrast(
 			configurationManagerProxy,
-			&value,
+			&values.minValue, &values.maxValue, 
+			&values.stepValue, &values.currentValue,
 			&error);
 	g_print("After");
 	if(error)
@@ -1558,7 +1564,7 @@ dbus_get_contrast()
 	}
 	else
 		g_print("DBus called get_contrast() on ConfigurationManager\n");
-	return value;
+	return values;
 }
 
 void 
@@ -1581,15 +1587,16 @@ dbus_set_contrast(int value)
 }
 
 //Colour of the video capture
-int 
+slider_t
 dbus_get_colour()
 {
 	g_print("Before get colour");
-	int value;
+	slider_t values;
 	GError* error = NULL;
 	org_sflphone_SFLphone_ConfigurationManager_get_colour(
 			configurationManagerProxy,
-			&value,
+			&values.minValue, &values.maxValue, 
+			&values.stepValue, &values.currentValue,
 			&error);
 	g_print("After");
 	if(error)
@@ -1599,7 +1606,7 @@ dbus_get_colour()
 	}
 	else
 		g_print("DBus called get_colour() on ConfigurationManager\n");
-	return value;	
+	return values;	
 }
 
 void 
@@ -1660,5 +1667,144 @@ dbus_set_webcam_device(const int index)
 	}
 	else
 		g_print("DBus called set_webcam_device() on ConfigurationManager\n");
+}
+
+/**
+ * Get webcam device index
+ */
+gchar**
+dbus_get_current_webcam_device_index()
+{
+	g_print("Before get current webcam device index");
+	gchar** array;
+	GError* error = NULL;
+	org_sflphone_SFLphone_ConfigurationManager_get_current_webcam_device_index(
+			configurationManagerProxy,
+			&array,
+			&error);
+	g_print("After");
+	if(error)
+	{
+		g_printerr("Failed to call get_current_webcam_device_index() on ConfigurationManager: %s\n", error->message);
+		g_error_free(error);
+	}
+	else
+		g_print("DBus called get_current_webcam_device_index() on ConfigurationManager\n");
+	return array;
+}
+
+/**
+ * Get webcam index
+ */
+int
+dbus_get_webcam_device_index(const gchar *name)
+{
+	g_print("Before get webcam device index");
+	int index;
+	GError* error = NULL;
+	org_sflphone_SFLphone_ConfigurationManager_get_webcam_device_index(
+			configurationManagerProxy,
+			name,
+			&index,
+			&error);
+	g_print("After");
+	if(error)
+	{
+		g_printerr("Failed to call get_webcam_device_index() on ConfigurationManager: %s\n", error->message);
+		g_error_free(error);
+	}
+	else
+		g_print("DBus called get_webcam_device_index() on ConfigurationManager\n");
+	return index;
+}
+
+//Resolution list
+gchar** 
+dbus_get_resolution_list()
+{
+	g_print("Before get resolution list");
+	gchar** array;
+	GError* error = NULL;
+	org_sflphone_SFLphone_ConfigurationManager_get_resolution_list(
+			configurationManagerProxy,
+			&array,
+			&error);
+	g_print("After");
+	if(error)
+	{
+		g_printerr("Failed to call get_resolution_list() on ConfigurationManager: %s\n", error->message);
+		g_error_free(error);
+	}
+	else
+		g_print("DBus called get_resolution_list() on ConfigurationManager\n");
+	return array;	
+}
+
+void 
+dbus_set_resolution(const int index)
+{
+	g_print("Before set resolution");
+	GError* error = NULL;
+	org_sflphone_SFLphone_ConfigurationManager_set_resolution(
+			configurationManagerProxy,
+			index,
+			&error);
+	g_print("After");
+	if(error)
+	{
+		g_printerr("Failed to call set_resolution() on ConfigurationManager: %s\n", error->message);
+		g_error_free(error);
+	}
+	else
+		g_print("DBus called set_resolution() on ConfigurationManager\n");
+}
+
+/**
+ * Get resolution index
+ */
+gchar**
+dbus_get_current_resolution_index()
+{
+	g_print("Before get current resolution index");
+	gchar** array;
+	GError* error = NULL;
+	org_sflphone_SFLphone_ConfigurationManager_get_current_resolution_index(
+			configurationManagerProxy,
+			&array,
+			&error);
+	g_print("After");
+	if(error)
+	{
+		g_printerr("Failed to call get_current_resolution_index() on ConfigurationManager: %s\n", error->message);
+		g_error_free(error);
+	}
+	else
+		g_print("DBus called get_current_resolution_index() on ConfigurationManager\n");
+	return array;
+}
+
+/**
+ * Get resolution index
+ */
+int
+dbus_get_resolution_index(const gchar *name)
+{
+	g_print("Before get audio device index");
+	int index;
+	GError* error = NULL;
+	org_sflphone_SFLphone_ConfigurationManager_get_resolution_index(
+			configurationManagerProxy,
+			name,
+			&index,
+			&error);
+	g_print("After");
+	if(error)
+	{
+		g_printerr("Failed to call get_resolution_index() on ConfigurationManager: %s\n", error->message);
+		g_error_free(error);
+	}
+	else
+		g_print("DBus called get_resolution_index() on ConfigurationManager\n");
+	return index;
 }
 

@@ -24,7 +24,7 @@
 #define __DBUS_H__
 
 #include <accountlist.h>
-#include <calllist.h>
+#include <configwindow.h>
 
 /** @file dbus.h
   * @brief General DBus functions wrappers.
@@ -76,17 +76,24 @@ gchar** dbus_video_codec_details(int payload);
 gchar** dbus_get_active_video_codec_list( void );
 void dbus_set_active_video_codec_list( const gchar** list );
 //Brightness of the video capture
-int dbus_get_brightness();
+slider_t dbus_get_brightness();
 void dbus_set_brightness(int value);
 //Contrast of the video capture
-int dbus_get_contrast();
+slider_t dbus_get_contrast();
 void dbus_set_contrast(int value);
 //Colour of the video capture
-int dbus_get_colour();
+slider_t dbus_get_colour();
 void dbus_set_colour(int value);
 //Webcam list
 gchar** dbus_get_webcam_device_list();
 void dbus_set_webcam_device(const int index);
+gchar** dbus_get_current_webcam_device_index();
+int dbus_get_webcam_device_index(const gchar* name);
+//Resolution list
+gchar** dbus_get_resolution_list();
+void dbus_set_resolution(const int index);
+int dbus_get_resolution_index(const gchar* name);
+gchar** dbus_get_current_resolution_index();
 
 // Audio devices related methods
 gchar** dbus_get_input_audio_plugin_list();

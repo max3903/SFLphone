@@ -21,25 +21,24 @@
 
 using namespace std;
 
-//! Mixer type
-/*!
- * Enumerates the possible types of mixers.
- */
-enum Tmixer {  NOSYNCH_AV_STRAIGHTTHROUGH= 0x0, /*!No Synchronization Manager and audio-video straight Through mixer */
-               SYNCH_AV_STRAIGHTTHROUG= 0x01,   /*!Synchronization Manager and audio-video straight Through mixer */
-               NOSYNCH_AV_MIXER2= 0x02,			/*!No Synchronization Manager and audio-video 2 channels mixer */
-               SYNCH_AV_MIXER2= 0x03,			/*!Synchronization Manager and audio-video 2 channels mixer */
-               NOSYNCH_AUTOSENSE= 0x04,			/*!No Synchronization Manager and auto-detect mixer state from input */
-               SYNCH_AUTOSENSE= 0x05			/*!Synchronization Manager and auto-detect mixer stater from input */
-	    };
-
-
 //! Audio and video mixer
 /*!
  * This class implements a modular audio and video stream mixer that can take an arbitrairy number of InputStreams and converts them to 1 audio et 1 video OutputStreams.
  */
 class Mixer {
 public:
+
+	//! Mixer type
+	/*!
+	 * Enumerates the possible types of mixers.
+	 */
+	enum Tmixer {  NOSYNCH_AV_STRAIGHTTHROUGH= 0x0, /*!No Synchronization Manager and audio-video straight Through mixer */
+	               SYNCH_AV_STRAIGHTTHROUG= 0x01,   /*!Synchronization Manager and audio-video straight Through mixer */
+	               NOSYNCH_AV_MIXER2= 0x02,			/*!No Synchronization Manager and audio-video 2 channels mixer */
+	               SYNCH_AV_MIXER2= 0x03,			/*!Synchronization Manager and audio-video 2 channels mixer */
+	               NOSYNCH_AUTOSENSE= 0x04,			/*!No Synchronization Manager and auto-detect mixer state from input */
+	               SYNCH_AUTOSENSE= 0x05			/*!Synchronization Manager and auto-detect mixer stater from input */
+		    };
 
 	//! Constructor
 	/*!
@@ -175,5 +174,17 @@ private:
     
     //! The current type of the mixer
     Tmixer theType;
+
+    // Le vecteur contenant les flux dentre au mixer // TODO: P-e declarer localement...
+    vector<InputStreams*> streamsInput;
+
+    // Le flux dentre au mixer
+    InputStreams* inputFlux;      // TODO: P-e declarer localement...
+
+    // Les deux buffer de sortie du mixer
+    OutputStream* audioOutput;    // TODO: P-e declarer localement...
+    OutputStream* videoOutput;    // TODO: P-e declarer localement...
+
+
 };
 #endif //MIXER_H

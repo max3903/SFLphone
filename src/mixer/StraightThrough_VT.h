@@ -42,6 +42,9 @@ public:
      */
     virtual void restart();
 
+    //! Stop and Kill the thread
+    virtual void stop();
+
 
 private:
 	
@@ -50,5 +53,14 @@ private:
 	 * Implemented as private to prevent declaration without the proper buffers
 	 */
     StraightThrough_VT();
+    
+    InternalBuffer* inputBuffer;
+    OutputStream* outputBuffer;
+    CodecInfo* infoCodecs;
+
+    void* data;
+    int sizeBuffer;
+    bool Active;
+    bool OkToKill;
 };
 #endif //STRAIGHTTHROUGH_VT_H

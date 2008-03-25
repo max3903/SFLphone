@@ -17,13 +17,13 @@
  *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
  
-#ifndef TRACEPRINT_H_
-#define TRACEPRINT_H_
+#ifndef TRACEPRINTSFL_H_
+#define TRACEPRINTSFL_H_
 
 #include <stdio.h>
 #include <stdlib.h>
 
-#define TRACE_LEVEL		2				/*Default trace level*/
+#define SFLTRACE_LEVEL		10				/*Default trace level*/
 
 #define HEADER_ERROR	"Error: "		/*Error message Tag*/
 #define HEADER_WARNING	"Warning: "		/*Warning message Tag*/
@@ -43,7 +43,7 @@
  * 
  * Used as a Trace system with level filtering. By setting the constant TRACE_LEVEL, you change the level of tracibility that you will get. Anything with a level below or equal to TRACE_LEVEL will be displayed. If type is equal to MT_FATAL the trace shows an error and quits the program returning -1.
  * */  
-class tracePrint
+class tracePrintSfl
 {
 public:
 
@@ -57,6 +57,6 @@ public:
 	
 };
 
-#define ptrace tracePrint() /*The instance of the functor*/
+#define ptracesfl tracePrintSfl() /*The instance of the functor*/
 
-#endif /*TRACEPRINT_H_*/
+#endif /*TRACEPRINTSFL_H_*/

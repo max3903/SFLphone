@@ -2,46 +2,101 @@
 
 #include "VideoInput.h"
 #include "TimeInfo.h"
-
-// TODO: Impossible de mettre des semaphores dans des fonction Const, je l'ai donc enlevé! ok ?
-int VideoInput::fetchData(char* data)
-{ 
-  sem_wait(&semaphore);
-  memcpy(buffer,data,sizeBuffer);
-  sem_post(&semaphore);
-  return 0;		// TODO: Et le return il sert à quoi ??
-}
-
-TimeInfo VideoInput::fetchTimeInfo() const 
-{ 
-  return (*infoTemps);
-}
+#include <string.h>
+#include "../tracePrintSFL.h"
 
 void VideoInput::putData(char * data, int size, int leTemps)
 { 
+  if (data!=NULL && size>0)
+  {
+    ptracesfl("VideoInput - putData(): Demande semaphore",MT_INFO,true);
+    sem_wait(&semaphore);
+    ptracesfl("VideoInput - putData(): Zone Critique",MT_INFO,true);
+    if( buffer != NULL )
+    	delete buffer;
+    buffer = new char[size];
+    infoTemps = new TimeInfo(leTemps);
+    memcpy(buffer, data,size);
+    sizeBuffer=size;
+    sem_post(&semaphore);
+    ptracesfl("VideoInput - putData(): Sortie Zone Critique",MT_INFO,true);
+  }
+  else
+    ptracesfl("VideoInput - putData(): Erreur parametre",MT_ERROR,true);
+}
+
+int VideoInput::fetchData(char* data)
+{ 
+  if (buffer!=NULL && data!=NULL)
+  {
+    ptracesfl("VideoInput - fetchData(): Demande semaphore",MT_INFO,true);
+    sem_wait(&semaphore);
+    ptracesfl("VideoInput - fetchData(): Zone Critique",MT_INFO,true);
+    memcpy(data, buffer,sizeBuffer);
+    sem_post(&semaphore);
+    ptracesfl("VideoInput - fetchData(): Sortie Zone Critique",MT_INFO,true);
+    return 0;
+  }
+  else
+  {
+    ptracesfl("VideoInput - fetchData(): Erreur parametre",MT_ERROR,true);
+    return 1;
+  }
+}
+
+int VideoInput::getSizeBuffer()
+{
+  int leSize;
+  ptracesfl("VideoInput - getSizeBuffer(): Demande semaphore",MT_INFO,true);
   sem_wait(&semaphore);
-  buffer = new char[size];
-  infoTemps = new TimeInfo(leTemps);
-  memcpy(data,buffer,size);
-  sizeBuffer=size;
+  ptracesfl("VideoInput - getSizeBuffer(): Zone Critique",MT_INFO,true);
+  leSize = sizeBuffer;
   sem_post(&semaphore);
+  ptracesfl("VideoInput - getSizeBuffer(): Sortie Zone Critique",MT_INFO,true);
+  return leSize;
 }
 
 VideoInput::VideoInput()
 {
+  ptracesfl("VideoInput - VideoInput(): Creation de l'objet",MT_INFO,true);
   sem_init(&semaphore,0,1);
-  // J'initie buffer et infoTemps  null ???? et je teste non null dans fetch?
+  buffer=NULL;
+  infoTemps=NULL;
+  sizeBuffer=0;
 }
 
 VideoInput::~VideoInput()
 {
-  // verifier que c'est null avant.
-  delete []buffer;
-  delete infoTemps;
+  ptracesfl("VideoInput - ~VideoInput(): Destruction de l'objet",MT_INFO,true);
+  if (buffer!=NULL){
+    delete []buffer;
+    buffer=NULL;
+  }
+  if (infoTemps!=NULL){
+    delete infoTemps;
+    infoTemps=NULL;
+  }
   sem_destroy(&semaphore);
 }
 
 void VideoInput::putTimeInfo(TimeInfo* infos)
 {
+  ptracesfl("VideoInput - putTimeInfo(): Demande semaphore",MT_INFO,true);
+  sem_wait(&semaphore);
+  ptracesfl("VideoInput - putTimeInfo(): Zone Critique",MT_INFO,true);
   infoTemps = infos;
+  sem_post(&semaphore);
+  ptracesfl("VideoInput - putTimeInfo(): Sortie Zone Critique",MT_INFO,true);
+}
+
+TimeInfo VideoInput::fetchTimeInfo()
+{ 
+  TimeInfo* leTemps;
+  ptracesfl("VideoInput - fetchTimeInfo(): Demande semaphore",MT_INFO,true);
+  sem_wait(&semaphore);
+  ptracesfl("VideoInput - fetchTimeInfo(): Zone Critique",MT_INFO,true);
+  leTemps = infoTemps;
+  sem_post(&semaphore);
+  ptracesfl("VideoInput - fetchTimeInfo(): Sortie Zone Critique",MT_INFO,true);
+  return (*leTemps);
 }

@@ -3,46 +3,100 @@
 #include "AudioInput.h"
 #include "TimeInfo.h"
 #include <string.h>
+#include "../tracePrintSFL.h"
 
-TimeInfo AudioInput::fetchTimeInfo() const
+
+void AudioInput::putData(short *data, int size, int leTemps)
 {
-  return (*infoTemps);   // TODO: AJOUTER LE SEMAPHORE semophore ! Mais comment encore ?
+  if (data!=NULL && size>0)
+  {
+    ptracesfl("AudioInput - putData(): Demande semaphore",MT_INFO,true);
+    sem_wait(&semaphore);
+    ptracesfl("AudioInput - putData(): Zone Critique",MT_INFO,true);
+    buffer = new short[size];
+    infoTemps = new TimeInfo(leTemps);
+    memcpy(data,buffer,size);
+    sizeBuffer=size;
+    sem_post(&semaphore);
+    ptracesfl("AudioInput - putData(): Sortie Zone Critique",MT_INFO,true);
+  }
+  else
+    ptracesfl("AudioInput - putData(): Erreur parametre",MT_ERROR,true);
 }
 
-void AudioInput::putData(int16 *data, int size, int leTemps)
-{
-  sem_wait(&semaphore);
-  buffer = new int16[size];   // Ca consomme beaucoup un new a cette frequence dappel?
-  infoTemps = new TimeInfo(leTemps);
-  memcpy(data,buffer,size);
-  sizeBuffer=size;
-  sem_post(&semaphore);
-}
-
-// TODO: Impossible de mettre des semaphore dans des fonction Const, je l'ai donc enlevé! ok ?
-int AudioInput::fetchData(int16 *data) 
+int AudioInput::fetchData(short *data) 
 { 
+  if (buffer!=NULL && data!=NULL)
+  {
+    ptracesfl("AudioInput - fetchData(): Demande semaphore",MT_INFO,true);
+    sem_wait(&semaphore);
+    ptracesfl("AudioInput - fetchData(): Zone Critique",MT_INFO,true);
+    memcpy(buffer,data,sizeBuffer);
+    sem_post(&semaphore);
+    ptracesfl("AudioInput - fetchData(): Sortie Zone Critique",MT_INFO,true);
+    return 0;
+  }
+  else
+  {
+    ptracesfl("AudioInput - fetchData(): Erreur parametre",MT_ERROR,true);
+    return 1;
+  }
+}
+
+int AudioInput::getSizeBuffer()
+{
+  int leSize;
+  ptracesfl("AudioInput - getSizeBuffer(): Demande semaphore",MT_INFO,true);
   sem_wait(&semaphore);
-  memcpy(buffer,data,sizeBuffer);
+  ptracesfl("AudioInput - getSizeBuffer(): Zone Critique",MT_INFO,true);
+  leSize = sizeBuffer;
   sem_post(&semaphore);
-  return 0;		// TODO: Et le return, il sert à quoi ??
+  ptracesfl("AudioInput - getSizeBuffer(): Sortie Zone Critique",MT_INFO,true);
+  return leSize;
 }
 
 AudioInput::AudioInput()
 {
+  ptracesfl("AudioInput - AudioInput(): Creation de l'objet",MT_INFO,true);
   sem_init(&semaphore,0,1);
-  // J'initie buffer et infoTemps  null ????  et je teste non null dans fetch?
+  buffer=NULL;
+  infoTemps=NULL;
+  sizeBuffer=0;
 }
 
 AudioInput::~AudioInput()
 {
-  // verifier que c'est null avant???
-  delete []buffer;
-  delete infoTemps;
+  ptracesfl("AudioInput - ~AudioInput(): Destruction de l'objet",MT_INFO,true);
+  if (buffer!=NULL){
+    delete []buffer;
+    buffer=NULL;
+  }
+  if (infoTemps!=NULL){
+    delete infoTemps;
+    infoTemps=NULL;
+  }
   sem_destroy(&semaphore);
 }
 
 void AudioInput::putTimeInfo(TimeInfo* infos)
 {
+  ptracesfl("AudioInput - putTimeInfo(): Demande semaphore",MT_INFO,true);
+  sem_wait(&semaphore);
+  ptracesfl("AudioInput - putTimeInfo(): Zone Critique",MT_INFO,true);
   infoTemps = infos;
+  sem_post(&semaphore);
+  ptracesfl("AudioInput - putTimeInfo(): Sortie Zone Critique",MT_INFO,true);
 }
+
+TimeInfo AudioInput::fetchTimeInfo()
+{
+  TimeInfo* leTemps;
+  ptracesfl("AudioInput - fetchTimeInfo(): Demande semaphore",MT_INFO,true);
+  sem_wait(&semaphore);
+  ptracesfl("AudioInput - fetchTimeInfo(): Zone Critique",MT_INFO,true);
+  leTemps = infoTemps;
+  sem_post(&semaphore);
+  ptracesfl("AudioInput - fetchTimeInfo(): Sortie Zone Critique",MT_INFO,true);
+  return (*leTemps);
+}
+

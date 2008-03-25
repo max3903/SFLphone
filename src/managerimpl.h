@@ -30,6 +30,7 @@
 #include <set>
 #include <map>
 #include <cc++/thread.h>
+#include <time.h>
 #include "dbus/dbusmanager.h"
 
 #include "stund/stun.h"
@@ -44,6 +45,7 @@
 #include "audio/dtmf.h"
 #include "audio/codecDescriptor.h"
 #include "video/VideoCodecDescriptor.h"
+#include "memmanager/MemManager.h"
 
 
 
@@ -58,6 +60,22 @@ class VoIPLink;
 class DNSService;
 #endif
 
+//TODO: remove when it will be linked to the struct in V4L
+typedef struct  {
+  /** Minimum value for the slider */
+  int minValue;
+  /** Maximum value for the slider */
+  int maxValue;
+  /** Step increment value for the slider */
+  int stepValue;
+  /** Current value of the slider */
+  int currentValue;
+} slider_t;
+
+struct KeyHolder{
+const MemKey* localKey;
+const MemKey* remoteKey;
+};
 /**
  * Define a type for a AccountMap container
  */
@@ -329,6 +347,12 @@ public:
    */
   std::vector< ::DBus::String > getVideoCodecDetails( const ::DBus::Int32& payload);
 
+	/**
+   * Get the list of video codecs active saved in the config file
+   * @return The list of the video codecs
+   */ 
+  std::vector<std::string> retrieveActiveVideoCodecs();
+  
   /**
    * Get a list of supported input audio plugin
    * @return List of names
@@ -544,14 +568,20 @@ public:
   std::string getRemoteSharedMemoryKey( void );
   
   /* Webcam Settings */
-	int getBrightness(  );
+	slider_t getBrightness(  );
 	void setBrightness( const int value );
-	int getContrast(  );
+	slider_t getContrast(  );
 	void setContrast( const int value );
-	int getColour(  );
+	slider_t getColour(  );
 	void setColour( const int value );
 	std::vector<std::string> getWebcamDeviceList(  );
 	void setWebcamDevice( const int index );
+	std::vector< std::string > getCurrentWebcamDeviceIndex(  );
+    int getWebcamDeviceIndex( const std::string name );
+    std::vector< std::string > getResolutionList(  );
+    void setResolution( const int index );
+    std::vector< std::string > getCurrentResolutionIndex(  );
+    int getResolutionIndex( const std::string name );
 
 private:
  /**
@@ -646,6 +676,10 @@ private:
   // videoCodecDescriptor
   VideoCodecDescriptor *_videoCodecDescriptor;
 
+  // MEMMANAGER
+  MemManager *_memManager;
+  KeyHolder _keyHolder;
+  
   /////////////////////
   // Protected by Mutex
   /////////////////////
@@ -791,7 +825,10 @@ private:
    */
   void initVideoCodec(void);
   
-  
+    /*
+   * Initialize the memmanager -> the shared memory interface
+   */
+  void initMemManager(void);
   
   /**
    * Get list of supported video input device

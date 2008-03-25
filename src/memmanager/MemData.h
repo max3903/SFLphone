@@ -1,7 +1,8 @@
 /*
  *  Copyright (C) 2006-2007 Savoir-Faire Linux inc.
  *  Author: Jean-Francois Blanchard-Dionne <jean-francois.blanchard-dionne@polymtl.ca>
- *                                                                              
+ *  Author: Jean Tessier <jean.tessier@polymtl.ca> 
+ *                                                                             
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation; either version 3 of the License, or
@@ -21,7 +22,7 @@
 #define MEMDATA_H
 
 #include <string>
-
+#include "../tracePrintSFL.h"
 //! Memmory data container
 /*!
  * Contains a copy of the data in the shared memory. It contains the data it self and the size. This class acts like a container.
@@ -62,32 +63,36 @@ public:
      * \param data a pointer to where the data will be copied
      * \return the size of data
      */
-    int fetchData(char * data);
+    int fetchData(unsigned char * dataOuput);
 
     //! Method to change the data in the buffer
     /*!
      * \param data a pointer to the new data
      * \param size the size of data
      */
-    void putData(char * data, int size);
+    void putData(unsigned char * dataInput, int sizeInput);
     
     
     //! Method to get the data in the buffer
     /*!
      * Method get the data
      */
-     char* getData();
+     unsigned char* getData();
      
      //! Method to set the data in the buffer
     /*!
      * Method set the data
      */
-     void setData(char * data);
+     void setData(unsigned char * data);
+     
+     int getSize(){
+     		return this->size;
+     }
         
 private:
 	
 	 //! Pointer to the data
-    char *data;
+    unsigned char *data;
     //! The current size of the data in the buffer
     int size;
     //! The current size of the data in the buffer

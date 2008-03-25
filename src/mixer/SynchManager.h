@@ -15,11 +15,18 @@
 class SynchManager : public ost::Thread {
 public:
 
+	SynchManager(){}
+	
+	virtual ~SynchManager(){}
+
     //! Thread main method
 	/*!
 	 * Actually does the work in the thread. Must be implemeted by the child class.
 	 */
     virtual void run() = 0;
+
+    //! Stop and Kill the thread
+    virtual void stop()= 0;
 
 protected:
 	

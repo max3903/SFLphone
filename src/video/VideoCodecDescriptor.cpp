@@ -30,7 +30,7 @@ VideoCodecDescriptor* VideoCodecDescriptor::getInstance()
 	//if no instance made create one,
 	//ref. singleton pattern
 	if (instance == 0)
-	instance = new VideoCodecDescriptor();
+	instance = new VideoCodecDescriptor;
 
 	return instance;
 }
@@ -39,6 +39,7 @@ VideoCodecDescriptor* VideoCodecDescriptor::getInstance()
  	{
  	vCodecOrder.clear();
  	vCodecMap.clear();
+ 	delete instance;
  	}
 	
     VideoCodecDescriptor::VideoCodecDescriptor()
@@ -54,7 +55,7 @@ VideoCodecDescriptor* VideoCodecDescriptor::getInstance()
     //Create map list
     if (initCodecMap() == false)
     {
-    	ptrace("videoCodecInit error",MT_FATAL,2,true);
+    	ptracesfl("videoCodecInit error",MT_FATAL,2,true);
     }
     //check if user has settings for the active list, if yes load them else setDefault
     //TODO
@@ -89,14 +90,16 @@ VideoCodecDescriptor* VideoCodecDescriptor::getInstance()
     			if(tmp != NULL)
     			{
     			//map Codec
-    			ptrace(" Found",MT_NONE,2,true);
+    			ptracesfl(tmp->name,MT_INFO,2,false);
+    			ptracesfl(" Found",MT_NONE,2,true);
     			vCodecMap[tmp] = avcodec_alloc_context();	
     			}
     			tmp = avcodec_find_decoder_by_name("h263");
     			if(tmp != NULL)
     			{
     			//map Codec
-    			ptrace(" Found",MT_NONE,2,true);
+    			ptracesfl(tmp->name,MT_INFO,2,false);
+    			ptracesfl(" Found",MT_NONE,2,true);
     			vCodecMap[tmp] = avcodec_alloc_context();	
     			}
 //    		}
@@ -109,12 +112,14 @@ VideoCodecDescriptor* VideoCodecDescriptor::getInstance()
     bool VideoCodecDescriptor::setDefaultOrder(){
     
     VCMIterator mapIter;
+    VCOIterator iter;
     //Set the default order of the codec list
     //means setting the exact same codecs as codecMap
     vCodecOrder.clear();
   
     for (mapIter = vCodecMap.begin();mapIter != vCodecMap.end();mapIter++)
     	vCodecOrder.push_back((*mapIter).first);
+    
     	
     return true;
     }
@@ -142,14 +147,11 @@ VideoCodecDescriptor* VideoCodecDescriptor::getInstance()
 	AVCodecContext* VideoCodecDescriptor::getCodecContext(AVCodec* Codec)
 	{
 		VCMIterator tmp;
-	
-	tmp = vCodecMap.find(Codec);
-	
-	return (*tmp).second;
-	
+		tmp = vCodecMap.find(Codec);
+		return (*tmp).second;
 	}
+	
     VideoCodecOrder VideoCodecDescriptor::getActiveCodecs() { return vCodecOrder; }
-    
 	
     void VideoCodecDescriptor::setActiveCodecs(VideoCodecOrder vCodecOrder)
     {
@@ -157,8 +159,7 @@ VideoCodecDescriptor* VideoCodecDescriptor::getInstance()
     }
 	
     void VideoCodecDescriptor::setCodecMap(VideoCodecMap codec){this->vCodecMap = codec;}
-    
-    
+
     /********************************************
      * Functions for MEMMANAGER
      ********************************************
@@ -171,8 +172,8 @@ VideoCodecDescriptor* VideoCodecDescriptor::getInstance()
     	VCOIterator iter;
     	
     	for ( iter = this->vCodecOrder.begin(); iter != this->vCodecOrder.end();iter++)
-    		tmp.push_back((*iter)->name);
-    	
+    		tmp.push_back((string)(*iter)->name);
+
   		return tmp;
     }
     
@@ -191,7 +192,7 @@ VideoCodecDescriptor* VideoCodecDescriptor::getInstance()
     				vCodecOrder.push_back(tmp);
     			else
     			{
-    			ptrace("Codec Not Found",MT_ERROR,2,true);
+    			ptracesfl("Codec Not Found",MT_ERROR,2,true);
     			saveOk =false;
     			}
     		}
@@ -205,12 +206,9 @@ VideoCodecDescriptor* VideoCodecDescriptor::getInstance()
     
     for ( iter = this->vCodecMap.begin(); iter != this->vCodecMap.end();iter++)
     		tmp.push_back((string)(*iter).first->name);
-  	
   		return tmp;
-    
     }
     
- 
     bool VideoCodecDescriptor::saveCodecMap(StringVector sCodecMap)
     {
     	StringVectorIterator iter;
@@ -227,7 +225,7 @@ VideoCodecDescriptor* VideoCodecDescriptor::getInstance()
 	    			vCodecMap[tmp] = avcodec_alloc_context();
 	    		else
 	    		{
-	    			ptrace("Codec Not Found",MT_ERROR,2,true);
+	    			ptracesfl("Codec Not Found",MT_ERROR,2,true);
 	    			saveOk =false;	
 	    		}
     	}
