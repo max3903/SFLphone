@@ -29,7 +29,7 @@ update_progress_bar( GtkWidget* bar )
 
   for( i = 0 ; i < ITERATIONS ; i++)
   {
-    usleep(5000);
+   // usleep(5000);
     if( i > 700 && i < 1000)
       gtk_progress_bar_set_text( (GtkProgressBar *)bar , "Saving configuration....");
     if( i > 1000 && i < 1300 )
@@ -71,5 +71,6 @@ display_progress_bar( void )
   
   update_progress_bar( progressBar );
 
+return NULL;
 } 
 
