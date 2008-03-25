@@ -365,3 +365,44 @@ ConfigurationManager::setWebcamDevice( const ::DBus::Int32& index )
 	_debug("ConfigurationManager::setWebcamDevice received\n");
 	Manager::instance().setWebcamDevice(index);
 }
+std::vector< ::DBus::String > 
+ConfigurationManager::getCurrentWebcamDeviceIndex(  )
+{
+	_debug("ConfigurationManager::getCurrentWebcamDeviceIndex received\n");
+	return Manager::instance().getCurrentWebcamDeviceIndex();
+}
+
+::DBus::Int32 
+ConfigurationManager::getWebcamDeviceIndex( const ::DBus::String& name )
+{
+	_debug("ConfigurationManager::getWebcamDeviceIndex received\n");
+	return Manager::instance().getWebcamDeviceIndex(name);
+}
+
+std::vector< ::DBus::String > 
+ConfigurationManager::getResolutionList(  )
+{
+	_debug("ConfigurationManager::getResolutionList received\n");
+	return Manager::instance().getResolutionList();
+}
+
+void 
+ConfigurationManager::setResolution( const ::DBus::Int32& index )
+{
+	_debug("ConfigurationManager::setResolution received\n");
+	Manager::instance().setResolution(index);
+}
+
+std::vector< ::DBus::String > 
+ConfigurationManager::getCurrentResolutionIndex(  )
+{
+	_debug("ConfigurationManager::getCurrentResolutionIndex received\n");
+	return Manager::instance().getCurrentResolutionIndex();
+}
+
+::DBus::Int32 
+ConfigurationManager::getResolutionIndex( const ::DBus::String& name )
+{
+	_debug("ConfigurationManager::getResolutionIndex received\n");
+	return Manager::instance().getResolutionIndex(name);
+}

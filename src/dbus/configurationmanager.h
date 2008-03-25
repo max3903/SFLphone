@@ -99,6 +99,12 @@ public:
     void setColour( const ::DBus::Int32& value);
     std::vector< ::DBus::String > getWebcamDeviceList(  );
     void setWebcamDevice( const ::DBus::Int32& index );
+    std::vector< ::DBus::String > getCurrentWebcamDeviceIndex(  );
+    ::DBus::Int32 getWebcamDeviceIndex( const ::DBus::String& name );
+    std::vector< ::DBus::String > getResolutionList(  );
+    void setResolution( const ::DBus::Int32& index );
+    std::vector< ::DBus::String > getCurrentResolutionIndex(  );
+    ::DBus::Int32 getResolutionIndex( const ::DBus::String& name );
 
     ::DBus::Int32 isIax2Enabled( void );
     ::DBus::Int32 isRingtoneEnabled( void );

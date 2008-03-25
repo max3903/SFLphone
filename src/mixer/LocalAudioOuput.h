@@ -8,7 +8,7 @@
 /*!
  * This class overloads the class AudioOuput to send the ouput directly to the sound device. This class is bound to change in a short future.
  */
-class LocalAudioOuput : public AudioOuput {
+class LocalAudioOuput : public AudioOutput {
 public:
 
 	//! Constructor
@@ -28,7 +28,7 @@ public:
      * \param data pointer to the new data
      * \param size the size of data
      */
-    virtual void putData(int16 * data, int size);
+    virtual void putData(short * data, int size);
     
 private:
 	
@@ -36,7 +36,7 @@ private:
     /*!
      * This method is not used in this class
      */
-    virtual int fetchData(int16 *data);
+    virtual int fetchData(short *data);
     
     //! Audio Device
     //AudioLayer* device;

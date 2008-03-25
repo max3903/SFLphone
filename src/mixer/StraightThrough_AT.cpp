@@ -12,7 +12,7 @@ void StraightThrough_AT::run()
     sizeBuffer = inputBuffer->getSizeBuffer();
     data = (void*) malloc(sizeBuffer);
     inputBuffer->fetchData(data);
-    outputBuffer->putData((int16*)data,sizeBuffer);
+    outputBuffer->putData((short*)data,sizeBuffer);
     free(data);
   }
   ptracesfl("StraightThrough_AT - run(): Le thread travail plus :(",MT_INFO,true);

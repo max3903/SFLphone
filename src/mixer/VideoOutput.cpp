@@ -11,14 +11,19 @@ int VideoOutput::fetchData(char* data)
     ptracesfl("VideoOutput - fetchData(): Demande semaphore",MT_INFO,true);
     sem_wait(&semaphore);
     ptracesfl("VideoOutput - fetchData(): Zone Critique",MT_INFO,true);
-    memcpy(buffer,data,sizeBuffer);
+    memcpy(data, buffer,sizeBuffer);
     sem_post(&semaphore);
     ptracesfl("VideoOutput - fetchData(): Sortie Zone Critique",MT_INFO,true);
     return 0;
   }
   else
   {
-    ptracesfl("VideoOutput - fetchData(): Erreur parametre",MT_ERROR,true);
+ 	
+  	if( data == NULL )
+  		ptracesfl("VideoOutput - fetchData(): bad paramteter",MT_ERROR,true);
+  	else
+    	ptracesfl("VideoOutput - fetchData(): empty buffer",MT_ERROR,true);
+  		
     return 1;
   }
 }
@@ -30,14 +35,20 @@ void VideoOutput::putData(char * data, int size)
     ptracesfl("VideoOutput - putData(): Demande semaphore",MT_INFO,true);
     sem_wait(&semaphore);
     ptracesfl("VideoOutput - putData(): Zone Critique",MT_INFO,true);
+    if( buffer != NULL )
+    	delete buffer;
     buffer = new char[size]; 
-    memcpy(data,buffer,size);
+    memcpy(buffer, data, size);
     sizeBuffer=size;
     sem_post(&semaphore);
     ptracesfl("VideoOutput - putData(): Sortie Zone Critique",MT_INFO,true);
   }
-  else
-    ptracesfl("VideoOutput - putData(): Erreur parametre",MT_ERROR,true);
+  else{
+   	if( data == NULL )
+  		ptracesfl("VideoOutput - fetchData(): bad paramteter",MT_ERROR,true);
+  	else
+    	ptracesfl("VideoOutput - fetchData(): empty buffer",MT_ERROR,true);
+  }
 }
 
 VideoOutput::VideoOutput()
@@ -59,12 +70,12 @@ VideoOutput::~VideoOutput()
 }
 
 // DEPRECIATED !!!!!
-int VideoOutput::fetchData(int16 *data)
+int VideoOutput::fetchData(short *data)
 { 
   return 0; 
 }
 // DEPRECIATED !!!!!
-void VideoOutput::putData(int16 * data, int size)
+void VideoOutput::putData(short * data, int size)
 { 
   
 }

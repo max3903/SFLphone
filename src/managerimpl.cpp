@@ -2785,8 +2785,8 @@ ManagerImpl::getLocalSharedMemoryKey()
 std::string 
 ManagerImpl::getRemoteSharedMemoryKey()
 {
-return _keyHolder.remoteKey->getDescription();
-ptracesfl("REMOTE Memspace shmid sent",MT_INFO,2,true);
+	return _keyHolder.remoteKey->getDescription();
+	ptracesfl("REMOTE Memspace shmid sent",MT_INFO,2,true);
 }
 
 slider_t 
@@ -2852,6 +2852,45 @@ void
 ManagerImpl::setWebcamDevice( const int index )
 {
 	
+}
+
+std::vector< std::string  > 
+ManagerImpl::getCurrentWebcamDeviceIndex(  )
+{
+	std::vector<std::string> v;
+	return v;
+}
+
+int 
+ManagerImpl::getWebcamDeviceIndex( const std::string name )
+{
+	return 0;
+}
+
+std::vector< std::string > 
+ManagerImpl::getResolutionList(  )
+{
+	std::vector<std::string> v;
+	return v;
+}
+
+void 
+ManagerImpl::setResolution( const int index )
+{
+	
+}
+
+std::vector< std::string > 
+ManagerImpl::getCurrentResolutionIndex(  )
+{
+	std::vector<std::string> v;
+	return v;
+}
+
+int 
+ManagerImpl::getResolutionIndex( const std::string name )
+{
+	return 0;
 }
 
 /*

@@ -39,7 +39,6 @@ void StraightThrough_VT::stop()
   ptracesfl("StraightThrough_VT - stop(): Demande de stop recu...",MT_INFO,true);
   Active=false;
   while(!OkToKill);
-  terminate();
 }
 
 StraightThrough_VT::StraightThrough_VT(InternalBuffer* video,  OutputStream* output, CodecInfo* infos)

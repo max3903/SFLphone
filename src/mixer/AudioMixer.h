@@ -28,7 +28,7 @@ public:
     virtual void run() =0;
 
    //! Stop and Kill the thread
-    virtual void stop();
+    virtual void stop()=0;
 
 protected:
 	
