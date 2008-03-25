@@ -27,7 +27,6 @@
 #include <menus.h>
 #include <screen.h>
 #include <statusicon.h>
-#include <quit.h>
 
 #include <gtk/gtk.h>
 #include <string.h>
@@ -73,7 +72,6 @@ sflphone_quit ()
 		//call_list_clean(); TODO
 		//account_list_clean()
 		contact_hash_table_clear();
-		//display_progress_bar();
 		gtk_main_quit ();
 	}
 	return quit;

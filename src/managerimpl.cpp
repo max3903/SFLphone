@@ -35,7 +35,6 @@
 #include <ccrtp/rtp.h>     // why do I need this here?
 #include <cc++/file.h>
 
-
 #include "manager.h"
 #include "account.h"
 #include "audio/audiolayer.h"
@@ -1187,22 +1186,22 @@ ManagerImpl::initAudioCodec (void)
   }
 }
 
-  std::vector<std::string>
+std::vector<std::string>
 ManagerImpl::retrieveActiveCodecs()
 {
-   	std::vector<std::string> order; 
-	std::string  temp;
-	std::string s = getConfigString(AUDIO, "ActiveCodecs");
-	  
-	while (s.find("/", 0) != std::string::npos)
-	{
-		size_t  pos = s.find("/", 0); 			
-		temp = s.substr(0, pos);      			
-		s.erase(0, pos + 1);          			
-		order.push_back(temp);                	
-	}
-	
-	return order;
+  std::vector<std::string> order;
+  std::string  temp;
+  std::string s = getConfigString(AUDIO, "ActiveCodecs");
+
+  while (s.find("/", 0) != std::string::npos)
+  {
+    size_t  pos = s.find("/", 0);
+    temp = s.substr(0, pos);
+    s.erase(0, pos + 1);
+    order.push_back(temp);
+  }
+
+  return order;
 }
 
   void
