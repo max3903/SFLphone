@@ -27,8 +27,11 @@ Call::Call(const CallID& id, Call::CallType type) : _id(id), _type(type),
   _callState = Call::Inactive;
   //_audioCodec = 0;
   _localAudioPort = 0;
+  _localVideoPort = 0;
   _localExternalAudioPort = 0;
+  _localExternalVideoPort = 0;
   _remoteAudioPort = 0;
+  _remoteVideoPort = 0;
 }
 
 
@@ -86,10 +89,24 @@ Call::getLocalAudioPort()
 }
 
 unsigned int 
+Call::getLocalVideoPort()
+{
+  ost::MutexLock m(_callMutex);  
+  return _localVideoPort;
+}
+
+unsigned int 
 Call::getRemoteAudioPort()
 {
   ost::MutexLock m(_callMutex);  
   return _remoteAudioPort;
+}
+
+unsigned int 
+Call::getRemoteVideoPort()
+{
+  ost::MutexLock m(_callMutex);  
+  return _remoteVideoPort;
 }
 
 const std::string& 
@@ -106,6 +123,13 @@ Call::getAudioCodec()
   return _audioCodec;  
 }
 
+AVCodecContext*
+Call::getVideoCodecContext()
+{
+  ost::MutexLock m(_callMutex);  
+  return _videoCodecContext;  
+}
+
 void 
 Call::setAudioStart(bool start)
 {
@@ -113,10 +137,24 @@ Call::setAudioStart(bool start)
   _audioStarted = start;  
 }
 
+void 
+Call::setVideoStart(bool start)
+{
+  ost::MutexLock m(_callMutex);  
+  _videoStarted = start;  
+}
+
 bool 
 Call::isAudioStarted()
 {
   ost::MutexLock m(_callMutex);  
   return _audioStarted;
+}
+
+bool 
+Call::isVideoStarted()
+{
+  ost::MutexLock m(_callMutex);  
+  return _videoStarted;
 }
 
