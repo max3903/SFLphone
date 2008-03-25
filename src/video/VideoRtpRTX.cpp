@@ -254,10 +254,10 @@ void VideoRtpRTX::receiveSession()
 
 void VideoRtpRTX::loadCodec(enum CodecID id,int type)
 {
-  if (type==0)  //decode
-    decodeCodec = new VideoCodec(avcodec_find_decoder(id));
-  else  //encode
-    encodeCodec = new VideoCodec(avcodec_find_encoder(id));
+//  if (type==0)  //decode
+//    decodeCodec = new VideoCodec(avcodec_find_decoder(id));
+//  else  //encode
+//    encodeCodec = new VideoCodec(avcodec_find_encoder(id));
 }
 
 void VideoRtpRTX::unloadCodec(enum CodecID id,int type)
