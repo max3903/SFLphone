@@ -195,7 +195,7 @@ void VideoRtpRTX::sendSession(int timestamp)
   localVideoInput->putData(charFromV4L,sizeV4L,timestamp);
 
   // Encode it TODO: Verifier largeur, longeur
-  encodeCodec->videoEncode(codecCtx->width,codecCtx->height,(uint8_t*)charFromV4L,sizeV4L);
+  //encodeCodec->videoEncode(codecCtx->width,codecCtx->height,(uint8_t*)charFromV4L,sizeV4L);
 
   //TODO: sendDataEncoded = ???????
 
@@ -253,10 +253,10 @@ void VideoRtpRTX::receiveSession()
 
 void VideoRtpRTX::loadCodec(enum CodecID id,int type)
 {
-  if (type==0)  //decode
-    decodeCodec = new VideoCodec(avcodec_find_decoder(id));
-  else  //encode
-    encodeCodec = new VideoCodec(avcodec_find_encoder(id));
+//  if (type==0)  //decode
+//    decodeCodec = new VideoCodec(avcodec_find_decoder(id));
+//  else  //encode
+//    encodeCodec = new VideoCodec(avcodec_find_encoder(id));
 }
 
 void VideoRtpRTX::unloadCodec(enum CodecID id,int type)

@@ -34,6 +34,11 @@ extern "C"{
 
 class VideoCodec {
 public:
+/**
+     * Default Constructor
+     * 
+     */
+    VideoCodec();
 	/**
      * Default Destructor
      * 
@@ -65,11 +70,7 @@ public:
     
     
 private:
- /**
-     * Default Constructor
-     * 
-     */
-    VideoCodec();
+ 
 	
 	/**
  	* Function to init the Codec with it's proper context
