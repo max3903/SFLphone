@@ -763,6 +763,16 @@ ManagerImpl::callFailure(const CallID& id)
 
 }
 
+void
+ManagerImpl::contactEntryPresenceChanged(
+		const AccountID& accountID, const std::string entryID,
+		const std::string presence, const std::string additionalInfo)
+{
+	if(_dbus) _dbus->getContactManager()->contactEntryPresenceChanged(
+			accountID, entryID,
+			presence, additionalInfo);
+}
+
 //THREAD=VoIP
   void 
 ManagerImpl::displayTextMessage(const CallID& id, const std::string& message)

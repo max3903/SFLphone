@@ -444,6 +444,12 @@ public:
   void congestion ();
   void callBusy(const CallID& id);
   void callFailure(const CallID& id);
+  
+  /**
+   * Signal emmited when a contact entry presence changes
+   */
+  void contactEntryPresenceChanged(const AccountID& accountID, const std::string entryID,
+		  const std::string presence, const std::string additionalInfo);
 
   /** @return 0 if no tone (init before calling this function) */
   AudioLoop* getTelephoneTone();

@@ -27,6 +27,7 @@
 
 #include "manager.h"
 #include "user_cfg.h" // SIGNALISATION / PULSE #define
+#include "sippresencemanager.h"
 
 // for listener
 #define DEFAULT_SIP_PORT  5060
@@ -212,7 +213,7 @@ SIPVoIPLink::loadSIPLocalIP()
 void
 SIPVoIPLink::getEvent()
 {
-	char* tmp2;
+	// Wait every 50 milliseconds to check for a SIP event
 	eXosip_event_t* event = eXosip_event_wait(0, 50);
 	eXosip_lock();
 	eXosip_automatic_action();
@@ -407,14 +408,10 @@ SIPVoIPLink::getEvent()
 	case EXOSIP_SUBSCRIPTION_NOTIFY:          /** 44 < announce new NOTIFY request     */
 		_debugMid(" !EXOSIP_SUBSCRIPTION_NOTIFY\n");
 		osip_body_t* body;
-		osip_from_to_str(event->request->from, &tmp2);
 		osip_message_get_body(event->request, 0, &body);
 		if (body != NULL && body->body != NULL) {
-//			printf("\n---------------------------------\n");
-//			printf ("(%i) from: %s\n  %s\n", event->tid, tmp2, body->body);
-//			printf("---------------------------------\n");
+			subscriptionNotificationReceived(event, body->body);
 		}
-		osip_free(tmp2);
 		break;
 	case EXOSIP_SUBSCRIPTION_RELEASED:        /** 45 < call context is cleared.        */
 		_debugMid(" !EXOSIP_SUBSCRIPTION_RELEASED\n");
@@ -1007,48 +1004,25 @@ SIPVoIPLink::subscribePresenceForContact(ContactEntry* contactEntry)
 void
 SIPVoIPLink::publishPresenceStatus(std::string status)
 {
-	_debug("Publishing presence status\n");
-	char buf[4096];
-	int i;
-	osip_message_t* publication;
-	
+	_debug("Publishing presence status\n");	
 	std::ostringstream url;
-	std::string basic;
-	std::string note;
 	
 	// Build URL of sender
 	url << "sip:" << _userpart.data() << "@" << getHostName().data();
 	
-	// TODO
-	// Call function to convert status in basic and note
-	// tags that are integrated in the publication
-	basic = "open";
-	note = "ready";
+	SIPPresenceManager::getInstance()->buildPublishPresenceStatus(url.str().c_str(), status);
+}
+
+void
+SIPVoIPLink::subscriptionNotificationReceived(eXosip_event_t* event, char* body)
+{
+	// Parse information on sender
+	osip_uri_t* from = osip_from_get_url(event->request->from);
+	std::string status = SIPPresenceManager::getInstance()->parseNotificationPresenceStatus(body);
 	
-	snprintf(buf, 4096,
-"<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n\
-<presence xmlns=\"urn:ietf:params:xml:ns:pidf\"\n\
-          xmlns:es=\"urn:ietf:params:xml:ns:pidf:status:rpid-status\"\n\
-          entity=\"%s\">\n\
-    <tuple id=\"sg89ae\">\n\
-        <status>\n\
-            <basic>%s</basic>\n\
-            <es:activities>\n\
-                <es:activity>in-transit</es:activity>\n\
-            </es:activities>\n\
-        </status>\n\
-        <contact priority=\"0.8\">%s</contact>\n\
-        <note>%s</note>\n\
-    </tuple>\n\
-</presence>"
-			, url.str().c_str(), basic.data(), url.str().c_str(), note.data());
-	
-	// Build publish request in PIDF
-	i = eXosip_build_publish(&publication, url.str().c_str(), url.str().c_str(), NULL, "presence", "1800", "application/pidf+xml", buf);
-	
-	eXosip_lock();
-	i = eXosip_publish(publication, url.str().c_str());
-	eXosip_unlock();
+	// Send the new updated contact entry presence for this account
+	Manager::instance().contactEntryPresenceChanged(getAccountID(), from->username, status, "");
+	osip_free(from);
 }
 
 bool
