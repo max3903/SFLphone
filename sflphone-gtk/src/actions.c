@@ -27,7 +27,6 @@
 #include <menus.h>
 #include <screen.h>
 #include <statusicon.h>
-#include <quit.h>
 
 #include <gtk/gtk.h>
 #include <string.h>
@@ -44,7 +43,7 @@ sflphone_notify_voice_mail (guint count)
 	if(count > 0)
 	{
 		gchar * message = g_new0(gchar, 50);
-		g_sprintf(message, "%d new voice mail%s", count, (count > 1? "s" : "")); 
+		g_sprintf(message, _("%d new voice mail%s"), count, (count > 1? "s" : "")); 
 		status_bar_message(message);
 		g_free(message);
 	}
@@ -73,7 +72,6 @@ sflphone_quit ()
 		//call_list_clean(); TODO
 		//account_list_clean()
 		contact_hash_table_clear();
-		display_progress_bar();
 		gtk_main_quit ();
 	}
 	return quit;
@@ -98,7 +96,7 @@ sflphone_ringing(call_t * c )
 
 /** Internal to actions: Fill account list */
 	void
-sflphone_fill_account_list()
+sflphone_fill_account_list(gboolean toolbarInitialized)
 {
 	account_list_clear ( );
 
@@ -143,7 +141,9 @@ sflphone_fill_account_list()
 
 	}
 
-	toolbar_update_buttons();
+	// Prevent update being called when toolbar is not yet initialized
+	if(toolbarInitialized)
+		toolbar_update_buttons();
 }
 
 	gboolean
@@ -162,7 +162,7 @@ sflphone_init()
 	else 
 	{
 		dbus_register(getpid(), "Gtk+ Client");
-		sflphone_fill_account_list();
+		sflphone_fill_account_list(FALSE);
 		sflphone_set_default_account();
 		sflphone_fill_codec_list();
 		sflphone_fill_contact_list();
@@ -227,6 +227,9 @@ sflphone_pick_up()
 				dbus_transfert (selectedCall);
 				break;
 			case CALL_STATE_CURRENT:
+				sflphone_new_call();
+				break;
+			case CALL_STATE_RINGING:
 				sflphone_new_call();
 				break;
 			default:
