@@ -42,25 +42,63 @@ int VideoCodec::videoEncode(uint8_t *in_buf, uint8_t* out_buf,int bufferSize,int
 	avcodec_close(_encodeCodecCtx);
 	av_free(pict);
 	
-		avcodec_open(_encodeCodecCtx,_Codec);
+	avcodec_open(_encodeCodecCtx,_Codec);
 	return 1;
 	
 	}
 	
 	
 
-int VideoCodec::videoDecode(uint8_t *in_buf, uint8_t* out_buf  )
+int VideoCodec::videoDecode(uint8_t *in_buf, uint8_t* out_buf,int size  )
 {
-	AVCodecContext* _CodecCtx;
+	
+	int bytesRemaining = size;
+	int *got_picture_ptr = NULL;
+	
+	
+	
 	return 0;
+	
+	
+	/*
+	 * static int frameFinished = 0;  //this is the got_picture_pointer
+argument
+    int bytesDecoded=0;
+    int bytesRemaining = data_size;
+
+    while(bytesRemaining > 0)
+    {
+        bytesDecoded=avcodec_decode_video(pCodecCtx, pFrame,
+            &frameFinished, rawData, bytesRemaining);
+
+        if(bytesDecoded < 0)
+            return false;
+
+        bytesRemaining-=bytesDecoded;
+        rawData+=bytesDecoded;
+
+        if(frameFinished)
+            return true;
+    }
+
+    // Decode the rest of the last frame
+    bytesDecoded=avcodec_decode_video(pCodecCtx, pFrame, &frameFinished,
+
+        rawData, bytesRemaining);
+
+    return frameFinished!=0;
+	 * 
+	 * */
+	
 }
 
 void VideoCodec::init(){
 	
 	ptracesfl("VideoCodec initialisation",MT_INFO,VIDEOCODECPTRACE,true);
 	
+	_videoDesc = VideoCodecDescriptor::getInstance();
+	
 	//check if active Codec
-	//TODO NOT SURE TO GET A DEFAULT CODEC
 	if(_codecName == NULL)
 	{
 	_Codec = _videoDesc->getDefaultCodec();
@@ -69,17 +107,22 @@ void VideoCodec::init(){
 	else
 	_Codec = _videoDesc->getCodec(_codecName);
 	
-	ptracesfl("Get instance",MT_INFO,VIDEOCODECPTRACE,true);	
-	//Getting Basic AVCodecContext settings from Codec Descriptor
-	_videoDesc = VideoCodecDescriptor::getInstance();
-	_encodeCodecCtx = _videoDesc->getCodecContext(_Codec);
-	_decodeCodecCtx = _videoDesc->getCodecContext(_Codec);
-	ptracesfl("Alloc Context",MT_INFO,VIDEOCODECPTRACE,true);
+	
+	initEncodeContext();
+	
+	initDecodeContext();
+	
+}
+
+void VideoCodec::initEncodeContext(){
+
+
 	//initialize basic encoding context
 	_encodeCodecCtx = avcodec_alloc_context();
-	
-	
+	printf("%i\n",_encodeCodecCtx->bit_rate);
 	_encodeCodecCtx->bit_rate = VIDEO_BIT_RATE;
+	printf("%i\n",_encodeCodecCtx->bit_rate);
+	avcodec_open (_encodeCodecCtx, _Codec);
 	_encodeCodecCtx->width = DEFAULT_WIDTH;
 	_encodeCodecCtx->height = DEFAULT_HEIGHT;
 	
@@ -107,8 +150,28 @@ void VideoCodec::init(){
 	
 	_encodeCodecCtx->mb_decision = FF_MB_DECISION_BITS;
 
-	
 
+}
+
+void VideoCodec::initDecodeContext()
+{
+
+//initialize basic encoding context
+	_decodeCodecCtx = avcodec_alloc_context();
+	avcodec_open (_decodeCodecCtx, _Codec);
+}
+
+void VideoCodec::quitDecodeContext()
+{
+	av_free(_decodeCodecCtx);
+
+}
+
+void VideoCodec::quitEncodeContext()
+{
+	//initialize basic encoding context
+	av_free(_encodeCodecCtx);
+	
 }
 
 
