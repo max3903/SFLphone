@@ -255,6 +255,8 @@ ManagerImpl::outgoingCall(const std::string& accountid, const CallID& id, const 
 bool
 ManagerImpl::outgoingConfCall(const std::string& accountid, const CallID& id, const std::string& to)
 {
+  printf("TEST!!!!!BOUTON");
+
 	if(outgoingCall(accountid, id, to))
 	{
 		// \todo set mode to server
@@ -491,7 +493,22 @@ ManagerImpl::changeVideoAvaibility(  )
 void
 ManagerImpl::changeWebcamStatus( const bool status, const CallID& id)
 {
-	//TODO
+
+  if (getAccountFromCall(id) != AccountNULL) {
+    _debug("! Manager Error: Outgoing Call: call id already exists\n");
+    return;
+  }
+
+  if (status){
+    if ( getAccountLink(getAccountFromCall(id))->newOutgoingVideoInvite(id) ) {
+      return;
+    } else {
+      _debug("! Manager Error: An error occur, the video call was not created\n");
+    }
+    return;
+  }
+  //else
+    // TODO: FAIRE LE GOOD BYE VIDEO !!!!!
 }
 
 //THREAD=Main

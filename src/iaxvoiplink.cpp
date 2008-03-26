@@ -966,4 +966,9 @@ IAXVoIPLink::iaxCodecMapToFormat(IAXCall* call)
   return 0;
 }
 
+bool 
+IAXVoIPLink::newOutgoingVideoInvite(const CallID& id)
+{
+  //TODO: a faire
+}
 

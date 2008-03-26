@@ -585,6 +585,20 @@ SIPVoIPLink::newOutgoingCall(const CallID& id, const std::string& toUrl)
   return call;
 }
 
+bool 
+SIPVoIPLink::newOutgoingVideoInvite(const CallID& id)
+{
+  SIPCall* call = getSIPCall(id);
+  if (call) {
+    // TODO: AJOUTER CODEC VIDEO dans le call????
+    if ( SIPStartVideo(call) )
+      return true;
+    else
+      return false;
+  }
+}
+
+
 bool
 SIPVoIPLink::answer(const CallID& id)
 {
@@ -1026,9 +1040,11 @@ SIPVoIPLink::subscriptionNotificationReceived(eXosip_event_t* event, char* body)
 
 // EN CONSTRUCTION!! NE PAS APPELER
 bool 
-SIPVoIPLink::SIPStartVideo(SIPCall* call, const std::string& subject)
+SIPVoIPLink::SIPStartVideo(SIPCall* call)
 {
   
+  std::string subject = "TEST INVITE VIDEO";
+
   if (!call) return false;
 
   std::string to    = getSipTo(call->getPeerNumber());
@@ -1141,7 +1157,7 @@ bool
 SIPVoIPLink::SIPOutgoingInvite(SIPCall* call) 
 {
   // If no SIP proxy setting for direct call with only IP address
-  if (!SIPStartCall(call, "")) {
+  if (!SIPStartVideo(call)) {
     _debug("! SIP Failure: call not started\n");
     return false;
   }
