@@ -132,3 +132,11 @@ key_t MemKey::genKey()
 	 
 	return ftok("/tmp",rand() % 100);	
 }
+
+void MemKey::setDescription(const char* desc){
+	this->description= desc;
+}
+    
+std::string MemKey::setDescription() const{
+	return this->description;
+}

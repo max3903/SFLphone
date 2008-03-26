@@ -42,7 +42,7 @@ MemManager::~MemManager()
 
 }
 
-const MemKey* MemManager::initSpace(key_t key,int size)
+MemKey* MemManager::initSpace(key_t key,int size)
 {
 	//THE KEY GIVEN MUST HAVE BEEN GENERATED WITH ftok function
 	
@@ -83,7 +83,7 @@ const MemKey* MemManager::initSpace(key_t key,int size)
 	return newKey;
 }
 
-const MemKey* MemManager::initSpace(MemKey* key)
+MemKey* MemManager::initSpace(MemKey* key)
 {
 	MemSpace *newSpace; 
 	newSpace = new MemSpace(key);
@@ -121,7 +121,7 @@ const MemKey* MemManager::initSpace(MemKey* key)
 }
 
 
-const MemKey* MemManager::initSpace(int size)
+MemKey* MemManager::initSpace(int size)
 {
 	MemKey *newKey;
 	MemSpace *newSpace;
