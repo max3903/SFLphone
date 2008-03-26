@@ -21,31 +21,13 @@
 
 MemKey* createMemKeyFromChar( char* key )
 {
-	
-	int lentgh= strlen(key);
-	int cIndex= 0;
 	MemKey* theKey= (MemKey*)malloc(sizeof(MemKey));
-	char *tmp;
-	int i= 0;
-	
-	for( i= 0; i < lentgh; i++  )
-	{
-		if( key[i] == ' ')
-		{
-			tmp= (char*)malloc( i-cIndex );
-			memcpy( tmp, key, i-cIndex );
-			theKey->key= atoi(tmp);
-			free(tmp);
-			cIndex= i+1;
-			break;
-			
-		}
-	}
-	
-	tmp= (char*)malloc( lentgh-cIndex );
-	memcpy( tmp, key, lentgh-cIndex );
-	theKey->size= atoi(tmp);
-	free(tmp);
+
+	theKey->id= -1;
+	theKey->key= -1;
+	theKey->size= -1;
+
+	sscanf(key,"%d %d %d", &theKey->id ,&theKey->key, &theKey->size );
 	
 	theKey->description= NULL;
 	theKey->BaseAdd= NULL;

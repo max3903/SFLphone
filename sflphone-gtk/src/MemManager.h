@@ -44,6 +44,7 @@ typedef struct {
 typedef struct
 {
 		int key;			/** The unique key associated with the shared memory space*/
+		int id;			/** The unique ID associated with the shared memory space*/
 		char* description;	/** A description of the shared memory space*/
 		int size;			/** The maximumsize of the memory space*/
 		char* BaseAdd;		/** The base address of the shared memory space*/
