@@ -39,7 +39,7 @@ MemManager::MemManager()
 MemManager::~MemManager()
 {
 	CleanSpaces();
-	delete instance;
+
 }
 
 const MemKey* MemManager::initSpace(key_t key,int size)

@@ -123,7 +123,7 @@ int MemKey::getShmid() const
 std::string MemKey::serialize()
 {
 	std::stringstream out;
-	out << this->shmid << " " << this->size;
+	out << this->shmid << " " <<this->key << " " << this->size;
 	return out.str();
 }
 

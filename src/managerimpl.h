@@ -46,15 +46,15 @@
 #include "audio/codecDescriptor.h"
 #include "video/VideoCodecDescriptor.h"
 #include "memmanager/MemManager.h"
-
-
+#include "video/V4L/VideoDeviceManager.h"
 
 class AudioLayer;
 class CodecDescriptor;
-class VideoCodecDescriptor;
 class GuiFramework;
 class TelephoneTone;
 class VoIPLink;
+
+class VideoDeviceManager;
 
 #ifdef USE_ZEROCONF
 class DNSService;
@@ -681,6 +681,9 @@ private:
   
   // videoCodecDescriptor
   VideoCodecDescriptor *_videoCodecDescriptor;
+  
+  //Video Device Manager instance
+  VideoDeviceManager *_videoDeviceManager;
 
   // MEMMANAGER
   MemManager *_memManager;
@@ -855,6 +858,11 @@ private:
    * Get name, brightness, contrast, color, resolution of video device
    */
   std::vector<std::string> getVideoDeviceDetails(const int index);
+  
+   /*
+   * Initialize the VideoDeviceManager -> the V4L interface
+   */
+  void initVideoDeviceManager(void);
 
 	enum modeEnum {modeNormal, modeServer};
 	modeEnum mode;
