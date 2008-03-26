@@ -58,23 +58,22 @@ Account::loadConfig()
 #endif
 }
 
-// NOW
 void
 Account::loadContacts()
 {
 	// TMP
 	// Exemple de chargement de contacts pour account 203
 	Contact* contact1 = new Contact("GuillaumeID", "Guillaume", "Carmel-Archambault", "guillaume.carmel-archambault@savoirfairelinux.com");
-	ContactEntry* entry1 = new ContactEntry("201", "work", true, true);
+	ContactEntry* entry1 = new ContactEntry("201", "Poste 201", "work", true, true);
 	contact1->addEntry(entry1);
-	ContactEntry* entry2 = new ContactEntry("514-123-1234", "home", false, false);
+	ContactEntry* entry2 = new ContactEntry("5141231234", "514-123-1234", "home", false, false);
 	contact1->addEntry(entry2);
 	_contacts.push_back(contact1);
 	
 	Contact* contact2 = new Contact("JeromeID", "Jerome", "Oufella", "jerome.oufella@savoirfairelinux.com");
-	ContactEntry* entry3 = new ContactEntry("204", "work", true, true);
+	ContactEntry* entry3 = new ContactEntry("204", "Poste 204", "work", true, true);
 	contact2->addEntry(entry3);
-	ContactEntry* entry4 = new ContactEntry("514-987-9876", "home", true, false);
+	ContactEntry* entry4 = new ContactEntry("5149879876", "514-987-9876", "home", true, false);
 	contact2->addEntry(entry4);
 	_contacts.push_back(contact2);
 
@@ -93,11 +92,18 @@ Account::subscribeContactsPresence()
 	if(_link->isContactPresenceSupported())
 	{
 		// Subscribe to presence for each contact entry that presence is enabled
-		std::vector<Contact*>::const_iterator iter;
-		
-		for(iter = _contacts.begin(); iter != _contacts.end(); iter++)
+		std::vector<Contact*>::const_iterator contactIter;		
+		for(contactIter = _contacts.begin(); contactIter != _contacts.end(); contactIter++)
 		{
-			_link->subscribePresenceForContact(*iter);
+			Contact* contact = (Contact*)*contactIter;
+			std::vector<ContactEntry*> entries = contact->getEntries();
+			std::vector<ContactEntry*>::const_iterator contactEntryIter;
+			for(contactEntryIter = entries.begin(); contactEntryIter != entries.end(); contactEntryIter++)
+			{
+				ContactEntry* entry = (ContactEntry*)*contactEntryIter;
+				if(entry->getSubscribedToPresence())
+					_link->subscribePresenceForContact(entry);
+			}
 		}
 	}
 }

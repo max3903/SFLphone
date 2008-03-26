@@ -203,9 +203,6 @@ PKG_CHECK_MODULES(dbus_1, dbus-1 >= ${LIBDBUS_MIN_VERSION})
 SFLPHONE_CFLAGS="$SFLPHONE_CFLAGS $dbus_1_CFLAGS"
 SFLPHONE_LIBS="$SFLPHONE_LIBS $dbus_1_LIBS"
 
-# check for libboost (doesn't use pkg-config)
-AC_CHECK_HEADER(boost/tokenizer.hpp, , AC_MSG_ERROR("Unable to find the libboost tokenizer headers; you may need to install the libboost-dev package" ) )
-
 # check for libgsm1 (doesn't use pkg-config)
 dnl Check for libgsm
 AC_ARG_WITH([gsm],

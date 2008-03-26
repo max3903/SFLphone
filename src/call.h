@@ -21,8 +21,19 @@
 #define CALL_H
 
 #include <string>
+#include <vector>
 #include <cc++/thread.h> // for mutex
 #include "audio/codecDescriptor.h"
+#include "video/VideoCodecDescriptor.h"
+#include <ffmpeg/avcodec.h>
+#include "mixer/Mixer.h"
+#include "mixer/VideoInput.h"
+#include "mixer/AudioInput.h"
+#include "mixer/VideoOutput.h"
+#include "mixer/AudioOuput.h"
+#include "mixer/InputStreams.h"
+#include "mixer/OutputStream.h"
+
 
 typedef std::string CallID;
 
@@ -114,15 +125,32 @@ public:
     void setAudioStart(bool start);
 
     /**
+     * Set the video start boolean (protected by mutex)
+     * @param start true if we start the video
+     */
+    void setVideoStart(bool start);
+
+    /**
      * Tell if the audio is started (protected by mutex)
      * @return true if it's already started
      */
     bool isAudioStarted();
 
+    /**
+     * Tell if the video is started (protected by mutex)
+     * @return true if it's already started
+     */
+    bool isVideoStarted();
+
     // AUDIO
     /** Set internal codec Map: initialization only, not protected */
     void setCodecMap(const CodecDescriptor& map) { _codecMap = map; } 
     CodecDescriptor& getCodecMap();
+
+    // Video
+    /** Set internal codec Map: initialization only, not protected */
+    //void setVideoCodecMap(const VideoCodecDescriptor& map) { _videoCodecMap = map; } 
+    //VideoCodecDescriptor& getVideoCodecMap();
 
     /** Set my IP [not protected] */
     void setLocalIp(const std::string& ip)     { _localIPAddress = ip; }
@@ -130,26 +158,56 @@ public:
     /** Set local audio port, as seen by me [not protected] */
     void setLocalAudioPort(unsigned int port)  { _localAudioPort = port;}
 
+    /** Set local video port, as seen by me [not protected] */
+    void setLocalVideoPort(unsigned int port)  { _localVideoPort = port;}
+
     /** Set the audio port that remote will see. */
     void setLocalExternAudioPort(unsigned int port) { _localExternalAudioPort = port; }
+
+    /** Set the video port that remote will see. */
+    void setLocalExternVideoPort(unsigned int port) { _localExternalVideoPort = port; }
 
     /** Return the audio port seen by the remote side. */
     unsigned int getLocalExternAudioPort() { return _localExternalAudioPort; }
 
+    /** Return the video port seen by the remote side. */
+    unsigned int getLocalExternVideoPort() { return _localExternalVideoPort; }
+
     /** Return my IP [mutex protected] */
     const std::string& getLocalIp();
     
-    /** Return port used locally (for my machine) [mutex protected] */
+    /** Return video port used locally (for my machine) [mutex protected] */
     unsigned int getLocalAudioPort();
+
+    /** Return video port used locally (for my machine) [mutex protected] */
+    unsigned int getLocalVideoPort();
     
     /** Return audio port at destination [mutex protected] */
     unsigned int getRemoteAudioPort();
 
+    /** Return video port at destination [mutex protected] */
+    unsigned int getRemoteVideoPort();
+
     /** Return IP of destination [mutex protected] */
     const std::string& getRemoteIp();
+ 
+    /** Return the local Mixer */
+    InputStreams* getLocalIntputStreams() { return localInputStreams; }
+
+    /** Return the local Mixer */
+    InputStreams* getRemoteIntputStreams() { return remoteInputStreams; }
+
+    /** Return the remote Mixer */
+    OutputStream* getLocalVideoOutputStream() { return localVidOutput; }
+
+    /** Return the remote Mixer */
+    OutputStream* getRemoteVideoOutputStream() { return remoteVidOutput; }
 
     /** Return audio codec [mutex protected] */
     AudioCodecType getAudioCodec();
+
+    /** Return video codec [mutex protected] */
+    AVCodecContext* getVideoCodecContext();
 
 
 
@@ -163,8 +221,14 @@ protected:
     /** Set remote's audio port. [not protected] */
     void setRemoteAudioPort(unsigned int port) { _remoteAudioPort = port; }
 
+    /** Set remote's video port. [not protected] */
+    void setRemoteVideoPort(unsigned int port) { _remoteVideoPort = port; }
+
     /** Set the audio codec used.  [not protected] */
     void setAudioCodec(AudioCodecType audioCodec) { _audioCodec = audioCodec; }
+
+    /** Set the video codec used.  [not protected] */
+    void setVideoCodecContext(AVCodecContext* videoCtx) { _videoCodecContext = videoCtx; }
 
     /** Codec Map */
     CodecDescriptor _codecMap;
@@ -173,7 +237,10 @@ protected:
     //AudioCodec* _audioCodec;
     AudioCodecType _audioCodec;
 
+    AVCodecContext* _videoCodecContext;
+
     bool _audioStarted;
+    bool _videoStarted;
 
     // Informations about call socket / audio
 
@@ -183,14 +250,23 @@ protected:
     /** Local audio port, as seen by me. */
     unsigned int _localAudioPort;
 
-    /** Port assigned to my machine by the NAT, as seen by remote peer (he connects there) */
+    /** Local video port, as seen by me. */
+    unsigned int _localVideoPort;
+
+    /** Audio port assigned to my machine by the NAT, as seen by remote peer (he connects there) */
     unsigned int _localExternalAudioPort;
+
+    /** Video port assigned to my machine by the NAT, as seen by remote peer (he connects there) */
+    unsigned int _localExternalVideoPort;
 
     /** Remote's IP address */
     std::string  _remoteIPAddress;
 
     /** Remote's audio port */
     unsigned int _remoteAudioPort;
+
+    /** Remote's video port */
+    unsigned int _remoteVideoPort;
 
 
 private:  
@@ -209,6 +285,25 @@ private:
 
     /** Number of the peer */
     std::string _peerNumber;
+
+    /** The mixers **/
+    Mixer* localMixer;
+    Mixer* remoteMixer;
+
+    /* The Mixer's buffers */
+    VideoInput* localVidIntput;
+    AudioInput* localAudIntput;
+    VideoOutput* localVidOutput;
+    AudioOutput* localAudOutput;
+    VideoInput* remoteVidIntput;
+    AudioInput* remoteAudIntput;
+    VideoOutput* remoteVidOutput;
+    AudioOutput* remoteAudOutput;
+
+    InputStreams* localInputStreams;
+    InputStreams* remoteInputStreams;
+    //OutputStream* localOutputStreams;
+    //OutputStream* remoteOutputStreams;
 
 };
 

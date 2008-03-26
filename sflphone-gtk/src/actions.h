@@ -21,6 +21,11 @@
 #ifndef __ACTIONS_H__
 #define __ACTIONS_H__
 
+#define _(STRING)   gettext( STRING )   
+
+#include <libintl.h>
+#include <locale.h>
+
 #include <calllist.h>
 #include <accountlist.h>
 #include <codeclist.h>
@@ -57,6 +62,8 @@ call_t * sflphone_new_call();
 void sflphone_notify_voice_mail (guint count);
 void sflphone_set_transfert();
 void sflphone_unset_transfert();
+void sflphone_set_video();
+void sflphone_unset_video();
 /**
  * Accept / dial the current call
  */
@@ -108,7 +115,7 @@ void sflphone_place_call ( call_t * c );
 /**
  * Initially load data for accounts, codecs and contacts
  */
-void sflphone_fill_account_list();
+void sflphone_fill_account_list(gboolean toolbarInitialized);
 void sflphone_set_default_account();
 
 void sflphone_throw_exception( gchar* msg , int err );

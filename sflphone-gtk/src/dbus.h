@@ -50,7 +50,7 @@ gboolean dbus_join_conference( const call_t * onHoldCall,  const call_t * newCal
 //Remote video status change - enable or disable remote video display
 gboolean dbus_change_video_avaibility();
 //Webcam Status change - enable or disable video capture
-void dbus_change_webcam_status(gboolean status);
+void dbus_change_webcam_status(gboolean status, const call_t * c);
 
 
 /* ConfigurationManager */

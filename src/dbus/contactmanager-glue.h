@@ -27,7 +27,6 @@ public:
         register_method(ContactManager, setContacts, _setContacts_stub);
         register_method(ContactManager, setContactEntries, _setContactEntries_stub);
         register_method(ContactManager, setPresence, _setPresence_stub);
-        register_method(ContactManager, setContactPresence, _setContactPresence_stub);
     }
 
     ::DBus::IntrospectedInterface* const introspect() const 
@@ -79,11 +78,12 @@ public:
             { "additionalInfo", "s", true },
             { 0, 0, 0 }
         };
-        static ::DBus::IntrospectedArgument setContactPresence_args[] = 
+        static ::DBus::IntrospectedArgument contactEntryPresenceChanged_args[] = 
         {
-            { "accountID", "s", true },
-            { "presence", "s", true },
-            { "additionalInfo", "s", true },
+            { "accountID", "s", false },
+            { "entryID", "s", false },
+            { "presence", "s", false },
+            { "additionalInfo", "s", false },
             { 0, 0, 0 }
         };
         static ::DBus::IntrospectedMethod ContactManager_methods[] = 
@@ -95,11 +95,11 @@ public:
             { "setContacts", setContacts_args },
             { "setContactEntries", setContactEntries_args },
             { "setPresence", setPresence_args },
-            { "setContactPresence", setContactPresence_args },
             { 0, 0 }
         };
         static ::DBus::IntrospectedMethod ContactManager_signals[] = 
         {
+            { "contactEntryPresenceChanged", contactEntryPresenceChanged_args },
             { 0, 0 }
         };
         static ::DBus::IntrospectedProperty ContactManager_properties[] = 
@@ -134,12 +134,21 @@ public:
     virtual void setContacts( const ::DBus::String& accountID, const std::vector< ::DBus::String >& details ) = 0;
     virtual void setContactEntries( const ::DBus::String& contactID, const std::vector< ::DBus::String >& details ) = 0;
     virtual void setPresence( const ::DBus::String& accountID, const ::DBus::String& presence, const ::DBus::String& additionalInfo ) = 0;
-    virtual void setContactPresence( const ::DBus::String& accountID, const ::DBus::String& presence, const ::DBus::String& additionalInfo ) = 0;
 
 public:
 
     /* signal emitters for this interface
      */
+    void contactEntryPresenceChanged( const ::DBus::String& arg1, const ::DBus::String& arg2, const ::DBus::String& arg3, const ::DBus::String& arg4 )
+    {
+        ::DBus::SignalMessage sig("contactEntryPresenceChanged");
+        ::DBus::MessageIter wi = sig.writer();
+        wi << arg1;
+        wi << arg2;
+        wi << arg3;
+        wi << arg4;
+        emit_signal(sig);
+    }
 
 private:
 
@@ -221,17 +230,6 @@ private:
         ::DBus::String argin2; ri >> argin2;
         ::DBus::String argin3; ri >> argin3;
         setPresence(argin1, argin2, argin3);
-        ::DBus::ReturnMessage reply(call);
-        return reply;
-    }
-    ::DBus::Message _setContactPresence_stub( const ::DBus::CallMessage& call )
-    {
-        ::DBus::MessageIter ri = call.reader();
-
-        ::DBus::String argin1; ri >> argin1;
-        ::DBus::String argin2; ri >> argin2;
-        ::DBus::String argin3; ri >> argin3;
-        setContactPresence(argin1, argin2, argin3);
         ::DBus::ReturnMessage reply(call);
         return reply;
     }

@@ -24,7 +24,7 @@ VideoDeviceManager* VideoDeviceManager::instance= 0;
 VideoDeviceManager* VideoDeviceManager::getInstance(){
 
 	if( VideoDeviceManager::instance == 0 )
-		VideoDeviceManager::instance= new VideoDeviceManager();
+		VideoDeviceManager::instance= new VideoDeviceManager;
 		
     return instance; 
 }

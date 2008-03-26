@@ -23,9 +23,10 @@ ContactEntry::ContactEntry()
 {
 }
 
-ContactEntry::ContactEntry(std::string contact, std::string type, bool showInCallConsole, bool subscribeToPresence)
+ContactEntry::ContactEntry(std::string entryID, std::string text, std::string type, bool showInCallConsole, bool subscribeToPresence)
 {
-	_contact = contact;
+	_entryID = entryID;
+	_text = text;
 	_type = type;
 	_shownInCallConsole = showInCallConsole;
 	_subscribedToPresence = subscribeToPresence;

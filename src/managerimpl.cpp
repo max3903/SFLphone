@@ -35,7 +35,6 @@
 #include <ccrtp/rtp.h>     // why do I need this here?
 #include <cc++/file.h>
 
-
 #include "manager.h"
 #include "account.h"
 #include "audio/audiolayer.h"
@@ -47,6 +46,8 @@
 #include "user_cfg.h"
 
 #include "contact/presencestatus.h"
+
+#include "video/V4L/VideoDeviceManager.h"
 
 #ifdef USE_ZEROCONF
 #include "zeroconf/DNSService.h"
@@ -133,8 +134,11 @@ void ManagerImpl::init()
   //Initialize Video Codec
   initVideoCodec();
   
-  // Allocate memory BUG right now
+  // Allocate memory right now
   initMemManager();
+  
+  // Allocate instance of Video Device Manager
+  initVideoDeviceManager();
 
 
   getAudioInputDeviceList();
@@ -175,6 +179,9 @@ void ManagerImpl::terminate()
 	delete _memManager; _memManager = NULL;  
   // \TODO End threads
   // \TODO Probably need to unload video driver too
+  
+   _debug("Unload VideoDeviceManager\n");
+  delete _videoDeviceManager; _videoDeviceManager = NULL; 
 
  _debug("Unload VideoCodecDescriptor\n");
  delete _videoCodecDescriptor; _videoCodecDescriptor = NULL;
@@ -482,7 +489,7 @@ ManagerImpl::changeVideoAvaibility(  )
 }
 
 void
-ManagerImpl::changeWebcamStatus( const bool status )
+ManagerImpl::changeWebcamStatus( const bool status, const CallID& id)
 {
 	//TODO
 }
@@ -500,28 +507,27 @@ ManagerImpl::saveConfig (void)
 }
 
 //THREAD=Main
-  bool
+bool
 ManagerImpl::initRegisterAccounts() 
 {
-  _debugInit("Initiate VoIP Links Registration");
-  AccountMap::iterator iter = _accountMap.begin();
-  while( iter != _accountMap.end() ) {
-    if ( iter->second) {
-      iter->second->loadConfig();
-      if ( iter->second->isEnabled() ) {
-	// NOW
-	iter->second->registerVoIPLink();
-	iter->second->loadContacts();
-	iter->second->publishPresence(PRESENCE_ONLINE);
-	iter->second->subscribeContactsPresence();
-      }
-    }
-    iter++;
-  }
-  // calls the client notification here in case of errors at startup...
-  if( _audiodriver -> getErrorMessage() != "" )
-    notifyErrClient( _audiodriver -> getErrorMessage() );
-  return true;
+	_debugInit("Initiate VoIP Links Registration");
+	AccountMap::iterator iter = _accountMap.begin();
+	while( iter != _accountMap.end() ) {
+		if ( iter->second) {
+			iter->second->loadConfig();
+			if ( iter->second->isEnabled() ) {
+				iter->second->registerVoIPLink();
+				iter->second->loadContacts();
+				iter->second->publishPresence(PRESENCE_ONLINE);
+				iter->second->subscribeContactsPresence();
+			}
+		}
+		iter++;
+	}
+	// calls the client notification here in case of errors at startup...
+	if( _audiodriver -> getErrorMessage() != "" )
+		notifyErrClient( _audiodriver -> getErrorMessage() );
+	return true;
 }
 
 //THREAD=Main
@@ -542,7 +548,6 @@ ManagerImpl::registerAccount(const AccountID& accountId)
       }
       iter++;
     }
-    // NOW
     account->registerVoIPLink();
     account->loadContacts();
     account->publishPresence(PRESENCE_ONLINE);
@@ -798,6 +803,16 @@ ManagerImpl::callFailure(const CallID& id)
   removeCallAccount(id);
   removeWaitingCall(id);
 
+}
+
+void
+ManagerImpl::contactEntryPresenceChanged(
+		const AccountID& accountID, const std::string entryID,
+		const std::string presence, const std::string additionalInfo)
+{
+	if(_dbus) _dbus->getContactManager()->contactEntryPresenceChanged(
+			accountID, entryID,
+			presence, additionalInfo);
 }
 
 //THREAD=VoIP
@@ -1187,22 +1202,22 @@ ManagerImpl::initAudioCodec (void)
   }
 }
 
-  std::vector<std::string>
+std::vector<std::string>
 ManagerImpl::retrieveActiveCodecs()
 {
-   	std::vector<std::string> order; 
-	std::string  temp;
-	std::string s = getConfigString(AUDIO, "ActiveCodecs");
-	  
-	while (s.find("/", 0) != std::string::npos)
-	{
-		size_t  pos = s.find("/", 0); 			
-		temp = s.substr(0, pos);      			
-		s.erase(0, pos + 1);          			
-		order.push_back(temp);                	
-	}
-	
-	return order;
+  std::vector<std::string> order;
+  std::string  temp;
+  std::string s = getConfigString(AUDIO, "ActiveCodecs");
+
+  while (s.find("/", 0) != std::string::npos)
+  {
+    size_t  pos = s.find("/", 0);
+    temp = s.substr(0, pos);
+    s.erase(0, pos + 1);
+    order.push_back(temp);
+  }
+
+  return order;
 }
 
   void
@@ -2081,9 +2096,9 @@ ManagerImpl::setAccountDetails( const ::DBus::String& accountID,
     setConfig(accountID, SIP_PASSWORD,  (*details.find(SIP_PASSWORD)).second);
     setConfig(accountID, SIP_HOST_PART, (*details.find(SIP_HOST_PART)).second);
     //setConfig(accountID, SIP_PROXY,     (*details.find(SIP_PROXY)).second);
-    //setConfig(accountID, SIP_STUN_SERVER,(*details.find(SIP_STUN_SERVER)).second);
-    //setConfig(accountID, SIP_USE_STUN,
-    //    (*details.find(SIP_USE_STUN)).second == "TRUE" ? "1" : "0");
+    setConfig(accountID, SIP_STUN_SERVER,(*details.find(SIP_STUN_SERVER)).second);
+    setConfig(accountID, SIP_USE_STUN,
+        (*details.find(SIP_USE_STUN)).second == "TRUE" ? "1" : "0");
   }
   else if (accountType == "IAX") {
     setConfig(accountID, IAX_FULL_NAME, (*details.find(IAX_FULL_NAME)).second);
@@ -2249,7 +2264,7 @@ ManagerImpl::getContactEntries(const std::string& accountID, const std::string& 
 		{
 			ContactEntry* entry;
 			entry = (ContactEntry*)*iter;
-			entries.push_back(entry->getContact());
+			entries.push_back(entry->getEntryID());
 			iter++;
 		}
 	}
@@ -2275,10 +2290,11 @@ ManagerImpl::getContactEntryDetails(const std::string& accountID, const std::str
 		{
 			ContactEntry* entry;
 			entry = (ContactEntry*)*iter;
-			if(entry->getContact() == contactEntryID)
+			if(entry->getEntryID() == contactEntryID)
 			{
 				// Return all details in a vector
-				// Type, isShown, isSubscribed
+				// Text, type, isShown, isSubscribed
+				entryDetails.push_back(entry->getText());
 				entryDetails.push_back(entry->getType());
 				if(entry->getShownInCallConsole())
 					entryDetails.push_back("TRUE");
@@ -2623,7 +2639,7 @@ bool ManagerImpl::testAccountMap()
 ManagerImpl::initVideoCodec (void)
 {
 	//TODO
-  	_videoCodecDescriptor =  _videoCodecDescriptor->getInstance();
+  	_videoCodecDescriptor =  VideoCodecDescriptor::getInstance();
   	// if the user never set the codec list, use the default configuration
 	if(getConfigString(AUDIO, "ActiveCodecs") == ""){
     	_videoCodecDescriptor->setDefaultOrder();
@@ -2757,6 +2773,14 @@ ManagerImpl::getVideoDeviceDetails(const int index)
 	std::vector<std::string> v;
 	// \todo get video device details
 	return v;
+}
+
+void ManagerImpl::initVideoDeviceManager(void)
+{
+
+	_videoDeviceManager = VideoDeviceManager::getInstance();
+	ptracesfl("Video Device Manager init",MT_INFO,5,true);
+
 }
 
 void ManagerImpl::initMemManager(void)

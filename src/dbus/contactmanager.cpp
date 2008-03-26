@@ -33,7 +33,6 @@ ContactManager::ContactManager(DBus::Connection& connection)
 std::vector< ::DBus::String >
 ContactManager::getContacts( const ::DBus::String& accountID )
 {
-	// NOW
 	return Manager::instance().getContacts(accountID);
 }
 
@@ -69,12 +68,6 @@ ContactManager::setContactEntries( const ::DBus::String& contactID, const std::v
 
 void
 ContactManager::setPresence( const ::DBus::String& accountID, const ::DBus::String& presence, const ::DBus::String& additionalInfo )
-{
-	// TODO
-}
-
-void
-ContactManager::setContactPresence( const ::DBus::String& accountID, const ::DBus::String& presence, const ::DBus::String& additionalInfo )
 {
 	// TODO
 }
