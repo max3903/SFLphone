@@ -18,6 +18,7 @@
  */
 #include "VideoCodec.h"
 
+#define VIDEOCODECPTRACE 2
 
 int VideoCodec::videoEncode(uint8_t *in_buf, uint8_t* out_buf,int bufferSize,int width,int height)
 {
@@ -30,14 +31,20 @@ int VideoCodec::videoEncode(uint8_t *in_buf, uint8_t* out_buf,int bufferSize,int
          
     avpicture_fill((AVPicture *)pict, in_buf,PIX_FMT_RGB24, width, height);
 
+	 /* open the codec */
+     if (avcodec_open(_encodeCodecCtx,_Codec) < 0) 
+		ptracesfl("ERROR : CANNOT OPEN ENCODING CODEC",MT_FATAL,1,true);
+     
 	//Step 2:Encode
 	avcodec_encode_video(_encodeCodecCtx, out_buf, bufferSize, pict);
 
 	//Step 3:Clean
 	avcodec_close(_encodeCodecCtx);
 	av_free(pict);
-
+	
+		avcodec_open(_encodeCodecCtx,_Codec);
 	return 1;
+	
 	}
 	
 	
@@ -50,7 +57,10 @@ int VideoCodec::videoDecode(uint8_t *in_buf, uint8_t* out_buf  )
 
 void VideoCodec::init(){
 	
+	ptracesfl("VideoCodec initialisation",MT_INFO,VIDEOCODECPTRACE,true);
+	
 	//check if active Codec
+	//TODO NOT SURE TO GET A DEFAULT CODEC
 	if(_codecName == NULL)
 	{
 	_Codec = _videoDesc->getDefaultCodec();
@@ -59,18 +69,20 @@ void VideoCodec::init(){
 	else
 	_Codec = _videoDesc->getCodec(_codecName);
 	
-		
+	ptracesfl("Get instance",MT_INFO,VIDEOCODECPTRACE,true);	
 	//Getting Basic AVCodecContext settings from Codec Descriptor
 	_videoDesc = VideoCodecDescriptor::getInstance();
 	_encodeCodecCtx = _videoDesc->getCodecContext(_Codec);
-	*_decodeCodecCtx = *_decodeCodecCtx;
-	
+	_decodeCodecCtx = _videoDesc->getCodecContext(_Codec);
+	ptracesfl("Alloc Context",MT_INFO,VIDEOCODECPTRACE,true);
 	//initialize basic encoding context
 	_encodeCodecCtx = avcodec_alloc_context();
-	avcodec_open(_encodeCodecCtx,_Codec);
+	
+	
 	_encodeCodecCtx->bit_rate = VIDEO_BIT_RATE;
 	_encodeCodecCtx->width = DEFAULT_WIDTH;
 	_encodeCodecCtx->height = DEFAULT_HEIGHT;
+	
 	
 	if (_codecName == "h264")
 	_encodeCodecCtx->me_method = 8;
@@ -95,6 +107,7 @@ void VideoCodec::init(){
 	
 	_encodeCodecCtx->mb_decision = FF_MB_DECISION_BITS;
 
+	
 
 }
 
@@ -106,6 +119,7 @@ VideoCodec::~VideoCodec() {
 }
 VideoCodec::VideoCodec(char* codec){
 	
+	
 	this->_codecName = codec;
 	this->_encodeCodecCtx = NULL;
 	this->_decodeCodecCtx = NULL;
@@ -115,6 +129,10 @@ VideoCodec::VideoCodec(char* codec){
 }
 
 VideoCodec::VideoCodec(){
+	
+	this->_codecName = NULL;
+	this->_encodeCodecCtx = NULL;
+	this->_decodeCodecCtx = NULL;
 	
 	init();
 

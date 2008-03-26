@@ -159,6 +159,8 @@ const MemKey* MemManager::initSpace(int size)
 	MemSpaceLocation = spaces.end() -1;
 	newKey->setIndex(MemSpaceLocation);
 	
+	ptracesfl("MemSpace Created : ",MT_INFO,1,false);
+	ptracesfl(newKey->getDescription().c_str(),MT_NONE,1,true);
 	
 	return newKey;
 }
@@ -186,7 +188,7 @@ bool MemManager::CleanSpaces(){
 vector<MemSpace*>::iterator iter;
 int i;
 
-	//for each mespace detach memory
+	//for each mes	ptracesfl(newKey->,MT_NONE,1,false);pace detach memory
 	for( iter = spaces.begin(); iter != spaces.end() ;iter++)
 	{
 		i = shmdt((*iter)->getBaseAddress());
@@ -306,5 +308,11 @@ vector<MemKey*> MemManager::getAvailSpaces()
 
 key_t MemManager::genKey()
 {
-	return ftok("/tmp",rand());
+	key_t tmp;
+	tmp =  ftok("/tmp",rand());
+	if(tmp == (key_t) -1)
+		ptracesfl("ERROR : KEY INVALID",MT_FATAL,1,true);
+
+	return tmp;	
+		
 }
