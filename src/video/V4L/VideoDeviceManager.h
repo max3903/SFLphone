@@ -20,6 +20,10 @@
 #ifndef VIDEODEVICEMANAGER_H
 #define VIDEODEVICEMANAGER_H
 
+#include <string>
+#include <dbus/dbus.h>
+#include <hal/libhal.h>
+
 #include "Command.h"
 #include "Colour.h"
 #include "Resolution.h"
@@ -82,6 +86,8 @@ public:
      * \return an instance of the VideoDeviceManager
      */
     static VideoDeviceManager* getInstance();
+    
+    vector<string> enumVideoDevices();
 
 private:
 

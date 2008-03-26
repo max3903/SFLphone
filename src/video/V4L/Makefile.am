@@ -21,4 +21,4 @@ libV4L_la_SOURCES =	Brightness.cpp \
 			Control.cpp
 
 
-AM_CXXFLAGS = -I$(top_srcdir)/include $(libccext2_CFLAGS) $(USER_INCLUDES)
+AM_CXXFLAGS = -I$(top_srcdir)/include $(libccext2_CFLAGS) $(hal_CFLAGS) $(dbus_1_CFLAGS) $(USER_INCLUDES)
