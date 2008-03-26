@@ -255,7 +255,6 @@ ManagerImpl::outgoingCall(const std::string& accountid, const CallID& id, const 
 bool
 ManagerImpl::outgoingConfCall(const std::string& accountid, const CallID& id, const std::string& to)
 {
-  printf("TEST!!!!!BOUTON");
 
 	if(outgoingCall(accountid, id, to))
 	{
@@ -493,13 +492,15 @@ ManagerImpl::changeVideoAvaibility(  )
 void
 ManagerImpl::changeWebcamStatus( const bool status, const CallID& id)
 {
-
-  if (getAccountFromCall(id) != AccountNULL) {
-    _debug("! Manager Error: Outgoing Call: call id already exists\n");
+printf("ENVOIE OUTGOING RE-INVITE  MANAGER !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!v!!!!!!!!!\n");
+ 
+  if (getAccountFromCall(id) == AccountNULL) {
+    _debug("! Manager Error: Outgoing Video Invite: call id does not exist\n");
     return;
   }
 
   if (status){
+    printf("ENVOIE OUTGOING INVITE STATUS = ENABLED!!!!!!!!!!!!!!!!!!!!!!!!!!!!v!!!!!!!!!\n");
     if ( getAccountLink(getAccountFromCall(id))->newOutgoingVideoInvite(id) ) {
       return;
     } else {
@@ -509,6 +510,7 @@ ManagerImpl::changeWebcamStatus( const bool status, const CallID& id)
   }
   //else
     // TODO: FAIRE LE GOOD BYE VIDEO !!!!!
+ 
 }
 
 //THREAD=Main
