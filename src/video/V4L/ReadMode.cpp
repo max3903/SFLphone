@@ -50,7 +50,7 @@ unsigned char* ReadMode::capture(VideoDevice* device){
   	ptracesfl( "Begining Read Mode i/o capture:",MT_INFO, CAPTUREMODE_TRACE - 1); 
 	
 	ptracesfl( "Getting image buffer size: ",MT_INFO, CAPTUREMODE_TRACE, false);
-	int imageSize= device->getVideoFormat()->fmt.pix.sizeimage;
+	imageSize= device->getVideoFormat()->fmt.pix.sizeimage;
 	
     sprintf(buff, "%u\0", imageSize );
 	ptracesfl( buff,MT_NONE, CAPTUREMODE_TRACE);

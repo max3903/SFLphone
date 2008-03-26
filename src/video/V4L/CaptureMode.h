@@ -79,6 +79,17 @@ public:
      * \return the capture data in RBG format
      */
     virtual unsigned char* capture(VideoDevice* device)=0;
+    
+    //! Access method to the size of the rbg image
+    /*!
+     * Must be implemented by the child class
+     * \return The size of the RBG image in bytes
+     */
+    virtual int getRBGByteSize();
+    
+protected:
+
+	int imageSize;
 	
 };
 #endif //CAPTUREMODE_H

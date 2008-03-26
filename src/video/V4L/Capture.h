@@ -43,9 +43,10 @@ public:
 
     //! Method to capture from the video source
     /*!
+     * \param size The size (in bytes) of the image 
      * \return a pointer to the captured data
      */
-    unsigned char* GetCapture();
+    unsigned char* GetCapture( int& size);
 
 private:
     
