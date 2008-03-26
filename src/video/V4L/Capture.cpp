@@ -23,7 +23,7 @@ Capture::Capture(){}
 
 Capture::~Capture(){}
 
-unsigned char* Capture::GetCapture(){
+unsigned char* Capture::GetCapture( int& size){
     
 	ptracesfl("Capture getting device ...", MT_INFO, COMMAND_TRACE);
     this->getVideoDeviceAccess();
@@ -31,9 +31,11 @@ unsigned char* Capture::GetCapture(){
     ptracesfl("Getting current capture mode:", MT_INFO, COMMAND_TRACE, false);
     CaptureMode *capMode= Command::videoDevice->getCaptureMode();
     ptracesfl("\tOK\n", MT_NONE, COMMAND_TRACE);
-    	
+    
     unsigned char* tmp= capMode->capture(Command::videoDevice);
     
+    size= capMode->getRBGByteSize();
+        
     ptracesfl("Capture releasing device ...\n", MT_INFO, COMMAND_TRACE);
     this->releaseVideoDevice();
     	
