@@ -60,17 +60,6 @@ class VideoDeviceManager;
 class DNSService;
 #endif
 
-//TODO: remove when it will be linked to the struct in V4L
-typedef struct  {
-  /** Minimum value for the slider */
-  int minValue;
-  /** Maximum value for the slider */
-  int maxValue;
-  /** Step increment value for the slider */
-  int stepValue;
-  /** Current value of the slider */
-  int currentValue;
-} slider_t;
 
 struct KeyHolder{
 const MemKey* localKey;
@@ -574,11 +563,11 @@ public:
   std::string getRemoteSharedMemoryKey( void );
   
   /* Webcam Settings */
-	slider_t getBrightness(  );
+	CmdDesc getBrightness(  );
 	void setBrightness( const int value );
-	slider_t getContrast(  );
+	CmdDesc getContrast(  );
 	void setContrast( const int value );
-	slider_t getColour(  );
+	CmdDesc getColour(  );
 	void setColour( const int value );
 	std::vector<std::string> getWebcamDeviceList(  );
 	void setWebcamDevice( const int index );
