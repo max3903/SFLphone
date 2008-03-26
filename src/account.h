@@ -23,6 +23,7 @@
 #include <vector>
 #include "config/config.h"
 #include "contact/contact.h"
+#include "contact/contactmanager.h"
 #include "voiplink.h"
 
 class VoIPLink;
@@ -107,14 +108,15 @@ class Account{
   VoIPLink::RegistrationState getRegistrationState() { return _link->getRegistrationState(); }
 
   /**
-   * Load all contacts
+   * Load and save all contacts
    */
   void loadContacts();
+  void saveContacts();
   
   /**
    * Return contacts loaded for account
    */
-  const std::vector<Contact*> getContacts();
+  const std::vector<Contact*>& getContacts();
   
   /**
    * Suscribe presence information for selected contacts if supported

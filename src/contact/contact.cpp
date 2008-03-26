@@ -19,8 +19,9 @@
 
 #include "contact.h"
 
-Contact::Contact()
+Contact::Contact(const std::string contactID)
 {
+	_contactID = contactID;
 }
 
 Contact::Contact(const std::string contactID, const std::string firstName, const std::string lastName, const std::string email)
@@ -56,7 +57,7 @@ Contact::~Contact()
 	}
 }
 
-const std::vector<ContactEntry*>
+const std::vector<ContactEntry*>&
 Contact::getEntries()
 {
 	return _entries;

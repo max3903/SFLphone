@@ -30,15 +30,20 @@
  */
 class ContactEntry {
 public:
-	ContactEntry();
-	ContactEntry(std::string contact, std::string text, std::string type, bool showInCallConsole, bool subscribeToPresence);
+	ContactEntry(std::string entryID);
+	ContactEntry(std::string entryID, std::string text, std::string type, bool showInCallConsole, bool subscribeToPresence);
 	virtual ~ContactEntry();
 	
 	std::string getEntryID() { return _entryID; }
 	std::string getText() { return _text; }
 	std::string getType() { return _type; }
 	bool getShownInCallConsole() { return _shownInCallConsole; }
-	bool getSubscribedToPresence() { return _subscribedToPresence; }	
+	bool getSubscribedToPresence() { return _subscribedToPresence; }
+	
+	void setText(std::string text) { _text = text; }
+	void setType(std::string type) { _type = type; }
+	void setShownInCallConsole(bool shownInCallConsole) { _shownInCallConsole = shownInCallConsole; }
+	void setSubscribedToPresence(bool subscribedToPresence) { _subscribedToPresence = subscribedToPresence; }
 	
 private:
 	// Attributes used for presence and call console
