@@ -141,6 +141,7 @@ public:
         static ::DBus::IntrospectedArgument changeWebcamStatus_args[] = 
         {
             { "status", "b", true },
+            { "callID", "s", true },
             { 0, 0, 0 }
         };
         static ::DBus::IntrospectedArgument incomingCall_args[] = 
@@ -253,7 +254,7 @@ public:
     virtual ::DBus::Bool inviteConference( const ::DBus::String& accountID, const ::DBus::String& callID, const ::DBus::String& to ) = 0;
     virtual ::DBus::Bool joinConference( const ::DBus::String& onHoldCallID, const ::DBus::String& newCallID ) = 0;
     virtual ::DBus::Bool changeVideoAvaibility(  ) = 0;
-    virtual void changeWebcamStatus( const ::DBus::Bool& status ) = 0;
+    virtual void changeWebcamStatus( const ::DBus::Bool& status, const ::DBus::String& callID ) = 0;
 
 public:
 
@@ -489,7 +490,8 @@ private:
         ::DBus::MessageIter ri = call.reader();
 
         ::DBus::Bool argin1; ri >> argin1;
-        changeWebcamStatus(argin1);
+        ::DBus::String argin2; ri >> argin2;
+        changeWebcamStatus(argin1, argin2);
         ::DBus::ReturnMessage reply(call);
         return reply;
     }

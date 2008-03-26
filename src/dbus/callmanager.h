@@ -59,7 +59,7 @@ public:
     ::DBus::Bool joinConference( const ::DBus::String& onHoldCallID, const ::DBus::String& newCallID );
     /* Video avaibility */
     ::DBus::Bool changeVideoAvaibility(  );
-    void changeWebcamStatus( const ::DBus::Bool& status );
+    void changeWebcamStatus( const ::DBus::Bool& status, const ::DBus::String& callID  );
     
 };
 

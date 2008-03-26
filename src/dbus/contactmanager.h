@@ -40,7 +40,6 @@ public:
     void setContacts( const ::DBus::String& accountID, const std::vector< ::DBus::String >& details );
     void setContactEntries( const ::DBus::String& contactID, const std::vector< ::DBus::String >& details );
     void setPresence( const ::DBus::String& accountID, const ::DBus::String& presence, const ::DBus::String& additionalInfo );
-    void setContactPresence( const ::DBus::String& accountID, const ::DBus::String& presence, const ::DBus::String& additionalInfo );
 };
 
 #endif//CONTACTMANAGER_H

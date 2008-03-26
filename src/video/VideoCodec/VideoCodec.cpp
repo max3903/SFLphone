@@ -21,25 +21,27 @@
 
 int VideoCodec::videoEncode(uint8_t *in_buf, uint8_t* out_buf,int bufferSize,int width,int height)
 {
-	AVCodecContext* _CodecCtx;
-	const AVPicture *pict;
-	_CodecCtx = _baseCodecCtx;
+	AVFrame *pict;
 
 	//Step 1: change in_buf in AVFRAME pict
-	pict = encodeConvert(in_buf,width,height, width, height);
+	pict = avcodec_alloc_frame();
+	if (!pict)
+         return -1;
+         
+    avpicture_fill((AVPicture *)pict, in_buf,PIX_FMT_RGB24, width, height);
 
-	//Step 2:Open the codec
-   avcodec_open(_CodecCtx,_Codec);
+	//Step 2:Encode
+	avcodec_encode_video(_encodeCodecCtx, out_buf, bufferSize, pict);
 
-	//Step 3:Encode
-	//avcodec_encode_video(_CodecCtx, out_buf, bufferSize, pict);
+	//Step 3:Clean
+	avcodec_close(_encodeCodecCtx);
+	av_free(pict);
 
-	//Step 4:Close
-	avcodec_close(_CodecCtx);
-
-	return 0;
+	return 1;
 	}
 	
+	
+
 int VideoCodec::videoDecode(uint8_t *in_buf, uint8_t* out_buf  )
 {
 	AVCodecContext* _CodecCtx;
@@ -48,17 +50,51 @@ int VideoCodec::videoDecode(uint8_t *in_buf, uint8_t* out_buf  )
 
 void VideoCodec::init(){
 	
+	//check if active Codec
+	if(_codecName == NULL)
+	{
+	_Codec = _videoDesc->getDefaultCodec();
+	_codecName = _Codec->name;
+	}
+	else
+	_Codec = _videoDesc->getCodec(_codecName);
+	
+		
 	//Getting Basic AVCodecContext settings from Codec Descriptor
 	_videoDesc = VideoCodecDescriptor::getInstance();
+	_encodeCodecCtx = _videoDesc->getCodecContext(_Codec);
+	*_decodeCodecCtx = *_decodeCodecCtx;
 	
-	//check if active Codec
-	_Codec = _videoDesc->getActiveCodec(_codecName);
+	//initialize basic encoding context
+	_encodeCodecCtx = avcodec_alloc_context();
+	avcodec_open(_encodeCodecCtx,_Codec);
+	_encodeCodecCtx->bit_rate = VIDEO_BIT_RATE;
+	_encodeCodecCtx->width = DEFAULT_WIDTH;
+	_encodeCodecCtx->height = DEFAULT_HEIGHT;
 	
-	if(_Codec == NULL)
-		ptracesfl("Not An active Codec",MT_FATAL,1,true);
+	if (_codecName == "h264")
+	_encodeCodecCtx->me_method = 8;
+	else
+	_encodeCodecCtx->me_method = 7;
+	
+	_encodeCodecCtx->time_base.den = STREAM_FRAME_RATE;
+	_encodeCodecCtx->time_base.num = 1;
+	_encodeCodecCtx->gop_size = GOP_SIZE;
+	_encodeCodecCtx->pix_fmt = PIX_FMT_RGB24;
+	_encodeCodecCtx->max_b_frames = MAX_B_FRAMES;
 
-	// Get normal Codec Context
-	_baseCodecCtx = _videoDesc->getCodecContext(_Codec);
+	if (_codecName == "h263")
+	_encodeCodecCtx->mpeg_quant = 0;
+	else
+	_encodeCodecCtx->mpeg_quant = 1;
+	
+	if (_codecName == "h264")
+	_encodeCodecCtx->idct_algo = FF_IDCT_H264;
+	else
+	_encodeCodecCtx->idct_algo = FF_IDCT_LIBMPEG2MMX;
+	
+	_encodeCodecCtx->mb_decision = FF_MB_DECISION_BITS;
+
 
 }
 
@@ -70,31 +106,21 @@ VideoCodec::~VideoCodec() {
 }
 VideoCodec::VideoCodec(char* codec){
 	
-	
 	this->_codecName = codec;
-	this->_baseCodecCtx = NULL;
+	this->_encodeCodecCtx = NULL;
+	this->_decodeCodecCtx = NULL;
 	
 	init();
 
 }
 
 VideoCodec::VideoCodec(){
-//method to get codec
+	
+	init();
 
 }
 
 
-AVPicture* VideoCodec::encodeConvert(uint8_t *in_buf,int inWidth,int inHeight, int outWidth, int outHeight)
-{
-	static struct SwsContext *img_convert_ctx;
-	AVPicture *pic;
-	
-	
-	
-	return pic;
-	
-	
-}
 
 /*
  * 

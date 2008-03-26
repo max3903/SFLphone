@@ -95,7 +95,6 @@ public:
    */
   virtual bool sendMessage(const std::string& to, const std::string& body) = 0;
 
-  // NOW
   /**
    * Determine if link supports presence information
    */
@@ -104,7 +103,7 @@ public:
   /**
    * Register contacts for presence information if supported
    */
-  virtual void subscribePresenceForContact(Contact* contact);
+  virtual void subscribePresenceForContact(ContactEntry* contactEntry);
   
   /**
    * Publish presence status to server
