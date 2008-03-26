@@ -651,10 +651,10 @@ static
 inline
 #endif
 gboolean
-org_sflphone_SFLphone_CallManager_change_webcam_status (DBusGProxy *proxy, const gboolean IN_status, GError **error)
+org_sflphone_SFLphone_CallManager_change_webcam_status (DBusGProxy *proxy, const gboolean IN_status, const char * IN_callID, GError **error)
 
 {
-  return dbus_g_proxy_call (proxy, "changeWebcamStatus", error, G_TYPE_BOOLEAN, IN_status, G_TYPE_INVALID, G_TYPE_INVALID);
+  return dbus_g_proxy_call (proxy, "changeWebcamStatus", error, G_TYPE_BOOLEAN, IN_status, G_TYPE_STRING, IN_callID, G_TYPE_INVALID, G_TYPE_INVALID);
 }
 
 typedef void (*org_sflphone_SFLphone_CallManager_change_webcam_status_reply) (DBusGProxy *proxy, GError *error, gpointer userdata);
@@ -674,14 +674,14 @@ static
 inline
 #endif
 DBusGProxyCall*
-org_sflphone_SFLphone_CallManager_change_webcam_status_async (DBusGProxy *proxy, const gboolean IN_status, org_sflphone_SFLphone_CallManager_change_webcam_status_reply callback, gpointer userdata)
+org_sflphone_SFLphone_CallManager_change_webcam_status_async (DBusGProxy *proxy, const gboolean IN_status, const char * IN_callID, org_sflphone_SFLphone_CallManager_change_webcam_status_reply callback, gpointer userdata)
 
 {
   DBusGAsyncData *stuff;
   stuff = g_new (DBusGAsyncData, 1);
   stuff->cb = G_CALLBACK (callback);
   stuff->userdata = userdata;
-  return dbus_g_proxy_begin_call (proxy, "changeWebcamStatus", org_sflphone_SFLphone_CallManager_change_webcam_status_async_callback, stuff, g_free, G_TYPE_BOOLEAN, IN_status, G_TYPE_INVALID);
+  return dbus_g_proxy_begin_call (proxy, "changeWebcamStatus", org_sflphone_SFLphone_CallManager_change_webcam_status_async_callback, stuff, g_free, G_TYPE_BOOLEAN, IN_status, G_TYPE_STRING, IN_callID, G_TYPE_INVALID);
 }
 #endif /* defined DBUS_GLIB_CLIENT_WRAPPERS_org_sflphone_SFLphone_CallManager */
 

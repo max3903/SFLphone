@@ -44,6 +44,13 @@ extern "C"{
 #include <ffmpeg/avformat.h>
 }
 
+// TODO: a vérifier !
+typedef enum {
+  H263 = 33,
+  H264 = 34
+} VideoCodecPayloadType;
+
+
 /* A codec is identified by it's AVCodec, the codec utilisation by the AVCodecContext */
 typedef std::map<AVCodec*, AVCodecContext*> VideoCodecMap;
 /* VideoCodecOrder iterator typedef*/
@@ -82,7 +89,7 @@ public:
     bool setDefaultOrder();
   
     /**
-     * Check in the map codec if the specified codec is supported 
+     * Check in the list codec if the specified codec is supported 
      * @param id : libavcodec unique codecID
      * @return true if the codec specified is supported
      * 	     false otherwise
@@ -123,7 +130,14 @@ public:
      * Function to get a Codec
      * @return codecMap to set the Codec Map
      */
-   	AVCodec* getActiveCodec(char* CodecName);
+   	AVCodec* getCodec(const char* CodecName);
+   	
+   	/**
+     * Function to get a Codec
+     * @return codecMap to set the Codec Map
+     */
+   	AVCodec* getDefaultCodec();
+   	
 	/**
      * Function to get all the codec info
      * @return char*, with all the info in a structured way
