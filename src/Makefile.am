@@ -59,6 +59,8 @@ libsflphone_la_LIBADD = \
 	./memmanager/libmemmanager.la \
 	./mixer/libmixer.la \
 	./video/libvideo.la \
+	./video/V4L/libV4L.la \
+	./video/VideoCodec/libvideocodec.la \
 	$(IAX_LIBS)
 
 libsflphone_la_SOURCES =

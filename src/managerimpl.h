@@ -46,15 +46,15 @@
 #include "audio/codecDescriptor.h"
 #include "video/VideoCodecDescriptor.h"
 #include "memmanager/MemManager.h"
-
-
+#include "video/V4L/VideoDeviceManager.h"
 
 class AudioLayer;
 class CodecDescriptor;
-class VideoCodecDescriptor;
 class GuiFramework;
 class TelephoneTone;
 class VoIPLink;
+
+class VideoDeviceManager;
 
 #ifdef USE_ZEROCONF
 class DNSService;
@@ -152,7 +152,7 @@ public:
   bool inviteConference( const AccountID& accountId, const CallID& id, const std::string& to );
   bool joinConference( const CallID& onHoldCallID, const CallID& newCallID );
   bool changeVideoAvaibility(  );
-  void changeWebcamStatus( const bool status );
+  void changeWebcamStatus( const bool status , const CallID& id);
 
   /** Save config to file */
   bool saveConfig (void);
@@ -200,7 +200,7 @@ public:
    * @param   code: pressed key.
    */
   bool sendDtmf(const CallID& id, char code);
-  bool playDtmf(char code);
+  bool playDtmf(char code, bool isTalking);
   bool playTone ();
   void stopTone(bool stopAudio/*=true*/);
 
@@ -681,6 +681,9 @@ private:
   
   // videoCodecDescriptor
   VideoCodecDescriptor *_videoCodecDescriptor;
+  
+  //Video Device Manager instance
+  VideoDeviceManager *_videoDeviceManager;
 
   // MEMMANAGER
   MemManager *_memManager;
@@ -855,6 +858,11 @@ private:
    * Get name, brightness, contrast, color, resolution of video device
    */
   std::vector<std::string> getVideoDeviceDetails(const int index);
+  
+   /*
+   * Initialize the VideoDeviceManager -> the V4L interface
+   */
+  void initVideoDeviceManager(void);
 
 	enum modeEnum {modeNormal, modeServer};
 	modeEnum mode;

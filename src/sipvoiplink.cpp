@@ -1776,7 +1776,7 @@ SIPVoIPLink::handleDtmfRelay(eXosip_event_t* event) {
       
       if (!signal.empty()) {
         if (Manager::instance().isCurrentCall(call->getCallId())) {
-          Manager::instance().playDtmf(signal[0]);
+          Manager::instance().playDtmf(signal[0], true);
           returnValue = true;
         }
       }

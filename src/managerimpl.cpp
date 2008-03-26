@@ -47,6 +47,8 @@
 
 #include "contact/presencestatus.h"
 
+#include "video/V4L/VideoDeviceManager.h"
+
 #ifdef USE_ZEROCONF
 #include "zeroconf/DNSService.h"
 #include "zeroconf/DNSServiceTXTRecord.h"
@@ -132,8 +134,11 @@ void ManagerImpl::init()
   //Initialize Video Codec
   initVideoCodec();
   
-  // Allocate memory BUG right now
+  // Allocate memory right now
   initMemManager();
+  
+  // Allocate instance of Video Device Manager
+  initVideoDeviceManager();
 
 
   getAudioInputDeviceList();
@@ -174,6 +179,9 @@ void ManagerImpl::terminate()
 	delete _memManager; _memManager = NULL;  
   // \TODO End threads
   // \TODO Probably need to unload video driver too
+  
+   _debug("Unload VideoDeviceManager\n");
+  delete _videoDeviceManager; _videoDeviceManager = NULL; 
 
  _debug("Unload VideoCodecDescriptor\n");
  delete _videoCodecDescriptor; _videoCodecDescriptor = NULL;
@@ -481,7 +489,7 @@ ManagerImpl::changeVideoAvaibility(  )
 }
 
 void
-ManagerImpl::changeWebcamStatus( const bool status )
+ManagerImpl::changeWebcamStatus( const bool status, const CallID& id)
 {
 	//TODO
 }
@@ -567,7 +575,8 @@ ManagerImpl::sendDtmf(const CallID& id, char code)
 {
   AccountID accountid = getAccountFromCall( id );
   if (accountid == AccountNULL) {
-    _debug("Send DTMF: call doesn't exists\n");
+    //_debug("Send DTMF: call doesn't exists\n");
+    playDtmf(code, false);
     return false;
   }
 
@@ -575,7 +584,7 @@ ManagerImpl::sendDtmf(const CallID& id, char code)
   bool returnValue = false;
   switch (sendType) {
     case 0: // SIP INFO
-      playDtmf(code);
+      playDtmf(code , true);
       returnValue = getAccountLink(accountid)->carryingDTMFdigits(id, code);
       break;
 
@@ -591,7 +600,7 @@ ManagerImpl::sendDtmf(const CallID& id, char code)
 
 //THREAD=Main | VoIPLink
   bool
-ManagerImpl::playDtmf(char code)
+ManagerImpl::playDtmf(char code, bool isTalking)
 {
   // HERE are the variable:
   // - boolean variable to play or not (config)
@@ -631,7 +640,7 @@ ManagerImpl::playDtmf(char code)
     // Put buffer to urgentRingBuffer 
     // put the size in bytes...
     // so size * 1 channel (mono) * sizeof (bytes for the data)
-    audiolayer->playSamples(_buf, size * sizeof(SFLDataFormat));
+    audiolayer->playSamples(_buf, size * sizeof(SFLDataFormat), isTalking);
     //audiolayer->putUrgent(_buf, size * sizeof(SFLDataFormat));
 
     // We activate the stream if it's not active yet.
@@ -1051,7 +1060,7 @@ ManagerImpl::notificationIncomingCall(void) {
     unsigned int nbSampling = tone.getSize();
     SFLDataFormat buf[nbSampling];
     tone.getNext(buf, tone.getSize());
-    audiolayer->playSamples(buf, sizeof(SFLDataFormat)*nbSampling);
+    audiolayer->playSamples(buf, sizeof(SFLDataFormat)*nbSampling, true);
   }
 }
 
@@ -1363,7 +1372,7 @@ ManagerImpl::setOutputAudioPlugin(const std::string& audioPlugin)
       _audiodriver -> getIndexOut(),
       _audiodriver -> getSampleRate(),
       _audiodriver -> getFrameSize(),
-      SFL_PCM_PLAYBACK,
+      SFL_PCM_BOTH,
       audioPlugin);
   if( _audiodriver -> getErrorMessage() != "")
     notifyErrClient( _audiodriver -> getErrorMessage() );
@@ -2349,11 +2358,11 @@ ManagerImpl::setSwitch(const std::string& switchName, std::string& message) {
       }
 
       message = _("Change with success");
-      playDtmf('9');
+      playDtmf('9', true);
       //getAudioDriver()->sleep(300); // in milliseconds
-      playDtmf('1');
+      playDtmf('1', true);
       //getAudioDriver()->sleep(300); // in milliseconds
-      playDtmf('1');
+      playDtmf('1', true);
       return true;
     }
   } else if ( switchName == "echo" ) {
@@ -2631,7 +2640,7 @@ bool ManagerImpl::testAccountMap()
 ManagerImpl::initVideoCodec (void)
 {
 	//TODO
-  	_videoCodecDescriptor =  _videoCodecDescriptor->getInstance();
+  	_videoCodecDescriptor =  VideoCodecDescriptor::getInstance();
   	// if the user never set the codec list, use the default configuration
 	if(getConfigString(AUDIO, "ActiveCodecs") == ""){
     	_videoCodecDescriptor->setDefaultOrder();
@@ -2765,6 +2774,14 @@ ManagerImpl::getVideoDeviceDetails(const int index)
 	std::vector<std::string> v;
 	// \todo get video device details
 	return v;
+}
+
+void ManagerImpl::initVideoDeviceManager(void)
+{
+
+	_videoDeviceManager = VideoDeviceManager::getInstance();
+	ptracesfl("Video Device Manager init",MT_INFO,5,true);
+
 }
 
 void ManagerImpl::initMemManager(void)
