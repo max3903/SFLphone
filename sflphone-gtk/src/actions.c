@@ -766,4 +766,27 @@ sflphone_fill_video_codec_list()
     }
   }
 }
+
+	void 
+sflphone_set_video()
+{
+	call_t * c = call_get_selected();
+	
+	if(c)
+	{
+		dbus_change_webcam_status(1, c);
+	}
+	
+}
+
+	void 
+sflphone_unset_video()
+{
+	call_t * c = call_get_selected();
+	if(c)
+	{
+		dbus_change_webcam_status(0, c);
+	}
+	
+}
   

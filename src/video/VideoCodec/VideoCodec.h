@@ -25,12 +25,9 @@
 
 #ifndef VIDEOCODEC_H
 #define VIDEOCODEC_H
-extern "C"{
-#include <ffmpeg/avcodec.h>
-#include <ffmpeg/avformat.h>
-//#include <ffmpeg/swscale.h>
-}
+
 #include "../VideoCodecDescriptor.h"
+#include "VideoSettings.h"
 
 class VideoCodec {
 public:
@@ -54,30 +51,36 @@ public:
 	
      * Function to decode video information
      * @param in_buf the input buffer
-     * @param width of the video frame
-     * @param height of the video frame
      * @param out_buf the output buffer
      * 
      */
-     int videoDecode(uint8_t *in_buf, uint8_t* out_buf  );
+
+     int videoDecode(uint8_t *in_buf,uint8_t* out_buf);
+
 /**
      * Function to encode video information
      * @param buf the buffer to encode
-     * @param size buffer size
+     * @param in_buf the input buffer
+     * @param out_buf the output buffer
      * 
      */
+
     int videoEncode(uint8_t *in_buf, uint8_t* out_buf,int bufferSize,int width,int height);
+
     
     
 private:
  
-	
 	/**
- 	* Function to init the Codec with it's proper context
+ 	* Function to init the Codec
  	* */
     void init();
     
-    AVPicture* encodeConvert(uint8_t *in_buf,int inWidth,int inHeight, int outWidth, int outHeight);
+    /**
+ 	* Function to init the Codec with it's proper context
+ 	* */
+    void initEncodeContext();
+
     
     /**
  	* instance of the videoDesc
@@ -92,12 +95,17 @@ private:
     /**
      * Libavcodec Codec type
      */
-    char* _codecName;
+    const char* _codecName;
     
     /**
      * Libavcodec Codec context
      */
-    AVCodecContext* _baseCodecCtx;
+    AVCodecContext* _encodeCodecCtx;
+    /**
+     * Libavcodec Codec context
+     */
+    AVCodecContext* _decodeCodecCtx;
+    
     
 
 };

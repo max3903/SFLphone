@@ -508,13 +508,13 @@ dbus_change_video_avaibility()
 
 //Webcam Status change - enable or disable video capture
 void 
-dbus_change_webcam_status(gboolean status)
+dbus_change_webcam_status(gboolean status, const call_t * c)
 {
 	g_print("Before change webcam status");
 	GError* error = NULL;
 	org_sflphone_SFLphone_CallManager_change_webcam_status(
 			callManagerProxy,
-			status,
+			status, c->callID,
 			&error);
 	g_print("After");
 	if(error)

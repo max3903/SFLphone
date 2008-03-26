@@ -157,10 +157,14 @@ SIPCall::SIPCallReinvite(eXosip_event_t *event)
     return false;
   }
 
+  // AJOUTER RemoteVideoFromSDP
+
   if (!setAudioCodecFromSDP(remote_med, event->tid)) {
     sdp_message_free (remote_sdp);
     return false;
   }
+
+  // AJOUTER SetVideoFromSDP
 
   osip_message_t *answer = 0;
   eXosip_lock();
@@ -175,10 +179,12 @@ SIPCall::SIPCallReinvite(eXosip_event_t *event)
 
       sdp_message_t *local_sdp = eXosip_get_sdp_info(answer);
       sdp_media_t *local_med = NULL;
+      sdp_media_t *local_vid_med = NULL;
       if (local_sdp != NULL) {
          local_med = eXosip_get_audio_media(local_sdp);
+         //local_vid_med = eXosip_get_video_media(local_sdp);
       }
-      if (local_sdp != NULL && local_med != NULL) {
+      if (local_sdp != NULL && local_med != NULL && local_vid_med != NULL) {
         /* search if stream is sendonly or recvonly */
         int _remote_sendrecv = sdp_analyse_attribute (remote_sdp, remote_med);
         int _local_sendrecv =  sdp_analyse_attribute (local_sdp, local_med);
@@ -279,9 +285,9 @@ SIPCall::SIPCallAnsweredWithoutHold(eXosip_event_t* event)
   }
 
 #ifdef LIBOSIP2_WITHPOINTER
-  char *tmp = (char*) osip_list_get (remote_med->m_payloads, 0);
+  char *tmp = (char*) osip_list_get(remote_med->m_payloads, 0);
 #else
-  char *tmp = (char*) osip_list_get (&(remote_med->m_payloads), 0);
+  char *tmp = (char*) osip_list_get(&(remote_med->m_payloads), 0);
 #endif
   setAudioCodec((AudioCodecType)-1);
   if (tmp != NULL) {
@@ -333,15 +339,17 @@ SIPCall::sdp_complete_message(sdp_message_t * remote_sdp, osip_message_t * msg)
   const osip_list_t* remote_sdp_m_medias = &(remote_sdp->m_medias);
   #endif
   osip_list_t* remote_med_m_payloads = 0;
+  osip_list_t* remote_med_m_payloads_vid = 0;
 
   while (!osip_list_eol(remote_sdp_m_medias, iMedia)) {
     sdp_media_t *remote_med = (sdp_media_t *)osip_list_get(remote_sdp_m_medias, iMedia);
     if (remote_med == 0) { continue; }
 
-    if (0 != osip_strcasecmp (remote_med->m_media, "audio")) {
-      // if this is not an "audio" media, we set it to 0
-      media << "m=" << remote_med->m_media << " 0 " << remote_med->m_proto << " \r\n";
-    } else {
+    if ( (0 != osip_strcasecmp (remote_med->m_media, "audio")) && (0 != osip_strcasecmp (remote_med->m_media, "video"))) {
+      // if this is not an "audio" or "video" media, we set it to 0
+      //media << "m=" << remote_med->m_media << " 0 " << remote_med->m_proto << " \r\n";
+    } else if (0 != osip_strcasecmp (remote_med->m_media, "audio")) {
+      // POUR L'AUDIO!!!!
       std::ostringstream listCodec;
       std::ostringstream listRtpMap;
 
@@ -364,7 +372,7 @@ SIPCall::sdp_complete_message(sdp_message_t * remote_sdp, osip_message_t * msg)
             listCodec << payload << " ";
             //listRtpMap << "a=rtpmap:" << payload << " " << audiocodec->getCodecName() << "/" << audiocodec->getClockRate();
             listRtpMap << "a=rtpmap:" << payload << " " << _codecMap.getCodecName(audiocodec) << "/" << _codecMap.getSampleRate(audiocodec);
-	if (_codecMap.getChannel(audiocodec) != 1) {
+	    if (_codecMap.getChannel(audiocodec) != 1) {
               listRtpMap << "/" << _codecMap.getChannel(audiocodec);
             }
             listRtpMap << "\r\n";
@@ -379,9 +387,49 @@ SIPCall::sdp_complete_message(sdp_message_t * remote_sdp, osip_message_t * msg)
         media << "m=" << remote_med->m_media << " " << getLocalExternAudioPort() << " RTP/AVP " << listCodec.str() << "\r\n";
         media << listRtpMap.str();
       }
+    } 
+    /* //Pas tester
+    else if (0 != osip_strcasecmp (remote_med->m_media, "video")) { 
+      // POUR LE VIDEO
+      // search for compatible codec: foreach payload
+      std::ostringstream listCodec_vid;
+      std::ostringstream listRtpMap_vid;
+
+      int iPayload_vid = 0;
+      #ifdef LIBOSIP2_WITHPOINTER 
+      remote_med_m_payloads_vid = remote_med->m_payloads; // old abi
+      #else
+      remote_med_m_payloads_vid = &(remote_med->m_payloads);
+      #endif
+       
+      while (!osip_list_eol(remote_med_m_payloads_vid, iPayload_vid)) {
+        tmp = (char *)osip_list_get(remote_med_m_payloads_vid, iPayload_vid);
+        if (tmp!=NULL) {
+          int payload = atoi(tmp); // Pour nos tests Payload H263 = 34
+	_debug("remote video payload = %s\n", tmp);
+
+          VideoCodecPayloadType videoCodecPayload = (VideoCodecPayloadType)payload;
+          //if (audiocodec != (AudioCodecType)-1 && _codecMap.isActive(audiocodec))  {  // TODO: a faire
+          listCodec_vid << payload << " ";
+          listRtpMap_vid << "a=rtpmap:" << "34" << " " << H263 << "/" << "90000"; // TODO: a automatiser !!!
+          //listRtpMap << "a=rtpmap:" << payload << " " << _codecMap.getCodecName(audiocodec) << "/" << _codecMap.getSampleRate(audiocodec);
+          //listRtpMap << "\r\n";
+         // }
+        }
+        iPayload_vid++;
+      }
+      // construire string media
     }
+    */
     iMedia++;
-  }
+  } 
+
+  // Test hardcoder H263
+  std::ostringstream tmpMediaVideo;
+  tmpMediaVideo << "m=video 12345 RTP/AVP 34\r\n";
+  tmpMediaVideo << "a=rtpmap:34 H263/90000\r\n";
+  // a jouter dans le buf
+
   char buf[4096];
   snprintf (buf, 4096,
     "v=0\r\n"
@@ -609,3 +657,4 @@ SIPCall::setAudioCodecFromSDP(sdp_media_t* remote_med, int tid)
   }
   return true;
 }
+

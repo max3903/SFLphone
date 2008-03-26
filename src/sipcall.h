@@ -23,6 +23,7 @@
 
 #include "call.h"
 #include "audio/codecDescriptor.h"
+#include "video/VideoCodecDescriptor.h"
 #include <eXosip2/eXosip.h>
 
 class AudioCodec;
