@@ -25,12 +25,9 @@
 
 #ifndef VIDEOCODEC_H
 #define VIDEOCODEC_H
-extern "C"{
-#include <ffmpeg/avcodec.h>
-#include <ffmpeg/avformat.h>
-//#include <ffmpeg/swscale.h>
-}
+
 #include "../VideoCodecDescriptor.h"
+#include "VideoSettings.h"
 
 class VideoCodec {
 public:
@@ -74,13 +71,16 @@ public:
     
 private:
  
-	
 	/**
- 	* Function to init the Codec with it's proper context
+ 	* Function to init the Codec
  	* */
     void init();
     
-    AVPicture* encodeConvert(uint8_t *in_buf,int inWidth,int inHeight, int outWidth, int outHeight);
+    /**
+ 	* Function to init the Codec with it's proper context
+ 	* */
+    void initEncodeContext();
+
     
     /**
  	* instance of the videoDesc
@@ -95,12 +95,17 @@ private:
     /**
      * Libavcodec Codec type
      */
-    char* _codecName;
+    const char* _codecName;
     
     /**
      * Libavcodec Codec context
      */
-    AVCodecContext* _baseCodecCtx;
+    AVCodecContext* _encodeCodecCtx;
+    /**
+     * Libavcodec Codec context
+     */
+    AVCodecContext* _decodeCodecCtx;
+    
     
 
 };

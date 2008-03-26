@@ -82,7 +82,7 @@ public:
     bool setDefaultOrder();
   
     /**
-     * Check in the map codec if the specified codec is supported 
+     * Check in the list codec if the specified codec is supported 
      * @param id : libavcodec unique codecID
      * @return true if the codec specified is supported
      * 	     false otherwise
@@ -123,7 +123,14 @@ public:
      * Function to get a Codec
      * @return codecMap to set the Codec Map
      */
-   	AVCodec* getActiveCodec(char* CodecName);
+   	AVCodec* getCodec(const char* CodecName);
+   	
+   	/**
+     * Function to get a Codec
+     * @return codecMap to set the Codec Map
+     */
+   	AVCodec* getDefaultCodec();
+   	
 	/**
      * Function to get all the codec info
      * @return char*, with all the info in a structured way
