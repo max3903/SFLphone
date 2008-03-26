@@ -183,10 +183,8 @@ void VideoRtpRTX::sendSession(int timestamp)
   // Get Data from V4l, send it to the mixer input
   Capture* cmdCapture = (Capture*) VideoDevMng->getCommand(VideoDeviceManager::CAPTURE);
   Resolution* cmdRes = (Resolution*) VideoDevMng->getCommand(VideoDeviceManager::RESOLUTION);
-  int imgSize= 0;
-  unsigned char* charFromV4L = cmdCapture->GetCapture(imgSize);
-  pair<int,int> tmp = cmdRes->getResolution();
-  int sizeV4L = tmp.first * tmp.second * 3 * sizeof(unsigned char); // TODO: a verifier
+  int sizeV4L= 0;
+  unsigned char* charFromV4L = cmdCapture->GetCapture(sizeV4L);
 
   // Depose les data de V4L dans le Input buffer du mixer correspondant
   vidCall->getRemoteIntputStreams()->fetchVideoStream()->putData((char*)charFromV4L,sizeV4L,timestamp);
