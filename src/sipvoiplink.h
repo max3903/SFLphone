@@ -50,6 +50,7 @@ public:
   bool sendUnregister(void);
 
   Call* newOutgoingCall(const CallID& id, const std::string& toUrl);
+  bool newOutgoingVideoInvite(const CallID& id);
   bool answer(const CallID& id);
 
   bool hangup(const CallID& id);
@@ -132,7 +133,7 @@ private:
    * SIPStartVideo create an invite to activate video support
    * @return true if all is correct
    */
-  bool SIPStartVideo(SIPCall* call, const std::string& subject);
+  bool SIPStartVideo(SIPCall* call);
 
   /**
    * SIPOutgoingInvite do SIPStartCall

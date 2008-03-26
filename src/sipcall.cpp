@@ -124,6 +124,7 @@ SIPCall::SIPCallInvite(eXosip_event_t *event)
 bool 
 SIPCall::SIPCallReinvite(eXosip_event_t *event)
 {
+  /*
   if (event->cid < 1 && event->did < 1) {
     _debug("SIP Failure: Invalid cid and did\n");
     return false;
@@ -184,8 +185,11 @@ SIPCall::SIPCallReinvite(eXosip_event_t *event)
          local_med = eXosip_get_audio_media(local_sdp);
          //local_vid_med = eXosip_get_video_media(local_sdp);
       }
-      if (local_sdp != NULL && local_med != NULL && local_vid_med != NULL) {
+      //if (local_sdp != NULL && local_med != NULL && local_vid_med != NULL) {
+        if (local_sdp != NULL && local_med != NULL) {
+        */
         /* search if stream is sendonly or recvonly */
+        /*
         int _remote_sendrecv = sdp_analyse_attribute (remote_sdp, remote_med);
         int _local_sendrecv =  sdp_analyse_attribute (local_sdp, local_med);
         _debug("            Remote SendRecv: %d\n", _remote_sendrecv);
@@ -206,6 +210,7 @@ SIPCall::SIPCallReinvite(eXosip_event_t *event)
   eXosip_unlock ();
   sdp_message_free (remote_sdp);
   return true;
+  */
 }
 
 bool 
@@ -346,6 +351,7 @@ SIPCall::sdp_complete_message(sdp_message_t * remote_sdp, osip_message_t * msg)
     if (remote_med == 0) { continue; }
 
     if ( (0 != osip_strcasecmp (remote_med->m_media, "audio")) && (0 != osip_strcasecmp (remote_med->m_media, "video"))) {
+      printf("ERRURE!!!!!!!");
       // if this is not an "audio" or "video" media, we set it to 0
       //media << "m=" << remote_med->m_media << " 0 " << remote_med->m_proto << " \r\n";
     } else if (0 != osip_strcasecmp (remote_med->m_media, "audio")) {
@@ -425,9 +431,9 @@ SIPCall::sdp_complete_message(sdp_message_t * remote_sdp, osip_message_t * msg)
   } 
 
   // Test hardcoder H263
-  std::ostringstream tmpMediaVideo;
-  tmpMediaVideo << "m=video 12345 RTP/AVP 34\r\n";
-  tmpMediaVideo << "a=rtpmap:34 H263/90000\r\n";
+  //std::ostringstream tmpMediaVideo;
+  //tmpMediaVideo << "m=video 12345 RTP/AVP 34\r\n";
+  //tmpMediaVideo << "a=rtpmap:34 H263/90000\r\n";
   // a jouter dans le buf
 
   char buf[4096];
