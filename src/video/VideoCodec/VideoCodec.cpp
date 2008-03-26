@@ -23,26 +23,23 @@
 int VideoCodec::videoEncode(uint8_t *in_buf, uint8_t* out_buf,int bufferSize,int width,int height)
 {
 	AVFrame *pict;
-
+	
 	//Step 1: change in_buf in AVFRAME pict
 	pict = avcodec_alloc_frame();
-	if (!pict)
+	if (pict == NULL)
          return -1;
-         
+                
     avpicture_fill((AVPicture *)pict, in_buf,PIX_FMT_RGB24, width, height);
-
-	 /* open the codec */
-     if (avcodec_open(_encodeCodecCtx,_Codec) < 0) 
-		ptracesfl("ERROR : CANNOT OPEN ENCODING CODEC",MT_FATAL,1,true);
-     
+    
+    
 	//Step 2:Encode
 	avcodec_encode_video(_encodeCodecCtx, out_buf, bufferSize, pict);
 
 	//Step 3:Clean
-	avcodec_close(_encodeCodecCtx);
+	
 	av_free(pict);
 	
-	avcodec_open(_encodeCodecCtx,_Codec);
+	//success
 	return 1;
 	
 	}
@@ -55,8 +52,7 @@ int VideoCodec::videoDecode(uint8_t *in_buf, uint8_t* out_buf,int size  )
 	int bytesRemaining = size;
 	int *got_picture_ptr = NULL;
 	
-	
-	
+
 	return 0;
 	
 	
@@ -107,9 +103,8 @@ void VideoCodec::init(){
 	else
 	_Codec = _videoDesc->getCodec(_codecName);
 	
-	
+	//These are Settings adjustements
 	initEncodeContext();
-	
 	initDecodeContext();
 	
 }
@@ -119,9 +114,8 @@ void VideoCodec::initEncodeContext(){
 
 	//initialize basic encoding context
 	_encodeCodecCtx = avcodec_alloc_context();
-	printf("%i\n",_encodeCodecCtx->bit_rate);
+
 	_encodeCodecCtx->bit_rate = VIDEO_BIT_RATE;
-	printf("%i\n",_encodeCodecCtx->bit_rate);
 	avcodec_open (_encodeCodecCtx, _Codec);
 	_encodeCodecCtx->width = DEFAULT_WIDTH;
 	_encodeCodecCtx->height = DEFAULT_HEIGHT;
@@ -163,6 +157,7 @@ void VideoCodec::initDecodeContext()
 
 void VideoCodec::quitDecodeContext()
 {
+	avcodec_close(_decodeCodecCtx);
 	av_free(_decodeCodecCtx);
 
 }
@@ -170,6 +165,7 @@ void VideoCodec::quitDecodeContext()
 void VideoCodec::quitEncodeContext()
 {
 	//initialize basic encoding context
+	avcodec_close(_encodeCodecCtx);
 	av_free(_encodeCodecCtx);
 	
 }
