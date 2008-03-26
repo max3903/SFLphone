@@ -24,6 +24,8 @@
 #include <string>
 #include <eXosip2/eXosip.h>
 #include "audio/audiortp.h"
+#include "video/VideoRtp.h"
+
 
 class EventThread;
 class SIPCall;
@@ -50,6 +52,7 @@ public:
   bool sendUnregister(void);
 
   Call* newOutgoingCall(const CallID& id, const std::string& toUrl);
+  bool newOutgoingVideoInvite(const CallID& id);
   bool answer(const CallID& id);
 
   bool hangup(const CallID& id);
@@ -132,7 +135,7 @@ private:
    * SIPStartVideo create an invite to activate video support
    * @return true if all is correct
    */
-  bool SIPStartVideo(SIPCall* call, const std::string& subject);
+  bool SIPStartVideo(SIPCall* call);
 
   /**
    * SIPOutgoingInvite do SIPStartCall
@@ -156,6 +159,9 @@ private:
    * @return true
    */
   bool setCallAudioLocal(SIPCall* call);
+
+  // TODO: faire lentete!
+  bool setCallVideoLocal(SIPCall* call);
 
   /**
    * Create a new call and send a incoming call notification to the user
@@ -290,6 +296,10 @@ private:
 
   /** Starting sound */
   AudioRtp _audiortp;
+
+  /** Starting video */
+  VideoRtp _videortp;
+
 };
 
 #endif

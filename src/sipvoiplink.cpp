@@ -254,7 +254,8 @@ SIPVoIPLink::getEvent()
 		_debugMid(" !EXOSIP_CALL_INVITE\n");
 		break;
 	case EXOSIP_CALL_REINVITE:        /** 06 < announce a new INVITE within call     */
-		SIPCallReinvite(event);
+		//SIPCallReinvite(event);
+		printf("REINVITE RECU!!!!! GLOIRE!");
 		_debugMid(" !EXOSIP_REGISTRATION_TERMINATED event is not implemented\n");
 		break;
 
@@ -585,6 +586,20 @@ SIPVoIPLink::newOutgoingCall(const CallID& id, const std::string& toUrl)
   return call;
 }
 
+bool 
+SIPVoIPLink::newOutgoingVideoInvite(const CallID& id)
+{
+  SIPCall* call = getSIPCall(id);
+  if (call) {
+    // TODO: AJOUTER CODEC VIDEO dans le call????
+    if ( SIPStartVideo(call) )
+      return true;
+    else
+      return false;
+  }
+}
+
+
 bool
 SIPVoIPLink::answer(const CallID& id)
 {
@@ -630,6 +645,9 @@ SIPVoIPLink::answer(const CallID& id)
     }
   }
   eXosip_unlock();
+
+  // TODO: a enlever
+  printf("SIPVoIPLink::answer called!");
 
   if(i==0) {
     // Incoming call is answered, start the sound thread.
@@ -1026,9 +1044,12 @@ SIPVoIPLink::subscriptionNotificationReceived(eXosip_event_t* event, char* body)
 
 // EN CONSTRUCTION!! NE PAS APPELER
 bool 
-SIPVoIPLink::SIPStartVideo(SIPCall* call, const std::string& subject)
+SIPVoIPLink::SIPStartVideo(SIPCall* call)
 {
+  printf("DANS LA FONCTION REINVITE SIPVOIP!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!v!!!\n");
   
+  std::string subject = "TEST INVITE VIDEO";
+
   if (!call) return false;
 
   std::string to    = getSipTo(call->getPeerNumber());
@@ -1119,7 +1140,7 @@ SIPVoIPLink::SIPStartVideo(SIPCall* call, const std::string& subject)
   eXosip_call_build_request(call->getDid(),"INVITE",&invite);
   eXosip_call_send_request(call->getDid(),invite);
 
-  /*  P-e que je dois laisser ca mais je ne suis pas sur....
+/*
   // Keep the cid in case of cancelling
   call->setCid(cid);   // p-e pas nescessaire
 
@@ -1130,10 +1151,12 @@ SIPVoIPLink::SIPStartVideo(SIPCall* call, const std::string& subject)
     _debug("* SIP Info: Outgoing callID is %s, cid=%d\n", call->getCallId().data(), cid);
     eXosip_call_set_reference (cid, NULL);
   }
-  */
+*/
+  
   eXosip_unlock();
 
   return true;
+  
 }
 
 
@@ -1141,8 +1164,8 @@ bool
 SIPVoIPLink::SIPOutgoingInvite(SIPCall* call) 
 {
   // If no SIP proxy setting for direct call with only IP address
-  if (!SIPStartCall(call, "")) {
-    _debug("! SIP Failure: call not started\n");
+  if (!SIPStartCall(call,"")) {
+    _debug("! SIP Failure: Video Invite not created!\n");
     return false;
   }
   return true;
@@ -1353,6 +1376,29 @@ SIPVoIPLink::setCallAudioLocal(SIPCall* call)
   return true;
 }
 
+bool
+SIPVoIPLink::setCallVideoLocal(SIPCall* call) 
+{
+  // Setting Video
+  unsigned int callLocalVideoPort = 12345; // a changer!
+  unsigned int callLocalExternVideoPort = callLocalVideoPort;
+  if (_useStun) {
+    // If use Stun server
+    if (Manager::instance().behindNat(_stunServer, callLocalExternVideoPort)) {
+      callLocalExternVideoPort = Manager::instance().getFirewallPort();
+    }
+  }
+  _debug("            Setting local video port to: %d\n", callLocalVideoPort);
+  _debug("            Setting local video port (external) to: %d\n", callLocalExternVideoPort);
+  
+  // Set local audio port for SIPCall(id)
+  //call->setLocalIp(_localIPAddress); a enlever!
+  call->setLocalVideoPort(callLocalVideoPort);
+  call->setLocalExternVideoPort(callLocalExternVideoPort);
+
+  return true;
+}
+
 void
 SIPVoIPLink::SIPCallInvite(eXosip_event_t *event)
 {
@@ -1366,6 +1412,7 @@ SIPVoIPLink::SIPCallInvite(eXosip_event_t *event)
     return;
   }
   setCallAudioLocal(call);
+  setCallVideoLocal(call); // ajouté!
   call->setCodecMap(Manager::instance().getCodecDescriptorMap());
   call->setConnectionState(Call::Progressing);
   if (call->SIPCallInvite(event)) {
@@ -1382,6 +1429,7 @@ SIPVoIPLink::SIPCallInvite(eXosip_event_t *event)
 void
 SIPVoIPLink::SIPCallReinvite(eXosip_event_t *event)
 {
+
   _debug("> REINVITE (receive)\n");
   SIPCall* call = findSIPCallWithCidDid(event->cid, event->did);
   if (call == 0) {
@@ -1399,8 +1447,10 @@ SIPVoIPLink::SIPCallReinvite(eXosip_event_t *event)
     _debug("* SIP Info: Stopping AudioRTP when reinvite\n");
     _audiortp.closeRtpSession();
     call->setAudioStart(false);
+    // TODO: p-e il faut fermer le video ici!
   }
   call->SIPCallReinvite(event);
+
 }
 
 void
@@ -1533,6 +1583,8 @@ SIPVoIPLink::SIPCallServerFailure(eXosip_event_t *event)
 void
 SIPVoIPLink::SIPCallAck(eXosip_event_t *event) 
 {
+  printf("ACK RECU!!!!");
+
   SIPCall* call = findSIPCallWithCidDid(event->cid, event->did);
   if (!call) { return; }
   if (!call->isAudioStarted()) {
@@ -1541,6 +1593,14 @@ SIPVoIPLink::SIPCallAck(eXosip_event_t *event)
       if ( _audiortp.createNewSession(call) ) {
         call->setAudioStart(true);
       }
+      _debug("* SIP Info: Starting VideoRTP when ack\n");
+      // todo: verifier que nous sommes en train denvoyer un REINVITE!
+      if ( _videortp.createNewVideoSession(call,false) ) {
+        printf("RTP VIDEO CREE!");
+        call->setVideoStart(true);
+      }
+      else
+        printf("IMPOSSIBLE CREE RTP VIDEO!");
     }
   }
 }
