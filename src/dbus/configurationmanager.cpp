@@ -296,12 +296,13 @@ ConfigurationManager::getBrightness( ::DBus::Int32& minValue, ::DBus::Int32& max
     			::DBus::Int32& stepValue, ::DBus::Int32& currentValue )
 {
 	_debug("ConfigurationManager::getBrightness received\n");
-	slider_t values;
+	CmdDesc values;
 	
-	minValue = Manager::instance().getBrightness().minValue;
-	maxValue = Manager::instance().getBrightness().maxValue;
-	stepValue = Manager::instance().getBrightness().stepValue;
-	currentValue = Manager::instance().getBrightness().currentValue;
+	values = Manager::instance().getBrightness();
+	minValue = values.Min;
+	maxValue = values.Max;
+	stepValue = values.Step;
+	currentValue = values.Current;
 	printf("%i %i %i %i", minValue, maxValue,stepValue, currentValue);
 }
 
@@ -317,12 +318,14 @@ ConfigurationManager::getContrast( ::DBus::Int32& minValue, ::DBus::Int32& maxVa
     			::DBus::Int32& stepValue, ::DBus::Int32& currentValue )
 {
 	_debug("ConfigurationManager::getContrast received\n");
-	slider_t values;
+	CmdDesc values;
 	
-	minValue = Manager::instance().getContrast().minValue;
-	maxValue = Manager::instance().getContrast().maxValue;
-	stepValue = Manager::instance().getContrast().stepValue;
-	currentValue = Manager::instance().getContrast().currentValue;
+	values = Manager::instance().getContrast();
+	minValue = values.Min;
+	maxValue = values.Max;
+	stepValue = values.Step;
+	currentValue = values.Current;
+	printf("%i %i %i %i", minValue, maxValue,stepValue, currentValue);
 }
 
 void 
@@ -337,12 +340,14 @@ ConfigurationManager::getColour( ::DBus::Int32& minValue, ::DBus::Int32& maxValu
     			::DBus::Int32& stepValue, ::DBus::Int32& currentValue )
 {
 	_debug("ConfigurationManager::getColour received\n");
-	slider_t values;
+	CmdDesc values;
 	
-	minValue = Manager::instance().getColour().minValue;
-	maxValue = Manager::instance().getColour().maxValue;
-	stepValue = Manager::instance().getColour().stepValue;
-	currentValue = Manager::instance().getColour().currentValue;
+	values = Manager::instance().getColour();
+	minValue = values.Min;
+	maxValue = values.Max;
+	stepValue = values.Step;
+	currentValue = values.Current;
+	printf("%i %i %i %i", minValue, maxValue,stepValue, currentValue);
 }
 
 void 

@@ -574,11 +574,11 @@ public:
   std::string getRemoteSharedMemoryKey( void );
   
   /* Webcam Settings */
-	slider_t getBrightness(  );
+	CmdDesc getBrightness(  );
 	void setBrightness( const int value );
-	slider_t getContrast(  );
+	CmdDesc getContrast(  );
 	void setContrast( const int value );
-	slider_t getColour(  );
+	CmdDesc getColour(  );
 	void setColour( const int value );
 	std::vector<std::string> getWebcamDeviceList(  );
 	void setWebcamDevice( const int index );

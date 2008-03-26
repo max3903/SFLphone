@@ -2832,14 +2832,11 @@ ManagerImpl::getRemoteSharedMemoryKey()
 	ptracesfl("REMOTE Memspace shmid sent",MT_INFO,2,true);
 }
 
-slider_t 
+CmdDesc 
 ManagerImpl::getBrightness(  )
 {
-	slider_t values;
-	values.minValue = 5;	
-	values.maxValue = 100;
-	values.stepValue = 15;
-	values.currentValue = 25;
+	CmdDesc values;
+	values = _videoDeviceManager->getCommand(VideoDeviceManager::BRIGHTNESS)->getCmdDescriptor();
 	return values;
 	
 }
@@ -2850,14 +2847,11 @@ ManagerImpl::setBrightness( const int value )
 	
 }
 
-slider_t 
+CmdDesc
 ManagerImpl::getContrast(  )
 {
-	slider_t values;
-	values.minValue = 5;	
-	values.maxValue = 100;
-	values.stepValue = 15;
-	values.currentValue = 25;
+	CmdDesc values;
+	values = _videoDeviceManager->getCommand(VideoDeviceManager::CONTRAST)->getCmdDescriptor();
 	return values;	
 }
 
@@ -2867,14 +2861,11 @@ ManagerImpl::setContrast( const int value )
 	
 }
 
-slider_t
+CmdDesc
 ManagerImpl::getColour(  )
 {
-	slider_t values;
-	values.minValue = 5;	
-	values.maxValue = 100;
-	values.stepValue = 15;
-	values.currentValue = 25;
+	CmdDesc values;
+	values = _videoDeviceManager->getCommand(VideoDeviceManager::COLOR)->getCmdDescriptor();
 	return values;	
 }
 
@@ -2913,8 +2904,30 @@ ManagerImpl::getWebcamDeviceIndex( const std::string name )
 std::vector< std::string > 
 ManagerImpl::getResolutionList(  )
 {
-	std::vector<std::string> v;
-	return v;
+	ptracesfl("Debut get resolution list :",MT_INFO,2,true);
+	std::vector<std::string> order; 
+	std::string temp;
+	const char* tmp= ((Resolution*)_videoDeviceManager->getCommand(VideoDeviceManager::RESOLUTION))->enumResolution();
+	
+	ptracesfl("apres appel command :",MT_INFO,2,false);
+	ptracesfl(tmp, MT_NONE, 1);
+	
+	if( tmp == NULL ){
+		// \ TODO
+		ptracesfl("Resolution list is empty",MT_WARNING,2,false);
+		return order;
+	}
+	std::string s = tmp;
+
+	while (s.find(";", 0) != std::string::npos)
+	{
+		size_t pos = s.find(";", 0); 			
+		temp = s.substr(0, pos);  
+		printf("%s", temp);    	
+		s.erase(0, pos + 1);          		
+		order.push_back(temp);                	
+	}
+	return order;
 }
 
 void 
