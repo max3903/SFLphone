@@ -31,7 +31,7 @@ MemSpace::MemSpace()
 
 MemSpace::MemSpace(MemKey* key)
 {
-	this->theKey = key;
+	this->theKey = new MemKey( key );
 }
 
 MemKey* MemSpace::getMemKey()
@@ -56,14 +56,14 @@ MemData* MemSpace::fetchData()
 MemSpace::MemSpace(MemSpace* space)
 {
 	this->baseAddress = space->baseAddress;
-	this->theKey = space->theKey;
+	this->theKey = new MemKey( space->theKey );
 }
 
 MemSpace::MemSpace(MemSpace& space)
 {
 	
 	this->baseAddress = space.baseAddress;
-	this->theKey = space.theKey;
+	this->theKey = new MemKey( space.theKey );
 }
 
 MemSpace::~MemSpace()

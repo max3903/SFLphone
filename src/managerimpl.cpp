@@ -60,6 +60,7 @@
   (_config.addConfigTreeItem(section, Conf::ConfigTreeItem(std::string(name), std::string(value), type_int)))
   
 bool ManagerImpl::_localCapActive;
+KeyHolder ManagerImpl::_keyHolder;
 
 ManagerImpl::ManagerImpl (void)
 {
@@ -141,7 +142,6 @@ void ManagerImpl::init()
   
   // Allocate instance of Video Device Manager
   initVideoDeviceManager();
-
 
   getAudioInputDeviceList();
 
@@ -2786,12 +2786,14 @@ void ManagerImpl::initVideoDeviceManager(void)
 
 	_videoDeviceManager = VideoDeviceManager::getInstance();
 	ptracesfl("Video Device Manager init",MT_INFO,5,true);
+	
+	_videoDeviceManager->createDevice("/dev/video0");
 
 }
 
 void ManagerImpl::initMemManager(void)
 {
-	int dummySize = 1024;
+	int dummySize = 300000;
 
 	_memManager = MemManager::getInstance();
 	ptracesfl("MEMSPACE INIT MANAGER",MT_INFO,1,true);
@@ -2810,14 +2812,14 @@ void ManagerImpl::initMemManager(void)
 std::string 
 ManagerImpl::getLocalSharedMemoryKey()
 {
-	return _keyHolder.localKey->getDescription();
+	return _keyHolder.localKey->serialize();
 	ptracesfl("LOCAL Memspace shmid sent",MT_INFO,2,true);
 }
 
 std::string 
 ManagerImpl::getRemoteSharedMemoryKey()
 {
-	return _keyHolder.remoteKey->getDescription();
+	return _keyHolder.remoteKey->serialize();
 	ptracesfl("REMOTE Memspace shmid sent",MT_INFO,2,true);
 }
 
@@ -2957,11 +2959,13 @@ void* ManagerImpl::localVideCapturepref(void* pdata){
 	
 	Capture* cmdCap= (Capture*)VideoDeviceManager::getInstance()->getCommand(VideoDeviceManager::CAPTURE);
 	MemManager* manager= MemManager::getInstance();
-	vector<MemKey*> tmp= manager->getAvailSpaces();
+	/*vector<MemKey*> tmp= manager->getAvailSpaces();
 	MemKey* localKey= NULL;
 	string searchString= "local";
 	
+	printf("\nSearching for: \%s\n", searchString.c_str());
 	for(int i= 0; i < tmp.size(); i++){
+		printf("\n Found: %s\n", ((MemKey*)tmp[i])->getDescription().c_str());
 		if( ((MemKey*)tmp[i])->getDescription() == searchString ){
 			localKey= tmp[i];
 			break;
@@ -2972,7 +2976,8 @@ void* ManagerImpl::localVideCapturepref(void* pdata){
 	if( localKey == NULL ){
 		ptracesfl("No local shared memory space found!", MT_ERROR, MANAGERIMPL_TRACE);
 		_localCapActive= false;
-	}
+		exit(-1);
+	}*/
 	
 	int imgSize= 0;
 	unsigned char* data= NULL;
@@ -2982,7 +2987,7 @@ void* ManagerImpl::localVideCapturepref(void* pdata){
 		data= cmdCap->GetCapture(imgSize);
 		
 		if(data != NULL){
-			manager->putData( localKey, data , imgSize );
+			manager->putData( _keyHolder.localKey, data , imgSize );
 			free(data);
 			data= NULL;
 			imgSize= 0;

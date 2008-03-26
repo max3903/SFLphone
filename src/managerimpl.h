@@ -715,7 +715,7 @@ private:
 
   // MEMMANAGER
   MemManager *_memManager;
-  KeyHolder _keyHolder;
+  static KeyHolder _keyHolder;
   
   /////////////////////
   // Protected by Mutex
