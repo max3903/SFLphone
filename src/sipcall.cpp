@@ -32,6 +32,9 @@ SIPCall::SIPCall(const CallID& id, Call::CallType type) : Call(id, type)
   _cid = 0;
   _did = 0;
   _tid = 0;
+
+  // A ENLEVER
+  ReinviteEnCours=false;
 }
 
 SIPCall::~SIPCall() 
