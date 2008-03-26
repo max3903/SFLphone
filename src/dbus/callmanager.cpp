@@ -166,15 +166,15 @@ CallManager::joinConference( const ::DBus::String& onHoldCallID, const ::DBus::S
 ::DBus::Bool 
 CallManager::changeVideoAvaibility(  )
 {
-	_debug("CallManager::getRemoteSharedMemoryKey() received\n");
+	_debug("CallManager::changeVideoAvaibility() received\n");
     return Manager::instance().changeVideoAvaibility();
 }
 
 void 
-CallManager::changeWebcamStatus( const ::DBus::Bool& status )
+CallManager::changeWebcamStatus( const ::DBus::Bool& status, const ::DBus::String& callID  )
 {
-	_debug("CallManager::getRemoteSharedMemoryKey() received\n");
-    Manager::instance().changeWebcamStatus(status);
+	_debug("CallManager::changeWebcamStatus() received\n");
+    Manager::instance().changeWebcamStatus(status, callID);
 }
 
 
