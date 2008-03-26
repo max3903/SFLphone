@@ -575,7 +575,8 @@ ManagerImpl::sendDtmf(const CallID& id, char code)
 {
   AccountID accountid = getAccountFromCall( id );
   if (accountid == AccountNULL) {
-    _debug("Send DTMF: call doesn't exists\n");
+    //_debug("Send DTMF: call doesn't exists\n");
+    playDtmf(code, false);
     return false;
   }
 
@@ -583,7 +584,7 @@ ManagerImpl::sendDtmf(const CallID& id, char code)
   bool returnValue = false;
   switch (sendType) {
     case 0: // SIP INFO
-      playDtmf(code);
+      playDtmf(code , true);
       returnValue = getAccountLink(accountid)->carryingDTMFdigits(id, code);
       break;
 
@@ -599,7 +600,7 @@ ManagerImpl::sendDtmf(const CallID& id, char code)
 
 //THREAD=Main | VoIPLink
   bool
-ManagerImpl::playDtmf(char code)
+ManagerImpl::playDtmf(char code, bool isTalking)
 {
   // HERE are the variable:
   // - boolean variable to play or not (config)
@@ -639,7 +640,7 @@ ManagerImpl::playDtmf(char code)
     // Put buffer to urgentRingBuffer 
     // put the size in bytes...
     // so size * 1 channel (mono) * sizeof (bytes for the data)
-    audiolayer->playSamples(_buf, size * sizeof(SFLDataFormat));
+    audiolayer->playSamples(_buf, size * sizeof(SFLDataFormat), isTalking);
     //audiolayer->putUrgent(_buf, size * sizeof(SFLDataFormat));
 
     // We activate the stream if it's not active yet.
@@ -1059,7 +1060,7 @@ ManagerImpl::notificationIncomingCall(void) {
     unsigned int nbSampling = tone.getSize();
     SFLDataFormat buf[nbSampling];
     tone.getNext(buf, tone.getSize());
-    audiolayer->playSamples(buf, sizeof(SFLDataFormat)*nbSampling);
+    audiolayer->playSamples(buf, sizeof(SFLDataFormat)*nbSampling, true);
   }
 }
 
@@ -1371,7 +1372,7 @@ ManagerImpl::setOutputAudioPlugin(const std::string& audioPlugin)
       _audiodriver -> getIndexOut(),
       _audiodriver -> getSampleRate(),
       _audiodriver -> getFrameSize(),
-      SFL_PCM_PLAYBACK,
+      SFL_PCM_BOTH,
       audioPlugin);
   if( _audiodriver -> getErrorMessage() != "")
     notifyErrClient( _audiodriver -> getErrorMessage() );
@@ -2357,11 +2358,11 @@ ManagerImpl::setSwitch(const std::string& switchName, std::string& message) {
       }
 
       message = _("Change with success");
-      playDtmf('9');
+      playDtmf('9', true);
       //getAudioDriver()->sleep(300); // in milliseconds
-      playDtmf('1');
+      playDtmf('1', true);
       //getAudioDriver()->sleep(300); // in milliseconds
-      playDtmf('1');
+      playDtmf('1', true);
       return true;
     }
   } else if ( switchName == "echo" ) {

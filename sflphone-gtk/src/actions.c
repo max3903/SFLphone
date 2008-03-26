@@ -43,7 +43,10 @@ sflphone_notify_voice_mail (guint count)
 	if(count > 0)
 	{
 		gchar * message = g_new0(gchar, 50);
-		g_sprintf(message, _("%d new voice mail%s"), count, (count > 1? "s" : "")); 
+		if( count > 1)
+		  g_sprintf(message, _("%d new voice mails"), count);
+		else
+		  g_sprintf(message, _("%d new voice mail"), count);	  
 		status_bar_message(message);
 		g_free(message);
 	}
@@ -433,6 +436,7 @@ call_t * sflphone_new_call()
 	void 
 sflphone_keypad( guint keyval, gchar * key)
 {
+	dbus_play_dtmf(key);
 	call_t * c = call_get_selected();
 	if(c)
 	{
@@ -440,6 +444,7 @@ sflphone_keypad( guint keyval, gchar * key)
 		switch(c->state) 
 		{
 			case CALL_STATE_DIALING: // Currently dialing => edit number
+				//dbus_play_dtmf(key);
 				process_dialing(c, keyval, key);
 				break;
 			case CALL_STATE_CURRENT:
