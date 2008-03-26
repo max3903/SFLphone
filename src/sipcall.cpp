@@ -32,6 +32,9 @@ SIPCall::SIPCall(const CallID& id, Call::CallType type) : Call(id, type)
   _cid = 0;
   _did = 0;
   _tid = 0;
+
+  // A ENLEVER
+  ReinviteEnCours=false;
 }
 
 SIPCall::~SIPCall() 
@@ -124,7 +127,7 @@ SIPCall::SIPCallInvite(eXosip_event_t *event)
 bool 
 SIPCall::SIPCallReinvite(eXosip_event_t *event)
 {
-  /*
+  
   if (event->cid < 1 && event->did < 1) {
     _debug("SIP Failure: Invalid cid and did\n");
     return false;
@@ -135,11 +138,12 @@ SIPCall::SIPCallReinvite(eXosip_event_t *event)
     return false;
   }
 
-  setCid(event->cid);
-  setDid(event->did);
-  setTid(event->tid);
+  // TODO: pas sure
+  //setCid(event->cid);
+  //setDid(event->did);
+  //setTid(event->tid);
 
-  setPeerInfoFromRequest(event);
+  //setPeerInfoFromRequest(event);
 
   sdp_message_t* remote_sdp = getRemoteSDPFromRequest(event);
   if (remote_sdp == 0) {
@@ -153,12 +157,17 @@ SIPCall::SIPCallReinvite(eXosip_event_t *event)
   }
 
   if (!setRemoteAudioFromSDP(remote_med, remote_sdp)) {
-    _debug("SIP Failure: unable to set IP address and port from SDP\n");
+    _debug("SIP Failure: unable to set audio IP address and port from SDP\n");
     sdp_message_free (remote_sdp);
     return false;
   }
 
-  // AJOUTER RemoteVideoFromSDP
+  // TODO: AJOUTER RemoteVideoFromSDP
+  if (!setRemoteVideoFromSDP(remote_med, remote_sdp)) {
+    _debug("SIP Failure: unable to set video IP address and port from SDP\n");
+    sdp_message_free (remote_sdp);
+    return false;
+  }
 
   if (!setAudioCodecFromSDP(remote_med, event->tid)) {
     sdp_message_free (remote_sdp);
@@ -166,6 +175,14 @@ SIPCall::SIPCallReinvite(eXosip_event_t *event)
   }
 
   // AJOUTER SetVideoFromSDP
+  //if (!setVideoCodecFromSDP(remote_med, event->tid)) {
+    //sdp_message_free (remote_sdp);
+    //return false;
+  //}
+
+
+  // a enlever!!
+  setReinviteEnCours(true);
 
   osip_message_t *answer = 0;
   eXosip_lock();
@@ -187,9 +204,8 @@ SIPCall::SIPCallReinvite(eXosip_event_t *event)
       }
       //if (local_sdp != NULL && local_med != NULL && local_vid_med != NULL) {
         if (local_sdp != NULL && local_med != NULL) {
-        */
+        
         /* search if stream is sendonly or recvonly */
-        /*
         int _remote_sendrecv = sdp_analyse_attribute (remote_sdp, remote_med);
         int _local_sendrecv =  sdp_analyse_attribute (local_sdp, local_med);
         _debug("            Remote SendRecv: %d\n", _remote_sendrecv);
@@ -210,7 +226,7 @@ SIPCall::SIPCallReinvite(eXosip_event_t *event)
   eXosip_unlock ();
   sdp_message_free (remote_sdp);
   return true;
-  */
+
 }
 
 bool 
@@ -387,7 +403,8 @@ SIPCall::sdp_complete_message(sdp_message_t * remote_sdp, osip_message_t * msg)
         iPayload++;
       }
       if (listCodec.str().empty()) {
-        media << "m=" << remote_med->m_media << " 0 " << remote_med->m_proto << " \r\n";
+        // TODO: p-e a laisse!!!!!
+        //media << "m=" << remote_med->m_media << " 0 " << remote_med->m_proto << " \r\n";
       } else {
         // we add the media line + a=rtpmap list
         media << "m=" << remote_med->m_media << " " << getLocalExternAudioPort() << " RTP/AVP " << listCodec.str() << "\r\n";
@@ -436,6 +453,29 @@ SIPCall::sdp_complete_message(sdp_message_t * remote_sdp, osip_message_t * msg)
   //tmpMediaVideo << "a=rtpmap:34 H263/90000\r\n";
   // a jouter dans le buf
 
+
+  // TEMPORAIRE!!!!!!!!!!!!!!!!!! A ENLEVER!
+  if (getReinviteEnCours()){
+    printf("Reinvite en cours = OUI!!!");
+    char test[4096];
+    snprintf (test, 4096,
+    "v=0\r\n"
+    "o=user 0 0 IN IP4 %s\r\n"
+    "s=session\r\n"
+    "c=IN IP4 %s\r\n"
+    "t=0 0\r\n"
+    "%s"
+    "m=video 12345 RTP/AVP 34\r\n"
+    "a=rtpmap:34 H263/90000\r\n", getLocalIp().c_str(), getLocalIp().c_str(), media.str().c_str());
+
+    osip_message_set_body (msg, test, strlen (test));
+    osip_message_set_content_type (msg, "application/sdp");
+    printf("      Reinvite    sdp: %s", test);
+    return 0;
+  } 
+
+  printf("Reinvite en cours = NON!!!!");
+
   char buf[4096];
   snprintf (buf, 4096,
     "v=0\r\n"
@@ -444,6 +484,7 @@ SIPCall::sdp_complete_message(sdp_message_t * remote_sdp, osip_message_t * msg)
     "c=IN IP4 %s\r\n"
     "t=0 0\r\n"
     "%s\n", getLocalIp().c_str(), getLocalIp().c_str(), media.str().c_str());
+
 
   osip_message_set_body (msg, buf, strlen (buf));
   osip_message_set_content_type (msg, "application/sdp");
@@ -622,6 +663,22 @@ SIPCall::setRemoteAudioFromSDP(sdp_media_t* remote_med, sdp_message_t* remote_sd
   }
   return true;
 }
+
+// VIDEO!!!
+bool 
+SIPCall::setRemoteVideoFromSDP(sdp_media_t* remote_med, sdp_message_t* remote_sdp)
+{
+  // TODO: A FAIRE !!!!!
+  setRemoteVideoPort(12345);
+}
+
+// VIDEO!!!
+bool 
+SIPCall::setVideoCodecFromSDP(sdp_media_t* remote_med, int tid)
+{
+  // On sen fou pour linstant!
+}
+
 
 bool 
 SIPCall::setAudioCodecFromSDP(sdp_media_t* remote_med, int tid)

@@ -58,6 +58,9 @@
   (_config.addConfigTreeItem(section, Conf::ConfigTreeItem(std::string(name), std::string(value), type_str)))
 #define fill_config_int(name, value) \
   (_config.addConfigTreeItem(section, Conf::ConfigTreeItem(std::string(name), std::string(value), type_int)))
+  
+bool ManagerImpl::_localCapActive;
+KeyHolder ManagerImpl::_keyHolder;
 
 ManagerImpl::ManagerImpl (void)
 {
@@ -140,7 +143,6 @@ void ManagerImpl::init()
   // Allocate instance of Video Device Manager
   initVideoDeviceManager();
 
-
   getAudioInputDeviceList();
 
   AudioLayer *audiolayer = getAudioDriver();
@@ -158,6 +160,10 @@ void ManagerImpl::init()
   // initRegisterAccounts was here, but we doing it after the gui loaded... 
   // the stun detection is long, so it's a better idea to do it after getEvents
   initZeroconf();
+  
+  // \TODO: To remove for debug purpose only
+  //if( !this->enableLocalVideoPref() )
+  	//exit(-1);
 }
 
 void ManagerImpl::terminate()
@@ -2799,12 +2805,14 @@ void ManagerImpl::initVideoDeviceManager(void)
 
 	_videoDeviceManager = VideoDeviceManager::getInstance();
 	ptracesfl("Video Device Manager init",MT_INFO,5,true);
+	
+	_videoDeviceManager->createDevice("/dev/video0");
 
 }
 
 void ManagerImpl::initMemManager(void)
 {
-	int dummySize = 1024;
+	int dummySize = 300000;
 
 	_memManager = MemManager::getInstance();
 	ptracesfl("MEMSPACE INIT MANAGER",MT_INFO,1,true);
@@ -2812,8 +2820,10 @@ void ManagerImpl::initMemManager(void)
 	//SetSpace and attach to running process
 	srand ( time(NULL) );
 	_keyHolder.localKey = _memManager->initSpace(dummySize);
+	_keyHolder.localKey->setDescription("local");
 	ptracesfl("LOCAL MEMSPACE started",MT_INFO,2,true);
 	_keyHolder.remoteKey = _memManager->initSpace(dummySize);
+	_keyHolder.remoteKey->setDescription("remote");
 	ptracesfl("REMOTE MEMSPACE started",MT_INFO,2,true);
 
 }
@@ -2821,14 +2831,14 @@ void ManagerImpl::initMemManager(void)
 std::string 
 ManagerImpl::getLocalSharedMemoryKey()
 {
-	return _keyHolder.localKey->getDescription();
+	return _keyHolder.localKey->serialize();
 	ptracesfl("LOCAL Memspace shmid sent",MT_INFO,2,true);
 }
 
 std::string 
 ManagerImpl::getRemoteSharedMemoryKey()
 {
-	return _keyHolder.remoteKey->getDescription();
+	return _keyHolder.remoteKey->serialize();
 	ptracesfl("REMOTE Memspace shmid sent",MT_INFO,2,true);
 }
 
@@ -2934,6 +2944,84 @@ int
 ManagerImpl::getResolutionIndex( const std::string name )
 {
 	return 0;
+}
+
+bool 
+ManagerImpl::enableLocalVideoPref(){
+	
+	if( _localCapActive ){
+		ptracesfl("Local Capture for preference windows already active", MT_WARNING, MANAGERIMPL_TRACE);
+		return true;
+	}
+	
+	_localCapActive= true;
+	
+	if( pthread_create(&_localVidCap_Thread, NULL, localVideCapturepref, NULL) != 0 ){
+		ptracesfl("Cannot create capture thread for capture (preference widnow)", MT_ERROR, MANAGERIMPL_TRACE);
+		return false;
+	}
+			
+	return true;
+}
+
+bool 
+ManagerImpl::disableLocalVideoPref(){
+	
+	_localCapActive= false;
+	
+	return true;
+}
+
+void* ManagerImpl::localVideCapturepref(void* pdata){
+	
+	ptracesfl("Starting Local video capture for preference window", MT_INFO, MANAGERIMPL_TRACE);
+	
+	Capture* cmdCap= (Capture*)VideoDeviceManager::getInstance()->getCommand(VideoDeviceManager::CAPTURE);
+	MemManager* manager= MemManager::getInstance();
+	/*vector<MemKey*> tmp= manager->getAvailSpaces();
+	MemKey* localKey= NULL;
+	string searchString= "local";
+	
+	printf("\nSearching for: \%s\n", searchString.c_str());
+	for(int i= 0; i < tmp.size(); i++){
+		printf("\n Found: %s\n", ((MemKey*)tmp[i])->getDescription().c_str());
+		if( ((MemKey*)tmp[i])->getDescription() == searchString ){
+			localKey= tmp[i];
+			break;
+		}
+		
+	}
+	
+	if( localKey == NULL ){
+		ptracesfl("No local shared memory space found!", MT_ERROR, MANAGERIMPL_TRACE);
+		_localCapActive= false;
+		exit(-1);
+	}*/
+	
+	int imgSize= 0;
+	unsigned char* data= NULL;
+	
+	while(_localCapActive){
+		
+		data= cmdCap->GetCapture(imgSize);
+		
+		if(data != NULL){
+			manager->putData( _keyHolder.localKey, data , imgSize );
+			free(data);
+			data= NULL;
+			imgSize= 0;
+		}
+		
+		usleep(5);
+	}
+	
+	if(data != NULL)
+		delete data;
+	
+	delete cmdCap;
+	
+	ptracesfl("Stopping Local video capture for preference window", MT_INFO, MANAGERIMPL_TRACE);
+	
 }
 
 /*

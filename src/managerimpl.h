@@ -60,6 +60,8 @@ class VideoDeviceManager;
 class DNSService;
 #endif
 
+#define MANAGERIMPL_TRACE	1
+
 //TODO: remove when it will be linked to the struct in V4L
 typedef struct  {
   /** Minimum value for the slider */
@@ -73,8 +75,8 @@ typedef struct  {
 } slider_t;
 
 struct KeyHolder{
-const MemKey* localKey;
-const MemKey* remoteKey;
+MemKey* localKey;
+MemKey* remoteKey;
 };
 /**
  * Define a type for a AccountMap container
@@ -588,8 +590,34 @@ public:
     void setResolution( const int index );
     std::vector< std::string > getCurrentResolutionIndex(  );
     int getResolutionIndex( const std::string name );
+    
+    
+    /** Method to activate Local video Capture for the preference video
+     * @return The success of the operation
+     */ 
+    bool enableLocalVideoPref();
+    
+    /** Method to deactivate Local video Capture for the preference video
+     * @return The success of the operation
+     */
+    bool disableLocalVideoPref();
+    
+    /** Method that captures the data from the web cam for the prefenrences window
+     * 
+     * This method is ran as a thread
+     */
+    static void* localVideCapturepref(void* pdata);
 
 private:
+
+  /** Attribute telling if the local capture for the web cam is active
+   */
+  static bool _localCapActive;
+  
+  /** Local capture for preference window thread information;
+   */
+  pthread_t _localVidCap_Thread;
+
  /**
   * Create .PROGNAME directory in home user and create 
   * configuration tree from the settings file if this file exists.
@@ -687,7 +715,7 @@ private:
 
   // MEMMANAGER
   MemManager *_memManager;
-  KeyHolder _keyHolder;
+  static KeyHolder _keyHolder;
   
   /////////////////////
   // Protected by Mutex
