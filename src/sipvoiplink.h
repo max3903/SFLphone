@@ -24,6 +24,8 @@
 #include <string>
 #include <eXosip2/eXosip.h>
 #include "audio/audiortp.h"
+#include "video/VideoRtp.h"
+
 
 class EventThread;
 class SIPCall;
@@ -158,6 +160,9 @@ private:
    */
   bool setCallAudioLocal(SIPCall* call);
 
+  // TODO: faire lentete!
+  bool setCallVideoLocal(SIPCall* call);
+
   /**
    * Create a new call and send a incoming call notification to the user
    * @param event eXosip Event
@@ -291,6 +296,10 @@ private:
 
   /** Starting sound */
   AudioRtp _audiortp;
+
+  /** Starting video */
+  VideoRtp _videortp;
+
 };
 
 #endif

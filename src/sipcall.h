@@ -85,6 +85,11 @@ public:
   int sdp_complete_message(sdp_message_t * remote_sdp, osip_message_t * msg);
 
 
+  // TODO: A ENLEVER
+  void setReinviteEnCours(bool a) { ReinviteEnCours = a; }
+  bool getReinviteEnCours() { return ReinviteEnCours; }
+
+
 private:
 
   // TODO: hum???
@@ -128,6 +133,11 @@ private:
    */
   bool setAudioCodecFromSDP(sdp_media_t* remote_med, int tid);
 
+  // TODO: faire les entetes !
+  bool setRemoteVideoFromSDP(sdp_media_t* remote_med, sdp_message_t* remote_sdp);
+  bool setVideoCodecFromSDP(sdp_media_t* remote_med, int tid);
+
+
  
   /** SIP call id */
   int _cid;
@@ -135,6 +145,9 @@ private:
   int _did;
   /** SIP transaction id */
   int _tid;
+
+  //// TESTTTT!
+  bool ReinviteEnCours;
 
 };
 
