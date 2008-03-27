@@ -92,8 +92,14 @@ void VideoCodec::init(){
 	
 	ptracesfl("VideoCodec initialisation",MT_INFO,VIDEOCODECPTRACE,true);
 	
+	//Get VideoDescriptor Instance
 	_videoDesc = VideoCodecDescriptor::getInstance();
 	
+	//Get V4LManager instance
+	_v4lManager = VideoDeviceManager::getInstance();
+	
+	_cmdRes = (Resolution*)_v4lManager->getCommand(VideoDeviceManager::RESOLUTION);
+
 	//check if active Codec
 	if(_codecName == NULL)
 	{
@@ -107,18 +113,30 @@ void VideoCodec::init(){
 	initEncodeContext();
 	initDecodeContext();
 	
+	
+	
 }
 
 void VideoCodec::initEncodeContext(){
 
-
+	
+	pair<int,int> tmp; 
+	printf("Init EncodeContext\n");
 	//initialize basic encoding context
+	
 	_encodeCodecCtx = avcodec_alloc_context();
-
+	
 	_encodeCodecCtx->bit_rate = VIDEO_BIT_RATE;
-	avcodec_open (_encodeCodecCtx, _Codec);
-	_encodeCodecCtx->width = DEFAULT_WIDTH;
-	_encodeCodecCtx->height = DEFAULT_HEIGHT;
+	
+	if (_cmdRes != NULL){
+	tmp = _cmdRes->getResolution();
+	_encodeCodecCtx->width = tmp.first;
+	_encodeCodecCtx->height = tmp.second;
+	}
+	else{
+		_encodeCodecCtx->width = DEFAULT_WIDTH;
+	_encodeCodecCtx->height = DEFAULT_HEIGHT;	
+	}
 	
 	
 	if (_codecName == "h264")
@@ -144,6 +162,7 @@ void VideoCodec::initEncodeContext(){
 	
 	_encodeCodecCtx->mb_decision = FF_MB_DECISION_BITS;
 
+	avcodec_open(_encodeCodecCtx, _Codec);
 
 }
 

@@ -28,6 +28,7 @@
 
 #include "../VideoCodecDescriptor.h"
 #include "VideoSettings.h"
+#include "../V4L/VideoDeviceManager.h"
 
 class VideoCodec {
 public:
@@ -116,6 +117,14 @@ private:
      * Libavcodec Codec context
      */
     AVCodecContext* _decodeCodecCtx;
+    
+    /**
+     * Active Resolution
+     */
+    Resolution* _cmdRes;
+    
+    // Video device manager instance
+	VideoDeviceManager *_v4lManager;
     
     
 

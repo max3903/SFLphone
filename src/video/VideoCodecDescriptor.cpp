@@ -63,28 +63,10 @@ VideoCodecDescriptor* VideoCodecDescriptor::getInstance()
     
      bool VideoCodecDescriptor::initCodecMap()
     {
-		FILE *codecFile;
+		
 		char *codec;
 		AVCodec* tmp;
-		//TODO!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1
-		//open videoDescriptor File
-//		codecFile = fopen("videoCodecs.dat","b");
-//		if (codecFile == NULL){
-//			ptrace("Codec File Not found",MT_ERROR,2,false);
-//			return false;
-//			}
-//			
-//    	while(fgets(codec,6,codecFile) != NULL)
-//    	{
-//    	ptrace("Codec : ",MT_NONE,2,false);
-//    	ptrace(codec,MT_INFO,2,true);
-//    	//make sure you can encode with codec read in file
-//    	tmp = avcodec_find_encoder_by_name(codec);
-//    	
-//    		if(tmp != NULL)
-//    		{
-//    		//make sure you can decode with codec read in file
-    		
+		
     			tmp = avcodec_find_decoder_by_name("h264");
     			if(tmp != NULL)
     			{
@@ -101,9 +83,7 @@ VideoCodecDescriptor* VideoCodecDescriptor::getInstance()
     			ptracesfl(" Found",MT_NONE,2,true);
     			vCodecMap[tmp] = avcodec_alloc_context();	
     			}
-//    		}
-//    	}
-    
+
     return true;
     }
     
