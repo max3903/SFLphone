@@ -34,7 +34,7 @@ SIPCall::SIPCall(const CallID& id, Call::CallType type) : Call(id, type)
   _tid = 0;
 
   // A ENLEVER
-  ReinviteEnCours=false;
+  //ReinviteEnCours=false;
 }
 
 SIPCall::~SIPCall() 
@@ -182,7 +182,7 @@ SIPCall::SIPCallReinvite(eXosip_event_t *event)
 
 
   // a enlever!!
-  setReinviteEnCours(true);
+  //setReinviteEnCours(true);
 
   osip_message_t *answer = 0;
   eXosip_lock();
@@ -369,7 +369,7 @@ SIPCall::sdp_complete_message(sdp_message_t * remote_sdp, osip_message_t * msg)
     if ( (0 != osip_strcasecmp (remote_med->m_media, "audio")) && (0 != osip_strcasecmp (remote_med->m_media, "video"))) {
       printf("ERRURE!!!!!!!");
       // if this is not an "audio" or "video" media, we set it to 0
-      //media << "m=" << remote_med->m_media << " 0 " << remote_med->m_proto << " \r\n";
+      media << "m=" << remote_med->m_media << " 0 " << remote_med->m_proto << " \r\n";
     } else if (0 != osip_strcasecmp (remote_med->m_media, "audio")) {
       // POUR L'AUDIO!!!!
       std::ostringstream listCodec;
@@ -404,7 +404,7 @@ SIPCall::sdp_complete_message(sdp_message_t * remote_sdp, osip_message_t * msg)
       }
       if (listCodec.str().empty()) {
         // TODO: p-e a laisse!!!!!
-        //media << "m=" << remote_med->m_media << " 0 " << remote_med->m_proto << " \r\n";
+        media << "m=" << remote_med->m_media << " 0 " << remote_med->m_proto << " \r\n";
       } else {
         // we add the media line + a=rtpmap list
         media << "m=" << remote_med->m_media << " " << getLocalExternAudioPort() << " RTP/AVP " << listCodec.str() << "\r\n";
@@ -455,6 +455,7 @@ SIPCall::sdp_complete_message(sdp_message_t * remote_sdp, osip_message_t * msg)
 
 
   // TEMPORAIRE!!!!!!!!!!!!!!!!!! A ENLEVER!
+  /*
   if (getReinviteEnCours()){
     printf("Reinvite en cours = OUI!!!");
     char test[4096];
@@ -473,8 +474,12 @@ SIPCall::sdp_complete_message(sdp_message_t * remote_sdp, osip_message_t * msg)
     printf("      Reinvite    sdp: %s", test);
     return 0;
   } 
+  */
 
-  printf("Reinvite en cours = NON!!!!");
+  printf("VOICI LE SDP!");
+  printf(media.str().c_str());
+  
+  
 
   char buf[4096];
   snprintf (buf, 4096,

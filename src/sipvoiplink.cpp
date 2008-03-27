@@ -604,6 +604,7 @@ bool
 SIPVoIPLink::answer(const CallID& id)
 {
   _debug("- SIP Action: start answering\n");
+  printf("EST_CE QUIL PASSE ICI???");
 
   SIPCall* call = getSIPCall(id);
   if (call==0) {
@@ -647,7 +648,7 @@ SIPVoIPLink::answer(const CallID& id)
   eXosip_unlock();
 
   // TODO: a enlever
-  printf("SIPVoIPLink::answer called!");
+  //printf("SIPVoIPLink::answer called!");
 
   if(i==0) {
     // Incoming call is answered, start the sound thread.
@@ -656,6 +657,7 @@ SIPVoIPLink::answer(const CallID& id)
       call->setAudioStart(true);
       call->setConnectionState(Call::Connected);
       call->setState(Call::Active);
+      _debug("RTP AUDIO CREATED!\n"); // todo: a enlever!
       return true;
     } else {
       _debug("! SIP Failure: Unable to start sound when answering %s/%d\n", __FILE__, __LINE__);
@@ -1595,12 +1597,12 @@ SIPVoIPLink::SIPCallAck(eXosip_event_t *event)
       }
       _debug("* SIP Info: Starting VideoRTP when ack\n");
       // todo: verifier que nous sommes en train denvoyer un REINVITE!
-      if ( _videortp.createNewVideoSession(call,false) ) {
-        printf("RTP VIDEO CREE!");
-        call->setVideoStart(true);
-      }
-      else
-        printf("IMPOSSIBLE CREE RTP VIDEO!");
+      //if ( _videortp.createNewVideoSession(call,false) ) {
+        //printf("RTP VIDEO CREE!");
+        //call->setVideoStart(true);
+      //}
+      //else
+        //printf("IMPOSSIBLE CREE RTP VIDEO!");
     }
   }
 }
