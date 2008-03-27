@@ -55,11 +55,29 @@ MemKey* initSpace( MemKey *key )
 int fetchData( MemKey *key, MemData *data )
 {
 	//\TODO: Add multiple access protection
-	if( data != NULL && key != NULL )
-		memcpy(data->data, key->BaseAdd, key->size);
-	else
+	
+	return -1;
+	
+	if( key == NULL )
 		return -1;
+	
+	if( data == NULL )
+		return -1;
+	
+	if(data->data != 0)
+		free(data->data);
 		
+	// Get Image payload size
+	memcpy(&data->size, key->BaseAdd, sizeof(int));
+	
+	// Get image width and height
+	memcpy(&data->width, key->BaseAdd + sizeof(int), sizeof(int));
+	memcpy(&data->height, key->BaseAdd + (sizeof(int) * 2), sizeof(int));
+		
+	// Get Image payload
+	data->data= (unsigned char*)malloc(data->size);
+	memcpy(data->data, key->BaseAdd + (sizeof(int) * 3), data->size);
+			
  	return 0;
 	
 }
@@ -85,6 +103,7 @@ int InitMemSpaces( char* local, char* remote )
 			return -1;
 		
 		localBuff= (MemData*)calloc(1, sizeof(MemData));
+		localBuff->data= 0;
 		if( localBuff == NULL)
 			return -1;
 	}

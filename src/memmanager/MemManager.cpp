@@ -286,9 +286,9 @@ bool MemManager::putData(key_t key, unsigned char * Data, int size)
 
 bool MemManager::putData(MemKey* key, unsigned char * Data, int size)
 {
-	(*(key->getIndex()))->putData(Data,size);
-
-			return true;
+	//(*(key->getIndex()))->putData(Data,size);
+	
+	return this->putData(key->getKey(), Data, size);
 	
 }
 
