@@ -2338,6 +2338,36 @@ ManagerImpl::getContactEntryDetails(const std::string& accountID, const std::str
 	return entryDetails;
 }
 
+void
+ManagerImpl::setContact( const std::string& accountID, const std::string& contactID, const std::string& firstName, const std::string& lastName, const std::string& email )
+{
+	// TODO
+}
+
+void
+ManagerImpl::removeContact( const std::string& accountID, const std::string& contactID )
+{
+	// TODO
+}
+
+void
+ManagerImpl::setContactEntry( const std::string& accountID, const std::string& contactID, const std::string& entryID, const std::string& text, const std::string& type, const std::string& IsShown, const std::string& IsSubscribed )
+{
+	// TODO
+}
+
+void
+ManagerImpl::removeContactEntry( const std::string& accountID, const std::string& contactID, const std::string& entryID )
+{
+	// TODO
+}
+
+void
+ManagerImpl::setPresence( const std::string& accountID, const std::string& presence, const std::string& additionalInfo )
+{
+	// TODO
+}
+
 //THREAD=Main
 /*
  * Experimental...

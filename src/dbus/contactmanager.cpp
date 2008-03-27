@@ -55,19 +55,31 @@ ContactManager::getContactEntryDetails( const ::DBus::String& accountID, const :
 }
 
 void
-ContactManager::setContacts( const ::DBus::String& accountID, const std::vector< ::DBus::String >& details )
+ContactManager::setContact( const ::DBus::String& accountID, const ::DBus::String& contactID, const ::DBus::String& firstName, const ::DBus::String& lastName, const ::DBus::String& email )
 {
-	// TODO
+	Manager::instance().setContact(accountID, contactID, firstName, lastName, email);
 }
 
 void
-ContactManager::setContactEntries( const ::DBus::String& contactID, const std::vector< ::DBus::String >& details )
+ContactManager::removeContact( const ::DBus::String& accountID, const ::DBus::String& contactID )
 {
-	// TODO
+	Manager::instance().removeContact(accountID, contactID);
+}
+
+void
+ContactManager::setContactEntry( const ::DBus::String& accountID, const ::DBus::String& contactID, const ::DBus::String& entryID, const ::DBus::String& text, const ::DBus::String& type, const ::DBus::String& IsShown, const ::DBus::String& IsSubscribed )
+{
+	Manager::instance().setContactEntry(accountID, contactID, entryID, text, type, IsShown, IsSubscribed);
+}
+
+void
+ContactManager::removeContactEntry( const ::DBus::String& accountID, const ::DBus::String& contactID, const ::DBus::String& entryID )
+{
+	Manager::instance().removeContactEntry(accountID, contactID, entryID);
 }
 
 void
 ContactManager::setPresence( const ::DBus::String& accountID, const ::DBus::String& presence, const ::DBus::String& additionalInfo )
 {
-	// TODO
+	Manager::instance().setPresence(accountID, presence, additionalInfo);
 }
