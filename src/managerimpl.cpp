@@ -2752,53 +2752,6 @@ ManagerImpl::retrieveActiveVideoCodecs()
 	return order;
 }
 
-  /**
- * Get list of supported video input device
- */
-std::vector<std::string>
-ManagerImpl::getVideoInputDeviceList(void)
-{
-	_debug("Get video input device list");
-	// \todo get video input device list
-	// returns the audio input device for testing only
-  	return _audiodriver->getSoundCardsInfo(SFL_PCM_CAPTURE);
-}
-
-/**
- * Set video input device
- */
-void
-ManagerImpl::setVideoInputDevice(const int index)
-{
-	_debug("Set video input device");
-	// \todo set video input device
-	printf("%d video input set\n", index);
-}
-
-/**
- * Get string array representing integer indexes of input video device
- */
-std::vector<std::string>
-ManagerImpl::getCurrentVideoDeviceIndex()
-{
-	_debug("Get current video device index");
-	std::vector<std::string> v;
-	// \todo get string array representing integer indexes of input video device
-	
-	return v;
-}
-
-/**
- * Get name, brightness, contrast, color, resolution of video device
- */
-std::vector<std::string>
-ManagerImpl::getVideoDeviceDetails(const int index)
-{
-	_debug("Get video input device list");
-	std::vector<std::string> v;
-	// \todo get video device details
-	return v;
-}
 
 void ManagerImpl::initVideoDeviceManager(void)
 {
@@ -2895,22 +2848,16 @@ ManagerImpl::getWebcamDeviceList(  )
 }
 
 void 
-ManagerImpl::setWebcamDevice( const int index )
+ManagerImpl::setWebcamDevice( const std::string& name )
 {
 	
 }
 
-std::vector< std::string  > 
-ManagerImpl::getCurrentWebcamDeviceIndex(  )
+std::string
+ManagerImpl::getCurrentWebcamDevice(  )
 {
-	std::vector<std::string> v;
+	std::string v;
 	return v;
-}
-
-int 
-ManagerImpl::getWebcamDeviceIndex( const std::string name )
-{
-	return 0;
 }
 
 std::vector< std::string > 
@@ -2947,23 +2894,27 @@ ManagerImpl::getResolutionList(  )
 }
 
 void 
-ManagerImpl::setResolution( const int index )
+ManagerImpl::setResolution( const std::string& name )
 {
-	
+	const char* temp = name.c_str();
+	char* tmp = (char*)temp;
+	((Resolution*)_videoDeviceManager->getCommand(VideoDeviceManager::RESOLUTION))->setTo(tmp);	
 }
 
 std::string 
 ManagerImpl::getCurrentResolution(  )
 {
-	std::string v;
-	return v;
+	pair<int,int> res;
+	std::string temp;
+	res = ((Resolution*)_videoDeviceManager->getCommand(VideoDeviceManager::RESOLUTION))->getResolution();
+	temp.clear();
+	temp += res.first;
+	temp += "x";
+	temp += res.second;
+	
+	return temp;
 }
 
-int 
-ManagerImpl::getResolutionIndex( const std::string name )
-{
-	return 0;
-}
 
 bool 
 ManagerImpl::enableLocalVideoPref(){
