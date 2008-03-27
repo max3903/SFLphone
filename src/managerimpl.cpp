@@ -134,14 +134,16 @@ void ManagerImpl::init()
   // Initialize the list of supported audio codecs
   initAudioCodec();
   
+   // Allocate instance of Video Device Manager
+  initVideoDeviceManager();
+  
   //Initialize Video Codec
   initVideoCodec();
   
   // Allocate memory right now
   initMemManager();
   
-  // Allocate instance of Video Device Manager
-  initVideoDeviceManager();
+
 
   getAudioInputDeviceList();
 
@@ -2663,17 +2665,28 @@ bool ManagerImpl::testAccountMap()
   void
 ManagerImpl::initVideoCodec (void)
 {
-	//TODO
+	//INITIALISATION OF VIDEOCODECDESCRIPTOR
   	_videoCodecDescriptor =  VideoCodecDescriptor::getInstance();
   	// if the user never set the codec list, use the default configuration
-	if(getConfigString(AUDIO, "ActiveCodecs") == ""){
+	if(getConfigString(VIDEO, "ActiveCodecs") == ""){
     	_videoCodecDescriptor->setDefaultOrder();
+   
 	}
   	// else retrieve the one set in the user config file
 	else{
 		std::vector<std::string> active_list = retrieveActiveVideoCodecs(); 
 		setActiveVideoCodecList(active_list);
   	}
+  	
+  	// if the user never set the bitrate
+	if(getConfigString(VIDEO, "BitRate") == ""){
+    	_videoCodecDescriptor->setDefaultBitRate();
+	}
+  	// else retrieve the one set in the user config file
+	else{
+	//TODO Mamer !
+  	}
+  	
 }
 
   void

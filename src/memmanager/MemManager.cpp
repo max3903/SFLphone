@@ -273,7 +273,6 @@ bool MemManager::putData(key_t key, unsigned char * Data, int size)
 {
 	vector<MemSpace*>::iterator iter;
 
-	
 	for( iter = spaces.begin(); iter != spaces.end() ;iter++)
 		if ((*iter)->getMemKey()->getKey() == key)
 		{
