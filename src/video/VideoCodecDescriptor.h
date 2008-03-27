@@ -65,6 +65,10 @@ typedef std::vector<std::string> StringVector;
 /* VideoCodecOrder iterator typedef*/
 typedef StringVector::iterator StringVectorIterator;
 
+typedef std::vector<int> IntVector;
+/* VideoCodecOrder iterator typedef*/
+typedef IntVector::iterator IntIterator;
+
 
 class VideoCodecDescriptor {
 public:
@@ -172,8 +176,6 @@ public:
      * @param sCodecMap a string list of vectors
      */
     bool saveCodecMap(StringVector sCodecMap);
-   	
-    
 
 private:	
 
@@ -187,14 +189,15 @@ private:
      *  Create Map of Codecs
      */
      bool initCodecMap();
-     
+     /**
+     *  Init BitRates
+     */
+     bool initBitRates();
      
      /**
      *  return codec Name
      */
      bool checkSupported();
-     
-    
 	/**
      * Vector of all the Active codecs
      */
@@ -203,6 +206,12 @@ private:
      * Map of all codecs, active and inactive
      */
     VideoCodecMap vCodecMap;
+    
+     /**
+     * a Int vector containing all bitrates
+     */
+    IntVector BitRateFormats;
+    
 
 protected:
 /**

@@ -57,6 +57,12 @@ VideoCodecDescriptor* VideoCodecDescriptor::getInstance()
     {
     	ptracesfl("videoCodecInit error",MT_FATAL,2,true);
     }
+    if (initBitRates() == false)
+    {
+    	ptracesfl("BitRates error",MT_FATAL,2,true);
+    }
+    
+    
    
    
     }
@@ -234,5 +240,21 @@ AVCodec* VideoCodecDescriptor::getDefaultCodec()
   
     }
     
+    bool VideoCodecDescriptor::initBitRates()
+    {
+    BitRateFormats.clear();
+    
+    BitRateFormats.push_back(32000);
+    BitRateFormats.push_back(64000);
+    BitRateFormats.push_back(128000);
+    BitRateFormats.push_back(256000);
+    BitRateFormats.push_back(384000);
+    BitRateFormats.push_back(512000);
+    BitRateFormats.push_back(768000);
+    BitRateFormats.push_back(1024000);
+    
+    return true;
+    
+    }
     
     
