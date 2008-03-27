@@ -27,6 +27,7 @@
 #include <menus.h>
 #include <screen.h>
 #include <statusicon.h>
+#include <MemManager.h>
 
 #include <gtk/gtk.h>
 #include <string.h>
@@ -170,8 +171,9 @@ sflphone_init()
 		sflphone_fill_codec_list();
 		sflphone_fill_contact_list();
 		sflphone_fill_video_codec_list();
+		InitMemSpaces( dbus_get_local_shared_memory_key(), dbus_get_remote_shared_memory_key());
 		return TRUE;
-	}
+	}	
 }
 
 	void 

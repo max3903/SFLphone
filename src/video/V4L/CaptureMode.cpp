@@ -27,3 +27,7 @@ unsigned char* CaptureMode::capture(VideoDevice* device){
 	return 0;
 }
 
+int CaptureMode::getRBGByteSize(){
+	return this->imageSize;
+}
+

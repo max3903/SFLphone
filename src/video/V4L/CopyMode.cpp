@@ -141,7 +141,7 @@ unsigned char* CopyMode::capture(VideoDevice* device){
 	ptracesfl( buff,MT_NONE, CAPTUREMODE_TRACE);
 	
 	ptracesfl( "Getting image buffer size: ",MT_INFO, CAPTUREMODE_TRACE, false);
-	int imageSize= width * height << 1;
+	this->imageSize= width * height << 1;
 	
     sprintf(buff, "%d\0", imageSize );
 	ptracesfl( buff,MT_NONE, CAPTUREMODE_TRACE);

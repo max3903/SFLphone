@@ -53,7 +53,9 @@ int VideoRtp::createNewVideoSession(SIPCall *call, bool Conf)
   }
   */
 
-  if (!Conf){
+  printf(" NOUS SOMMES DANS VIDEO RTP !!!!!!! ");
+
+  //if (!Conf){
     // Start RTP Send/Receive threads, CONVERSATION
     // TODO: Lire sur les session symmetric!
     //_symmetric = Manager::instance().getConfigInt(SIGNALISATION,SYMMETRIC) ? true : false; 
@@ -70,7 +72,7 @@ int VideoRtp::createNewVideoSession(SIPCall *call, bool Conf)
       throw;
     }
     return 0;
-  }
+  //}
   /*
   else{
     // Start RTP Send/Receive threads, CONFERENCE
