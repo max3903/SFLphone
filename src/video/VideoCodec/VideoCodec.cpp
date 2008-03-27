@@ -114,14 +114,12 @@ void VideoCodec::init(){
 	initDecodeContext();
 	
 	
-	
 }
 
 void VideoCodec::initEncodeContext(){
 
 	
 	pair<int,int> tmp; 
-	printf("Init EncodeContext\n");
 	//initialize basic encoding context
 	
 	_encodeCodecCtx = avcodec_alloc_context();
@@ -132,6 +130,7 @@ void VideoCodec::initEncodeContext(){
 	tmp = _cmdRes->getResolution();
 	_encodeCodecCtx->width = tmp.first;
 	_encodeCodecCtx->height = tmp.second;
+	
 	}
 	else{
 		_encodeCodecCtx->width = DEFAULT_WIDTH;

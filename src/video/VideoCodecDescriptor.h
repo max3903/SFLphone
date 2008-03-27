@@ -236,7 +236,5 @@ protected:
      */
     VideoCodecDescriptor();
     
-    
-
 };
 #endif //VIDEOCODECDESCRIPTOR_H
