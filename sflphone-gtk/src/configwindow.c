@@ -459,7 +459,7 @@ select_audio_input_device(GtkComboBox* comboBox, gpointer data)
 }
 
 /**
- * Set the webcam device on the server with its index
+ * Set the webcam device on the server with its name
  */
 static void
 select_webcam_device(GtkComboBox* comboBox, gpointer data)
@@ -489,19 +489,19 @@ config_window_fill_webcam_device_list()
 {
 	GtkTreeIter iter;
 	gchar** list;
-	gchar** webcamDevice;
-	int index ;
+	gchar* webcamName;
 	gtk_list_store_clear(webcamDeviceStore);
 	
 	// Call dbus to retrieve list
 	list = dbus_get_webcam_device_list();
 	
-	// For each device name included in list
-	for(webcamDevice = list; *list; list++)
+	// For each webcam included in list
+	int c = 0;
+	for(webcamName = list[c]; webcamName != NULL; webcamName = list[c])
 	{
-		index = dbus_get_webcam_device_index( *list );
+		c++;
 		gtk_list_store_append(webcamDeviceStore, &iter);
-		gtk_list_store_set(webcamDeviceStore, &iter, 0, *list, 1, index, -1);
+		gtk_list_store_set(webcamDeviceStore, &iter, 0 , webcamName, -1);
 	}
 }
 
@@ -540,7 +540,7 @@ select_active_webcam_device()
 }
 
 /**
- * Set the webcam device on the server with its index
+ * Set the webcam device on the server with its name
  */
 static void
 select_resolution(GtkComboBox* comboBox, gpointer data)
@@ -571,7 +571,6 @@ config_window_fill_resolution_list()
 	GtkTreeIter iter;
 	gchar** list;
 	gchar* resolutionName;
-	//int index = 1;
 	gtk_list_store_clear(resolutionStore);
 	
 	// Call dbus to retrieve list
@@ -1707,7 +1706,7 @@ create_webcam_tab ()
 	
 	// Set choices of webcam
 	webcamDeviceStore = gtk_list_store_new(2, G_TYPE_STRING, G_TYPE_INT);
-	//config_window_fill_webcam_device_list();
+	config_window_fill_webcam_device_list();
 	webcamDeviceComboBox = gtk_combo_box_new_with_model(GTK_TREE_MODEL(webcamDeviceStore));
 	//select_active_webcam_device();
   	gtk_label_set_mnemonic_widget(GTK_LABEL(titleLabel), webcamDeviceComboBox);

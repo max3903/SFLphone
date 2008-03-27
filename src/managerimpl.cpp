@@ -2890,6 +2890,7 @@ std::vector<std::string>
 ManagerImpl::getWebcamDeviceList(  )
 {
 	std::vector<std::string> v;
+	v = _videoDeviceManager->enumVideoDevices();	
 	return v;
 }
 
@@ -2915,12 +2916,10 @@ ManagerImpl::getWebcamDeviceIndex( const std::string name )
 std::vector< std::string > 
 ManagerImpl::getResolutionList(  )
 {
-	ptracesfl("Debut get resolution list :",MT_INFO,2,true);
 	int i=0;
 	std::vector<std::string> order; 
 	std::string temp;
 	const char* tmp= ((Resolution*)_videoDeviceManager->getCommand(VideoDeviceManager::RESOLUTION))->enumResolution();
-	ptracesfl("apres appel command :",MT_INFO,2,false);
 	
 	if( tmp == NULL ){
 		ptracesfl("Resolution list is empty",MT_WARNING,2,false);
