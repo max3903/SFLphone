@@ -158,6 +158,9 @@ gboolean drawLocal(GtkWidget* widget, gpointer data, GdkGLContext *glContext, Gd
 	glPixelZoom(1., -1.);
 	glDrawPixels(localBuff->width, localBuff->height, GL_RGB, GL_UNSIGNED_BYTE, localBuff->data );
 	
+	free(localBuff->data);
+	localBuff->data= 0;
+	
 	return TRUE;
 	
 }

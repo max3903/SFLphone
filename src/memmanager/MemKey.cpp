@@ -24,7 +24,7 @@ MemKey::MemKey()
 	this->key = this->genKey();
 	//TODO get index from memmanager
 	//TODO put DEFAULT size
-	this->description = serialize();
+	this->description = "";
 }
 
 MemKey::MemKey(std::string serializedData)
@@ -38,7 +38,7 @@ MemKey::MemKey(int size)
 {
 	this->size = size;
 	this->key = this->genKey();
-	this->description = serialize();
+	this->description = "";
 	
 }
 
@@ -47,7 +47,7 @@ MemKey::MemKey(int size,key_t key)
 {
 	this->size = size;
 	this->key = key;
-	this->description = serialize();
+	this->description = "";
 }
 
 
@@ -55,7 +55,7 @@ MemKey::MemKey( const MemKey* key)
 {	
 	this->index = key->index;
 	this->size = key->size;
-	this->description = serialize();
+	this->description = key->description;
 }
 
 
@@ -65,7 +65,7 @@ MemKey::MemKey(const MemKey& key)
 	this->size = key.size;
 	this->index = key.index;
 	this->size = key.size;
-	this->description = serialize();
+	this->description = key.description;
 }
 
 
@@ -131,4 +131,8 @@ key_t MemKey::genKey()
 {
 	 
 	return ftok("/tmp",rand() % 100);	
+}
+
+void MemKey::setDescription(const char* desc){
+	this->description= desc;
 }

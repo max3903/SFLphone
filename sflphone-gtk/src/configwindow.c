@@ -570,19 +570,20 @@ config_window_fill_resolution_list()
 {
 	GtkTreeIter iter;
 	gchar** list;
-	gchar** resolution;
-	int index ;
+	gchar* resolutionName;
+	//int index = 1;
 	gtk_list_store_clear(resolutionStore);
 	
 	// Call dbus to retrieve list
 	list = dbus_get_resolution_list();
 	
 	// For each resolution included in list
-	for(resolution = list; *list; list++)
+	int c = 0;
+	for(resolutionName = list[c]; resolutionName != NULL; resolutionName = list[c])
 	{
-		index = dbus_get_resolution_index( *list );
+		c++;
 		gtk_list_store_append(resolutionStore, &iter);
-		gtk_list_store_set(resolutionStore, &iter, 0, *list, 1, index, -1);
+		gtk_list_store_set(resolutionStore, &iter, 0 , resolutionName, -1);
 	}
 }
 
@@ -594,20 +595,19 @@ select_active_resolution()
 {
 	GtkTreeModel* model;
 	GtkTreeIter iter;
-	gchar** resolution;
-	int currentResolutionIndex;
-	int resolutionIndex;
+	gchar* resolution;
+	gchar* tmp;
 
-	// Select active resolution on server
-	resolution = dbus_get_current_resolution_index();
-	currentResolutionIndex = atoi(resolution[1]);
+	// Select active output device on server
+	resolution = dbus_get_current_resolution();
+	tmp = resolution;
 	model = gtk_combo_box_get_model(GTK_COMBO_BOX(resolutionComboBox));
-	
-	// Find the currently set resolution
+	  
+	// Find the currently set alsa plugin
 	gtk_tree_model_get_iter_first(model, &iter);
 	do {
-		gtk_tree_model_get(model, &iter, 1, &resolutionIndex, -1);
-		if(resolutionIndex == currentResolutionIndex)
+		gtk_tree_model_get(model, &iter, 0, &resolution , -1);
+		if( g_strcasecmp( tmp , resolution ) == 0 )
 		{
 			// Set current iteration the active one
 			gtk_combo_box_set_active_iter(GTK_COMBO_BOX(resolutionComboBox), &iter);
@@ -616,7 +616,7 @@ select_active_resolution()
 	} while(gtk_tree_model_iter_next(model, &iter));
 
 	// No index was found, select first one
-	g_print("Warning : No active webcam device found");
+	g_print("Warning : No active resolution found\n");
 	gtk_combo_box_set_active(GTK_COMBO_BOX(resolutionComboBox), 0);
 }
 
@@ -1672,6 +1672,7 @@ create_webcam_tab ()
 	GtkObject *brightnessAdjustment, *contrastAdjustment, *colourAdjustment;
 	
 	GtkWidget *drawingSpace;
+	slider_t values;
 	
 	
 	GtkCellRenderer *deviceRenderer, *resolutionRenderer;
@@ -1740,6 +1741,8 @@ create_webcam_tab ()
 	gtk_widget_show(settingsTable);
 	gtk_container_add(GTK_CONTAINER(settingsFrame),settingsTable);
 	
+	//Get the values for the brightness slider
+	values = dbus_get_brightness();
     
     //Brightness slider section
     brightnessLabel = gtk_label_new(NULL);
@@ -1750,10 +1753,13 @@ create_webcam_tab ()
     gtk_table_attach(GTK_TABLE(settingsTable), brightnessLabel, 0, 1, 0, 1, GTK_FILL | GTK_EXPAND, GTK_SHRINK, 0, 0);
     gtk_widget_show(brightnessLabel);
 
-	brightnessAdjustment = gtk_adjustment_new (0.0, 0.0, 101.0, 1.0, 1.0, 1.0);
+	brightnessAdjustment = gtk_adjustment_new (values.currentValue, values.minValue, values.maxValue, values.stepValue, 1, 1);
     brightnessHScale = gtk_hscale_new(GTK_ADJUSTMENT (brightnessAdjustment));
     gtk_table_attach(GTK_TABLE(settingsTable), brightnessHScale, 0, 1, 1, 2, GTK_FILL | GTK_EXPAND, GTK_SHRINK, 0, 0);
 	gtk_widget_show(brightnessHScale);
+	
+	//Get the values for the contrast slider
+	values = dbus_get_contrast();
 
 	//Contrast slider section
     contrastLabel = gtk_label_new(NULL);
@@ -1764,10 +1770,13 @@ create_webcam_tab ()
     gtk_table_attach(GTK_TABLE(settingsTable), contrastLabel, 0, 1, 2, 3, GTK_FILL | GTK_EXPAND, GTK_SHRINK, 0, 0);
     gtk_widget_show(contrastLabel);
     
-    contrastAdjustment = gtk_adjustment_new (0.0, 0.0, 101.0, 1.0, 1.0, 1.0);
+    contrastAdjustment = gtk_adjustment_new (values.currentValue, values.minValue, values.maxValue, values.stepValue, 1, 1);
     contrastHScale = gtk_hscale_new(GTK_ADJUSTMENT (contrastAdjustment));
     gtk_table_attach(GTK_TABLE(settingsTable), contrastHScale, 0, 1, 3, 4, GTK_FILL | GTK_EXPAND, GTK_SHRINK, 0, 0);
 	gtk_widget_show(contrastHScale);
+	
+	//Get the values for the colour slider
+	values = dbus_get_colour();
 	
 	//Colour slider section
 	colourLabel = gtk_label_new(NULL);
@@ -1778,7 +1787,7 @@ create_webcam_tab ()
     gtk_table_attach(GTK_TABLE(settingsTable), colourLabel, 0, 1, 4, 5, GTK_FILL | GTK_EXPAND, GTK_SHRINK, 0, 0);
     gtk_widget_show(colourLabel);
     
-    colourAdjustment = gtk_adjustment_new (0.0, 0.0, 101.0, 1.0, 1.0, 1.0);
+    colourAdjustment = gtk_adjustment_new (values.currentValue, values.minValue, values.maxValue, values.stepValue, 1, 1);
     colourHScale = gtk_hscale_new(GTK_ADJUSTMENT (colourAdjustment));
     gtk_table_attach(GTK_TABLE(settingsTable), colourHScale, 0, 1, 5, 6, GTK_FILL | GTK_EXPAND, GTK_SHRINK, 0, 0);
 	gtk_widget_show(colourHScale);
@@ -1793,7 +1802,7 @@ create_webcam_tab ()
     gtk_widget_show(resolutionLabel);
     
     resolutionStore = gtk_list_store_new(2, G_TYPE_STRING, G_TYPE_INT);
-	//config_window_fill_resolution_list();
+	config_window_fill_resolution_list();
 	resolutionComboBox = gtk_combo_box_new_with_model(GTK_TREE_MODEL(resolutionStore));
 	//select_active_resolution();
   	gtk_label_set_mnemonic_widget(GTK_LABEL(resolutionLabel), resolutionComboBox);

@@ -26,18 +26,6 @@
 #include "configurationmanager-glue.h"
 #include <dbus-c++/dbus.h>
 
-//TODO: remove when it will be linked to the struct in V4L
-//typedef struct  {
-  /** Minimum value for the slider */
-  //int *minValue;
-  /** Maximum value for the slider */
-  //int *maxValue;
-  /** Step increment value for the slider */
-  //int *stepValue;
-  /** Current value of the slider */
-  //int *currentValue;
-//} slider_t;*/
-
     
 class ConfigurationManager
 : public org::sflphone::SFLphone::ConfigurationManager,
@@ -103,7 +91,7 @@ public:
     ::DBus::Int32 getWebcamDeviceIndex( const ::DBus::String& name );
     std::vector< ::DBus::String > getResolutionList(  );
     void setResolution( const ::DBus::Int32& index );
-    std::vector< ::DBus::String > getCurrentResolutionIndex(  );
+    ::DBus::String getCurrentResolution(  );
     ::DBus::Int32 getResolutionIndex( const ::DBus::String& name );
 
     ::DBus::Int32 isIax2Enabled( void );
