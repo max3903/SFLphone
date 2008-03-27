@@ -398,11 +398,11 @@ ConfigurationManager::setResolution( const ::DBus::Int32& index )
 	Manager::instance().setResolution(index);
 }
 
-std::vector< ::DBus::String > 
-ConfigurationManager::getCurrentResolutionIndex(  )
+::DBus::String 
+ConfigurationManager::getCurrentResolution(  )
 {
 	_debug("ConfigurationManager::getCurrentResolutionIndex received\n");
-	return Manager::instance().getCurrentResolutionIndex();
+	return Manager::instance().getCurrentResolution();
 }
 
 ::DBus::Int32 

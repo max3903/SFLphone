@@ -2799,6 +2799,9 @@ void ManagerImpl::initVideoDeviceManager(void)
 
 	_videoDeviceManager = VideoDeviceManager::getInstance();
 	ptracesfl("Video Device Manager init",MT_INFO,5,true);
+	//TODO: get enum value when the HAL will be there
+	//TODO: send a signal if the return value is false
+	_videoDeviceManager->createDevice("/dev/video0");
 
 }
 
@@ -2905,28 +2908,37 @@ std::vector< std::string >
 ManagerImpl::getResolutionList(  )
 {
 	ptracesfl("Debut get resolution list :",MT_INFO,2,true);
+	int i=0;
 	std::vector<std::string> order; 
 	std::string temp;
 	const char* tmp= ((Resolution*)_videoDeviceManager->getCommand(VideoDeviceManager::RESOLUTION))->enumResolution();
-	
+	//const char* tmp = "160x120;320x240;640x480";
 	ptracesfl("apres appel command :",MT_INFO,2,false);
 	ptracesfl(tmp, MT_NONE, 1);
 	
 	if( tmp == NULL ){
-		// \ TODO
 		ptracesfl("Resolution list is empty",MT_WARNING,2,false);
 		return order;
 	}
-	std::string s = tmp;
 
-	while (s.find(";", 0) != std::string::npos)
+	temp.clear();
+	int j = strlen(tmp);
+
+	for(i=0; i<j; i++)
 	{
-		size_t pos = s.find(";", 0); 			
-		temp = s.substr(0, pos);  
-		printf("%s", temp);    	
-		s.erase(0, pos + 1);          		
-		order.push_back(temp);                	
+		//printf("i: %i tmp: %c ", i, tmp[i]);
+		if(tmp[i] ==';')
+		{
+			order.push_back(temp);
+			temp.clear();
+		} 
+		else	
+		{
+			temp.push_back(tmp[i]);
+		}		          		
+		                	
 	}
+	order.push_back(temp);
 	return order;
 }
 
@@ -2936,10 +2948,10 @@ ManagerImpl::setResolution( const int index )
 	
 }
 
-std::vector< std::string > 
-ManagerImpl::getCurrentResolutionIndex(  )
+std::string 
+ManagerImpl::getCurrentResolution(  )
 {
-	std::vector<std::string> v;
+	std::string v;
 	return v;
 }
 

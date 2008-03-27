@@ -91,7 +91,7 @@ public:
     ::DBus::Int32 getWebcamDeviceIndex( const ::DBus::String& name );
     std::vector< ::DBus::String > getResolutionList(  );
     void setResolution( const ::DBus::Int32& index );
-    std::vector< ::DBus::String > getCurrentResolutionIndex(  );
+    ::DBus::String getCurrentResolution(  );
     ::DBus::Int32 getResolutionIndex( const ::DBus::String& name );
 
     ::DBus::Int32 isIax2Enabled( void );

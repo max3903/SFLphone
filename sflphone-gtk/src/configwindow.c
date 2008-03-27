@@ -595,20 +595,19 @@ select_active_resolution()
 {
 	GtkTreeModel* model;
 	GtkTreeIter iter;
-	gchar** resolution;
-	int currentResolutionIndex;
-	int resolutionIndex;
+	gchar* resolution;
+	gchar* tmp;
 
-	// Select active resolution on server
-	resolution = dbus_get_current_resolution_index();
-	currentResolutionIndex = atoi(resolution[1]);
+	// Select active output device on server
+	resolution = dbus_get_current_resolution();
+	tmp = resolution;
 	model = gtk_combo_box_get_model(GTK_COMBO_BOX(resolutionComboBox));
-	
-	// Find the currently set resolution
+	  
+	// Find the currently set alsa plugin
 	gtk_tree_model_get_iter_first(model, &iter);
 	do {
-		gtk_tree_model_get(model, &iter, 1, &resolutionIndex, -1);
-		if(resolutionIndex == currentResolutionIndex)
+		gtk_tree_model_get(model, &iter, 0, &resolution , -1);
+		if( g_strcasecmp( tmp , resolution ) == 0 )
 		{
 			// Set current iteration the active one
 			gtk_combo_box_set_active_iter(GTK_COMBO_BOX(resolutionComboBox), &iter);
@@ -617,7 +616,7 @@ select_active_resolution()
 	} while(gtk_tree_model_iter_next(model, &iter));
 
 	// No index was found, select first one
-	g_print("Warning : No active webcam device found");
+	g_print("Warning : No active resolution found\n");
 	gtk_combo_box_set_active(GTK_COMBO_BOX(resolutionComboBox), 0);
 }
 

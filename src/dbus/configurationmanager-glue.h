@@ -67,7 +67,7 @@ public:
         register_method(ConfigurationManager, getWebcamDeviceIndex, _getWebcamDeviceIndex_stub);
         register_method(ConfigurationManager, getResolutionList, _getResolutionList_stub);
         register_method(ConfigurationManager, setResolution, _setResolution_stub);
-        register_method(ConfigurationManager, getCurrentResolutionIndex, _getCurrentResolutionIndex_stub);
+        register_method(ConfigurationManager, getCurrentResolution, _getCurrentResolution_stub);
         register_method(ConfigurationManager, getResolutionIndex, _getResolutionIndex_stub);
         register_method(ConfigurationManager, isIax2Enabled, _isIax2Enabled_stub);
     }
@@ -323,9 +323,9 @@ public:
             { "index", "i", true },
             { 0, 0, 0 }
         };
-        static ::DBus::IntrospectedArgument getCurrentResolutionIndex_args[] = 
+        static ::DBus::IntrospectedArgument getCurrentResolution_args[] = 
         {
-            { "list", "as", false },
+            { "list", "s", false },
             { 0, 0, 0 }
         };
         static ::DBus::IntrospectedArgument getResolutionIndex_args[] = 
@@ -403,7 +403,7 @@ public:
             { "getWebcamDeviceIndex", getWebcamDeviceIndex_args },
             { "getResolutionList", getResolutionList_args },
             { "setResolution", setResolution_args },
-            { "getCurrentResolutionIndex", getCurrentResolutionIndex_args },
+            { "getCurrentResolution", getCurrentResolution_args },
             { "getResolutionIndex", getResolutionIndex_args },
             { "isIax2Enabled", isIax2Enabled_args },
             { 0, 0 }
@@ -487,7 +487,7 @@ public:
     virtual ::DBus::Int32 getWebcamDeviceIndex( const ::DBus::String& name ) = 0;
     virtual std::vector< ::DBus::String > getResolutionList(  ) = 0;
     virtual void setResolution( const ::DBus::Int32& index ) = 0;
-    virtual std::vector< ::DBus::String > getCurrentResolutionIndex(  ) = 0;
+    virtual ::DBus::String getCurrentResolution(  ) = 0;
     virtual ::DBus::Int32 getResolutionIndex( const ::DBus::String& name ) = 0;
     virtual ::DBus::Int32 isIax2Enabled(  ) = 0;
 
@@ -999,11 +999,11 @@ private:
         ::DBus::ReturnMessage reply(call);
         return reply;
     }
-    ::DBus::Message _getCurrentResolutionIndex_stub( const ::DBus::CallMessage& call )
+    ::DBus::Message _getCurrentResolution_stub( const ::DBus::CallMessage& call )
     {
         ::DBus::MessageIter ri = call.reader();
 
-        std::vector< ::DBus::String > argout1 = getCurrentResolutionIndex();
+        ::DBus::String argout1 = getCurrentResolution();
         ::DBus::ReturnMessage reply(call);
         ::DBus::MessageIter wi = reply.writer();
         wi << argout1;

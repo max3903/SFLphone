@@ -586,7 +586,7 @@ public:
     int getWebcamDeviceIndex( const std::string name );
     std::vector< std::string > getResolutionList(  );
     void setResolution( const int index );
-    std::vector< std::string > getCurrentResolutionIndex(  );
+    std::string getCurrentResolution(  );
     int getResolutionIndex( const std::string name );
 
 private:
