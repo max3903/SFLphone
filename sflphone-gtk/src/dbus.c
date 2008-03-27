@@ -1789,24 +1789,24 @@ dbus_set_resolution(const int index)
 /**
  * Get resolution index
  */
-gchar**
-dbus_get_current_resolution_index()
+gchar*
+dbus_get_current_resolution()
 {
-	g_print("Before get current resolution index");
-	gchar** array;
+	g_print("Before get current resolution");
+	gchar* array;
 	GError* error = NULL;
-	org_sflphone_SFLphone_ConfigurationManager_get_current_resolution_index(
+	org_sflphone_SFLphone_ConfigurationManager_get_current_resolution(
 			configurationManagerProxy,
 			&array,
 			&error);
 	g_print("After");
 	if(error)
 	{
-		g_printerr("Failed to call get_current_resolution_index() on ConfigurationManager: %s\n", error->message);
+		g_printerr("Failed to call get_current_resolution() on ConfigurationManager: %s\n", error->message);
 		g_error_free(error);
 	}
 	else
-		g_print("DBus called get_current_resolution_index() on ConfigurationManager\n");
+		g_print("DBus called get_current_resolution() on ConfigurationManager\n");
 	return array;
 }
 

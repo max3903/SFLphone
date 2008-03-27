@@ -213,8 +213,8 @@
       <arg type="i" name="index" direction="in"/>
     </method>
     
-    <method name="getCurrentResolutionIndex">
-      <arg type="as" name="list" direction="out"/>
+    <method name="getCurrentResolution">
+      <arg type="s" name="list" direction="out"/>
     </method>
     
     <method name="getResolutionIndex">

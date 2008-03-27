@@ -2805,7 +2805,8 @@ void ManagerImpl::initVideoDeviceManager(void)
 
 	_videoDeviceManager = VideoDeviceManager::getInstance();
 	ptracesfl("Video Device Manager init",MT_INFO,5,true);
-	
+	//TODO: get enum value when the HAL will be there
+	//TODO: send a signal if the return value is false
 	_videoDeviceManager->createDevice("/dev/video0");
 
 }
@@ -2842,14 +2843,11 @@ ManagerImpl::getRemoteSharedMemoryKey()
 	ptracesfl("REMOTE Memspace shmid sent",MT_INFO,2,true);
 }
 
-slider_t 
+CmdDesc 
 ManagerImpl::getBrightness(  )
 {
-	slider_t values;
-	values.minValue = 5;	
-	values.maxValue = 100;
-	values.stepValue = 15;
-	values.currentValue = 25;
+	CmdDesc values;
+	values = _videoDeviceManager->getCommand(VideoDeviceManager::BRIGHTNESS)->getCmdDescriptor();
 	return values;
 	
 }
@@ -2860,14 +2858,11 @@ ManagerImpl::setBrightness( const int value )
 	
 }
 
-slider_t 
+CmdDesc
 ManagerImpl::getContrast(  )
 {
-	slider_t values;
-	values.minValue = 5;	
-	values.maxValue = 100;
-	values.stepValue = 15;
-	values.currentValue = 25;
+	CmdDesc values;
+	values = _videoDeviceManager->getCommand(VideoDeviceManager::CONTRAST)->getCmdDescriptor();
 	return values;	
 }
 
@@ -2877,14 +2872,11 @@ ManagerImpl::setContrast( const int value )
 	
 }
 
-slider_t
+CmdDesc
 ManagerImpl::getColour(  )
 {
-	slider_t values;
-	values.minValue = 5;	
-	values.maxValue = 100;
-	values.stepValue = 15;
-	values.currentValue = 25;
+	CmdDesc values;
+	values = _videoDeviceManager->getCommand(VideoDeviceManager::COLOR)->getCmdDescriptor();
 	return values;	
 }
 
@@ -2923,8 +2915,39 @@ ManagerImpl::getWebcamDeviceIndex( const std::string name )
 std::vector< std::string > 
 ManagerImpl::getResolutionList(  )
 {
-	std::vector<std::string> v;
-	return v;
+	ptracesfl("Debut get resolution list :",MT_INFO,2,true);
+	int i=0;
+	std::vector<std::string> order; 
+	std::string temp;
+	//const char* tmp= ((Resolution*)_videoDeviceManager->getCommand(VideoDeviceManager::RESOLUTION))->enumResolution();
+	const char* tmp = "160x120;320x240;640x480";
+	ptracesfl("apres appel command :",MT_INFO,2,false);
+	ptracesfl(tmp, MT_NONE, 1);
+	
+	if( tmp == NULL ){
+		ptracesfl("Resolution list is empty",MT_WARNING,2,false);
+		return order;
+	}
+
+	temp.clear();
+	int j = strlen(tmp);
+
+	for(i=0; i<j; i++)
+	{
+		//printf("i: %i tmp: %c ", i, tmp[i]);
+		if(tmp[i] ==';')
+		{
+			order.push_back(temp);
+			temp.clear();
+		} 
+		else	
+		{
+			temp.push_back(tmp[i]);
+		}		          		
+		                	
+	}
+	order.push_back(temp);
+	return order;
 }
 
 void 
@@ -2933,10 +2956,10 @@ ManagerImpl::setResolution( const int index )
 	
 }
 
-std::vector< std::string > 
-ManagerImpl::getCurrentResolutionIndex(  )
+std::string 
+ManagerImpl::getCurrentResolution(  )
 {
-	std::vector<std::string> v;
+	std::string v;
 	return v;
 }
 
