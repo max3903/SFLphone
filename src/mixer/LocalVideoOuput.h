@@ -29,8 +29,11 @@ public:
      * Writes the data to the audio device
      * \param data pointer to the new data
      * \param size the size of data
+     * \return a MemKey linking to a MemSpace of data that is needed for future access
      */
     virtual void putData(char * data, int size);
+    
+    void putData(char * data, int size, MemKey *localVideoMemKey);
     
 private:
 	
@@ -45,3 +48,4 @@ private:
     
 };
 #endif //LOCALVIDEOOUPUT_H
+
