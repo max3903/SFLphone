@@ -31,7 +31,7 @@
     
     <!-- Called for each contact entry to get its details -->
     <!-- text, type, shown in console, is subscribed to presence -->
-    <!-- Example can be : Poste 140, work, true, false -->
+    <!-- Example can be : Poste 140, work, TRUE, FALSE -->
     <method name="getContactEntryDetails">
       <arg type="s" name="accountID" direction="in"/>
       <arg type="s" name="contactID" direction="in"/>
@@ -42,7 +42,7 @@
     <!-- Add, edit or remove contact or entry one by one -->
     
     <!-- Called by the client to add or edit one contact -->
-    <!-- Adds a contact if the contactID is 0 -->
+    <!-- Adds a contact if the contactID is NEW -->
     <method name="setContact">
       <arg type="s" name="accountID" direction="in"/>
       <arg type="s" name="contactID" direction="in"/>
@@ -61,7 +61,7 @@
     </method>
    
     <!-- Called by the client to add or edit one contact entry -->
-    <!-- Adds an entry if the entryID is 0 -->
+    <!-- Adds an entry if the entryID does not exist -->
     <method name="setContactEntry">
       <arg type="s" name="accountID" direction="in"/>
       <arg type="s" name="contactID" direction="in"/>
