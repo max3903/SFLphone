@@ -21,31 +21,13 @@
 
 MemKey* createMemKeyFromChar( char* key )
 {
-	
-	int lentgh= strlen(key);
-	int cIndex= 0;
 	MemKey* theKey= (MemKey*)malloc(sizeof(MemKey));
-	char *tmp;
-	int i= 0;
-	
-	for( i= 0; i < lentgh; i++  )
-	{
-		if( key[i] == ' ')
-		{
-			tmp= (char*)malloc( i-cIndex );
-			memcpy( tmp, key, i-cIndex );
-			theKey->key= atoi(tmp);
-			free(tmp);
-			cIndex= i+1;
-			break;
-			
-		}
-	}
-	
-	tmp= (char*)malloc( lentgh-cIndex );
-	memcpy( tmp, key, lentgh-cIndex );
-	theKey->size= atoi(tmp);
-	free(tmp);
+
+	theKey->id= -1;
+	theKey->key= -1;
+	theKey->size= -1;
+
+	sscanf(key,"%d %d %d", &theKey->id ,&theKey->key, &theKey->size );
 	
 	theKey->description= NULL;
 	theKey->BaseAdd= NULL;
@@ -73,11 +55,29 @@ MemKey* initSpace( MemKey *key )
 int fetchData( MemKey *key, MemData *data )
 {
 	//\TODO: Add multiple access protection
-	if( data != NULL && key != NULL )
-		memcpy(data->data, key->BaseAdd, key->size);
-	else
+	
+	return -1;
+	
+	if( key == NULL )
 		return -1;
+	
+	if( data == NULL )
+		return -1;
+	
+	if(data->data != 0)
+		free(data->data);
 		
+	// Get Image payload size
+	memcpy(&data->size, key->BaseAdd, sizeof(int));
+	
+	// Get image width and height
+	memcpy(&data->width, key->BaseAdd + sizeof(int), sizeof(int));
+	memcpy(&data->height, key->BaseAdd + (sizeof(int) * 2), sizeof(int));
+		
+	// Get Image payload
+	data->data= (unsigned char*)malloc(data->size);
+	memcpy(data->data, key->BaseAdd + (sizeof(int) * 3), data->size);
+			
  	return 0;
 	
 }
@@ -103,6 +103,7 @@ int InitMemSpaces( char* local, char* remote )
 			return -1;
 		
 		localBuff= (MemData*)calloc(1, sizeof(MemData));
+		localBuff->data= 0;
 		if( localBuff == NULL)
 			return -1;
 	}

@@ -2,23 +2,37 @@
 
 #include "LocalVideoOuput.h"
 
-
-int LocalVideoOuput::fetchData(char* data)
-{
-  return 0;
+void LocalVideoOuput::putData(char * data, int size)
+{   
 }
 
-void LocalVideoOuput::putData(char * data, int size)
-{ 
+void LocalVideoOuput::putData(char * data, int size, MemKey *localVideoMemKey)
+{
+//   MemKey *localVideoMemKey;
+  //ptracesfl("LocalVideoOutput - putData()",MT_INFO,true);TODO
   
+  // create a new memSpace and return its memKey
+//  localVideoMemKey =  manager->initSpace(size);
+    
+  // put data into a new memSpace
+  if(!this->manager->putData(localVideoMemKey, (unsigned char*)data, size)){
+  	//ptracesfl("Can't put data", MT_ERROR);TODO  
+  }  
 }
 
 LocalVideoOuput::LocalVideoOuput()
 {
-  
+  // create the manager (or get the instance)
+  this->manager = MemManager::getInstance();
 }
 
 LocalVideoOuput::~LocalVideoOuput()
 {
   
+}
+
+// This method is not used in this class
+int LocalVideoOuput::fetchData(char* data)
+{
+  return 0;
 }
