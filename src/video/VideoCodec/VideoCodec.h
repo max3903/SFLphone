@@ -31,11 +31,7 @@
 
 class VideoCodec {
 public:
-/**
-     * Default Constructor
-     * 
-     */
-    VideoCodec();
+	
 	/**
      * Default Destructor
      * 
@@ -55,7 +51,7 @@ public:
      * 
      */
 
-     int videoDecode(uint8_t *in_buf,uint8_t* out_buf);
+     int videoDecode(uint8_t *in_buf, uint8_t* out_buf,int size  );
 
 /**
      * Function to encode video information
@@ -70,7 +66,11 @@ public:
     
     
 private:
- 
+ /**
+     * Default Constructor
+     * 
+     */
+    VideoCodec();
 	/**
  	* Function to init the Codec
  	* */
@@ -81,12 +81,23 @@ private:
  	* */
     void initEncodeContext();
 
+    /**
+ 	* Function to init the Codec with it's proper context
+ 	* */
+    void initDecodeContext();
     
     /**
- 	* instance of the videoDesc
+ 	* Function to quit the Codec with it's proper context
  	* */
-    VideoCodecDescriptor* _videoDesc;
+    void quitEncodeContext();
 
+    /**
+ 	* Function to quit the Codec with it's proper context
+ 	* */
+    void quitDecodeContext();
+    
+
+	VideoCodecDescriptor *_videoDesc;
 	/**
      * Libavcodec Codec type
      */
@@ -101,7 +112,7 @@ private:
      * Libavcodec Codec context
      */
     AVCodecContext* _encodeCodecCtx;
-    /**
+    /**En
      * Libavcodec Codec context
      */
     AVCodecContext* _decodeCodecCtx;

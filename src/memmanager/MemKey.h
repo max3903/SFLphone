@@ -145,6 +145,13 @@ public:
      * \return a char pointer reprensenting the state of the key
      */
     std::string serialize();
+    
+    
+    //! Method to set the description of the key
+    /*!
+     * \param desc A char pointer to a description for the key
+     */
+    void setDescription(const char* desc);
 
 private:
 	

@@ -57,8 +57,7 @@ VideoCodecDescriptor* VideoCodecDescriptor::getInstance()
     {
     	ptracesfl("videoCodecInit error",MT_FATAL,2,true);
     }
-    //check if user has settings for the active list, if yes load them else setDefault
-    //TODO
+   
    
     }
     

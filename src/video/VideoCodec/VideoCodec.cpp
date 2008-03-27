@@ -18,37 +18,81 @@
  */
 #include "VideoCodec.h"
 
+#define VIDEOCODECPTRACE 2
 
 int VideoCodec::videoEncode(uint8_t *in_buf, uint8_t* out_buf,int bufferSize,int width,int height)
 {
 	AVFrame *pict;
-
+	
 	//Step 1: change in_buf in AVFRAME pict
 	pict = avcodec_alloc_frame();
-	if (!pict)
+	if (pict == NULL)
          return -1;
-         
+                
     avpicture_fill((AVPicture *)pict, in_buf,PIX_FMT_RGB24, width, height);
-
+    
+    
 	//Step 2:Encode
 	avcodec_encode_video(_encodeCodecCtx, out_buf, bufferSize, pict);
 
 	//Step 3:Clean
-	avcodec_close(_encodeCodecCtx);
+	
 	av_free(pict);
-
+	
+	//success
 	return 1;
+	
 	}
 	
 	
 
-int VideoCodec::videoDecode(uint8_t *in_buf, uint8_t* out_buf  )
+int VideoCodec::videoDecode(uint8_t *in_buf, uint8_t* out_buf,int size  )
 {
-	AVCodecContext* _CodecCtx;
+	
+	int bytesRemaining = size;
+	int *got_picture_ptr = NULL;
+	
+
 	return 0;
+	
+	
+	/*
+	 * static int frameFinished = 0;  //this is the got_picture_pointer
+argument
+    int bytesDecoded=0;
+    int bytesRemaining = data_size;
+
+    while(bytesRemaining > 0)
+    {
+        bytesDecoded=avcodec_decode_video(pCodecCtx, pFrame,
+            &frameFinished, rawData, bytesRemaining);
+
+        if(bytesDecoded < 0)
+            return false;
+
+        bytesRemaining-=bytesDecoded;
+        rawData+=bytesDecoded;
+
+        if(frameFinished)
+            return true;
+    }
+
+    // Decode the rest of the last frame
+    bytesDecoded=avcodec_decode_video(pCodecCtx, pFrame, &frameFinished,
+
+        rawData, bytesRemaining);
+
+    return frameFinished!=0;
+	 * 
+	 * */
+	
 }
 
 void VideoCodec::init(){
+	
+	ptracesfl("VideoCodec initialisation",MT_INFO,VIDEOCODECPTRACE,true);
+	
+	_videoDesc = VideoCodecDescriptor::getInstance();
 	
 	//check if active Codec
 	if(_codecName == NULL)
@@ -59,18 +103,23 @@ void VideoCodec::init(){
 	else
 	_Codec = _videoDesc->getCodec(_codecName);
 	
-		
-	//Getting Basic AVCodecContext settings from Codec Descriptor
-	_videoDesc = VideoCodecDescriptor::getInstance();
-	_encodeCodecCtx = _videoDesc->getCodecContext(_Codec);
-	*_decodeCodecCtx = *_decodeCodecCtx;
+	//These are Settings adjustements
+	initEncodeContext();
+	initDecodeContext();
 	
+}
+
+void VideoCodec::initEncodeContext(){
+
+
 	//initialize basic encoding context
 	_encodeCodecCtx = avcodec_alloc_context();
-	avcodec_open(_encodeCodecCtx,_Codec);
+
 	_encodeCodecCtx->bit_rate = VIDEO_BIT_RATE;
+	avcodec_open (_encodeCodecCtx, _Codec);
 	_encodeCodecCtx->width = DEFAULT_WIDTH;
 	_encodeCodecCtx->height = DEFAULT_HEIGHT;
+	
 	
 	if (_codecName == "h264")
 	_encodeCodecCtx->me_method = 8;
@@ -98,6 +147,29 @@ void VideoCodec::init(){
 
 }
 
+void VideoCodec::initDecodeContext()
+{
+
+//initialize basic encoding context
+	_decodeCodecCtx = avcodec_alloc_context();
+	avcodec_open (_decodeCodecCtx, _Codec);
+}
+
+void VideoCodec::quitDecodeContext()
+{
+	avcodec_close(_decodeCodecCtx);
+	av_free(_decodeCodecCtx);
+
+}
+
+void VideoCodec::quitEncodeContext()
+{
+	//initialize basic encoding context
+	avcodec_close(_encodeCodecCtx);
+	av_free(_encodeCodecCtx);
+	
+}
+
 
 VideoCodec::~VideoCodec() {
 	delete _videoDesc;
@@ -105,6 +177,7 @@ VideoCodec::~VideoCodec() {
 
 }
 VideoCodec::VideoCodec(char* codec){
+	
 	
 	this->_codecName = codec;
 	this->_encodeCodecCtx = NULL;
@@ -115,6 +188,10 @@ VideoCodec::VideoCodec(char* codec){
 }
 
 VideoCodec::VideoCodec(){
+	
+	this->_codecName = NULL;
+	this->_encodeCodecCtx = NULL;
+	this->_decodeCodecCtx = NULL;
 	
 	init();
 
