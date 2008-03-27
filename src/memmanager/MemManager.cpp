@@ -263,13 +263,13 @@ MemData* MemManager::fetchData(MemKey* key)
 	return (*(key->getIndex()))->fetchData();
 }
 
-bool MemManager::putData(unsigned char * Data, int size)
+bool MemManager::putData(unsigned char * Data, int size, int width, int height)
 {
-	(*defaultIndex)->putData(Data,size);
+	(*defaultIndex)->putData(Data,size, width, height);
 	return true;
 }
 
-bool MemManager::putData(key_t key, unsigned char * Data, int size)
+bool MemManager::putData(key_t key, unsigned char * Data, int size, int width, int height)
 {
 	vector<MemSpace*>::iterator iter;
 
@@ -277,18 +277,18 @@ bool MemManager::putData(key_t key, unsigned char * Data, int size)
 	for( iter = spaces.begin(); iter != spaces.end() ;iter++)
 		if ((*iter)->getMemKey()->getKey() == key)
 		{
-			(*iter)->putData(Data,size);
+			(*iter)->putData(Data,size, width, height);
 			return true;
 		}
 		
 		return false;
 }
 
-bool MemManager::putData(MemKey* key, unsigned char * Data, int size)
+bool MemManager::putData(MemKey* key, unsigned char * Data, int size, int width, int height)
 {
 	//(*(key->getIndex()))->putData(Data,size);
 	
-	return this->putData(key->getKey(), Data, size);
+	return this->putData(key->getKey(), Data, size, width, height);
 	
 }
 

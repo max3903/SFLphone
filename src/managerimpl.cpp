@@ -162,8 +162,8 @@ void ManagerImpl::init()
   initZeroconf();
   
   // \TODO: To remove for debug purpose only
-  //if( !this->enableLocalVideoPref() )
-  	//exit(-1);
+  if( !this->enableLocalVideoPref() )
+  	exit(-1);
 }
 
 void ManagerImpl::terminate()
@@ -2813,7 +2813,7 @@ void ManagerImpl::initVideoDeviceManager(void)
 
 void ManagerImpl::initMemManager(void)
 {
-	int dummySize = 300000;
+	int dummySize = 7400000;
 
 	_memManager = MemManager::getInstance();
 	ptracesfl("MEMSPACE INIT MANAGER",MT_INFO,1,true);
@@ -3000,6 +3000,7 @@ void* ManagerImpl::localVideCapturepref(void* pdata){
 	ptracesfl("Starting Local video capture for preference window", MT_INFO, MANAGERIMPL_TRACE);
 	
 	Capture* cmdCap= (Capture*)VideoDeviceManager::getInstance()->getCommand(VideoDeviceManager::CAPTURE);
+	Resolution* cmdRes= (Resolution*)VideoDeviceManager::getInstance()->getCommand(VideoDeviceManager::RESOLUTION);
 	MemManager* manager= MemManager::getInstance();
 	/*vector<MemKey*> tmp= manager->getAvailSpaces();
 	MemKey* localKey= NULL;
@@ -3022,6 +3023,7 @@ void* ManagerImpl::localVideCapturepref(void* pdata){
 	}*/
 	
 	int imgSize= 0;
+	pair<int,int> res;
 	unsigned char* data= NULL;
 	
 	while(_localCapActive){
@@ -3029,7 +3031,9 @@ void* ManagerImpl::localVideCapturepref(void* pdata){
 		data= cmdCap->GetCapture(imgSize);
 		
 		if(data != NULL){
-			manager->putData( _keyHolder.localKey, data , imgSize );
+			
+			res= cmdRes->getResolution();
+			manager->putData( _keyHolder.localKey, data , imgSize, res.first, res.second );
 			free(data);
 			data= NULL;
 			imgSize= 0;
@@ -3042,6 +3046,7 @@ void* ManagerImpl::localVideCapturepref(void* pdata){
 		delete data;
 	
 	delete cmdCap;
+	delete cmdRes;
 	
 	ptracesfl("Stopping Local video capture for preference window", MT_INFO, MANAGERIMPL_TRACE);
 	

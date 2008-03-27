@@ -73,7 +73,7 @@ public:
      * \param size the size of the new data
      * \return the success of the operation
      */
-    bool putData(void * Data, int size);
+    bool putData(void * Data, int size, int width, int height);
 
     //! Gets the data in the Shared Memory
     /*!

@@ -39,10 +39,20 @@ MemKey* MemSpace::getMemKey()
 	return this->theKey;
 }
 
-bool MemSpace::putData(void * Data, int size)
+bool MemSpace::putData(void * Data, int size, int width, int height)
 {
-	memcpy(this->baseAddress,Data, size);
+	// Putting Size of payload in shared memory
+	memcpy(this->baseAddress, &size, sizeof(int));
+	
+	// Putting image size in shared memory
+	memcpy(this->baseAddress + sizeof(int) , &width, sizeof(int));
+	memcpy(this->baseAddress + (sizeof(int) * 2) , &height, sizeof(int));
+	
+	// Putting payload in shared memory
+	memcpy(this->baseAddress+ (sizeof(int) * 3),Data, size);
+	
 	this->theKey->setSize(size);
+	
 	return true;
 }
 
