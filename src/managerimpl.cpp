@@ -2919,10 +2919,8 @@ ManagerImpl::getResolutionList(  )
 	int i=0;
 	std::vector<std::string> order; 
 	std::string temp;
-	//const char* tmp= ((Resolution*)_videoDeviceManager->getCommand(VideoDeviceManager::RESOLUTION))->enumResolution();
-	const char* tmp = "160x120;320x240;640x480";
+	const char* tmp= ((Resolution*)_videoDeviceManager->getCommand(VideoDeviceManager::RESOLUTION))->enumResolution();
 	ptracesfl("apres appel command :",MT_INFO,2,false);
-	ptracesfl(tmp, MT_NONE, 1);
 	
 	if( tmp == NULL ){
 		ptracesfl("Resolution list is empty",MT_WARNING,2,false);
@@ -2934,7 +2932,6 @@ ManagerImpl::getResolutionList(  )
 
 	for(i=0; i<j; i++)
 	{
-		//printf("i: %i tmp: %c ", i, tmp[i]);
 		if(tmp[i] ==';')
 		{
 			order.push_back(temp);
