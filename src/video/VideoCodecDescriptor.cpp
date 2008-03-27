@@ -267,9 +267,7 @@ AVCodec* VideoCodecDescriptor::getDefaultCodec()
     	out << (*iter)/1000 << ";";
 
 	return out.str();
-    
-    
-    
+
     }
     
     string VideoCodecDescriptor::getCurrentBitRate()
@@ -283,7 +281,19 @@ AVCodec* VideoCodecDescriptor::getDefaultCodec()
     bool VideoCodecDescriptor::setCurrentBitRate(string bitRate)
     {
     	
-    	
+    	CurrentBitRate = atoi(bitRate.c_str());
+    	ptracesfl("Current Bit Rate changed to",MT_INFO,false);
+    	ptracesfl(bitRate.c_str(),MT_NONE,true);
     	
     return true;
     }
+
+    
+    bool VideoCodecDescriptor::setDefaultBitRate()
+    {
+    	
+    	CurrentBitRate = DEFAULTBITRATE;
+    	
+    return true;
+    }
+    

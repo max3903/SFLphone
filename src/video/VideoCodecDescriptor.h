@@ -43,6 +43,7 @@ extern "C"{
 #include <ffmpeg/avformat.h>
 }
 
+#define DEFAULTBITRATE 768000
 // TODO: a vérifier !
 typedef enum {
   H263 = 33,
@@ -182,6 +183,7 @@ public:
     
     bool setCurrentBitRate(std::string bitRate);
     
+    bool setDefaultBitRate();
     
     /********************************************
      * END  OF Functions for MEMMANAGER
