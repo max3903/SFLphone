@@ -2856,7 +2856,7 @@ ManagerImpl::setWebcamDevice( const std::string& name )
 std::string
 ManagerImpl::getCurrentWebcamDevice(  )
 {
-	std::string v;
+	std::string v = "/dev/video0";
 	return v;
 }
 
@@ -2896,22 +2896,27 @@ ManagerImpl::getResolutionList(  )
 void 
 ManagerImpl::setResolution( const std::string& name )
 {
-	const char* temp = name.c_str();
-	char* tmp = (char*)temp;
-	((Resolution*)_videoDeviceManager->getCommand(VideoDeviceManager::RESOLUTION))->setTo(tmp);	
+	char* temp;
+	strcpy(temp, name.c_str());
+	ptracesfl("setResolution", MT_INFO, MANAGERIMPL_TRACE, false);
+	ptracesfl(temp, MT_INFO, MANAGERIMPL_TRACE, true);
+	((Resolution*)_videoDeviceManager->getCommand(VideoDeviceManager::RESOLUTION))->setTo(temp);	
 }
 
 std::string 
 ManagerImpl::getCurrentResolution(  )
 {
 	pair<int,int> res;
+	char buf[10];
 	std::string temp;
 	res = ((Resolution*)_videoDeviceManager->getCommand(VideoDeviceManager::RESOLUTION))->getResolution();
 	temp.clear();
-	temp += res.first;
-	temp += "x";
-	temp += res.second;
-	
+	sprintf(buf,"%d", res.first);
+	temp+=buf;
+	temp.push_back('x');
+	sprintf(buf, "%d", res.second);
+	temp+=buf;
+	std::cout << temp;
 	return temp;
 }
 
