@@ -36,8 +36,7 @@
 #include <map>
 #include <vector>
 #include <string>
-#include <iostream>
-#include <fstream>
+#include <sstream>
 #include "../tracePrintSFL.h"
 extern "C"{
 #include <ffmpeg/avcodec.h>
@@ -176,6 +175,17 @@ public:
      * @param sCodecMap a string list of vectors
      */
     bool saveCodecMap(StringVector sCodecMap);
+    
+    std::string getBitRates();
+    
+    std::string getCurrentBitRate();
+    
+    bool setCurrentBitRate(std::string bitRate);
+    
+    
+    /********************************************
+     * END  OF Functions for MEMMANAGER
+     *********************************************
 
 private:	
 
@@ -211,6 +221,11 @@ private:
      * a Int vector containing all bitrates
      */
     IntVector BitRateFormats;
+    
+     /**
+     * a int containing the current BITRATE
+     */
+    int CurrentBitRate;
     
 
 protected:

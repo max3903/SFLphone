@@ -257,4 +257,33 @@ AVCodec* VideoCodecDescriptor::getDefaultCodec()
     
     }
     
+    string VideoCodecDescriptor::getBitRates()
+    {
     
+    std::stringstream out;
+    IntIterator iter;
+    
+    for(iter = BitRateFormats.begin(); iter != BitRateFormats.end() ; iter++)
+    	out << (*iter)/1000 << ";";
+
+	return out.str();
+    
+    
+    
+    }
+    
+    string VideoCodecDescriptor::getCurrentBitRate()
+    {
+    std::stringstream out;
+    
+    out << CurrentBitRate/1000;
+    return out.str();
+    }
+    
+    bool VideoCodecDescriptor::setCurrentBitRate(string bitRate)
+    {
+    	
+    	
+    	
+    return true;
+    }
