@@ -70,9 +70,8 @@ VideoCodecDescriptor* VideoCodecDescriptor::getInstance()
 		
 		char *codec;
 		AVCodec* tmp;
-
-    		if(  (avcodec_find_decoder_by_name("h264") != NULL) &&
-    		  ((tmp = avcodec_find_encoder_by_name("h264")) != NULL) )
+//(avcodec_find_decoder_by_name("h264") != NULL) &&
+    		if( ((tmp = avcodec_find_decoder_by_name("h264")) != NULL) )
     			{
     			//map Codec
     			ptracesfl(tmp->name,MT_INFO,2,false);
