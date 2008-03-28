@@ -3002,25 +3002,6 @@ void* ManagerImpl::localVideCapturepref(void* pdata){
 	Capture* cmdCap= (Capture*)VideoDeviceManager::getInstance()->getCommand(VideoDeviceManager::CAPTURE);
 	Resolution* cmdRes= (Resolution*)VideoDeviceManager::getInstance()->getCommand(VideoDeviceManager::RESOLUTION);
 	MemManager* manager= MemManager::getInstance();
-	/*vector<MemKey*> tmp= manager->getAvailSpaces();
-	MemKey* localKey= NULL;
-	string searchString= "local";
-	
-	printf("\nSearching for: \%s\n", searchString.c_str());
-	for(int i= 0; i < tmp.size(); i++){
-		printf("\n Found: %s\n", ((MemKey*)tmp[i])->getDescription().c_str());
-		if( ((MemKey*)tmp[i])->getDescription() == searchString ){
-			localKey= tmp[i];
-			break;
-		}
-		
-	}
-	
-	if( localKey == NULL ){
-		ptracesfl("No local shared memory space found!", MT_ERROR, MANAGERIMPL_TRACE);
-		_localCapActive= false;
-		exit(-1);
-	}*/
 	
 	int imgSize= 0;
 	pair<int,int> res;
@@ -3031,15 +3012,18 @@ void* ManagerImpl::localVideCapturepref(void* pdata){
 		data= cmdCap->GetCapture(imgSize);
 		
 		if(data != NULL){
-			
+			printf("OK data\n");
 			res= cmdRes->getResolution();
-			manager->putData( _keyHolder.localKey, data , imgSize, res.first, res.second );
+			if( !manager->putData( _keyHolder.localKey, data , imgSize, res.first, res.second ) ){
+				printf("CANNOT put data\n");
+			}
 			free(data);
 			data= NULL;
 			imgSize= 0;
-		}
+		}else
+			printf("NULL data\n");
 		
-		usleep(5);
+		usleep(10);
 	}
 	
 	if(data != NULL)
