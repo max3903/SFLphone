@@ -182,13 +182,13 @@ v4l2_format* VideoDevice::getVideoFormat(){
 	return tmpFormat;
 }
   
-bool VideoDevice::setVideoFormat(v4l2_format* videoFormat){
+bool VideoDevice::setVideoFormat(v4l2_format* vFormat){
     
-    if( videoFormat == NULL  )
+    if( vFormat == NULL  )
     	return false;
     	
 	ptracesfl("Querying video device to set Video Format ... ", MT_INFO, VIDEODEVICE_TRACE + 1, false);
-	if(ioctl(fileDescript, VIDIOC_S_FMT, videoFormat)==-1){
+	if(ioctl(fileDescript, VIDIOC_S_FMT, vFormat)==-1){
 		ptracesfl("\tNO", MT_NONE, VIDEODEVICE_TRACE + 1);
 		ptracesfl("Can't set the image format.", MT_ERROR, VIDEODEVICE_TRACE + 1);
 		return false;

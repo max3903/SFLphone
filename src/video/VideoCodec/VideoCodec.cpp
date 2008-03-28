@@ -36,7 +36,6 @@ int VideoCodec::videoEncode(uint8_t *in_buf, uint8_t* out_buf,int bufferSize,int
 	avcodec_encode_video(_encodeCodecCtx, out_buf, bufferSize, pict);
 
 	//Step 3:Clean
-	
 	av_free(pict);
 	
 	//success
