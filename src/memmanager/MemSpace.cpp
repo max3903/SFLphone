@@ -47,10 +47,7 @@ bool MemSpace::putData(unsigned char* Data, int size, int width, int height)
 		memcpy( &flag, this->baseAddress, sizeof(int) );
 		usleep(10);
 	}while(flag != 0);
-	
-	// Putting Size of payload in shared memory
-	memcpy(this->baseAddress, &size, sizeof(int));
-				
+			
 	// Putting image size in shared memory
 	memcpy(this->baseAddress + sizeof(int) , &width, sizeof(int));
 	memcpy(this->baseAddress + (sizeof(int) * 2) , &height, sizeof(int));
@@ -58,6 +55,9 @@ bool MemSpace::putData(unsigned char* Data, int size, int width, int height)
 	// Putting payload in shared memory
 	printf("Data Size: %d", size);
 	memcpy(this->baseAddress+ (sizeof(int) * 3),Data, size);
+	
+	// Putting Size of payload in shared memory
+	memcpy(this->baseAddress, &size, sizeof(int));
 		
 	//this->theKey->setSize(size);
 	
