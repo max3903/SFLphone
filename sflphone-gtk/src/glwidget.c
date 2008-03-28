@@ -24,10 +24,14 @@ gboolean draw(GtkWidget* widget, gpointer data)
 	GdkGLContext *glcontext = gtk_widget_get_gl_context (widget);
   	GdkGLDrawable *gldrawable = gtk_widget_get_gl_drawable (widget);
 
+	printf("Drawing ... \n");
     // OpenGL BEGIN
-  	if (!gdk_gl_drawable_gl_begin (gldrawable, glcontext))
+  	if (!gdk_gl_drawable_gl_begin (gldrawable, glcontext)){
+  		printf("Cannot Draw ... \n");
     	return FALSE;
-		
+  	}
+	
+	printf("Drawing ... OK \n");	
 	// Viewport definition
 	glViewport (0, 0, widget->allocation.width, widget->allocation.height);
 	    
@@ -148,19 +152,24 @@ gboolean drawLocal(GtkWidget* widget, gpointer data, GdkGLContext *glContext, Gd
 {
 	
 	// Fetch Data in the local memory space
-	if( fetchData(localKey, localBuff) < 0 )
+	printf("Getting data from shared memory ...\n");
+	if( fetchData(localKey, localBuff) < 0 ){
+		printf("Warning No Data in buffer\n");
 		return FALSE;
-	
+	}
+			
+	if( localBuff->data == NULL){
+		printf("No Data to local draw\n");
+		return FALSE;
+	}
+			
 	// Draw fetched Data
 	glClear(GL_COLOR_BUFFER_BIT);		
-	glRasterPos2f(-1.0*(widget->allocation.width/2.0+localBuff->width/2.0)/1000.0,(widget->allocation.height/2.0+localBuff->height*3)/1000.0);
+	glRasterPos2f(-1,1);
 	glPixelStorei(GL_PACK_ALIGNMENT, 8);
 	glPixelZoom(1., -1.);
 	glDrawPixels(localBuff->width, localBuff->height, GL_RGB, GL_UNSIGNED_BYTE, localBuff->data );
-	
-	free(localBuff->data);
-	localBuff->data= 0;
-	
+		
 	return TRUE;
 	
 }
@@ -169,8 +178,16 @@ gboolean drawRemote(GtkWidget* widget, gpointer data, GdkGLContext *glContext, G
 {
 	
 	// Fetch Data in the remote memory space
-	if( fetchData(remoteKey, remoteBuff) < 0 )
+	printf("Getting data from shared memory ...");
+	if( fetchData(remoteKey, remoteBuff) < 0 ){
+		printf("\tWarning No Data in remote buffer\n");
 		return FALSE;
+	}
+	
+	if( localBuff->data == NULL){
+		printf("No Data to draw\n");
+		return FALSE;
+	}
 		
 	// Draw fetched Data
 	glClear(GL_COLOR_BUFFER_BIT);		

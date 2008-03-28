@@ -73,7 +73,7 @@ public:
      * \param size the size of the new data
      * \return the success of the operation
      */
-    bool putData(void * Data, int size);
+    bool putData(unsigned char* Data, int size, int width, int height);
 
     //! Gets the data in the Shared Memory
     /*!
@@ -91,6 +91,8 @@ public:
      * \param Address containing the information to set the baseAddress
      */
     void setBaseAddress(unsigned char *Address);
+    
+    void setKey( MemKey* key );
     
 
 private:

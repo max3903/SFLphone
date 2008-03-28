@@ -53,8 +53,10 @@ MemKey::MemKey(int size,key_t key)
 
 MemKey::MemKey( const MemKey* key)
 {	
+	this->key = key->key;
 	this->index = key->index;
 	this->size = key->size;
+	this->shmid= key->shmid;
 	this->description = key->description;
 }
 
@@ -62,9 +64,10 @@ MemKey::MemKey( const MemKey* key)
 MemKey::MemKey(const MemKey& key)
 {
 	
-	this->size = key.size;
+	this->key = key.key;
 	this->index = key.index;
 	this->size = key.size;
+	this->shmid= key.shmid;
 	this->description = key.description;
 }
 
