@@ -149,3 +149,4 @@ vector<string> VideoDeviceManager::enumVideoDevices(){
   return ret;
   
 }
+

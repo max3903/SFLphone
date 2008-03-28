@@ -2805,6 +2805,7 @@ ManagerImpl::initVideoCodec (void)
   	}
   	
   	// if the user never set the bitrate
+  	//TODO add bitrate
 	if(getConfigString(VIDEO, "BitRate") == ""){
     	_videoCodecDescriptor->setDefaultBitRate();
 	}
@@ -2825,7 +2826,6 @@ ManagerImpl::setActiveVideoCodecList(const std::vector<std::string>& list)
 	if(_videoCodecDescriptor->saveActiveCodecs(list))
 		ptracesfl("videoCodecs saved",MT_INFO,5,true);
   // setConfig
-  //TODO
   std::string s = serialize(list);
   printf("%s\n", s.c_str());
   setConfig("Video", "ActiveCodecs", s);
@@ -2897,7 +2897,6 @@ void ManagerImpl::initVideoDeviceManager(void)
 
 	_videoDeviceManager = VideoDeviceManager::getInstance();
 	ptracesfl("Video Device Manager init",MT_INFO,5,true);
-	//TODO: get enum value when the HAL will be there
 	//TODO: send a signal if the return value is false
 	_videoDeviceManager->createDevice("/dev/video0");
 
@@ -2947,7 +2946,7 @@ ManagerImpl::getBrightness(  )
 void 
 ManagerImpl::setBrightness( const int value )
 {
-	
+	_videoDeviceManager->getCommand(VideoDeviceManager::BRIGHTNESS)->setTo(value);
 }
 
 CmdDesc
@@ -2961,7 +2960,7 @@ ManagerImpl::getContrast(  )
 void 
 ManagerImpl::setContrast( const int value )
 {
-	
+	_videoDeviceManager->getCommand(VideoDeviceManager::CONTRAST)->setTo(value);
 }
 
 CmdDesc
@@ -2975,7 +2974,7 @@ ManagerImpl::getColour(  )
 void 
 ManagerImpl::setColour( const int value )
 {
-	
+	_videoDeviceManager->getCommand(VideoDeviceManager::COLOR)->setTo(value);
 }
 
 std::vector<std::string> 
@@ -2989,9 +2988,15 @@ ManagerImpl::getWebcamDeviceList(  )
 void 
 ManagerImpl::setWebcamDevice( const std::string& name )
 {
-	
+	char temp[20];
+	strcpy(temp, name.c_str());
+	ptracesfl("set Webcam Device", MT_INFO, MANAGERIMPL_TRACE, false);
+	ptracesfl(temp, MT_INFO, MANAGERIMPL_TRACE, true);
+	_videoDeviceManager->changeDevice(temp);
 }
 
+//TODO: remove from D-bus and all the way to the GUI
+//The first device available will be choosen
 std::string
 ManagerImpl::getCurrentWebcamDevice(  )
 {
@@ -3035,7 +3040,7 @@ ManagerImpl::getResolutionList(  )
 void 
 ManagerImpl::setResolution( const std::string& name )
 {
-	char* temp;
+	char temp[20];
 	strcpy(temp, name.c_str());
 	ptracesfl("setResolution", MT_INFO, MANAGERIMPL_TRACE, false);
 	ptracesfl(temp, MT_INFO, MANAGERIMPL_TRACE, true);
