@@ -90,6 +90,7 @@ unsigned char* ReadMode::capture(VideoDevice* device){
 		ptracesfl( buff,MT_NONE, CAPTUREMODE_TRACE);		
 	}
 	
+	imageSize= width*height*3*sizeof(unsigned char);
 	// Allocate memory for the final image
 	ptracesfl( "Allocating memory for rbg image buffer: ",MT_INFO, CAPTUREMODE_TRACE, false);
 	unsigned char* img_data = (unsigned char*)malloc(width*height*3*sizeof(unsigned char));

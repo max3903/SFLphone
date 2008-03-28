@@ -53,24 +53,9 @@ bool ret = false;
   
 bool Resolution::setTo( char* resolution){
   	  	
-  	  	char buffer[50];
-  	  	memset(buffer, 0, 50);
-  	  	
-  	  	int count= 0;
   	  	int valx= -1,valy= -1;
   	  	
-  	  	int lenght= strlen(resolution)+1;
-  	  	for(int i= 0; i< lenght; i++){
-  	  		if( resolution[i] != 'x' ){
-  	  			buffer[count]= resolution[i];
-  	  			count++; 
-  	  		}else if( resolution[i] == 'x' ){
-  	  			buffer[count+1]='\0';
-  	  			count= 0;
-  	  			valx= atoi(buffer);
-  	  			memset(buffer, 0, 50);
-  	  		}
-  	  	}
+  	  	sscanf(resolution, "%d x %d", &valx, &valy);
   	  	
   	  	if( valx != -1 && valy != -1 )
   	  		return this->setTo(valx, valy);
