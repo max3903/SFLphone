@@ -18,6 +18,7 @@
  */
 
 #include <expat.h>
+#include <fstream>
 #include "contactmanager.h"
 
 ContactManager* ContactManager::instance = NULL;
