@@ -2862,9 +2862,15 @@ ManagerImpl::getWebcamDeviceList(  )
 void 
 ManagerImpl::setWebcamDevice( const std::string& name )
 {
-	
+	char temp[20];
+	strcpy(temp, name.c_str());
+	ptracesfl("set Webcam Device", MT_INFO, MANAGERIMPL_TRACE, false);
+	ptracesfl(temp, MT_INFO, MANAGERIMPL_TRACE, true);
+	_videoDeviceManager->changeDevice(temp);
 }
 
+//TODO: remove from D-bus and all the way to the GUI
+//The first device available will be choosen
 std::string
 ManagerImpl::getCurrentWebcamDevice(  )
 {
