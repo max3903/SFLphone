@@ -2771,7 +2771,6 @@ void ManagerImpl::initVideoDeviceManager(void)
 
 	_videoDeviceManager = VideoDeviceManager::getInstance();
 	ptracesfl("Video Device Manager init",MT_INFO,5,true);
-	//TODO: get enum value when the HAL will be there
 	//TODO: send a signal if the return value is false
 	_videoDeviceManager->createDevice("/dev/video0");
 
@@ -2821,7 +2820,7 @@ ManagerImpl::getBrightness(  )
 void 
 ManagerImpl::setBrightness( const int value )
 {
-	
+	_videoDeviceManager->getCommand(VideoDeviceManager::BRIGHTNESS)->setTo(value);
 }
 
 CmdDesc
@@ -2835,7 +2834,7 @@ ManagerImpl::getContrast(  )
 void 
 ManagerImpl::setContrast( const int value )
 {
-	
+	_videoDeviceManager->getCommand(VideoDeviceManager::CONTRAST)->setTo(value);
 }
 
 CmdDesc
@@ -2849,7 +2848,7 @@ ManagerImpl::getColour(  )
 void 
 ManagerImpl::setColour( const int value )
 {
-	
+	_videoDeviceManager->getCommand(VideoDeviceManager::COLOR)->setTo(value);
 }
 
 std::vector<std::string> 
@@ -2909,7 +2908,7 @@ ManagerImpl::getResolutionList(  )
 void 
 ManagerImpl::setResolution( const std::string& name )
 {
-	char* temp;
+	char temp[20];
 	strcpy(temp, name.c_str());
 	ptracesfl("setResolution", MT_INFO, MANAGERIMPL_TRACE, false);
 	ptracesfl(temp, MT_INFO, MANAGERIMPL_TRACE, true);
