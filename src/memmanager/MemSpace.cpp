@@ -31,18 +31,36 @@ MemSpace::MemSpace()
 
 MemSpace::MemSpace(MemKey* key)
 {
-	this->theKey = key;
+	this->theKey = new MemKey( key );
 }
 
 MemKey* MemSpace::getMemKey()
 {
-	return this->theKey;
+	return new MemKey(this->theKey);
 }
 
-bool MemSpace::putData(void * Data, int size)
+bool MemSpace::putData(unsigned char* Data, int size, int width, int height)
 {
-	memcpy(this->baseAddress,Data, size);
-	this->theKey->setSize(size);
+	int flag= -1;
+
+	do{
+		memcpy( &flag, this->baseAddress, sizeof(int) );
+		usleep(10);
+	}while(flag != 0);
+			
+	// Putting image size in shared memory
+	memcpy(this->baseAddress + sizeof(int) , &width, sizeof(int));
+	memcpy(this->baseAddress + (sizeof(int) * 2) , &height, sizeof(int));
+	
+	// Putting payload in shared memory
+	printf("Data Size: %d", size);
+	memcpy(this->baseAddress+ (sizeof(int) * 3),Data, size);
+	
+	// Putting Size of payload in shared memory
+	memcpy(this->baseAddress, &size, sizeof(int));
+		
+	//this->theKey->setSize(size);
+	
 	return true;
 }
 
@@ -56,14 +74,14 @@ MemData* MemSpace::fetchData()
 MemSpace::MemSpace(MemSpace* space)
 {
 	this->baseAddress = space->baseAddress;
-	this->theKey = space->theKey;
+	this->theKey = new MemKey( space->theKey );
 }
 
 MemSpace::MemSpace(MemSpace& space)
 {
 	
 	this->baseAddress = space.baseAddress;
-	this->theKey = space.theKey;
+	this->theKey = new MemKey( space.theKey );
 }
 
 MemSpace::~MemSpace()
@@ -79,3 +97,12 @@ return this->baseAddress;
 void MemSpace::setBaseAddress(unsigned char* Address){
 this->baseAddress = Address;
 }
+
+void MemSpace::setKey( MemKey* key ){
+	
+	if( this->theKey != NULL )
+		delete this->theKey;
+	
+	this->theKey= new MemKey(key);
+}
+

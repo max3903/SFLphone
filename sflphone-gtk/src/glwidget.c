@@ -25,17 +25,17 @@ gboolean draw(GtkWidget* widget, gpointer data)
   	GdkGLDrawable *gldrawable = gtk_widget_get_gl_drawable (widget);
 
     // OpenGL BEGIN
-  	if (!gdk_gl_drawable_gl_begin (gldrawable, glcontext))
+  	if (!gdk_gl_drawable_gl_begin (gldrawable, glcontext)){
     	return FALSE;
-		
+  	}
+	
 	// Viewport definition
 	glViewport (0, 0, widget->allocation.width, widget->allocation.height);
-	    
+		    
 	// Loading Initial drawing info 
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
-	glMatrixMode(GL_MODELVIEW);
-	glLoadIdentity();
+	gluOrtho2D(0.0, widget->allocation.width, 0.0, widget->allocation.height );
 	
 	// Draw Recevied Images
 	drawRemote(widget, data, glcontext, gldrawable);
@@ -43,8 +43,7 @@ gboolean draw(GtkWidget* widget, gpointer data)
 	// ReLoading Initial drawing info
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
-	glMatrixMode(GL_MODELVIEW);
-	glLoadIdentity();
+	gluOrtho2D(0.0, widget->allocation.width, 0.0, widget->allocation.height );
 	
 	// Draw Local Image	
 	drawLocal(widget, data, glcontext, gldrawable);
@@ -67,7 +66,10 @@ gboolean draw(GtkWidget* widget, gpointer data)
 gboolean reshape(GtkWidget* widget, GdkEventConfigure* ev, gpointer data)
 {
 	
-	// TODO: Reshape pour conserer le rapport d'aspect
+	glViewport (0, 0, widget->allocation.width, widget->allocation.height);
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+	gluOrtho2D(0.0, widget->allocation.width, 0.0, widget->allocation.height );
 	return TRUE;
 }
 
@@ -131,7 +133,7 @@ GtkWidget* createGLWidget()
 	widget = (GtkWidget*)gtk_drawing_area_new ();
 
 	// TODO: Check dynamic size not fixed, does it make a difference
-	gtk_widget_set_size_request (widget, 300, 300);
+	//gtk_widget_set_size_request (widget, 300, 300);
 		      
   	gtk_widget_set_gl_capability (widget, glconfig, NULL, TRUE, GDK_GL_RGBA_TYPE);
   	
@@ -148,16 +150,39 @@ gboolean drawLocal(GtkWidget* widget, gpointer data, GdkGLContext *glContext, Gd
 {
 	
 	// Fetch Data in the local memory space
-	if( fetchData(localKey, localBuff) < 0 )
+	if( fetchData(localKey, localBuff) < 0 ){
 		return FALSE;
+	}
+			
+	if( localBuff->data == NULL){
+		return FALSE;
+	}
 	
+	if( currentGLWidth != localBuff->width || currentGLHeight != localBuff->height  ){
+		currentGLWidth= localBuff->width;
+		currentGLHeight= localBuff->height;
+		gtk_widget_set_size_request (widget, localBuff->width, localBuff->height);
+		return FALSE;
+	}
+			
 	// Draw fetched Data
 	glClear(GL_COLOR_BUFFER_BIT);		
-	glRasterPos2f(-1.0*(widget->allocation.width/2.0+localBuff->width/2.0)/1000.0,(widget->allocation.height/2.0+localBuff->height*3)/1000.0);
+			
+	float x= ( widget->allocation.width - localBuff->width)/2.0;
+	
+	float y= 0.0;
+	if( widget->allocation.height == localBuff->height  )
+		y= ( widget->allocation.height - localBuff->height)/2.0;
+	else
+		y= ( widget->allocation.height - localBuff->height)/2.0  + (float)localBuff->height;
+	glRasterPos2f(x,y);
+		
+	printf("x= %f y=%f", x,y);
+	
 	glPixelStorei(GL_PACK_ALIGNMENT, 8);
 	glPixelZoom(1., -1.);
 	glDrawPixels(localBuff->width, localBuff->height, GL_RGB, GL_UNSIGNED_BYTE, localBuff->data );
-	
+		
 	return TRUE;
 	
 }
@@ -166,8 +191,13 @@ gboolean drawRemote(GtkWidget* widget, gpointer data, GdkGLContext *glContext, G
 {
 	
 	// Fetch Data in the remote memory space
-	if( fetchData(remoteKey, remoteBuff) < 0 )
+	if( fetchData(remoteKey, remoteBuff) < 0 ){
 		return FALSE;
+	}
+	
+	if( localBuff->data == NULL){
+		return FALSE;
+	}
 		
 	// Draw fetched Data
 	glClear(GL_COLOR_BUFFER_BIT);		

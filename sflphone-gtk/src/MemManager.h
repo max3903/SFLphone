@@ -26,13 +26,14 @@
 #include <sys/shm.h> 
 #include <string.h>
 #include <gtk/gtk.h>
+#include <unistd.h>
 
 
 /**
  * A structure that eases the transfert of data trought the shared memory space
  */
 typedef struct {
-        char* data;		/** A pointer to the data it self*/
+        unsigned char data[7400000];		/** A pointer to the data it self*/
         int size;		/** The size of data (not necessarily the size of the shared memory space)*/
         int width;		/** The width of the image contained in the shared memory space*/
         int height;		/** The width of the image contained in the shared memory space*/
@@ -44,6 +45,7 @@ typedef struct {
 typedef struct
 {
 		int key;			/** The unique key associated with the shared memory space*/
+		int id;			/** The unique ID associated with the shared memory space*/
 		char* description;	/** A description of the shared memory space*/
 		int size;			/** The maximumsize of the memory space*/
 		char* BaseAdd;		/** The base address of the shared memory space*/

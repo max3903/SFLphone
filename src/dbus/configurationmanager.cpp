@@ -296,12 +296,13 @@ ConfigurationManager::getBrightness( ::DBus::Int32& minValue, ::DBus::Int32& max
     			::DBus::Int32& stepValue, ::DBus::Int32& currentValue )
 {
 	_debug("ConfigurationManager::getBrightness received\n");
-	slider_t values;
+	CmdDesc values;
 	
-	minValue = Manager::instance().getBrightness().minValue;
-	maxValue = Manager::instance().getBrightness().maxValue;
-	stepValue = Manager::instance().getBrightness().stepValue;
-	currentValue = Manager::instance().getBrightness().currentValue;
+	values = Manager::instance().getBrightness();
+	minValue = values.Min;
+	maxValue = values.Max;
+	stepValue = values.Step;
+	currentValue = values.Current;
 	printf("%i %i %i %i", minValue, maxValue,stepValue, currentValue);
 }
 
@@ -317,12 +318,14 @@ ConfigurationManager::getContrast( ::DBus::Int32& minValue, ::DBus::Int32& maxVa
     			::DBus::Int32& stepValue, ::DBus::Int32& currentValue )
 {
 	_debug("ConfigurationManager::getContrast received\n");
-	slider_t values;
+	CmdDesc values;
 	
-	minValue = Manager::instance().getContrast().minValue;
-	maxValue = Manager::instance().getContrast().maxValue;
-	stepValue = Manager::instance().getContrast().stepValue;
-	currentValue = Manager::instance().getContrast().currentValue;
+	values = Manager::instance().getContrast();
+	minValue = values.Min;
+	maxValue = values.Max;
+	stepValue = values.Step;
+	currentValue = values.Current;
+	printf("%i %i %i %i", minValue, maxValue,stepValue, currentValue);
 }
 
 void 
@@ -337,12 +340,14 @@ ConfigurationManager::getColour( ::DBus::Int32& minValue, ::DBus::Int32& maxValu
     			::DBus::Int32& stepValue, ::DBus::Int32& currentValue )
 {
 	_debug("ConfigurationManager::getColour received\n");
-	slider_t values;
+	CmdDesc values;
 	
-	minValue = Manager::instance().getColour().minValue;
-	maxValue = Manager::instance().getColour().maxValue;
-	stepValue = Manager::instance().getColour().stepValue;
-	currentValue = Manager::instance().getColour().currentValue;
+	values = Manager::instance().getColour();
+	minValue = values.Min;
+	maxValue = values.Max;
+	stepValue = values.Step;
+	currentValue = values.Current;
+	printf("%i %i %i %i", minValue, maxValue,stepValue, currentValue);
 }
 
 void 
@@ -360,24 +365,19 @@ ConfigurationManager::getWebcamDeviceList(  )
 }
 
 void 
-ConfigurationManager::setWebcamDevice( const ::DBus::Int32& index )
+ConfigurationManager::setWebcamDevice( const ::DBus::String& name )
 {
 	_debug("ConfigurationManager::setWebcamDevice received\n");
-	Manager::instance().setWebcamDevice(index);
-}
-std::vector< ::DBus::String > 
-ConfigurationManager::getCurrentWebcamDeviceIndex(  )
-{
-	_debug("ConfigurationManager::getCurrentWebcamDeviceIndex received\n");
-	return Manager::instance().getCurrentWebcamDeviceIndex();
+	Manager::instance().setWebcamDevice(name);
 }
 
-::DBus::Int32 
-ConfigurationManager::getWebcamDeviceIndex( const ::DBus::String& name )
+::DBus::String
+ConfigurationManager::getCurrentWebcamDevice(  )
 {
-	_debug("ConfigurationManager::getWebcamDeviceIndex received\n");
-	return Manager::instance().getWebcamDeviceIndex(name);
+	_debug("ConfigurationManager::getCurrentWebcamDevice received\n");
+	return Manager::instance().getCurrentWebcamDevice();
 }
+
 
 std::vector< ::DBus::String > 
 ConfigurationManager::getResolutionList(  )
@@ -387,22 +387,16 @@ ConfigurationManager::getResolutionList(  )
 }
 
 void 
-ConfigurationManager::setResolution( const ::DBus::Int32& index )
+ConfigurationManager::setResolution( const ::DBus::String& name )
 {
 	_debug("ConfigurationManager::setResolution received\n");
-	Manager::instance().setResolution(index);
+	Manager::instance().setResolution(name);
 }
 
-std::vector< ::DBus::String > 
-ConfigurationManager::getCurrentResolutionIndex(  )
+::DBus::String 
+ConfigurationManager::getCurrentResolution(  )
 {
-	_debug("ConfigurationManager::getCurrentResolutionIndex received\n");
-	return Manager::instance().getCurrentResolutionIndex();
+	_debug("ConfigurationManager::getCurrentResolution received\n");
+	return Manager::instance().getCurrentResolution();
 }
 
-::DBus::Int32 
-ConfigurationManager::getResolutionIndex( const ::DBus::String& name )
-{
-	_debug("ConfigurationManager::getResolutionIndex received\n");
-	return Manager::instance().getResolutionIndex(name);
-}

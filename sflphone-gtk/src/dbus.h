@@ -86,14 +86,12 @@ slider_t dbus_get_colour();
 void dbus_set_colour(int value);
 //Webcam list
 gchar** dbus_get_webcam_device_list();
-void dbus_set_webcam_device(const int index);
-gchar** dbus_get_current_webcam_device_index();
-int dbus_get_webcam_device_index(const gchar* name);
+void dbus_set_webcam_device(gchar* name);
+gchar* dbus_get_current_webcam_device();
 //Resolution list
 gchar** dbus_get_resolution_list();
-void dbus_set_resolution(const int index);
-int dbus_get_resolution_index(const gchar* name);
-gchar** dbus_get_current_resolution_index();
+void dbus_set_resolution(gchar* name);
+gchar* dbus_get_current_resolution();
 
 // Audio devices related methods
 gchar** dbus_get_input_audio_plugin_list();

@@ -193,16 +193,11 @@
     </method>
     
     <method name="setWebcamDevice">
-      <arg type="i" name="index" direction="in"/>
-    </method>
-    
-    <method name="getCurrentWebcamDeviceIndex">
-      <arg type="as" name="list" direction="out"/>
-    </method>
-    
-    <method name="getWebcamDeviceIndex">
       <arg type="s" name="name" direction="in"/>
-      <arg type="i" name="index" direction="out"/>
+    </method>
+    
+    <method name="getCurrentWebcamDevice">
+      <arg type="s" name="name" direction="out"/>
     </method>
     
     <method name="getResolutionList">
@@ -210,19 +205,13 @@
     </method>
     
     <method name="setResolution">
-      <arg type="i" name="index" direction="in"/>
-    </method>
-    
-    <method name="getCurrentResolutionIndex">
-      <arg type="as" name="list" direction="out"/>
-    </method>
-    
-    <method name="getResolutionIndex">
       <arg type="s" name="name" direction="in"/>
-      <arg type="i" name="index" direction="out"/>
     </method>
-  
-  
+    
+    <method name="getCurrentResolution">
+      <arg type="s" name="name" direction="out"/>
+    </method>
+    
   <!--        /////////////////////////////       -->
  
     <method name="isIax2Enabled">

@@ -141,7 +141,7 @@ unsigned char* CopyMode::capture(VideoDevice* device){
 	ptracesfl( buff,MT_NONE, CAPTUREMODE_TRACE);
 	
 	ptracesfl( "Getting image buffer size: ",MT_INFO, CAPTUREMODE_TRACE, false);
-	int imageSize= width * height << 1;
+	this->imageSize= width * height << 1;
 	
     sprintf(buff, "%d\0", imageSize );
 	ptracesfl( buff,MT_NONE, CAPTUREMODE_TRACE);
@@ -190,6 +190,7 @@ unsigned char* CopyMode::capture(VideoDevice* device){
     }
    
 	// Allocate memory for the final image
+	imageSize= width*height*3*sizeof(unsigned char);
 	ptracesfl( "Allocating memory for RBG image buffer ... ",MT_INFO, CAPTUREMODE_TRACE, false);
 	unsigned char* img_data = (unsigned char*)malloc(width*height*3*sizeof(unsigned char));
 	

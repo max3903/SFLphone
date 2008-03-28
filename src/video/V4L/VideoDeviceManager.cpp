@@ -108,5 +108,45 @@ Command* VideoDeviceManager::getCommand(TCommand ref){
     
 }
 
+vector<string> VideoDeviceManager::enumVideoDevices(){
 
+	vector<string> ret;
+  LibHalContext *hal_context= NULL;
+  DBusConnection *dbus= dbus_bus_get( DBUS_BUS_SYSTEM, NULL );
+  
+  // Initialisation of the dbus connection
+  if( dbus ){
+  	hal_context= libhal_ctx_new();
+  	if(hal_context)
+  		libhal_ctx_set_dbus_connection(hal_context,dbus);
+  	else
+  		ptracesfl("Cannot Initialise HAL Connection", MT_ERROR, VIDEODEVICE_TRACE);
+  }else
+  	ptracesfl("Cannot Initialise HAL Connection", MT_ERROR, VIDEODEVICE_TRACE);
+  	
+  //Getting devices
+  int numDevices= 0;
+  ptracesfl("Enumerating V4L Capable devices ...", MT_INFO, VIDEODEVICE_TRACE);
+  char** devices= libhal_find_device_by_capability(hal_context,"video4linux", &numDevices, NULL);
+  
+  for(int i= 0; i < numDevices; i++){
+  	char* aDevice;
+  	
+  	aDevice= libhal_device_get_property_string (hal_context, devices[i], "video4linux.device", NULL);
+  	
+  	ptracesfl("\tFound device: ", MT_INFO, VIDEODEVICE_TRACE, false);
+  	ptracesfl(aDevice, MT_NONE, VIDEODEVICE_TRACE);
+  	ret.push_back(string(aDevice));
+  	
+  	libhal_free_string(aDevice);
+  }
+  
+  for(int i= 0; i < numDevices; i++)
+  	delete devices[i];
+  	
+  delete devices;
+      
+  return ret;
+  
+}
 

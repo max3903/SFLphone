@@ -29,6 +29,7 @@
 #include <vector>
 #include <set>
 #include <map>
+#include <utility>
 #include <cc++/thread.h>
 #include <time.h>
 #include "dbus/dbusmanager.h"
@@ -60,21 +61,11 @@ class VideoDeviceManager;
 class DNSService;
 #endif
 
-//TODO: remove when it will be linked to the struct in V4L
-typedef struct  {
-  /** Minimum value for the slider */
-  int minValue;
-  /** Maximum value for the slider */
-  int maxValue;
-  /** Step increment value for the slider */
-  int stepValue;
-  /** Current value of the slider */
-  int currentValue;
-} slider_t;
+#define MANAGERIMPL_TRACE	1
 
 struct KeyHolder{
-const MemKey* localKey;
-const MemKey* remoteKey;
+MemKey* localKey;
+MemKey* remoteKey;
 };
 /**
  * Define a type for a AccountMap container
@@ -574,22 +565,46 @@ public:
   std::string getRemoteSharedMemoryKey( void );
   
   /* Webcam Settings */
-	slider_t getBrightness(  );
+	CmdDesc getBrightness(  );
 	void setBrightness( const int value );
-	slider_t getContrast(  );
+	CmdDesc getContrast(  );
 	void setContrast( const int value );
-	slider_t getColour(  );
+	CmdDesc getColour(  );
 	void setColour( const int value );
 	std::vector<std::string> getWebcamDeviceList(  );
-	void setWebcamDevice( const int index );
-	std::vector< std::string > getCurrentWebcamDeviceIndex(  );
-    int getWebcamDeviceIndex( const std::string name );
+	void setWebcamDevice( const std::string& name );
+	std::string getCurrentWebcamDevice(  );
     std::vector< std::string > getResolutionList(  );
-    void setResolution( const int index );
-    std::vector< std::string > getCurrentResolutionIndex(  );
-    int getResolutionIndex( const std::string name );
+    void setResolution( const std::string& name );
+    std::string getCurrentResolution(  );
+    
+    
+    /** Method to activate Local video Capture for the preference video
+     * @return The success of the operation
+     */ 
+    bool enableLocalVideoPref();
+    
+    /** Method to deactivate Local video Capture for the preference video
+     * @return The success of the operation
+     */
+    bool disableLocalVideoPref();
+    
+    /** Method that captures the data from the web cam for the prefenrences window
+     * 
+     * This method is ran as a thread
+     */
+    static void* localVideCapturepref(void* pdata);
 
 private:
+
+  /** Attribute telling if the local capture for the web cam is active
+   */
+  static bool _localCapActive;
+  
+  /** Local capture for preference window thread information;
+   */
+  pthread_t _localVidCap_Thread;
+
  /**
   * Create .PROGNAME directory in home user and create 
   * configuration tree from the settings file if this file exists.
@@ -687,7 +702,7 @@ private:
 
   // MEMMANAGER
   MemManager *_memManager;
-  KeyHolder _keyHolder;
+  static KeyHolder _keyHolder;
   
   /////////////////////
   // Protected by Mutex
@@ -839,25 +854,6 @@ private:
    */
   void initMemManager(void);
   
-  /**
-   * Get list of supported video input device
-   */
-  std::vector<std::string> getVideoInputDeviceList(void);
-
-  /**
-   * Set video input device
-   */
-  void setVideoInputDevice(const int index);
-
-  /**
-   * Get string array representing integer indexes of video input device
-   */
-  std::vector<std::string> getCurrentVideoDeviceIndex();
-
-  /**
-   * Get name, brightness, contrast, color, resolution of video device
-   */
-  std::vector<std::string> getVideoDeviceDetails(const int index);
   
    /*
    * Initialize the VideoDeviceManager -> the V4L interface

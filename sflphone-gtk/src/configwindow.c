@@ -459,25 +459,24 @@ select_audio_input_device(GtkComboBox* comboBox, gpointer data)
 }
 
 /**
- * Set the webcam device on the server with its index
+ * Set the webcam device on the server with its name
  */
 static void
-select_webcam_device(GtkComboBox* comboBox, gpointer data)
+select_webcam_device(GtkComboBox* widget, gpointer data)
 {
 	GtkTreeModel* model;
 	GtkTreeIter iter;
 	int comboBoxIndex;
-	int deviceIndex;
+	gchar* name;
 	
-	comboBoxIndex = gtk_combo_box_get_active(comboBox);
+	comboBoxIndex = gtk_combo_box_get_active(widget);
 	
 	if(comboBoxIndex >= 0)
 	{
-		model = gtk_combo_box_get_model(comboBox);
-		gtk_combo_box_get_active_iter(comboBox, &iter);
-		gtk_tree_model_get(model, &iter, 1, &deviceIndex, -1);
-		
-		dbus_set_webcam_device(deviceIndex);
+		model = gtk_combo_box_get_model(widget);
+		gtk_combo_box_get_active_iter(widget, &iter);
+		gtk_tree_model_get(model, &iter, 0, &name, -1);	
+		dbus_set_webcam_device(name);
 	}
 }
 
@@ -489,19 +488,19 @@ config_window_fill_webcam_device_list()
 {
 	GtkTreeIter iter;
 	gchar** list;
-	gchar** webcamDevice;
-	int index ;
+	gchar* webcamName;
 	gtk_list_store_clear(webcamDeviceStore);
 	
 	// Call dbus to retrieve list
 	list = dbus_get_webcam_device_list();
 	
-	// For each device name included in list
-	for(webcamDevice = list; *list; list++)
+	// For each webcam included in list
+	int c = 0;
+	for(webcamName = list[c]; webcamName != NULL; webcamName = list[c])
 	{
-		index = dbus_get_webcam_device_index( *list );
+		c++;
 		gtk_list_store_append(webcamDeviceStore, &iter);
-		gtk_list_store_set(webcamDeviceStore, &iter, 0, *list, 1, index, -1);
+		gtk_list_store_set(webcamDeviceStore, &iter, 0 , webcamName, -1);
 	}
 }
 
@@ -513,20 +512,19 @@ select_active_webcam_device()
 {
 	GtkTreeModel* model;
 	GtkTreeIter iter;
-	gchar** device;
-	int currentDeviceIndex;
-	int deviceIndex;
+	gchar* webcam;
+	gchar* tmp;
 
 	// Select active webcam device on server
-	device = dbus_get_current_webcam_device_index();
-	currentDeviceIndex = atoi(device[1]);
+	webcam = dbus_get_current_webcam_device();
+	tmp = webcam;
 	model = gtk_combo_box_get_model(GTK_COMBO_BOX(webcamDeviceComboBox));
-	
-	// Find the currently set webcam device
+	  
+	// Find the currently set resolution
 	gtk_tree_model_get_iter_first(model, &iter);
 	do {
-		gtk_tree_model_get(model, &iter, 1, &deviceIndex, -1);
-		if(deviceIndex == currentDeviceIndex)
+		gtk_tree_model_get(model, &iter, 0, &webcam , -1);
+		if( g_strcasecmp( tmp , webcam ) == 0 )
 		{
 			// Set current iteration the active one
 			gtk_combo_box_set_active_iter(GTK_COMBO_BOX(webcamDeviceComboBox), &iter);
@@ -535,30 +533,29 @@ select_active_webcam_device()
 	} while(gtk_tree_model_iter_next(model, &iter));
 
 	// No index was found, select first one
-	g_print("Warning : No active webcam device found");
+	g_print("Warning : No active webcam found\n");
 	gtk_combo_box_set_active(GTK_COMBO_BOX(webcamDeviceComboBox), 0);
 }
 
 /**
- * Set the webcam device on the server with its index
+ * Set the resolution on the server with its name
  */
 static void
-select_resolution(GtkComboBox* comboBox, gpointer data)
+select_resolution(GtkComboBox* widget, gpointer data)
 {
 	GtkTreeModel* model;
 	GtkTreeIter iter;
 	int comboBoxIndex;
-	int resolutionIndex;
+	gchar* name;
 	
-	comboBoxIndex = gtk_combo_box_get_active(comboBox);
+	comboBoxIndex = gtk_combo_box_get_active(widget);
 	
 	if(comboBoxIndex >= 0)
 	{
-		model = gtk_combo_box_get_model(comboBox);
-		gtk_combo_box_get_active_iter(comboBox, &iter);
-		gtk_tree_model_get(model, &iter, 1, &resolutionIndex, -1);
-		
-		dbus_set_resolution(resolutionIndex);
+		model = gtk_combo_box_get_model(widget);
+		gtk_combo_box_get_active_iter(widget, &iter);
+		gtk_tree_model_get(model, &iter, 0, &name, -1);	
+		dbus_set_resolution(name);
 	}
 }
 
@@ -570,19 +567,19 @@ config_window_fill_resolution_list()
 {
 	GtkTreeIter iter;
 	gchar** list;
-	gchar** resolution;
-	int index ;
+	gchar* resolutionName;
 	gtk_list_store_clear(resolutionStore);
 	
 	// Call dbus to retrieve list
 	list = dbus_get_resolution_list();
 	
 	// For each resolution included in list
-	for(resolution = list; *list; list++)
+	int c = 0;
+	for(resolutionName = list[c]; resolutionName != NULL; resolutionName = list[c])
 	{
-		index = dbus_get_resolution_index( *list );
+		c++;
 		gtk_list_store_append(resolutionStore, &iter);
-		gtk_list_store_set(resolutionStore, &iter, 0, *list, 1, index, -1);
+		gtk_list_store_set(resolutionStore, &iter, 0 , resolutionName, -1);
 	}
 }
 
@@ -594,20 +591,19 @@ select_active_resolution()
 {
 	GtkTreeModel* model;
 	GtkTreeIter iter;
-	gchar** resolution;
-	int currentResolutionIndex;
-	int resolutionIndex;
+	gchar* resolution;
+	gchar* tmp;
 
 	// Select active resolution on server
-	resolution = dbus_get_current_resolution_index();
-	currentResolutionIndex = atoi(resolution[1]);
+	resolution = dbus_get_current_resolution();
+	tmp = resolution;
 	model = gtk_combo_box_get_model(GTK_COMBO_BOX(resolutionComboBox));
-	
+	  
 	// Find the currently set resolution
 	gtk_tree_model_get_iter_first(model, &iter);
 	do {
-		gtk_tree_model_get(model, &iter, 1, &resolutionIndex, -1);
-		if(resolutionIndex == currentResolutionIndex)
+		gtk_tree_model_get(model, &iter, 0, &resolution , -1);
+		if( g_strcasecmp( tmp , resolution ) == 0 )
 		{
 			// Set current iteration the active one
 			gtk_combo_box_set_active_iter(GTK_COMBO_BOX(resolutionComboBox), &iter);
@@ -616,7 +612,7 @@ select_active_resolution()
 	} while(gtk_tree_model_iter_next(model, &iter));
 
 	// No index was found, select first one
-	g_print("Warning : No active webcam device found");
+	g_print("Warning : No active resolution found\n");
 	gtk_combo_box_set_active(GTK_COMBO_BOX(resolutionComboBox), 0);
 }
 
@@ -1097,6 +1093,42 @@ default_codecs(GtkWidget* widget, gpointer data)
 	gtk_list_store_reorder(codecStore, new_order);
 }
 */
+
+/**
+ * Set the brightness on the server with its value
+ */
+static void
+set_brightness(GtkScale* scale, gpointer data)
+{
+	gdouble value;
+	value = gtk_range_get_value(GTK_RANGE(scale));
+	dbus_set_brightness(value);
+	
+}
+
+/**
+ * Set the contrast on the server with its value
+ */
+static void
+set_contrast(GtkScale* scale, gpointer data)
+{
+	gdouble value;
+	value = gtk_range_get_value(GTK_RANGE(scale));
+	dbus_set_contrast(value);
+	
+}
+
+/**
+ * Set the colour on the server with its value
+ */
+static void
+set_colour(GtkScale* scale, gpointer data)
+{
+	gdouble value;
+	value = gtk_range_get_value(GTK_RANGE(scale));
+	dbus_set_colour(value);
+	
+}
 /**
  * Create table widget for video codecs
  */
@@ -1663,6 +1695,7 @@ create_webcam_tab ()
 	GtkObject *brightnessAdjustment, *contrastAdjustment, *colourAdjustment;
 	
 	GtkWidget *drawingSpace;
+	slider_t values;
 	
 	
 	GtkCellRenderer *deviceRenderer, *resolutionRenderer;
@@ -1697,9 +1730,9 @@ create_webcam_tab ()
 	
 	// Set choices of webcam
 	webcamDeviceStore = gtk_list_store_new(2, G_TYPE_STRING, G_TYPE_INT);
-	//config_window_fill_webcam_device_list();
+	config_window_fill_webcam_device_list();
 	webcamDeviceComboBox = gtk_combo_box_new_with_model(GTK_TREE_MODEL(webcamDeviceStore));
-	//select_active_webcam_device();
+	select_active_webcam_device();
   	gtk_label_set_mnemonic_widget(GTK_LABEL(titleLabel), webcamDeviceComboBox);
 	g_signal_connect(G_OBJECT(webcamDeviceComboBox), "changed", G_CALLBACK(select_webcam_device), webcamDeviceComboBox);
 	
@@ -1731,6 +1764,8 @@ create_webcam_tab ()
 	gtk_widget_show(settingsTable);
 	gtk_container_add(GTK_CONTAINER(settingsFrame),settingsTable);
 	
+	//Get the values for the brightness slider
+	values = dbus_get_brightness();
     
     //Brightness slider section
     brightnessLabel = gtk_label_new(NULL);
@@ -1741,10 +1776,19 @@ create_webcam_tab ()
     gtk_table_attach(GTK_TABLE(settingsTable), brightnessLabel, 0, 1, 0, 1, GTK_FILL | GTK_EXPAND, GTK_SHRINK, 0, 0);
     gtk_widget_show(brightnessLabel);
 
-	brightnessAdjustment = gtk_adjustment_new (0.0, 0.0, 101.0, 1.0, 1.0, 1.0);
+	brightnessAdjustment = gtk_adjustment_new (values.currentValue, values.minValue, values.maxValue, values.stepValue, 1, 1);
     brightnessHScale = gtk_hscale_new(GTK_ADJUSTMENT (brightnessAdjustment));
+    gtk_scale_set_digits(GTK_SCALE(brightnessHScale), 0);
     gtk_table_attach(GTK_TABLE(settingsTable), brightnessHScale, 0, 1, 1, 2, GTK_FILL | GTK_EXPAND, GTK_SHRINK, 0, 0);
+    g_signal_connect(G_OBJECT(brightnessHScale), "value-changed", G_CALLBACK(set_brightness), brightnessHScale);
+    if(values.currentValue ==-1 && values.minValue==-1 && values.maxValue==-1 && values.stepValue==-1)
+	{
+    	gtk_widget_set_sensitive(GTK_WIDGET(colourHScale), 0);
+	}
 	gtk_widget_show(brightnessHScale);
+	
+	//Get the values for the contrast slider
+	values = dbus_get_contrast();
 
 	//Contrast slider section
     contrastLabel = gtk_label_new(NULL);
@@ -1755,10 +1799,19 @@ create_webcam_tab ()
     gtk_table_attach(GTK_TABLE(settingsTable), contrastLabel, 0, 1, 2, 3, GTK_FILL | GTK_EXPAND, GTK_SHRINK, 0, 0);
     gtk_widget_show(contrastLabel);
     
-    contrastAdjustment = gtk_adjustment_new (0.0, 0.0, 101.0, 1.0, 1.0, 1.0);
+    contrastAdjustment = gtk_adjustment_new (values.currentValue, values.minValue, values.maxValue, values.stepValue, 1, 1);
     contrastHScale = gtk_hscale_new(GTK_ADJUSTMENT (contrastAdjustment));
+    gtk_scale_set_digits(GTK_SCALE(contrastHScale), 0);
     gtk_table_attach(GTK_TABLE(settingsTable), contrastHScale, 0, 1, 3, 4, GTK_FILL | GTK_EXPAND, GTK_SHRINK, 0, 0);
+    g_signal_connect(G_OBJECT(contrastHScale), "value-changed", G_CALLBACK(set_contrast), contrastHScale);
+    if(values.currentValue ==-1 && values.minValue==-1 && values.maxValue==-1 && values.stepValue==-1)
+	{
+    	gtk_widget_set_sensitive(GTK_WIDGET(colourHScale), 0);
+	}
 	gtk_widget_show(contrastHScale);
+	
+	//Get the values for the colour slider
+	values = dbus_get_colour();
 	
 	//Colour slider section
 	colourLabel = gtk_label_new(NULL);
@@ -1769,9 +1822,15 @@ create_webcam_tab ()
     gtk_table_attach(GTK_TABLE(settingsTable), colourLabel, 0, 1, 4, 5, GTK_FILL | GTK_EXPAND, GTK_SHRINK, 0, 0);
     gtk_widget_show(colourLabel);
     
-    colourAdjustment = gtk_adjustment_new (0.0, 0.0, 101.0, 1.0, 1.0, 1.0);
+    colourAdjustment = gtk_adjustment_new (values.currentValue, values.minValue, values.maxValue, values.stepValue, 1, 1);
     colourHScale = gtk_hscale_new(GTK_ADJUSTMENT (colourAdjustment));
+    gtk_scale_set_digits(GTK_SCALE(colourHScale), 0);
     gtk_table_attach(GTK_TABLE(settingsTable), colourHScale, 0, 1, 5, 6, GTK_FILL | GTK_EXPAND, GTK_SHRINK, 0, 0);
+    g_signal_connect(G_OBJECT(colourHScale), "value-changed", G_CALLBACK(set_colour), colourHScale);
+    if(values.currentValue ==-1 && values.minValue==-1 && values.maxValue==-1 && values.stepValue==-1)
+	{
+    	gtk_widget_set_sensitive(GTK_WIDGET(colourHScale), 0);
+	}
 	gtk_widget_show(colourHScale);
 	
 	//Resolution combo box section
@@ -1784,9 +1843,9 @@ create_webcam_tab ()
     gtk_widget_show(resolutionLabel);
     
     resolutionStore = gtk_list_store_new(2, G_TYPE_STRING, G_TYPE_INT);
-	//config_window_fill_resolution_list();
+	config_window_fill_resolution_list();
 	resolutionComboBox = gtk_combo_box_new_with_model(GTK_TREE_MODEL(resolutionStore));
-	//select_active_resolution();
+	select_active_resolution();
   	gtk_label_set_mnemonic_widget(GTK_LABEL(resolutionLabel), resolutionComboBox);
 	g_signal_connect(G_OBJECT(resolutionComboBox), "changed", G_CALLBACK(select_resolution), resolutionComboBox);
 	
@@ -1798,12 +1857,12 @@ create_webcam_tab ()
 	
 	// \todo Add an OpenGL widget to show the local video rendering
     drawingSpace= createGLWidget();
-    gtk_box_pack_start(GTK_BOX(settingsHBox), drawingSpace, FALSE, FALSE, 0);
+    gtk_box_pack_start(GTK_BOX(settingsHBox), drawingSpace, TRUE, TRUE, 0);
     gtk_widget_show(drawingSpace);
 	
-	g_signal_connect (G_OBJECT (colourHScale), "format-value", G_CALLBACK (format_percentage_scale), NULL); 
-	g_signal_connect (G_OBJECT (brightnessHScale), "format-value", G_CALLBACK (format_percentage_scale), NULL); 
-	g_signal_connect (G_OBJECT (contrastHScale), "format-value", G_CALLBACK (format_percentage_scale), NULL); 
+	//g_signal_connect (G_OBJECT (colourHScale), "format-value", G_CALLBACK (format_percentage_scale), NULL); 
+	//g_signal_connect (G_OBJECT (brightnessHScale), "format-value", G_CALLBACK (format_percentage_scale), NULL); 
+	//g_signal_connect (G_OBJECT (contrastHScale), "format-value", G_CALLBACK (format_percentage_scale), NULL); 
 
 	// Show all
 	gtk_widget_show_all(ret);

@@ -33,7 +33,7 @@ Call::Call(const CallID& id, Call::CallType type) : _id(id), _type(type),
   _remoteAudioPort = 0;
   _remoteVideoPort = 0;
 
-
+  /*
   // Initialisation des buffers du Mixer
   localVidIntput = new VideoInput();
   localAudIntput = new AudioInput();
@@ -59,11 +59,13 @@ Call::Call(const CallID& id, Call::CallType type) : _id(id), _type(type),
   remoteMixer = new Mixer(Mixer::NOSYNCH_AV_STRAIGHTTHROUGH,tmpRemoteInputs,(OutputStream*)remoteAudOutput,(OutputStream*)remoteVidOutput);
 
   // TODO: partir les mixers
+  */
 }
 
 
 Call::~Call()
 {
+  /*
   delete localVidIntput; localVidIntput=NULL;
   delete localAudIntput; localAudIntput=NULL;
   delete localVidOutput; localVidOutput=NULL;
@@ -78,6 +80,7 @@ Call::~Call()
 
   delete localMixer; localMixer=NULL;
   delete remoteMixer; remoteMixer=NULL;
+  */
 
 }
 

@@ -302,8 +302,8 @@ private:
 
     InputStreams* localInputStreams;
     InputStreams* remoteInputStreams;
-    //OutputStream* localOutputStreams;
-    //OutputStream* remoteOutputStreams;
+    OutputStream* localOutputStreams;
+    OutputStream* remoteOutputStreams;
 
 };
 

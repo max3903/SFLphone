@@ -51,8 +51,8 @@ unsigned char* ReadMode::capture(VideoDevice* device){
   	ptracesfl( "Begining Read Mode i/o capture:",MT_INFO, CAPTUREMODE_TRACE - 1); 
 	
 	ptracesfl( "Getting image buffer size: ",MT_INFO, CAPTUREMODE_TRACE, false);
-	
-	int imageSize= vFormat->fmt.pix.sizeimage;
+
+	imageSize= device->getVideoFormat()->fmt.pix.sizeimage;
 	
     sprintf(buff, "%u\0", imageSize );
 	ptracesfl( buff,MT_NONE, CAPTUREMODE_TRACE);
@@ -90,6 +90,7 @@ unsigned char* ReadMode::capture(VideoDevice* device){
 		ptracesfl( buff,MT_NONE, CAPTUREMODE_TRACE);		
 	}
 	
+	imageSize= width*height*3*sizeof(unsigned char);
 	// Allocate memory for the final image
 	ptracesfl( "Allocating memory for rbg image buffer: ",MT_INFO, CAPTUREMODE_TRACE, false);
 	unsigned char* img_data = (unsigned char*)malloc(width*height*3*sizeof(unsigned char));
