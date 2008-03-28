@@ -23,8 +23,12 @@
 #include <gtk/gtk.h>
 #include <gtk/gtkgl.h>
 #include <GL/gl.h>
+#include <GL/glu.h>
 
 #include "MemManager.h"
+
+int currentGLWidth;
+int currentGLHeight;
 
 //! Configuration information for the gl widget
 GdkGLConfig* glconfig;
