@@ -2679,6 +2679,7 @@ ManagerImpl::initVideoCodec (void)
   	}
   	
   	// if the user never set the bitrate
+  	//TODO add bitrate
 	if(getConfigString(VIDEO, "BitRate") == ""){
     	_videoCodecDescriptor->setDefaultBitRate();
 	}
@@ -2699,7 +2700,6 @@ ManagerImpl::setActiveVideoCodecList(const std::vector<std::string>& list)
 	if(_videoCodecDescriptor->saveActiveCodecs(list))
 		ptracesfl("videoCodecs saved",MT_INFO,5,true);
   // setConfig
-  //TODO
   std::string s = serialize(list);
   printf("%s\n", s.c_str());
   setConfig("Video", "ActiveCodecs", s);
