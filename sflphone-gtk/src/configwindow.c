@@ -1093,6 +1093,42 @@ default_codecs(GtkWidget* widget, gpointer data)
 	gtk_list_store_reorder(codecStore, new_order);
 }
 */
+
+/**
+ * Set the brightness on the server with its value
+ */
+static void
+set_brightness(GtkScale* scale, gpointer data)
+{
+	gdouble value;
+	value = gtk_range_get_value(GTK_RANGE(scale));
+	dbus_set_brightness(value);
+	
+}
+
+/**
+ * Set the contrast on the server with its value
+ */
+static void
+set_contrast(GtkScale* scale, gpointer data)
+{
+	gdouble value;
+	value = gtk_range_get_value(GTK_RANGE(scale));
+	dbus_set_contrast(value);
+	
+}
+
+/**
+ * Set the colour on the server with its value
+ */
+static void
+set_colour(GtkScale* scale, gpointer data)
+{
+	gdouble value;
+	value = gtk_range_get_value(GTK_RANGE(scale));
+	dbus_set_colour(value);
+	
+}
 /**
  * Create table widget for video codecs
  */
@@ -1751,7 +1787,9 @@ create_webcam_tab ()
 
 	brightnessAdjustment = gtk_adjustment_new (values.currentValue, values.minValue, values.maxValue, values.stepValue, 1, 1);
     brightnessHScale = gtk_hscale_new(GTK_ADJUSTMENT (brightnessAdjustment));
+    gtk_scale_set_digits(GTK_SCALE(brightnessHScale), 0);
     gtk_table_attach(GTK_TABLE(settingsTable), brightnessHScale, 0, 1, 1, 2, GTK_FILL | GTK_EXPAND, GTK_SHRINK, 0, 0);
+    g_signal_connect(G_OBJECT(brightnessHScale), "value-changed", G_CALLBACK(set_brightness), brightnessHScale);
 	gtk_widget_show(brightnessHScale);
 	
 	//Get the values for the contrast slider
@@ -1768,7 +1806,9 @@ create_webcam_tab ()
     
     contrastAdjustment = gtk_adjustment_new (values.currentValue, values.minValue, values.maxValue, values.stepValue, 1, 1);
     contrastHScale = gtk_hscale_new(GTK_ADJUSTMENT (contrastAdjustment));
+    gtk_scale_set_digits(GTK_SCALE(contrastHScale), 0);
     gtk_table_attach(GTK_TABLE(settingsTable), contrastHScale, 0, 1, 3, 4, GTK_FILL | GTK_EXPAND, GTK_SHRINK, 0, 0);
+    g_signal_connect(G_OBJECT(contrastHScale), "value-changed", G_CALLBACK(set_contrast), contrastHScale);
 	gtk_widget_show(contrastHScale);
 	
 	//Get the values for the colour slider
@@ -1785,7 +1825,9 @@ create_webcam_tab ()
     
     colourAdjustment = gtk_adjustment_new (values.currentValue, values.minValue, values.maxValue, values.stepValue, 1, 1);
     colourHScale = gtk_hscale_new(GTK_ADJUSTMENT (colourAdjustment));
+    gtk_scale_set_digits(GTK_SCALE(colourHScale), 0);
     gtk_table_attach(GTK_TABLE(settingsTable), colourHScale, 0, 1, 5, 6, GTK_FILL | GTK_EXPAND, GTK_SHRINK, 0, 0);
+    g_signal_connect(G_OBJECT(colourHScale), "value-changed", G_CALLBACK(set_colour), colourHScale);
 	gtk_widget_show(colourHScale);
 	
 	//Resolution combo box section
@@ -1815,9 +1857,9 @@ create_webcam_tab ()
     gtk_box_pack_start(GTK_BOX(settingsHBox), drawingSpace, FALSE, FALSE, 0);
     gtk_widget_show(drawingSpace);
 	
-	g_signal_connect (G_OBJECT (colourHScale), "format-value", G_CALLBACK (format_percentage_scale), NULL); 
-	g_signal_connect (G_OBJECT (brightnessHScale), "format-value", G_CALLBACK (format_percentage_scale), NULL); 
-	g_signal_connect (G_OBJECT (contrastHScale), "format-value", G_CALLBACK (format_percentage_scale), NULL); 
+	//g_signal_connect (G_OBJECT (colourHScale), "format-value", G_CALLBACK (format_percentage_scale), NULL); 
+	//g_signal_connect (G_OBJECT (brightnessHScale), "format-value", G_CALLBACK (format_percentage_scale), NULL); 
+	//g_signal_connect (G_OBJECT (contrastHScale), "format-value", G_CALLBACK (format_percentage_scale), NULL); 
 
 	// Show all
 	gtk_widget_show_all(ret);
