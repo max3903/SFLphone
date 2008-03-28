@@ -89,6 +89,14 @@ int Control::getValue()
 {
 	// Get VideoDevice Current values
 	v4l2_control *tmpCtrl= (v4l2_control*)calloc(1,sizeof(v4l2_control) );
+	tmpCtrl->id= this->id;
+	
+	// Setting the new value
+	if( ioctl(fd, VIDIOC_G_CTRL, tmpCtrl) == -1 ){
+		ptracesfl("Cannot Set the control on the device", MT_ERROR, CONTROL_TRACE);
+		free(tmpCtrl);
+		return -1;
+	}
 		
 	return tmpCtrl->value;
 	
