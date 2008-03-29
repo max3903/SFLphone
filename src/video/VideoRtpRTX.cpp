@@ -116,7 +116,7 @@ void VideoRtpRTX::run(){
       ////////////////////////////
       // Send session
       ////////////////////////////
-      //sendSession(timestamp);
+      sendSession(timestamp);
       //timestamp += step;
   
       //videoSessionSend->putData(timestamp, "TEST", 4);
@@ -232,7 +232,7 @@ void VideoRtpRTX::initVideoRtpSession()
 void VideoRtpRTX::sendSession(int timestamp)
 {
    _debug("SEND SESSION !!!!");
-/*
+
   // no call, so we do nothing
   if (vidCall==0) { 
     _debug(" !ARTP: No call associated (video)\n");
@@ -247,26 +247,24 @@ void VideoRtpRTX::sendSession(int timestamp)
   unsigned char* charFromV4L = cmdCapture->GetCapture(sizeV4L);
 
   // Depose les data de V4L dans le Input buffer du mixer correspondant
-  vidCall->getRemoteIntputStreams()->fetchVideoStream()->putData((char*)charFromV4L,sizeV4L,timestamp);
+  //vidCall->getRemoteIntputStreams()->fetchVideoStream()->putData((char*)charFromV4L,sizeV4L,timestamp);
 
   // Prend les donnes de la sortie du mixer correspondant
-  vidCall->getRemoteVideoOutputStream()->fetchData((char*)sendDataEncoded);
+  //vidCall->getRemoteVideoOutputStream()->fetchData((char*)sendDataEncoded);
 
   // Encode it TODO: Verifier largeur, longeur AVEC JF !!!
   //encodeCodec->videoEncode(codecCtx->width,codecCtx->height,(uint8_t*)charFromV4L,sizeV4L);
   //TODO: sendDataEncoded = ???? TODO: attente VideoCodec ......
 
   // Send it
-  videoSessionSend->putData(timestamp, sendDataEncoded, sizeV4L);
+  session->putData(timestamp, charFromV4L, sizeV4L);
 
-  free(charFromV4L); // A verifier !!!!
+  //free(charFromV4L); // TODO: A verifier !!!!
 
   } catch(...) {
     _debugException("! ARTP: sending failed");
     throw;
   }
-
-*/
 }
 
 		
