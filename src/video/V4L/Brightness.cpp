@@ -25,6 +25,9 @@ Brightness::~Brightness(){}
 
 bool Brightness::increase(){
 
+	if( Command::videoDevice == NULL )
+		return false;
+
 	// Get Brightness Control
 	Control* tmpCtrl= Command::videoDevice->getConfigSet()->getControl( Control::BRIGHTNESS );
   	
@@ -42,6 +45,9 @@ bool Brightness::increase(){
 
 bool Brightness::decrease(){
     
+    if( Command::videoDevice == NULL )
+		return false;
+		
     // Get Brightness Control
     Control* tmpCtrl= Command::videoDevice->getConfigSet()->getControl( Control::BRIGHTNESS );
   	
@@ -59,6 +65,9 @@ bool Brightness::decrease(){
 
 bool Brightness::setTo(__u16 value){
 
+	if( Command::videoDevice == NULL )
+		return false;
+		
 	// Get Brightness Control
     Control* tmpCtrl= Command::videoDevice->getConfigSet()->getControl( Control::BRIGHTNESS );
   	
@@ -75,6 +84,9 @@ bool Brightness::setTo(__u16 value){
 
 bool Brightness::reset(){
 
+	if( Command::videoDevice == NULL )
+		return false;
+		
 	// Get Brightness Control
     Control* tmpCtrl= Command::videoDevice->getConfigSet()->getControl( Control::BRIGHTNESS );
   	
@@ -91,6 +103,9 @@ bool Brightness::reset(){
   
 int Brightness::getBrightness(){
 
+	if( Command::videoDevice == NULL )
+		return -1;
+		
 	// Get Brightness Control
     Control* tmpCtrl= Command::videoDevice->getConfigSet()->getControl( Control::BRIGHTNESS );
   	
@@ -102,13 +117,16 @@ int Brightness::getBrightness(){
   	ptracesfl(" (", MT_NONE, COMMAND_TRACE, false);
   	ptracesfl(Command::videoDevice->getName(), MT_NONE, COMMAND_TRACE, false);
   	ptracesfl(" )", MT_NONE, COMMAND_TRACE);
-  	return false;
+  	return -1;
   	
 }
   
 CmdDesc Brightness::getCmdDescriptor(){
 	
 	CmdDesc tmpDesc= {-1,-1,-1,-1};
+	
+	if( Command::videoDevice == NULL )
+		return tmpDesc;
 	
 	// Get Brightness Control
     Control* tmpCtrl= Command::videoDevice->getConfigSet()->getControl( Control::BRIGHTNESS );

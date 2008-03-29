@@ -25,7 +25,10 @@ Resolution::~Resolution(){}
 
 bool Resolution::setTo(__u16 valueX, __u16 valueY){
     
-bool ret = false;
+    if( Command::videoDevice == NULL )
+		return false;
+		
+	bool ret = false;
     
     ptracesfl("Resolution getting device ...", MT_INFO, COMMAND_TRACE);
     this->getVideoDeviceAccess();
@@ -66,6 +69,9 @@ bool Resolution::setTo( char* resolution){
 
 pair<int,int> Resolution::getResolution(){
 
+	if( Command::videoDevice == NULL )
+		return pair<int,int>(-1, -1);
+
 	ImageSize* tmpSize= Command::videoDevice->getConfigSet()->getCurrentFormat()->getCurrentImageSize();
 	
 	return pair<int,int>(tmpSize->getWidth(), tmpSize->getHeight());
@@ -73,15 +79,26 @@ pair<int,int> Resolution::getResolution(){
 }
   
 const char* Resolution::enumResolution(){
+	
+	if( Command::videoDevice == NULL )
+		return NULL;
+		
   	return Command::videoDevice->getConfigSet()->getCurrentFormat()->getAllSizes();
 }
     
 const char* Resolution::enumFPS(){
+	
+	if( Command::videoDevice == NULL )
+		return NULL;
+		
   	return Command::videoDevice->getConfigSet()->getCurrentFormat()->getCurrentImageSize()->getFpsString();
 }
   
 bool Resolution::setFpsTo( int fps ){
   	
+  	if( Command::videoDevice == NULL )
+		return false;
+		
   	ptracesfl("Resolution getting device ...", MT_INFO, COMMAND_TRACE);
     this->getVideoDeviceAccess();
     
