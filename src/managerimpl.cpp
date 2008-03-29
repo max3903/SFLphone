@@ -2812,7 +2812,8 @@ CmdDesc
 ManagerImpl::getBrightness(  )
 {
 	CmdDesc values;
-	values = _videoDeviceManager->getCommand(VideoDeviceManager::BRIGHTNESS)->getCmdDescriptor();
+	Command *cmd = _videoDeviceManager->getCommand(VideoDeviceManager::BRIGHTNESS);
+	values = cmd->getCmdDescriptor();
 	return values;
 	
 }
@@ -2820,35 +2821,40 @@ ManagerImpl::getBrightness(  )
 void 
 ManagerImpl::setBrightness( const int value )
 {
-	_videoDeviceManager->getCommand(VideoDeviceManager::BRIGHTNESS)->setTo(value);
+	Command* cmd = _videoDeviceManager->getCommand(VideoDeviceManager::BRIGHTNESS);
+	cmd->setTo(value);
 }
 
 CmdDesc
 ManagerImpl::getContrast(  )
 {
 	CmdDesc values;
-	values = _videoDeviceManager->getCommand(VideoDeviceManager::CONTRAST)->getCmdDescriptor();
+	Command *cmd =_videoDeviceManager->getCommand(VideoDeviceManager::CONTRAST);
+	values = cmd->getCmdDescriptor();
 	return values;	
 }
 
 void 
 ManagerImpl::setContrast( const int value )
 {
-	_videoDeviceManager->getCommand(VideoDeviceManager::CONTRAST)->setTo(value);
+	Command* cmd = _videoDeviceManager->getCommand(VideoDeviceManager::CONTRAST);
+	cmd->setTo(value);
 }
 
 CmdDesc
 ManagerImpl::getColour(  )
 {
 	CmdDesc values;
-	values = _videoDeviceManager->getCommand(VideoDeviceManager::COLOR)->getCmdDescriptor();
+	Command *cmd = _videoDeviceManager->getCommand(VideoDeviceManager::COLOR);
+	values = cmd->getCmdDescriptor();
 	return values;	
 }
 
 void 
 ManagerImpl::setColour( const int value )
 {
-	_videoDeviceManager->getCommand(VideoDeviceManager::COLOR)->setTo(value);
+	Command* cmd = _videoDeviceManager->getCommand(VideoDeviceManager::COLOR);
+	cmd->setTo(value);
 }
 
 std::vector<std::string> 
@@ -2884,7 +2890,8 @@ ManagerImpl::getResolutionList(  )
 	int i=0;
 	std::vector<std::string> order; 
 	std::string temp;
-	const char* tmp= ((Resolution*)_videoDeviceManager->getCommand(VideoDeviceManager::RESOLUTION))->enumResolution();
+	Resolution* cmdRes= (Resolution*)_videoDeviceManager->getCommand(VideoDeviceManager::RESOLUTION);
+	const char* tmp= cmdRes->enumResolution();
 	
 	if( tmp == NULL ){
 		ptracesfl("Resolution list is empty",MT_WARNING,2,false);
@@ -2915,10 +2922,11 @@ void
 ManagerImpl::setResolution( const std::string& name )
 {
 	char temp[20];
+	Resolution *cmdRes = (Resolution*)_videoDeviceManager->getCommand(VideoDeviceManager::RESOLUTION);
 	strcpy(temp, name.c_str());
 	ptracesfl("setResolution", MT_INFO, MANAGERIMPL_TRACE, false);
 	ptracesfl(temp, MT_INFO, MANAGERIMPL_TRACE, true);
-	((Resolution*)_videoDeviceManager->getCommand(VideoDeviceManager::RESOLUTION))->setTo(temp);	
+	cmdRes->setTo(temp);	
 }
 
 std::string 
@@ -2927,7 +2935,8 @@ ManagerImpl::getCurrentResolution(  )
 	pair<int,int> res;
 	char buf[10];
 	std::string temp;
-	res = ((Resolution*)_videoDeviceManager->getCommand(VideoDeviceManager::RESOLUTION))->getResolution();
+	Resolution *cmdRes =(Resolution*)_videoDeviceManager->getCommand(VideoDeviceManager::RESOLUTION);
+	res = cmdRes->getResolution();
 	temp.clear();
 	sprintf(buf,"%d", res.first);
 	temp+=buf;
