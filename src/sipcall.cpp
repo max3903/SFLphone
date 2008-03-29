@@ -84,6 +84,20 @@ SIPCall::SIPCallInvite(eXosip_event_t *event)
     return false;
   }
 
+  if (!setRemoteVideoFromSDP(remote_med, remote_sdp)) {
+    _debug("SIP Failure: unable to set IP address and port from SDP\n");
+    sdp_message_free (remote_sdp);
+    return false;
+  }
+
+  /*
+  if (!setVideoCodecFromSDP(remote_med, event->tid)) {
+    _debug("SIP Failure: unable to set audio codecs from the remote SDP\n");
+    sdp_message_free (remote_sdp);
+    return false;
+  }
+  */
+
   osip_message_t *answer = 0;
   eXosip_lock();
   _debug("< Building Answer 183\n");
@@ -127,7 +141,90 @@ SIPCall::SIPCallInvite(eXosip_event_t *event)
 bool 
 SIPCall::SIPCallReinvite(eXosip_event_t *event)
 {
-  
+  if (event->cid < 1 && event->did < 1) {
+    _debug("SIP Failure: Invalid cid and did\n");
+    return false;
+  }
+
+  if (event->request == NULL) {
+    _debug("SIP Failure: No request into the event\n");
+    return false;
+  }
+
+  setCid(event->cid);
+  setDid(event->did);
+  setTid(event->tid);
+
+  setPeerInfoFromRequest(event);
+
+  ///setReinviteEnCours(true);
+
+  sdp_message_t* remote_sdp = getRemoteSDPFromRequest(event);
+  if (remote_sdp == 0) {
+    return false;
+  }
+
+  sdp_media_t* remote_med = getRemoteMedia(event->tid, remote_sdp);
+  if (remote_med == 0) {
+    sdp_message_free (remote_sdp);
+    return false;
+  }
+
+  if (!setRemoteAudioFromSDP(remote_med, remote_sdp)) {
+    _debug("SIP Failure: unable to set IP address and port from SDP\n");
+    sdp_message_free (remote_sdp);
+    return false;
+  }
+
+  if (!setAudioCodecFromSDP(remote_med, event->tid)) {
+    sdp_message_free (remote_sdp);
+    return false;
+  }
+
+  osip_message_t *answer = 0;
+  eXosip_lock();
+  _debug("< Building Answer 200\n");
+  if (0 == eXosip_call_build_answer (event->tid, 200, &answer)) {
+    if ( 0 != sdp_complete_message(remote_sdp, answer)) {
+      osip_message_free(answer);
+      // Send 415 Unsupported media type
+      eXosip_call_send_answer (event->tid, 415, NULL);
+      _debug("< Sending Answer 415\n");
+    } else {
+
+      sdp_message_t *local_sdp = eXosip_get_sdp_info(answer);
+      sdp_media_t *local_med = NULL;
+      if (local_sdp != NULL) {
+         local_med = eXosip_get_audio_media(local_sdp);
+      }
+      if (local_sdp != NULL && local_med != NULL) {
+        /* search if stream is sendonly or recvonly */
+        int _remote_sendrecv = sdp_analyse_attribute (remote_sdp, remote_med);
+        int _local_sendrecv =  sdp_analyse_attribute (local_sdp, local_med);
+        _debug("            Remote SendRecv: %d\n", _remote_sendrecv);
+        _debug("            Local  SendRecv: %d\n", _local_sendrecv);
+        if (_local_sendrecv == _SENDRECV) {
+          if (_remote_sendrecv == _SENDONLY)      { _local_sendrecv = _RECVONLY; }
+          else if (_remote_sendrecv == _RECVONLY) { _local_sendrecv = _SENDONLY; }
+        }
+        _debug("            Final Local SendRecv: %d\n", _local_sendrecv);
+        sdp_message_free (local_sdp);
+      }
+      _debug("< Sending answer 200\n");
+      if (0 != eXosip_call_send_answer (event->tid, 200, answer)) {
+        _debug("SipCall::newIncomingCall: cannot send 200 OK?\n");
+      }
+    }
+  }
+  eXosip_unlock ();
+  sdp_message_free (remote_sdp);
+  return true;
+
+
+
+  // MA VERSION!!!!!
+
+  /*
   if (event->cid < 1 && event->did < 1) {
     _debug("SIP Failure: Invalid cid and did\n");
     return false;
@@ -204,8 +301,9 @@ SIPCall::SIPCallReinvite(eXosip_event_t *event)
       }
       //if (local_sdp != NULL && local_med != NULL && local_vid_med != NULL) {
         if (local_sdp != NULL && local_med != NULL) {
-        
-        /* search if stream is sendonly or recvonly */
+
+        //search if stream is sendonly or recvonly
+       
         int _remote_sendrecv = sdp_analyse_attribute (remote_sdp, remote_med);
         int _local_sendrecv =  sdp_analyse_attribute (local_sdp, local_med);
         _debug("            Remote SendRecv: %d\n", _remote_sendrecv);
@@ -226,7 +324,7 @@ SIPCall::SIPCallReinvite(eXosip_event_t *event)
   eXosip_unlock ();
   sdp_message_free (remote_sdp);
   return true;
-
+  */
 }
 
 bool 
@@ -338,7 +436,119 @@ SIPCall::SIPCallAnsweredWithoutHold(eXosip_event_t* event)
 
 int 
 SIPCall::sdp_complete_message(sdp_message_t * remote_sdp, osip_message_t * msg)
-{
+{ 
+
+  // Format port to a char*
+  if (remote_sdp == NULL) {
+    _debug("SipCall::sdp_complete_message: No remote SDP body found for call\n");
+    return -1;
+  }
+  if (msg == NULL) {
+    _debug("SipCall::sdp_complete_message: No message to complete\n");
+    return -1;
+  }
+
+  std::ostringstream media;
+
+  // for each medias
+  int iMedia = 0;
+  char *tmp = NULL;
+  #ifdef LIBOSIP2_WITHPOINTER 
+  const osip_list_t* remote_sdp_m_medias = remote_sdp->m_medias; // old abi
+  #else
+  const osip_list_t* remote_sdp_m_medias = &(remote_sdp->m_medias);
+  #endif
+  osip_list_t* remote_med_m_payloads = 0;
+
+  while (!osip_list_eol(remote_sdp_m_medias, iMedia)) {
+    sdp_media_t *remote_med = (sdp_media_t *)osip_list_get(remote_sdp_m_medias, iMedia);
+    if (remote_med == 0) { continue; }
+
+    if (0 != osip_strcasecmp (remote_med->m_media, "audio")) {
+      // if this is not an "audio" media, we set it to 0
+      //media << "m=" << remote_med->m_media << " 0 " << remote_med->m_proto << " \r\n";
+    } else {
+      std::ostringstream listCodec;
+      std::ostringstream listRtpMap;
+
+      // search for compatible codec: foreach payload
+      int iPayload = 0;
+      #ifdef LIBOSIP2_WITHPOINTER 
+      remote_med_m_payloads = remote_med->m_payloads; // old abi
+      #else
+      remote_med_m_payloads = &(remote_med->m_payloads);
+      #endif
+
+      //while (!osip_list_eol(remote_med_m_payloads, iPayload) && iPayload < 2) {
+      while (!osip_list_eol(remote_med_m_payloads, iPayload)) {
+        tmp = (char *)osip_list_get(remote_med_m_payloads, iPayload);
+        if (tmp!=NULL) {
+          int payload = atoi(tmp);
+	  _debug("remote payload = %s\n", tmp);
+          AudioCodecType audiocodec = (AudioCodecType)payload;
+          if (audiocodec != (AudioCodecType)-1 && _codecMap.isActive(audiocodec))  { 
+            listCodec << payload << " ";
+            //listRtpMap << "a=rtpmap:" << payload << " " << audiocodec->getCodecName() << "/" << audiocodec->getClockRate();
+            listRtpMap << "a=rtpmap:" << payload << " " << _codecMap.getCodecName(audiocodec) << "/" << _codecMap.getSampleRate(audiocodec);
+	if (_codecMap.getChannel(audiocodec) != 1) {
+              listRtpMap << "/" << _codecMap.getChannel(audiocodec);
+            }
+            listRtpMap << "\r\n";
+          }
+        }
+        iPayload++;
+      }
+      if (listCodec.str().empty()) {
+        //media << "m=" << remote_med->m_media << " 0 " << remote_med->m_proto << " \r\n";
+      } else {
+        // we add the media line + a=rtpmap list
+        media << "m=" << remote_med->m_media << " " << getLocalExternAudioPort() << " RTP/AVP " << listCodec.str() << "\r\n";
+        media << listRtpMap.str();
+      }
+    }
+    iMedia++;
+  }
+
+  if (getReinviteEnCours()==true)
+    _debug("REINVITE EN COURS!");
+  else
+    _debug("REINVITE PAS EN COURS!!");
+
+
+  //media << "m=" << "video" << " " << "12345" << " RTP/AVP " << "34" << "\r\n";
+  //media << "a=rtpmap:" << "34" << "H263/90000" << "\r\n";
+
+ /* char buf[4096];
+  snprintf (buf, 4096,
+    "v=0\r\n"
+    "o=user 0 0 IN IP4 %s\r\n"
+    "s=session\r\n"
+    "c=IN IP4 %s\r\n"
+    "t=0 0\r\n"
+    "%s\n", getLocalIp().c_str(), getLocalIp().c_str(), media.str().c_str());
+*/
+
+  int LocalVideoPort = getLocalVideoPort();
+
+  char buf[4096];
+  snprintf (buf, 4096,
+    "v=0\r\n"
+    "o=user 0 0 IN IP4 %s\r\n"
+    "s=session\r\n"
+    "c=IN IP4 %s\r\n"
+    "t=0 0\r\n"
+    "%s"
+    "m=video %d RTP/AVP 34\r\n"
+    "a=rtpmap:34 H263/90000\r\n"
+    "a=sendrecv\r\n", getLocalIp().c_str(), getLocalIp().c_str(), media.str().c_str(),LocalVideoPort);
+
+  osip_message_set_body (msg, buf, strlen (buf));
+  osip_message_set_content_type (msg, "application/sdp");
+  _debug("          sdp: %s", buf);
+  return 0;
+
+  // MA VERSION !!!!!
+  /*
   // Format port to a char*
   if (remote_sdp == NULL) {
     _debug("SipCall::sdp_complete_message: No remote SDP body found for call\n");
@@ -411,39 +621,7 @@ SIPCall::sdp_complete_message(sdp_message_t * remote_sdp, osip_message_t * msg)
         media << listRtpMap.str();
       }
     } 
-    /* //Pas tester
-    else if (0 != osip_strcasecmp (remote_med->m_media, "video")) { 
-      // POUR LE VIDEO
-      // search for compatible codec: foreach payload
-      std::ostringstream listCodec_vid;
-      std::ostringstream listRtpMap_vid;
-
-      int iPayload_vid = 0;
-      #ifdef LIBOSIP2_WITHPOINTER 
-      remote_med_m_payloads_vid = remote_med->m_payloads; // old abi
-      #else
-      remote_med_m_payloads_vid = &(remote_med->m_payloads);
-      #endif
-       
-      while (!osip_list_eol(remote_med_m_payloads_vid, iPayload_vid)) {
-        tmp = (char *)osip_list_get(remote_med_m_payloads_vid, iPayload_vid);
-        if (tmp!=NULL) {
-          int payload = atoi(tmp); // Pour nos tests Payload H263 = 34
-	_debug("remote video payload = %s\n", tmp);
-
-          VideoCodecPayloadType videoCodecPayload = (VideoCodecPayloadType)payload;
-          //if (audiocodec != (AudioCodecType)-1 && _codecMap.isActive(audiocodec))  {  // TODO: a faire
-          listCodec_vid << payload << " ";
-          listRtpMap_vid << "a=rtpmap:" << "34" << " " << H263 << "/" << "90000"; // TODO: a automatiser !!!
-          //listRtpMap << "a=rtpmap:" << payload << " " << _codecMap.getCodecName(audiocodec) << "/" << _codecMap.getSampleRate(audiocodec);
-          //listRtpMap << "\r\n";
-         // }
-        }
-        iPayload_vid++;
-      }
-      // construire string media
-    }
-    */
+    
     iMedia++;
   } 
 
@@ -453,7 +631,7 @@ SIPCall::sdp_complete_message(sdp_message_t * remote_sdp, osip_message_t * msg)
   //tmpMediaVideo << "a=rtpmap:34 H263/90000\r\n";
   // a jouter dans le buf
 
-
+ */
   // TEMPORAIRE!!!!!!!!!!!!!!!!!! A ENLEVER!
   /*
   if (getReinviteEnCours()){
@@ -475,7 +653,7 @@ SIPCall::sdp_complete_message(sdp_message_t * remote_sdp, osip_message_t * msg)
     return 0;
   } 
   */
-
+/*
   printf("VOICI LE SDP!");
   printf(media.str().c_str());
   
@@ -495,6 +673,8 @@ SIPCall::sdp_complete_message(sdp_message_t * remote_sdp, osip_message_t * msg)
   osip_message_set_content_type (msg, "application/sdp");
   _debug("          sdp: %s", buf);
   return 0;
+
+*/
 }
 
 
@@ -673,8 +853,17 @@ SIPCall::setRemoteAudioFromSDP(sdp_media_t* remote_med, sdp_message_t* remote_sd
 bool 
 SIPCall::setRemoteVideoFromSDP(sdp_media_t* remote_med, sdp_message_t* remote_sdp)
 {
-  // TODO: A FAIRE !!!!!
-  setRemoteVideoPort(12345);
+  sdp_media_t *remote_Vidmed = eXosip_get_video_media(remote_sdp);
+
+  // Remote video port
+  int _remote_sdp_video_port = atoi(remote_Vidmed->m_port);
+  _debug("            Remote video Port: %d\n", _remote_sdp_video_port);
+  setRemoteVideoPort(_remote_sdp_video_port);
+
+  if (_remote_sdp_video_port == 0) {
+    return false;
+  }
+  return true;
 }
 
 // VIDEO!!!

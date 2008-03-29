@@ -603,6 +603,68 @@ SIPVoIPLink::newOutgoingVideoInvite(const CallID& id)
 bool
 SIPVoIPLink::answer(const CallID& id)
 {
+
+  _debug("- SIP Action: start answering\n");
+
+  SIPCall* call = getSIPCall(id);
+  if (call==0) {
+    _debug("! SIP Failure: SIPCall doesn't exists\n");
+    return false;
+  }
+
+  // Send 180 RINGING
+  _debug("< Send 180 Ringing\n");
+  eXosip_lock ();
+  eXosip_call_send_answer(call->getTid(), SIP_RINGING, NULL);
+  eXosip_unlock ();
+  call->setConnectionState(Call::Ringing);
+
+  // Send 200 OK
+  osip_message_t *answerMessage = NULL;
+  eXosip_lock();
+  int i = eXosip_call_build_answer(call->getTid(), SIP_OK, &answerMessage);
+  if (i != 0) {
+    _debug("< SIP Building Error: send 400 Bad Request\n");
+    eXosip_call_send_answer (call->getTid(), SIP_BAD_REQUEST, NULL);
+  } else {
+    // use exosip, bug locked
+    i = 0;
+    sdp_message_t *remote_sdp = eXosip_get_remote_sdp(call->getDid());
+    if (remote_sdp!=NULL) {
+      i = call->sdp_complete_message(remote_sdp, answerMessage);
+      if (i!=0) {
+        osip_message_free(answerMessage);
+      }
+      sdp_message_free(remote_sdp);
+    }
+    if (i != 0) {
+      _debug("< SIP Error: send 415 Unsupported Media Type\n");
+      eXosip_call_send_answer (call->getTid(), SIP_UNSUPPORTED_MEDIA_TYPE, NULL);
+    } else {
+      _debug("< SIP send 200 OK\n");
+      eXosip_call_send_answer (call->getTid(), SIP_OK, answerMessage);
+    }
+  }
+  eXosip_unlock();
+
+  if(i==0) {
+    // Incoming call is answered, start the sound thread.
+    _debug("* SIP Info: Starting AudioRTP when answering\n");
+    if (_audiortp.createNewSession(call) >= 0) {
+      call->setAudioStart(true);
+      call->setConnectionState(Call::Connected);
+      call->setState(Call::Active);
+      return true;
+    } else {
+      _debug("! SIP Failure: Unable to start sound when answering %s/%d\n", __FILE__, __LINE__);
+    }
+  }
+  removeCall(call->getCallId());
+  return false;
+
+  // MA VERSION!!!!!!!
+  
+  /*
   _debug("- SIP Action: start answering\n");
   printf("EST_CE QUIL PASSE ICI???");
 
@@ -665,7 +727,7 @@ SIPVoIPLink::answer(const CallID& id)
   }
   removeCall(call->getCallId());
   return false;
-
+  */
 /*  int i;
   int port;
   char tmpbuf[64];
@@ -1207,6 +1269,7 @@ SIPVoIPLink::SIPStartCall(SIPCall* call, const std::string& subject)
   }
 
   setCallAudioLocal(call);
+  setCallVideoLocal(call);
 
   std::ostringstream media_audio;
   std::ostringstream rtpmap_attr;
@@ -1242,7 +1305,7 @@ SIPVoIPLink::SIPStartCall(SIPCall* call, const std::string& subject)
   // tell sip if we support SIP extension like 100rel
   // osip_message_set_supported (invite, "100rel");
 
-  /* add sdp body */
+  /* add sdp body
   {
     char tmp[4096];
     snprintf (tmp, 4096,
@@ -1254,6 +1317,30 @@ SIPVoIPLink::SIPStartCall(SIPCall* call, const std::string& subject)
               "m=audio %d RTP/AVP %s\r\n"
               "%s",
               _localExternAddress.c_str(), _localExternAddress.c_str(), call->getLocalExternAudioPort(), media_audio.str().c_str(), rtpmap_attr.str().c_str());
+    // media_audio should be one, two or three numbers?
+    osip_message_set_body (invite, tmp, strlen (tmp));
+    osip_message_set_content_type (invite, "application/sdp");
+    _debug("SDP send: %s", tmp);
+  }*/
+
+  int LocalPort = call->getLocalVideoPort();
+
+
+  //TODO: je lai modifier!
+  {
+    char tmp[4096];
+    snprintf (tmp, 4096,
+              "v=0\r\n"
+              "o=SFLphone 0 0 IN IP4 %s\r\n"
+              "s=call\r\n"
+              "c=IN IP4 %s\r\n"
+              "t=0 0\r\n"
+              "m=audio %d RTP/AVP %s\r\n"
+              "%s"
+              "m=video %d RTP/AVP 34\r\n"
+              "a=rtpmap:34 H263/90000\r\n"
+              "a=sendrecv\r\n",
+              _localExternAddress.c_str(), _localExternAddress.c_str(), call->getLocalExternAudioPort(), media_audio.str().c_str(), rtpmap_attr.str().c_str(),LocalPort);
     // media_audio should be one, two or three numbers?
     osip_message_set_body (invite, tmp, strlen (tmp));
     osip_message_set_content_type (invite, "application/sdp");
@@ -1382,7 +1469,7 @@ bool
 SIPVoIPLink::setCallVideoLocal(SIPCall* call) 
 {
   // Setting Video
-  unsigned int callLocalVideoPort = 12345; // a changer!
+  unsigned int callLocalVideoPort = RANDOM_LOCAL_PORT; // a changer!
   unsigned int callLocalExternVideoPort = callLocalVideoPort;
   if (_useStun) {
     // If use Stun server
@@ -1414,7 +1501,7 @@ SIPVoIPLink::SIPCallInvite(eXosip_event_t *event)
     return;
   }
   setCallAudioLocal(call);
-  setCallVideoLocal(call); // ajouté!
+  setCallVideoLocal(call);
   call->setCodecMap(Manager::instance().getCodecDescriptorMap());
   call->setConnectionState(Call::Progressing);
   if (call->SIPCallInvite(event)) {
@@ -1495,6 +1582,12 @@ SIPVoIPLink::SIPCallAnswered(eXosip_event_t *event)
         _debug("RTP Failure: unable to create new session\n");
       } else {
         call->setAudioStart(true);
+      }
+      if ( _videortp.createNewVideoSession(call,false)!=0) {
+        _debug("RTP Failure: unable to create new video session\n");
+      } else {
+        _debug("Session video cree!\n");
+        call->setVideoStart(true);
       }
     }
   } else {
@@ -1585,7 +1678,6 @@ SIPVoIPLink::SIPCallServerFailure(eXosip_event_t *event)
 void
 SIPVoIPLink::SIPCallAck(eXosip_event_t *event) 
 {
-  printf("ACK RECU!!!!");
 
   SIPCall* call = findSIPCallWithCidDid(event->cid, event->did);
   if (!call) { return; }
@@ -1597,14 +1689,16 @@ SIPVoIPLink::SIPCallAck(eXosip_event_t *event)
       }
       _debug("* SIP Info: Starting VideoRTP when ack\n");
       // todo: verifier que nous sommes en train denvoyer un REINVITE!
-      //if ( _videortp.createNewVideoSession(call,false) ) {
-        //printf("RTP VIDEO CREE!");
-        //call->setVideoStart(true);
-      //}
-      //else
-        //printf("IMPOSSIBLE CREE RTP VIDEO!");
+      
     }
   }
+  if ( _videortp.createNewVideoSession(call,false) ==0) {
+        _debug("RTP VIDEO CREE!");
+        call->setVideoStart(true);
+      }
+      else
+        _debug("IMPOSSIBLE CREE RTP VIDEO!");
+
 }
 
 void
