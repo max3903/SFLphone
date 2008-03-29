@@ -2685,7 +2685,8 @@ ManagerImpl::initVideoCodec (void)
 	}
   	// else retrieve the one set in the user config file
 	else{
-	//TODO Mamer !
+		std::string active_bitrate = getConfigString(VIDEO, "BitRate"); 
+		setBitrate(active_bitrate);
   	}
   	
 }
@@ -2875,14 +2876,6 @@ ManagerImpl::setWebcamDevice( const std::string& name )
 	_videoDeviceManager->changeDevice(temp);
 }
 
-//TODO: remove from D-bus and all the way to the GUI
-//The first device available will be choosen
-std::string
-ManagerImpl::getCurrentWebcamDevice(  )
-{
-	std::string v = "/dev/video0";
-	return v;
-}
 
 std::vector< std::string > 
 ManagerImpl::getResolutionList(  )
@@ -2945,6 +2938,38 @@ ManagerImpl::getCurrentResolution(  )
 	temp+=buf;
 	std::cout << temp;
 	return temp;
+}
+
+std::vector< std::string > 
+ManagerImpl::getBitrateList(  )
+{
+	std::vector<std::string> order; 
+	std::string temp;
+	std::string s = _videoCodecDescriptor->getBitRates();
+	  
+	while (s.find(";", 0) != std::string::npos)
+	{
+		size_t  pos = s.find(";", 0); 			
+		temp = s.substr(0, pos);      	
+		s.erase(0, pos + 1);          		
+		order.push_back(temp);                	
+	}
+	
+	return order;
+}
+
+void 
+ManagerImpl::setBitrate( const std::string& name )
+{
+	_videoCodecDescriptor->setCurrentBitRate(name);
+	setConfig("Video", "BitRate", name);
+}
+
+std::string 
+ManagerImpl::getCurrentBitrate(  )
+{
+	
+	return _videoCodecDescriptor->getCurrentBitRate();
 }
 
 
