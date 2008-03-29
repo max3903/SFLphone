@@ -2049,7 +2049,7 @@ show_config_window (gint page_num)
 	numWebcam = gtk_notebook_page_num(GTK_NOTEBOOK(notebook), tabWebcam);
 	gtk_widget_show(tabWebcam);
 	
-	g_signal_connect(G_OBJECT(notebook), "switch-page", G_CALLBACK(select_notebook_page), notebook);
+	g_signal_connect_after(G_OBJECT(notebook), "switch-page", G_CALLBACK(select_notebook_page), notebook);
 
 	gtk_notebook_set_current_page(GTK_NOTEBOOK(notebook),page_num);
 	gtk_dialog_run(dialog);
