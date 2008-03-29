@@ -295,8 +295,3 @@ AVCodec* VideoCodecDescriptor::getDefaultCodec()
     	return true;
     }
 
-
-
-
-
- 

@@ -23,7 +23,7 @@
 sem_t Command::AccessSem;
 sem_t Command::AvailSem;
 bool Command::init= false;
-VideoDevice* Command::videoDevice= 0;
+VideoDevice* Command::videoDevice= NULL;
 
 Command::Command(){
 	if( !init ){	// This should be executed only once

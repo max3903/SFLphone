@@ -576,6 +576,10 @@ select_active_resolution()
 
 	// Select active resolution on server
 	resolution = dbus_get_current_resolution();
+	
+	if( strcmp(resolution,"-1x-1") == 0 )
+		return;
+	
 	tmp = resolution;
 	model = gtk_combo_box_get_model(GTK_COMBO_BOX(resolutionComboBox));
 	  

@@ -50,7 +50,7 @@ public:
 
 
     //! Constructor
-    VideoDevice(char* srcName);
+    VideoDevice(const char* srcName);
 
     //! Destructor
     ~VideoDevice();
@@ -78,7 +78,7 @@ public:
      * \param srcName the name of the video source
      * \return the file descriptor int
      */
-    void initDevice(char* srcName);    
+    void initDevice(const char* srcName);    
     
     //! Method to open the video source (query camera)
     /*!

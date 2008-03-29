@@ -2771,9 +2771,26 @@ void ManagerImpl::initVideoDeviceManager(void)
 {
 
 	_videoDeviceManager = VideoDeviceManager::getInstance();
-	ptracesfl("Video Device Manager init",MT_INFO,5,true);
-	//TODO: send a signal if the return value is false
-	_videoDeviceManager->createDevice("/dev/video0");
+	ptracesfl("Video Device Manager init",MT_INFO,MANAGERIMPL_TRACE);
+	
+	int found= -1;
+	vector<string> devices= _videoDeviceManager->enumVideoDevices();
+	
+	for( int i= 0; i < devices.size(); i++){
+		if( _videoDeviceManager->createDevice(devices[i].c_str()) ){
+			found= i;
+			break;
+		}
+	}
+	
+	if( found != -1){
+		ptracesfl("Manager found and enabled device: ", MT_INFO, MANAGERIMPL_TRACE, false);
+		ptracesfl(devices[found].c_str(), MT_NONE, MANAGERIMPL_TRACE);
+	}else{
+		ptracesfl("No video device could be initialized by manager. Do you have a V4L video device pluged in ?", MT_WARNING, MANAGERIMPL_TRACE);
+	}
+	
+	
 
 }
 
