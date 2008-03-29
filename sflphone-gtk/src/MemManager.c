@@ -38,10 +38,10 @@ MemKey* createMemKeyFromChar( char* key )
 
 MemKey* initSpace( MemKey *key )
 {
-	int shmid;
+	//int shmid;
 	
 	key->BaseAdd= NULL;
-	key->BaseAdd= (char *)shmat(shmid, NULL, 0);
+	key->BaseAdd= (char *)shmat(key->id, NULL, 0);
 		
 	if ( key->BaseAdd == NULL )
 	{
@@ -55,29 +55,45 @@ MemKey* initSpace( MemKey *key )
 int fetchData( MemKey *key, MemData *data )
 {
 	//\TODO: Add multiple access protection
-	
-	return -1;
-	
+			
 	if( key == NULL )
 		return -1;
 	
 	if( data == NULL )
 		return -1;
-	
-	if(data->data != 0)
-		free(data->data);
 		
+	if( key->BaseAdd == NULL )
+		return -1;
+	
+	/*if(data->data !=  NULL)
+		free(data->data);*/
+	
 	// Get Image payload size
 	memcpy(&data->size, key->BaseAdd, sizeof(int));
 	
+	if( data->size == 0 )
+		return -1;
+	
+	printf("\tPayload size: %d\n", data->size);
+	
+	printf("Base: %p\n",  key->BaseAdd );
+	printf("Base: %p\n",  key->BaseAdd + sizeof(int) );
+	printf("Base: %p\n",  key->BaseAdd + (sizeof(int) * 2) );
+	printf("Base: %p\n",  key->BaseAdd + (sizeof(int) * 3) );
+	
 	// Get image width and height
 	memcpy(&data->width, key->BaseAdd + sizeof(int), sizeof(int));
+	printf("\tPayload width: %d\n", data->width);
 	memcpy(&data->height, key->BaseAdd + (sizeof(int) * 2), sizeof(int));
+	printf("\tPayload height: %d\n", data->height);
 		
 	// Get Image payload
-	data->data= (unsigned char*)malloc(data->size);
+	//data->data= (unsigned char*)calloc(1,data->size);
 	memcpy(data->data, key->BaseAdd + (sizeof(int) * 3), data->size);
-			
+	
+	// Reset shared memory buffer	
+	memset(key->BaseAdd,0, data->size + (sizeof(int) * 4) );
+		
  	return 0;
 	
 }
@@ -86,7 +102,7 @@ int putData( MemKey *key, MemData *data )
 {
 	//\TODO: Add multiple access protection
 	if( data != NULL && key != NULL )
-		memcpy(key->BaseAdd, data->data, key->size);
+		memcpy(key->BaseAdd, &data->data, key->size);
 	else
 		return -1;
 		
@@ -103,9 +119,12 @@ int InitMemSpaces( char* local, char* remote )
 			return -1;
 		
 		localBuff= (MemData*)calloc(1, sizeof(MemData));
-		localBuff->data= 0;
+		//localBuff->data= 0;
 		if( localBuff == NULL)
 			return -1;
+
+		initSpace(localKey);
+		
 	}
 	
 	if( remote != NULL )
@@ -117,6 +136,8 @@ int InitMemSpaces( char* local, char* remote )
 		remoteBuff= (MemData*)calloc(1, sizeof(MemData));
 		if( remoteBuff == NULL)
 			return -1;
+			
+		initSpace(remoteKey);
 	}
 	
 	return 0;

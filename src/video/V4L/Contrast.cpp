@@ -25,6 +25,9 @@ Contrast::~Contrast(){}
 
 bool Contrast::increase(){
   	
+  	if( Command::videoDevice == NULL )
+		return false;
+		
   	// Get Contrast Control
   	Control* tmpCtrl= this->videoDevice->getConfigSet()->getControl( Control::CONTRAST );
   	
@@ -42,6 +45,9 @@ bool Contrast::increase(){
 
 bool Contrast::decrease(){
     
+    if( Command::videoDevice == NULL )
+		return false;
+		
     // Get Contrast Control
     Control* tmpCtrl= this->videoDevice->getConfigSet()->getControl( Control::CONTRAST );
   	
@@ -59,6 +65,9 @@ bool Contrast::decrease(){
 
 bool Contrast::setTo(__u16 value){
 
+	if( Command::videoDevice == NULL )
+		return false;
+		
 	// Get Contrast Control
     Control* tmpCtrl= this->videoDevice->getConfigSet()->getControl( Control::CONTRAST );
   	
@@ -75,6 +84,9 @@ bool Contrast::setTo(__u16 value){
 
 bool Contrast::reset(){
 
+	if( Command::videoDevice == NULL )
+		return false;
+		
 	// Get Contrast Control
     Control* tmpCtrl= this->videoDevice->getConfigSet()->getControl( Control::CONTRAST );
   	
@@ -91,6 +103,9 @@ bool Contrast::reset(){
   
 int Contrast::getContrast(){
 
+	if( Command::videoDevice == NULL )
+		return false;
+		
 	// Get Contrast Control
     Control* tmpCtrl= this->videoDevice->getConfigSet()->getControl( Control::CONTRAST );
   	
@@ -109,6 +124,9 @@ int Contrast::getContrast(){
 CmdDesc Contrast::getCmdDescriptor(){
 	
 	CmdDesc tmpDesc= {-1,-1,-1,-1};
+	
+	if( Command::videoDevice == NULL )
+		return tmpDesc;
 	
 	// Get Contrast Control
     Control* tmpCtrl= Command::videoDevice->getConfigSet()->getControl( Control::CONTRAST );

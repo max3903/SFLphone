@@ -25,7 +25,10 @@ Resolution::~Resolution(){}
 
 bool Resolution::setTo(__u16 valueX, __u16 valueY){
     
-bool ret = false;
+    if( Command::videoDevice == NULL )
+		return false;
+		
+	bool ret = false;
     
     ptracesfl("Resolution getting device ...", MT_INFO, COMMAND_TRACE);
     this->getVideoDeviceAccess();
@@ -53,24 +56,9 @@ bool ret = false;
   
 bool Resolution::setTo( char* resolution){
   	  	
-  	  	char buffer[50];
-  	  	memset(buffer, 0, 50);
-  	  	
-  	  	int count= 0;
   	  	int valx= -1,valy= -1;
   	  	
-  	  	int lenght= strlen(resolution)+1;
-  	  	for(int i= 0; i< lenght; i++){
-  	  		if( resolution[i] != 'x' ){
-  	  			buffer[count]= resolution[i];
-  	  			count++; 
-  	  		}else if( resolution[i] == 'x' ){
-  	  			buffer[count+1]='\0';
-  	  			count= 0;
-  	  			valx= atoi(buffer);
-  	  			memset(buffer, 0, 50);
-  	  		}
-  	  	}
+  	  	sscanf(resolution, "%d x %d", &valx, &valy);
   	  	
   	  	if( valx != -1 && valy != -1 )
   	  		return this->setTo(valx, valy);
@@ -81,6 +69,9 @@ bool Resolution::setTo( char* resolution){
 
 pair<int,int> Resolution::getResolution(){
 
+	if( Command::videoDevice == NULL )
+		return pair<int,int>(-1, -1);
+
 	ImageSize* tmpSize= Command::videoDevice->getConfigSet()->getCurrentFormat()->getCurrentImageSize();
 	
 	return pair<int,int>(tmpSize->getWidth(), tmpSize->getHeight());
@@ -88,15 +79,26 @@ pair<int,int> Resolution::getResolution(){
 }
   
 const char* Resolution::enumResolution(){
+	
+	if( Command::videoDevice == NULL )
+		return NULL;
+		
   	return Command::videoDevice->getConfigSet()->getCurrentFormat()->getAllSizes();
 }
     
 const char* Resolution::enumFPS(){
+	
+	if( Command::videoDevice == NULL )
+		return NULL;
+		
   	return Command::videoDevice->getConfigSet()->getCurrentFormat()->getCurrentImageSize()->getFpsString();
 }
   
 bool Resolution::setFpsTo( int fps ){
   	
+  	if( Command::videoDevice == NULL )
+		return false;
+		
   	ptracesfl("Resolution getting device ...", MT_INFO, COMMAND_TRACE);
     this->getVideoDeviceAccess();
     
@@ -119,4 +121,34 @@ bool Resolution::setFpsTo( int fps ){
     
     return ret;
   	
+}
+
+int Resolution::getCurrentFPS(){
+	
+	if( Command::videoDevice == NULL )
+		return false;
+		
+  	ptracesfl("Resolution getting device ...", MT_INFO, COMMAND_TRACE);
+    this->getVideoDeviceAccess();
+    
+    ptracesfl("Getting fps rate ...", MT_INFO, COMMAND_TRACE, false);
+    int ret= Command::videoDevice->getFPS();
+    
+    if(ret == -1)
+    	 ptracesfl("\tNO", MT_NONE, COMMAND_TRACE);
+   	else
+   		ptracesfl("\tOK", MT_NONE, COMMAND_TRACE);
+    
+    ptracesfl("Resolution releasing device ...", MT_INFO, COMMAND_TRACE);
+    this->releaseVideoDevice();
+    
+    return ret;
+    
+}
+
+CmdDesc Resolution::getCmdDescriptor(){
+	CmdDesc tmpDesc= {-1,-1,-1,-1};
+		  		
+  	ptracesfl("Capture releasing device ...\n", MT_WARNING, COMMAND_TRACE);
+  	return tmpDesc;
 }

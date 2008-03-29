@@ -29,6 +29,7 @@
 #include <vector>
 #include <set>
 #include <map>
+#include <utility>
 #include <cc++/thread.h>
 #include <time.h>
 #include "dbus/dbusmanager.h"
@@ -571,13 +572,15 @@ public:
 	CmdDesc getColour(  );
 	void setColour( const int value );
 	std::vector<std::string> getWebcamDeviceList(  );
-	void setWebcamDevice( const int index );
-	std::vector< std::string > getCurrentWebcamDeviceIndex(  );
-    int getWebcamDeviceIndex( const std::string name );
+	void setWebcamDevice( const std::string& name );
+	std::string getCurrentWebcamDevice(  );
     std::vector< std::string > getResolutionList(  );
-    void setResolution( const int index );
+    void setResolution( const std::string& name );
     std::string getCurrentResolution(  );
-    int getResolutionIndex( const std::string name );
+    /* Video Settings */
+    std::vector< std::string > getBitrateList(  );
+    void setBitrate( const std::string& name );
+    std::string getCurrentBitrate(  );
     
     
     /** Method to activate Local video Capture for the preference video
@@ -855,25 +858,6 @@ private:
    */
   void initMemManager(void);
   
-  /**
-   * Get list of supported video input device
-   */
-  std::vector<std::string> getVideoInputDeviceList(void);
-
-  /**
-   * Set video input device
-   */
-  void setVideoInputDevice(const int index);
-
-  /**
-   * Get string array representing integer indexes of video input device
-   */
-  std::vector<std::string> getCurrentVideoDeviceIndex();
-
-  /**
-   * Get name, brightness, contrast, color, resolution of video device
-   */
-  std::vector<std::string> getVideoDeviceDetails(const int index);
   
    /*
    * Initialize the VideoDeviceManager -> the V4L interface

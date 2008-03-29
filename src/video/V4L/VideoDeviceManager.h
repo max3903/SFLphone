@@ -70,14 +70,14 @@ public:
      * \param srcName the name of the camera that the new VideoDevice will use as a source.
      * \return the success of the operation
      */
-   bool createDevice(char* srcName);
+   bool createDevice( const char* srcName);
 
     //! Method to change the VideoDevice.
     /*!
      * \param srcName the pointer to a char array containing the path to the device
      * \return a bool representing the success of the VideoDevice change
      */
-    bool changeDevice(char* srcName);
+    bool changeDevice( const char* srcName);
 
     //! Method to get the instance of the VideoDeviceManager.
     /*!
@@ -87,6 +87,10 @@ public:
      */
     static VideoDeviceManager* getInstance();
     
+    //! Method to enumerate all video device connected to the system
+    /*!
+     * \return A vector containing all the video devices
+     */
     vector<string> enumVideoDevices();
 
 private:

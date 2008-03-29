@@ -1678,13 +1678,13 @@ dbus_get_webcam_device_list()
 }
 
 void 
-dbus_set_webcam_device(const int index)
+dbus_set_webcam_device(gchar* name)
 {
 	g_print("Before set webcam device");
 	GError* error = NULL;
 	org_sflphone_SFLphone_ConfigurationManager_set_webcam_device(
 			configurationManagerProxy,
-			index,
+			name,
 			&error);
 	g_print("After");
 	if(error)
@@ -1696,54 +1696,6 @@ dbus_set_webcam_device(const int index)
 		g_print("DBus called set_webcam_device() on ConfigurationManager\n");
 }
 
-/**
- * Get webcam device index
- */
-gchar**
-dbus_get_current_webcam_device_index()
-{
-	g_print("Before get current webcam device index");
-	gchar** array;
-	GError* error = NULL;
-	org_sflphone_SFLphone_ConfigurationManager_get_current_webcam_device_index(
-			configurationManagerProxy,
-			&array,
-			&error);
-	g_print("After");
-	if(error)
-	{
-		g_printerr("Failed to call get_current_webcam_device_index() on ConfigurationManager: %s\n", error->message);
-		g_error_free(error);
-	}
-	else
-		g_print("DBus called get_current_webcam_device_index() on ConfigurationManager\n");
-	return array;
-}
-
-/**
- * Get webcam index
- */
-int
-dbus_get_webcam_device_index(const gchar *name)
-{
-	g_print("Before get webcam device index");
-	int index;
-	GError* error = NULL;
-	org_sflphone_SFLphone_ConfigurationManager_get_webcam_device_index(
-			configurationManagerProxy,
-			name,
-			&index,
-			&error);
-	g_print("After");
-	if(error)
-	{
-		g_printerr("Failed to call get_webcam_device_index() on ConfigurationManager: %s\n", error->message);
-		g_error_free(error);
-	}
-	else
-		g_print("DBus called get_webcam_device_index() on ConfigurationManager\n");
-	return index;
-}
 
 //Resolution list
 gchar** 
@@ -1768,13 +1720,13 @@ dbus_get_resolution_list()
 }
 
 void 
-dbus_set_resolution(const int index)
+dbus_set_resolution(gchar* name)
 {
 	g_print("Before set resolution");
 	GError* error = NULL;
 	org_sflphone_SFLphone_ConfigurationManager_set_resolution(
 			configurationManagerProxy,
-			index,
+			name,
 			&error);
 	g_print("After");
 	if(error)
@@ -1793,11 +1745,11 @@ gchar*
 dbus_get_current_resolution()
 {
 	g_print("Before get current resolution");
-	gchar* array;
+	gchar* name;
 	GError* error = NULL;
 	org_sflphone_SFLphone_ConfigurationManager_get_current_resolution(
 			configurationManagerProxy,
-			&array,
+			&name,
 			&error);
 	g_print("After");
 	if(error)
@@ -1807,31 +1759,117 @@ dbus_get_current_resolution()
 	}
 	else
 		g_print("DBus called get_current_resolution() on ConfigurationManager\n");
-	return array;
+	return name;
 }
 
-/**
- * Get resolution index
- */
-int
-dbus_get_resolution_index(const gchar *name)
+//Bitrate list
+gchar** 
+dbus_get_bitrate_list()
 {
-	g_print("Before get audio device index");
-	int index;
+	g_print("Before get bitrate list");
+	gchar** array;
 	GError* error = NULL;
-	org_sflphone_SFLphone_ConfigurationManager_get_resolution_index(
+	org_sflphone_SFLphone_ConfigurationManager_get_bitrate_list(
 			configurationManagerProxy,
-			name,
-			&index,
+			&array,
 			&error);
 	g_print("After");
 	if(error)
 	{
-		g_printerr("Failed to call get_resolution_index() on ConfigurationManager: %s\n", error->message);
+		g_printerr("Failed to call get_bitrate_list() on ConfigurationManager: %s\n", error->message);
 		g_error_free(error);
 	}
 	else
-		g_print("DBus called get_resolution_index() on ConfigurationManager\n");
-	return index;
+		g_print("DBus called get_bitrate_list() on ConfigurationManager\n");
+	return array;	
+}
+
+void 
+dbus_set_bitrate(gchar* name)
+{
+	g_print("Before set bitrate");
+	GError* error = NULL;
+	org_sflphone_SFLphone_ConfigurationManager_set_bitrate(
+			configurationManagerProxy,
+			name,
+			&error);
+	g_print("After");
+	if(error)
+	{
+		g_printerr("Failed to call set_bitrate() on ConfigurationManager: %s\n", error->message);
+		g_error_free(error);
+	}
+	else
+		g_print("DBus called set_bitrate() on ConfigurationManager\n");
+}
+
+/**
+ * Get bitrate index
+ */
+gchar*
+dbus_get_current_bitrate()
+{
+	g_print("Before get current bitrate");
+	gchar* name;
+	GError* error = NULL;
+	org_sflphone_SFLphone_ConfigurationManager_get_current_bitrate(
+			configurationManagerProxy,
+			&name,
+			&error);
+	g_print("After");
+	if(error)
+	{
+		g_printerr("Failed to call get_current_bitrate() on ConfigurationManager: %s\n", error->message);
+		g_error_free(error);
+	}
+	else
+		g_print("DBus called get_current_bitrate() on ConfigurationManager\n");
+	return name;
+}
+
+/**
+ * Enables local video capture in the preferences webcam settings tab
+ */
+gboolean dbus_enable_local_video_pref()
+{
+	g_print("Before enable local video pref");
+	gboolean response;
+	GError* error = NULL;
+	org_sflphone_SFLphone_ConfigurationManager_enable_local_video_pref(
+			configurationManagerProxy,
+			&response,
+			&error);
+	g_print("After");
+	if(error)
+	{
+		g_printerr("Failed to call enable_local_video_pref() on ConfigurationManager: %s\n", error->message);
+		g_error_free(error);
+	}
+	else
+		g_print("DBus called enable_local_video_pref() on ConfigurationManager\n");
+	return response;
+}
+
+/**
+ * Disables local video capture in the preferences webcam settings tab
+ */
+gboolean dbus_disable_local_video_pref()
+{
+	g_print("Before disable local video pref");
+	gboolean response;
+	GError* error = NULL;
+	org_sflphone_SFLphone_ConfigurationManager_disable_local_video_pref(
+			configurationManagerProxy,
+			&response,
+			&error);
+	g_print("After");
+	if(error)
+	{
+		g_printerr("Failed to call disable_local_video_pref() on ConfigurationManager: %s\n", error->message);
+		g_error_free(error);
+	}
+	else
+		g_print("DBus called disable_local_video_pref() on ConfigurationManager\n");
+	return response;
 }
 

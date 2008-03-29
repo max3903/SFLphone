@@ -16,6 +16,7 @@
  *  along with this program; if not, write to the Free Software
  *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
+ 
 #include "VideoCodecDescriptor.h"
 
 #include <string>
@@ -52,37 +53,43 @@ VideoCodecDescriptor* VideoCodecDescriptor::getInstance()
     void VideoCodecDescriptor::init()
     {
     VCMIterator mapIter;
-    //Create map list
-    if (initCodecMap() == false)
-    {
-    	ptracesfl("videoCodecInit error",MT_FATAL,2,true);
-    }
-   
-   
+	    //Create map list
+	    if (initCodecMap() == false)
+	    {
+	    	ptracesfl("videoCodecInit error",MT_FATAL,2,true);
+	    }
+	    if (initBitRates() == false)
+	    {
+	    	ptracesfl("BitRates error",MT_FATAL,2,true);
+	    }
     }
     
      bool VideoCodecDescriptor::initCodecMap()
     {
+    	
+    	//TODO IMPLEMENT FULL CODEC LIST OF IMPLEMENTATION
 		
 		char *codec;
 		AVCodec* tmp;
-		
-    			tmp = avcodec_find_decoder_by_name("h264");
-    			if(tmp != NULL)
+//(avcodec_find_decoder_by_name("h264") != NULL) &&
+    		if( ((tmp = avcodec_find_decoder_by_name("h264")) != NULL) )
     			{
     			//map Codec
     			ptracesfl(tmp->name,MT_INFO,2,false);
     			ptracesfl(" Found",MT_NONE,2,true);
     			vCodecMap[tmp] = avcodec_alloc_context();	
     			}
-    			tmp = avcodec_find_decoder_by_name("h263");
-    			if(tmp != NULL)
+    			else return false;
+    
+    		if((avcodec_find_decoder_by_name("h263") != NULL) &&
+    		 ((tmp = avcodec_find_encoder_by_name("h263")) != NULL))
     			{
     			//map Codec
     			ptracesfl(tmp->name,MT_INFO,2,false);
     			ptracesfl(" Found",MT_NONE,2,true);
     			vCodecMap[tmp] = avcodec_alloc_context();	
     			}
+    			else return false;
 
     return true;
     }
@@ -119,7 +126,7 @@ VideoCodecDescriptor* VideoCodecDescriptor::getInstance()
     char* VideoCodecDescriptor::serialize()
     {
     //return
-    //TODO
+    //TODO COULD BE USEFUL 
     return "doh!";
     }
     
@@ -234,5 +241,57 @@ AVCodec* VideoCodecDescriptor::getDefaultCodec()
   
     }
     
+    bool VideoCodecDescriptor::initBitRates()
+    {
+    	
+    	//TODO IMPLEMENT FULL BITRATES CONFIGURATION
+    BitRateFormats.clear();
     
+    BitRateFormats.push_back(32000);
+    BitRateFormats.push_back(64000);
+    BitRateFormats.push_back(128000);
+    BitRateFormats.push_back(256000);
+    BitRateFormats.push_back(384000);
+    BitRateFormats.push_back(512000);
+    BitRateFormats.push_back(768000);
+    BitRateFormats.push_back(1024000);
     
+    return true;
+    
+    }
+    
+    string VideoCodecDescriptor::getBitRates()
+    {
+    
+    std::stringstream out;
+    IntIterator iter;
+    
+    for(iter = BitRateFormats.begin(); iter != BitRateFormats.end() ; iter++)
+    	out << (*iter)/1000 << ";";
+
+	return out.str();
+
+    }
+    
+    string VideoCodecDescriptor::getCurrentBitRate()
+    {
+    std::stringstream out;
+    out << CurrentBitRate/1000;
+    return out.str();
+    }
+    
+    bool VideoCodecDescriptor::setCurrentBitRate(string bitRate)
+    {
+    	CurrentBitRate = atoi(bitRate.c_str())*1000;
+    	ptracesfl("Current Bit Rate changed to ",MT_INFO,false);
+    	ptracesfl(bitRate.c_str(),MT_NONE,true);	
+    return true;
+    }
+
+    
+    bool VideoCodecDescriptor::setDefaultBitRate()
+    {
+    	CurrentBitRate = DEFAULTBITRATE;
+    	return true;
+    }
+

@@ -36,14 +36,16 @@
 #include <map>
 #include <vector>
 #include <string>
-#include <iostream>
-#include <fstream>
+#include <sstream>
+
 #include "../tracePrintSFL.h"
 extern "C"{
 #include <ffmpeg/avcodec.h>
 #include <ffmpeg/avformat.h>
+#include <ffmpeg/swscale.h>
 }
 
+#define DEFAULTBITRATE 768000
 // TODO: a vérifier !
 typedef enum {
   H263 = 33,
@@ -64,6 +66,10 @@ typedef VideoCodecOrder::iterator VCOIterator;
 typedef std::vector<std::string> StringVector;
 /* VideoCodecOrder iterator typedef*/
 typedef StringVector::iterator StringVectorIterator;
+
+typedef std::vector<int> IntVector;
+/* VideoCodecOrder iterator typedef*/
+typedef IntVector::iterator IntIterator;
 
 
 class VideoCodecDescriptor {
@@ -172,8 +178,18 @@ public:
      * @param sCodecMap a string list of vectors
      */
     bool saveCodecMap(StringVector sCodecMap);
-   	
     
+    std::string getBitRates();
+    
+    std::string getCurrentBitRate();
+    
+    bool setCurrentBitRate(std::string bitRate);
+    
+    bool setDefaultBitRate();
+    
+    /********************************************
+     * END  OF Functions for MEMMANAGER
+     *********************************************
 
 private:	
 
@@ -187,14 +203,15 @@ private:
      *  Create Map of Codecs
      */
      bool initCodecMap();
-     
+     /**
+     *  Init BitRates
+     */
+     bool initBitRates();
      
      /**
      *  return codec Name
      */
      bool checkSupported();
-     
-    
 	/**
      * Vector of all the Active codecs
      */
@@ -203,6 +220,17 @@ private:
      * Map of all codecs, active and inactive
      */
     VideoCodecMap vCodecMap;
+    
+     /**
+     * a Int vector containing all bitrates
+     */
+    IntVector BitRateFormats;
+    
+     /**
+     * a int containing the current BITRATE
+     */
+    int CurrentBitRate;
+    
 
 protected:
 /**
@@ -210,7 +238,5 @@ protected:
      */
     VideoCodecDescriptor();
     
-    
-
 };
 #endif //VIDEOCODECDESCRIPTOR_H

@@ -93,22 +93,7 @@
       <arg type="as" name="list" direction="in"/>
     </method>
 
-	<method name="getVideoCodecList">
-      <arg type="as" name="list" direction="out"/>
-    </method>
-   
-   <method name="getVideoCodecDetails">
-     <arg type="i" name="payload" direction="in"/>
-     <arg type="as" name="details" direction="out"/>
-   </method>
- 
-    <method name="getActiveVideoCodecList">
-      <arg type="as" name="list" direction="out"/>
-    </method>
-
-    <method name="setActiveVideoCodecList">
-      <arg type="as" name="list" direction="in"/>
-    </method>
+	
 
 	<!-- Audio devices methods -->
 	
@@ -193,16 +178,7 @@
     </method>
     
     <method name="setWebcamDevice">
-      <arg type="i" name="index" direction="in"/>
-    </method>
-    
-    <method name="getCurrentWebcamDeviceIndex">
-      <arg type="as" name="list" direction="out"/>
-    </method>
-    
-    <method name="getWebcamDeviceIndex">
       <arg type="s" name="name" direction="in"/>
-      <arg type="i" name="index" direction="out"/>
     </method>
     
     <method name="getResolutionList">
@@ -210,19 +186,56 @@
     </method>
     
     <method name="setResolution">
-      <arg type="i" name="index" direction="in"/>
+      <arg type="s" name="name" direction="in"/>
     </method>
     
     <method name="getCurrentResolution">
-      <arg type="s" name="list" direction="out"/>
+      <arg type="s" name="name" direction="out"/>
     </method>
     
-    <method name="getResolutionIndex">
-      <arg type="s" name="name" direction="in"/>
-      <arg type="i" name="index" direction="out"/>
+    <method name="enableLocalVideoPref">
+      <arg type="b" name="status" direction="out"/>
     </method>
+    
+    <method name="disableLocalVideoPref">
+      <arg type="b" name="status" direction="out"/>
+    </method>
+    
+    <!--        /////////////////////////////       -->
   
-  
+    <!-- Video Settings methods -->
+
+    <method name="getBitrateList">
+      <arg type="as" name="list" direction="out"/>
+    </method>
+    
+    <method name="setBitrate">
+      <arg type="s" name="name" direction="in"/>
+    </method>
+    
+    <method name="getCurrentBitrate">
+      <arg type="s" name="name" direction="out"/>
+    </method>
+    
+    <method name="getVideoCodecList">
+      <arg type="as" name="list" direction="out"/>
+    </method>
+   
+   <method name="getVideoCodecDetails">
+     <arg type="i" name="payload" direction="in"/>
+     <arg type="as" name="details" direction="out"/>
+   </method>
+ 
+    <method name="getActiveVideoCodecList">
+      <arg type="as" name="list" direction="out"/>
+    </method>
+
+    <method name="setActiveVideoCodecList">
+      <arg type="as" name="list" direction="in"/>
+    </method>
+    
+    
+    
   <!--        /////////////////////////////       -->
  
     <method name="isIax2Enabled">

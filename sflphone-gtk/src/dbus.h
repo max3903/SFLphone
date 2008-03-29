@@ -86,14 +86,19 @@ slider_t dbus_get_colour();
 void dbus_set_colour(int value);
 //Webcam list
 gchar** dbus_get_webcam_device_list();
-void dbus_set_webcam_device(const int index);
-gchar** dbus_get_current_webcam_device_index();
-int dbus_get_webcam_device_index(const gchar* name);
+void dbus_set_webcam_device(gchar* name);
 //Resolution list
 gchar** dbus_get_resolution_list();
-void dbus_set_resolution(const int index);
-int dbus_get_resolution_index(const gchar* name);
+void dbus_set_resolution(gchar* name);
 gchar* dbus_get_current_resolution();
+//Bitrate list
+gchar** dbus_get_bitrate_list();
+void dbus_set_bitrate(gchar* name);
+gchar* dbus_get_current_bitrate();
+
+//Enables/Disables local video capture in the preferences webcam settings tab
+gboolean dbus_enable_local_video_pref();
+gboolean dbus_disable_local_video_pref();
 
 // Audio devices related methods
 gchar** dbus_get_input_audio_plugin_list();
