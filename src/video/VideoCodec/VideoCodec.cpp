@@ -22,23 +22,6 @@
 #define INBUF_SIZE 4096
 
 
-uint8_t *VideoCodec::RGBTOYUV(AVFrame *RGB,AVFrame *pict)
-{
-	uint8_t *picture_buf;
-
-	if ((pict = avcodec_alloc_frame()) == NULL)
-         ptracesfl("OUT OF MEMORY TRYING TO ENCODE",MT_ERROR,1,true);
-	
-	picture_buf = (uint8_t*)malloc(YUVBufferSize);
-	
-	avpicture_fill((AVPicture *)pict,picture_buf,PIX_FMT_YUV420P,_encodeCodecCtx->width,
-    		_encodeCodecCtx->height);
-	
-	sws_scale(SwsEncodeContext,RGB->data,RGB->linesize,_encodeCodecCtx->width,
-    		_encodeCodecCtx->height,pict->data,pict->linesize);
-    		
-    return picture_buf;
-}
 
 
 int VideoCodec::videoEncode(uint8_t *in_buf, uint8_t* out_buf,int in_bufferSize)
@@ -48,7 +31,7 @@ int VideoCodec::videoEncode(uint8_t *in_buf, uint8_t* out_buf,int in_bufferSize)
 	uint8_t *picture_buf;
 	
 	//TODO check better buffer size
-	out_buf = (uint8_t*)malloc(100000);
+	out_buf = (uint8_t*)malloc(in_bufferSize);
 	
 	//Step 1: change in_buf in AVFRAME pict
 	if ((RGB = avcodec_alloc_frame()) == NULL)
@@ -69,7 +52,6 @@ int VideoCodec::videoEncode(uint8_t *in_buf, uint8_t* out_buf,int in_bufferSize)
 	av_free(pict);
 	free(picture_buf);
 
-//TODO FREE OUTBUF
 	
 	//success
 	return 1;
@@ -137,6 +119,44 @@ int VideoCodec::videoDecode(uint8_t *in_buf, uint8_t* out_buf,int size)
 
      
 	return 0;
+}
+
+
+uint8_t *VideoCodec::RGBTOYUV(AVFrame *RGB,AVFrame *YUV)
+{
+	uint8_t *YUV_buf;
+
+	if ((YUV = avcodec_alloc_frame()) == NULL)
+         ptracesfl("OUT OF MEMORY TRYING TO ENCODE",MT_ERROR,1,true);
+	
+	YUV_buf = (uint8_t*)malloc(YUVBufferSize);
+	
+	avpicture_fill((AVPicture *)YUV,YUV_buf,PIX_FMT_YUV420P,_encodeCodecCtx->width,
+    		_encodeCodecCtx->height);
+	
+	sws_scale(SwsEncodeContext,RGB->data,RGB->linesize,_encodeCodecCtx->width,
+    		_encodeCodecCtx->height,YUV->data,YUV->linesize);
+    		
+    return YUV_buf;
+}
+
+
+uint8_t *VideoCodec::YUVTORGB(AVFrame *YUV,AVFrame *RGB)
+{
+	uint8_t *RGB_buf;
+
+	if ((RGB = avcodec_alloc_frame()) == NULL)
+         ptracesfl("OUT OF MEMORY TRYING TO ENCODE",MT_ERROR,1,true);
+	
+	RGB_buf = (uint8_t*)malloc(YUVBufferSize);
+	
+	avpicture_fill((AVPicture *)RGB,RGB_buf,PIX_FMT_RGB24,_encodeCodecCtx->width,
+    		_encodeCodecCtx->height);
+	
+	sws_scale(SwsEncodeContext,YUV->data,YUV->linesize,_encodeCodecCtx->width,
+    		_encodeCodecCtx->height,RGB->data,RGB->linesize);
+    		
+    return RGB_buf;
 }
 
 void VideoCodec::init(){
@@ -217,7 +237,7 @@ void VideoCodec::initEncodeContext(){
 	
 //intialize SWSEncodeContext
 //GET FROM YUV FORMAT TO RGB
- SwsEncodeContext = sws_getContext(_encodeCodecCtx->width,_encodeCodecCtx->height,PIX_FMT_RGB24,
+SwsEncodeContext = sws_getContext(_encodeCodecCtx->width,_encodeCodecCtx->height,PIX_FMT_RGB24,
  							_encodeCodecCtx->width,_encodeCodecCtx->height,_encodeCodecCtx->pix_fmt,0,NULL,NULL,NULL);
 	
 YUVBufferSize = avpicture_get_size(_encodeCodecCtx->pix_fmt,_encodeCodecCtx->width,_encodeCodecCtx->height);
@@ -226,7 +246,7 @@ YUVBufferSize = avpicture_get_size(_encodeCodecCtx->pix_fmt,_encodeCodecCtx->wid
 void VideoCodec::initDecodeContext()
 {
 
-//initialize basic encoding context
+	//initialize basic encoding context
 	_decodeCodecCtx = avcodec_alloc_context();
 	
 	//TODO ALLOCATE MORE MEM???
@@ -237,10 +257,13 @@ void VideoCodec::initDecodeContext()
 	if(avcodec_open (_decodeCodecCtx, _Codec) < 0)
 		ptracesfl("CANNOT OPEN DECODE CODEC",MT_FATAL,1,true);
 	
-//intialize SWSdecodeContext
-//GET FROM YUV FORMAT TO RGB
-// SwsDecodeContext = sws_getContext();
-	
+	//intialize SWSdecodeContext
+	//GET FROM YUV FORMAT TO RGB
+	 SwsDecodeContext = sws_getContext(_encodeCodecCtx->width,_encodeCodecCtx->height,_encodeCodecCtx->pix_fmt,
+	 							_encodeCodecCtx->width,_encodeCodecCtx->height,PIX_FMT_RGB24,0,NULL,NULL,NULL);
+		
+	RGBBufferSize = avpicture_get_size(_encodeCodecCtx->pix_fmt,_encodeCodecCtx->width,_encodeCodecCtx->height);
+		
 }
 
 void VideoCodec::quitDecodeContext()
