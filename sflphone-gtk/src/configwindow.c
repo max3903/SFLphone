@@ -66,6 +66,7 @@ GtkWidget *moveUpButtonVideo;
 GtkWidget *moveDownButtonVideo;
 
 account_t *selectedAccount;
+gint numWebcam;
 
 // Codec properties ID
 enum {
@@ -676,6 +677,31 @@ select_active_bitrate()
 	// No index was found, select first one
 	g_print("Warning : No active resolution found\n");
 	gtk_combo_box_set_active(GTK_COMBO_BOX(bitrateComboBox), 0);
+}
+
+/**
+ * Enables/disable local video capture in webcam settings tab
+ */
+static void
+select_notebook_page(GtkNotebook* widget,  gpointer data)
+{
+	gint notebookPage;
+	
+	
+	notebookPage = gtk_notebook_get_current_page(widget);
+	printf("Notebook current page : %d Num webcam %d\n", notebookPage, numWebcam);
+	
+	//Webcam Settings Page
+	if(notebookPage == numWebcam)
+	{
+		dbus_enable_local_video_pref();
+		printf("Local video has been enabled in webcam settings \n");
+	}
+	else
+	{
+		dbus_disable_local_video_pref();
+		printf("Local video has been disabled in webcam settings \n");
+	}
 }
 
 /**
@@ -1972,7 +1998,7 @@ show_config_window (gint page_num)
 {
 	GtkDialog * dialog;
 	GtkWidget * notebook;
-	GtkWidget * tab;
+	GtkWidget * tabAccount, *tabAudio, *tabVideo, *tabWebcam;
 
 	dialogOpen = TRUE;
 
@@ -1996,35 +2022,36 @@ show_config_window (gint page_num)
 	
 
 	// Accounts tab
-	tab = create_accounts_tab();
-	gtk_notebook_append_page(GTK_NOTEBOOK(notebook), tab, gtk_label_new(_("Accounts")));
-	gtk_notebook_page_num(GTK_NOTEBOOK(notebook), tab);
-	gtk_widget_show(tab);
+	tabAccount = create_accounts_tab();
+	gtk_notebook_append_page(GTK_NOTEBOOK(notebook), tabAccount, gtk_label_new("Accounts"));
+	gtk_notebook_page_num(GTK_NOTEBOOK(notebook), tabAccount);
+	gtk_widget_show(tabAccount);
 	
 	// Audio tab
-	tab = create_audio_tab();	
-	gtk_notebook_append_page(GTK_NOTEBOOK(notebook), tab, gtk_label_new(_("Audio Settings")));
-	gtk_notebook_page_num(GTK_NOTEBOOK(notebook), tab);
-	gtk_widget_show(tab);
+	tabAudio = create_audio_tab();	
+	gtk_notebook_append_page(GTK_NOTEBOOK(notebook), tabAudio, gtk_label_new("Audio Settings"));
+	gtk_notebook_page_num(GTK_NOTEBOOK(notebook), tabAudio);
+	gtk_widget_show(tabAudio);
 	
 	// Video tab
-	tab = create_video_tab();	
-	gtk_notebook_append_page(GTK_NOTEBOOK(notebook), tab, gtk_label_new("Video Settings"));
-	gtk_notebook_page_num(GTK_NOTEBOOK(notebook), tab);
-	gtk_widget_show(tab);
+	tabVideo = create_video_tab();	
+	gtk_notebook_append_page(GTK_NOTEBOOK(notebook), tabVideo, gtk_label_new("Video Settings"));
+	gtk_notebook_page_num(GTK_NOTEBOOK(notebook), tabVideo);
+	gtk_widget_show(tabVideo);
 	
 	// Webcam tab
-	tab = create_webcam_tab();	
-	gtk_notebook_append_page(GTK_NOTEBOOK(notebook), tab, gtk_label_new("Webcam Settings"));
-	gtk_notebook_page_num(GTK_NOTEBOOK(notebook), tab);
+	tabWebcam = create_webcam_tab();	
+	gtk_notebook_append_page(GTK_NOTEBOOK(notebook), tabWebcam, gtk_label_new("Webcam Settings"));
+	numWebcam = gtk_notebook_page_num(GTK_NOTEBOOK(notebook), tabWebcam);
+	gtk_widget_show(tabWebcam);
 	
-	gtk_widget_show(tab);
+	g_signal_connect(G_OBJECT(notebook), "switch-page", G_CALLBACK(select_notebook_page), notebook);
 
 	gtk_notebook_set_current_page(GTK_NOTEBOOK(notebook),page_num);
 	gtk_dialog_run(dialog);
 	//gtk_widget_show( GTK_WIDGET(dialog) );
 	//g_signal_connect_swapped( dialog , "response" , G_CALLBACK( gtk_widget_destroy ), dialog );
-
+	
 	dialogOpen = FALSE;
 
 	gtk_widget_destroy(GTK_WIDGET(dialog));

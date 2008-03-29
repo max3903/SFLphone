@@ -164,8 +164,8 @@ void ManagerImpl::init()
   initZeroconf();
   
   // \TODO: To remove for debug purpose only
-  if( !this->enableLocalVideoPref() )
-  	exit(-1);
+  //if( !this->enableLocalVideoPref() )
+  	//exit(-1);
 }
 
 void ManagerImpl::terminate()
