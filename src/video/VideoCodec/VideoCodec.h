@@ -62,12 +62,12 @@ public:
      * 
      */
 
-    int videoEncode(uint8_t *in_buf, uint8_t* out_buf,int bufferSize,int width,int height);
+    int videoEncode(uint8_t *in_buf, uint8_t* out_buf,int in_bufferSize);
 
     
 private:
 
- /**
+ 	/**
      * Default Constructor
      * 
      */
@@ -97,10 +97,10 @@ private:
  	* */
     void quitDecodeContext();
     
-    /**
- 	* Function to change RGB to YUV420
+     /**
+ 	* Function Function to change RGB to YUV420
  	* */
- 	bool RGBTOYUV();
+    uint8_t *RGBTOYUV(AVFrame *RGB,AVFrame *pict);
  	
  	 /**
  	* Function to change YUV420 to RGB
@@ -117,6 +117,13 @@ private:
      * Libavcodec Codec type
      */
     const char* _codecName;
+   
+    /**
+     * Libavcodec YUV buffer Size
+     */
+    int YUVBufferSize;
+    
+    
     
     /**
      * Libavcodec Codec context
