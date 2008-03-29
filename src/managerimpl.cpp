@@ -164,8 +164,8 @@ void ManagerImpl::init()
   initZeroconf();
   
   // \TODO: To remove for debug purpose only
-  if( !this->enableLocalVideoPref() )
-  	exit(-1);
+  //if( !this->enableLocalVideoPref() )
+  	//exit(-1);
 }
 
 void ManagerImpl::terminate()
@@ -2685,7 +2685,8 @@ ManagerImpl::initVideoCodec (void)
 	}
   	// else retrieve the one set in the user config file
 	else{
-	//TODO Mamer !
+		std::string active_bitrate = getConfigString(VIDEO, "BitRate"); 
+		setBitrate(active_bitrate);
   	}
   	
 }
@@ -2829,7 +2830,8 @@ CmdDesc
 ManagerImpl::getBrightness(  )
 {
 	CmdDesc values;
-	values = _videoDeviceManager->getCommand(VideoDeviceManager::BRIGHTNESS)->getCmdDescriptor();
+	Command *cmd = _videoDeviceManager->getCommand(VideoDeviceManager::BRIGHTNESS);
+	values = cmd->getCmdDescriptor();
 	return values;
 	
 }
@@ -2837,35 +2839,40 @@ ManagerImpl::getBrightness(  )
 void 
 ManagerImpl::setBrightness( const int value )
 {
-	_videoDeviceManager->getCommand(VideoDeviceManager::BRIGHTNESS)->setTo(value);
+	Command* cmd = _videoDeviceManager->getCommand(VideoDeviceManager::BRIGHTNESS);
+	cmd->setTo(value);
 }
 
 CmdDesc
 ManagerImpl::getContrast(  )
 {
 	CmdDesc values;
-	values = _videoDeviceManager->getCommand(VideoDeviceManager::CONTRAST)->getCmdDescriptor();
+	Command *cmd =_videoDeviceManager->getCommand(VideoDeviceManager::CONTRAST);
+	values = cmd->getCmdDescriptor();
 	return values;	
 }
 
 void 
 ManagerImpl::setContrast( const int value )
 {
-	_videoDeviceManager->getCommand(VideoDeviceManager::CONTRAST)->setTo(value);
+	Command* cmd = _videoDeviceManager->getCommand(VideoDeviceManager::CONTRAST);
+	cmd->setTo(value);
 }
 
 CmdDesc
 ManagerImpl::getColour(  )
 {
 	CmdDesc values;
-	values = _videoDeviceManager->getCommand(VideoDeviceManager::COLOR)->getCmdDescriptor();
+	Command *cmd = _videoDeviceManager->getCommand(VideoDeviceManager::COLOR);
+	values = cmd->getCmdDescriptor();
 	return values;	
 }
 
 void 
 ManagerImpl::setColour( const int value )
 {
-	_videoDeviceManager->getCommand(VideoDeviceManager::COLOR)->setTo(value);
+	Command* cmd = _videoDeviceManager->getCommand(VideoDeviceManager::COLOR);
+	cmd->setTo(value);
 }
 
 std::vector<std::string> 
@@ -2886,14 +2893,6 @@ ManagerImpl::setWebcamDevice( const std::string& name )
 	_videoDeviceManager->changeDevice(temp);
 }
 
-//TODO: remove from D-bus and all the way to the GUI
-//The first device available will be choosen
-std::string
-ManagerImpl::getCurrentWebcamDevice(  )
-{
-	std::string v = "/dev/video0";
-	return v;
-}
 
 std::vector< std::string > 
 ManagerImpl::getResolutionList(  )
@@ -2901,7 +2900,8 @@ ManagerImpl::getResolutionList(  )
 	int i=0;
 	std::vector<std::string> order; 
 	std::string temp;
-	const char* tmp= ((Resolution*)_videoDeviceManager->getCommand(VideoDeviceManager::RESOLUTION))->enumResolution();
+	Resolution* cmdRes= (Resolution*)_videoDeviceManager->getCommand(VideoDeviceManager::RESOLUTION);
+	const char* tmp= cmdRes->enumResolution();
 	
 	if( tmp == NULL ){
 		ptracesfl("Resolution list is empty",MT_WARNING,2,false);
@@ -2932,10 +2932,11 @@ void
 ManagerImpl::setResolution( const std::string& name )
 {
 	char temp[20];
+	Resolution *cmdRes = (Resolution*)_videoDeviceManager->getCommand(VideoDeviceManager::RESOLUTION);
 	strcpy(temp, name.c_str());
 	ptracesfl("setResolution", MT_INFO, MANAGERIMPL_TRACE, false);
 	ptracesfl(temp, MT_INFO, MANAGERIMPL_TRACE, true);
-	((Resolution*)_videoDeviceManager->getCommand(VideoDeviceManager::RESOLUTION))->setTo(temp);	
+	cmdRes->setTo(temp);	
 }
 
 std::string 
@@ -2944,7 +2945,8 @@ ManagerImpl::getCurrentResolution(  )
 	pair<int,int> res;
 	char buf[10];
 	std::string temp;
-	res = ((Resolution*)_videoDeviceManager->getCommand(VideoDeviceManager::RESOLUTION))->getResolution();
+	Resolution *cmdRes =(Resolution*)_videoDeviceManager->getCommand(VideoDeviceManager::RESOLUTION);
+	res = cmdRes->getResolution();
 	temp.clear();
 	sprintf(buf,"%d", res.first);
 	temp+=buf;
@@ -2953,6 +2955,38 @@ ManagerImpl::getCurrentResolution(  )
 	temp+=buf;
 	std::cout << temp;
 	return temp;
+}
+
+std::vector< std::string > 
+ManagerImpl::getBitrateList(  )
+{
+	std::vector<std::string> order; 
+	std::string temp;
+	std::string s = _videoCodecDescriptor->getBitRates();
+	  
+	while (s.find(";", 0) != std::string::npos)
+	{
+		size_t  pos = s.find(";", 0); 			
+		temp = s.substr(0, pos);      	
+		s.erase(0, pos + 1);          		
+		order.push_back(temp);                	
+	}
+	
+	return order;
+}
+
+void 
+ManagerImpl::setBitrate( const std::string& name )
+{
+	_videoCodecDescriptor->setCurrentBitRate(name);
+	setConfig("Video", "BitRate", name);
+}
+
+std::string 
+ManagerImpl::getCurrentBitrate(  )
+{
+	
+	return _videoCodecDescriptor->getCurrentBitRate();
 }
 
 

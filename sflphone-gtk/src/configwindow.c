@@ -45,6 +45,7 @@ GtkListStore *outputAudioDeviceManagerStore;
 GtkListStore *inputAudioDeviceManagerStore;
 GtkListStore *webcamDeviceStore;
 GtkListStore *resolutionStore;
+GtkListStore *bitrateStore;
 
 GtkWidget *addButton;
 GtkWidget *editButton;
@@ -57,6 +58,7 @@ GtkWidget *inputDeviceComboBox;
 GtkWidget *pluginComboBox;
 GtkWidget *webcamDeviceComboBox;
 GtkWidget *resolutionComboBox;
+GtkWidget *bitrateComboBox;
 
 GtkWidget *moveUpButton;
 GtkWidget *moveDownButton;
@@ -64,6 +66,7 @@ GtkWidget *moveUpButtonVideo;
 GtkWidget *moveDownButtonVideo;
 
 account_t *selectedAccount;
+gint numWebcam;
 
 // Codec properties ID
 enum {
@@ -510,30 +513,7 @@ config_window_fill_webcam_device_list()
 void
 select_active_webcam_device()
 {
-	GtkTreeModel* model;
-	GtkTreeIter iter;
-	gchar* webcam;
-	gchar* tmp;
-
-	// Select active webcam device on server
-	webcam = dbus_get_current_webcam_device();
-	tmp = webcam;
-	model = gtk_combo_box_get_model(GTK_COMBO_BOX(webcamDeviceComboBox));
-	  
-	// Find the currently set resolution
-	gtk_tree_model_get_iter_first(model, &iter);
-	do {
-		gtk_tree_model_get(model, &iter, 0, &webcam , -1);
-		if( g_strcasecmp( tmp , webcam ) == 0 )
-		{
-			// Set current iteration the active one
-			gtk_combo_box_set_active_iter(GTK_COMBO_BOX(webcamDeviceComboBox), &iter);
-			return;
-		}
-	} while(gtk_tree_model_iter_next(model, &iter));
-
-	// No index was found, select first one
-	g_print("Warning : No active webcam found\n");
+	// Always select the first one
 	gtk_combo_box_set_active(GTK_COMBO_BOX(webcamDeviceComboBox), 0);
 }
 
@@ -618,6 +598,114 @@ select_active_resolution()
 	// No index was found, select first one
 	g_print("Warning : No active resolution found\n");
 	gtk_combo_box_set_active(GTK_COMBO_BOX(resolutionComboBox), 0);
+}
+
+/**
+ * Set the bitrate on the server with its value
+ */
+ 
+static void
+select_bitrate(GtkComboBox* widget, gpointer data)
+{
+	GtkTreeModel* model;
+	GtkTreeIter iter;
+	int comboBoxIndex;
+	gchar* name;
+	
+	comboBoxIndex = gtk_combo_box_get_active(widget);
+	
+	if(comboBoxIndex >= 0)
+	{
+		model = gtk_combo_box_get_model(widget);
+		gtk_combo_box_get_active_iter(widget, &iter);
+		gtk_tree_model_get(model, &iter, 0, &name, -1);	
+		dbus_set_bitrate(name);
+	}
+}
+
+/**
+ * Fill bitrate store
+ */
+ 
+void
+config_window_fill_bitrate_list()
+{
+	GtkTreeIter iter;
+	gchar** list;
+	gchar* bitrateName;
+	gtk_list_store_clear(bitrateStore);
+	gchar* temp = "kbps";
+	
+	// Call dbus to retrieve list
+	list = dbus_get_bitrate_list();
+	
+	// For each bitrate included in list
+	int c = 0;
+	for(bitrateName = list[c]; bitrateName != NULL; bitrateName = list[c])
+	{
+		c++;
+		gtk_list_store_append(bitrateStore, &iter);
+		gtk_list_store_set(bitrateStore, &iter, 0 ,bitrateName , 1 , temp, -1);
+	}
+}
+
+/**
+ * Select active bitrate
+ */
+ 
+void
+select_active_bitrate()
+{
+	GtkTreeModel* model;
+	GtkTreeIter iter;
+	gchar* bitrate;
+	gchar* tmp;
+
+	// Select active bitrate on server
+	bitrate = dbus_get_current_bitrate();
+	tmp = bitrate;
+	model = gtk_combo_box_get_model(GTK_COMBO_BOX(bitrateComboBox));
+	  
+	// Find the currently set bitrate
+	gtk_tree_model_get_iter_first(model, &iter);
+	do {
+		gtk_tree_model_get(model, &iter, 0, &bitrate , -1);
+		if( g_strcasecmp( tmp , bitrate ) == 0 )
+		{
+			// Set current iteration the active one
+			gtk_combo_box_set_active_iter(GTK_COMBO_BOX(bitrateComboBox), &iter);
+			return;
+		}
+	} while(gtk_tree_model_iter_next(model, &iter));
+
+	// No index was found, select first one
+	g_print("Warning : No active resolution found\n");
+	gtk_combo_box_set_active(GTK_COMBO_BOX(bitrateComboBox), 0);
+}
+
+/**
+ * Enables/disable local video capture in webcam settings tab
+ */
+static void
+select_notebook_page(GtkNotebook* widget,  gpointer data)
+{
+	gint notebookPage;
+	
+	
+	notebookPage = gtk_notebook_get_current_page(widget);
+	printf("Notebook current page : %d Num webcam %d\n", notebookPage, numWebcam);
+	
+	//Webcam Settings Page
+	if(notebookPage == numWebcam)
+	{
+		dbus_enable_local_video_pref();
+		printf("Local video has been enabled in webcam settings \n");
+	}
+	else
+	{
+		dbus_disable_local_video_pref();
+		printf("Local video has been disabled in webcam settings \n");
+	}
 }
 
 /**
@@ -1106,6 +1194,7 @@ set_brightness(GtkScale* scale, gpointer data)
 {
 	gdouble value;
 	value = gtk_range_get_value(GTK_RANGE(scale));
+	printf("set brightness to: %f \n", value);
 	dbus_set_brightness(value);
 	
 }
@@ -1118,6 +1207,7 @@ set_contrast(GtkScale* scale, gpointer data)
 {
 	gdouble value;
 	value = gtk_range_get_value(GTK_RANGE(scale));
+	printf("set contrast to: %f \n", value);
 	dbus_set_contrast(value);
 	
 }
@@ -1612,8 +1702,8 @@ create_video_tab ()
 	GtkWidget *activateCheckBox;
 	GtkWidget *cancelCheckBox;
 	GtkWidget *codecFrame, *videoFrame;
-	GtkObject *bitrateAdjustment;
-	GtkWidget *bitrateHScale;
+	GtkCellRenderer *bitrateRenderer;
+	GtkWidget *bitrateTable;
 	
 	GtkWidget *codecTable;
 	
@@ -1648,19 +1738,35 @@ create_video_tab ()
 	gtk_widget_show(videoBox);	
 	gtk_container_add(GTK_CONTAINER(videoFrame),videoBox);
 	
-	//Bitrate slider
+	//Table to limit space taken by the combo box
+	bitrateTable = gtk_table_new(2,3,TRUE);
+    gtk_table_set_col_spacing(GTK_TABLE(bitrateTable), 0, 40);
+	gtk_box_set_spacing(GTK_BOX(bitrateTable), 0);
+	gtk_box_pack_start(GTK_BOX(videoBox), bitrateTable, TRUE, TRUE, 0);
+	gtk_widget_show(bitrateTable);
+	gtk_container_add(GTK_CONTAINER(videoBox),bitrateTable);
+	
+	//Bitrate combo box section
 	bitrateLabel = gtk_label_new(NULL);
-    gtk_label_set_markup(GTK_LABEL(bitrateLabel), "<b>Bitrate :</b>");
+    gtk_label_set_markup(GTK_LABEL(bitrateLabel), "<b>Bitrate: (kbps)</b>");
     gtk_label_set_line_wrap(GTK_LABEL(bitrateLabel), TRUE);
     gtk_misc_set_alignment(GTK_MISC(bitrateLabel), 0, 0.5);
     gtk_label_set_justify(GTK_LABEL(bitrateLabel), GTK_JUSTIFY_LEFT);
-    gtk_box_pack_start(GTK_BOX(videoBox), bitrateLabel, FALSE, FALSE, 0);
+    gtk_table_attach(GTK_TABLE(bitrateTable), bitrateLabel, 0, 1, 0, 1, GTK_FILL | GTK_EXPAND, GTK_SHRINK, 0, 0);
     gtk_widget_show(bitrateLabel);
     
-	bitrateAdjustment = gtk_adjustment_new (0.0, 0.0, 101.0, 1.0, 1.0, 1.0);
-    bitrateHScale = gtk_hscale_new(GTK_ADJUSTMENT (bitrateAdjustment));
-    gtk_box_pack_start(GTK_BOX(videoBox), bitrateHScale, FALSE, FALSE, 0);
-	gtk_widget_show(bitrateHScale);
+    bitrateStore = gtk_list_store_new(2, G_TYPE_STRING, G_TYPE_STRING);
+	config_window_fill_bitrate_list();
+	bitrateComboBox = gtk_combo_box_new_with_model(GTK_TREE_MODEL(bitrateStore));
+	select_active_bitrate();
+  	gtk_label_set_mnemonic_widget(GTK_LABEL(bitrateLabel), bitrateComboBox);
+	g_signal_connect(G_OBJECT(bitrateComboBox), "changed", G_CALLBACK(select_bitrate), bitrateComboBox);
+	
+	bitrateRenderer = gtk_cell_renderer_text_new();
+	gtk_cell_layout_pack_start(GTK_CELL_LAYOUT(bitrateComboBox), bitrateRenderer, FALSE);
+	gtk_cell_layout_set_attributes(GTK_CELL_LAYOUT(bitrateComboBox), bitrateRenderer, "text", 0, "text", 1, NULL);
+	gtk_table_attach(GTK_TABLE(bitrateTable), bitrateComboBox, 0, 1, 1, 2, GTK_FILL | GTK_EXPAND, GTK_SHRINK, 0, 0);
+    gtk_widget_show(bitrateComboBox);
 	
 	activateCheckBox = gtk_check_button_new_with_label("Always ask before activating the video capture");
 	gtk_box_pack_start(GTK_BOX(videoBox), activateCheckBox, FALSE, FALSE, 0);
@@ -1742,7 +1848,7 @@ create_webcam_tab ()
 	gtk_widget_show(titleLabel);	
 	
 	// Set choices of webcam
-	webcamDeviceStore = gtk_list_store_new(2, G_TYPE_STRING, G_TYPE_INT);
+	webcamDeviceStore = gtk_list_store_new(1, G_TYPE_STRING);
 	config_window_fill_webcam_device_list();
 	webcamDeviceComboBox = gtk_combo_box_new_with_model(GTK_TREE_MODEL(webcamDeviceStore));
 	select_active_webcam_device();
@@ -1779,6 +1885,7 @@ create_webcam_tab ()
 	
 	//Get the values for the brightness slider
 	values = dbus_get_brightness();
+	printf("load brightness to: %d \n", values.currentValue);
     
     //Brightness slider section
     brightnessLabel = gtk_label_new(NULL);
@@ -1796,7 +1903,7 @@ create_webcam_tab ()
     g_signal_connect(G_OBJECT(brightnessHScale), "value-changed", G_CALLBACK(set_brightness), brightnessHScale);
     if(values.currentValue ==-1 && values.minValue==-1 && values.maxValue==-1 && values.stepValue==-1)
 	{
-    	gtk_widget_set_sensitive(GTK_WIDGET(colourHScale), 0);
+    	gtk_widget_set_sensitive(GTK_WIDGET(brightnessHScale), 0);
 	}
 	gtk_widget_show(brightnessHScale);
 	
@@ -1819,7 +1926,7 @@ create_webcam_tab ()
     g_signal_connect(G_OBJECT(contrastHScale), "value-changed", G_CALLBACK(set_contrast), contrastHScale);
     if(values.currentValue ==-1 && values.minValue==-1 && values.maxValue==-1 && values.stepValue==-1)
 	{
-    	gtk_widget_set_sensitive(GTK_WIDGET(colourHScale), 0);
+    	gtk_widget_set_sensitive(GTK_WIDGET(contrastHScale), 0);
 	}
 	gtk_widget_show(contrastHScale);
 	
@@ -1855,7 +1962,7 @@ create_webcam_tab ()
     gtk_table_attach(GTK_TABLE(settingsTable), resolutionLabel, 0, 1, 6, 7, GTK_FILL | GTK_EXPAND, GTK_SHRINK, 0, 0);
     gtk_widget_show(resolutionLabel);
     
-    resolutionStore = gtk_list_store_new(2, G_TYPE_STRING, G_TYPE_INT);
+    resolutionStore = gtk_list_store_new(1, G_TYPE_STRING);
 	config_window_fill_resolution_list();
 	resolutionComboBox = gtk_combo_box_new_with_model(GTK_TREE_MODEL(resolutionStore));
 	select_active_resolution();
@@ -1868,7 +1975,7 @@ create_webcam_tab ()
 	gtk_table_attach(GTK_TABLE(settingsTable), resolutionComboBox, 0, 1, 7, 8, GTK_FILL | GTK_EXPAND, GTK_SHRINK, 0, 0);
 	gtk_widget_show(resolutionComboBox);
 	
-	// \todo Add an OpenGL widget to show the local video rendering
+	// OpenGL widget to show the local video rendering
     drawingSpace= createGLWidget();
     gtk_box_pack_start(GTK_BOX(settingsHBox), drawingSpace, TRUE, TRUE, 0);
     gtk_widget_show(drawingSpace);
@@ -1895,7 +2002,7 @@ show_config_window (gint page_num)
 {
 	GtkDialog * dialog;
 	GtkWidget * notebook;
-	GtkWidget * tab;
+	GtkWidget * tabAccount, *tabAudio, *tabVideo, *tabWebcam;
 
 	dialogOpen = TRUE;
 
@@ -1919,35 +2026,36 @@ show_config_window (gint page_num)
 	
 
 	// Accounts tab
-	tab = create_accounts_tab();
-	gtk_notebook_append_page(GTK_NOTEBOOK(notebook), tab, gtk_label_new(_("Accounts")));
-	gtk_notebook_page_num(GTK_NOTEBOOK(notebook), tab);
-	gtk_widget_show(tab);
+	tabAccount = create_accounts_tab();
+	gtk_notebook_append_page(GTK_NOTEBOOK(notebook), tabAccount, gtk_label_new("Accounts"));
+	gtk_notebook_page_num(GTK_NOTEBOOK(notebook), tabAccount);
+	gtk_widget_show(tabAccount);
 	
 	// Audio tab
-	tab = create_audio_tab();	
-	gtk_notebook_append_page(GTK_NOTEBOOK(notebook), tab, gtk_label_new(_("Audio Settings")));
-	gtk_notebook_page_num(GTK_NOTEBOOK(notebook), tab);
-	gtk_widget_show(tab);
+	tabAudio = create_audio_tab();	
+	gtk_notebook_append_page(GTK_NOTEBOOK(notebook), tabAudio, gtk_label_new("Audio Settings"));
+	gtk_notebook_page_num(GTK_NOTEBOOK(notebook), tabAudio);
+	gtk_widget_show(tabAudio);
 	
 	// Video tab
-	tab = create_video_tab();	
-	gtk_notebook_append_page(GTK_NOTEBOOK(notebook), tab, gtk_label_new("Video Settings"));
-	gtk_notebook_page_num(GTK_NOTEBOOK(notebook), tab);
-	gtk_widget_show(tab);
+	tabVideo = create_video_tab();	
+	gtk_notebook_append_page(GTK_NOTEBOOK(notebook), tabVideo, gtk_label_new("Video Settings"));
+	gtk_notebook_page_num(GTK_NOTEBOOK(notebook), tabVideo);
+	gtk_widget_show(tabVideo);
 	
 	// Webcam tab
-	tab = create_webcam_tab();	
-	gtk_notebook_append_page(GTK_NOTEBOOK(notebook), tab, gtk_label_new("Webcam Settings"));
-	gtk_notebook_page_num(GTK_NOTEBOOK(notebook), tab);
+	tabWebcam = create_webcam_tab();	
+	gtk_notebook_append_page(GTK_NOTEBOOK(notebook), tabWebcam, gtk_label_new("Webcam Settings"));
+	numWebcam = gtk_notebook_page_num(GTK_NOTEBOOK(notebook), tabWebcam);
+	gtk_widget_show(tabWebcam);
 	
-	gtk_widget_show(tab);
+	g_signal_connect_after(G_OBJECT(notebook), "switch-page", G_CALLBACK(select_notebook_page), notebook);
 
 	gtk_notebook_set_current_page(GTK_NOTEBOOK(notebook),page_num);
 	gtk_dialog_run(dialog);
 	//gtk_widget_show( GTK_WIDGET(dialog) );
 	//g_signal_connect_swapped( dialog , "response" , G_CALLBACK( gtk_widget_destroy ), dialog );
-
+	
 	dialogOpen = FALSE;
 
 	gtk_widget_destroy(GTK_WIDGET(dialog));

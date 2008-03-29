@@ -49,8 +49,11 @@ void select_active_input_audio_device();
 void select_active_output_audio_plugin();
 void config_window_fill_webcam_device_list();
 void select_active_webcam_device();
+void select_webcam(GtkComboBox* widget, gpointer data);
 void config_window_fill_resolution_list();
 void select_active_resolution();
+void config_window_fill_bitrate_list();
+void select_active_bitrate();
 void default_account(GtkWidget *widget, gpointer data);
 void bold_if_default_account(GtkTreeViewColumn *col, GtkCellRenderer *rend, GtkTreeModel *tree_model, GtkTreeIter *iter, gpointer data);
 void default_codecs(GtkWidget* widget, gpointer data);
@@ -60,5 +63,5 @@ GtkWidget * create_audio_tab();
 GtkWidget * create_video_tab();
 GtkWidget * create_webcam_tab();
 void show_config_window(gint page_num);
-gchar* format_percentage_scale (GtkScale *scale, gdouble value);
+gchar* format_percentage_scale(GtkScale *scale, gdouble value);
 #endif 
