@@ -329,3 +329,17 @@ v4l2_capability* VideoDevice::getVideoCapability(){
    		return false;
    		
    }
+   
+   int VideoDevice::getFPS(){
+	   	
+   		v4l2_streamparm* tmpSParam= this->getStreamingParam();
+   		
+   		if( tmpSParam != NULL ){
+   			int ret= tmpSParam->parm.capture.timeperframe.denominator;
+   			free(tmpSParam);
+   			return ret;   			
+   		}
+   		
+   		return -1;
+   		
+   }
