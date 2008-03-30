@@ -68,7 +68,6 @@ public:
         register_method(ConfigurationManager, setBitrate, _setBitrate_stub);
         register_method(ConfigurationManager, getCurrentBitrate, _getCurrentBitrate_stub);
         register_method(ConfigurationManager, getVideoCodecList, _getVideoCodecList_stub);
-        register_method(ConfigurationManager, getVideoCodecDetails, _getVideoCodecDetails_stub);
         register_method(ConfigurationManager, getActiveVideoCodecList, _getActiveVideoCodecList_stub);
         register_method(ConfigurationManager, setActiveVideoCodecList, _setActiveVideoCodecList_stub);
         register_method(ConfigurationManager, isIax2Enabled, _isIax2Enabled_stub);
@@ -328,12 +327,6 @@ public:
             { "list", "as", false },
             { 0, 0, 0 }
         };
-        static ::DBus::IntrospectedArgument getVideoCodecDetails_args[] = 
-        {
-            { "payload", "i", true },
-            { "details", "as", false },
-            { 0, 0, 0 }
-        };
         static ::DBus::IntrospectedArgument getActiveVideoCodecList_args[] = 
         {
             { "list", "as", false },
@@ -414,7 +407,6 @@ public:
             { "setBitrate", setBitrate_args },
             { "getCurrentBitrate", getCurrentBitrate_args },
             { "getVideoCodecList", getVideoCodecList_args },
-            { "getVideoCodecDetails", getVideoCodecDetails_args },
             { "getActiveVideoCodecList", getActiveVideoCodecList_args },
             { "setActiveVideoCodecList", setActiveVideoCodecList_args },
             { "isIax2Enabled", isIax2Enabled_args },
@@ -500,7 +492,6 @@ public:
     virtual void setBitrate( const ::DBus::String& name ) = 0;
     virtual ::DBus::String getCurrentBitrate(  ) = 0;
     virtual std::vector< ::DBus::String > getVideoCodecList(  ) = 0;
-    virtual std::vector< ::DBus::String > getVideoCodecDetails( const ::DBus::Int32& payload ) = 0;
     virtual std::vector< ::DBus::String > getActiveVideoCodecList(  ) = 0;
     virtual void setActiveVideoCodecList( const std::vector< ::DBus::String >& list ) = 0;
     virtual ::DBus::Int32 isIax2Enabled(  ) = 0;
@@ -1016,17 +1007,6 @@ private:
         ::DBus::MessageIter ri = call.reader();
 
         std::vector< ::DBus::String > argout1 = getVideoCodecList();
-        ::DBus::ReturnMessage reply(call);
-        ::DBus::MessageIter wi = reply.writer();
-        wi << argout1;
-        return reply;
-    }
-    ::DBus::Message _getVideoCodecDetails_stub( const ::DBus::CallMessage& call )
-    {
-        ::DBus::MessageIter ri = call.reader();
-
-        ::DBus::Int32 argin1; ri >> argin1;
-        std::vector< ::DBus::String > argout1 = getVideoCodecDetails(argin1);
         ::DBus::ReturnMessage reply(call);
         ::DBus::MessageIter wi = reply.writer();
         wi << argout1;
