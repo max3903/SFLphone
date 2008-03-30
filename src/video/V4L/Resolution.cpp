@@ -122,3 +122,33 @@ bool Resolution::setFpsTo( int fps ){
     return ret;
   	
 }
+
+int Resolution::getCurrentFPS(){
+	
+	if( Command::videoDevice == NULL )
+		return false;
+		
+  	ptracesfl("Resolution getting device ...", MT_INFO, COMMAND_TRACE);
+    this->getVideoDeviceAccess();
+    
+    ptracesfl("Getting fps rate ...", MT_INFO, COMMAND_TRACE, false);
+    int ret= Command::videoDevice->getFPS();
+    
+    if(ret == -1)
+    	 ptracesfl("\tNO", MT_NONE, COMMAND_TRACE);
+   	else
+   		ptracesfl("\tOK", MT_NONE, COMMAND_TRACE);
+    
+    ptracesfl("Resolution releasing device ...", MT_INFO, COMMAND_TRACE);
+    this->releaseVideoDevice();
+    
+    return ret;
+    
+}
+
+CmdDesc Resolution::getCmdDescriptor(){
+	CmdDesc tmpDesc= {-1,-1,-1,-1};
+		  		
+  	ptracesfl("Capture releasing device ...\n", MT_WARNING, COMMAND_TRACE);
+  	return tmpDesc;
+}

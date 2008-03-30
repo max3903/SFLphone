@@ -62,10 +62,18 @@ public:
        
     //! Method to set the fps rate to an exact value 
     /*!
+     * Not all devices have the capacity of changing the FPS value  
      * \param fps The new value of the fps rate
      * \return a bool representing the success of the operation
      */
     virtual bool setFpsTo( int fps );
+    
+    //! Method to get the fps rate 
+    /*!
+     * Not all devices have the capacity of enumerating the FPS value  
+     * \return The value of the FPS rate
+     */
+    virtual int getCurrentFPS();
 
     //! Method to get all the resolution supported by the current image format
     /*!
@@ -83,7 +91,7 @@ public:
     /*!
      * \return a CmdDesc that contains all the values of the device
      */
-    virtual CmdDesc getCmdDescriptor(){}
+    virtual CmdDesc getCmdDescriptor();
         
 };
 #endif //RESOLUTION_H

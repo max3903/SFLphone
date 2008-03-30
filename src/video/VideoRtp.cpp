@@ -39,9 +39,9 @@ int VideoRtp::createNewVideoSession(SIPCall *call, bool Conf)
 
   // TODO: something should stop the thread before...
   if ( vRTXThread != 0 ) { 
-    //_debug("! ARTP Failure: Thread already exists..., stopping it\n");
+    _debug("! ARTP Failure: Video Thread already exists..., stopping it\n");
     delete vRTXThread; vRTXThread = 0;
-    //return -1; 
+    return -1; 
   }
 
  /*
@@ -53,22 +53,20 @@ int VideoRtp::createNewVideoSession(SIPCall *call, bool Conf)
   }
   */
 
-  printf(" NOUS SOMMES DANS VIDEO RTP !!!!!!! ");
-
   //if (!Conf){
     // Start RTP Send/Receive threads, CONVERSATION
     // TODO: Lire sur les session symmetric!
     //_symmetric = Manager::instance().getConfigInt(SIGNALISATION,SYMMETRIC) ? true : false; 
     //vRTXThread = new VideoRtpRTX (call, _symmetric);
-    vRTXThread = new VideoRtpRTX (call, false);
+    vRTXThread = new VideoRtpRTX (call, true); // symmetric!
     try {
       //TODO: ACTIVER CELA POUR QUE LE THREAD RUN (probleme de semaphore)
       if (vRTXThread->start() != 0) {
-        //_debug("! ARTP Failure: unable to start RTX Thread\n");
+        _debug("! ARTP Failure: unable to start VIDEO RTX Thread\n");
         return -1;
       }
     } catch(...) {
-      //_debugException("! ARTP Failure: when trying to start a thread");
+      _debugException("! ARTP Failure: when trying to start a RTP video thread\n");
       throw;
     }
     return 0;

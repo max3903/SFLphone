@@ -75,6 +75,10 @@ private:
     ost::RTPSession* 	videoSessionReceive;
     /** System Semaphore */
     ost::Semaphore 	semStart;
+
+    /** SYMMETRIC RTP Session to send/receive */
+    ost::SymmetricRTPSession* session;
+
     /** Codec for encoding */
     VideoCodec* 	encodeCodec;
     /** Codec for decoding */

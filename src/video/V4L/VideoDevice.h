@@ -135,10 +135,18 @@ public:
     
     //! Method to call to change the fps rate to a specific value
     /*!
+     * Not all devices have the capacity of changing the FPS value 
      * \param fps The new fps rate
      * \return a bool representing the success of parameters changing
      */
     bool setFPS( int fps);
+    
+    //! Method to call to get the fps rate
+    /*!
+     * Not all devices have the capacity of enumerating the FPS value
+     * \return The current Value of the FPS rate
+     */
+    int getFPS();
 
 	//! Access Method to get the current Image Format
 	/*!
