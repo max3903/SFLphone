@@ -7,6 +7,7 @@
 #include <ffmpeg/avcodec.h>
 #include <ffmpeg/swscale.h>
 #include <stdlib.h>
+#include <stdio.h>
 
  struct FrameProperties
     {
@@ -38,28 +39,27 @@ public:
   * */
     uint8_t *Convert(AVFrame *In,AVFrame *Out);
 
+    FrameProperties getInputProperties();
 
-    FrameProperties getIn();
+    void setInputProperties(int setWidth,int setHeight,int setPixFormat);
+    void setInputProperties(int setWidth,int setHeight);
 
-    void setIn(int setWidth,int setHeight,int setPixFormat);
+    FrameProperties getOutputProperties();
 
-    FrameProperties getOut();
-
-    void setOut(int setWidth,int setHeight,int setPixFormat);
+    void setOutputProperties(int setWidth,int setHeight,int setPixFormat);
+    void setOutputProperties(int setWidth,int setHeight);
 
 private:
 
 	SWSInterface();
 	
 	struct SwsContext *Context;
-
-
     /**
      * Libavcodec YUV buffer Size
      */
     int BufferSize;
     FrameProperties out;
-     FrameProperties in;
+    FrameProperties in;
      
 };
 #endif //SWSINTERFACE_H

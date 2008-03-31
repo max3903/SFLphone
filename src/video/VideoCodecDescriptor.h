@@ -37,7 +37,7 @@
 #include <vector>
 #include <string>
 #include <sstream>
-
+#include "VideoCodec/VideoSettings.h"
 #include "../tracePrintSFL.h"
 extern "C"{
 #include <ffmpeg/avcodec.h>
@@ -199,6 +199,15 @@ private:
      * Function called by constructor, will create lists and register active codecs
      */   
     void init();
+    /**
+     * Function called by init to initiate settings to all codecs
+     * 
+     * THIS FUNCTIONS INITIATES THE STATIC CODEC FEATURES
+     * SEE THE VIDEOCODECS INIT FOR DYNAMIC FEATURES
+     */   
+    bool initContext();
+
+    
     /**
      *  Create Map of Codecs
      */
