@@ -2698,16 +2698,23 @@ ManagerImpl::initVideoCodec (void)
   void
 ManagerImpl::setActiveVideoCodecList(const std::vector<std::string>& list)
 {
-	// TODO: replace with video codec list
-	// the following code is only there to avoid errors
-  _debug("Set active Video codecs list\n");
+	_debug("Set active Video codecs list\n");
+	std::vector<std::string> codecMap = _videoCodecDescriptor->getStringCodecMap();
   
 	if(_videoCodecDescriptor->saveActiveCodecs(list))
+	{
 		ptracesfl("videoCodecs saved",MT_INFO,5,true);
-  // setConfig
-  std::string s = serialize(list);
-  printf("%s\n", s.c_str());
-  setConfig("Video", "ActiveCodecs", s);
+		// setConfig
+		std::string s = serialize(list);
+		printf("%s\n", s.c_str());
+		setConfig("Video", "ActiveCodecs", s);
+		
+	}
+	else //the user doesn't have all the codecs in the config file
+	{
+		//so we need to reset the config file
+		setConfig("Video", "ActiveCodecs", "");
+	}
 }
 
 
@@ -2728,42 +2735,21 @@ ManagerImpl::getVideoCodecList( void )
   return _videoCodecDescriptor->getStringCodecMap();
 }
 
-  std::vector<std::string>
-ManagerImpl::getVideoCodecDetails( const ::DBus::Int32& payload )
-{
-	// TODO: replace with video codec details
-	// the following code is only there to avoid errors
-  std::vector<std::string> v;
-  std::stringstream ss;
-
-  v.push_back(_codecDescriptorMap.getCodecName((AudioCodecType)payload));
-  ss << _codecDescriptorMap.getSampleRate((AudioCodecType)payload);
-  v.push_back((ss.str()).data()); 
-  ss.str("");
-  ss << _codecDescriptorMap.getBitRate((AudioCodecType)payload);
-  v.push_back((ss.str()).data());
-  ss.str("");
-  ss << _codecDescriptorMap.getBandwidthPerCall((AudioCodecType)payload);
-  v.push_back((ss.str()).data());
-  ss.str("");
-
-  return v;
-}
 
 
 std::vector<std::string>
 ManagerImpl::retrieveActiveVideoCodecs()
 {
 	ptracesfl("retrieving video codecs",MT_INFO,5,true);
-	  std::vector<std::string> order; 
-	  std::string  temp;
-	  std::string s = getConfigString(VIDEO, "ActiveCodecs");
+	std::vector<std::string> order; 
+	std::string  temp;
+	std::string s = getConfigString(VIDEO, "ActiveCodecs");
 	  
 	while (s.find("/", 0) != std::string::npos)
 	{
 		size_t  pos = s.find("/", 0); 			
 		temp = s.substr(0, pos);      	
-		s.erase(0, pos + 1);          		
+		s.erase(0, pos + 1);       		
 		order.push_back(temp);                	
 	}
 	
