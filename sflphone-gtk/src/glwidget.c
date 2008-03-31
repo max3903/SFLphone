@@ -19,6 +19,8 @@
 
 #include <glwidget.h>
 
+float LocalZoom= 0.20;
+
 gboolean draw(GtkWidget* widget, gpointer data)
 {
 	GdkGLContext *glcontext = gtk_widget_get_gl_context (widget);
@@ -38,12 +40,12 @@ gboolean draw(GtkWidget* widget, gpointer data)
 	gluOrtho2D(0.0, widget->allocation.width, 0.0, widget->allocation.height );
 	
 	// Draw Recevied Images
-	drawRemote(widget, data, glcontext, gldrawable);
+	//drawRemote(widget, data, glcontext, gldrawable);
 	
 	// ReLoading Initial drawing info
-	glMatrixMode(GL_PROJECTION);
-	glLoadIdentity();
-	gluOrtho2D(0.0, widget->allocation.width, 0.0, widget->allocation.height );
+	//glMatrixMode(GL_PROJECTION);
+	//glLoadIdentity();
+	//gluOrtho2D(0.0, widget->allocation.width, 0.0, widget->allocation.height );
 	
 	// Draw Local Image	
 	drawLocal(widget, data, glcontext, gldrawable);
@@ -154,33 +156,47 @@ gboolean drawLocal(GtkWidget* widget, gpointer data, GdkGLContext *glContext, Gd
 		return FALSE;
 	}
 			
-	if( localBuff->data == NULL){
+	if( localBuff->size == 0){
 		return FALSE;
 	}
 	
-	if( currentGLWidth != localBuff->width || currentGLHeight != localBuff->height  ){
-		currentGLWidth= localBuff->width;
-		currentGLHeight= localBuff->height;
-		gtk_widget_set_size_request (widget, localBuff->width, localBuff->height);
+	/*if( currentGLWidth != localBuff->width + 10 || currentGLHeight != localBuff->height + 10 ){
+		currentGLWidth= localBuff->width + 10;
+		currentGLHeight= localBuff->height + 10;
+		gtk_widget_set_size_request (widget, currentGLWidth, currentGLHeight);
 		return FALSE;
+	}*/
+	
+	// Calculating zoom Factor for local display
+	float zoomFactor= (float)(localBuff->width*localBuff->height)/(float)(widget->allocation.height*widget->allocation.width);
+	printf("Zoom factor: %f\n", zoomFactor);
+	
+	float zoomX= 1.0;
+	float zoomY= -1.0;
+	
+	if( zoomFactor > LocalZoom ){
+		zoomX= zoomX * LocalZoom/zoomFactor;
+		zoomY= zoomY * LocalZoom/zoomFactor;
+	}
+	else{
+		zoomX= zoomX * zoomFactor/LocalZoom;
+		zoomY= zoomY * zoomFactor/LocalZoom;
 	}
 			
+	// Calculating raster position (Drawing position)
+	float x= widget->allocation.width/2;//widget->allocation.width - ((float)localBuff->width * zoomX) - 10;
+	float y= widget->allocation.width/2;//((float)localBuff->height * zoomY)  + 10;
+
 	// Draw fetched Data
-	glClear(GL_COLOR_BUFFER_BIT);		
-			
-	float x= ( widget->allocation.width - localBuff->width)/2.0;
-	
-	float y= 0.0;
-	if( widget->allocation.height == localBuff->height  )
-		y= ( widget->allocation.height - localBuff->height)/2.0;
-	else
-		y= ( widget->allocation.height - localBuff->height)/2.0  + (float)localBuff->height;
+	glClear(GL_COLOR_BUFFER_BIT);
+	glPixelStorei(GL_PACK_ALIGNMENT, 8);	
 	glRasterPos2f(x,y);
+
+	printf("Zoom factor X: %f\n", zoomX);
+	printf("Zoom factor Y: %f\n", zoomY);
 		
-	printf("x= %f y=%f", x,y);
+	glPixelZoom( zoomX, zoomY );
 	
-	glPixelStorei(GL_PACK_ALIGNMENT, 8);
-	glPixelZoom(1., -1.);
 	glDrawPixels(localBuff->width, localBuff->height, GL_RGB, GL_UNSIGNED_BYTE, localBuff->data );
 		
 	return TRUE;
@@ -195,14 +211,32 @@ gboolean drawRemote(GtkWidget* widget, gpointer data, GdkGLContext *glContext, G
 		return FALSE;
 	}
 	
-	if( localBuff->data == NULL){
+	if( remoteBuff->data == 0){
 		return FALSE;
 	}
-		
+	
+	if( currentGLWidth != localBuff->width + 10 || currentGLHeight != localBuff->height + 10 ){
+		currentGLWidth= localBuff->width + 10;
+		currentGLHeight= localBuff->height + 10;
+		gtk_widget_set_size_request (widget, currentGLWidth, currentGLHeight);
+		return FALSE;
+	}
+	
 	// Draw fetched Data
 	glClear(GL_COLOR_BUFFER_BIT);		
-	glRasterPos2f(-1.0*(widget->allocation.width/2.0+remoteBuff->width/2.0)/1000.0,(widget->allocation.height/2.0+remoteBuff->height*3)/1000.0);
 	glPixelStorei(GL_PACK_ALIGNMENT, 8);
+	
+	// Calculating raster position (Drawing position), centers the image
+	float x= ( widget->allocation.width - remoteBuff->width)/2.0;
+	float y= 0.0;
+	if( widget->allocation.height == localBuff->height  )
+		y= ( widget->allocation.height - remoteBuff->height)/2.0;
+	else
+		y= ( widget->allocation.height - remoteBuff->height)/2.0  + (float)remoteBuff->height;
+
+	glRasterPos2f(x,y);
+	
+	
 	glPixelZoom(1., -1.);
 	glDrawPixels(remoteBuff->width, remoteBuff->height, GL_RGB, GL_UNSIGNED_BYTE, remoteBuff->data );
 	
