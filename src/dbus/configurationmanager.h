@@ -53,7 +53,6 @@ public:
     void setActiveCodecList( const std::vector< ::DBus::String >& list );
     
     std::vector< ::DBus::String > getVideoCodecList(  );
-    std::vector< ::DBus::String > getVideoCodecDetails( const ::DBus::Int32& payload );
     std::vector< ::DBus::String > getActiveVideoCodecList(  );
     void setActiveVideoCodecList( const std::vector< ::DBus::String >& list );
     ::DBus::Bool enableLocalVideoPref(  );

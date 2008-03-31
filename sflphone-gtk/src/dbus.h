@@ -72,7 +72,6 @@ gchar** dbus_get_active_codec_list( void );
 void dbus_set_active_codec_list( const gchar** list );
 //Video codec list in Video Settings
 gchar** dbus_video_codec_list();
-gchar** dbus_video_codec_details(int payload);
 gchar** dbus_get_active_video_codec_list( void );
 void dbus_set_active_video_codec_list( const gchar** list );
 //Brightness of the video capture
