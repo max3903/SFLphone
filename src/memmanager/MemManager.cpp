@@ -20,13 +20,18 @@
 #include "MemManager.h"
 
 MemManager* MemManager::instance= 0;
+sem_t MemManager::Available;
+sem_t MemManager::Active;
 
 MemManager* MemManager::getInstance()
 {
 	//if no instance made create one,
 	//ref. singleton pattern
-	if (instance == 0)
-	MemManager::instance = new MemManager;
+	if (instance == 0){
+		MemManager::instance = new MemManager;
+		sem_init(&MemManager::Active, 0, 1);
+		sem_init(&MemManager::Available, 0, 1);
+	}
 
 	return instance;
 }
@@ -181,6 +186,8 @@ bool MemManager::deleteSpace(MemKey* key)
 	if( result == this->spaces.end() )
 		return false;
 	
+	this->getManagerControl();
+	
 	ptracesfl("Detaching shared memory segment", MT_ERROR, MEMMANAGER_TRACE);
 	int ret = shmdt((*(key->getIndex()))->getBaseAddress());
 	
@@ -192,6 +199,8 @@ bool MemManager::deleteSpace(MemKey* key)
   		 ptracesfl("\tOK", MT_NONE, MEMMANAGER_TRACE);
   				
 	this->spaces.erase(result);
+	
+	this->releaseManagerControl();
 			
 	return true;
 }
@@ -199,6 +208,8 @@ bool MemManager::deleteSpace(MemKey* key)
 bool MemManager::CleanSpaces(){
 
 	vector<MemSpace*>::iterator iter;
+	
+	this->getManagerControl();
 
 	//for each mespace detach memory
 	ptracesfl("Cleaning all shared memory space ...", MT_INFO, MEMMANAGER_TRACE);
@@ -218,6 +229,8 @@ bool MemManager::CleanSpaces(){
 	
 	//clean vector
 	spaces.clear();
+	
+	this->releaseManagerControl();
 	
 	return true;
 
@@ -259,51 +272,69 @@ MemData* MemManager::fetchData()
 
 MemData* MemManager::fetchData(key_t key)
 {
+	if( this->getSpaceConstol() )
+		return false;
+		
 	vector<MemSpace*>::iterator iter;
 
 	//find the memspace containing the key
-	for( iter = spaces.begin(); iter != spaces.end() ;iter++)
+	for( iter = spaces.begin(); iter != spaces.end() ;iter++){
 		if ((*iter)->getMemKey()->getKey() == key)
 		{
 			// returns a MemData
+			this->releaseSpaceConstol();
 			return (*iter)->fetchData();
 		}
+	}
 		
-		//if no key found return NULL
-		return NULL; 
+	//if no key found return NULL
+	this->releaseSpaceConstol();
+	return NULL; 
 }
 
 MemData* MemManager::fetchData(MemKey* key)
 {
-	return (*(key->getIndex()))->fetchData();
+	return this->fetchData(key->getKey());
+	//return (*(key->getIndex()))->fetchData();
 }
 
 bool MemManager::putData(unsigned char * Data, int size, int width, int height)
 {
+	if(this->getSpaceConstol() )
+		return false;
+	
 	(*defaultIndex)->putData(Data,size, width, height);
+	
+	this->releaseSpaceConstol();
+	
 	return true;
 }
 
 bool MemManager::putData(key_t key, unsigned char * Data, int size, int width, int height)
 {
+	
+	if( this->getSpaceConstol() )
+		return false;
+		
 	vector<MemSpace*>::iterator iter;
-
 
 	for( iter = spaces.begin(); iter != spaces.end() ;iter++){
 		if ((*iter)->getMemKey()->getKey() == key)
 		{
 			(*iter)->putData(Data,size, width, height);
+			this->releaseSpaceConstol();
 			return true;
 		}
 	}
-		
-		return false;
+	
+	this->releaseSpaceConstol();
+	return false;
+	
 }
 
 bool MemManager::putData(MemKey* key, unsigned char * Data, int size, int width, int height)
 {
 	return this->putData(key->getKey(), Data, size, width, height);
-	
 }
 
 vector<MemKey*> MemManager::getAvailSpaces() 
@@ -347,4 +378,34 @@ vectMemSpaceIterator MemManager::search(MemKey* refKey){
 	ptracesfl("Cannot find corresponding Shared memory segment", MT_ERROR, MEMMANAGER_TRACE);
 	return end;
 	
+}
+
+
+bool MemManager::getManagerControl(){
+	sem_wait(&MemManager::Available);
+	sem_wait(&MemManager::Active);
+	sem_post(&MemManager::Active);
+	return true;
+}
+
+bool MemManager::releaseManagerControl(){
+	sem_post(&MemManager::Available);
+	return true;
+}
+
+bool MemManager::getSpaceConstol(){
+	if( sem_trywait(&MemManager::Available) == -1 ){
+		sem_post(&MemManager::Available);
+		if( sem_trywait(&MemManager::Active) == -1){
+			return true;
+		}		
+	}
+	
+	return false;
+
+}
+
+bool MemManager::releaseSpaceConstol(){
+	sem_post(&MemManager::Active);
+	return true;
 }
