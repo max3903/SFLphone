@@ -18,6 +18,7 @@
  */
 
 #include <accountlist.h>
+#include <actions.h>
 #include <contactlist.h>
 #include <config.h>
 #include <mainwindow.h>
@@ -212,16 +213,16 @@ static void
 contact_window_create_popup_menus()
 {
 	// Create menu items
-	GtkWidget* newContactMenuItem = gtk_menu_item_new_with_label("New contact");
+	GtkWidget* newContactMenuItem = gtk_menu_item_new_with_label(_("New contact"));
 	g_signal_connect(G_OBJECT(newContactMenuItem), "activate", G_CALLBACK(new_contact_activated), contactTreeView);
 	
-	GtkWidget* editContactMenuItem = gtk_menu_item_new_with_label("Edit contact");
+	GtkWidget* editContactMenuItem = gtk_menu_item_new_with_label(_("Edit contact"));
 	g_signal_connect(G_OBJECT(editContactMenuItem), "activate", G_CALLBACK(edit_contact_activated), contactTreeView);
 
-	GtkWidget* newEntryMenuItem = gtk_menu_item_new_with_label("New entry");
+	GtkWidget* newEntryMenuItem = gtk_menu_item_new_with_label(_("New entry"));
 	g_signal_connect(G_OBJECT(newEntryMenuItem), "activate", G_CALLBACK(new_entry_activated), contactTreeView);
 
-	GtkWidget* editEntryMenuItem = gtk_menu_item_new_with_label("Edit entry");
+	GtkWidget* editEntryMenuItem = gtk_menu_item_new_with_label(_("Edit entry"));
 	g_signal_connect(G_OBJECT(editEntryMenuItem), "activate", G_CALLBACK(edit_entry_activated), contactTreeView);
 
 	// Create different menus and append items
@@ -256,7 +257,7 @@ show_contact_window()
 	GtkTreeViewColumn* treeViewColumn;
 
 	// Create dialog and set properties
-	dialog = GTK_DIALOG(gtk_dialog_new_with_buttons ("Contacts",
+	dialog = GTK_DIALOG(gtk_dialog_new_with_buttons (_("Contacts"),
 				GTK_WINDOW(get_main_window()),
 				GTK_DIALOG_MODAL | GTK_DIALOG_DESTROY_WITH_PARENT,
 				GTK_STOCK_CLOSE,
@@ -287,7 +288,7 @@ show_contact_window()
 	
 	// Create the only tree view column that will have three renderers
 	treeViewColumn = gtk_tree_view_column_new();
-	gtk_tree_view_column_set_title(treeViewColumn, "Contacts");
+	gtk_tree_view_column_set_title(treeViewColumn, _("Contacts"));
 	
 	// Is shown in call console column renderer active and inconsistent
 	renderer = gtk_cell_renderer_toggle_new();
