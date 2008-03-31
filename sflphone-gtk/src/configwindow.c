@@ -2084,8 +2084,10 @@ show_config_window (gint page_num)
 
 	gtk_notebook_set_current_page(GTK_NOTEBOOK(notebook),page_num);
 	gtk_dialog_run(dialog);
-	//gtk_widget_show( GTK_WIDGET(dialog) );
+	
 	//g_signal_connect_swapped( dialog , "response" , G_CALLBACK( gtk_widget_destroy ), dialog );
+	//gtk_container_add (GTK_CONTAINER (GTK_DIALOG(dialog)->vbox), _("Preferences"));
+	//gtk_widget_show_all( GTK_WIDGET(dialog) );
 	
 	dialogOpen = FALSE;
 
@@ -2094,9 +2096,11 @@ show_config_window (gint page_num)
 
 void update_notebook()
 {
-	gtk_dialog_response(dialog, GTK_RESPONSE_CLOSE);
-	printf("dialog destroyed");
+	gtk_dialog_response(dialog, GTK_RESPONSE_DELETE_EVENT);
+	gtk_widget_destroy(GTK_WIDGET(dialog));
 	gtk_widget_destroy(GTK_WIDGET(notebook));
-	//show_config_window(3);	
+	printf("dialog destroyed \n");
+	
+	show_config_window(3);	
 }
 
