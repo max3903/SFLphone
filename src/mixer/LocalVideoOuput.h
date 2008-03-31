@@ -33,7 +33,7 @@ public:
      */
     virtual void putData(char * data, int size);
     
-    void putData(char * data, int size, MemKey *localVideoMemKey);
+    void putData(char * data, int size, MemKey *localVideoMemKey, int width, int height);
     
 private:
 	
