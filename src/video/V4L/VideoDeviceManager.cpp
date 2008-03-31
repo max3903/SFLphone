@@ -53,8 +53,11 @@ bool VideoDeviceManager::changeDevice(const char* srcName){
     	return false;
     }
     
-    Command::videoDevice->closeDevice();
-    delete Command::videoDevice;
+    if(Command::videoDevice != NULL)
+    {
+    	Command::videoDevice->closeDevice();
+    	delete Command::videoDevice;
+    }
     
     Command::videoDevice= tmpDevice;
         
@@ -151,3 +154,16 @@ vector<string> VideoDeviceManager::enumVideoDevices(){
 }
 
 
+void VideoDeviceManager::Terminate(){
+	
+	Command::ChangingDevice();
+	
+	if( Command::videoDevice != NULL ){
+		Command::videoDevice->closeDevice();
+		delete Command::videoDevice;
+		Command::videoDevice= NULL;
+	}
+	
+	Command::DeviceChanged();
+	
+}

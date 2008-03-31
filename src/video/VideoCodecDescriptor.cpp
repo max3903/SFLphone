@@ -62,6 +62,10 @@ VideoCodecDescriptor* VideoCodecDescriptor::getInstance()
 	    {
 	    	ptracesfl("BitRates error",MT_FATAL,2,true);
 	    }
+	    if (initContext() == false)
+	    {
+	    ptracesfl("CodecContext error",MT_FATAL,2,true);
+	    }
     }
     
      bool VideoCodecDescriptor::initCodecMap()
@@ -74,7 +78,7 @@ VideoCodecDescriptor* VideoCodecDescriptor::getInstance()
 //(avcodec_find_decoder_by_name("h264") != NULL) &&
     		if( ((tmp = avcodec_find_decoder_by_name("h264")) != NULL) )
     			{
-    			//map Codec
+    			//map Codectmp
     			ptracesfl(tmp->name,MT_INFO,2,false);
     			ptracesfl(" Found",MT_NONE,2,true);
     			vCodecMap[tmp] = avcodec_alloc_context();	
@@ -293,5 +297,48 @@ AVCodec* VideoCodecDescriptor::getDefaultCodec()
     {
     	CurrentBitRate = DEFAULTBITRATE;
     	return true;
+    }
+    
+    bool VideoCodecDescriptor::initContext()
+    {
+    VCMIterator mapIter;
+  
+    for (mapIter = vCodecMap.begin();mapIter != vCodecMap.end();mapIter++)
+    	{
+
+
+	(*mapIter).second->bit_rate = VIDEO_BIT_RATE;
+	if ((*mapIter).first->name == "h264")
+	(*mapIter).second->me_method = 8;
+	else
+	(*mapIter).second->me_method = 7;
+	
+	(*mapIter).second->time_base.den = STREAM_FRAME_RATE;
+	(*mapIter).second->time_base.num = 1;
+	(*mapIter).second->gop_size = GOP_SIZE;
+	(*mapIter).second->pix_fmt = PIX_FMT_YUV420P;
+	(*mapIter).second->max_b_frames = MAX_B_FRAMES;
+	(*mapIter).second->mpeg_quant = 0;
+	if ((*mapIter).first->name == "h264")
+	(*mapIter).second->idct_algo = FF_IDCT_H264;
+	else
+	(*mapIter).second->idct_algo = FF_IDCT_AUTO;
+	
+	(*mapIter).second->mb_decision = FF_MB_DECISION_BITS;
+	//TODO ADD VLC MATRIX
+	(*mapIter).second->intra_matrix = NULL;
+	(*mapIter).second->inter_matrix = NULL;
+	(*mapIter).second->workaround_bugs = FF_BUG_AUTODETECT;
+	
+//	#define X264_PART_I4X4 0x001  /* Analyse i4x4 */
+//#define X264_PART_I8X8 0x002  /* Analyse i8x8 (requires 8x8 transform) */
+//#define X264_PART_P8X8 0x010  /* Analyse p16x8, p8x16 and p8x8 */
+//#define X264_PART_P4X4 0x020  /* Analyse p8x4, p4x8, p4x    4 */
+//#define X264_PART_B8X8 0x100  /* Analyse b16x8, b8x16 and b8x8 */
+//	_encodeCodecCtx->partitions = 
+
+    	}
+
+return true;
     }
 

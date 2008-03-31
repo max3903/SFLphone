@@ -16,49 +16,46 @@
  *  along with this program; if not, write to the Free Software
  *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
+ 
+ 
 #include "VideoCodec.h"
 
 #define VIDEOCODECPTRACE 2
 #define INBUF_SIZE 4096
 
-
-
-
-int VideoCodec::videoEncode(uint8_t *in_buf, uint8_t* out_buf,int in_bufferSize)
+int VideoCodec::videoEncode(uint8_t *in_buf, uint8_t* out_buf,int in_bufferSize,int inWidth,int inHeight)
 {
 	
-	AVFrame *RGB,*pict;
-	uint8_t *picture_buf;
+	AVFrame *IN,*SWS;
+
 	
 	//TODO check better buffer size
-	out_buf = (uint8_t*)malloc(in_bufferSize);
-	
-	//Step 1: change in_buf in AVFRAME pict
-	if ((RGB = avcodec_alloc_frame()) == NULL)
+	//out_buf = (uint8_t*)malloc(in_bufferSize);
+	printf("START ENCODE\n");
+	//Step 1: ALLOCATE ALL AVFRAMES
+	if ((IN = avcodec_alloc_frame()) == NULL || (SWS = avcodec_alloc_frame()) == NULL)
          ptracesfl("OUT OF MEMORY TRYING TO ENCODE",MT_ERROR,1,true);
-	     
+	  printf("FILL\n");   
     //get RGB picture
-    avpicture_fill((AVPicture *)RGB, in_buf,PIX_FMT_RGB24, _encodeCodecCtx->width,
-    		_encodeCodecCtx->height);         
-
- 	picture_buf = RGBTOYUV(RGB,pict);
+    avpicture_fill((AVPicture *)IN, in_buf,PIX_FMT_RGB24, inWidth,inHeight);         
+	printf("CONVERT\n");
+ 	encodeSWS->Convert(IN,SWS);
+ 	
 	//Step 2:Encode
 	//TODO GET A PROPER BUFFER SIZE
-	avcodec_encode_video(_encodeCodecCtx, out_buf, 100000, pict);
+	printf("ENCODE\n");
+	avcodec_encode_video(_encodeCodecCtx, out_buf, 100000, SWS);
 
 	//Step 3:Clean
-	av_free(RGB);
-    free(in_buf);
-	av_free(pict);
-	free(picture_buf);
+	av_free(IN);
+	printf("FREE\n");
+	av_free(SWS);
+	//free(out_buf);
 
-	
-	//success
-	return 1;
+	//return outBufferSize
+	return 100000;
 	
 	}
-
-
 
 	//decode one frame
 
@@ -71,19 +68,21 @@ int VideoCodec::videoDecode(uint8_t *in_buf, uint8_t* out_buf,int size)
 	uint8_t inbuf[INBUF_SIZE + FF_INPUT_BUFFER_PADDING_SIZE], *inbuf_ptr;
 	AVFrame *pict;
 
+
+	printf("DecodeStart\n");
 	memset(inbuf + INBUF_SIZE, 0, FF_INPUT_BUFFER_PADDING_SIZE);
 	
-	
-	
+
 	pict = avcodec_alloc_frame();
 	if (pict == NULL)
          return -1;
                 
-               
-   // avpicture_fill((AVPicture *)pict, out_buf+FF_INPUT_BUFFER_PADDING_SIZE,PIX_FMT_RGB24, width, height);
-	
+                
+  // avpicture_fill((AVPicture *)pict, out_buf+FF_INPUT_BUFFER_PADDING_SIZE,PIX_FMT_RGB24, width, height);
+	printf("While\n");
 	while(bytesRemaining > 0){
 		
+		printf("decodeVideo\n");
 	bytesDecoded = avcodec_decode_video(_decodeCodecCtx, pict,
             &got_picture_ptr, in_buf, bytesRemaining);
 
@@ -93,70 +92,14 @@ int VideoCodec::videoDecode(uint8_t *in_buf, uint8_t* out_buf,int size)
         bytesRemaining -= bytesDecoded;
 		in_buf+=bytesDecoded;
 		
-		if(got_picture_ptr)
-	{
-	
-	
-	
-	
-	
-	}
         
     }
-
+printf("Sortie de la boucle\n");
     // Decode the rest of the frame
     bytesDecoded=avcodec_decode_video(_decodeCodecCtx, pict, &got_picture_ptr, in_buf, bytesRemaining);
 
-	//
-	if(got_picture_ptr)
-	{
-	
-	
-	
-	
-	
-	}
-
      
 	return 0;
-}
-
-
-uint8_t *VideoCodec::RGBTOYUV(AVFrame *RGB,AVFrame *YUV)
-{
-	uint8_t *YUV_buf;
-
-	if ((YUV = avcodec_alloc_frame()) == NULL)
-         ptracesfl("OUT OF MEMORY TRYING TO ENCODE",MT_ERROR,1,true);
-	
-	YUV_buf = (uint8_t*)malloc(YUVBufferSize);
-	
-	avpicture_fill((AVPicture *)YUV,YUV_buf,PIX_FMT_YUV420P,_encodeCodecCtx->width,
-    		_encodeCodecCtx->height);
-	
-	sws_scale(SwsEncodeContext,RGB->data,RGB->linesize,_encodeCodecCtx->width,
-    		_encodeCodecCtx->height,YUV->data,YUV->linesize);
-    		
-    return YUV_buf;
-}
-
-
-uint8_t *VideoCodec::YUVTORGB(AVFrame *YUV,AVFrame *RGB)
-{
-	uint8_t *RGB_buf;
-
-	if ((RGB = avcodec_alloc_frame()) == NULL)
-         ptracesfl("OUT OF MEMORY TRYING TO ENCODE",MT_ERROR,1,true);
-	
-	RGB_buf = (uint8_t*)malloc(YUVBufferSize);
-	
-	avpicture_fill((AVPicture *)RGB,RGB_buf,PIX_FMT_RGB24,_encodeCodecCtx->width,
-    		_encodeCodecCtx->height);
-	
-	sws_scale(SwsEncodeContext,YUV->data,YUV->linesize,_encodeCodecCtx->width,
-    		_encodeCodecCtx->height,RGB->data,RGB->linesize);
-    		
-    return RGB_buf;
 }
 
 void VideoCodec::init(){
@@ -187,90 +130,55 @@ void VideoCodec::init(){
 }
 
 void VideoCodec::initEncodeContext(){
-
-	
+		
 	pair<int,int> tmp; 
+	pair<int,int> Encodetmp; 
 	//initialize basic encoding context
 	
-	_encodeCodecCtx = avcodec_alloc_context();
+	_encodeCodecCtx = _videoDesc->getCodecContext(_Codec);
 	
-	_encodeCodecCtx->bit_rate = VIDEO_BIT_RATE;
-	
-	//TODO change if it's not the webcam
+	//TODO change if it's not the webcam - NOW ENCODING IN H263 FORMAT
 	if (_cmdRes != NULL){
 	tmp = _cmdRes->getResolution();
-	_encodeCodecCtx->width = tmp.first;
-	_encodeCodecCtx->height = tmp.second;
-	
+	Encodetmp = getSpecialResolution(tmp.first);
+	_encodeCodecCtx->width = Encodetmp.first;
+	_encodeCodecCtx->height = Encodetmp.second;
 	}
-	else{
+	else
+	{
 	_encodeCodecCtx->width = DEFAULT_WIDTH;
 	_encodeCodecCtx->height = DEFAULT_HEIGHT;	
 	}
 	
+		if(avcodec_open (_encodeCodecCtx, _Codec) < 0)
+		ptracesfl("CANNOT OPEN ENCODE CODEC",MT_FATAL,1,true);
 	
-	if (_codecName == "h264")
-	_encodeCodecCtx->me_method = 8;
-	else
-	_encodeCodecCtx->me_method = 7;
-	
-	_encodeCodecCtx->time_base.den = STREAM_FRAME_RATE;
-	_encodeCodecCtx->time_base.num = 1;
-	_encodeCodecCtx->gop_size = GOP_SIZE;
-	_encodeCodecCtx->pix_fmt = PIX_FMT_YUV420P;
-	_encodeCodecCtx->max_b_frames = MAX_B_FRAMES;
-
-	if (_codecName == "h263")
-	_encodeCodecCtx->mpeg_quant = 0;
-	else
-	_encodeCodecCtx->mpeg_quant = 1;
-	
-	if (_codecName == "h264")
-	_encodeCodecCtx->idct_algo = FF_IDCT_H264;
-	else
-	_encodeCodecCtx->idct_algo = FF_IDCT_LIBMPEG2MMX;
-	
-	_encodeCodecCtx->mb_decision = FF_MB_DECISION_BITS;
-
-	avcodec_open(_encodeCodecCtx, _Codec);
-	
-	
-//intialize SWSEncodeContext
-//GET FROM YUV FORMAT TO RGB
-SwsEncodeContext = sws_getContext(_encodeCodecCtx->width,_encodeCodecCtx->height,PIX_FMT_RGB24,
- 							_encodeCodecCtx->width,_encodeCodecCtx->height,_encodeCodecCtx->pix_fmt,0,NULL,NULL,NULL);
-	
-YUVBufferSize = avpicture_get_size(_encodeCodecCtx->pix_fmt,_encodeCodecCtx->width,_encodeCodecCtx->height);
+	//int InWidth,int InHeight,int InPixFormat,int OutWidth,int OutHeight,int OutPixFormat
+	encodeSWS = new SWSInterface(tmp.first,tmp.second,PIX_FMT_RGB24,Encodetmp.first,Encodetmp.second,PIX_FMT_YUV420P);
 }
-
 void VideoCodec::initDecodeContext()
 {
 
 	//initialize basic encoding context
-	_decodeCodecCtx = avcodec_alloc_context();
+	_decodeCodecCtx = _videoDesc->getCodecContext(_Codec);
 	
 	//TODO ALLOCATE MORE MEM???
 	//codec_tag
 	if(_Codec->capabilities&CODEC_CAP_TRUNCATED)
 	  _decodeCodecCtx->flags|= CODEC_FLAG_TRUNCATED;
 
-	if(avcodec_open (_decodeCodecCtx, _Codec) < 0)
-		ptracesfl("CANNOT OPEN DECODE CODEC",MT_FATAL,1,true);
+	//if(avcodec_open (_decodeCodecCtx, _Codec) < 0)
+	//	ptracesfl("CANNOT OPEN DECODE CODEC",MT_FATAL,1,true);
 	
 	//intialize SWSdecodeContext
-	//GET FROM YUV FORMAT TO RGB
-	 SwsDecodeContext = sws_getContext(_encodeCodecCtx->width,_encodeCodecCtx->height,_encodeCodecCtx->pix_fmt,
-	 							_encodeCodecCtx->width,_encodeCodecCtx->height,PIX_FMT_RGB24,0,NULL,NULL,NULL);
-		
-	RGBBufferSize = avpicture_get_size(_encodeCodecCtx->pix_fmt,_encodeCodecCtx->width,_encodeCodecCtx->height);
-		
+	
 }
 
 void VideoCodec::quitDecodeContext()
 {
 	avcodec_close(_decodeCodecCtx);
 	av_free(_decodeCodecCtx);
-	sws_freeContext(SwsDecodeContext);
+	delete decodeSWS;
 }
 
 void VideoCodec::quitEncodeContext()
@@ -278,16 +186,9 @@ void VideoCodec::quitEncodeContext()
 	//initialize basic encoding context
 	avcodec_close(_encodeCodecCtx);
 	av_free(_encodeCodecCtx);
-	sws_freeContext(SwsEncodeContext);
+	delete encodeSWS;
 }
 
-
-
-VideoCodec::~VideoCodec() {
-	delete _videoDesc;
-	_videoDesc = NULL;
-
-}
 VideoCodec::VideoCodec(char* codec){
 	
 	this->_codecName = codec;
@@ -297,6 +198,36 @@ VideoCodec::VideoCodec(char* codec){
 
 }
 
+ pair<int,int> VideoCodec::getSpecialResolution(int width)
+ {
+ // Text from libavcodec
+ //128x96, 176x144, 352x288, 704x576, and 1408x1152
+ pair<int,int> returnSize;
+ 
+ if (width <= 128){
+	 returnSize.first = 128;
+	 returnSize.second = 96;
+ }
+ else if (width <= 176){
+	 returnSize.first = 176;
+	 returnSize.second = 144;
+ }
+ else if (width <= 352){
+	 returnSize.first = 352;
+	 returnSize.second = 288;
+ }
+ else if (width <= 704){
+	 returnSize.first = 704;
+	 returnSize.second = 576;
+ }
+ else
+ {
+	 returnSize.first = 1408;
+	 returnSize.second = 1152;
+ }
+ 
+ return returnSize;
+ }
 VideoCodec::VideoCodec(){
 	
 	this->_codecName = NULL;
@@ -306,7 +237,8 @@ VideoCodec::VideoCodec(){
 
 }
 
-
+ VideoCodec::~VideoCodec()
+ {}
 /*
  * 
  * 

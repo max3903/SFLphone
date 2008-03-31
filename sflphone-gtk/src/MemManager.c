@@ -176,18 +176,12 @@ int DestroyMemSpaces()
 	}
 
 	if( remoteBuff != NULL)
-	{
-		if( remoteBuff->data != NULL )
-			free(remoteBuff->data);
-		
+	{		
 		free(remoteBuff);
 	}
  	
 	if( localBuff != NULL)
-	{
-		if( localBuff->data != NULL )
-			free(localBuff->data);
-		
+	{		
 		free(localBuff);
 	}
 		

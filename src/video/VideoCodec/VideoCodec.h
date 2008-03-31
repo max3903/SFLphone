@@ -29,15 +29,17 @@
 #include "../VideoCodecDescriptor.h"
 #include "VideoSettings.h"
 #include "../V4L/VideoDeviceManager.h"
+#include "SWSInterface.h"
 
 class VideoCodec {
 public:
 	
+
 	/**
      * Default Destructor
      * 
      */
-   ~VideoCodec() ;
+    ~VideoCodec();
   
    /**
      *  Constructor we force to use
@@ -62,17 +64,8 @@ public:
      * 
      */
 
-    int videoEncode(uint8_t *in_buf, uint8_t* out_buf,int in_bufferSize);
-
-      /**
- 	* Function Function to change RGB to YUV420
- 	* */
-    uint8_t *RGBTOYUV(AVFrame *RGB,AVFrame *pict);
+    int videoEncode(uint8_t *in_buf, uint8_t* out_buf,int in_bufferSize,int inWidth,int inHeight);
  	
- 	 /**
- 	* Function to change YUV420 to RGB
- 	* */
-    uint8_t *YUVTORGB(AVFrame *RGB,AVFrame *pict);
 private:
 
  	/**
@@ -85,6 +78,10 @@ private:
  	* */
     void init();
     
+    /**
+ 	* Function to init the Codec resolutions for special codecs
+ 	* */
+    pair<int,int> getSpecialResolution(int width);
     /**
  	* Function to init the Codec with it's proper context
  	* */
@@ -104,9 +101,10 @@ private:
  	* Function to quit the Codec with it's proper context
  	* */
     void quitDecodeContext();
-    
-   
 
+	/**
+ 	* Instance of the VideoCodecDescriptor class
+ 	* */
 	VideoCodecDescriptor *_videoDesc;
 	/**
      * Libavcodec Codec type
@@ -114,21 +112,11 @@ private:
     AVCodec* _Codec;
     
     /**
-     * Libavcodec Codec type
+     * Libavcodec Codec Name
      */
-    const char* _codecName;
-   
-    /**
-     * Libavcodec YUV buffer Size
-     */
-    int YUVBufferSize;
-    /**
-     * Libavcodec RGB buffer Size
-     */
-    int RGBBufferSize;
+    const char* _codecName; 
     
-    
-    
+
     /**
      * Libavcodec Codec context
      */
@@ -144,11 +132,10 @@ private:
     Resolution* _cmdRes;
     
     // Video device manager instance
-	VideoDeviceManager *_v4lManager;
-	
-	struct SwsContext *SwsEncodeContext;
-    
-    struct SwsContext *SwsDecodeContext;
+	VideoDeviceManager *_v4lManager;    
+// Interface for pix conversion
+    SWSInterface *decodeSWS;
+    SWSInterface *encodeSWS;
 };
 #endif //VIDEOCODEC_H
 

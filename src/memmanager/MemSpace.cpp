@@ -53,7 +53,6 @@ bool MemSpace::putData(unsigned char* Data, int size, int width, int height)
 	memcpy(this->baseAddress + (sizeof(int) * 2) , &height, sizeof(int));
 	
 	// Putting payload in shared memory
-	printf("Data Size: %d", size);
 	memcpy(this->baseAddress+ (sizeof(int) * 3),Data, size);
 	
 	// Putting Size of payload in shared memory
@@ -91,11 +90,11 @@ MemSpace::~MemSpace()
 
 
 unsigned char* MemSpace::getBaseAddress(){
-return this->baseAddress;
+	return this->baseAddress;
 }
 
 void MemSpace::setBaseAddress(unsigned char* Address){
-this->baseAddress = Address;
+	this->baseAddress = Address;
 }
 
 void MemSpace::setKey( MemKey* key ){

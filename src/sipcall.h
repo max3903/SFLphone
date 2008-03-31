@@ -84,12 +84,6 @@ public:
   //TODO: humm?
   int sdp_complete_message(sdp_message_t * remote_sdp, osip_message_t * msg);
 
-
-  // TODO: A ENLEVER
-  void setReinviteEnCours(bool a) { ReinviteEnCours = a; }
-  bool getReinviteEnCours() { return ReinviteEnCours; }
-
-
 private:
 
   // TODO: hum???
@@ -138,16 +132,12 @@ private:
   bool setVideoCodecFromSDP(sdp_media_t* remote_med, int tid);
 
 
- 
   /** SIP call id */
   int _cid;
   /** SIP domain id */
   int _did;
   /** SIP transaction id */
   int _tid;
-
-  //// TESTTTT!
-  bool ReinviteEnCours;
 
 };
 

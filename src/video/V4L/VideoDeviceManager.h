@@ -92,6 +92,12 @@ public:
      * \return A vector containing all the video devices
      */
     vector<string> enumVideoDevices();
+    
+    //! Method to close the Video device manager.
+    /*!
+     * Cleans up the Video Device Manager, Its destroys the Video Device dans puts the Command:videoDevice to NULL. So commands will still work.
+     */
+    void Terminate();
 
 private:
 

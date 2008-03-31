@@ -237,6 +237,7 @@ protected:
     //AudioCodec* _audioCodec;
     AudioCodecType _audioCodec;
 
+    // Context du Codec Video
     AVCodecContext* _videoCodecContext;
 
     bool _audioStarted;
