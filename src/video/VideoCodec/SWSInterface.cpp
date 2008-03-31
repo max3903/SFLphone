@@ -56,4 +56,4 @@ BufferSize = avpicture_get_size( out.pixFormat,out.width, out.height);
  }
 
 
-
+SWSInterface::~SWSInterface(){}

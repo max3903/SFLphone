@@ -150,23 +150,24 @@ void VideoCodec::initEncodeContext(){
 	pair<int,int> tmp; 
 	//initialize basic encoding context
 	
-	_encodeCodecCtx = avcodec_alloc_context();
-	
-	_encodeCodecCtx->bit_rate = VIDEO_BIT_RATE;
+	_encodeCodecCtx = _videoDesc->getCodecContext(_Codec);
 	
 	//TODO change if it's not the webcam
 	if (_cmdRes != NULL){
 	tmp = _cmdRes->getResolution();
+	tmp = getSpecialResolution(tmp.first);
 	_encodeCodecCtx->width = tmp.first;
 	_encodeCodecCtx->height = tmp.second;
 	
 	}
-	else{
+	else
+	{
 	_encodeCodecCtx->width = DEFAULT_WIDTH;
 	_encodeCodecCtx->height = DEFAULT_HEIGHT;	
 	}
 	
-	
+	//TODO PUT IN VIDEOCODECDESCRIPTOR ----------------------
+	_encodeCodecCtx->bit_rate = VIDEO_BIT_RATE;
 	if (_codecName == "h264")
 	_encodeCodecCtx->me_method = 8;
 	else
@@ -177,11 +178,7 @@ void VideoCodec::initEncodeContext(){
 	_encodeCodecCtx->gop_size = GOP_SIZE;
 	_encodeCodecCtx->pix_fmt = PIX_FMT_YUV420P;
 	_encodeCodecCtx->max_b_frames = MAX_B_FRAMES;
-	
-	
 	_encodeCodecCtx->mpeg_quant = 0;
-
-	
 	if (_codecName == "h264")
 	_encodeCodecCtx->idct_algo = FF_IDCT_H264;
 	else
@@ -192,8 +189,6 @@ void VideoCodec::initEncodeContext(){
 	_encodeCodecCtx->intra_matrix = NULL;
 	_encodeCodecCtx->inter_matrix = NULL;
 	_encodeCodecCtx->workaround_bugs = FF_BUG_AUTODETECT;
-
-	
 	
 //	#define X264_PART_I4X4 0x001  /* Analyse i4x4 */
 //#define X264_PART_I8X8 0x002  /* Analyse i8x8 (requires 8x8 transform) */
@@ -205,7 +200,8 @@ void VideoCodec::initEncodeContext(){
 	if(avcodec_open (_encodeCodecCtx, _Codec) < 0)
 		ptracesfl("CANNOT OPEN ENCODE CODEC",MT_FATAL,1,true);
 	
-
+//TODO END PUT IN VIDEOCODECDESCRIPTOR ----------------------
+	
 
 }
 void VideoCodec::initDecodeContext()
@@ -225,8 +221,6 @@ void VideoCodec::initDecodeContext()
 	//	ptracesfl("CANNOT OPEN DECODE CODEC",MT_FATAL,1,true);
 	
 	//intialize SWSdecodeContext
-
-		
 }
 
 void VideoCodec::quitDecodeContext()
@@ -253,6 +247,38 @@ VideoCodec::VideoCodec(char* codec){
 
 }
 
+ pair<int,int> VideoCodec::getSpecialResolution(int width)
+ {
+ // Text from libavcodec
+ //128x96, 176x144, 352x288, 704x576, and 1408x1152
+ pair<int,int> returnSize;
+ 
+ if (width <= 128){
+	 returnSize.first = 128;
+	 returnSize.second = 96;
+ }
+ else if (width <= 176){
+	 returnSize.first = 176;
+	 returnSize.second = 144;
+ }
+ else if (width <= 352){
+	 returnSize.first = 352;
+	 returnSize.second = 288;
+ }
+ else if (width <= 704){
+	 returnSize.first = 704;
+	 returnSize.second = 576;
+ }
+ else
+ {
+	 returnSize.first = 1408;
+	 returnSize.second = 1152;
+ }
+ 
+ return returnSize;
+ 
+ 
+ }
 VideoCodec::VideoCodec(){
 	
 	this->_codecName = NULL;

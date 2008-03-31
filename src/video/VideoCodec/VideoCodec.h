@@ -79,6 +79,10 @@ private:
     void init();
     
     /**
+ 	* Function to init the Codec resolutions for special codecs
+ 	* */
+    pair<int,int> getSpecialResolution(int width);
+    /**
  	* Function to init the Codec with it's proper context
  	* */
     void initEncodeContext();
