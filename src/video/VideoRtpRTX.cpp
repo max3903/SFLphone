@@ -68,8 +68,8 @@ VideoRtpRTX::~VideoRtpRTX()
 void VideoRtpRTX::run(){
 
   // Loading codecs
-  loadCodec((CodecID)CODEC_ID_H263,0);
-  loadCodec((CodecID)CODEC_ID_H263,1);
+  //loadCodec((CodecID)CODEC_ID_H263,0);
+  //loadCodec((CodecID)CODEC_ID_H263,1);
   
   #define PIC_WIDTH 420
   #define PIC_HEIGHT 340
@@ -105,13 +105,15 @@ void VideoRtpRTX::run(){
     semStart.post();
     _debug("- ARTP Action: Start (video)\n");
 
-    while (vidCall->isVideoStarted()) {
+    Thread::sleep(1000);
+
+    while (true) {
 
       ////////////////////////////
       // Send session
       ////////////////////////////
-      sendSession(numFrames * tstampInc);
-      numFrames++;
+      //sendSession(numFrames * tstampInc);
+      //numFrames++;
 
       ////////////////////////////
       // Recv session
@@ -128,8 +130,8 @@ void VideoRtpRTX::run(){
     free(data_from_peer);
     free(data_to_send);
 
-    unloadCodec((CodecID)CODEC_ID_H263,0);
-    unloadCodec((CodecID)CODEC_ID_H263,1);
+    //unloadCodec((CodecID)CODEC_ID_H263,0);
+    //unloadCodec((CodecID)CODEC_ID_H263,1);
     _debug("stop stream for videortp loop\n");
 
   } catch(std::exception &e) {
@@ -173,7 +175,7 @@ void VideoRtpRTX::initVideoRtpSession()
       videoSessionReceive->setSchedulingTimeout (10000);
       videoSessionReceive->setExpireTimeout(1000000);
       if ( !videoSessionReceive->addDestination(remote_ip, (unsigned short) vidCall->getRemoteVideoPort()) ) {
-	_debug("Video RTP Thread Error: could not connect to port %d\n",  vidCall->getRemoteAudioPort());
+	_debug("Video RTP Thread Error: could not connect to port %d\n",  vidCall->getRemoteVideoPort());
 	return;
       }
       if ( !videoSessionReceive->setPayloadFormat(ost::StaticPayloadFormat((ost::StaticPayloadType) 34)) ) {
@@ -185,7 +187,7 @@ void VideoRtpRTX::initVideoRtpSession()
       videoSessionSend->setSchedulingTimeout(10000);
       videoSessionSend->setExpireTimeout(1000000);
       if (!videoSessionSend->addDestination(remote_ip, (unsigned short) vidCall->getRemoteVideoPort())) {
-	_debug("! Video ARTP Thread Error: could not connect to port %d\n",  vidCall->getRemoteAudioPort());
+	_debug("! Video ARTP Thread Error: could not connect to port %d\n",  vidCall->getRemoteVideoPort());
 	return;
       }
       if ( !videoSessionSend->setPayloadFormat(ost::StaticPayloadFormat((ost::StaticPayloadType) 34)) ) {
@@ -197,6 +199,7 @@ void VideoRtpRTX::initVideoRtpSession()
       // Symmetric Session
       session->setSchedulingTimeout(10000);
       session->setExpireTimeout(1000000);
+      _debug("ATTENTION !!!! Le port: %d",vidCall->getRemoteVideoPort());
       if ( !session->addDestination(remote_ip, (unsigned short) vidCall->getRemoteVideoPort()) ) {
 	_debug("Video RTP Thread Error: could not connect to port %d\n",  vidCall->getRemoteVideoPort());
 	return;
@@ -226,6 +229,12 @@ void VideoRtpRTX::sendSession(int timestamp)
  
   try{
 
+  // Test
+  //data_from_wc = (unsigned char)"12345\n";
+  //sizeV4L = 6;
+  //_debug("TimeStamp: %d",timestamp);
+  ////////////////
+
   // Get Data from V4l, send it to the mixer input
   Capture* cmdCapture = (Capture*) VideoDevMng->getCommand(VideoDeviceManager::CAPTURE);
   data_from_wc = cmdCapture->GetCapture(sizeV4L);
@@ -239,7 +248,7 @@ void VideoRtpRTX::sendSession(int timestamp)
   // Encode it
   //encodeCodec->videoEncode((uint8_t*)data_from_wc,(uint8_t*)data_to_send,sizeV4L);
 
-  //Thread::sleep(2);
+  Thread::sleep(100);
 
   // Send it
   if (!_sym)
@@ -263,6 +272,8 @@ void VideoRtpRTX::receiveSession()
     return; 
   }
   
+  Thread::sleep(100);
+
   try {
     const ost::AppDataUnit* adu = NULL;
 
@@ -279,7 +290,10 @@ void VideoRtpRTX::receiveSession()
 
     data_from_peer  = (unsigned char*)adu->getData(); // data in char
     unsigned int size = adu->getSize(); // size in char
-    int timestamp=0; //TODO: a lire sur le paquet ! important...
+
+    _debug("Le data : %s , le size: %d",data_from_peer,size);
+
+    //int timestamp=0; //TODO: a lire sur le paquet ! important...
     //int payload = adu->getType();
 
     // Decode it
@@ -293,7 +307,7 @@ void VideoRtpRTX::receiveSession()
 
     //cout << "Data: " << data_from_peer << " size: " << size << endl;
 
-    delete adu; adu = NULL; // TODO: ouain ?
+    //delete adu; adu = NULL; // TODO: ouain ?
   } catch(...) {
     _debugException("! ARTP: receiving failed");
     throw;

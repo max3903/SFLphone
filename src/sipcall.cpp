@@ -82,7 +82,7 @@ SIPCall::SIPCallInvite(eXosip_event_t *event)
   }
 
   if (!setRemoteVideoFromSDP(remote_med, remote_sdp)) {
-    _debug("SIP Failure: unable to set IP address and port from SDP\n");
+    _debug("SIP Failure: unable to set video port from SDP\n");
     sdp_message_free (remote_sdp);
     return false;
   }
@@ -172,6 +172,12 @@ SIPCall::SIPCallReinvite(eXosip_event_t *event)
   }
 
   if (!setAudioCodecFromSDP(remote_med, event->tid)) {
+    sdp_message_free (remote_sdp);
+    return false;
+  }
+
+  if (!setRemoteVideoFromSDP(remote_med, remote_sdp)) {
+    _debug("SIP Failure: unable to set video port from SDP\n");
     sdp_message_free (remote_sdp);
     return false;
   }
@@ -513,7 +519,7 @@ SIPCall::sdp_complete_message(sdp_message_t * remote_sdp, osip_message_t * msg)
     "%s\n", getLocalIp().c_str(), getLocalIp().c_str(), media.str().c_str());
 */
 
-  int LocalVideoPort = getLocalVideoPort();
+  int LocalVideoPort = getLocalExternVideoPort();
 
   char buf[4096];
   snprintf (buf, 4096,
@@ -524,7 +530,6 @@ SIPCall::sdp_complete_message(sdp_message_t * remote_sdp, osip_message_t * msg)
     "t=0 0\r\n"
     "%s"
     "m=video %d RTP/AVP 34\r\n"
-    "a=rtpmap:34 H263/90000\r\n"
     "a=sendrecv\r\n", getLocalIp().c_str(), getLocalIp().c_str(), media.str().c_str(),LocalVideoPort);
 
   osip_message_set_body (msg, buf, strlen (buf));
@@ -817,7 +822,7 @@ SIPCall::setRemoteVideoFromSDP(sdp_media_t* remote_med, sdp_message_t* remote_sd
 
   // Remote video port
   int _remote_sdp_video_port = atoi(remote_Vidmed->m_port);
-  _debug("            Remote video Port: %d\n", _remote_sdp_video_port);
+  _debug(" !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  Remote video Port: %d\n", _remote_sdp_video_port);
   setRemoteVideoPort(_remote_sdp_video_port);
 
   if (_remote_sdp_video_port == 0) {
