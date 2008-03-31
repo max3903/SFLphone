@@ -63,10 +63,13 @@ GtkWidget *bitrateComboBox;
 GtkWidget *moveUpButton;
 GtkWidget *moveDownButton;
 GtkWidget *moveUpButtonVideo;
-GtkWidget *moveDownButtonVideo;
+GtkWidget *moveDownButtonVideo; 
+
+GtkDialog * dialog;
+GtkWidget * notebook;
 
 account_t *selectedAccount;
-gint numWebcam;
+
 
 // Codec properties ID
 enum {
@@ -478,9 +481,20 @@ select_webcam_device(GtkComboBox* widget, gpointer data)
 	{
 		model = gtk_combo_box_get_model(widget);
 		gtk_combo_box_get_active_iter(widget, &iter);
-		gtk_tree_model_get(model, &iter, 0, &name, -1);	
+		gtk_tree_model_get(model, &iter, 0, &name, -1);
+		if(strcmp(name, "No device")!=0)
+		{	
+			dbus_enable_local_video_pref();
+		}
+		else
+		{
+			dbus_disable_local_video_pref();	
+		}
 		dbus_set_webcam_device(name);
+		
 	}
+	update_notebook();
+	
 }
 
 /**
@@ -499,12 +513,17 @@ config_window_fill_webcam_device_list()
 	
 	// For each webcam included in list
 	int c = 0;
+	
 	for(webcamName = list[c]; webcamName != NULL; webcamName = list[c])
 	{
-		c++;
 		gtk_list_store_append(webcamDeviceStore, &iter);
 		gtk_list_store_set(webcamDeviceStore, &iter, 0 , webcamName, -1);
+		c++;
 	}
+	
+	//Add the option to use no device
+	gtk_list_store_append(webcamDeviceStore, &iter);
+	gtk_list_store_set(webcamDeviceStore, &iter, 0 , "No device", -1);
 }
 
 /**
@@ -679,7 +698,7 @@ select_active_bitrate()
 	} while(gtk_tree_model_iter_next(model, &iter));
 
 	// No index was found, select first one
-	g_print("Warning : No active resolution found\n");
+	g_print("Warning : No active bitrate found\n");
 	gtk_combo_box_set_active(GTK_COMBO_BOX(bitrateComboBox), 0);
 }
 
@@ -690,13 +709,11 @@ static void
 select_notebook_page(GtkNotebook* widget,  gpointer data)
 {
 	gint notebookPage;
-	
-	
 	notebookPage = gtk_notebook_get_current_page(widget);
-	printf("Notebook current page : %d Num webcam %d\n", notebookPage, numWebcam);
+	printf("Notebook current page : %d\n", notebookPage);
 	
 	//Webcam Settings Page
-	if(notebookPage == numWebcam)
+	if(notebookPage == 3)
 	{
 		dbus_enable_local_video_pref();
 		printf("Local video has been enabled in webcam settings \n");
@@ -721,6 +738,17 @@ detect_all_audio_settings()
 	// Select active device in combo box
 	//select_active_output_audio_device();
 	//select_active_input_audio_device();
+}
+
+/**
+ * Refresh all webcam devices
+ */
+static void
+detect_webcam_device()
+{
+	// Update lists
+	config_window_fill_webcam_device_list();
+	
 }
 
 /**
@@ -1866,6 +1894,8 @@ create_webcam_tab ()
 	refreshButton = gtk_button_new_with_label("Detect all");
 	gtk_button_set_image(GTK_BUTTON(refreshButton), gtk_image_new_from_stock(GTK_STOCK_REFRESH, GTK_ICON_SIZE_BUTTON));
 	gtk_table_attach(GTK_TABLE(deviceTable), refreshButton, 3, 4, 0, 3, GTK_EXPAND, GTK_EXPAND, 0, 0);
+	// Set event on selection
+	g_signal_connect(G_OBJECT(refreshButton), "clicked", G_CALLBACK(detect_webcam_device), NULL);
 	
     // Settings section
 	
@@ -1996,6 +2026,7 @@ create_webcam_tab ()
 /**
  * Show configuration window with tabs
  * page_num indicates the current page of the notebook
+ * set update to true only if you want to destroy the dialog window and recreate it
  */
 void
 show_config_window (gint page_num)
@@ -2014,7 +2045,7 @@ show_config_window (gint page_num)
 				NULL));
 
 	// Set window properties
-      	gtk_dialog_set_has_separator(dialog, FALSE);
+    gtk_dialog_set_has_separator(dialog, FALSE);
 	gtk_window_set_default_size(GTK_WINDOW(dialog), 400, 400);
 	gtk_container_set_border_width(GTK_CONTAINER(dialog), 0);
 	
@@ -2046,7 +2077,7 @@ show_config_window (gint page_num)
 	// Webcam tab
 	tabWebcam = create_webcam_tab();	
 	gtk_notebook_append_page(GTK_NOTEBOOK(notebook), tabWebcam, gtk_label_new("Webcam Settings"));
-	numWebcam = gtk_notebook_page_num(GTK_NOTEBOOK(notebook), tabWebcam);
+	gtk_notebook_page_num(GTK_NOTEBOOK(notebook), tabWebcam);
 	gtk_widget_show(tabWebcam);
 	
 	g_signal_connect_after(G_OBJECT(notebook), "switch-page", G_CALLBACK(select_notebook_page), notebook);
@@ -2060,3 +2091,12 @@ show_config_window (gint page_num)
 
 	gtk_widget_destroy(GTK_WIDGET(dialog));
 }
+
+void update_notebook()
+{
+	gtk_dialog_response(dialog, GTK_RESPONSE_CLOSE);
+	printf("dialog destroyed");
+	gtk_widget_destroy(GTK_WIDGET(notebook));
+	//show_config_window(3);	
+}
+

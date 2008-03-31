@@ -2883,7 +2883,12 @@ ManagerImpl::setWebcamDevice( const std::string& name )
 	strcpy(temp, name.c_str());
 	ptracesfl("set Webcam Device", MT_INFO, MANAGERIMPL_TRACE, false);
 	ptracesfl(temp, MT_INFO, MANAGERIMPL_TRACE, true);
-	_videoDeviceManager->changeDevice(temp);
+	if(strcmp(temp, "No device")==0)
+	{
+		_videoDeviceManager->Terminate();
+	}
+	else
+		_videoDeviceManager->changeDevice(temp);
 }
 
 
