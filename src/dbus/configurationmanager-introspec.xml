@@ -93,22 +93,7 @@
       <arg type="as" name="list" direction="in"/>
     </method>
 
-	<method name="getVideoCodecList">
-      <arg type="as" name="list" direction="out"/>
-    </method>
-   
-   <method name="getVideoCodecDetails">
-     <arg type="i" name="payload" direction="in"/>
-     <arg type="as" name="details" direction="out"/>
-   </method>
- 
-    <method name="getActiveVideoCodecList">
-      <arg type="as" name="list" direction="out"/>
-    </method>
-
-    <method name="setActiveVideoCodecList">
-      <arg type="as" name="list" direction="in"/>
-    </method>
+	
 
 	<!-- Audio devices methods -->
 	
@@ -196,10 +181,6 @@
       <arg type="s" name="name" direction="in"/>
     </method>
     
-    <method name="getCurrentWebcamDevice">
-      <arg type="s" name="name" direction="out"/>
-    </method>
-    
     <method name="getResolutionList">
       <arg type="as" name="list" direction="out"/>
     </method>
@@ -211,6 +192,44 @@
     <method name="getCurrentResolution">
       <arg type="s" name="name" direction="out"/>
     </method>
+    
+    <method name="enableLocalVideoPref">
+      <arg type="b" name="status" direction="out"/>
+    </method>
+    
+    <method name="disableLocalVideoPref">
+      <arg type="b" name="status" direction="out"/>
+    </method>
+    
+    <!--        /////////////////////////////       -->
+  
+    <!-- Video Settings methods -->
+
+    <method name="getBitrateList">
+      <arg type="as" name="list" direction="out"/>
+    </method>
+    
+    <method name="setBitrate">
+      <arg type="s" name="name" direction="in"/>
+    </method>
+    
+    <method name="getCurrentBitrate">
+      <arg type="s" name="name" direction="out"/>
+    </method>
+    
+    <method name="getVideoCodecList">
+      <arg type="as" name="list" direction="out"/>
+    </method>
+ 
+    <method name="getActiveVideoCodecList">
+      <arg type="as" name="list" direction="out"/>
+    </method>
+
+    <method name="setActiveVideoCodecList">
+      <arg type="as" name="list" direction="in"/>
+    </method>
+    
+    
     
   <!--        /////////////////////////////       -->
  

@@ -1009,34 +1009,6 @@ dbus_video_codec_list()
   return array;
 }
 
-gchar**
-dbus_video_codec_details( int payload )
-{
-  g_print("Before");
-
-  GError *error = NULL;
-  gchar ** array;
-  org_sflphone_SFLphone_ConfigurationManager_get_video_codec_details (
-    configurationManagerProxy,
-    payload,
-    &array,
-    &error);
-
-  g_print("After");
-  if (error)
-  {
-  g_printerr ("Failed to call get_video_codec_details() on ConfigurationManager: %s\n",
-              error->message);
-  g_error_free (error);
-  }
-  else
-  {
-  g_print ("DBus called get_video_codec_details() on ConfigurationManager\n");
-
-  }
-  return array;
-}
-
 
 
 gchar**
@@ -1696,30 +1668,6 @@ dbus_set_webcam_device(gchar* name)
 		g_print("DBus called set_webcam_device() on ConfigurationManager\n");
 }
 
-/**
- * Get webcam device index
- */
-gchar*
-dbus_get_current_webcam_device()
-{
-	g_print("Before get current webcam device");
-	gchar* name;
-	GError* error = NULL;
-	org_sflphone_SFLphone_ConfigurationManager_get_current_webcam_device(
-			configurationManagerProxy,
-			&name,
-			&error);
-	g_print("After");
-	if(error)
-	{
-		g_printerr("Failed to call get_current_webcam_device() on ConfigurationManager: %s\n", error->message);
-		g_error_free(error);
-	}
-	else
-		g_print("DBus called get_current_webcam_device() on ConfigurationManager\n");
-	return name;
-}
-
 
 //Resolution list
 gchar** 
@@ -1786,4 +1734,114 @@ dbus_get_current_resolution()
 	return name;
 }
 
+//Bitrate list
+gchar** 
+dbus_get_bitrate_list()
+{
+	g_print("Before get bitrate list");
+	gchar** array;
+	GError* error = NULL;
+	org_sflphone_SFLphone_ConfigurationManager_get_bitrate_list(
+			configurationManagerProxy,
+			&array,
+			&error);
+	g_print("After");
+	if(error)
+	{
+		g_printerr("Failed to call get_bitrate_list() on ConfigurationManager: %s\n", error->message);
+		g_error_free(error);
+	}
+	else
+		g_print("DBus called get_bitrate_list() on ConfigurationManager\n");
+	return array;	
+}
+
+void 
+dbus_set_bitrate(gchar* name)
+{
+	g_print("Before set bitrate");
+	GError* error = NULL;
+	org_sflphone_SFLphone_ConfigurationManager_set_bitrate(
+			configurationManagerProxy,
+			name,
+			&error);
+	g_print("After");
+	if(error)
+	{
+		g_printerr("Failed to call set_bitrate() on ConfigurationManager: %s\n", error->message);
+		g_error_free(error);
+	}
+	else
+		g_print("DBus called set_bitrate() on ConfigurationManager\n");
+}
+
+/**
+ * Get bitrate index
+ */
+gchar*
+dbus_get_current_bitrate()
+{
+	g_print("Before get current bitrate");
+	gchar* name;
+	GError* error = NULL;
+	org_sflphone_SFLphone_ConfigurationManager_get_current_bitrate(
+			configurationManagerProxy,
+			&name,
+			&error);
+	g_print("After");
+	if(error)
+	{
+		g_printerr("Failed to call get_current_bitrate() on ConfigurationManager: %s\n", error->message);
+		g_error_free(error);
+	}
+	else
+		g_print("DBus called get_current_bitrate() on ConfigurationManager\n");
+	return name;
+}
+
+/**
+ * Enables local video capture in the preferences webcam settings tab
+ */
+gboolean dbus_enable_local_video_pref()
+{
+	g_print("Before enable local video pref");
+	gboolean response;
+	GError* error = NULL;
+	org_sflphone_SFLphone_ConfigurationManager_enable_local_video_pref(
+			configurationManagerProxy,
+			&response,
+			&error);
+	g_print("After");
+	if(error)
+	{
+		g_printerr("Failed to call enable_local_video_pref() on ConfigurationManager: %s\n", error->message);
+		g_error_free(error);
+	}
+	else
+		g_print("DBus called enable_local_video_pref() on ConfigurationManager\n");
+	return response;
+}
+
+/**
+ * Disables local video capture in the preferences webcam settings tab
+ */
+gboolean dbus_disable_local_video_pref()
+{
+	g_print("Before disable local video pref");
+	gboolean response;
+	GError* error = NULL;
+	org_sflphone_SFLphone_ConfigurationManager_disable_local_video_pref(
+			configurationManagerProxy,
+			&response,
+			&error);
+	g_print("After");
+	if(error)
+	{
+		g_printerr("Failed to call disable_local_video_pref() on ConfigurationManager: %s\n", error->message);
+		g_error_free(error);
+	}
+	else
+		g_print("DBus called disable_local_video_pref() on ConfigurationManager\n");
+	return response;
+}
 

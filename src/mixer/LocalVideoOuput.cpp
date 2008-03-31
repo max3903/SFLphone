@@ -10,9 +10,11 @@ void LocalVideoOuput::putData(char * data, int size, MemKey *localVideoMemKey, i
 {
     
   // put data into a new memSpace
+
   if(!this->manager->putData(localVideoMemKey, (unsigned char*)data, size, width, height)){
   	ptracesfl("LocalVideoOutput - Can't put data", MT_ERROR, true);
   }
+
 }
 
 LocalVideoOuput::LocalVideoOuput()

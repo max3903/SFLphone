@@ -132,12 +132,6 @@ ConfigurationManager::getVideoCodecList(  )
 	return Manager::instance().getVideoCodecList();
 }
 
-	std::vector< ::DBus::String > 
-ConfigurationManager::getVideoCodecDetails( const ::DBus::Int32& payload )
-{
-	_debug("ConfigurationManager::getVideoCodecDetails received\n");
-	return Manager::instance().getVideoCodecDetails( payload );
-}
 
 	std::vector< ::DBus::String > 
 ConfigurationManager::getActiveVideoCodecList(  )
@@ -371,13 +365,6 @@ ConfigurationManager::setWebcamDevice( const ::DBus::String& name )
 	Manager::instance().setWebcamDevice(name);
 }
 
-::DBus::String
-ConfigurationManager::getCurrentWebcamDevice(  )
-{
-	_debug("ConfigurationManager::getCurrentWebcamDevice received\n");
-	return Manager::instance().getCurrentWebcamDevice();
-}
-
 
 std::vector< ::DBus::String > 
 ConfigurationManager::getResolutionList(  )
@@ -398,5 +385,40 @@ ConfigurationManager::getCurrentResolution(  )
 {
 	_debug("ConfigurationManager::getCurrentResolution received\n");
 	return Manager::instance().getCurrentResolution();
+}
+
+std::vector< ::DBus::String > 
+ConfigurationManager::getBitrateList(  )
+{
+	_debug("ConfigurationManager::getBitrateList received\n");
+	return Manager::instance().getBitrateList();
+}
+
+void 
+ConfigurationManager::setBitrate( const ::DBus::String& name )
+{
+	_debug("ConfigurationManager::setBitrate received\n");
+	Manager::instance().setBitrate(name);
+}
+
+::DBus::String 
+ConfigurationManager::getCurrentBitrate(  )
+{
+	_debug("ConfigurationManager::getCurrentBitrate received\n");
+	return Manager::instance().getCurrentBitrate();
+}
+
+::DBus::Bool 
+ConfigurationManager::enableLocalVideoPref(  )
+{
+	_debug("ConfigurationManager::enableLocalVideoPref received\n");
+	return Manager::instance().enableLocalVideoPref();
+}
+
+::DBus::Bool 
+ConfigurationManager::disableLocalVideoPref(  )
+{
+	_debug("ConfigurationManager::disableLocalVideoPref received\n");
+	return Manager::instance().disableLocalVideoPref();
 }
 

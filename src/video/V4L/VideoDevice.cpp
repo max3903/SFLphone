@@ -19,7 +19,7 @@
 
 #include "VideoDevice.h"
 
-VideoDevice::VideoDevice(char* srcName){
+VideoDevice::VideoDevice(const char* srcName){
      
     initDevice(srcName);
     
@@ -31,7 +31,7 @@ VideoDevice::VideoDevice(char* srcName){
 VideoDevice::~VideoDevice(){
 }
 
-void VideoDevice::initDevice(char* srcName){
+void VideoDevice::initDevice(const char* srcName){
     
     ptracesfl("Initializing device ...", MT_INFO, VIDEODEVICE_TRACE);
     // initiate the path (i.e. "/dev/video0" )
@@ -182,13 +182,13 @@ v4l2_format* VideoDevice::getVideoFormat(){
 	return tmpFormat;
 }
   
-bool VideoDevice::setVideoFormat(v4l2_format* videoFormat){
+bool VideoDevice::setVideoFormat(v4l2_format* vFormat){
     
-    if( videoFormat == NULL  )
+    if( vFormat == NULL  )
     	return false;
     	
 	ptracesfl("Querying video device to set Video Format ... ", MT_INFO, VIDEODEVICE_TRACE + 1, false);
-	if(ioctl(fileDescript, VIDIOC_S_FMT, videoFormat)==-1){
+	if(ioctl(fileDescript, VIDIOC_S_FMT, vFormat)==-1){
 		ptracesfl("\tNO", MT_NONE, VIDEODEVICE_TRACE + 1);
 		ptracesfl("Can't set the image format.", MT_ERROR, VIDEODEVICE_TRACE + 1);
 		return false;
@@ -327,5 +327,19 @@ v4l2_capability* VideoDevice::getVideoCapability(){
    		}
    		
    		return false;
+   		
+   }
+   
+   int VideoDevice::getFPS(){
+	   	
+   		v4l2_streamparm* tmpSParam= this->getStreamingParam();
+   		
+   		if( tmpSParam != NULL ){
+   			int ret= tmpSParam->parm.capture.timeperframe.denominator;
+   			free(tmpSParam);
+   			return ret;   			
+   		}
+   		
+   		return -1;
    		
    }

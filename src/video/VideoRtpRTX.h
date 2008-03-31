@@ -32,7 +32,7 @@
 #include "VideoRtp.h"
 #include <cc++/thread.h>
 #include <ccrtp/rtp.h>
-#include <ffmpeg/avcodec.h>
+#include <ffmpeg/avcodec.h> //TODO: p-e pas nescessaire !
 #include "V4L/VideoDeviceManager.h"
 #include "../mixer/VideoInput.h"
 #include "../mixer/VideoOutput.h"
@@ -75,6 +75,12 @@ private:
     ost::RTPSession* 	videoSessionReceive;
     /** System Semaphore */
     ost::Semaphore 	semStart;
+
+    /** SYMMETRIC RTP Session to send/receive */
+    ost::SymmetricRTPSession* session;
+
+    bool _sym;
+
     /** Codec for encoding */
     VideoCodec* 	encodeCodec;
     /** Codec for decoding */
@@ -91,11 +97,11 @@ private:
 
     int codecClockRate; // sample rate of the codec we use to encode and decode (most of time 90000HZ)
 
-    /** buffer for received Data */
-   char* receiveDataDecoded;
+    unsigned char *data_to_send;
+    unsigned char *data_from_peer;
+    unsigned char *data_from_wc;
+    unsigned char *data_to_display;
 
-    /** Buffer for Data to send */
-    unsigned char* sendDataEncoded;
 
 	/**
 	 * Get the data from V4l, send it to the mixer, encode and send to RTP

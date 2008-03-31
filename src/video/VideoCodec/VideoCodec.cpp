@@ -16,76 +16,106 @@
  *  along with this program; if not, write to the Free Software
  *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
+ 
+ 
 #include "VideoCodec.h"
 
 #define VIDEOCODECPTRACE 2
+#define INBUF_SIZE 4096
 
-int VideoCodec::videoEncode(uint8_t *in_buf, uint8_t* out_buf,int bufferSize,int width,int height)
+int VideoCodec::videoEncode(uint8_t *in_buf, uint8_t* out_buf,int in_bufferSize,int inWidth,int inHeight)
 {
-	AVFrame *pict;
+	
+	AVFrame *IN,*SWS;
+	uint8_t *SWS_BUF;
+	
+	//TODO check better buffer size
+	out_buf = (uint8_t*)malloc(in_bufferSize);
 	
 	//Step 1: change in_buf in AVFRAME pict
+	if ((IN = avcodec_alloc_frame()) == NULL)
+         ptracesfl("OUT OF MEMORY TRYING TO ENCODE",MT_ERROR,1,true);
+	     
+    //get RGB picture
+    avpicture_fill((AVPicture *)IN, in_buf,PIX_FMT_RGB24, inWidth,inHeight);         
+
+ 	SWS_BUF = encodeSWS->Convert(IN,SWS);
+ 	av_free(IN);
+    free(in_buf);
+	//Step 2:Encode
+	//TODO GET A PROPER BUFFER SIZE
+	avcodec_encode_video(_encodeCodecCtx, out_buf, 100000, SWS);
+
+	//Step 3:Clean
+	av_free(SWS);
+    free(SWS_BUF);
+	free(out_buf);
+
+	
+	//return outBufferSize
+	return 100000;
+	
+	}
+
+	//decode one frame
+
+int VideoCodec::videoDecode(uint8_t *in_buf, uint8_t* out_buf,int size)
+{
+	
+	int bytesRemaining = size;
+	int got_picture_ptr = 0;
+	int bytesDecoded=0;
+	uint8_t inbuf[INBUF_SIZE + FF_INPUT_BUFFER_PADDING_SIZE], *inbuf_ptr;
+	AVFrame *pict;
+
+	memset(inbuf + INBUF_SIZE, 0, FF_INPUT_BUFFER_PADDING_SIZE);
+	
+	
+	
 	pict = avcodec_alloc_frame();
 	if (pict == NULL)
          return -1;
                 
-    avpicture_fill((AVPicture *)pict, in_buf,PIX_FMT_RGB24, width, height);
-    
-    
-	//Step 2:Encode
-	avcodec_encode_video(_encodeCodecCtx, out_buf, bufferSize, pict);
-
-	//Step 3:Clean
+               
+   // avpicture_fill((AVPicture *)pict, out_buf+FF_INPUT_BUFFER_PADDING_SIZE,PIX_FMT_RGB24, width, height);
 	
-	av_free(pict);
-	
-	//success
-	return 1;
-	
-	}
-	
-	
-
-int VideoCodec::videoDecode(uint8_t *in_buf, uint8_t* out_buf,int size  )
-{
-	
-	int bytesRemaining = size;
-	int *got_picture_ptr = NULL;
-	
-
-	return 0;
-	
-	
-	/*
-	 * static int frameFinished = 0;  //this is the got_picture_pointer
-argument
-    int bytesDecoded=0;
-    int bytesRemaining = data_size;
-
-    while(bytesRemaining > 0)
-    {
-        bytesDecoded=avcodec_decode_video(pCodecCtx, pFrame,
-            &frameFinished, rawData, bytesRemaining);
+	while(bytesRemaining > 0){
+		
+	bytesDecoded = avcodec_decode_video(_decodeCodecCtx, pict,
+            &got_picture_ptr, in_buf, bytesRemaining);
 
         if(bytesDecoded < 0)
             return false;
 
-        bytesRemaining-=bytesDecoded;
-        rawData+=bytesDecoded;
-
-        if(frameFinished)
-            return true;
+        bytesRemaining -= bytesDecoded;
+		in_buf+=bytesDecoded;
+		
+		if(got_picture_ptr)
+	{
+	
+	
+	
+	
+	
+	}
+        
     }
 
-    // Decode the rest of the last frame
-    bytesDecoded=avcodec_decode_video(pCodecCtx, pFrame, &frameFinished,
+    // Decode the rest of the frame
+    bytesDecoded=avcodec_decode_video(_decodeCodecCtx, pict, &got_picture_ptr, in_buf, bytesRemaining);
 
-        rawData, bytesRemaining);
-
-    return frameFinished!=0;
-	 * 
-	 * */
+	//
+	if(got_picture_ptr)
+	{
 	
+	
+	
+	
+	
+	}
+
+     
+	return 0;
 }
 
 void VideoCodec::init(){
@@ -112,32 +142,32 @@ void VideoCodec::init(){
 	//These are Settings adjustements
 	initEncodeContext();
 	initDecodeContext();
-	
-	
-}
 
+}
 void VideoCodec::initEncodeContext(){
 
 	
 	pair<int,int> tmp; 
 	//initialize basic encoding context
 	
-	_encodeCodecCtx = avcodec_alloc_context();
+	_encodeCodecCtx = _videoDesc->getCodecContext(_Codec);
 	
-	_encodeCodecCtx->bit_rate = VIDEO_BIT_RATE;
-	
+	//TODO change if it's not the webcam
 	if (_cmdRes != NULL){
 	tmp = _cmdRes->getResolution();
+	tmp = getSpecialResolution(tmp.first);
 	_encodeCodecCtx->width = tmp.first;
 	_encodeCodecCtx->height = tmp.second;
 	
 	}
-	else{
-		_encodeCodecCtx->width = DEFAULT_WIDTH;
+	else
+	{
+	_encodeCodecCtx->width = DEFAULT_WIDTH;
 	_encodeCodecCtx->height = DEFAULT_HEIGHT;	
 	}
 	
-	
+	//TODO PUT IN VIDEOCODECDESCRIPTOR ----------------------
+	_encodeCodecCtx->bit_rate = VIDEO_BIT_RATE;
 	if (_codecName == "h264")
 	_encodeCodecCtx->me_method = 8;
 	else
@@ -146,38 +176,59 @@ void VideoCodec::initEncodeContext(){
 	_encodeCodecCtx->time_base.den = STREAM_FRAME_RATE;
 	_encodeCodecCtx->time_base.num = 1;
 	_encodeCodecCtx->gop_size = GOP_SIZE;
-	_encodeCodecCtx->pix_fmt = PIX_FMT_RGB24;
+	_encodeCodecCtx->pix_fmt = PIX_FMT_YUV420P;
 	_encodeCodecCtx->max_b_frames = MAX_B_FRAMES;
-
-	if (_codecName == "h263")
 	_encodeCodecCtx->mpeg_quant = 0;
-	else
-	_encodeCodecCtx->mpeg_quant = 1;
-	
 	if (_codecName == "h264")
 	_encodeCodecCtx->idct_algo = FF_IDCT_H264;
 	else
-	_encodeCodecCtx->idct_algo = FF_IDCT_LIBMPEG2MMX;
+	_encodeCodecCtx->idct_algo = FF_IDCT_AUTO;
 	
 	_encodeCodecCtx->mb_decision = FF_MB_DECISION_BITS;
+	//TODO ADD VLC MATRIX
+	_encodeCodecCtx->intra_matrix = NULL;
+	_encodeCodecCtx->inter_matrix = NULL;
+	_encodeCodecCtx->workaround_bugs = FF_BUG_AUTODETECT;
+	
+//	#define X264_PART_I4X4 0x001  /* Analyse i4x4 */
+//#define X264_PART_I8X8 0x002  /* Analyse i8x8 (requires 8x8 transform) */
+//#define X264_PART_P8X8 0x010  /* Analyse p16x8, p8x16 and p8x8 */
+//#define X264_PART_P4X4 0x020  /* Analyse p8x4, p4x8, p4x4 */
+//#define X264_PART_B8X8 0x100  /* Analyse b16x8, b8x16 and b8x8 */
+//	_encodeCodecCtx->partitions = 
 
-	avcodec_open(_encodeCodecCtx, _Codec);
+	if(avcodec_open (_encodeCodecCtx, _Codec) < 0)
+		ptracesfl("CANNOT OPEN ENCODE CODEC",MT_FATAL,1,true);
+	
+//TODO END PUT IN VIDEOCODECDESCRIPTOR ----------------------
+	
 
 }
-
 void VideoCodec::initDecodeContext()
 {
 
-//initialize basic encoding context
-	_decodeCodecCtx = avcodec_alloc_context();
-	avcodec_open (_decodeCodecCtx, _Codec);
+	//initialize basic encoding context
+	_decodeCodecCtx = _videoDesc->getCodecContext(_Codec);
+	
+	_decodeCodecCtx->pix_fmt = PIX_FMT_YUV420P;
+	
+	_decodeCodecCtx->max_b_frames = MAX_B_FRAMES;
+	//TODO ALLOCATE MORE MEM???
+	//codec_tag
+	if(_Codec->capabilities&CODEC_CAP_TRUNCATED)
+	  _decodeCodecCtx->flags|= CODEC_FLAG_TRUNCATED;
+
+	//if(avcodec_open (_decodeCodecCtx, _Codec) < 0)
+	//	ptracesfl("CANNOT OPEN DECODE CODEC",MT_FATAL,1,true);
+	
+	//intialize SWSdecodeContext
 }
 
 void VideoCodec::quitDecodeContext()
 {
 	avcodec_close(_decodeCodecCtx);
 	av_free(_decodeCodecCtx);
-
+	delete decodeSWS;
 }
 
 void VideoCodec::quitEncodeContext()
@@ -185,38 +236,61 @@ void VideoCodec::quitEncodeContext()
 	//initialize basic encoding context
 	avcodec_close(_encodeCodecCtx);
 	av_free(_encodeCodecCtx);
-	
+	delete encodeSWS;
 }
 
-
-VideoCodec::~VideoCodec() {
-	delete _videoDesc;
-	_videoDesc = NULL;
-
-}
 VideoCodec::VideoCodec(char* codec){
-	
 	
 	this->_codecName = codec;
 	this->_encodeCodecCtx = NULL;
 	this->_decodeCodecCtx = NULL;
-	
 	init();
 
 }
 
+ pair<int,int> VideoCodec::getSpecialResolution(int width)
+ {
+ // Text from libavcodec
+ //128x96, 176x144, 352x288, 704x576, and 1408x1152
+ pair<int,int> returnSize;
+ 
+ if (width <= 128){
+	 returnSize.first = 128;
+	 returnSize.second = 96;
+ }
+ else if (width <= 176){
+	 returnSize.first = 176;
+	 returnSize.second = 144;
+ }
+ else if (width <= 352){
+	 returnSize.first = 352;
+	 returnSize.second = 288;
+ }
+ else if (width <= 704){
+	 returnSize.first = 704;
+	 returnSize.second = 576;
+ }
+ else
+ {
+	 returnSize.first = 1408;
+	 returnSize.second = 1152;
+ }
+ 
+ return returnSize;
+ 
+ 
+ }
 VideoCodec::VideoCodec(){
 	
 	this->_codecName = NULL;
 	this->_encodeCodecCtx = NULL;
 	this->_decodeCodecCtx = NULL;
-	
 	init();
 
 }
 
-
-
+ VideoCodec::~VideoCodec()
+ {}
 /*
  * 
  * 
@@ -285,8 +359,6 @@ getting data in RGBbuf
     avcodec_encode_video (codec_ctx, EncodedBuf, 100000, YuvFrame);
     
     */
-    
-    
     
     
     
@@ -437,3 +509,35 @@ VideoParser::~VideoParser() {
 }
 */
 
+
+
+	/*
+	 * static int frameFinished = 0;  //this is the got_picture_pointer
+argument
+    int bytesDecoded=0;
+    int bytesRemaining = data_size;
+
+    while(bytesRemaining > 0)
+    {
+        bytesDecoded=avcodec_decode_video(pCodecCtx, pFrame,
+            &frameFinished, rawData, bytesRemaining);
+
+        if(bytesDecoded < 0)
+            return false;
+
+        bytesRemaining-=bytesDecoded;
+        rawData+=bytesDecoded;
+
+        if(frameFinished)
+            return true;
+    }
+
+    // Decode the rest of the last frame
+    bytesDecoded=avcodec_decode_video(pCodecCtx, pFrame, &frameFinished,
+
+        rawData, bytesRemaining);
+
+    return frameFinished!=0;
+	 * 
+	 * */
+	

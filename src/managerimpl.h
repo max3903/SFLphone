@@ -577,6 +577,10 @@ public:
     std::vector< std::string > getResolutionList(  );
     void setResolution( const std::string& name );
     std::string getCurrentResolution(  );
+    /* Video Settings */
+    std::vector< std::string > getBitrateList(  );
+    void setBitrate( const std::string& name );
+    std::string getCurrentBitrate(  );
     
     
     /** Method to activate Local video Capture for the preference video

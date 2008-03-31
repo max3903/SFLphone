@@ -16,6 +16,7 @@
  *  along with this program; if not, write to the Free Software
  *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
+ 
 #include "VideoCodecDescriptor.h"
 
 #include <string>
@@ -70,9 +71,8 @@ VideoCodecDescriptor* VideoCodecDescriptor::getInstance()
 		
 		char *codec;
 		AVCodec* tmp;
-
-    		if(  (avcodec_find_decoder_by_name("h264") != NULL) &&
-    		  ((tmp = avcodec_find_encoder_by_name("h264")) != NULL) )
+//(avcodec_find_decoder_by_name("h264") != NULL) &&
+    		if( ((tmp = avcodec_find_decoder_by_name("h264")) != NULL) )
     			{
     			//map Codec
     			ptracesfl(tmp->name,MT_INFO,2,false);
@@ -294,6 +294,4 @@ AVCodec* VideoCodecDescriptor::getDefaultCodec()
     	CurrentBitRate = DEFAULTBITRATE;
     	return true;
     }
-    
-    
-    
+

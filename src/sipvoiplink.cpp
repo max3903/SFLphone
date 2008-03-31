@@ -603,6 +603,7 @@ SIPVoIPLink::newOutgoingVideoInvite(const CallID& id)
 bool
 SIPVoIPLink::answer(const CallID& id)
 {
+
   _debug("- SIP Action: start answering\n");
 
   SIPCall* call = getSIPCall(id);
@@ -646,9 +647,6 @@ SIPVoIPLink::answer(const CallID& id)
   }
   eXosip_unlock();
 
-  // TODO: a enlever
-  printf("SIPVoIPLink::answer called!");
-
   if(i==0) {
     // Incoming call is answered, start the sound thread.
     _debug("* SIP Info: Starting AudioRTP when answering\n");
@@ -660,21 +658,15 @@ SIPVoIPLink::answer(const CallID& id)
     } else {
       _debug("! SIP Failure: Unable to start sound when answering %s/%d\n", __FILE__, __LINE__);
     }
+    if (_videortp.createNewVideoSession(call,false) == 0) { // TODO: in conf?
+      call->setVideoStart(true);
+      return true;
+    } else {
+      _debug("! SIP Failure: Unable to start video when answering %s/%d\n", __FILE__, __LINE__);
+    }
   }
   removeCall(call->getCallId());
   return false;
-
-/*  int i;
-  int port;
-  char tmpbuf[64];
-  bzero (tmpbuf, 64);
-  // Get  port   
-  snprintf (tmpbuf, 63, "%d", getSipCall(id)->getLocalAudioPort());
-
-  _debug("%10d: Answer call [cid = %d, did = %d]\n", id, getSipCall(id)->getCid(), getSipCall(id)->getDid());
-  port = getSipCall(id)->getLocalAudioPort();
-  _debug("            Local audio port: %d\n", port);
-*/
 }
 
 bool
@@ -693,6 +685,8 @@ SIPVoIPLink::hangup(const CallID& id)
   if (Manager::instance().isCurrentCall(id)) {
     _debug("* SIP Info: Stopping AudioRTP for hangup\n");
     _audiortp.closeRtpSession();
+    _debug("* SIP Info: Stopping VideoRTP for hangup\n");
+    _videortp.closeVideoSession(false); // TODO: in conf?
   }
   removeCall(id);
   return true;
@@ -725,6 +719,7 @@ SIPVoIPLink::onhold(const CallID& id)
   call->setState(Call::Hold);
   _debug("* SIP Info: Stopping AudioRTP for onhold action\n");
   _audiortp.closeRtpSession();
+  //_videortp.closeVideoSession(false); // TODO: in conf?
 
 
   int did = call->getDid();
@@ -1205,6 +1200,7 @@ SIPVoIPLink::SIPStartCall(SIPCall* call, const std::string& subject)
   }
 
   setCallAudioLocal(call);
+  setCallVideoLocal(call);
 
   std::ostringstream media_audio;
   std::ostringstream rtpmap_attr;
@@ -1240,7 +1236,7 @@ SIPVoIPLink::SIPStartCall(SIPCall* call, const std::string& subject)
   // tell sip if we support SIP extension like 100rel
   // osip_message_set_supported (invite, "100rel");
 
-  /* add sdp body */
+  /* add sdp body
   {
     char tmp[4096];
     snprintf (tmp, 4096,
@@ -1252,6 +1248,30 @@ SIPVoIPLink::SIPStartCall(SIPCall* call, const std::string& subject)
               "m=audio %d RTP/AVP %s\r\n"
               "%s",
               _localExternAddress.c_str(), _localExternAddress.c_str(), call->getLocalExternAudioPort(), media_audio.str().c_str(), rtpmap_attr.str().c_str());
+    // media_audio should be one, two or three numbers?
+    osip_message_set_body (invite, tmp, strlen (tmp));
+    osip_message_set_content_type (invite, "application/sdp");
+    _debug("SDP send: %s", tmp);
+  }*/
+
+  int LocalPort = call->getLocalVideoPort();
+
+
+  //TODO: je lai modifier!
+  {
+    char tmp[4096];
+    snprintf (tmp, 4096,
+              "v=0\r\n"
+              "o=SFLphone 0 0 IN IP4 %s\r\n"
+              "s=call\r\n"
+              "c=IN IP4 %s\r\n"
+              "t=0 0\r\n"
+              "m=audio %d RTP/AVP %s\r\n"
+              "%s"
+              "m=video %d RTP/AVP 34\r\n"
+              "a=rtpmap:34 H263/90000\r\n"
+              "a=sendrecv\r\n",
+              _localExternAddress.c_str(), _localExternAddress.c_str(), call->getLocalExternAudioPort(), media_audio.str().c_str(), rtpmap_attr.str().c_str(),LocalPort);
     // media_audio should be one, two or three numbers?
     osip_message_set_body (invite, tmp, strlen (tmp));
     osip_message_set_content_type (invite, "application/sdp");
@@ -1380,7 +1400,7 @@ bool
 SIPVoIPLink::setCallVideoLocal(SIPCall* call) 
 {
   // Setting Video
-  unsigned int callLocalVideoPort = 12345; // a changer!
+  unsigned int callLocalVideoPort = RANDOM_LOCAL_PORT; // a changer!
   unsigned int callLocalExternVideoPort = callLocalVideoPort;
   if (_useStun) {
     // If use Stun server
@@ -1412,7 +1432,7 @@ SIPVoIPLink::SIPCallInvite(eXosip_event_t *event)
     return;
   }
   setCallAudioLocal(call);
-  setCallVideoLocal(call); // ajouté!
+  setCallVideoLocal(call);
   call->setCodecMap(Manager::instance().getCodecDescriptorMap());
   call->setConnectionState(Call::Progressing);
   if (call->SIPCallInvite(event)) {
@@ -1447,7 +1467,8 @@ SIPVoIPLink::SIPCallReinvite(eXosip_event_t *event)
     _debug("* SIP Info: Stopping AudioRTP when reinvite\n");
     _audiortp.closeRtpSession();
     call->setAudioStart(false);
-    // TODO: p-e il faut fermer le video ici!
+    _videortp.closeVideoSession(false); // TODO: In conf ?
+    call->setVideoStart(false);
   }
   call->SIPCallReinvite(event);
 
@@ -1493,6 +1514,12 @@ SIPVoIPLink::SIPCallAnswered(eXosip_event_t *event)
         _debug("RTP Failure: unable to create new session\n");
       } else {
         call->setAudioStart(true);
+      }
+      if ( _videortp.createNewVideoSession(call,false)!=0) {
+        _debug("RTP Failure: unable to create new video session\n");
+      } else {
+        _debug("Session video cree!\n");
+        call->setVideoStart(true); // TODO: a verifier!
       }
     }
   } else {
@@ -1583,10 +1610,10 @@ SIPVoIPLink::SIPCallServerFailure(eXosip_event_t *event)
 void
 SIPVoIPLink::SIPCallAck(eXosip_event_t *event) 
 {
-  printf("ACK RECU!!!!");
 
   SIPCall* call = findSIPCallWithCidDid(event->cid, event->did);
   if (!call) { return; }
+
   if (!call->isAudioStarted()) {
     if (Manager::instance().isCurrentCall(call->getCallId())) {
       _debug("* SIP Info: Starting AudioRTP when ack\n");
@@ -1595,14 +1622,20 @@ SIPVoIPLink::SIPCallAck(eXosip_event_t *event)
       }
       _debug("* SIP Info: Starting VideoRTP when ack\n");
       // todo: verifier que nous sommes en train denvoyer un REINVITE!
-      if ( _videortp.createNewVideoSession(call,false) ) {
-        printf("RTP VIDEO CREE!");
+      
+    }
+  }
+
+  //if (!call->isVideoStarted()) {  // TODO: ...
+    if (Manager::instance().isCurrentCall(call->getCallId())) {
+      if ( _videortp.createNewVideoSession(call,false) ==0) {
+        _debug("RTP VIDEO CREE!");
         call->setVideoStart(true);
       }
       else
-        printf("IMPOSSIBLE CREE RTP VIDEO!");
+        _debug("IMPOSSIBLE CREE RTP VIDEO!");
     }
-  }
+  //}
 }
 
 void
@@ -1647,8 +1680,11 @@ SIPVoIPLink::SIPCallClosed(eXosip_event_t *event)
   call->setDid(event->did);
   if (Manager::instance().isCurrentCall(id)) {
     call->setAudioStart(false);
+    call->setVideoStart(false);
     _debug("* SIP Info: Stopping AudioRTP when closing\n");
     _audiortp.closeRtpSession();
+    _debug("* SIP Info: Stopping VideoRTP when closing\n");
+    _videortp.closeVideoSession(false); // TODO: in conf?
   }
   Manager::instance().peerHungupCall(id);
   removeCall(id);

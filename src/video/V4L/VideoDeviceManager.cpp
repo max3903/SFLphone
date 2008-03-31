@@ -35,7 +35,7 @@ VideoDeviceManager::VideoDeviceManager(){
 VideoDeviceManager::~VideoDeviceManager(){
 }
 
-bool VideoDeviceManager::changeDevice(char* srcName){
+bool VideoDeviceManager::changeDevice(const char* srcName){
 
 	VideoDevice* tmpDevice= NULL;
 
@@ -64,7 +64,7 @@ bool VideoDeviceManager::changeDevice(char* srcName){
     
 }
 
-bool VideoDeviceManager::createDevice(char* srcName){
+bool VideoDeviceManager::createDevice(const char* srcName){
     
     VideoDevice* tmpDevice= NULL;
     
@@ -110,7 +110,7 @@ Command* VideoDeviceManager::getCommand(TCommand ref){
 
 vector<string> VideoDeviceManager::enumVideoDevices(){
 
-	vector<string> ret;
+  vector<string> ret;
   LibHalContext *hal_context= NULL;
   DBusConnection *dbus= dbus_bus_get( DBUS_BUS_SYSTEM, NULL );
   
@@ -148,4 +148,19 @@ vector<string> VideoDeviceManager::enumVideoDevices(){
       
   return ret;
   
+}
+
+
+void VideoDeviceManager::Terminate(){
+	
+	Command::ChangingDevice();
+	
+	if( Command::videoDevice != NULL ){
+		Command::videoDevice->closeDevice();
+		delete Command::videoDevice;
+		Command::videoDevice= NULL;
+	}
+	
+	Command::DeviceChanged();
+	
 }

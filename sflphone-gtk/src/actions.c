@@ -74,6 +74,7 @@ sflphone_quit ()
 		//account_list_clean()
 		contact_hash_table_clear();
 		gtk_main_quit ();
+		DestroyMemSpaces();
 	}
 	return quit;
 }

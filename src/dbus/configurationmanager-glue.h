@@ -40,10 +40,6 @@ public:
         register_method(ConfigurationManager, getCodecDetails, _getCodecDetails_stub);
         register_method(ConfigurationManager, getActiveCodecList, _getActiveCodecList_stub);
         register_method(ConfigurationManager, setActiveCodecList, _setActiveCodecList_stub);
-        register_method(ConfigurationManager, getVideoCodecList, _getVideoCodecList_stub);
-        register_method(ConfigurationManager, getVideoCodecDetails, _getVideoCodecDetails_stub);
-        register_method(ConfigurationManager, getActiveVideoCodecList, _getActiveVideoCodecList_stub);
-        register_method(ConfigurationManager, setActiveVideoCodecList, _setActiveVideoCodecList_stub);
         register_method(ConfigurationManager, getInputAudioPluginList, _getInputAudioPluginList_stub);
         register_method(ConfigurationManager, getOutputAudioPluginList, _getOutputAudioPluginList_stub);
         register_method(ConfigurationManager, setInputAudioPlugin, _setInputAudioPlugin_stub);
@@ -63,10 +59,17 @@ public:
         register_method(ConfigurationManager, setColour, _setColour_stub);
         register_method(ConfigurationManager, getWebcamDeviceList, _getWebcamDeviceList_stub);
         register_method(ConfigurationManager, setWebcamDevice, _setWebcamDevice_stub);
-        register_method(ConfigurationManager, getCurrentWebcamDevice, _getCurrentWebcamDevice_stub);
         register_method(ConfigurationManager, getResolutionList, _getResolutionList_stub);
         register_method(ConfigurationManager, setResolution, _setResolution_stub);
         register_method(ConfigurationManager, getCurrentResolution, _getCurrentResolution_stub);
+        register_method(ConfigurationManager, enableLocalVideoPref, _enableLocalVideoPref_stub);
+        register_method(ConfigurationManager, disableLocalVideoPref, _disableLocalVideoPref_stub);
+        register_method(ConfigurationManager, getBitrateList, _getBitrateList_stub);
+        register_method(ConfigurationManager, setBitrate, _setBitrate_stub);
+        register_method(ConfigurationManager, getCurrentBitrate, _getCurrentBitrate_stub);
+        register_method(ConfigurationManager, getVideoCodecList, _getVideoCodecList_stub);
+        register_method(ConfigurationManager, getActiveVideoCodecList, _getActiveVideoCodecList_stub);
+        register_method(ConfigurationManager, setActiveVideoCodecList, _setActiveVideoCodecList_stub);
         register_method(ConfigurationManager, isIax2Enabled, _isIax2Enabled_stub);
     }
 
@@ -170,27 +173,6 @@ public:
             { 0, 0, 0 }
         };
         static ::DBus::IntrospectedArgument setActiveCodecList_args[] = 
-        {
-            { "list", "as", true },
-            { 0, 0, 0 }
-        };
-        static ::DBus::IntrospectedArgument getVideoCodecList_args[] = 
-        {
-            { "list", "as", false },
-            { 0, 0, 0 }
-        };
-        static ::DBus::IntrospectedArgument getVideoCodecDetails_args[] = 
-        {
-            { "payload", "i", true },
-            { "details", "as", false },
-            { 0, 0, 0 }
-        };
-        static ::DBus::IntrospectedArgument getActiveVideoCodecList_args[] = 
-        {
-            { "list", "as", false },
-            { 0, 0, 0 }
-        };
-        static ::DBus::IntrospectedArgument setActiveVideoCodecList_args[] = 
         {
             { "list", "as", true },
             { 0, 0, 0 }
@@ -300,11 +282,6 @@ public:
             { "name", "s", true },
             { 0, 0, 0 }
         };
-        static ::DBus::IntrospectedArgument getCurrentWebcamDevice_args[] = 
-        {
-            { "name", "s", false },
-            { 0, 0, 0 }
-        };
         static ::DBus::IntrospectedArgument getResolutionList_args[] = 
         {
             { "list", "as", false },
@@ -318,6 +295,46 @@ public:
         static ::DBus::IntrospectedArgument getCurrentResolution_args[] = 
         {
             { "name", "s", false },
+            { 0, 0, 0 }
+        };
+        static ::DBus::IntrospectedArgument enableLocalVideoPref_args[] = 
+        {
+            { "status", "b", false },
+            { 0, 0, 0 }
+        };
+        static ::DBus::IntrospectedArgument disableLocalVideoPref_args[] = 
+        {
+            { "status", "b", false },
+            { 0, 0, 0 }
+        };
+        static ::DBus::IntrospectedArgument getBitrateList_args[] = 
+        {
+            { "list", "as", false },
+            { 0, 0, 0 }
+        };
+        static ::DBus::IntrospectedArgument setBitrate_args[] = 
+        {
+            { "name", "s", true },
+            { 0, 0, 0 }
+        };
+        static ::DBus::IntrospectedArgument getCurrentBitrate_args[] = 
+        {
+            { "name", "s", false },
+            { 0, 0, 0 }
+        };
+        static ::DBus::IntrospectedArgument getVideoCodecList_args[] = 
+        {
+            { "list", "as", false },
+            { 0, 0, 0 }
+        };
+        static ::DBus::IntrospectedArgument getActiveVideoCodecList_args[] = 
+        {
+            { "list", "as", false },
+            { 0, 0, 0 }
+        };
+        static ::DBus::IntrospectedArgument setActiveVideoCodecList_args[] = 
+        {
+            { "list", "as", true },
             { 0, 0, 0 }
         };
         static ::DBus::IntrospectedArgument isIax2Enabled_args[] = 
@@ -362,10 +379,6 @@ public:
             { "getCodecDetails", getCodecDetails_args },
             { "getActiveCodecList", getActiveCodecList_args },
             { "setActiveCodecList", setActiveCodecList_args },
-            { "getVideoCodecList", getVideoCodecList_args },
-            { "getVideoCodecDetails", getVideoCodecDetails_args },
-            { "getActiveVideoCodecList", getActiveVideoCodecList_args },
-            { "setActiveVideoCodecList", setActiveVideoCodecList_args },
             { "getInputAudioPluginList", getInputAudioPluginList_args },
             { "getOutputAudioPluginList", getOutputAudioPluginList_args },
             { "setInputAudioPlugin", setInputAudioPlugin_args },
@@ -385,10 +398,17 @@ public:
             { "setColour", setColour_args },
             { "getWebcamDeviceList", getWebcamDeviceList_args },
             { "setWebcamDevice", setWebcamDevice_args },
-            { "getCurrentWebcamDevice", getCurrentWebcamDevice_args },
             { "getResolutionList", getResolutionList_args },
             { "setResolution", setResolution_args },
             { "getCurrentResolution", getCurrentResolution_args },
+            { "enableLocalVideoPref", enableLocalVideoPref_args },
+            { "disableLocalVideoPref", disableLocalVideoPref_args },
+            { "getBitrateList", getBitrateList_args },
+            { "setBitrate", setBitrate_args },
+            { "getCurrentBitrate", getCurrentBitrate_args },
+            { "getVideoCodecList", getVideoCodecList_args },
+            { "getActiveVideoCodecList", getActiveVideoCodecList_args },
+            { "setActiveVideoCodecList", setActiveVideoCodecList_args },
             { "isIax2Enabled", isIax2Enabled_args },
             { 0, 0 }
         };
@@ -444,10 +464,6 @@ public:
     virtual std::vector< ::DBus::String > getCodecDetails( const ::DBus::Int32& payload ) = 0;
     virtual std::vector< ::DBus::String > getActiveCodecList(  ) = 0;
     virtual void setActiveCodecList( const std::vector< ::DBus::String >& list ) = 0;
-    virtual std::vector< ::DBus::String > getVideoCodecList(  ) = 0;
-    virtual std::vector< ::DBus::String > getVideoCodecDetails( const ::DBus::Int32& payload ) = 0;
-    virtual std::vector< ::DBus::String > getActiveVideoCodecList(  ) = 0;
-    virtual void setActiveVideoCodecList( const std::vector< ::DBus::String >& list ) = 0;
     virtual std::vector< ::DBus::String > getInputAudioPluginList(  ) = 0;
     virtual std::vector< ::DBus::String > getOutputAudioPluginList(  ) = 0;
     virtual void setInputAudioPlugin( const ::DBus::String& audioPlugin ) = 0;
@@ -467,10 +483,17 @@ public:
     virtual void setColour( const ::DBus::Int32& value ) = 0;
     virtual std::vector< ::DBus::String > getWebcamDeviceList(  ) = 0;
     virtual void setWebcamDevice( const ::DBus::String& name ) = 0;
-    virtual ::DBus::String getCurrentWebcamDevice(  ) = 0;
     virtual std::vector< ::DBus::String > getResolutionList(  ) = 0;
     virtual void setResolution( const ::DBus::String& name ) = 0;
     virtual ::DBus::String getCurrentResolution(  ) = 0;
+    virtual ::DBus::Bool enableLocalVideoPref(  ) = 0;
+    virtual ::DBus::Bool disableLocalVideoPref(  ) = 0;
+    virtual std::vector< ::DBus::String > getBitrateList(  ) = 0;
+    virtual void setBitrate( const ::DBus::String& name ) = 0;
+    virtual ::DBus::String getCurrentBitrate(  ) = 0;
+    virtual std::vector< ::DBus::String > getVideoCodecList(  ) = 0;
+    virtual std::vector< ::DBus::String > getActiveVideoCodecList(  ) = 0;
+    virtual void setActiveVideoCodecList( const std::vector< ::DBus::String >& list ) = 0;
     virtual ::DBus::Int32 isIax2Enabled(  ) = 0;
 
 public:
@@ -697,46 +720,6 @@ private:
         ::DBus::ReturnMessage reply(call);
         return reply;
     }
-    ::DBus::Message _getVideoCodecList_stub( const ::DBus::CallMessage& call )
-    {
-        ::DBus::MessageIter ri = call.reader();
-
-        std::vector< ::DBus::String > argout1 = getVideoCodecList();
-        ::DBus::ReturnMessage reply(call);
-        ::DBus::MessageIter wi = reply.writer();
-        wi << argout1;
-        return reply;
-    }
-    ::DBus::Message _getVideoCodecDetails_stub( const ::DBus::CallMessage& call )
-    {
-        ::DBus::MessageIter ri = call.reader();
-
-        ::DBus::Int32 argin1; ri >> argin1;
-        std::vector< ::DBus::String > argout1 = getVideoCodecDetails(argin1);
-        ::DBus::ReturnMessage reply(call);
-        ::DBus::MessageIter wi = reply.writer();
-        wi << argout1;
-        return reply;
-    }
-    ::DBus::Message _getActiveVideoCodecList_stub( const ::DBus::CallMessage& call )
-    {
-        ::DBus::MessageIter ri = call.reader();
-
-        std::vector< ::DBus::String > argout1 = getActiveVideoCodecList();
-        ::DBus::ReturnMessage reply(call);
-        ::DBus::MessageIter wi = reply.writer();
-        wi << argout1;
-        return reply;
-    }
-    ::DBus::Message _setActiveVideoCodecList_stub( const ::DBus::CallMessage& call )
-    {
-        ::DBus::MessageIter ri = call.reader();
-
-        std::vector< ::DBus::String > argin1; ri >> argin1;
-        setActiveVideoCodecList(argin1);
-        ::DBus::ReturnMessage reply(call);
-        return reply;
-    }
     ::DBus::Message _getInputAudioPluginList_stub( const ::DBus::CallMessage& call )
     {
         ::DBus::MessageIter ri = call.reader();
@@ -941,16 +924,6 @@ private:
         ::DBus::ReturnMessage reply(call);
         return reply;
     }
-    ::DBus::Message _getCurrentWebcamDevice_stub( const ::DBus::CallMessage& call )
-    {
-        ::DBus::MessageIter ri = call.reader();
-
-        ::DBus::String argout1 = getCurrentWebcamDevice();
-        ::DBus::ReturnMessage reply(call);
-        ::DBus::MessageIter wi = reply.writer();
-        wi << argout1;
-        return reply;
-    }
     ::DBus::Message _getResolutionList_stub( const ::DBus::CallMessage& call )
     {
         ::DBus::MessageIter ri = call.reader();
@@ -978,6 +951,84 @@ private:
         ::DBus::ReturnMessage reply(call);
         ::DBus::MessageIter wi = reply.writer();
         wi << argout1;
+        return reply;
+    }
+    ::DBus::Message _enableLocalVideoPref_stub( const ::DBus::CallMessage& call )
+    {
+        ::DBus::MessageIter ri = call.reader();
+
+        ::DBus::Bool argout1 = enableLocalVideoPref();
+        ::DBus::ReturnMessage reply(call);
+        ::DBus::MessageIter wi = reply.writer();
+        wi << argout1;
+        return reply;
+    }
+    ::DBus::Message _disableLocalVideoPref_stub( const ::DBus::CallMessage& call )
+    {
+        ::DBus::MessageIter ri = call.reader();
+
+        ::DBus::Bool argout1 = disableLocalVideoPref();
+        ::DBus::ReturnMessage reply(call);
+        ::DBus::MessageIter wi = reply.writer();
+        wi << argout1;
+        return reply;
+    }
+    ::DBus::Message _getBitrateList_stub( const ::DBus::CallMessage& call )
+    {
+        ::DBus::MessageIter ri = call.reader();
+
+        std::vector< ::DBus::String > argout1 = getBitrateList();
+        ::DBus::ReturnMessage reply(call);
+        ::DBus::MessageIter wi = reply.writer();
+        wi << argout1;
+        return reply;
+    }
+    ::DBus::Message _setBitrate_stub( const ::DBus::CallMessage& call )
+    {
+        ::DBus::MessageIter ri = call.reader();
+
+        ::DBus::String argin1; ri >> argin1;
+        setBitrate(argin1);
+        ::DBus::ReturnMessage reply(call);
+        return reply;
+    }
+    ::DBus::Message _getCurrentBitrate_stub( const ::DBus::CallMessage& call )
+    {
+        ::DBus::MessageIter ri = call.reader();
+
+        ::DBus::String argout1 = getCurrentBitrate();
+        ::DBus::ReturnMessage reply(call);
+        ::DBus::MessageIter wi = reply.writer();
+        wi << argout1;
+        return reply;
+    }
+    ::DBus::Message _getVideoCodecList_stub( const ::DBus::CallMessage& call )
+    {
+        ::DBus::MessageIter ri = call.reader();
+
+        std::vector< ::DBus::String > argout1 = getVideoCodecList();
+        ::DBus::ReturnMessage reply(call);
+        ::DBus::MessageIter wi = reply.writer();
+        wi << argout1;
+        return reply;
+    }
+    ::DBus::Message _getActiveVideoCodecList_stub( const ::DBus::CallMessage& call )
+    {
+        ::DBus::MessageIter ri = call.reader();
+
+        std::vector< ::DBus::String > argout1 = getActiveVideoCodecList();
+        ::DBus::ReturnMessage reply(call);
+        ::DBus::MessageIter wi = reply.writer();
+        wi << argout1;
+        return reply;
+    }
+    ::DBus::Message _setActiveVideoCodecList_stub( const ::DBus::CallMessage& call )
+    {
+        ::DBus::MessageIter ri = call.reader();
+
+        std::vector< ::DBus::String > argin1; ri >> argin1;
+        setActiveVideoCodecList(argin1);
+        ::DBus::ReturnMessage reply(call);
         return reply;
     }
     ::DBus::Message _isIax2Enabled_stub( const ::DBus::CallMessage& call )

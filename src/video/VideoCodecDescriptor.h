@@ -37,10 +37,12 @@
 #include <vector>
 #include <string>
 #include <sstream>
+
 #include "../tracePrintSFL.h"
 extern "C"{
 #include <ffmpeg/avcodec.h>
 #include <ffmpeg/avformat.h>
+#include <ffmpeg/swscale.h>
 }
 
 #define DEFAULTBITRATE 768000

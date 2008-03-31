@@ -29,15 +29,17 @@
 #include "../VideoCodecDescriptor.h"
 #include "VideoSettings.h"
 #include "../V4L/VideoDeviceManager.h"
+#include "SWSInterface.h"
 
 class VideoCodec {
 public:
 	
+
 	/**
      * Default Destructor
      * 
      */
-   ~VideoCodec() ;
+    ~VideoCodec();
   
    /**
      *  Constructor we force to use
@@ -52,7 +54,7 @@ public:
      * 
      */
 
-     int videoDecode(uint8_t *in_buf, uint8_t* out_buf,int size  );
+     int videoDecode(uint8_t *in_buf, uint8_t* out_buf,int size);
 
 /**
      * Function to encode video information
@@ -62,12 +64,11 @@ public:
      * 
      */
 
-    int videoEncode(uint8_t *in_buf, uint8_t* out_buf,int bufferSize,int width,int height);
-
-    
-    
+    int videoEncode(uint8_t *in_buf, uint8_t* out_buf,int in_bufferSize,int inWidth,int inHeight);
+ 	
 private:
- /**
+
+ 	/**
      * Default Constructor
      * 
      */
@@ -77,6 +78,10 @@ private:
  	* */
     void init();
     
+    /**
+ 	* Function to init the Codec resolutions for special codecs
+ 	* */
+    pair<int,int> getSpecialResolution(int width);
     /**
  	* Function to init the Codec with it's proper context
  	* */
@@ -96,8 +101,10 @@ private:
  	* Function to quit the Codec with it's proper context
  	* */
     void quitDecodeContext();
-    
 
+	/**
+ 	* Instance of the VideoCodecDescriptor class
+ 	* */
 	VideoCodecDescriptor *_videoDesc;
 	/**
      * Libavcodec Codec type
@@ -105,10 +112,11 @@ private:
     AVCodec* _Codec;
     
     /**
-     * Libavcodec Codec type
+     * Libavcodec Codec Name
      */
-    const char* _codecName;
+    const char* _codecName; 
     
+
     /**
      * Libavcodec Codec context
      */
@@ -124,10 +132,10 @@ private:
     Resolution* _cmdRes;
     
     // Video device manager instance
-	VideoDeviceManager *_v4lManager;
-    
-    
-
+	VideoDeviceManager *_v4lManager;    
+// Interface for pix conversion
+    SWSInterface *decodeSWS;
+    SWSInterface *encodeSWS;
 };
 #endif //VIDEOCODEC_H
 
