@@ -32,9 +32,6 @@ SIPCall::SIPCall(const CallID& id, Call::CallType type) : Call(id, type)
   _cid = 0;
   _did = 0;
   _tid = 0;
-
-  // A ENLEVER
-  //ReinviteEnCours=false;
 }
 
 SIPCall::~SIPCall() 
@@ -157,8 +154,6 @@ SIPCall::SIPCallReinvite(eXosip_event_t *event)
 
   setPeerInfoFromRequest(event);
 
-  ///setReinviteEnCours(true);
-
   sdp_message_t* remote_sdp = getRemoteSDPFromRequest(event);
   if (remote_sdp == 0) {
     return false;
@@ -276,10 +271,6 @@ SIPCall::SIPCallReinvite(eXosip_event_t *event)
     //sdp_message_free (remote_sdp);
     //return false;
   //}
-
-
-  // a enlever!!
-  //setReinviteEnCours(true);
 
   osip_message_t *answer = 0;
   eXosip_lock();
@@ -509,12 +500,6 @@ SIPCall::sdp_complete_message(sdp_message_t * remote_sdp, osip_message_t * msg)
     iMedia++;
   }
 
-  if (getReinviteEnCours()==true)
-    _debug("REINVITE EN COURS!");
-  else
-    _debug("REINVITE PAS EN COURS!!");
-
-
   //media << "m=" << "video" << " " << "12345" << " RTP/AVP " << "34" << "\r\n";
   //media << "a=rtpmap:" << "34" << "H263/90000" << "\r\n";
 
@@ -631,33 +616,8 @@ SIPCall::sdp_complete_message(sdp_message_t * remote_sdp, osip_message_t * msg)
   //tmpMediaVideo << "a=rtpmap:34 H263/90000\r\n";
   // a jouter dans le buf
 
- */
-  // TEMPORAIRE!!!!!!!!!!!!!!!!!! A ENLEVER!
-  /*
-  if (getReinviteEnCours()){
-    printf("Reinvite en cours = OUI!!!");
-    char test[4096];
-    snprintf (test, 4096,
-    "v=0\r\n"
-    "o=user 0 0 IN IP4 %s\r\n"
-    "s=session\r\n"
-    "c=IN IP4 %s\r\n"
-    "t=0 0\r\n"
-    "%s"
-    "m=video 12345 RTP/AVP 34\r\n"
-    "a=rtpmap:34 H263/90000\r\n", getLocalIp().c_str(), getLocalIp().c_str(), media.str().c_str());
-
-    osip_message_set_body (msg, test, strlen (test));
-    osip_message_set_content_type (msg, "application/sdp");
-    printf("      Reinvite    sdp: %s", test);
-    return 0;
-  } 
-  */
-/*
   printf("VOICI LE SDP!");
   printf(media.str().c_str());
-  
-  
 
   char buf[4096];
   snprintf (buf, 4096,

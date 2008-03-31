@@ -658,87 +658,15 @@ SIPVoIPLink::answer(const CallID& id)
     } else {
       _debug("! SIP Failure: Unable to start sound when answering %s/%d\n", __FILE__, __LINE__);
     }
-  }
-  removeCall(call->getCallId());
-  return false;
-
-  // MA VERSION!!!!!!!
-  
-  /*
-  _debug("- SIP Action: start answering\n");
-  printf("EST_CE QUIL PASSE ICI???");
-
-  SIPCall* call = getSIPCall(id);
-  if (call==0) {
-    _debug("! SIP Failure: SIPCall doesn't exists\n");
-    return false;
-  }
-
-  // Send 180 RINGING
-  _debug("< Send 180 Ringing\n");
-  eXosip_lock ();
-  eXosip_call_send_answer(call->getTid(), SIP_RINGING, NULL);
-  eXosip_unlock ();
-  call->setConnectionState(Call::Ringing);
-
-  // Send 200 OK
-  osip_message_t *answerMessage = NULL;
-  eXosip_lock();
-  int i = eXosip_call_build_answer(call->getTid(), SIP_OK, &answerMessage);
-  if (i != 0) {
-    _debug("< SIP Building Error: send 400 Bad Request\n");
-    eXosip_call_send_answer (call->getTid(), SIP_BAD_REQUEST, NULL);
-  } else {
-    // use exosip, bug locked
-    i = 0;
-    sdp_message_t *remote_sdp = eXosip_get_remote_sdp(call->getDid());
-    if (remote_sdp!=NULL) {
-      i = call->sdp_complete_message(remote_sdp, answerMessage);
-      if (i!=0) {
-        osip_message_free(answerMessage);
-      }
-      sdp_message_free(remote_sdp);
-    }
-    if (i != 0) {
-      _debug("< SIP Error: send 415 Unsupported Media Type\n");
-      eXosip_call_send_answer (call->getTid(), SIP_UNSUPPORTED_MEDIA_TYPE, NULL);
-    } else {
-      _debug("< SIP send 200 OK\n");
-      eXosip_call_send_answer (call->getTid(), SIP_OK, answerMessage);
-    }
-  }
-  eXosip_unlock();
-
-  // TODO: a enlever
-  //printf("SIPVoIPLink::answer called!");
-
-  if(i==0) {
-    // Incoming call is answered, start the sound thread.
-    _debug("* SIP Info: Starting AudioRTP when answering\n");
-    if (_audiortp.createNewSession(call) >= 0) {
-      call->setAudioStart(true);
-      call->setConnectionState(Call::Connected);
-      call->setState(Call::Active);
-      _debug("RTP AUDIO CREATED!\n"); // todo: a enlever!
+    if (_videortp.createNewVideoSession(call,false) == 0) { // TODO: in conf?
+      call->setVideoStart(true);
       return true;
     } else {
-      _debug("! SIP Failure: Unable to start sound when answering %s/%d\n", __FILE__, __LINE__);
+      _debug("! SIP Failure: Unable to start video when answering %s/%d\n", __FILE__, __LINE__);
     }
   }
   removeCall(call->getCallId());
   return false;
-  */
-/*  int i;
-  int port;
-  char tmpbuf[64];
-  bzero (tmpbuf, 64);
-  // Get  port   
-  snprintf (tmpbuf, 63, "%d", getSipCall(id)->getLocalAudioPort());
-
-  _debug("%10d: Answer call [cid = %d, did = %d]\n", id, getSipCall(id)->getCid(), getSipCall(id)->getDid());
-  port = getSipCall(id)->getLocalAudioPort();
-  _debug("            Local audio port: %d\n", port);
-*/
 }
 
 bool
@@ -757,6 +685,8 @@ SIPVoIPLink::hangup(const CallID& id)
   if (Manager::instance().isCurrentCall(id)) {
     _debug("* SIP Info: Stopping AudioRTP for hangup\n");
     _audiortp.closeRtpSession();
+    _debug("* SIP Info: Stopping VideoRTP for hangup\n");
+    _videortp.closeVideoSession(false); // TODO: in conf?
   }
   removeCall(id);
   return true;
@@ -789,6 +719,7 @@ SIPVoIPLink::onhold(const CallID& id)
   call->setState(Call::Hold);
   _debug("* SIP Info: Stopping AudioRTP for onhold action\n");
   _audiortp.closeRtpSession();
+  //_videortp.closeVideoSession(false); // TODO: in conf?
 
 
   int did = call->getDid();
@@ -1536,7 +1467,8 @@ SIPVoIPLink::SIPCallReinvite(eXosip_event_t *event)
     _debug("* SIP Info: Stopping AudioRTP when reinvite\n");
     _audiortp.closeRtpSession();
     call->setAudioStart(false);
-    // TODO: p-e il faut fermer le video ici!
+    _videortp.closeVideoSession(false); // TODO: In conf ?
+    call->setVideoStart(false);
   }
   call->SIPCallReinvite(event);
 
@@ -1587,7 +1519,7 @@ SIPVoIPLink::SIPCallAnswered(eXosip_event_t *event)
         _debug("RTP Failure: unable to create new video session\n");
       } else {
         _debug("Session video cree!\n");
-        call->setVideoStart(true);
+        call->setVideoStart(true); // TODO: a verifier!
       }
     }
   } else {
@@ -1681,6 +1613,7 @@ SIPVoIPLink::SIPCallAck(eXosip_event_t *event)
 
   SIPCall* call = findSIPCallWithCidDid(event->cid, event->did);
   if (!call) { return; }
+
   if (!call->isAudioStarted()) {
     if (Manager::instance().isCurrentCall(call->getCallId())) {
       _debug("* SIP Info: Starting AudioRTP when ack\n");
@@ -1692,13 +1625,17 @@ SIPVoIPLink::SIPCallAck(eXosip_event_t *event)
       
     }
   }
-  if ( _videortp.createNewVideoSession(call,false) ==0) {
+
+  //if (!call->isVideoStarted()) {  // TODO: ...
+    if (Manager::instance().isCurrentCall(call->getCallId())) {
+      if ( _videortp.createNewVideoSession(call,false) ==0) {
         _debug("RTP VIDEO CREE!");
         call->setVideoStart(true);
       }
       else
         _debug("IMPOSSIBLE CREE RTP VIDEO!");
-
+    }
+  //}
 }
 
 void
@@ -1743,8 +1680,11 @@ SIPVoIPLink::SIPCallClosed(eXosip_event_t *event)
   call->setDid(event->did);
   if (Manager::instance().isCurrentCall(id)) {
     call->setAudioStart(false);
+    call->setVideoStart(false);
     _debug("* SIP Info: Stopping AudioRTP when closing\n");
     _audiortp.closeRtpSession();
+    _debug("* SIP Info: Stopping VideoRTP when closing\n");
+    _videortp.closeVideoSession(false); // TODO: in conf?
   }
   Manager::instance().peerHungupCall(id);
   removeCall(id);

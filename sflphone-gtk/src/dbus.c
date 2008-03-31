@@ -1009,34 +1009,6 @@ dbus_video_codec_list()
   return array;
 }
 
-gchar**
-dbus_video_codec_details( int payload )
-{
-  g_print("Before");
-
-  GError *error = NULL;
-  gchar ** array;
-  org_sflphone_SFLphone_ConfigurationManager_get_video_codec_details (
-    configurationManagerProxy,
-    payload,
-    &array,
-    &error);
-
-  g_print("After");
-  if (error)
-  {
-  g_printerr ("Failed to call get_video_codec_details() on ConfigurationManager: %s\n",
-              error->message);
-  g_error_free (error);
-  }
-  else
-  {
-  g_print ("DBus called get_video_codec_details() on ConfigurationManager\n");
-
-  }
-  return array;
-}
-
 
 
 gchar**

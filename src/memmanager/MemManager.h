@@ -23,9 +23,13 @@
 
 #include <vector>
 #include <iterator>
+#include <semaphore.h>
 #include "MemSpace.h"
 #include "MemSorter.h"
 #include "../tracePrintSFL.h"
+
+#define MEMMANAGER_TRACE	1
+#define MEMMANAGER_OP_TRACE	9	// trace Level in recurent opperation
 
 
 typedef std::vector<MemSpace*> vectMemSpace;
@@ -33,7 +37,6 @@ typedef vectMemSpace::iterator vectMemSpaceIterator;
 
 using namespace std;
 
-//TODO DESTROY ALL MEM SEGMENT CREATED!!!
 
 //! Shared memory pool manager
 /*!
@@ -189,8 +192,26 @@ private:
     //! The instance of the manager
     static MemManager* instance;
     
+    //! Semaphore indicating operation (put and fetch) of the Manager
+    static sem_t Active;
+    static sem_t Available;
+    
     // The current index of the pool of MemSpace
     vectMemSpaceIterator defaultIndex;
+    
+    //! Method to search for a memKey in current spaces
+    /*!
+     * \param refKey the key to search for
+     * \return an iterator on the Memspace vector pointing to the memspace containing the refKey. If no reference is found, it return an iterator pointing to the end of the vector.
+     */
+    vectMemSpaceIterator search(MemKey* refKey);
+    
+    bool getManagerControl();
+    bool releaseManagerControl();
+    
+    bool getSpaceConstol();
+    bool releaseSpaceConstol();
+    
     
 protected:
 	

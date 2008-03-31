@@ -132,12 +132,6 @@ ConfigurationManager::getVideoCodecList(  )
 	return Manager::instance().getVideoCodecList();
 }
 
-	std::vector< ::DBus::String > 
-ConfigurationManager::getVideoCodecDetails( const ::DBus::Int32& payload )
-{
-	_debug("ConfigurationManager::getVideoCodecDetails received\n");
-	return Manager::instance().getVideoCodecDetails( payload );
-}
 
 	std::vector< ::DBus::String > 
 ConfigurationManager::getActiveVideoCodecList(  )

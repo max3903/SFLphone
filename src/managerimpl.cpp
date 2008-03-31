@@ -183,16 +183,20 @@ void ManagerImpl::terminate()
   _debug("Unload Telephone Tone\n");
   delete _telephoneTone; _telephoneTone = NULL;
   
-  // \TODO delete memory allocation
-	delete _memManager; _memManager = NULL;  
   // \TODO End threads
-  // \TODO Probably need to unload video driver too
   
-   _debug("Unload VideoDeviceManager\n");
-  delete _videoDeviceManager; _videoDeviceManager = NULL; 
+  // \TODO Re enable after RTP video fixed
+  //_debug("Unload VideoDeviceManager\n");
+  // _videoDeviceManager->Terminate();
+  //delete _videoDeviceManager; _videoDeviceManager = NULL;
+  
+  // \TODO Re enable after RTP video fixed
+  //_debug("Unload Shared Memory Manager\n");
+  //_memManager->CleanSpaces();
+  //delete _memManager; _memManager = NULL;  
 
- _debug("Unload VideoCodecDescriptor\n");
- delete _videoCodecDescriptor; _videoCodecDescriptor = NULL;
+  _debug("Unload VideoCodecDescriptor\n");
+  delete _videoCodecDescriptor; _videoCodecDescriptor = NULL;
 
   _debug("Unload Audio Codecs\n");
   _codecDescriptorMap.deleteHandlePointer();
@@ -2694,16 +2698,23 @@ ManagerImpl::initVideoCodec (void)
   void
 ManagerImpl::setActiveVideoCodecList(const std::vector<std::string>& list)
 {
-	// TODO: replace with video codec list
-	// the following code is only there to avoid errors
-  _debug("Set active Video codecs list\n");
+	_debug("Set active Video codecs list\n");
+	std::vector<std::string> codecMap = _videoCodecDescriptor->getStringCodecMap();
   
 	if(_videoCodecDescriptor->saveActiveCodecs(list))
+	{
 		ptracesfl("videoCodecs saved",MT_INFO,5,true);
-  // setConfig
-  std::string s = serialize(list);
-  printf("%s\n", s.c_str());
-  setConfig("Video", "ActiveCodecs", s);
+		// setConfig
+		std::string s = serialize(list);
+		printf("%s\n", s.c_str());
+		setConfig("Video", "ActiveCodecs", s);
+		
+	}
+	else //the user doesn't have all the codecs in the config file
+	{
+		//so we need to reset the config file
+		setConfig("Video", "ActiveCodecs", "");
+	}
 }
 
 
@@ -2724,42 +2735,21 @@ ManagerImpl::getVideoCodecList( void )
   return _videoCodecDescriptor->getStringCodecMap();
 }
 
-  std::vector<std::string>
-ManagerImpl::getVideoCodecDetails( const ::DBus::Int32& payload )
-{
-	// TODO: replace with video codec details
-	// the following code is only there to avoid errors
-  std::vector<std::string> v;
-  std::stringstream ss;
-
-  v.push_back(_codecDescriptorMap.getCodecName((AudioCodecType)payload));
-  ss << _codecDescriptorMap.getSampleRate((AudioCodecType)payload);
-  v.push_back((ss.str()).data()); 
-  ss.str("");
-  ss << _codecDescriptorMap.getBitRate((AudioCodecType)payload);
-  v.push_back((ss.str()).data());
-  ss.str("");
-  ss << _codecDescriptorMap.getBandwidthPerCall((AudioCodecType)payload);
-  v.push_back((ss.str()).data());
-  ss.str("");
-
-  return v;
-}
 
 
 std::vector<std::string>
 ManagerImpl::retrieveActiveVideoCodecs()
 {
 	ptracesfl("retrieving video codecs",MT_INFO,5,true);
-	  std::vector<std::string> order; 
-	  std::string  temp;
-	  std::string s = getConfigString(VIDEO, "ActiveCodecs");
+	std::vector<std::string> order; 
+	std::string  temp;
+	std::string s = getConfigString(VIDEO, "ActiveCodecs");
 	  
 	while (s.find("/", 0) != std::string::npos)
 	{
 		size_t  pos = s.find("/", 0); 			
 		temp = s.substr(0, pos);      	
-		s.erase(0, pos + 1);          		
+		s.erase(0, pos + 1);       		
 		order.push_back(temp);                	
 	}
 	
@@ -2796,19 +2786,22 @@ void ManagerImpl::initVideoDeviceManager(void)
 
 void ManagerImpl::initMemManager(void)
 {
-	int dummySize = 7400000;
+	// Maximum Shared memory space corresponding to a buffer for a resolution of 640x480
+	int MaximumSize = 7400000;
 
+	ptracesfl("Initializing Shared memory manager ...",MT_INFO,MANAGERIMPL_TRACE,true);
 	_memManager = MemManager::getInstance();
-	ptracesfl("MEMSPACE INIT MANAGER",MT_INFO,1,true);
-	//TODO GET SIZE FROM WEBCAM 
+	
 	//SetSpace and attach to running process
 	srand ( time(NULL) );
-	_keyHolder.localKey = _memManager->initSpace(dummySize);
+	
+	ptracesfl("Initializing Local Shared memory Space ...",MT_INFO,MANAGERIMPL_TRACE,true);
+	_keyHolder.localKey = _memManager->initSpace(MaximumSize);
 	_keyHolder.localKey->setDescription("local");
-	ptracesfl("LOCAL MEMSPACE started",MT_INFO,2,true);
-	_keyHolder.remoteKey = _memManager->initSpace(dummySize);
+	
+	ptracesfl("Initializing Local Shared memory Space ...",MT_INFO,MANAGERIMPL_TRACE,true);
+	_keyHolder.remoteKey = _memManager->initSpace(MaximumSize);
 	_keyHolder.remoteKey->setDescription("remote");
-	ptracesfl("REMOTE MEMSPACE started",MT_INFO,2,true);
 
 }
 
@@ -3001,7 +2994,8 @@ ManagerImpl::enableLocalVideoPref(){
 	_localCapActive= true;
 	
 	if( pthread_create(&_localVidCap_Thread, NULL, localVideCapturepref, NULL) != 0 ){
-		ptracesfl("Cannot create capture thread for capture (preference widnow)", MT_ERROR, MANAGERIMPL_TRACE);
+		_localCapActive= false;
+		ptracesfl("Cannot create capture thread for capture (preference window)", MT_ERROR, MANAGERIMPL_TRACE);
 		return false;
 	}
 			
@@ -3011,7 +3005,8 @@ ManagerImpl::enableLocalVideoPref(){
 bool 
 ManagerImpl::disableLocalVideoPref(){
 	
-	_localCapActive= false;
+	ManagerImpl::_localCapActive= false;
+	pthread_join(ManagerImpl::_localVidCap_Thread, NULL);
 	
 	return true;
 }
@@ -3028,21 +3023,18 @@ void* ManagerImpl::localVideCapturepref(void* pdata){
 	pair<int,int> res;
 	unsigned char* data= NULL;
 	
-	while(_localCapActive){
+	while(ManagerImpl::_localCapActive){
 		
+		printf("test\n");
 		data= cmdCap->GetCapture(imgSize);
 		
 		if(data != NULL){
-			printf("OK data\n");
 			res= cmdRes->getResolution();
-			if( !manager->putData( _keyHolder.localKey, data , imgSize, res.first, res.second ) ){
-				printf("CANNOT put data\n");
-			}
+			manager->putData( _keyHolder.localKey, data , imgSize, res.first, res.second );
 			free(data);
 			data= NULL;
 			imgSize= 0;
-		}else
-			printf("NULL data\n");
+		}
 		
 		usleep(10);
 	}
@@ -3054,6 +3046,7 @@ void* ManagerImpl::localVideCapturepref(void* pdata){
 	delete cmdRes;
 	
 	ptracesfl("Stopping Local video capture for preference window", MT_INFO, MANAGERIMPL_TRACE);
+	pthread_exit(NULL);
 	
 }
 
