@@ -16,49 +16,46 @@
  *  along with this program; if not, write to the Free Software
  *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
+ 
+ 
 #include "VideoCodec.h"
 
 #define VIDEOCODECPTRACE 2
 #define INBUF_SIZE 4096
 
-
-
-
-int VideoCodec::videoEncode(uint8_t *in_buf, uint8_t* out_buf,int in_bufferSize)
+int VideoCodec::videoEncode(uint8_t *in_buf, uint8_t* out_buf,int in_bufferSize,int inWidth,int inHeight)
 {
 	
-	AVFrame *RGB,*pict;
-	uint8_t *picture_buf;
+	AVFrame *IN,*SWS;
+	uint8_t *SWS_BUF;
 	
 	//TODO check better buffer size
 	out_buf = (uint8_t*)malloc(in_bufferSize);
 	
 	//Step 1: change in_buf in AVFRAME pict
-	if ((RGB = avcodec_alloc_frame()) == NULL)
+	if ((IN = avcodec_alloc_frame()) == NULL)
          ptracesfl("OUT OF MEMORY TRYING TO ENCODE",MT_ERROR,1,true);
 	     
     //get RGB picture
-    avpicture_fill((AVPicture *)RGB, in_buf,PIX_FMT_RGB24, _encodeCodecCtx->width,
-    		_encodeCodecCtx->height);         
+    avpicture_fill((AVPicture *)IN, in_buf,PIX_FMT_RGB24, inWidth,inHeight);         
 
- 	picture_buf = RGBTOYUV(RGB,pict);
+ 	SWS_BUF = encodeSWS->Convert(IN,SWS);
+ 	av_free(IN);
+    free(in_buf);
 	//Step 2:Encode
 	//TODO GET A PROPER BUFFER SIZE
-	avcodec_encode_video(_encodeCodecCtx, out_buf, 100000, pict);
+	avcodec_encode_video(_encodeCodecCtx, out_buf, 100000, SWS);
 
 	//Step 3:Clean
-	av_free(RGB);
-    free(in_buf);
-	av_free(pict);
-	free(picture_buf);
+	av_free(SWS);
+    free(SWS_BUF);
+	free(out_buf);
 
 	
-	//success
-	return 1;
+	//return outBufferSize
+	return 100000;
 	
 	}
-
-
 
 	//decode one frame
 
@@ -121,44 +118,6 @@ int VideoCodec::videoDecode(uint8_t *in_buf, uint8_t* out_buf,int size)
 	return 0;
 }
 
-
-uint8_t *VideoCodec::RGBTOYUV(AVFrame *RGB,AVFrame *YUV)
-{
-	uint8_t *YUV_buf;
-
-	if ((YUV = avcodec_alloc_frame()) == NULL)
-         ptracesfl("OUT OF MEMORY TRYING TO ENCODE",MT_ERROR,1,true);
-	
-	YUV_buf = (uint8_t*)malloc(YUVBufferSize);
-	
-	avpicture_fill((AVPicture *)YUV,YUV_buf,PIX_FMT_YUV420P,_encodeCodecCtx->width,
-    		_encodeCodecCtx->height);
-	
-	sws_scale(SwsEncodeContext,RGB->data,RGB->linesize,_encodeCodecCtx->width,
-    		_encodeCodecCtx->height,YUV->data,YUV->linesize);
-    		
-    return YUV_buf;
-}
-
-
-uint8_t *VideoCodec::YUVTORGB(AVFrame *YUV,AVFrame *RGB)
-{
-	uint8_t *RGB_buf;
-
-	if ((RGB = avcodec_alloc_frame()) == NULL)
-         ptracesfl("OUT OF MEMORY TRYING TO ENCODE",MT_ERROR,1,true);
-	
-	RGB_buf = (uint8_t*)malloc(YUVBufferSize);
-	
-	avpicture_fill((AVPicture *)RGB,RGB_buf,PIX_FMT_RGB24,_encodeCodecCtx->width,
-    		_encodeCodecCtx->height);
-	
-	sws_scale(SwsEncodeContext,YUV->data,YUV->linesize,_encodeCodecCtx->width,
-    		_encodeCodecCtx->height,RGB->data,RGB->linesize);
-    		
-    return RGB_buf;
-}
-
 void VideoCodec::init(){
 	
 	ptracesfl("VideoCodec initialisation",MT_INFO,VIDEOCODECPTRACE,true);
@@ -185,7 +144,6 @@ void VideoCodec::init(){
 	initDecodeContext();
 
 }
-
 void VideoCodec::initEncodeContext(){
 
 	
@@ -219,50 +177,55 @@ void VideoCodec::initEncodeContext(){
 	_encodeCodecCtx->gop_size = GOP_SIZE;
 	_encodeCodecCtx->pix_fmt = PIX_FMT_YUV420P;
 	_encodeCodecCtx->max_b_frames = MAX_B_FRAMES;
-
-	if (_codecName == "h263")
+	
+	
 	_encodeCodecCtx->mpeg_quant = 0;
-	else
-	_encodeCodecCtx->mpeg_quant = 1;
+
 	
 	if (_codecName == "h264")
 	_encodeCodecCtx->idct_algo = FF_IDCT_H264;
 	else
-	_encodeCodecCtx->idct_algo = FF_IDCT_LIBMPEG2MMX;
+	_encodeCodecCtx->idct_algo = FF_IDCT_AUTO;
 	
 	_encodeCodecCtx->mb_decision = FF_MB_DECISION_BITS;
+	//TODO ADD VLC MATRIX
+	_encodeCodecCtx->intra_matrix = NULL;
+	_encodeCodecCtx->inter_matrix = NULL;
+	_encodeCodecCtx->workaround_bugs = FF_BUG_AUTODETECT;
 
-	avcodec_open(_encodeCodecCtx, _Codec);
 	
 	
-//intialize SWSEncodeContext
-//GET FROM YUV FORMAT TO RGB
-SwsEncodeContext = sws_getContext(_encodeCodecCtx->width,_encodeCodecCtx->height,PIX_FMT_RGB24,
- 							_encodeCodecCtx->width,_encodeCodecCtx->height,_encodeCodecCtx->pix_fmt,0,NULL,NULL,NULL);
+//	#define X264_PART_I4X4 0x001  /* Analyse i4x4 */
+//#define X264_PART_I8X8 0x002  /* Analyse i8x8 (requires 8x8 transform) */
+//#define X264_PART_P8X8 0x010  /* Analyse p16x8, p8x16 and p8x8 */
+//#define X264_PART_P4X4 0x020  /* Analyse p8x4, p4x8, p4x4 */
+//#define X264_PART_B8X8 0x100  /* Analyse b16x8, b8x16 and b8x8 */
+//	_encodeCodecCtx->partitions = 
+
+	if(avcodec_open (_encodeCodecCtx, _Codec) < 0)
+		ptracesfl("CANNOT OPEN ENCODE CODEC",MT_FATAL,1,true);
 	
-YUVBufferSize = avpicture_get_size(_encodeCodecCtx->pix_fmt,_encodeCodecCtx->width,_encodeCodecCtx->height);
+
+
 }
-
 void VideoCodec::initDecodeContext()
 {
 
 	//initialize basic encoding context
 	_decodeCodecCtx = avcodec_alloc_context();
 	
+	_decodeCodecCtx->pix_fmt = PIX_FMT_YUV420P;
+	_decodeCodecCtx->max_b_frames = MAX_B_FRAMES;
 	//TODO ALLOCATE MORE MEM???
 	//codec_tag
 	if(_Codec->capabilities&CODEC_CAP_TRUNCATED)
 	  _decodeCodecCtx->flags|= CODEC_FLAG_TRUNCATED;
 
-	if(avcodec_open (_decodeCodecCtx, _Codec) < 0)
-		ptracesfl("CANNOT OPEN DECODE CODEC",MT_FATAL,1,true);
+	//if(avcodec_open (_decodeCodecCtx, _Codec) < 0)
+	//	ptracesfl("CANNOT OPEN DECODE CODEC",MT_FATAL,1,true);
 	
 	//intialize SWSdecodeContext
-	//GET FROM YUV FORMAT TO RGB
-	 SwsDecodeContext = sws_getContext(_encodeCodecCtx->width,_encodeCodecCtx->height,_encodeCodecCtx->pix_fmt,
-	 							_encodeCodecCtx->width,_encodeCodecCtx->height,PIX_FMT_RGB24,0,NULL,NULL,NULL);
-		
-	RGBBufferSize = avpicture_get_size(_encodeCodecCtx->pix_fmt,_encodeCodecCtx->width,_encodeCodecCtx->height);
+
 		
 }
 
@@ -270,7 +233,7 @@ void VideoCodec::quitDecodeContext()
 {
 	avcodec_close(_decodeCodecCtx);
 	av_free(_decodeCodecCtx);
-	sws_freeContext(SwsDecodeContext);
+	delete decodeSWS;
 }
 
 void VideoCodec::quitEncodeContext()
@@ -278,16 +241,9 @@ void VideoCodec::quitEncodeContext()
 	//initialize basic encoding context
 	avcodec_close(_encodeCodecCtx);
 	av_free(_encodeCodecCtx);
-	sws_freeContext(SwsEncodeContext);
+	delete encodeSWS;
 }
 
-
-
-VideoCodec::~VideoCodec() {
-	delete _videoDesc;
-	_videoDesc = NULL;
-
-}
 VideoCodec::VideoCodec(char* codec){
 	
 	this->_codecName = codec;
@@ -306,7 +262,8 @@ VideoCodec::VideoCodec(){
 
 }
 
-
+ VideoCodec::~VideoCodec()
+ {}
 /*
  * 
  * 
