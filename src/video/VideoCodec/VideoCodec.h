@@ -102,6 +102,9 @@ private:
  	* */
     void quitDecodeContext();
 
+	/**
+ 	* Instance of the VideoCodecDescriptor class
+ 	* */
 	VideoCodecDescriptor *_videoDesc;
 	/**
      * Libavcodec Codec type

@@ -208,9 +208,10 @@ void VideoCodec::initDecodeContext()
 {
 
 	//initialize basic encoding context
-	_decodeCodecCtx = avcodec_alloc_context();
+	_decodeCodecCtx = _videoDesc->getCodecContext(_Codec);
 	
 	_decodeCodecCtx->pix_fmt = PIX_FMT_YUV420P;
+	
 	_decodeCodecCtx->max_b_frames = MAX_B_FRAMES;
 	//TODO ALLOCATE MORE MEM???
 	//codec_tag
