@@ -1613,6 +1613,7 @@ SIPVoIPLink::SIPCallAck(eXosip_event_t *event)
 
   SIPCall* call = findSIPCallWithCidDid(event->cid, event->did);
   if (!call) { return; }
+
   if (!call->isAudioStarted()) {
     if (Manager::instance().isCurrentCall(call->getCallId())) {
       _debug("* SIP Info: Starting AudioRTP when ack\n");
@@ -1626,12 +1627,14 @@ SIPVoIPLink::SIPCallAck(eXosip_event_t *event)
   }
 
   //if (!call->isVideoStarted()) {  // TODO: ...
-    if ( _videortp.createNewVideoSession(call,false) ==0) {
-      _debug("RTP VIDEO CREE!");
-      call->setVideoStart(true);
+    if (Manager::instance().isCurrentCall(call->getCallId())) {
+      if ( _videortp.createNewVideoSession(call,false) ==0) {
+        _debug("RTP VIDEO CREE!");
+        call->setVideoStart(true);
+      }
+      else
+        _debug("IMPOSSIBLE CREE RTP VIDEO!");
     }
-    else
-      _debug("IMPOSSIBLE CREE RTP VIDEO!");
   //}
 }
 

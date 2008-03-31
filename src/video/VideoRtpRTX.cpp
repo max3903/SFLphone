@@ -239,9 +239,13 @@ void VideoRtpRTX::sendSession(int timestamp)
   // Encode it
   //encodeCodec->videoEncode((uint8_t*)data_from_wc,(uint8_t*)data_to_send,sizeV4L);
 
+  //Thread::sleep(2);
+
   // Send it
-  Thread::sleep(2);
-  session->putData(timestamp, data_to_send, sizeV4L);
+  if (!_sym)
+    videoSessionSend->putData(timestamp, data_to_send, sizeV4L);
+  else
+    session->putData(timestamp, data_to_send, sizeV4L);
 
   } catch(...) {
     _debugException("! ARTP: video sending failed");
@@ -263,7 +267,10 @@ void VideoRtpRTX::receiveSession()
     const ost::AppDataUnit* adu = NULL;
 
     // Lit les donnes recues
-    adu = videoSessionReceive->getData(videoSessionReceive->getFirstTimestamp());
+    if (!_sym)
+      adu = videoSessionReceive->getData(videoSessionReceive->getFirstTimestamp());
+    else
+      adu = session->getData(session->getFirstTimestamp());
 
     if (adu == NULL) {
       //_debug("No RTP video stream\n");
@@ -276,13 +283,15 @@ void VideoRtpRTX::receiveSession()
     //int payload = adu->getType();
 
     // Decode it
-    decodeCodec->videoDecode(data_from_peer,data_to_display,size);  //TODO: Verifier si c'est le bon size...
+    //decodeCodec->videoDecode(data_from_peer,data_to_display,size);  //TODO: Verifier si c'est le bon size...
 
     // Envoyer dans le input du mixer local! // TODO: a verifier
     //vidCall->getLocalIntputStreams()->fetchVideoStream()->putData(data,size,timestamp);
     
     // Prend les donnes de la sortie du mixer correspondant TODO: A MODIFIER NON FONCTIONNEL!!!!!!!!!
     //vidCall->getLocalVideoOutputStream()->fetchData((char*)sendDataEncoded);
+
+    //cout << "Data: " << data_from_peer << " size: " << size << endl;
 
     delete adu; adu = NULL; // TODO: ouain ?
   } catch(...) {
