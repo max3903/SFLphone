@@ -98,7 +98,7 @@ void ConfigSet::init_enumerateImagesFormats(int fd){
 		fourCC[3]= (FrameFormat->pixelformat >> 24) & 0xFF;
 				
 		ptracesfl("\tCamera Supported format: ", MT_INFO, CONFIGSET_TRACE, false);
-		ptracesfl(fourCC, MT_NONE, CONFIGSET_TRACE);
+		ptracesfl(fourCC, MT_NONE, CONFIGSET_TRACE, false);
 		Format* tmp= getFormat(fourCC, (char*)FrameFormat->description, fd, FrameFormat->pixelformat );
 		
 		if(tmp != NULL){
