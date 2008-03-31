@@ -1015,7 +1015,7 @@ SIPVoIPLink::subscribePresenceForContact(ContactEntry* contactEntry)
 	// Send subscription
 	eXosip_lock();
 	i = eXosip_subscribe_send_initial_request(subscription);
-	if(i!=0) _debug("Sending of subscription tp %s failed\n", to.str().c_str());
+	if(i!=0) _debug("Sending of subscription to %s failed\n", to.str().c_str());
 	eXosip_unlock();
 }
 

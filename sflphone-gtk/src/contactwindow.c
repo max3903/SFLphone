@@ -32,6 +32,7 @@
  * Defines the column of the tree model for each renderer of a row
  */
 enum {
+	CONTACT_WINDOW_TYPE,						// String to know the type of the current row (account, contact or entry)
 	CONTACT_WINDOW_ID,							// ID of the account, the contact or the entry
 	CONTACT_WINDOW_CALL_CONSOLE_ACTIVE,			// Toggle renderer active
 	CONTACT_WINDOW_CALL_CONSOLE_INCONSISTENT,	// Toggle renderer inconsistent
@@ -46,10 +47,16 @@ enum {
 #define CONTACT_WINDOW_CONTACT_ICON		ICONS_DIR "/ring.svg"
 #define CONTACT_WINDOW_ENTRY_ICON		ICONS_DIR "/current.svg"
 
+#define TYPE_ACCOUNT	0
+#define TYPE_CONTACT	1
+#define TYPE_ENTRY		2
+
 GtkWidget* contactTreeView;
 GtkTreeStore* contactTreeStore;
 
-
+GtkWidget* accountMenu;
+GtkWidget* contactMenu;
+GtkWidget* entryMenu;
 
 /**
  * Fills the treelist with contacts and entries grouped by accounts
@@ -71,6 +78,7 @@ contact_window_fill_contact_list()
 			// Append the account in the list
 			gtk_tree_store_append(contactTreeStore, &accountIter, NULL);
 			gtk_tree_store_set(contactTreeStore, &accountIter,
+					CONTACT_WINDOW_TYPE, TYPE_ACCOUNT,
 					CONTACT_WINDOW_ID, account->accountID,
 					CONTACT_WINDOW_CALL_CONSOLE_ACTIVE, TRUE,
 					CONTACT_WINDOW_CALL_CONSOLE_INCONSISTENT, TRUE,		// Should be a function to pass all contacts if all selected or not
@@ -90,6 +98,7 @@ contact_window_fill_contact_list()
 				sprintf(fullName, "%s %s", contact->_firstName, contact->_lastName);
 				gtk_tree_store_append(contactTreeStore, &contactIter, &accountIter);
 				gtk_tree_store_set(contactTreeStore, &contactIter,
+						CONTACT_WINDOW_TYPE, TYPE_CONTACT,
 						CONTACT_WINDOW_ID, contact->_contactID,
 						CONTACT_WINDOW_CALL_CONSOLE_ACTIVE, TRUE,
 						CONTACT_WINDOW_CALL_CONSOLE_INCONSISTENT, TRUE,		// Should be a function to pass all contacts if all selected or not
@@ -105,6 +114,7 @@ contact_window_fill_contact_list()
 					// Append the contact entry in the list
 					gtk_tree_store_append(contactTreeStore, &contactEntryIter, &contactIter);
 					gtk_tree_store_set(contactTreeStore, &contactEntryIter,
+							CONTACT_WINDOW_TYPE, TYPE_ENTRY,
 							CONTACT_WINDOW_ID, entry->_entryID,					// The contact string is also used as a unique ID
 							CONTACT_WINDOW_CALL_CONSOLE_ACTIVE, entry->_isShownInConsole,
 							CONTACT_WINDOW_CALL_CONSOLE_INCONSISTENT, FALSE,	// Never inconsistent because at bottom level of tree
@@ -129,6 +139,109 @@ contact_window_clear_contact_list()
 {
 	gtk_tree_store_clear(contactTreeStore);
 	contactTreeStore = NULL;
+}
+
+static gboolean button_press_event(GtkWidget* treeView, GdkEventButton* event, GtkWidget* nothing)
+{
+	GtkTreeSelection* selection;
+	GtkTreePath* path;
+	GtkTreeModel* model;
+	GtkTreeIter iter;
+	gint type;
+
+	if((event->button == 3) && (event->type == GDK_BUTTON_PRESS))
+	{
+		// Get the path of current selected
+		selection = gtk_tree_view_get_selection(GTK_TREE_VIEW(treeView));
+		model = gtk_tree_view_get_model(GTK_TREE_VIEW(treeView));
+		if(gtk_tree_view_get_path_at_pos(GTK_TREE_VIEW(treeView), event->x, event->y, &path, NULL, NULL, NULL))
+		{
+			if(gtk_tree_model_get_iter(model, &iter, path))
+			{
+				// Get the type of the row to know which popup menu to activate
+				gtk_tree_model_get(model, &iter, CONTACT_WINDOW_TYPE, &type, -1);
+				gtk_tree_path_free(path);
+
+				if(type == TYPE_ACCOUNT)
+				{
+					gtk_menu_popup(GTK_MENU(accountMenu), NULL, NULL, NULL, NULL, event->button, event->time);
+				}
+				if(type == TYPE_CONTACT)
+				{
+					gtk_menu_popup(GTK_MENU(contactMenu), NULL, NULL, NULL, NULL, event->button, event->time);
+				}
+				if(type == TYPE_ENTRY)
+				{
+					gtk_menu_popup(GTK_MENU(entryMenu), NULL, NULL, NULL, NULL, event->button, event->time);
+				}
+				// Do not return as we also want selection of row
+			}
+		}
+	}
+	return FALSE;
+}
+
+static void new_contact_activated(GtkMenuItem* item, GtkTreeView* treeRow)
+{
+	// TODO
+	g_print("New contact activated");
+}
+
+static void edit_contact_activated(GtkMenuItem* item, GtkTreeView* treeRow)
+{
+	// TODO
+	g_print("Edit contact activated");
+}
+
+static void new_entry_activated(GtkMenuItem* item, GtkTreeView* treeRow)
+{
+	// TODO
+	g_print("New entry activated");
+}
+
+static void edit_entry_activated(GtkMenuItem* item, GtkTreeView* treeRow)
+{
+	// TODO
+	g_print("Edit entry activated");
+}
+
+/**
+ * 
+ */
+static void
+contact_window_create_popup_menus()
+{
+	// Create menu items
+	GtkWidget* newContactMenuItem = gtk_menu_item_new_with_label("New contact");
+	g_signal_connect(G_OBJECT(newContactMenuItem), "activate", G_CALLBACK(new_contact_activated), contactTreeView);
+	
+	GtkWidget* editContactMenuItem = gtk_menu_item_new_with_label("Edit contact");
+	g_signal_connect(G_OBJECT(editContactMenuItem), "activate", G_CALLBACK(edit_contact_activated), contactTreeView);
+
+	GtkWidget* newEntryMenuItem = gtk_menu_item_new_with_label("New entry");
+	g_signal_connect(G_OBJECT(newEntryMenuItem), "activate", G_CALLBACK(new_entry_activated), contactTreeView);
+
+	GtkWidget* editEntryMenuItem = gtk_menu_item_new_with_label("Edit entry");
+	g_signal_connect(G_OBJECT(editEntryMenuItem), "activate", G_CALLBACK(edit_entry_activated), contactTreeView);
+
+	// Create different menus and append items
+	accountMenu = gtk_menu_new();
+	gtk_menu_shell_append(GTK_MENU_SHELL(accountMenu), newContactMenuItem);
+	gtk_menu_attach_to_widget(GTK_MENU(accountMenu), contactTreeView, NULL);
+	gtk_widget_show_all(accountMenu);
+
+	contactMenu = gtk_menu_new();
+	gtk_menu_shell_append(GTK_MENU_SHELL(contactMenu), editContactMenuItem);
+	gtk_menu_shell_append(GTK_MENU_SHELL(contactMenu), newEntryMenuItem);
+	gtk_menu_attach_to_widget(GTK_MENU(contactMenu), contactTreeView, NULL);
+	gtk_widget_show_all(contactMenu);
+
+	entryMenu = gtk_menu_new();
+	gtk_menu_shell_append(GTK_MENU_SHELL(entryMenu), editEntryMenuItem);
+	gtk_menu_attach_to_widget(GTK_MENU(entryMenu), contactTreeView, NULL);
+	gtk_widget_show_all(entryMenu);
+
+	g_signal_connect(G_OBJECT(contactTreeView), "button-press-event", G_CALLBACK(button_press_event), NULL); //accountMenu);
 }
 
 /**
@@ -162,6 +275,7 @@ show_contact_window()
 	
 	// Create tree store with contact entries regrouped by accounts and contacts
 	contactTreeStore = gtk_tree_store_new(COUNT_CONTACT_WINDOW,
+			G_TYPE_INT,		// Type of the current row from define (TYPE_ACCOUNT, TYPE_CONTACT, TYPE_ENTRY)
 			G_TYPE_STRING,	// ID of the account, contact or entry not shown in tree view
 			G_TYPE_BOOLEAN,	// Shown in call console active property
 			G_TYPE_BOOLEAN,	// Shown in call console inconsistent property
@@ -196,7 +310,10 @@ show_contact_window()
 	// Append column in tree view
 	gtk_tree_view_append_column(GTK_TREE_VIEW(contactTreeView), treeViewColumn);
 	
-	//gtk_box_pack_start(GTK_BOX(scrolledWindow), contactTreeView, TRUE, TRUE, 0);
+	// Create popup menus for account, contact and entry rows
+	contact_window_create_popup_menus();
+	
+	// Add view in scrolled window and show
 	gtk_container_add(GTK_CONTAINER(scrolledWindow), contactTreeView);
 	gtk_container_set_border_width(GTK_CONTAINER(contactTreeView), 10);
 	gtk_widget_show(contactTreeView);
