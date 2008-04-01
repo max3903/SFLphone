@@ -36,7 +36,7 @@ public:
      * \param data a pointer to where the data must be copied
      * \return the size of the fetched data 
      */
-    virtual int fetchData(char* data);
+    virtual int fetchData(unsigned char* data, int &w, int &h);
 
     //! Access the timing information
     /*!
@@ -51,20 +51,36 @@ public:
      * \param data a pointer to a data buffer
      * \param size the size of the buffer
      */
-    virtual void putData(char * data, int size, int leTemps);
+    virtual void putData(char * data, int size, int leTemps, int w, int h);
 
-    void putTimeInfo(TimeInfo* infos); // TODO: virtual??
-
-    int getSizeBuffer(); // TODO: virtual???
+	//! Method to get the current size of the buffer
+	/*!
+	 * \return the size of the current internal buffer
+	 */	 
+    virtual int getSizeBuffer();
 
 private:
 	
-	//! Simultanious access protection semaphore 
-    sem_t semaphore;
+	//! Fetch protection 
+    sem_t sem_fetchData;
+    
+    //! Put protection
+    sem_t sem_putData;
     
     //! Internal data buffer
     char * buffer;
+    
+    //! Timestamp info
     TimeInfo* infoTemps;
+    
+    //! Size of data
     int sizeBuffer;
+    
+    //! Width of the image contained in the data
+    int width;
+    
+    //! Height of the image contained in the data
+    int height;
+    
 };
 #endif //VIDEOINPUT_H

@@ -47,7 +47,7 @@ private:
 
     // Declaration des conteneurs de datas
     int16* dataAudio;
-    char* dataVideo;
+    unsigned char* dataVideo;
 
     // Grandeur des buffers de data
     int sizeBufferAudio;

@@ -13,23 +13,26 @@ void NoSynch::run()
     sizeBufferAudio=inputStreams->fetchAudioStream()->getSizeBuffer();
     
 	// Getting and dispatching audio data
+	dataAudio = new short[sizeBufferAudio];
 	if( sizeBufferAudio != 0 && audioInput->fetchData(dataAudio) != -1 ){
-		dataAudio = new short[sizeBufferAudio];
 		bufferAudio->putData((void*)dataAudio,sizeBufferAudio);
-		delete dataAudio;
-		dataAudio= NULL;
 	}
+	
+	delete dataAudio;
+	dataAudio= NULL;
 	
 	// Getting video data size
 	sizeBufferVideo=inputStreams->fetchVideoStream()->getSizeBuffer();
 	
 	// Getting and dispatching video data
-	if( sizeBufferVideo != 0 && videoInput->fetchData(dataVideo) != -1){
-		dataVideo = new char[sizeBufferVideo];
+	int w= 0, h= 0;
+	dataVideo = new unsigned char[sizeBufferVideo];	
+	if( sizeBufferVideo != 0 && videoInput->fetchData(dataVideo, w, h) != -1){
 		bufferVideo->putData((void*)dataVideo,sizeBufferVideo);
-		delete dataVideo;
-		dataVideo= NULL;
 	}
+	
+	delete dataVideo;
+	dataVideo= NULL;
 	    
 	usleep(10);
     

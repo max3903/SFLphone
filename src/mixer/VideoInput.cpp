@@ -5,10 +5,37 @@
 #include <string.h>
 #include "../tracePrintSFL.h"
 
-void VideoInput::putData(char * data, int size, int leTemps)
-{ 
-  if (data!=NULL && size>0)
+VideoInput::VideoInput(){
+	
+  sem_init(&sem_fetchData,0,0);
+  sem_init(&sem_putData,0,1);
+  buffer= NULL;
+  infoTemps= NULL;
+  sizeBuffer=0;
+  width= 0;
+  height= 0;
+  
+}
+
+VideoInput::~VideoInput(){
+	
+  if (buffer!=NULL){
+    delete buffer;
+    buffer=NULL;
+  }
+  if (infoTemps!=NULL){
+    delete infoTemps;
+    infoTemps=NULL;
+  }
+  
+}
+
+void VideoInput::putData(char * data, int size, int leTemps, int w, int h){
+	 
+  if (data!=NULL && size>0 && w!= 0 && h!=0)
   {
+  	ptracesfl("VideoInput - putData(): Watting for data to be fetched",MT_INFO, VIDEOINPUT_TRACE);
+  	sem_wait(&sem_putData);
 
     if( buffer != NULL )
     	delete buffer;
@@ -19,23 +46,33 @@ void VideoInput::putData(char * data, int size, int leTemps)
     infoTemps = new TimeInfo(leTemps);
     
     memcpy(buffer, data,size);
+    
     sizeBuffer=size;
+    width= w;
+    height= h;
+    
     ptracesfl("VideoInput - putData(): Sending signal new data",MT_INFO, VIDEOINPUT_TRACE);
-    sem_post(&semaphore);
+    sem_post(&sem_fetchData);
   }
   else
     ptracesfl("VideoInput - putData(): Parameter error",MT_ERROR, VIDEOINPUT_TRACE);
 }
 
-int VideoInput::fetchData(char* data)
-{ 
+int VideoInput::fetchData(unsigned char* data, int &w, int &h){
+	 
   if (buffer!=NULL && data!=NULL)
   {
     
     ptracesfl("VideoInput - fetchData(): Watting for data",MT_INFO, VIDEOINPUT_TRACE);
-    sem_wait(&semaphore);
+    sem_wait(&sem_fetchData);
     ptracesfl("VideoInput - recieved new data",MT_INFO, VIDEOINPUT_TRACE);
     memcpy(data, buffer,sizeBuffer);
+    
+    w= this->width;
+    w= this->height;
+    
+    sem_post(&sem_putData);
+    ptracesfl("VideoInput - fetchData(): Data to be fetched",MT_INFO, VIDEOINPUT_TRACE);
     return this->sizeBuffer;
   }
   else
@@ -50,50 +87,10 @@ int VideoInput::fetchData(char* data)
   
 }
 
-int VideoInput::getSizeBuffer()
-{
+int VideoInput::getSizeBuffer(){
  	return this->sizeBuffer;
 }
 
-VideoInput::VideoInput()
-{
-  sem_init(&semaphore,0,0);
-  buffer= NULL;
-  infoTemps= NULL;
-  sizeBuffer=0;
-}
-
-VideoInput::~VideoInput()
-{
-  if (buffer!=NULL){
-    delete buffer;
-    buffer=NULL;
-  }
-  if (infoTemps!=NULL){
-    delete infoTemps;
-    infoTemps=NULL;
-  }
-  
-}
-
-void VideoInput::putTimeInfo(TimeInfo* infos)
-{
-  ptracesfl("VideoInput - putTimeInfo(): Demande semaphore",MT_INFO,true);
-  sem_wait(&semaphore);
-  ptracesfl("VideoInput - putTimeInfo(): Zone Critique",MT_INFO,true);
-  infoTemps = infos;
-  sem_post(&semaphore);
-  ptracesfl("VideoInput - putTimeInfo(): Sortie Zone Critique",MT_INFO,true);
-}
-
-TimeInfo VideoInput::fetchTimeInfo()
-{ 
-  TimeInfo* leTemps;
-  ptracesfl("VideoInput - fetchTimeInfo(): Demande semaphore",MT_INFO,true);
-  sem_wait(&semaphore);
-  ptracesfl("VideoInput - fetchTimeInfo(): Zone Critique",MT_INFO,true);
-  leTemps = infoTemps;
-  sem_post(&semaphore);
-  ptracesfl("VideoInput - fetchTimeInfo(): Sortie Zone Critique",MT_INFO,true);
-  return (*leTemps);
+TimeInfo VideoInput::fetchTimeInfo(){ 
+	return *this->infoTemps;
 }
