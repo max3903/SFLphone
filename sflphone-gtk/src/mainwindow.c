@@ -312,7 +312,7 @@ gboolean main_window_glWidget( gboolean show )
 					  if(show && !showGlWidget)
 					  {
 					  	g_print("Enabling visualization pannel\n");
-					    drawing_area = createGLWidget();
+					    drawing_area = createGLWidget(FALSE);
 					    gtk_box_pack_start (GTK_BOX (subvbox), drawing_area, TRUE /*expand*/, TRUE /*fill*/, 0 /*padding*/);
 					    gtk_box_reorder_child(GTK_BOX (subvbox), drawing_area, 0);
 					    gtk_widget_show_all (drawing_area);

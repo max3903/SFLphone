@@ -40,12 +40,16 @@ gboolean draw(GtkWidget* widget, gpointer data)
 	gluOrtho2D(0.0, widget->allocation.width, 0.0, widget->allocation.height );
 	
 	// Draw Recevied Images
-	//drawRemote(widget, data, glcontext, gldrawable);
-	
-	// ReLoading Initial drawing info
-	//glMatrixMode(GL_PROJECTION);
-	//glLoadIdentity();
-	//gluOrtho2D(0.0, widget->allocation.width, 0.0, widget->allocation.height );
+	if( prefPannel != TRUE ){
+		
+		drawRemote(widget, data, glcontext, gldrawable);
+		
+		// ReLoading Initial drawing info
+		glMatrixMode(GL_PROJECTION);
+		glLoadIdentity();
+		gluOrtho2D(0.0, widget->allocation.width, 0.0, widget->allocation.height );
+		
+	}
 	
 	// Draw Local Image	
 	drawLocal(widget, data, glcontext, gldrawable);
@@ -103,8 +107,10 @@ void redraw(GtkWidget* widget)
 	gtk_widget_queue_draw(GTK_WIDGET(widget));
 }
 
-GtkWidget* createGLWidget()
+GtkWidget* createGLWidget( gboolean pref )
 {	
+	
+	 prefPannel= pref;
 	
 	 GtkWidget* widget;
 	
@@ -160,43 +166,57 @@ gboolean drawLocal(GtkWidget* widget, gpointer data, GdkGLContext *glContext, Gd
 		return FALSE;
 	}
 	
-	/*if( currentGLWidth != localBuff->width + 10 || currentGLHeight != localBuff->height + 10 ){
-		currentGLWidth= localBuff->width + 10;
-		currentGLHeight= localBuff->height + 10;
-		gtk_widget_set_size_request (widget, currentGLWidth, currentGLHeight);
-		return FALSE;
-	}*/
+	float zoomFactor= 0.0, zoomX= 1.0, zoomY= -1.0, x= 0.0, y= 0.0;
 	
-	// Calculating zoom Factor for local display
-	float zoomFactor= (float)(localBuff->width*localBuff->height)/(float)(widget->allocation.height*widget->allocation.width);
-	printf("Zoom factor: %f\n", zoomFactor);
+	if( prefPannel == TRUE ){
+		
+		if( currentGLWidth != localBuff->width + 10 || currentGLHeight != localBuff->height + 10 ){
+			currentGLWidth= localBuff->width + 10;
+			currentGLHeight= localBuff->height + 10;
+			gtk_widget_set_size_request (widget, currentGLWidth, currentGLHeight);
+			return FALSE;
+		}
+		
+		x= ( widget->allocation.width - localBuff->width)/2.0;
+		
+		if( widget->allocation.height == localBuff->height  )
+			y= ( widget->allocation.height - localBuff->height)/2.0;
+		else
+			y= ( widget->allocation.height - localBuff->height)/2.0  + (float)localBuff->height;
 	
-	float zoomX= 1.0;
-	float zoomY= -1.0;
+	}else{
 	
-	if( zoomFactor > LocalZoom ){
-		zoomX= zoomX * LocalZoom/zoomFactor;
-		zoomY= zoomY * LocalZoom/zoomFactor;
-	}
-	else{
-		zoomX= zoomX * zoomFactor/LocalZoom;
-		zoomY= zoomY * zoomFactor/LocalZoom;
-	}
+		// Calculating zoom Factor for local display
+		zoomFactor= (float)(localBuff->width*localBuff->height)/(float)(widget->allocation.height*widget->allocation.width);
+		
+		if( zoomFactor > LocalZoom ){
+			zoomX= zoomX * LocalZoom/zoomFactor;
+			zoomY= zoomY * LocalZoom/zoomFactor;
+		}
+		else{
+			zoomX= zoomX * LocalZoom/zoomFactor;
+			zoomY= zoomY * LocalZoom/zoomFactor;
+		}
 			
-	// Calculating raster position (Drawing position)
-	float x= widget->allocation.width/2;//widget->allocation.width - ((float)localBuff->width * zoomX) - 10;
-	float y= widget->allocation.width/2;//((float)localBuff->height * zoomY)  + 10;
-
+		// Calculating raster position (Drawing position)
+		x= widget->allocation.width - ((float)localBuff->width * zoomX) - 20;
+		y= ((float)localBuff->height * zoomX  ) + 20;
+		
+		printf("localBuff->width: %f\n", (float)localBuff->width);
+		printf("localBuff->height: %f\n", (float)localBuff->height);
+		printf("zoomFactor: %f\n", zoomFactor);
+		printf("zoomX: %f\n", zoomX);
+		printf("zoomY: %f\n", zoomY);
+		printf("x: %f\n", x);
+		printf("y: %f\n", y);
+	
+	}
+	
 	// Draw fetched Data
 	glClear(GL_COLOR_BUFFER_BIT);
 	glPixelStorei(GL_PACK_ALIGNMENT, 8);	
 	glRasterPos2f(x,y);
-
-	printf("Zoom factor X: %f\n", zoomX);
-	printf("Zoom factor Y: %f\n", zoomY);
-		
 	glPixelZoom( zoomX, zoomY );
-	
 	glDrawPixels(localBuff->width, localBuff->height, GL_RGB, GL_UNSIGNED_BYTE, localBuff->data );
 		
 	return TRUE;
@@ -215,9 +235,9 @@ gboolean drawRemote(GtkWidget* widget, gpointer data, GdkGLContext *glContext, G
 		return FALSE;
 	}
 	
-	if( currentGLWidth != localBuff->width + 10 || currentGLHeight != localBuff->height + 10 ){
-		currentGLWidth= localBuff->width + 10;
-		currentGLHeight= localBuff->height + 10;
+	if( currentGLWidth != remoteBuff->width + 10 || currentGLHeight != remoteBuff->height + 10 ){
+		currentGLWidth= remoteBuff->width + 10;
+		currentGLHeight= remoteBuff->height + 10;
 		gtk_widget_set_size_request (widget, currentGLWidth, currentGLHeight);
 		return FALSE;
 	}
@@ -229,7 +249,7 @@ gboolean drawRemote(GtkWidget* widget, gpointer data, GdkGLContext *glContext, G
 	// Calculating raster position (Drawing position), centers the image
 	float x= ( widget->allocation.width - remoteBuff->width)/2.0;
 	float y= 0.0;
-	if( widget->allocation.height == localBuff->height  )
+	if( widget->allocation.height == remoteBuff->height  )
 		y= ( widget->allocation.height - remoteBuff->height)/2.0;
 	else
 		y= ( widget->allocation.height - remoteBuff->height)/2.0  + (float)remoteBuff->height;

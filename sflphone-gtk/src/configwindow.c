@@ -2006,7 +2006,7 @@ create_webcam_tab ()
 	gtk_widget_show(resolutionComboBox);
 	
 	// OpenGL widget to show the local video rendering
-    drawingSpace= createGLWidget();
+    drawingSpace= createGLWidget( TRUE );
     gtk_box_pack_start(GTK_BOX(settingsHBox), drawingSpace, TRUE, TRUE, 0);
     gtk_widget_show(drawingSpace);
 	
