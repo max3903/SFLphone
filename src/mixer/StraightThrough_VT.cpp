@@ -9,13 +9,15 @@ void StraightThrough_VT::run()
 { 
   OkToKill=false;
   while(Active)
-  {
-    ptracesfl("StraightThrough_VT - run(): Tente de copier des donnees videos",MT_INFO,true); 
+  { 
     sizeBuffer = inputBuffer->getSizeBuffer();
-    data = (void*) malloc(sizeBuffer);
-    inputBuffer->fetchData(data);
-    outputBuffer->putData((char*)data,sizeBuffer);
-    free(data);
+    if( sizeBuffer != 0 ){
+	    data = (void*) malloc(sizeBuffer);
+	    inputBuffer->fetchData(data);
+	    outputBuffer->putData((char*)data,sizeBuffer);
+	    free(data);
+    }
+    usleep(10);
   }
   ptracesfl("StraightThrough_VT - run(): Le thread travail plus :(",MT_INFO,true);
   OkToKill=true;

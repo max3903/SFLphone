@@ -9,31 +9,30 @@ void NoSynch::run()
   OkToKill = false;
   while(Active)
   {
-    ptracesfl("NoSynch - run(): Tente de copier des donnees",MT_INFO,true); 
-    //Recuperation des Stream Audio et Video
-    audioInput = inputStreams->fetchAudioStream();
-    videoInput = inputStreams->fetchVideoStream();
-
-    //Recuperation des grandeurs pour les datas audio/video
-    sizeBufferAudio=audioInput->getSizeBuffer();
-    sizeBufferVideo=videoInput->getSizeBuffer();
-
-    //Creation des datas audio/video
-    dataAudio = new int16[sizeBufferAudio];
-    dataVideo = new char[sizeBufferVideo];
-
-    // Recuperation des donnes Audio et Video
-    audioInput->fetchData(dataAudio);
-    videoInput->fetchData(dataVideo);
-
-    //Depot dans les buffers internes audio/video
-    if (!bufferAudio->putData((void*)dataAudio,sizeBufferAudio))
-      ;//"Impossible de déposer les donnes dans le buffer audio interne"
-    if (!bufferVideo->putData((void*)dataVideo,sizeBufferVideo))
-      ;//"Impossible de déposer les donnes dans le buffer audio interne"
-
-    delete dataAudio;
-    delete dataVideo;
+    // Getting audio data size
+    sizeBufferAudio=inputStreams->fetchAudioStream()->getSizeBuffer();
+    
+	// Getting and dispatching audio data
+	if( sizeBufferAudio != 0 && audioInput->fetchData(dataAudio) != -1 ){
+		dataAudio = new short[sizeBufferAudio];
+		bufferAudio->putData((void*)dataAudio,sizeBufferAudio);
+		delete dataAudio;
+		dataAudio= NULL;
+	}
+	
+	// Getting video data size
+	sizeBufferVideo=inputStreams->fetchVideoStream()->getSizeBuffer();
+	
+	// Getting and dispatching video data
+	if( sizeBufferVideo != 0 && videoInput->fetchData(dataVideo) != -1){
+		dataVideo = new char[sizeBufferVideo];
+		bufferVideo->putData((void*)dataVideo,sizeBufferVideo);
+		delete dataVideo;
+		dataVideo= NULL;
+	}
+	    
+	usleep(10);
+    
   }
   ptracesfl("NoSynch - run(): Le thread travail plus :(",MT_INFO,true);
   OkToKill=true;

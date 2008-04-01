@@ -8,12 +8,14 @@ void StraightThrough_AT::run()
   OkToKill=false;
   while(Active)
   {
-    ptracesfl("StraightThrough_AT - run(): Tente de copier des donnees audio",MT_INFO,true); 
     sizeBuffer = inputBuffer->getSizeBuffer();
-    data = (void*) malloc(sizeBuffer);
-    inputBuffer->fetchData(data);
-    outputBuffer->putData((short*)data,sizeBuffer);
-    free(data);
+    if( sizeBuffer != 0){
+	    data = (void*) malloc(sizeBuffer);
+	    inputBuffer->fetchData(data);
+	    outputBuffer->putData((short*)data,sizeBuffer);
+	    free(data);
+    }
+    usleep(10);
   }
   ptracesfl("StraightThrough_AT - run(): Le thread travail plus :(",MT_INFO,true);
   OkToKill=true;
