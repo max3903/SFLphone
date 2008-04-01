@@ -45,12 +45,12 @@ Call::Call(const CallID& id, Call::CallType type) : _id(id), _type(type),
   vector<InputStreams*> tmpInputs;
   tmpInputs.push_back(_localInputStreams);
   this->_localMixer = new Mixer(Mixer::NOSYNCH_AV_STRAIGHTTHROUGH,tmpInputs,(OutputStream*)(new LocalAudioOuput),(OutputStream*)(new LocalVideoOuput));
-  //this->_localMixer->start();
+  this->_localMixer->start();
   tmpInputs.clear();
 
   tmpInputs.push_back(_remoteStandardInputStreams);  
   this->_remoteMixer = new Mixer(Mixer::NOSYNCH_AV_STRAIGHTTHROUGH,tmpInputs,(OutputStream*)this->_remote_Audio_Output,(OutputStream*)this->_remote_Video_Output);
-  //this->_remoteMixer->start();
+  this->_remoteMixer->start();
   
 }
 
