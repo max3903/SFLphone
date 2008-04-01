@@ -177,13 +177,12 @@ private:
 
     // Le vecteur contenant les flux dentre au mixer // TODO: P-e declarer localement...
     vector<InputStreams*> streamsInput;
-
-    // Le flux dentre au mixer
-    InputStreams* inputFlux;      // TODO: P-e declarer localement...
-
+    
     // Les deux buffer de sortie du mixer
     OutputStream* audioOutput;    // TODO: P-e declarer localement...
     OutputStream* videoOutput;    // TODO: P-e declarer localement...
+    
+    vector<InternalBuffer*> intBuffers;
 
 
 };
