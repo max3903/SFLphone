@@ -253,8 +253,10 @@ AudioRtpRTX::sendSessionFromMic(int timestamp)
   // STEP:
   //   1. get data from mic
   //   2. convert it to int16 - good sample, good rate
-  //   3. encode it
-  //   4. send it
+  //   3. put it on AudioInput for the mixer
+  //   4. get it from AudioOutput (mixed) from the mixer
+  //   5. encode it
+  //   6. send it
   try {
     int16* toSIP = NULL;
 
@@ -289,6 +291,15 @@ AudioRtpRTX::sendSessionFromMic(int timestamp)
       memset(toSIP + nbSample, 0, (nbSamplesMax-nbSample)*sizeof(int16));
       nbSample = nbSamplesMax;
     }
+    
+// TODO : (4.) put data into AudioInput for Mixer 
+	_ca->getRemote_Audio_Input()->putData(toSIP, (nbSamplesMax-nbSample)*sizeof(int16), 0/*TODO : time */);
+	
+	
+// TODO : (5.) get data from AudioOutput (mixed audio) to send over network
+	_ca->getRemote_Audio_Output()->fetchData(toSIP);
+	
+    
     // debug - dump sound in a file
     //_debug("AR: Nb sample: %d int, [0]=%d [1]=%d [2]=%d\n", nbSample, toSIP[0], toSIP[1], toSIP[2]);
     // for the mono: range = 0 to RTP_FRAME2SEND * sizeof(int16)
@@ -296,7 +307,7 @@ AudioRtpRTX::sendSessionFromMic(int timestamp)
     int compSize = _audiocodec->codecEncode(_sendDataEncoded, toSIP, nbSample*sizeof(int16));
     //printf("jusqu'ici tout vas bien\n");
 
-    // encode divise by two
+	// encode divise by two
     // Send encoded audio sample over the network
     if (compSize > nbSamplesMax) { _debug("! ARTP: %d should be %d\n", compSize, nbSamplesMax);}
     if (!_sym) {
@@ -320,8 +331,7 @@ AudioRtpRTX::receiveSessionForSpkr (int& countTime)
 
   if (_ca == 0) { return; }
   try {
-    AudioLayer* audiolayer = Manager::instance().getAudioDriver();
-    if (!audiolayer) { return; }
+    
 
     const ost::AppDataUnit* adu = NULL;
     // Get audio data stream
@@ -362,12 +372,13 @@ AudioRtpRTX::receiveSessionForSpkr (int& countTime)
       int nbInt16 = expandedSize / sizeof(int16);
       //nbInt16 represents the number of samples we just decoded
       if (nbInt16 > max) {
-	_debug("We have decoded an RTP packet larger than expected: %s VS %s. Cropping.\n", nbInt16, max);
-	nbInt16=max;
+        _debug("We have decoded an RTP packet larger than expected: %s VS %s. Cropping.\n", nbInt16, max);
+        nbInt16=max;
       }
 
       SFLDataFormat* toAudioLayer;
       int nbSample = nbInt16;
+
 
       // Do sample rate conversion
       int nb_sample_down = nbSample;
@@ -378,22 +389,32 @@ AudioRtpRTX::receiveSessionForSpkr (int& countTime)
       toAudioLayer = _dataAudioLayer;
 #endif
 
+// TODO : call putData function in AudioInput (for the Mixer) (call.h) AudioInput::putData(short *data, int size, int leTemps);
+	  _ca->getLocal_Audio_Input()->putData(toAudioLayer, nbSample*sizeof(SFLDataFormat), 0/*TODO : time */);
+	  
 
-      audiolayer->playSamples(toAudioLayer, nbSample * sizeof(SFLDataFormat));
-      // Notify (with a beep) an incoming call when there is already a call 
-      countTime += time->getSecond();
-      if (Manager::instance().incomingCallWaiting() > 0) {
-	countTime = countTime % 500; // more often...
-	if (countTime == 0) {
-	  Manager::instance().notificationIncomingCall();
-	}
+//******************************** LocalAudioOutPut ************************************
+      /*AudioLayer* audiolayer = Manager::instance().getAudioDriver();
+      if (!audiolayer) { return; }
+    
+      audiolayer->playSamples(toAudioLayer, nbSample * sizeof(SFLDataFormat));*/
+//*************************************************************************************
+
+      
+        // Notify (with a beep) an incoming call when there is already a call 
+    	countTime += time->getSecond();
+    	if (Manager::instance().incomingCallWaiting() > 0) {
+		  countTime = countTime % 500; // more often...
+		  if (countTime == 0) {
+	  		Manager::instance().notificationIncomingCall();
+		  }
+    	}
+      } else {
+    	countTime += time->getSecond();
       }
-
-    } else {
-      countTime += time->getSecond();
-    }
-
+      
     delete adu; adu = NULL;
+    
   } catch(...) {
     _debugException("! ARTP: receiving failed");
     throw;

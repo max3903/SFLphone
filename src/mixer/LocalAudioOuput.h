@@ -3,6 +3,7 @@
 #ifndef LOCALAUDIOOUPUT_H
 #define LOCALAUDIOOUPUT_H
 #include "AudioOuput.h"
+#include "../audio/audiolayer.h"
 
 //! Local audio ouput
 /*!
@@ -39,6 +40,6 @@ private:
     virtual int fetchData(short *data);
     
     //! Audio Device
-    //AudioLayer* device;
+    AudioLayer* audioLayer;
 };
 #endif //LOCALAUDIOOUPUT_H
