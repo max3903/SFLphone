@@ -3035,7 +3035,6 @@ void* ManagerImpl::localVideCapturepref(void* pdata){
 		if(data != NULL){
 			res= cmdRes->getResolution();
 			manager->putData( _keyHolder.localKey, data , imgSize, res.first, res.second );
-			//manager->putData( _keyHolder.remoteKey, data , imgSize, res.first, res.second );
 			free(data);
 			data= NULL;
 			imgSize= 0;
