@@ -26,16 +26,16 @@ void tracePrintSfl::operator()(const char* Message, int type, int level, bool re
 	
 	switch(type){
 		case MT_ERROR:
-			perror(SOFT_HEADER);
-			perror(HEADER_ERROR);
-			perror(Message);
-			if(ret) perror("\n");
+			printf(SOFT_HEADER);
+			printf(HEADER_ERROR);
+			printf(Message);
+			if(ret) printf("\n");
 			break;
 		case MT_FATAL:
-			perror(SOFT_HEADER);
-			perror(HEADER_FATAL);
-			perror(Message);
-			if(ret) perror("\n");			
+			printf(SOFT_HEADER);
+			printf(HEADER_FATAL);
+			printf(Message);
+			if(ret) printf("\n");			
 			exit(-1);			
 			break;
 		case MT_INFO:
