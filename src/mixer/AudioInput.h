@@ -40,7 +40,7 @@ public:
      * \param data a pointer to a data buffer
      * \param size the size of the buffer
      */
-    virtual void putData(short *data, int size, int leTemps);
+    virtual void putData(short *data, int size, int timeStamp);
 
     //! Access the data contained the the buffer
     /*!
@@ -51,19 +51,27 @@ public:
      */
     virtual int fetchData(short *data);
 
-    void putTimeInfo(TimeInfo* infos); // TODO: virtual???
- 
-    int getSizeBuffer(); // TODO: virtual???
+	//! Method to get the current size of the buffer
+	/*!
+	 * \return the size of the current internal buffer
+	 */	 
+    virtual int getSizeBuffer();
 
 private:
 	
-	//! Simultanious access protection semaphore 
-    sem_t semaphore;
+	//! Fetch protection 
+    sem_t sem_fetchData;
+    
+    //! Put protection
+    sem_t sem_putData;
     
     //! Internal data buffer
-
-    TimeInfo* infoTemps;
     short * buffer;
+    
+    //! TimesStamp info
+    TimeInfo* infoTemps;
+    
+    //! Data size
     int sizeBuffer;
     
 };

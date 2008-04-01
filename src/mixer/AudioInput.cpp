@@ -5,11 +5,34 @@
 #include <string.h>
 #include "../tracePrintSFL.h"
 
+AudioInput::AudioInput(){
+  sem_init(&sem_fetchData,0,0);
+  sem_init(&sem_putData,0,1);
+  buffer= NULL;
+  infoTemps= NULL;
+  sizeBuffer= 0;
+}
 
-void AudioInput::putData(short *data, int size, int leTemps)
+AudioInput::~AudioInput()
+{
+  if (buffer != NULL){
+    delete buffer;
+    buffer=NULL;
+  }
+  if (infoTemps!=NULL){
+    delete infoTemps;
+    infoTemps=NULL;
+  }
+
+}
+
+void AudioInput::putData(short *data, int size, int timeStamp)
 {
   if (data!=NULL && size>0)
   {
+  	ptracesfl("AudioInput - putData(): Watting for data to be fetched",MT_INFO, AUDIOINPUT_TRACE);
+  	sem_wait(&sem_putData);
+
   	if( this->buffer != NULL )
   		delete this->buffer;
     buffer = new short[size];
@@ -17,11 +40,11 @@ void AudioInput::putData(short *data, int size, int leTemps)
     if( this->infoTemps != NULL )
     	delete this->infoTemps;
     	
-    infoTemps = new TimeInfo(leTemps);
+    infoTemps = new TimeInfo(timeStamp);
     memcpy(data,buffer,size);
     sizeBuffer=size;
     ptracesfl("AudioInput - putData(): Sending signal new data",MT_INFO, AUDIOINPUT_TRACE);
-    sem_post(&semaphore);
+    sem_post(&sem_fetchData);
   }
   else
     ptracesfl("AudioInput - putData(): Parameter error",MT_ERROR, AUDIOINPUT_TRACE);
@@ -32,9 +55,11 @@ int AudioInput::fetchData(short *data)
   if (buffer!=NULL && data!=NULL)
   {
     ptracesfl("AudioInput - fetchData(): Watting for data",MT_INFO, AUDIOINPUT_TRACE);
-    sem_wait(&semaphore);
-    ptracesfl("AudioInput - recieved new data",MT_INFO, AUDIOINPUT_TRACE);
+    sem_wait(&sem_fetchData);
+    ptracesfl("AudioInput - fetchData(): Recieved new data",MT_INFO, AUDIOINPUT_TRACE);
     memcpy(buffer,data,sizeBuffer);
+    sem_post(&sem_putData);
+    ptracesfl("AudioInput - fetchData(): Data to be fetched",MT_INFO, AUDIOINPUT_TRACE);
     return this->sizeBuffer;
   }
   else
@@ -48,46 +73,11 @@ int AudioInput::fetchData(short *data)
   return -1;
 }
 
-int AudioInput::getSizeBuffer()
-{
+int AudioInput::getSizeBuffer(){
 	return this->sizeBuffer;
 }
 
-AudioInput::AudioInput()
-{
-  sem_init(&semaphore,0,0);
-  buffer= NULL;
-  infoTemps= NULL;
-  sizeBuffer= 0;
-}
-
-AudioInput::~AudioInput()
-{
-	
-  ptracesfl("AudioInput - ~AudioInput(): Destruction de l'objet",MT_INFO,true);
-  if (buffer != NULL){
-    delete buffer;
-    buffer=NULL;
-  }
-  if (infoTemps!=NULL){
-    delete infoTemps;
-    infoTemps=NULL;
-  }
-
-}
-
-void AudioInput::putTimeInfo(TimeInfo* infos)
-{
-  ptracesfl("AudioInput - putTimeInfo(): Demande semaphore",MT_INFO,true);
-  sem_wait(&semaphore);
-  ptracesfl("AudioInput - putTimeInfo(): Zone Critique",MT_INFO,true);
-  infoTemps = infos;
-  sem_post(&semaphore);
-  ptracesfl("AudioInput - putTimeInfo(): Sortie Zone Critique",MT_INFO,true);
-}
-
-TimeInfo AudioInput::fetchTimeInfo()
-{
+TimeInfo AudioInput::fetchTimeInfo(){
   return *this->infoTemps;
 }
 
