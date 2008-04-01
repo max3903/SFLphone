@@ -5,6 +5,8 @@
 
 int LocalAudioOuput::fetchData(short *data)
 { 
+	
+	//test
   return 0;
 }
 
