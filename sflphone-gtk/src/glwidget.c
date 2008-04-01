@@ -18,8 +18,9 @@
  */
 
 #include <glwidget.h>
+#include <math.h>
 
-float LocalZoom= 0.20;
+float LocalZoom= 0.05;
 
 gboolean draw(GtkWidget* widget, gpointer data)
 {
@@ -186,29 +187,21 @@ gboolean drawLocal(GtkWidget* widget, gpointer data, GdkGLContext *glContext, Gd
 	
 	}else{
 	
-		// Calculating zoom Factor for local display
-		zoomFactor= (float)(localBuff->width*localBuff->height)/(float)(widget->allocation.height*widget->allocation.width);
+		float localArea = 0, allocationArea = 0;
 		
-		if( zoomFactor > LocalZoom ){
-			zoomX= zoomX * LocalZoom/zoomFactor;
-			zoomY= zoomY * LocalZoom/zoomFactor;
-		}
-		else{
-			zoomX= zoomX * LocalZoom/zoomFactor;
-			zoomY= zoomY * LocalZoom/zoomFactor;
-		}
+		localArea = (float)(localBuff->width*localBuff->height);
+		allocationArea = (float)(widget->allocation.height*widget->allocation.width*LocalZoom);
+		
+		// Calculating zoom Factor for local display
+		zoomFactor = sqrt( allocationArea / localArea );
+		
+		zoomX= zoomX * zoomFactor;
+		zoomY= zoomY * zoomFactor;
 			
 		// Calculating raster position (Drawing position)
 		x= widget->allocation.width - ((float)localBuff->width * zoomX) - 20;
 		y= ((float)localBuff->height * zoomX  ) + 20;
 		
-		printf("localBuff->width: %f\n", (float)localBuff->width);
-		printf("localBuff->height: %f\n", (float)localBuff->height);
-		printf("zoomFactor: %f\n", zoomFactor);
-		printf("zoomX: %f\n", zoomX);
-		printf("zoomY: %f\n", zoomY);
-		printf("x: %f\n", x);
-		printf("y: %f\n", y);
 	
 	}
 	
