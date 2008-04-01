@@ -542,9 +542,9 @@ ManagerImpl::initRegisterAccounts()
 	while( iter != _accountMap.end() ) {
 		if ( iter->second) {
 			iter->second->loadConfig();
+			iter->second->loadContacts();
 			if ( iter->second->isEnabled() ) {
 				iter->second->registerVoIPLink();
-				iter->second->loadContacts();
 				iter->second->publishPresence(PRESENCE_ONLINE);
 				iter->second->subscribeContactsPresence();
 			}
@@ -559,28 +559,30 @@ ManagerImpl::initRegisterAccounts()
 
 //THREAD=Main
 // Currently unused
-  bool
+// TODO Should be called when an account changes state
+// and two accounts should be possible at the same time
+bool
 ManagerImpl::registerAccount(const AccountID& accountId)
 {
-  _debug("Register one VoIP Link\n");
+	_debug("Register VoIP Link for %s\n", accountId.data());
 
-  // right now, we don't support two SIP account
-  // so we close everything before registring a new account
-  Account* account = getAccount(accountId);
-  if (account != 0) {
-    AccountMap::iterator iter = _accountMap.begin();
-    while ( iter != _accountMap.end() ) {
-      if ( iter->second ) {
-	iter->second->unregisterVoIPLink();
-      }
-      iter++;
-    }
-    account->registerVoIPLink();
-    account->loadContacts();
-    account->publishPresence(PRESENCE_ONLINE);
-    account->subscribeContactsPresence();
-  }
-  return true;
+	// right now, we don't support two SIP account
+	// so we close everything before registring a new account
+	Account* account = getAccount(accountId);
+	if (account != NULL)
+	{
+		AccountMap::iterator iter = _accountMap.begin();
+		while ( iter != _accountMap.end() ) {
+			if ( iter->second ) {
+				iter->second->unregisterVoIPLink();
+			}
+			iter++;
+		}
+		account->registerVoIPLink();
+		account->publishPresence(PRESENCE_ONLINE);
+		account->subscribeContactsPresence();
+	}
+	return true;
 }
 
 //THREAD=Main

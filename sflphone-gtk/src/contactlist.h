@@ -63,7 +63,7 @@ void contact_hash_table_clear();
 /*
  * Functions to add, get and clear contact lists contained in the hash map
  */
-GQueue* contact_hash_table_add_contact_list(gchar* accountID);
+void contact_hash_table_add_contact_list(gchar* accountID);
 GQueue* contact_hash_table_get_contact_list(gchar* accountID);
 void contact_hash_table_clear_contact_list(GQueue* contactList);
 
@@ -71,8 +71,8 @@ void contact_hash_table_clear_contact_list(GQueue* contactList);
  * Functions to add, edit and remove a contact in a contact list
  */
 void contact_list_add(GQueue* contactList, contact_t* contact);
-void contact_list_edit(GQueue* contactList, contact_t* oldContact, contact_t* newContact);
-void contact_list_remove(GQueue* contactList, contact_t* contact);
+void contact_list_edit(GQueue* contactList, gchar* contactID, contact_t* newContact);
+void contact_list_remove(GQueue* contactList, gchar* contactID);
 
 /**
  * Functions to get a particular contact in the list and to get the list size
@@ -85,8 +85,8 @@ contact_t* contact_list_get_nth(GQueue* contactList, guint index);
  * Functions to add, get, edit and remove a contact entry in a contact
  */
 void contact_list_entry_add(contact_t* contact, contact_entry_t* entry);
-void contact_list_entry_edit(contact_t* contact, contact_entry_t* oldEntry, contact_entry_t* newEntry);
-void contact_list_entry_remove(contact_t* contact, contact_entry_t* entry);
+void contact_list_entry_edit(contact_t* contact, gchar* entryID, contact_entry_t* newEntry);
+void contact_list_entry_remove(contact_t* contact, gchar* entryID);
 
 /**
  * Functions to get a particular contact entry in the list and to get the list size

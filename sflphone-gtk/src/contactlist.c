@@ -24,37 +24,36 @@
 
 GHashTable* contactHashTable = NULL;
 
+/** Custom function to free memory in hash table for contact lists */
 void
-contact_hash_table_init()
+contact_hash_value_destroy_func(void* valuePointer)
 {
-	if(contactHashTable == NULL)
-		contactHashTable = g_hash_table_new(NULL, g_str_equal);
+	GQueue* contactList = (GQueue*)valuePointer;
+	contact_hash_table_clear_contact_list(contactList);
 }
 
 void
-contact_hash_table_clear_list(void* a, void* b)
+contact_hash_table_init()
 {
-	gchar* key = (gchar*)a;
-	contact_hash_table_clear_contact_list(contact_hash_table_get_contact_list(key));
+	// Create new table with hash and equal function for keys and destroy functions for key and value
+	if(contactHashTable == NULL)
+		contactHashTable = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, contact_hash_value_destroy_func);
 }
 
 void
 contact_hash_table_clear()
 {
 	// TODO Unregister observers (contact and call console windows)
-	// Clear all contact lists
-	GList* list = g_hash_table_get_keys(contactHashTable);
-	g_list_foreach(list, contact_hash_table_clear_list, NULL);
+	// Destroys the hash table that will use its destroy functions on keys and values
 	g_hash_table_destroy(contactHashTable);
 	contactHashTable = NULL;
 }
 
-GQueue*
+void
 contact_hash_table_add_contact_list(gchar* accountID)
 {
-	GQueue* contactList = g_queue_new();
-	g_hash_table_insert(contactHashTable, accountID, contactList);
-	return contactList;
+	// Dynamically allocate a queue in the hash table
+	g_hash_table_insert(contactHashTable, g_strdup(accountID), g_queue_new());
 }
 
 GQueue*
@@ -77,13 +76,13 @@ contact_list_add(GQueue* contactList, contact_t* contact)
 }
 
 void
-contact_list_edit(GQueue* contactList, contact_t* oldContact, contact_t* newContact)
+contact_list_edit(GQueue* contactList, gchar* contactID, contact_t* newContact)
 {
-	// TODO	
+	// TODO
 }
 
 void
-contact_list_remove(GQueue* contactList, contact_t* contact)
+contact_list_remove(GQueue* contactList, gchar* contactID)
 {
 	// TODO
 }
@@ -97,7 +96,6 @@ contact_list_get_size(GQueue* contactList)
 contact_t*
 contact_list_get(GQueue* contactList, const gchar* contactID)
 {
-	// TOSEE
 	GList* contacts = g_queue_find_custom(contactList, contactID, compare_contact_contactID);
 	if(contacts)
 		return (contact_t*)contacts->data;
@@ -118,13 +116,13 @@ contact_list_entry_add(contact_t* contact, contact_entry_t* entry)
 }
 
 void
-contact_list_entry_edit(contact_t* contact, contact_entry_t* oldEntry, contact_entry_t* newEntry)
+contact_list_entry_edit(contact_t* contact, gchar* entryID, contact_entry_t* newEntry)
 {
 	// TODO
 }
 
 void
-contact_list_entry_remove(contact_t* contact, contact_entry_t* entry)
+contact_list_entry_remove(contact_t* contact, gchar* entryID)
 {
 	// TODO
 }
@@ -137,7 +135,6 @@ contact_list_entry_get_size(contact_t* contact)
 
 contact_entry_t* contact_list_entry_get(contact_t* contact, const gchar* entryID)
 {
-	// TOSEE
 	GList* entries = g_queue_find_custom(contact->_entryList, entryID, compare_contact_contactEntryID);
 	if(entries)
 		return (contact_entry_t*)entries->data;
@@ -154,12 +151,12 @@ contact_t*
 contact_list_new_contact_from_details(gchar* contactID, gchar** contactDetails)
 {
 	contact_t* contact = g_new0(contact_t, 1);
-	contact->_contactID = contactID;
-	contact->_firstName = contactDetails[0];
-	contact->_lastName = contactDetails[1];
-	contact->_email = contactDetails[2];
-	contact->_group = contactDetails[3];
-	contact->_subGroup = contactDetails[4];
+	contact->_contactID = g_strdup(contactID);
+	contact->_firstName = g_strdup(contactDetails[0]);
+	contact->_lastName = g_strdup(contactDetails[1]);
+	contact->_email = g_strdup(contactDetails[2]);
+	contact->_group = g_strdup(contactDetails[3]);
+	contact->_subGroup = g_strdup(contactDetails[4]);
 	contact->_entryList = g_queue_new();
 	return contact;
 }
@@ -168,9 +165,9 @@ contact_entry_t*
 contact_list_new_contact_entry_from_details(gchar* contactEntryID, gchar** contactEntryDetails)
 {
 	contact_entry_t* contactEntry = g_new0(contact_entry_t, 1);
-	contactEntry->_entryID = contactEntryID;
-	contactEntry->_text = contactEntryDetails[0];
-	contactEntry->_type = contactEntryDetails[1];
+	contactEntry->_entryID = g_strdup(contactEntryID);
+	contactEntry->_text = g_strdup(contactEntryDetails[0]);
+	contactEntry->_type = g_strdup(contactEntryDetails[1]);
 	if(strcmp(contactEntryDetails[2], "TRUE") == 0)
 		contactEntry->_isShownInConsole = TRUE;
 	else
