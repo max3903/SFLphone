@@ -520,7 +520,7 @@ create_view_menu()
   GtkWidget * menu;
   GtkWidget * root_menu;
   GtkWidget * menu_items;
-  GtkWidget * submenu_items;
+//  GtkWidget * submenu_items; UNUSED
 
   menu      = gtk_menu_new ();
 

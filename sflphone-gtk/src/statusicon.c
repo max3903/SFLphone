@@ -22,6 +22,7 @@
 #include <mainwindow.h>
 #include <accountlist.h>
 #include <statusicon.h>
+#include <stdlib.h>
 
 GtkStatusIcon* status;
 GtkWidget * show_menu_item;
