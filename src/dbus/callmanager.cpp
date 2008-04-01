@@ -177,4 +177,18 @@ CallManager::changeWebcamStatus( const ::DBus::Bool& status, const ::DBus::Strin
     Manager::instance().changeWebcamStatus(status, callID);
 }
 
+    void
+CallManager::startTone( const ::DBus::Int32& start , const ::DBus::Int32& type )
+{
+  if( start == true )
+  {
+    if( type == 0 )
+      Manager::instance().playTone();
+    else
+      Manager::instance().playToneWithMessage();
+  }
+  else
+    Manager::instance().stopTone(true);
+}
+
 

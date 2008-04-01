@@ -36,11 +36,18 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-#define ALSA_ERROR  0
+#define ALSA_ERROR_CAPTURE_DEVICE     0
+#define ALSA_ERROR_PLAYBACK_DEVICE    1
+
+#define TONE_WITHOUT_MESSAGE  0 
+#define TONE_WITH_MESSAGE     1
+
+guint voice_mails;
 
 	void
 sflphone_notify_voice_mail (guint count)
 {
+	voice_mails = count ;
 	if(count > 0)
 	{
 		gchar * message = g_new0(gchar, 50);
@@ -87,7 +94,6 @@ sflphone_hold(call_t * c )
 	c->state = CALL_STATE_HOLD;
 	update_call_tree(c);
 	update_menus();
-	//screen_clear();
 }
 
 	void 
@@ -96,6 +102,14 @@ sflphone_ringing(call_t * c )
 	c->state = CALL_STATE_RINGING;
 	update_call_tree(c);
 	update_menus();
+}
+
+  void
+sflphone_hung_up( call_t * c)
+{
+  call_list_remove( c->callID);
+  update_call_tree_remove(c);
+  update_menus();
 }
 
 /** Internal to actions: Fill account list */
@@ -160,7 +174,7 @@ sflphone_init()
 	video_codec_list_init();
 	if(!dbus_connect ())
 	{
-		main_window_error_message("Unable to connect to the SFLphone server.\nMake sure the daemon is running.");
+		main_window_error_message(_("Unable to connect to the SFLphone server.\nMake sure the daemon is running."));
 		return FALSE;
 	}
 	else 
@@ -180,7 +194,6 @@ sflphone_init()
 sflphone_hang_up()
 {
 	call_t * selectedCall = call_get_selected();
-	//main_window_callinfo(FALSE, selectedCall);
 	if(selectedCall)
 	{
 		switch(selectedCall->state)
@@ -211,18 +224,15 @@ sflphone_hang_up()
 sflphone_pick_up()
 {
 	call_t * selectedCall = call_get_selected();
-        //printf("full name: %s\n",g_hash_table_lookup(selectedCall->properties, ACCOUNT_IAX_FULL_NAME));
-	//main_window_callinfo(TRUE, selectedCall);
 	if(selectedCall)
 	{
 		switch(selectedCall->state)
 		{
 			case CALL_STATE_DIALING:
 				sflphone_place_call (selectedCall);
-        			printf("accountID=%s\n",selectedCall->accountID);
 				break;
 			case CALL_STATE_INCOMING:
-				printf("CALL ID = %s\n", selectedCall->callID);
+				status_tray_icon_blink();
 				dbus_accept (selectedCall);
 				break;
 			case CALL_STATE_HOLD:
@@ -287,7 +297,6 @@ sflphone_fail( call_t * c )
 	c->state = CALL_STATE_FAILURE;
 	update_call_tree(c);
 	update_menus();
-	//main_window_callinfo(FALSE, c);
 }
 
 	void 
@@ -296,7 +305,6 @@ sflphone_busy( call_t * c )
 	c->state = CALL_STATE_BUSY;
 	update_call_tree(c);
 	update_menus();
-	//screen_set_call(c);
 }
 
 	void 
@@ -305,7 +313,6 @@ sflphone_current( call_t * c )
 	c->state = CALL_STATE_CURRENT;
 	update_call_tree(c);
 	update_menus();
-	//screen_set_call(c);
 }
 
 	void 
@@ -316,7 +323,6 @@ sflphone_set_transfert()
 	{
 		c->state = CALL_STATE_TRANSFERT;
 		c->to = g_strdup("");
-		//screen_set_call(c);
 		update_call_tree(c);
 		update_menus();
 	}
@@ -331,7 +337,6 @@ sflphone_unset_transfert()
 	{
 		c->state = CALL_STATE_CURRENT;
 		c->to = g_strdup("");
-		//screen_set_call(c);
 		update_call_tree(c);
 		update_menus();
 	}
@@ -346,17 +351,10 @@ sflphone_incoming_call (call_t * c)
 	update_menus();
 }
 
-	void 
-sflphone_hung_up (call_t * c )
-{
-	call_list_remove(c->callID);
-	update_call_tree_remove(c);
-	update_menus();
-	//main_window_callinfo(FALSE, c);
-}
-
 void process_dialing(call_t * c, guint keyval, gchar * key)
 {
+	// We stop the tone
+	dbus_start_tone( FALSE , 0 );
 	switch (keyval)
 	{
 		case 65293: /* ENTER */
@@ -364,12 +362,12 @@ void process_dialing(call_t * c, guint keyval, gchar * key)
 			sflphone_place_call(c);
 			break;
 		case 65307: /* ESCAPE */
-			dbus_hang_up(c);
+			sflphone_hang_up(c);
 			break;
 		case 65288: /* BACKSPACE */
 			{  /* Brackets mandatory because of local vars */
 				gchar * before = c->to;
-				if(strlen(c->to) > 1){
+				if(strlen(c->to) >= 1){
 					c->to = g_strndup(c->to, strlen(c->to) -1);
 					g_free(before);
 					g_print("TO: %s\n", c->to);
@@ -379,11 +377,11 @@ void process_dialing(call_t * c, guint keyval, gchar * key)
 						g_free(c->from);
 						c->from = g_strconcat("\"\" <", c->to, ">", NULL);
 					}
-					//screen_set_call(c);
 					update_call_tree(c);
 				} 
-				else if(strlen(c->to) == 1)
+				else if(strlen(c->to) == 0)
 				{
+				  if(c->state != CALL_STATE_TRANSFERT)
 					dbus_hang_up(c);
 				}
 			}
@@ -407,7 +405,6 @@ void process_dialing(call_t * c, guint keyval, gchar * key)
 					g_free(c->from);
 					c->from = g_strconcat("\"\" <", c->to, ">", NULL);
 				}
-				//screen_set_call(c);
 				update_call_tree(c);
 			}
 			break;
@@ -418,6 +415,10 @@ void process_dialing(call_t * c, guint keyval, gchar * key)
 
 call_t * sflphone_new_call()
 {
+	if( call_list_get_size() == 0 )
+	{
+	  dbus_start_tone( TRUE , ( voice_mails > 0 )? TONE_WITH_MESSAGE : TONE_WITHOUT_MESSAGE) ;
+	}
 	call_t * c = g_new0 (call_t, 1);
 	c->state = CALL_STATE_DIALING;
 	c->from = g_strconcat("\"\" <>", NULL);
@@ -428,7 +429,6 @@ call_t * sflphone_new_call()
 	c->to = g_strdup("");
 
 	call_list_add(c);
-	//screen_set_call(c);
 	update_call_tree_add(c);  
 	update_menus();
 
@@ -438,7 +438,6 @@ call_t * sflphone_new_call()
 	void 
 sflphone_keypad( guint keyval, gchar * key)
 {
-	dbus_play_dtmf(key);
 	call_t * c = call_get_selected();
 	if(c)
 	{
@@ -446,7 +445,7 @@ sflphone_keypad( guint keyval, gchar * key)
 		switch(c->state) 
 		{
 			case CALL_STATE_DIALING: // Currently dialing => edit number
-				//dbus_play_dtmf(key);
+				dbus_play_dtmf(key);
 				process_dialing(c, keyval, key);
 				break;
 			case CALL_STATE_CURRENT:
@@ -464,8 +463,7 @@ sflphone_keypad( guint keyval, gchar * key)
 							c->from = g_strconcat("\"",call_get_name(c) ,"\" <", temp, ">", NULL);
 							g_free(before);
 							g_free(temp);
-							//screen_set_call(c);
-							update_call_tree(c);
+							//update_call_tree(c);
 						}
 						break;
 				}
@@ -490,7 +488,7 @@ sflphone_keypad( guint keyval, gchar * key)
 						dbus_transfert(c);
 						break;
 					case 65307: /* ESCAPE */
-						sflphone_hang_up(c); 
+						sflphone_unset_transfert(c); 
 						break;
 					default: // When a call is on transfert, typing new numbers will add it to c->to
 						process_dialing(c, keyval, key);
@@ -528,6 +526,7 @@ sflphone_keypad( guint keyval, gchar * key)
 	}
 	else 
 	{ // Not in a call, not dialing, create a new call 
+		dbus_play_dtmf(key);
 		switch (keyval)
 		{
 			case 65293: /* ENTER */
@@ -567,7 +566,7 @@ sflphone_place_call ( call_t * c )
 			}
 			else
 			{
-				main_window_error_message("The account selected as default is not registered.");
+				main_window_error_message(_("The account selected as default is not registered."));
 			}
 			
 		}
@@ -580,7 +579,7 @@ sflphone_place_call ( call_t * c )
 			}
 			else
 			{
-				main_window_error_message("There are no registered accounts to make this call with.");
+				main_window_error_message(_("There is no registered account to make this call with."));
 			}
 
 		}
@@ -596,15 +595,17 @@ sflphone_set_default_account( )
 }
 
 void
-sflphone_throw_exception( gchar* msg , int err )
+sflphone_throw_exception( int errCode )
 {
   gchar* markup = malloc(1000);
-  switch( err ){
-    case ALSA_ERROR:
-      sprintf( markup , "<b>ALSA notification</b>\n\n");
+  switch( errCode ){
+    case ALSA_ERROR_PLAYBACK_DEVICE:
+      sprintf( markup , _("<b>ALSA notification</b>\n\nError while opening playback device"));
+      break;
+    case ALSA_ERROR_CAPTURE_DEVICE:
+      sprintf( markup , _("<b>ALSA notification</b>\n\nError while opening capture device"));
       break;
   }
-  sprintf( markup , "%s%s" , markup , msg );
   main_window_error_message( markup );  
   free( markup );
 }
@@ -655,7 +656,7 @@ sflphone_fill_codec_list()
   }
   if( codec_list_get_size() == 0) {
     gchar* markup = malloc(1000);
-    sprintf(markup , "<b>Error: No audio codecs found.\n\n</b> SFL audio codecs have to be placed in <i>%s</i> or in the <b>.sflphone</b> directory in your home( <i>%s</i> )", CODECS_DIR , g_get_home_dir());
+    sprintf(markup , _("<b>Error: No audio codecs found.\n\n</b> SFL audio codecs have to be placed in <i>%s</i> or in the <b>.sflphone</b> directory in your home( <i>%s</i> )"), CODECS_DIR , g_get_home_dir());
     main_window_error_message( markup );
     g_free( markup );
     dbus_unregister(getpid());

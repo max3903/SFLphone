@@ -37,13 +37,12 @@
 
   AudioLayer::AudioLayer(ManagerImpl* manager)
 :   _defaultVolume(100)
-  , _errorMessage("")
+  , _errorMessage(-1)
   , _manager(manager)
   , _PlaybackHandle( NULL )
   , _CaptureHandle( NULL )
   , deviceClosed( true )
     , _urgentBuffer( SIZEBUF )
-    , _fstream("/tmp/audio.dat")
 {
 
   _inChannel  = 1; // don't put in stereo
@@ -59,8 +58,6 @@ AudioLayer::~AudioLayer (void)
   closeCaptureStream();
   closePlaybackStream();
   deviceClosed = true;
-  _fstream.flush();
-  _fstream.close();
 }
 
 
@@ -99,7 +96,7 @@ AudioLayer::openDevice (int indexIn, int indexOut, int sampleRate, int frameSize
   ost::MutexLock lock( _mutex );
 
   std::string pcmp = buildDeviceTopo( plugin , indexOut , 0);
-  std::string pcmc = buildDeviceTopo( PCM_SURROUND40 , indexIn , 0);
+  std::string pcmc = buildDeviceTopo( PCM_PLUGHW , indexIn , 0);
   return open_device( pcmp , pcmc , stream);
 }
 
@@ -264,7 +261,6 @@ AudioLayer::playTones( void )
     int spkrVol = _manager -> getSpkrVolume();
     if( tone != 0 ){
       tone -> getNext( out , frames , spkrVol );
-      //_fstream.write( (char*)out,  maxBytes );
       write( out , maxBytes );
     } 
     else if( ( tone=_manager->getTelephoneFile() ) != 0 ){
@@ -317,11 +313,10 @@ AudioLayer::open_device(std::string pcm_p, std::string pcm_c, int flag)
 
   if(flag == SFL_PCM_BOTH || flag == SFL_PCM_CAPTURE)
   {
-    _debugAlsa(" Opening capture device %s\n", pcm_c.c_str());
+    _debugAlsa("Opening capture device %s\n", pcm_c.c_str());
     if(err = snd_pcm_open(&_CaptureHandle,  pcm_c.c_str(),  SND_PCM_STREAM_CAPTURE, 0) < 0){
-      errMsg << " Error while opening capture device " << pcm_c.c_str() << " (" <<  snd_strerror(err) << ")";
-      _debugAlsa(" %s\n", errMsg.str().c_str());
-      setErrorMessage( errMsg.str() );
+      _debugAlsa("Error while opening capture device %s\n",  pcm_c.c_str());
+      setErrorMessage( ERROR_ALSA_CAPTURE_DEVICE );
       return false;
     }
 
@@ -334,8 +329,12 @@ AudioLayer::open_device(std::string pcm_p, std::string pcm_c, int flag)
     if( err = snd_pcm_hw_params_set_format( _CaptureHandle, hwParams, SND_PCM_FORMAT_S16_LE) < 0) _debugAlsa(" Cannot set sample format (%s)\n", snd_strerror(err));
     if( err = snd_pcm_hw_params_set_rate_near( _CaptureHandle, hwParams, &rate_in, &dir) < 0) _debugAlsa(" Cannot set sample rate (%s)\n", snd_strerror(err));
     if( err = snd_pcm_hw_params_set_channels( _CaptureHandle, hwParams, 1) < 0) _debugAlsa(" Cannot set channel count (%s)\n", snd_strerror(err));
-    if( err = snd_pcm_hw_params_set_period_size_near( _CaptureHandle, hwParams, &period_size_in , &dir) < 0) _debugAlsa(" Cannot set period size (%s)\n", snd_strerror(err));
-    if( err = snd_pcm_hw_params_set_buffer_size_near( _CaptureHandle, hwParams, &buffer_size_in ) < 0) _debugAlsa(" Cannot set buffer size (%s)\n", snd_strerror(err));
+    //if( err = snd_pcm_hw_params_set_period_size_near( _CaptureHandle, hwParams, &period_size_in , &dir) < 0) _debugAlsa(" Cannot set period size (%s)\n", snd_strerror(err));
+    //if( err = snd_pcm_hw_params_set_buffer_size_near( _CaptureHandle, hwParams, &buffer_size_in ) < 0) _debugAlsa(" Cannot set buffer size (%s)\n", snd_strerror(err));
+    if( err = snd_pcm_hw_params_set_period_time_near( _CaptureHandle, hwParams, &period_time , &dir) < 0) _debugAlsa(" Cannot set period time (%s)\n", snd_strerror(err));
+    if( err = snd_pcm_hw_params_set_buffer_time_near( _CaptureHandle, hwParams, &buffer_time , &dir) < 0) _debugAlsa(" Cannot set buffer time (%s)\n", snd_strerror(err));
+    if( err = snd_pcm_hw_params_get_period_size( hwParams, &period_size_in , &dir) < 0) _debugAlsa(" Cannot get period size (%s)\n", snd_strerror(err));
+    if( err = snd_pcm_hw_params_get_buffer_size( hwParams, &buffer_size_in ) < 0) _debugAlsa(" Cannot get buffer size (%s)\n", snd_strerror(err));
     if( err = snd_pcm_hw_params( _CaptureHandle, hwParams ) < 0) _debugAlsa(" Cannot set hw parameters (%s)\n", snd_strerror(err));
     snd_pcm_hw_params_free( hwParams );
     deviceClosed = false;
@@ -346,9 +345,8 @@ AudioLayer::open_device(std::string pcm_p, std::string pcm_c, int flag)
 
     _debugAlsa(" Opening playback device %s\n", pcm_p.c_str());
     if(err = snd_pcm_open(&_PlaybackHandle, pcm_p.c_str(),  SND_PCM_STREAM_PLAYBACK, SND_PCM_NONBLOCK ) < 0){
-      errMsg << " Error while opening playback device " << pcm_p.c_str() << " (" <<  snd_strerror(err) << ")";
-      _debugAlsa(" %s\n", errMsg.str().c_str());
-      setErrorMessage( errMsg.str() );
+      _debugAlsa("Error while opening playback device %s\n",  pcm_c.c_str());
+      setErrorMessage( ERROR_ALSA_PLAYBACK_DEVICE );
       return false;
     }
     if( err = snd_pcm_hw_params_malloc( &hwParams ) < 0 ) {
@@ -409,7 +407,6 @@ AudioLayer::write(void* buffer, int length)
     //handle_xrun_playback();  
   //_debugAlsa("avail = %d - toWrite = %d\n" , snd_pcm_avail_update( _PlaybackHandle ) , length / 2);
 
-  
   snd_pcm_uframes_t frames = snd_pcm_bytes_to_frames( _PlaybackHandle, length);
   int err = snd_pcm_mmap_writei( _PlaybackHandle , buffer , frames );
   switch(err) {
@@ -440,7 +437,6 @@ AudioLayer::write(void* buffer, int length)
   int
 AudioLayer::read( void* buffer, int toCopy)
 {
-
   if(deviceClosed || _CaptureHandle == NULL)
     return 0;
   int err;

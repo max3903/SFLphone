@@ -76,15 +76,6 @@ call_button( GtkWidget *widget, gpointer   data )
 }
 
 /**
- * Pick up
-*/
-/*	static void 
-pick_up( GtkWidget *widget, gpointer   data )
-{
-	sflphone_pick_up();
-}*/
-
-/**
  * Hang up the line
  */
 	static void 
@@ -230,7 +221,6 @@ toolbar_update_buttons ()
 				break;
 			case CALL_STATE_DIALING:
 				gtk_widget_set_sensitive( GTK_WIDGET(hangupButton),     TRUE);
-				//gtk_widget_set_sensitive( GTK_WIDGET(callButton),       TRUE);
 				gtk_widget_set_sensitive( GTK_WIDGET(pickupButton),       TRUE);
 				g_object_ref(callButton);
 				gtk_container_remove(GTK_CONTAINER(toolbar), GTK_WIDGET(callButton));
@@ -592,8 +582,6 @@ update_call_tree (call_t * c)
 
 	} 
 	toolbar_update_buttons();
-	//return row_ref;
-
 }
 
 void 
@@ -644,9 +632,7 @@ update_call_tree_add (call_t * c)
 	if (pixbuf != NULL)
 		g_object_unref(G_OBJECT(pixbuf));
 
-	//g_free(markup);
 	sel = gtk_tree_view_get_selection(GTK_TREE_VIEW(view));
 	gtk_tree_selection_select_iter(GTK_TREE_SELECTION(sel), &iter);
 	toolbar_update_buttons();
-	//return row_ref;
 }

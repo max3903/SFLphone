@@ -164,6 +164,8 @@ g_cclosure_user_marshal_VOID__STRING_STRING (GClosure     *closure,
             data2);
 }
 
+/* VOID:INT (marshaller.list:3) */
+
 /* VOID:STRING,INT (marshaller.list:4) */
 void
 g_cclosure_user_marshal_VOID__STRING_INT (GClosure     *closure,

@@ -29,6 +29,7 @@
 #include <mainwindow.h>
 #include <marshaller.h>
 #include <sliders.h>
+#include <statusicon.h>
 
 #include <dbus.h>
 #include <actions.h>
@@ -55,6 +56,7 @@ incoming_call_cb (DBusGProxy *proxy,
   c->from = g_strdup(from);
   c->state = CALL_STATE_INCOMING;
   
+  status_tray_icon_blink();
   sflphone_incoming_call (c);
 }
 
@@ -166,12 +168,11 @@ contact_entry_presence_changed(DBusGProxy* proxy,
 
 static void
 error_alert(DBusGProxy *proxy,
-		gchar* errMsg,
-		int err,
-		void * foo)
+		  int errCode,
+                  void * foo  )
 {
-	g_print ("Error notifying : (%s)\n" , errMsg);
-	sflphone_throw_exception( errMsg , err );
+  g_print ("Error notifying : (%i)\n" , errCode);
+  sflphone_throw_exception( errCode );
 }
 
 gboolean 
@@ -273,10 +274,10 @@ dbus_connect ()
     "accountsChanged", G_CALLBACK(accounts_changed_cb), NULL, NULL);
   
   /* Function error alert and register a marshaller for STRING, INT */
-  dbus_g_object_register_marshaller(g_cclosure_user_marshal_VOID__STRING_INT,
-          G_TYPE_NONE, G_TYPE_STRING, G_TYPE_INT , G_TYPE_INVALID);
+  dbus_g_object_register_marshaller(g_cclosure_user_marshal_VOID__INT,
+          G_TYPE_NONE, G_TYPE_INT , G_TYPE_INVALID);
   dbus_g_proxy_add_signal (configurationManagerProxy, 
-    "errorAlert", G_TYPE_STRING , G_TYPE_INT , G_TYPE_INVALID);
+    "errorAlert", G_TYPE_INT , G_TYPE_INVALID);
   dbus_g_proxy_connect_signal (configurationManagerProxy,
     "errorAlert", G_CALLBACK(error_alert), NULL, NULL);
   
@@ -799,6 +800,30 @@ dbus_play_dtmf(const gchar * key)
   else 
   {
     g_print ("DBus called playDTMF() on callManagerProxy\n");
+
+  }
+}
+
+void
+dbus_start_tone(const int start , const guint type )
+{
+  GError *error = NULL;
+  
+  org_sflphone_SFLphone_CallManager_start_tone(
+    callManagerProxy, 
+    start,
+    type, 
+    &error);
+
+  if (error) 
+  {
+    g_printerr ("Failed to call startTone() on callManagerProxy: %s\n",
+                error->message);
+    g_error_free (error);
+  } 
+  else 
+  {
+    g_print ("DBus called startTone() on callManagerProxy\n");
 
   }
 }
