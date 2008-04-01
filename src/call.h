@@ -27,13 +27,11 @@
 #include "video/VideoCodecDescriptor.h"
 #include <ffmpeg/avcodec.h>
 #include "mixer/Mixer.h"
-#include "mixer/VideoInput.h"
-#include "mixer/AudioInput.h"
 #include "mixer/VideoOutput.h"
 #include "mixer/AudioOuput.h"
+#include "mixer/LocalAudioOuput.h"
+#include "mixer/LocalVideoOuput.h"
 #include "mixer/InputStreams.h"
-#include "mixer/OutputStream.h"
-
 
 typedef std::string CallID;
 
@@ -190,27 +188,51 @@ public:
 
     /** Return IP of destination [mutex protected] */
     const std::string& getRemoteIp();
- 
-    /** Return the local Mixer */
-    InputStreams* getLocalIntputStreams() { return localInputStreams; }
-
-    /** Return the local Mixer */
-    InputStreams* getRemoteIntputStreams() { return remoteInputStreams; }
-
-    /** Return the remote Mixer */
-    OutputStream* getLocalVideoOutputStream() { return localVidOutput; }
-
-    /** Return the remote Mixer */
-    OutputStream* getRemoteVideoOutputStream() { return remoteVidOutput; }
-
+     
     /** Return audio codec [mutex protected] */
     AudioCodecType getAudioCodec();
 
     /** Return video codec [mutex protected] */
     AVCodecContext* getVideoCodecContext();
 
-
-
+	/** Local Mixer video input buffer used in recievedSession of corresponding VideoRtpRTX.
+	 * @return The video input buffer for the local Mixer.
+	 * */
+	VideoInput* getLocal_Video_Input();
+	
+	/** Local Mixer audio input buffer used in recievedSession of corresponding AudioRtpRTX.
+	 * @return The audio input buffer for the local Audio.
+	 * */
+	AudioInput* getLocal_Audio_Input();
+	
+	/** Remote Mixer video input buffer used in sendSession of corresponding VideoRtpRTX.
+	 * @return The video input buffer for the first video input of the Remoter Mixer.
+	 * */
+	VideoInput* getRemote_Video_Input();
+	
+	/** Remote Mixer audio input buffer used in sendSession of corresponding AudioRtpRTX.
+	 * @return The audio input buffer for the first audio input of the Remoter Mixer.
+	 * */
+	AudioInput* getRemote_Audio_Input();
+				
+	/** Remote Mixer video output buffer used in sendSession of corresponding VideoRtpRTX.
+	 * @return The video output buffer for remote Mixer.
+	 * */
+	VideoOutput* getRemote_Video_Output();
+	
+	/** Remote Mixer audio output buffer used in sendSession of corresponding AudioRtpRTX.
+	 * @return The audio output buffer for remote Mixer.
+	 * */
+	AudioOutput* getRemote_Audio_Output();
+	
+	/** Methode to set the call inconference mode
+	 * 
+	 * It adds an extra InputStream (second input) to the remote Mixer and changes the mixer mode to mix the data stream contained in the remoteInput and the extra input now specifed. To change back to normal straighthrough operation you must call this method with NULL pointers.
+	 * @param extraVideo The video input buffer corresponding to the local video input buffer of the second call in the conference.
+	 * @param extraAudio The audio input buffer corresponding to the local audio input buffer of the second call in the conference.
+	 */ 
+	void setConfMode( VideoInput* extraVideo, AudioInput* extraAudio  );
+	
 protected:
     /** Protect every attribute that can be changed by two threads */
     ost::Mutex _callMutex;
@@ -287,24 +309,38 @@ private:
     /** Number of the peer */
     std::string _peerNumber;
 
-    /** The mixers **/
-    Mixer* localMixer;
-    Mixer* remoteMixer;
+    /** Local Mixer */
+    Mixer* _localMixer;
+    
+    /** Local Mixer */
+    Mixer* _remoteMixer;
 
-    /* The Mixer's buffers */
-    VideoInput* localVidIntput;
-    AudioInput* localAudIntput;
-    VideoOutput* localVidOutput;
-    AudioOutput* localAudOutput;
-    VideoInput* remoteVidIntput;
-    AudioInput* remoteAudIntput;
-    VideoOutput* remoteVidOutput;
-    AudioOutput* remoteAudOutput;
-
-    InputStreams* localInputStreams;
-    InputStreams* remoteInputStreams;
-    OutputStream* localOutputStreams;
-    OutputStream* remoteOutputStreams;
+    /* The Local Mixer InputStreams */
+    InputStreams* _localInputStreams;
+    
+    /* The Local Mixer Audio Output 
+     * 
+     * Is used to output audio to the sound card. It is not accesible from the outside because you can only add data to this buffer, no fetch is possible.
+     * */
+    LocalAudioOuput* _local_Audio_Ouput;
+    
+     /* The Local Mixer Video Output 
+     * 
+     * Is used to output video to the MemManager. It is not accesible from the outside because you can only add data to this buffer, no fetch is possible.
+     * */
+    LocalVideoOuput* _local_Video_Ouput;
+    
+    /* The Remote Mixer default InputStreams */
+    InputStreams* _remoteStandardInputStreams;
+    
+    /* The Remote Mixer Conference Mode InputStreams */
+    InputStreams* _remoteExtraInputStreams;
+    
+    /* The Remote Mixer Audio ouput */
+    AudioOutput* _remote_Audio_Output;
+    
+    /* The Remote Mixer Video ouput */
+    VideoOutput* _remote_Video_Output;
 
 };
 
