@@ -37,19 +37,23 @@ int VideoCodec::videoEncode(uint8_t *in_buf, uint8_t* out_buf,int in_bufferSize,
          ptracesfl("OUT OF MEMORY TRYING TO ENCODE",MT_ERROR,1,true);
 	  printf("FILL\n");   
     //get RGB picture
-    avpicture_fill((AVPicture *)IN, in_buf,PIX_FMT_RGB24, inWidth,inHeight);         
+    if(avpicture_fill((AVPicture *)IN, in_buf,PIX_FMT_RGB24, inWidth,inHeight) <= 0)
+    	printf("ERROR AVPICTUREFILLENCODE\n");
+    	         
 	printf("CONVERT\n");
- 	encodeSWS->Convert(IN,SWS);
+	
+ 	if (encodeSWS->Convert(IN,SWS) == NULL)
+ 		printf("ERROR SWS FUNCTION\n");;
  	
 	//Step 2:Encode
 	//TODO GET A PROPER BUFFER SIZE
 	printf("ENCODE\n");
+	
 	if (avcodec_encode_video(_encodeCodecCtx, out_buf, 100000, SWS)< 0)
 		printf("ERROR ENCODE\n");
 
 	//Step 3:Clean
 	av_free(IN);
-	
 	av_free(SWS);
 	printf("FREE\n");
 	//free(out_buf);
@@ -65,41 +69,46 @@ int VideoCodec::videoDecode(uint8_t *in_buf, uint8_t* out_buf,int size)
 {
 	
 	int bytesRemaining = size;
-	int got_picture_ptr = 0;
+	int *got_picture_ptr = NULL;
 	int bytesDecoded=0;
+	uint8_t *pict_buf;
 	AVFrame *pict;
-	uint8_t inbuf[size + FF_INPUT_BUFFER_PADDING_SIZE], *inbuf_ptr;
 
-	 memset(inbuf + size, 0, FF_INPUT_BUFFER_PADDING_SIZE);
+	if(in_buf == NULL)
+	printf("PROBLEM\n");
+
 	printf("DecodeStart\n");
-	memcpy(inbuf,in_buf,size);       
 	
 	if ( (pict = avcodec_alloc_frame()) == NULL)
 		return -1;
          
-   inbuf_ptr = inbuf;  
-   
-   avpicture_fill((AVPicture *)pict, in_buf,PIX_FMT_YUV420P,
-    _decodeCodecCtx->width, _decodeCodecCtx->height);
-	printf("While\n");
+    pict_buf = (uint8_t*)malloc(avpicture_get_size(PIX_FMT_YUV420P,_decodeCodecCtx->width, _decodeCodecCtx->height)*sizeof(uint8_t));     
+         
+    if( avpicture_fill((AVPicture *)pict, pict_buf,PIX_FMT_YUV420P,_decodeCodecCtx->width, _decodeCodecCtx->height) <= 0)
+    	printf("ERROR AVPICTUREFILL DECODE\n");
+    	
+  	printf("While\n");
 	while(bytesRemaining > 0){
 		
 		printf("decodeVideo\n");
 	bytesDecoded = avcodec_decode_video(_decodeCodecCtx, pict,
-            &got_picture_ptr, inbuf_ptr, bytesRemaining);
+            got_picture_ptr, in_buf, bytesRemaining);
 
         if(bytesDecoded < 0)
+        {
+         printf("DECODE PAS\n");
             return false;
+        }
 
         bytesRemaining -= bytesDecoded;
 		in_buf+=bytesDecoded;
 		
         av_free(pict);
-        free(in_buf);
+        free(pict_buf);
     }
 printf("Sortie de la boucle\n");
     // Decode the rest of the frame
-    bytesDecoded=avcodec_decode_video(_decodeCodecCtx, pict, &got_picture_ptr, in_buf, bytesRemaining);
+    bytesDecoded=avcodec_decode_video(_decodeCodecCtx, pict, got_picture_ptr, in_buf, bytesRemaining);
 
      
 	return 0;
@@ -163,21 +172,21 @@ void VideoCodec::initDecodeContext()
 {
 	pair<int,int> tmp = _cmdRes->getResolution();
 	//initialize basic encoding context
-	_decodeCodecCtx = _videoDesc->getCodecContext(_Codec);
+	_decodeCodecCtx = _encodeCodecCtx;
 	
-	//temp for debug
-	_decodeCodecCtx->width = _encodeCodecCtx->width;
-	_decodeCodecCtx->height = _encodeCodecCtx->height;
-	
-	
-	//TODO ALLOCATE MORE MEM???
-	//codec_tag
-	if(_Codec->capabilities&CODEC_CAP_TRUNCATED)
-	  _decodeCodecCtx->flags|= CODEC_FLAG_TRUNCATED;
-
-	//if(avcodec_open (_decodeCodecCtx, _Codec) < 0)
-	//	ptracesfl("CANNOT OPEN DECODE CODEC",MT_FATAL,1,true);
-	
+//	//temp for debug
+//	_decodeCodecCtx->width = _encodeCodecCtx->width;
+//	_decodeCodecCtx->height = _encodeCodecCtx->height;
+//	
+//	
+//	//TODO ALLOCATE MORE MEM???
+//	//codec_tag
+//	if(_Codec->capabilities&CODEC_CAP_TRUNCATED)
+//	  _decodeCodecCtx->flags|= CODEC_FLAG_TRUNCATED;
+//
+//	//if(avcodec_open (_decodeCodecCtx, _Codec) < 0)
+//	//	ptracesfl("CANNOT OPEN DECODE CODEC",MT_FATAL,1,true);
+//	
 	//intialize SWSdecodeContext
 	decodeSWS = new SWSInterface(_decodeCodecCtx->width,_decodeCodecCtx->height,PIX_FMT_YUV420P ,
 	tmp.first,tmp.second,PIX_FMT_RGB24);
