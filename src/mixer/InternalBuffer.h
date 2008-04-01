@@ -5,6 +5,8 @@
 
 #include <semaphore.h>
 
+#define INTERNALBUFFER_TRACE	9
+
 //! Internal data sharing class
 /*!
  * Acts as an Internal buffer that can be accessed from multiple source.

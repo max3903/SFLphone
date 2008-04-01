@@ -9,74 +9,71 @@ void VideoInput::putData(char * data, int size, int leTemps)
 { 
   if (data!=NULL && size>0)
   {
-    ptracesfl("VideoInput - putData(): Demande semaphore",MT_INFO,true);
-    sem_wait(&semaphore);
-    ptracesfl("VideoInput - putData(): Zone Critique",MT_INFO,true);
+
     if( buffer != NULL )
     	delete buffer;
     buffer = new char[size];
+    
+    if( infoTemps != NULL )
+    	delete infoTemps;
     infoTemps = new TimeInfo(leTemps);
+    
     memcpy(buffer, data,size);
     sizeBuffer=size;
+    ptracesfl("VideoInput - putData(): Sending signal new data",MT_INFO, VIDEOINPUT_TRACE);
     sem_post(&semaphore);
-    ptracesfl("VideoInput - putData(): Sortie Zone Critique",MT_INFO,true);
   }
   else
-    ptracesfl("VideoInput - putData(): Erreur parametre",MT_ERROR,true);
+    ptracesfl("VideoInput - putData(): Parameter error",MT_ERROR, VIDEOINPUT_TRACE);
 }
 
 int VideoInput::fetchData(char* data)
 { 
   if (buffer!=NULL && data!=NULL)
   {
-    ptracesfl("VideoInput - fetchData(): Demande semaphore",MT_INFO,true);
+    
+    ptracesfl("VideoInput - fetchData(): Watting for data",MT_INFO, VIDEOINPUT_TRACE);
     sem_wait(&semaphore);
-    ptracesfl("VideoInput - fetchData(): Zone Critique",MT_INFO,true);
+    ptracesfl("VideoInput - recieved new data",MT_INFO, VIDEOINPUT_TRACE);
     memcpy(data, buffer,sizeBuffer);
-    sem_post(&semaphore);
-    ptracesfl("VideoInput - fetchData(): Sortie Zone Critique",MT_INFO,true);
-    return 0;
+    return this->sizeBuffer;
   }
   else
   {
-    ptracesfl("VideoInput - fetchData(): Erreur parametre",MT_ERROR,true);
-    return 1;
+    if( data == NULL )
+  		ptracesfl("VideoInput - fetchData(): bad paramteter",MT_ERROR, VIDEOINPUT_TRACE);
+  	else
+    	ptracesfl("VideoInput - fetchData(): empty buffer",MT_ERROR, VIDEOINPUT_TRACE);
   }
+  
+  return -1;
+  
 }
 
 int VideoInput::getSizeBuffer()
 {
-  int leSize;
-  ptracesfl("VideoInput - getSizeBuffer(): Demande semaphore",MT_INFO,true);
-  sem_wait(&semaphore);
-  ptracesfl("VideoInput - getSizeBuffer(): Zone Critique",MT_INFO,true);
-  leSize = sizeBuffer;
-  sem_post(&semaphore);
-  ptracesfl("VideoInput - getSizeBuffer(): Sortie Zone Critique",MT_INFO,true);
-  return leSize;
+ 	return this->sizeBuffer;
 }
 
 VideoInput::VideoInput()
 {
-  ptracesfl("VideoInput - VideoInput(): Creation de l'objet",MT_INFO,true);
-  sem_init(&semaphore,0,1);
-  buffer=NULL;
-  infoTemps=NULL;
+  sem_init(&semaphore,0,0);
+  buffer= NULL;
+  infoTemps= NULL;
   sizeBuffer=0;
 }
 
 VideoInput::~VideoInput()
 {
-  ptracesfl("VideoInput - ~VideoInput(): Destruction de l'objet",MT_INFO,true);
   if (buffer!=NULL){
-    delete []buffer;
+    delete buffer;
     buffer=NULL;
   }
   if (infoTemps!=NULL){
     delete infoTemps;
     infoTemps=NULL;
   }
-  sem_destroy(&semaphore);
+  
 }
 
 void VideoInput::putTimeInfo(TimeInfo* infos)

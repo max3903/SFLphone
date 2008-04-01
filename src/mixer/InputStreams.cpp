@@ -7,8 +7,8 @@
 
 InputStreams::InputStreams()
 {
-  audioInput = new AudioInput();
-  videoInput = new VideoInput();
+  audioInput = NULL;
+  videoInput = NULL;
 }
 
 InputStreams::InputStreams(VideoInput* videoData, AudioInput* audioData)
@@ -25,12 +25,10 @@ InputStreams::~InputStreams()
 
 VideoInput* InputStreams::fetchVideoStream() const
 {
-  ptracesfl("InputStreams - fetchVideoStream(): Demande du Stream Video recu!",MT_INFO,true);
   return videoInput;
 }
 
 AudioInput* InputStreams::fetchAudioStream() const
 {
-  ptracesfl("InputStreams - fetchAudioStream(): Demande du Stream Audio recu!",MT_INFO,true);
   return audioInput;
 }

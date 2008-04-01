@@ -6,6 +6,7 @@
 #include <semaphore.h>
 #include "TimeInfo.h"
 
+#define AUDIOINPUT_TRACE	9
 //!  Audio input buffer
 /*!
   This class is the audio input buffer of a mixer InputStreams

@@ -10,72 +10,70 @@ void AudioInput::putData(short *data, int size, int leTemps)
 {
   if (data!=NULL && size>0)
   {
-    ptracesfl("AudioInput - putData(): Demande semaphore",MT_INFO,true);
-    sem_wait(&semaphore);
-    ptracesfl("AudioInput - putData(): Zone Critique",MT_INFO,true);
+  	if( this->buffer != NULL )
+  		delete this->buffer;
     buffer = new short[size];
+    
+    if( this->infoTemps != NULL )
+    	delete this->infoTemps;
+    	
     infoTemps = new TimeInfo(leTemps);
     memcpy(data,buffer,size);
     sizeBuffer=size;
+    ptracesfl("AudioInput - putData(): Sending signal new data",MT_INFO, AUDIOINPUT_TRACE);
     sem_post(&semaphore);
-    ptracesfl("AudioInput - putData(): Sortie Zone Critique",MT_INFO,true);
   }
   else
-    ptracesfl("AudioInput - putData(): Erreur parametre",MT_ERROR,true);
+    ptracesfl("AudioInput - putData(): Parameter error",MT_ERROR, AUDIOINPUT_TRACE);
 }
 
 int AudioInput::fetchData(short *data) 
 { 
   if (buffer!=NULL && data!=NULL)
   {
-    ptracesfl("AudioInput - fetchData(): Demande semaphore",MT_INFO,true);
+    ptracesfl("AudioInput - fetchData(): Watting for data",MT_INFO, AUDIOINPUT_TRACE);
     sem_wait(&semaphore);
-    ptracesfl("AudioInput - fetchData(): Zone Critique",MT_INFO,true);
+    ptracesfl("AudioInput - recieved new data",MT_INFO, AUDIOINPUT_TRACE);
     memcpy(buffer,data,sizeBuffer);
-    sem_post(&semaphore);
-    ptracesfl("AudioInput - fetchData(): Sortie Zone Critique",MT_INFO,true);
-    return 0;
+    return this->sizeBuffer;
   }
   else
   {
-    ptracesfl("AudioInput - fetchData(): Erreur parametre",MT_ERROR,true);
-    return 1;
+    if( data == NULL )
+  		ptracesfl("AudioInput - fetchData(): bad paramteter",MT_ERROR, AUDIOINPUT_TRACE);
+  	else
+    	ptracesfl("AudioInput - fetchData(): empty buffer",MT_ERROR, AUDIOINPUT_TRACE);
   }
+  
+  return -1;
 }
 
 int AudioInput::getSizeBuffer()
 {
-  int leSize;
-  ptracesfl("AudioInput - getSizeBuffer(): Demande semaphore",MT_INFO,true);
-  sem_wait(&semaphore);
-  ptracesfl("AudioInput - getSizeBuffer(): Zone Critique",MT_INFO,true);
-  leSize = sizeBuffer;
-  sem_post(&semaphore);
-  ptracesfl("AudioInput - getSizeBuffer(): Sortie Zone Critique",MT_INFO,true);
-  return leSize;
+	return this->sizeBuffer;
 }
 
 AudioInput::AudioInput()
 {
-  ptracesfl("AudioInput - AudioInput(): Creation de l'objet",MT_INFO,true);
-  sem_init(&semaphore,0,1);
-  buffer=NULL;
-  infoTemps=NULL;
-  sizeBuffer=0;
+  sem_init(&semaphore,0,0);
+  buffer= NULL;
+  infoTemps= NULL;
+  sizeBuffer= 0;
 }
 
 AudioInput::~AudioInput()
 {
+	
   ptracesfl("AudioInput - ~AudioInput(): Destruction de l'objet",MT_INFO,true);
-  if (buffer!=NULL){
-    delete []buffer;
+  if (buffer != NULL){
+    delete buffer;
     buffer=NULL;
   }
   if (infoTemps!=NULL){
     delete infoTemps;
     infoTemps=NULL;
   }
-  sem_destroy(&semaphore);
+
 }
 
 void AudioInput::putTimeInfo(TimeInfo* infos)
@@ -90,13 +88,6 @@ void AudioInput::putTimeInfo(TimeInfo* infos)
 
 TimeInfo AudioInput::fetchTimeInfo()
 {
-  TimeInfo* leTemps;
-  ptracesfl("AudioInput - fetchTimeInfo(): Demande semaphore",MT_INFO,true);
-  sem_wait(&semaphore);
-  ptracesfl("AudioInput - fetchTimeInfo(): Zone Critique",MT_INFO,true);
-  leTemps = infoTemps;
-  sem_post(&semaphore);
-  ptracesfl("AudioInput - fetchTimeInfo(): Sortie Zone Critique",MT_INFO,true);
-  return (*leTemps);
+  return *this->infoTemps;
 }
 

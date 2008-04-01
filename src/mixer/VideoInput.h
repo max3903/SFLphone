@@ -7,6 +7,8 @@
 #include "TimeInfo.h"
 #include <string.h>
 
+#define VIDEOINPUT_TRACE	9
+
 //!  Video input buffer
 /*!
  * This class is the video input buffer of a mixer InputStreams

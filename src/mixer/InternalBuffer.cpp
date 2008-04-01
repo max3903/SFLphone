@@ -7,26 +7,23 @@
 
 bool InternalBuffer::putData(void * data, int size)
 {
-  if (data!=NULL && size>0)
+  if (data!=NULL && size > 0)
   {
-    ptracesfl("InternalBuffer - putData(): Demande semaphore",MT_INFO,true);
-    sem_wait(&semaphore);
-    ptracesfl("InternalBuffer - putData(): Zone Critique",MT_INFO,true);
     if( buffer != NULL )
     	free( buffer);
     buffer = (void*) malloc(size);
     memcpy(buffer,data,size);
     sizeBuffer=size;
+    ptracesfl("InternalBuffer - Sending signal of new data",MT_INFO, INTERNALBUFFER_TRACE);
     sem_post(&semaphore);
-    ptracesfl("InternalBuffer - putData(): Sortie Zone Critique",MT_INFO,true);
     return true;
   }
   else
   {
     if( data == NULL )
-  		ptracesfl("InternalBuffer - fetchData(): bad paramteter",MT_ERROR,true);
+  		ptracesfl("InternalBuffer - fetchData(): bad paramteter",MT_ERROR, INTERNALBUFFER_TRACE);
   	else
-    	ptracesfl("InternalBuffer - fetchData(): empty buffer",MT_ERROR,true);
+    	ptracesfl("InternalBuffer - fetchData(): empty buffer",MT_ERROR, INTERNALBUFFER_TRACE);
     return false;
   }
 }
@@ -35,51 +32,38 @@ bool InternalBuffer::fetchData(void * data)
 {
   if (buffer!=NULL && data!=NULL)
   {
-    ptracesfl("InternalBuffer - fetchData(): Demande semaphore",MT_INFO,true);
+  	ptracesfl("InternalBuffer - watting for new data",MT_INFO, INTERNALBUFFER_TRACE);
     sem_wait(&semaphore);
-    ptracesfl("InternalBuffer - fetchData(): Zone Critique",MT_INFO,true);
+    ptracesfl("InternalBuffer - recieved new data",MT_INFO, INTERNALBUFFER_TRACE);
     memcpy(data, buffer,sizeBuffer);
-    sem_post(&semaphore);
-    ptracesfl("InternalBuffer - fetchData(): Sortie Zone Critique",MT_INFO,true);
     return true;
   }
   else
   {
-    //ptracesfl("InternalBuffer - fetchData(): Erreur parametre",MT_ERROR,true);
    	if( data == NULL )
-  		ptracesfl("InternalBuffer - fetchData(): bad paramteter",MT_ERROR,true);
+  		ptracesfl("InternalBuffer - fetchData(): bad paramteter",MT_ERROR, INTERNALBUFFER_TRACE);
   	else
-    	ptracesfl("InternalBuffer - fetchData(): empty buffer",MT_ERROR,true);
+    	ptracesfl("InternalBuffer - fetchData(): empty buffer",MT_ERROR, INTERNALBUFFER_TRACE);
     return false;
   }
 }
 
 int InternalBuffer::getSizeBuffer()
 {
-  int leSize;
-  ptracesfl("InternalBuffer - getSizeBuffer(): Demande semaphore",MT_INFO,true);
-  sem_wait(&semaphore);
-  ptracesfl("InternalBuffer - getSizeBuffer(): Zone Critique",MT_INFO,true);
-  leSize = sizeBuffer;
-  sem_post(&semaphore);
-  ptracesfl("InternalBuffer - getSizeBuffer(): Sortie Zone Critique",MT_INFO,true);
-  return leSize;
+   return this->sizeBuffer;
 }
 
 InternalBuffer::InternalBuffer()
 {
-  ptracesfl("InternalBuffer - InternalBuffer(): Creation de l'objet",MT_INFO,true);
-  sem_init(&semaphore,0,1);
-  buffer=NULL;
-  sizeBuffer=0;
+  sem_init(&semaphore,0,0);
+  buffer= NULL;
+  sizeBuffer= 0;
 }
 
 InternalBuffer::~InternalBuffer()
 {
-  ptracesfl("InternalBuffer - ~InternalBuffer(): Destruction de l'objet",MT_INFO,true);
   if (buffer!=NULL)
     free(buffer);
-  sem_destroy(&semaphore);
 }
 
 void InternalBuffer::Init()
