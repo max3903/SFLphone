@@ -44,12 +44,14 @@ int VideoCodec::videoEncode(uint8_t *in_buf, uint8_t* out_buf,int in_bufferSize,
 	//Step 2:Encode
 	//TODO GET A PROPER BUFFER SIZE
 	printf("ENCODE\n");
-	avcodec_encode_video(_encodeCodecCtx, out_buf, 100000, SWS);
+	if (avcodec_encode_video(_encodeCodecCtx, out_buf, 100000, SWS)< 0)
+		printf("ERROR ENCODE\n");
 
 	//Step 3:Clean
 	av_free(IN);
-	printf("FREE\n");
+	
 	av_free(SWS);
+	printf("FREE\n");
 	//free(out_buf);
 
 	//return outBufferSize
@@ -65,26 +67,26 @@ int VideoCodec::videoDecode(uint8_t *in_buf, uint8_t* out_buf,int size)
 	int bytesRemaining = size;
 	int got_picture_ptr = 0;
 	int bytesDecoded=0;
-	uint8_t inbuf[INBUF_SIZE + FF_INPUT_BUFFER_PADDING_SIZE], *inbuf_ptr;
 	AVFrame *pict;
+	uint8_t inbuf[size + FF_INPUT_BUFFER_PADDING_SIZE], *inbuf_ptr;
 
-
+	 memset(inbuf + size, 0, FF_INPUT_BUFFER_PADDING_SIZE);
 	printf("DecodeStart\n");
-	memset(inbuf + INBUF_SIZE, 0, FF_INPUT_BUFFER_PADDING_SIZE);
+	memcpy(inbuf,in_buf,size);       
 	
-
-	pict = avcodec_alloc_frame();
-	if (pict == NULL)
-         return -1;
-                
-                
-  // avpicture_fill((AVPicture *)pict, out_buf+FF_INPUT_BUFFER_PADDING_SIZE,PIX_FMT_RGB24, width, height);
+	if ( (pict = avcodec_alloc_frame()) == NULL)
+		return -1;
+         
+   inbuf_ptr = inbuf;  
+   
+   avpicture_fill((AVPicture *)pict, in_buf,PIX_FMT_YUV420P,
+    _decodeCodecCtx->width, _decodeCodecCtx->height);
 	printf("While\n");
 	while(bytesRemaining > 0){
 		
 		printf("decodeVideo\n");
 	bytesDecoded = avcodec_decode_video(_decodeCodecCtx, pict,
-            &got_picture_ptr, in_buf, bytesRemaining);
+            &got_picture_ptr, inbuf_ptr, bytesRemaining);
 
         if(bytesDecoded < 0)
             return false;
@@ -92,7 +94,8 @@ int VideoCodec::videoDecode(uint8_t *in_buf, uint8_t* out_buf,int size)
         bytesRemaining -= bytesDecoded;
 		in_buf+=bytesDecoded;
 		
-        
+        av_free(pict);
+        free(in_buf);
     }
 printf("Sortie de la boucle\n");
     // Decode the rest of the frame
@@ -158,9 +161,14 @@ void VideoCodec::initEncodeContext(){
 }
 void VideoCodec::initDecodeContext()
 {
-
+	pair<int,int> tmp = _cmdRes->getResolution();
 	//initialize basic encoding context
 	_decodeCodecCtx = _videoDesc->getCodecContext(_Codec);
+	
+	//temp for debug
+	_decodeCodecCtx->width = _encodeCodecCtx->width;
+	_decodeCodecCtx->height = _encodeCodecCtx->height;
+	
 	
 	//TODO ALLOCATE MORE MEM???
 	//codec_tag
@@ -171,7 +179,8 @@ void VideoCodec::initDecodeContext()
 	//	ptracesfl("CANNOT OPEN DECODE CODEC",MT_FATAL,1,true);
 	
 	//intialize SWSdecodeContext
-	
+	decodeSWS = new SWSInterface(_decodeCodecCtx->width,_decodeCodecCtx->height,PIX_FMT_YUV420P ,
+	tmp.first,tmp.second,PIX_FMT_RGB24);
 }
 
 void VideoCodec::quitDecodeContext()

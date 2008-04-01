@@ -121,7 +121,7 @@ private:
      * Libavcodec Codec context
      */
     AVCodecContext* _encodeCodecCtx;
-    /**En
+    /**
      * Libavcodec Codec context
      */
     AVCodecContext* _decodeCodecCtx;
@@ -133,7 +133,7 @@ private:
     
     // Video device manager instance
 	VideoDeviceManager *_v4lManager;    
-// Interface for pix conversion
+	// Interface for pix conversion
     SWSInterface *decodeSWS;
     SWSInterface *encodeSWS;
 };
