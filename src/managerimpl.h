@@ -309,6 +309,31 @@ public:
   std::vector<std::string> getContactEntryDetails(const std::string& accountID, const std::string& contactID, const std::string& contactEntryID);
   
   /**
+   * TOCOMMENT
+   */
+  void setContact(const std::string& accountID, const std::string& contactID, const std::string& firstName, const std::string& lastName, const std::string& email);
+  
+  /**
+   * TOCOMMENT
+   */
+  void removeContact(const std::string& accountID, const std::string& contactID);
+  
+  /**
+   * TOCOMMENT
+   */
+  void setContactEntry(const std::string& accountID, const std::string& contactID, const std::string& entryID, const std::string& text, const std::string& type, const std::string& IsShown, const std::string& IsSubscribed);
+  
+  /**
+   * TOCOMMENT
+   */
+  void removeContactEntry(const std::string& accountID, const std::string& contactID, const std::string& entryID);
+  
+  /**
+   * TOCOMMENT
+   */
+  void setPresence( const std::string& accountID, const std::string& presence, const std::string& additionalInfo );
+  
+  /**
    * Get the list of codecs we supports, not ordered
    * @return The list of the codecs
    */  

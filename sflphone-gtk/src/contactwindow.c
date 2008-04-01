@@ -49,6 +49,8 @@ enum {
 GtkWidget* contactTreeView;
 GtkTreeStore* contactTreeStore;
 
+
+
 /**
  * Fills the treelist with contacts and entries grouped by accounts
  */
@@ -111,6 +113,10 @@ contact_window_fill_contact_list()
 							-1);
 				}
 			}
+			// Expand accounts nodes by default
+			GtkTreePath* path = gtk_tree_model_get_path(GTK_TREE_MODEL(contactTreeStore), &accountIter);
+			gtk_tree_view_expand_to_path(GTK_TREE_VIEW(contactTreeView), path);
+			gtk_tree_path_free(path);
 		}
 	}
 }

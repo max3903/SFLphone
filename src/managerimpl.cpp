@@ -2350,6 +2350,131 @@ ManagerImpl::getContactEntryDetails(const std::string& accountID, const std::str
 	return entryDetails;
 }
 
+void
+ManagerImpl::setContact(const std::string& accountID, const std::string& contactID, const std::string& firstName, const std::string& lastName, const std::string& email)
+{
+	Contact* contact;
+	
+	if(strcmp(contactID.data(), "NEW") == 0)
+	{
+		// Add new contact
+		std::stringstream newContactID;
+		do
+		{
+			newContactID << time(NULL);
+		}
+		while(getContact(accountID, newContactID.str()) != NULL);
+		contact = new Contact(newContactID.str(), firstName, lastName, email);
+	}
+	else
+	{
+		contact = getContact(accountID, contactID);
+		contact->setFirstName(firstName);
+		contact->setLastName(lastName);
+		contact->setEmail(email);
+	}
+	Account* account = getAccount(accountID);
+	if(account != NULL)
+	{
+		std::vector<Contact*> contacts = account->getContacts();
+		contacts.push_back(contact);
+	}
+}
+
+void
+ManagerImpl::removeContact(const std::string& accountID, const std::string& contactID)
+{
+	Account* account = getAccount(accountID);
+	if(account != NULL)
+	{
+		std::vector<Contact*> contacts = account->getContacts();
+		std::vector<Contact*>::iterator iter = contacts.begin();
+		while(iter != contacts.end())
+		{
+			Contact* contact = (Contact*)*iter;
+			if(contact->getContactID() == contactID)
+			{
+				std::vector<ContactEntry*> entries = contact->getEntries();
+				entries.clear();
+				contacts.erase(iter);
+				break;
+			}
+			iter++;
+		}
+	}
+}
+
+void
+ManagerImpl::setContactEntry(const std::string& accountID, const std::string& contactID, const std::string& entryID, const std::string& text, const std::string& type, const std::string& IsShown, const std::string& IsSubscribed)
+{
+	Contact* contact;
+	ContactEntry* entry;
+	
+	contact = getContact(accountID, contactID);
+	if(contact != NULL)
+	{
+		// Change boolean strings to booleans
+		bool shown, subscribed;
+		if(strcmp(IsShown.data(), "TRUE") == 0) shown = true;
+		else shown = false;
+		if(strcmp(IsSubscribed.data(), "TRUE") == 0) subscribed = true;
+		else subscribed = false;
+
+		// Edit entry if it exists, otherwise add it
+		std::vector<ContactEntry*> entries = contact->getEntries();
+		std::vector<ContactEntry*>::iterator iter = entries.begin();
+		bool added = false;
+		while(iter != entries.end())
+		{
+			entry = (ContactEntry*)*iter;
+			if(strcmp(entry->getEntryID().data(), entryID.data()) == 0)
+			{
+				// Edit entry and break
+				entry->setText(text);
+				entry->setType(type);
+				entry->setShownInCallConsole(shown);
+				entry->setSubscribedToPresence(subscribed);
+				added = true;
+				break;
+			}
+		}
+		if(!added)
+		{
+			// Add new entry
+			entry = new ContactEntry(entryID, text, type, shown, subscribed);
+			entries.push_back(entry);
+		}
+	}
+}
+
+void
+ManagerImpl::removeContactEntry(const std::string& accountID, const std::string& contactID, const std::string& entryID)
+{
+	Contact* contact = getContact(accountID, contactID);
+	if(contact != NULL)
+	{
+		std::vector<ContactEntry*> entries = contact->getEntries();
+		std::vector<ContactEntry*>::iterator iter = entries.begin();
+		while(iter != entries.end())
+		{
+			ContactEntry* entry = (ContactEntry*)*iter;
+			if(entry->getEntryID() == entryID)
+			{
+				entries.erase(iter);
+				break;
+			}
+			iter++;
+		}
+	}
+}
+
+void
+ManagerImpl::setPresence(const std::string& accountID, const std::string& presence, const std::string& additionalInfo)
+{
+	Account* account = getAccount(accountID);
+	if(account != NULL) account->publishPresence(presence);
+}
+
 //THREAD=Main
 /*
  * Experimental...

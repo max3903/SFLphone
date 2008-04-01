@@ -37,8 +37,10 @@ public:
     std::vector< ::DBus::String > getContactDetails( const ::DBus::String& accountID, const ::DBus::String& contactID );
     std::vector< ::DBus::String > getContactEntries( const ::DBus::String& accountID, const ::DBus::String& contactID );
     std::vector< ::DBus::String > getContactEntryDetails( const ::DBus::String& accountID, const ::DBus::String& contactID, const ::DBus::String& contactEntryID );
-    void setContacts( const ::DBus::String& accountID, const std::vector< ::DBus::String >& details );
-    void setContactEntries( const ::DBus::String& contactID, const std::vector< ::DBus::String >& details );
+    void setContact( const ::DBus::String& accountID, const ::DBus::String& contactID, const ::DBus::String& firstName, const ::DBus::String& lastName, const ::DBus::String& email );
+    void removeContact( const ::DBus::String& accountID, const ::DBus::String& contactID );
+    void setContactEntry( const ::DBus::String& accountID, const ::DBus::String& contactID, const ::DBus::String& entryID, const ::DBus::String& text, const ::DBus::String& type, const ::DBus::String& IsShown, const ::DBus::String& IsSubscribed );
+    void removeContactEntry( const ::DBus::String& accountID, const ::DBus::String& contactID, const ::DBus::String& entryID );
     void setPresence( const ::DBus::String& accountID, const ::DBus::String& presence, const ::DBus::String& additionalInfo );
 };
 
