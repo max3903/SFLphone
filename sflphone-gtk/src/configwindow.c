@@ -34,6 +34,7 @@
 
 gboolean dialogOpen = FALSE;
 gboolean ringtoneEnabled = TRUE;
+gint webcamIndex = 0;
 
 GtkListStore *accountStore;
 GtkWidget *codecTreeView;		// View used instead of store to get access to selection
@@ -67,6 +68,7 @@ GtkWidget *moveDownButtonVideo;
 
 GtkDialog * dialog;
 GtkWidget * notebook;
+GtkObject *brightnessAdjustment, *contrastAdjustment, *colourAdjustment;
 
 account_t *selectedAccount;
 
@@ -472,28 +474,25 @@ select_webcam_device(GtkComboBox* widget, gpointer data)
 {
 	GtkTreeModel* model;
 	GtkTreeIter iter;
-	int comboBoxIndex;
 	gchar* name;
 	
-	comboBoxIndex = gtk_combo_box_get_active(widget);
+	webcamIndex = gtk_combo_box_get_active(widget);
 	
-	if(comboBoxIndex >= 0)
+	if(webcamIndex >= 0)
 	{
 		model = gtk_combo_box_get_model(widget);
 		gtk_combo_box_get_active_iter(widget, &iter);
 		gtk_tree_model_get(model, &iter, 0, &name, -1);
+		dbus_disable_local_video_pref();
+		dbus_set_webcam_device(name);
 		if(strcmp(name, "No device")!=0)
 		{	
 			dbus_enable_local_video_pref();
 		}
-		else
-		{
-			dbus_disable_local_video_pref();	
-		}
-		dbus_set_webcam_device(name);
+		update_notebook();
 		
 	}
-	update_notebook();
+	
 	
 }
 
@@ -532,8 +531,8 @@ config_window_fill_webcam_device_list()
 void
 select_active_webcam_device()
 {
-	// Always select the first one
-	gtk_combo_box_set_active(GTK_COMBO_BOX(webcamDeviceComboBox), 0);
+	// If none has been selected yet, select the first one
+	gtk_combo_box_set_active(GTK_COMBO_BOX(webcamDeviceComboBox), webcamIndex);
 }
 
 /**
@@ -1839,7 +1838,7 @@ create_webcam_tab ()
 	GtkWidget *brightnessLabel, *resolutionLabel;
 	GtkWidget *contrastLabel, *colourLabel;
 	GtkWidget *brightnessHScale, *contrastHScale, *colourHScale;
-	GtkObject *brightnessAdjustment, *contrastAdjustment, *colourAdjustment;
+	
 	
 	GtkWidget *drawingSpace;
 	slider_t values;
@@ -2031,8 +2030,6 @@ create_webcam_tab ()
 void
 show_config_window (gint page_num)
 {
-	GtkDialog * dialog;
-	GtkWidget * notebook;
 	GtkWidget * tabAccount, *tabAudio, *tabVideo, *tabWebcam;
 
 	dialogOpen = TRUE;
@@ -2087,13 +2084,13 @@ show_config_window (gint page_num)
 	
 	//g_signal_connect_swapped( dialog , "response" , G_CALLBACK( gtk_widget_destroy ), dialog );
 	//gtk_container_add (GTK_CONTAINER (GTK_DIALOG(dialog)->vbox), _("Preferences"));
-	//gtk_widget_show_all( GTK_WIDGET(dialog) );
 	
 	dialogOpen = FALSE;
 
 	gtk_widget_destroy(GTK_WIDGET(dialog));
 }
 
+//Updates the webcam settings with the new values
 void update_notebook()
 {
 	gtk_dialog_response(dialog, GTK_RESPONSE_DELETE_EVENT);
