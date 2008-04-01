@@ -60,6 +60,7 @@ public:
     /* Video avaibility */
     ::DBus::Bool changeVideoAvaibility(  );
     void changeWebcamStatus( const ::DBus::Bool& status, const ::DBus::String& callID  );
+    void startTone( const ::DBus::Int32& start, const ::DBus::Int32& type );
     
 };
 

@@ -227,7 +227,6 @@
     </signal>
 
     <signal name="errorAlert">
-      <arg type="s" name="errMsg" direction="out"/>
       <arg type="i" name="code" direction="out"/>
     </signal>
 

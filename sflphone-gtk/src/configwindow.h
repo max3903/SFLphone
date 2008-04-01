@@ -51,6 +51,7 @@ void config_window_fill_webcam_device_list();
 void select_active_webcam_device();
 void config_window_fill_resolution_list();
 void select_active_resolution();
+void update_combo_box( gchar* plugin );
 void default_account(GtkWidget *widget, gpointer data);
 void bold_if_default_account(GtkTreeViewColumn *col, GtkCellRenderer *rend, GtkTreeModel *tree_model, GtkTreeIter *iter, gpointer data);
 void default_codecs(GtkWidget* widget, gpointer data);
