@@ -40,5 +40,7 @@ void update_call_tree (call_t * c);
 void update_call_tree_remove (call_t * c);
 
 GtkWidget * create_toolbar();
+void create_join_window();
+void create_invite_window();
 
 #endif 

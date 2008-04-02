@@ -24,7 +24,6 @@
 #include <calllist.h>
 #include <menus.h>
 #include <dbus.h>
-#include <invitewindow.h>
 #include <mainwindow.h>
 
 GtkListStore * store;
@@ -40,6 +39,13 @@ GtkToolItem * transfertButton;
 GtkToolItem * unholdButton;
 GtkToolItem * inviteButton;
 guint transfertButtonConnId; //The button toggled signal connection ID
+
+//Buttons on conference window popups
+GtkWidget *inviteCallButton;
+GtkWidget *inviteCancelButton;
+GtkWidget *joinButton;
+GtkWidget *joinCancelButton;
+
 
 
 /**
@@ -161,9 +167,100 @@ static void webCamStatusChange( GtkWidget *widget, gpointer data )
  */
 static void inviteUser( GtkWidget *widget, gpointer data )
 {
-	//TODO: Implement Fonctionnality
-	create_Join_conf();
+	create_invite_window();
+  	//TODO: Implement Callback functions
+  	//TODO: add logic of those buttons
+	
 }
+
+void create_invite_window()
+{
+	GtkDialog *dialog;
+  	GtkWidget *dialogVBox;
+  	GtkWidget *confVBox;
+  	GtkWidget *phoneLabel;
+  	GtkWidget *phoneEntry;
+	
+	
+	dialog = GTK_DIALOG(gtk_dialog_new_with_buttons ("Invite user",
+				GTK_WINDOW(get_main_window()),
+				GTK_DIALOG_DESTROY_WITH_PARENT,
+				NULL));
+				
+	gtk_dialog_set_has_separator(dialog, FALSE);
+	gtk_window_set_default_size(GTK_WINDOW(dialog), 100, 100);
+	gtk_container_set_border_width(GTK_CONTAINER(dialog), 0);
+	
+	dialogVBox = GTK_DIALOG (dialog)->vbox;
+  	gtk_widget_show (dialogVBox);
+  	
+  	confVBox = gtk_vbox_new (FALSE, 0);
+  	gtk_box_pack_start (GTK_BOX (dialogVBox), confVBox, TRUE, TRUE, 0);
+  	gtk_widget_show (confVBox);
+
+  	phoneLabel = gtk_label_new (("Enter the phone number to call then press the Call button"));
+  	gtk_widget_show (phoneLabel);
+  	gtk_box_pack_start (GTK_BOX (confVBox), phoneLabel, TRUE, TRUE, 0);
+
+  	phoneEntry = gtk_entry_new ();
+  	gtk_widget_show (phoneEntry);
+  	gtk_box_pack_start (GTK_BOX (confVBox), phoneEntry, TRUE, TRUE, 0);
+
+  	inviteCallButton = gtk_button_new_with_mnemonic (("Call"));
+  	gtk_widget_show (inviteCallButton);
+  	gtk_dialog_add_action_widget (GTK_DIALOG (dialog), inviteCallButton, 0);
+
+  	inviteCancelButton = gtk_button_new_with_mnemonic (("Cancel"));
+  	gtk_widget_show (inviteCancelButton);
+  	gtk_dialog_add_action_widget (GTK_DIALOG (dialog), inviteCancelButton, 0);
+  	
+  	gtk_dialog_run(dialog);
+}
+
+
+/**
+ * Join the 3rd person to the conference call
+ */
+/*static void joinUser( GtkWidget *widget, gpointer data )
+{
+	create_join_window();
+  	//TODO: Implement Callback functions
+	
+}
+
+void create_join_window()
+{
+	GtkDialog *dialog;
+  	GtkWidget *joinVBox;
+  	GtkWidget *joinLabel;
+  	
+
+  	dialog = GTK_DIALOG(gtk_dialog_new_with_buttons ("Invite user",
+				GTK_WINDOW(get_main_window()),
+				GTK_DIALOG_DESTROY_WITH_PARENT,
+				NULL));
+				
+	gtk_dialog_set_has_separator(dialog, FALSE);
+	gtk_window_set_default_size(GTK_WINDOW(dialog), 100, 100);
+	gtk_container_set_border_width(GTK_CONTAINER(dialog), 0);
+
+  	joinVBox = GTK_DIALOG (dialog)->vbox;
+  	gtk_widget_show (joinVBox);
+
+  	joinLabel = gtk_label_new (("The connection has been established \n Press join to start the conference"));
+  	gtk_widget_show (joinLabel);
+  	gtk_box_pack_start (GTK_BOX (joinVBox), joinLabel, TRUE, TRUE, 0);
+
+  	joinButton = gtk_button_new_with_mnemonic (("Join"));
+  	gtk_widget_show (joinButton);
+  	gtk_dialog_add_action_widget (GTK_DIALOG (dialog), joinButton, 0);
+
+  	joinCancelButton = gtk_button_new_with_mnemonic (("Cancel"));
+  	gtk_widget_show (joinCancelButton);
+  	gtk_dialog_add_action_widget (GTK_DIALOG (dialog), joinCancelButton, 0);
+  	
+  	gtk_dialog_run(dialog);
+}*/
 
 	void 
 toolbar_update_buttons ()
