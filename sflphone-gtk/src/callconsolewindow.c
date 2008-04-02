@@ -20,6 +20,7 @@
 #include "../../src/contact/presencestatus.h"
 
 #include <accountlist.h>
+#include <actions.h>
 #include <contactlist.h>
 #include <config.h>
 #include <mainwindow.h>
@@ -120,7 +121,7 @@ show_call_console_window(gboolean show)
 	}
 
 	// Create dialog and set properties
-	dialog = GTK_DIALOG(gtk_dialog_new_with_buttons ("Call console",
+	dialog = GTK_DIALOG(gtk_dialog_new_with_buttons (_("Call console"),
 				GTK_WINDOW(get_main_window()),
 				GTK_DIALOG_DESTROY_WITH_PARENT,
 				NULL));
@@ -156,17 +157,17 @@ show_call_console_window(gboolean show)
 
 	// Name column
 	renderer = gtk_cell_renderer_text_new();
-	treeViewColumn = gtk_tree_view_column_new_with_attributes("Contact name", renderer, "text", CALL_CONSOLE_WINDOW_NAME, NULL);
+	treeViewColumn = gtk_tree_view_column_new_with_attributes(_("Contact name"), renderer, "text", CALL_CONSOLE_WINDOW_NAME, NULL);
 	gtk_tree_view_append_column(GTK_TREE_VIEW(contactTreeView), treeViewColumn);
 
 	// Contact column
 	renderer = gtk_cell_renderer_text_new();
-	treeViewColumn = gtk_tree_view_column_new_with_attributes("Contact", renderer, "text", CALL_CONSOLE_WINDOW_CONTACT, NULL);
+	treeViewColumn = gtk_tree_view_column_new_with_attributes(_("Contact"), renderer, "text", CALL_CONSOLE_WINDOW_CONTACT, NULL);
 	gtk_tree_view_append_column(GTK_TREE_VIEW(contactTreeView), treeViewColumn);
 
 	// Presence status column
 	renderer = gtk_cell_renderer_text_new();
-	treeViewColumn = gtk_tree_view_column_new_with_attributes("Presence status", renderer, "text", CALL_CONSOLE_WINDOW_PRESENCE_STATUS, NULL);
+	treeViewColumn = gtk_tree_view_column_new_with_attributes(_("Presence status"), renderer, "text", CALL_CONSOLE_WINDOW_PRESENCE_STATUS, NULL);
 	gtk_tree_view_append_column(GTK_TREE_VIEW(contactTreeView), treeViewColumn);
 		
 	gtk_container_add(GTK_CONTAINER(scrolledWindow), contactTreeView);

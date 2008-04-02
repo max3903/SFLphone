@@ -129,4 +129,6 @@ void sflphone_fill_codec_list();
 void sflphone_fill_contact_list();
 
 void sflphone_fill_video_codec_list();
+
+void sflphone_show_contact_list();	// UNUSED
 #endif 

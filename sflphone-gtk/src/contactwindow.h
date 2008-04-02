@@ -20,6 +20,8 @@
 #ifndef __CONTACTWINDOW_H__
 #define __CONTACTWINDOW_H__
 
+#include <gtk/gtk.h>
+
 /**
  * @file contactwindow.h
  * @brief The Contacts window.
@@ -27,5 +29,7 @@
 void contact_window_fill_contact_list();
 void contact_window_clear_contact_list();
 void show_contact_window();
+void show_contact_dialog(gchar* accountID, gchar* contactID);
+void show_entry_dialog(gchar* accountID, gchar* contactID, gchar* entryID);
 
 #endif 

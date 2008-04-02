@@ -65,6 +65,7 @@ void dbus_remove_account(gchar * accountID);
 void dbus_set_volume(const gchar * device, gdouble value);
 gdouble dbus_get_volume(const gchar * device);
 void dbus_play_dtmf(const gchar * key);
+void dbus_start_tone(const int start, const guint type);
 gchar* dbus_get_default_account();
 void dbus_set_default_account(gchar * accountID);
 gchar** dbus_codec_list();

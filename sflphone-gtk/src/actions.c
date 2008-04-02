@@ -686,78 +686,45 @@ sflphone_fill_codec_list()
 void
 sflphone_fill_contact_list()
 {
-	// Get each enabled and registered account
+	// Get contacts for all accounts
 	int i;
 	for(i = 0; i < account_list_get_size(); i++)
 	{
 		account_t* account = account_list_get_nth(i);
-		if(account->state == ACCOUNT_STATE_REGISTERED &&
-				strcmp((gchar*)g_hash_table_lookup(account->properties, ACCOUNT_ENABLED), "TRUE") == 0)
+		// Get new queue to put all our contacts for this account
+		contact_hash_table_add_contact_list(account->accountID);
+		GQueue* contactList = contact_hash_table_get_contact_list(account->accountID);
+
+		// Get all contacts for this account
+		gchar** contactIDList = dbus_get_contacts(account->accountID);
+		gchar** contactID;
+		for(contactID = contactIDList; *contactID; contactID++)
 		{
-			// Get new queue to put all our contacts for this account
-			GQueue* contactList = contact_hash_table_add_contact_list(account->accountID);
-			
-			// Get all contacts for this account
-			gchar** contactIDList = dbus_get_contacts(account->accountID);
-			gchar** contactID;
-			for(contactID = contactIDList; *contactID; contactID++)
+			// Get details on contact and add it to the list
+			gchar** contactDetails = dbus_get_contact_details(account->accountID, *contactID);
+			contact_t* contact = contact_list_new_contact_from_details(*contactID, contactDetails);
+			contact_list_add(contactList, contact);
+
+			// Get all entries for this contact
+			gchar** contactEntryIDList = dbus_get_contact_entries(account->accountID, *contactID);
+			gchar** contactEntryID;
+			for(contactEntryID = contactEntryIDList; *contactEntryID; contactEntryID++)
 			{
-				// Get details on contact and add it to the list
-				gchar** contactDetails = dbus_get_contact_details(account->accountID, *contactID);
-				contact_t* contact = contact_list_new_contact_from_details(*contactID, contactDetails);
-				contact_list_add(contactList, contact);
-				
-				// Get all entries for this contact
-				gchar** contactEntryIDList = dbus_get_contact_entries(account->accountID, *contactID);
-				gchar** contactEntryID;
-				for(contactEntryID = contactEntryIDList; *contactEntryID; contactEntryID++)
-				{
-					// Get details on the entry and add it to the list
-					gchar** contactEntryDetails = dbus_get_contact_entry_details(account->accountID, *contactID, *contactEntryID);
-					contact_entry_t* contactEntry = contact_list_new_contact_entry_from_details(*contactEntryID, contactEntryDetails);
-					contact_list_entry_add(contact, contactEntry);
-				}
+				// Get details on the entry and add it to the list
+				gchar** contactEntryDetails = dbus_get_contact_entry_details(account->accountID, *contactID, *contactEntryID);
+				contact_entry_t* contactEntry = contact_list_new_contact_entry_from_details(*contactEntryID, contactEntryDetails);
+				contact_list_entry_add(contact, contactEntry);
+				g_strfreev(contactEntryDetails);
+				contactEntryDetails = NULL;
 			}
+			g_strfreev(contactEntryIDList);
+			contactEntryIDList = NULL;
+			g_strfreev(contactDetails);
+			contactDetails = NULL;
 		}
+		g_strfreev(contactIDList);
+		contactIDList = NULL;
 	}
-	// TMP TEST for showing all loaded contacts by account
-//	for(i = 0; i < account_list_get_size(); i++)
-//	{
-//		account_t* account = account_list_get_nth(i);
-//		if(account->state == ACCOUNT_STATE_REGISTERED &&
-//				strcmp((gchar*)g_hash_table_lookup(account->properties, ACCOUNT_ENABLED), "TRUE") == 0)
-//		{
-//			g_print("======= %s =========\n", account->accountID);
-//			GQueue* contactList = contact_hash_table_get_contact_list(account->accountID);
-//			guint j;
-//			for(j = 0; j < contact_list_get_size(contactList); j++)
-//			{
-//				contact_t* contact = contact_list_get_nth(contactList, j);
-//				g_print("  ----- Contact %s -----\n", contact->_contactID);
-//				g_print("  First name : %s\n", contact->_firstName);
-//				g_print("  Last name  : %s\n", contact->_lastName);
-//				g_print("  Email      : %s\n", contact->_email);
-//				g_print("  Group      : %s\n", contact->_group);
-//				g_print("  SubGroup   : %s\n", contact->_subGroup);
-//				
-//				guint k;
-//				for(k = 0; k < contact_list_entry_get_size(contact); k++)
-//				{
-//					contact_entry_t* entry = contact_list_entry_get_nth(contact, k);
-//					g_print("    _____ Entry %s ____\n", entry->_contact);
-//					g_print("    Type         : %s\n", entry->_type);
-//					g_print("    Call console : %d\n", entry->_isShownInConsole);
-//					g_print("    Subscribed   : %d\n", entry->_isSubscribed);
-//				}
-//				// TEST for get functions with compare functions called
-//				contact_t* contact2 = contact_list_get(contactList, contact->_contactID);
-//				g_print("---------> Contact : %s\n", contact2->_contactID);
-//				contact_entry_t* entry2 = contact_list_entry_get_nth(contact, k-1);
-//				contact_entry_t* entry3 = contact_list_entry_get(contact2, entry2->_contact);
-//				g_print("---------> Entry   : %s\n", entry3->_contact);
-//			}
-//		}
-//	}
 }
 
 /* Internal to action - get the codec list */
@@ -803,7 +770,6 @@ sflphone_set_video()
 	{
 		dbus_change_webcam_status(1, c);
 	}
-	
 }
 
 	void 
@@ -814,6 +780,43 @@ sflphone_unset_video()
 	{
 		dbus_change_webcam_status(0, c);
 	}
-	
 }
-  
+
+// TMP UNUSED
+void
+sflphone_show_contact_list()
+{
+	int i;
+	// Test for showing all loaded contacts by account
+	for(i = 0; i < account_list_get_size(); i++)
+	{
+		account_t* account = account_list_get_nth(i);
+		if(account->state == ACCOUNT_STATE_REGISTERED &&
+				strcmp((gchar*)g_hash_table_lookup(account->properties, ACCOUNT_ENABLED), "TRUE") == 0)
+		{
+			g_print("======= %s =========\n", account->accountID);
+			GQueue* contactList = contact_hash_table_get_contact_list(account->accountID);
+			guint j;
+			for(j = 0; j < contact_list_get_size(contactList); j++)
+			{
+				contact_t* contact = contact_list_get_nth(contactList, j);
+				g_print("  ----- Contact %s -----\n", contact->_contactID);
+				g_print("  First name : %s\n", contact->_firstName);
+				g_print("  Last name  : %s\n", contact->_lastName);
+				g_print("  Email      : %s\n", contact->_email);
+				g_print("  Group      : %s\n", contact->_group);
+				g_print("  SubGroup   : %s\n", contact->_subGroup);
+
+				guint k;
+				for(k = 0; k < contact_list_entry_get_size(contact); k++)
+				{
+					contact_entry_t* entry = contact_list_entry_get_nth(contact, k);
+					g_print("    _____ Entry %s ____\n", entry->_entryID);
+					g_print("    Type         : %s\n", entry->_type);
+					g_print("    Call console : %d\n", entry->_isShownInConsole);
+					g_print("    Subscribed   : %d\n", entry->_isSubscribed);
+				}
+			}
+		}
+	}
+}
