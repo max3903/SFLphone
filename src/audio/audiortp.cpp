@@ -292,13 +292,22 @@ AudioRtpRTX::sendSessionFromMic(int timestamp)
       nbSample = nbSamplesMax;
     }
     
-// TODO : (4.) put data into AudioInput for Mixer 
-	_ca->getRemote_Audio_Input()->putData(toSIP, (nbSamplesMax-nbSample)*sizeof(int16), 0/*TODO : time */);
+// TODO : (4.) put data into AudioInput for Mixer
+//	printf("\n\n AudioRTP : put data into AudioInput for Mixer \n\n");
+printf(" AUDIORTP TOSIP AVANT : %d \n",toSIP); 
+	if (toSIP!=NULL && (nbSample)>0){
+		_ca->getRemote_Audio_Input()->putData(toSIP, (nbSample)*sizeof(int16), 0/*TODO : time */);
+	}
+	else
+	{
+		ptracesfl("AudioRTP - error : data error!",MT_ERROR,true);	
+	}
 	
 	
 // TODO : (5.) get data from AudioOutput (mixed audio) to send over network
-	_ca->getRemote_Audio_Output()->fetchData(toSIP);
-	
+int16* toSIPApres = NULL;
+	_ca->getRemote_Audio_Output()->fetchData(toSIPApres);
+printf(" AUDIORTP TOSIP APRES : %d \n",toSIPApres);
     
     // debug - dump sound in a file
     //_debug("AR: Nb sample: %d int, [0]=%d [1]=%d [2]=%d\n", nbSample, toSIP[0], toSIP[1], toSIP[2]);

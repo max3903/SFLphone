@@ -8,12 +8,13 @@
 void LocalAudioOuput::putData(short * data, int size)
 {
 	// play audio (put data in speakers)
+	printf("\n LocalAudioOuput  :  putData : playSample\n");
 	audioLayer->playSamples(/*toAudioLayer*/ data, size /*nbSample * sizeof(SFLDataFormat)*/);
 }
 
 LocalAudioOuput::LocalAudioOuput()
 {
-	
+//printf(" LocalAudioOuput  :  Constructor\n");
 	// init the audioDevice (audioLayer)
 	audioLayer = Manager::instance().getAudioDriver();
 	if (!audioLayer){
