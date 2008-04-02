@@ -257,29 +257,16 @@ main_window_show_call_console(gboolean show)
 	show_call_console_window(show);
 }
 
-void
-main_window_callinfo(gboolean show, call_t* current)
-{
-  /*
-  if(show && !showInfoScreen)
-  {
-    infoScreen = create_screen();
-    gtk_box_pack_start (GTK_BOX (subvbox), infoScreetkCn, FALSE , TRUE , 0 );
-    gtk_widget_show_all(infoScreen);
-    screen_set_call(current);
-  }
-  else if(!show && showInfoScreen)
-  {
-    gtk_container_remove(GTK_CONTAINER (subvbox), infoScreen);
-  }
-  showInfoScreen = show;
-*/
+void 
+status_bar_message_add(const gchar * message, guint id)
+{ 
+  gtk_statusbar_push(GTK_STATUSBAR(statusBar), id, message);
 }
 
 void 
-status_bar_message(const gchar * message)
+status_bar_message_remove(guint id)
 { 
-  gtk_statusbar_push(GTK_STATUSBAR(statusBar), 0, message);
+  gtk_statusbar_pop(GTK_STATUSBAR(statusBar), id);
 }
 
 gboolean main_window_glWidget( gboolean show )
@@ -298,7 +285,6 @@ gboolean main_window_glWidget( gboolean show )
 			case CALL_STATE_FAILURE:
 			case CALL_STATE_DIALING:
 				g_print("No active call, showing config window\n");
-
 				// Keep button and menu in the same state as glwidget
 				main_window_update_WebcamStatus(showGlWidget);
 				//Show webcam configuration

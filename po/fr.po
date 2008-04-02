@@ -248,12 +248,12 @@ msgid "Format: name.server:port"
 msgstr "Format: nom.serveur:port"
 
 #: sflphone-gtk/src/actions.c: 45
-msgid "%d new voice mails"
-msgstr "%d nouveaux messages vocaux"
+msgid "%d voice mails"
+msgstr "%d messages vocaux"
 
 #: sflphone-gtk/src/actions.c: 47
-msgid "%d new voice mail"
-msgstr "%d nouveau message vocal"
+msgid "%d voice mail"
+msgstr "%d message vocal"
 
 #: sflphone-gtk/src/actions.c: 162
 msgid "Unable to connect to the SFLphone server.\n"
@@ -325,6 +325,35 @@ msgstr "<b><big>Bienvenue dans SFLphone!</big></b>\n\n"
 "Vous n'avez aucun compte configuré pour l'instant.\n"
 " Voulez-vous en créer un immédiatement?"
 
+#: sflphone-gtk/src/SFLnotify.c: 32
+msgid "%s account: %s"
+msgstr "Compte %s: %s"
+
+#: sflphone-gtk/src/SFLnotify.c: 35
+msgid "<i>From:</i> %s"
+msgstr "<i>De:</i> %s"
+
+#: sflphone-gtk/src/SFLnotify.c: 50
+msgid "Accept"
+msgstr "Accepter"
+
+#: sflphone-gtk/src/SFLnotify.c: 51
+msgid "Refuse"
+msgstr "Refuser"
+
+#: sflphone-gtk/src/SFLnotify.c: 52
+msgid "Ignore"
+msgstr "Ignorer"
+
+#: sflphone-gtk/src/statusicon.c: 80 
+msgid "_Show main window"
+msgstr "_Afficher la fenêtre principale"
+
+#: sflphone-gtk/src/statusicon.c: 113
+msgid "SFLphone - %i account registered"
+msgid_plural "SFLphone - %i accounts registered"
+msgstr[0] "SFLphone - %i compte enregistré"
+msgstr[1] "SFLphone - %i comptes enregistrés"
 
 
 

@@ -52,17 +52,30 @@ sflphone_notify_voice_mail (guint count)
 	{
 		gchar * message = g_new0(gchar, 50);
 		if( count > 1)
-		  g_sprintf(message, _("%d new voice mails"), count);
+		  g_sprintf(message, _("%d voice mails"), count);
 		else
-		  g_sprintf(message, _("%d new voice mail"), count);	  
-		status_bar_message(message);
+		  g_sprintf(message, _("%d voice mail"), count);	  
+		status_bar_message_add(message,  __MSG_VOICE_MAILS);
 		g_free(message);
 	}
-	else
-	{
-		status_bar_message("");
-	}
 }
+
+void
+status_bar_display_account( call_t* c)
+{
+    gchar* msg;
+    account_t* acc;
+    if(c->accountID != NULL)
+      acc = account_list_get_by_id(c->accountID);
+    else
+      acc = account_list_get_by_id( account_list_get_default());
+    msg = g_markup_printf_escaped("%s account: %s" , 
+				  g_hash_table_lookup( acc->properties , ACCOUNT_TYPE), 
+				  g_hash_table_lookup( acc->properties , ACCOUNT_ALIAS));
+    status_bar_message_add( msg , __MSG_ACCOUNT_DEFAULT);
+    g_free(msg);
+}
+  
 
 	gboolean
 sflphone_quit ()
@@ -110,6 +123,7 @@ sflphone_hung_up( call_t * c)
   call_list_remove( c->callID);
   update_call_tree_remove(c);
   update_menus();
+  status_tray_icon_blink( FALSE );
 }
 
 /** Internal to actions: Fill account list */
@@ -162,6 +176,7 @@ sflphone_fill_account_list(gboolean toolbarInitialized)
 	// Prevent update being called when toolbar is not yet initialized
 	if(toolbarInitialized)
 		toolbar_update_buttons();
+	
 }
 
 	gboolean
@@ -232,7 +247,6 @@ sflphone_pick_up()
 				sflphone_place_call (selectedCall);
 				break;
 			case CALL_STATE_INCOMING:
-				status_tray_icon_blink();
 				dbus_accept (selectedCall);
 				break;
 			case CALL_STATE_HOLD:
@@ -346,7 +360,7 @@ sflphone_unset_transfert()
 sflphone_incoming_call (call_t * c) 
 {
 	call_list_add ( c );
-	status_icon_unminimize();
+	//status_icon_unminimize();
 	update_call_tree_add(c);
 	update_menus();
 }
@@ -354,7 +368,10 @@ sflphone_incoming_call (call_t * c)
 void process_dialing(call_t * c, guint keyval, gchar * key)
 {
 	// We stop the tone
-	dbus_start_tone( FALSE , 0 );
+	if(strlen(c->to) == 0){
+	  dbus_start_tone( FALSE , 0 );
+	  dbus_play_dtmf( key );
+	}
 	switch (keyval)
 	{
 		case 65293: /* ENTER */
@@ -473,6 +490,7 @@ sflphone_keypad( guint keyval, gchar * key)
 				{
 					case 65293: /* ENTER */
 					case 65421: /* ENTER numpad */
+						status_bar_display_account(c);
 						dbus_accept(c);
 						break;
 					case 65307: /* ESCAPE */
@@ -551,6 +569,7 @@ sflphone_keypad( guint keyval, gchar * key)
 void 
 sflphone_place_call ( call_t * c )
 {
+	status_bar_display_account(c);
 	if(c->state == CALL_STATE_DIALING)
 	{
 		account_t * account;

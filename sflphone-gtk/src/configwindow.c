@@ -351,11 +351,9 @@ select_active_input_audio_device()
 void
 update_combo_box( gchar* plugin )
 {
-	  g_print("INSENSITIVE THE ALL THING\n");
 	// set insensitive the devices widget if the selected plugin is default
 	if( g_strcasecmp( plugin , "default" ) == 0)
 	{
-	  g_print("INSENSITIVE THE ALL THING\n");
 	  gtk_widget_set_sensitive( GTK_WIDGET ( outputDeviceComboBox ) , FALSE );
 	  gtk_widget_set_sensitive( GTK_WIDGET ( inputDeviceComboBox ) , FALSE );
 	}
@@ -1451,7 +1449,7 @@ create_audio_tab ()
 	outputAudioPluginStore = gtk_list_store_new(1, G_TYPE_STRING);
 	config_window_fill_output_audio_plugin_list();
 	pluginComboBox = gtk_combo_box_new_with_model(GTK_TREE_MODEL(outputAudioPluginStore));
-	//select_active_output_audio_plugin();
+	select_active_output_audio_plugin();
 	gtk_label_set_mnemonic_widget(GTK_LABEL(titleLabel), pluginComboBox);
 	g_signal_connect(G_OBJECT(pluginComboBox), "changed", G_CALLBACK(select_output_audio_plugin), pluginComboBox);
 	
@@ -1511,7 +1509,7 @@ create_audio_tab ()
 	// Set event on selection
 	g_signal_connect(G_OBJECT(refreshButton), "clicked", G_CALLBACK(detect_all_audio_settings), NULL);
 	
-	select_active_output_audio_plugin();
+	//select_active_output_audio_plugin();
     // Codec section label
     codecFrame = gtk_frame_new(_("Codecs"));
     gtk_misc_set_alignment(GTK_MISC(codecFrame), 0, 0.5);

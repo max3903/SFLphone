@@ -25,6 +25,8 @@
 
 #include <accountlist.h>
 #include <configwindow.h>
+#include <calllist.h>
+#include <SFLnotify.h>
 
 /** @file dbus.h
   * @brief General DBus functions wrappers.
