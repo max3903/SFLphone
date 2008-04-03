@@ -3054,6 +3054,54 @@ void* ManagerImpl::localVideCapturepref(void* pdata){
 	
 }
 
+bool 
+ManagerImpl::getEnableCheckboxStatus(  )
+{
+	std::string s = getConfigString(VIDEO, "EnableCheckbox");
+	if(s!= "")
+	{	
+		if(s == "1")
+			return true;
+		else
+			return false;
+	}
+	else
+	{
+		setEnableCheckboxStatus( true );
+		return true;
+	}
+}
+
+bool 
+ManagerImpl::getDisableCheckboxStatus(  )
+{
+	std::string s = getConfigString(VIDEO, "DisableCheckbox");
+	if(s!= "")
+	{	
+		if(s == "1")
+			return true;
+		else
+			return false;
+	}
+	else
+	{
+		setDisableCheckboxStatus( true );
+		return true;
+	}
+}
+
+void 
+ManagerImpl::setEnableCheckboxStatus( const bool& status )
+{
+	setConfig("Video", "EnableCheckbox", status);
+}
+
+void 
+ManagerImpl::setDisableCheckboxStatus( const bool& status )
+{
+	setConfig("Video", "DisableCheckbox", status);
+}
+
 /*
  * Start it when the user activates the webcam icon
  * Changes the status of the mixer
