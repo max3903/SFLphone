@@ -2,25 +2,15 @@
 
 #include "SWSInterface.h"
 
-uint8_t *SWSInterface::Convert(AVFrame *INFrame,AVFrame *OUTFrame)
+bool SWSInterface::Convert(AVFrame *INFrame,AVFrame *OUTFrame)
 {
-	uint8_t *OUT_buf;
-	OUT_buf = (uint8_t*)malloc(BufferSize);
 	int infoSize;
 	
-	//printf("BufferSize : %i\n",BufferSize);
-	
-	//printf("FILL\n");
-	infoSize = avpicture_fill((AVPicture *)OUTFrame,OUT_buf,out.pixFormat,out.width,
-    		out.height);
-   // 		printf("INFOSIZE : %i\n",infoSize);
-	//printf("SCALE\n");
-
 	infoSize = sws_scale(Context,INFrame->data,INFrame->linesize,in.width,
     		in.height,OUTFrame->data,OUTFrame->linesize);
-    
-  //  printf("SWSCALE : %i\n",infoSize);
-    return OUT_buf;
+
+    printf("SWSCALE : %i\n",infoSize);
+    return true;
 }
 
 
@@ -55,7 +45,59 @@ void SWSInterface::setOutputProperties(int setWidth,int setHeight)
 }
 
 
- SWSInterface::SWSInterface(int InWidth,int InHeight,int InPixFormat,int OutWidth,int OutHeight,int OutPixFormat)
+ 
+AVFrame *SWSInterface::alloc_picture420P(int width, int height) {
+  AVFrame *picture;
+  uint8_t *picture_buf;
+  int size;
+  picture = avcodec_alloc_frame();
+  if (!picture) return NULL;
+  size = avpicture_get_size(PIX_FMT_YUV420P, width, height);
+  picture_buf = (uint8_t *) av_malloc(size);
+  if (!picture_buf) {
+    av_free(picture);
+    return NULL;
+  }
+  avpicture_fill((AVPicture *)picture, picture_buf, PIX_FMT_YUV420P, width, height);
+  return picture;
+}
+AVFrame * SWSInterface::alloc_picture420P(int width, int height,uint8_t *buffer) {
+  AVFrame *picture;
+  int size;
+  picture = avcodec_alloc_frame();
+  if (!picture) return NULL;
+  size = avpicture_get_size(PIX_FMT_YUV420P, width, height);
+  
+  if (!buffer) {
+    av_free(picture);
+    return NULL;
+  }
+  avpicture_fill((AVPicture *)picture, buffer, PIX_FMT_YUV420P, width, height);
+  return picture;
+}
+
+AVFrame * SWSInterface::alloc_pictureRGB24(int width, int height) {
+  AVFrame *pFrameRGB = avcodec_alloc_frame();
+  if(pFrameRGB==NULL) return NULL;
+  int numBytes = avpicture_get_size(PIX_FMT_RGB24, width, height);
+  uint8_t *buffer= (uint8_t *)av_malloc(numBytes);
+  avpicture_fill((AVPicture *)pFrameRGB, buffer, PIX_FMT_RGB24, width, 
+height);
+  return pFrameRGB;
+}
+
+AVFrame *SWSInterface::alloc_pictureRGB24(int width, int height,uint8_t *buffer) {
+  AVFrame *pFrameRGB = avcodec_alloc_frame();
+  if(pFrameRGB==NULL) return NULL;
+  avpicture_fill((AVPicture *)pFrameRGB, buffer, PIX_FMT_RGB24, width, height);
+  if (!buffer) {
+    av_free(pFrameRGB);
+    return NULL;
+  }
+  return pFrameRGB;
+}
+
+SWSInterface::SWSInterface(int InWidth,int InHeight,int InPixFormat,int OutWidth,int OutHeight,int OutPixFormat)
  {
  
  in.height = InHeight;
@@ -68,9 +110,7 @@ void SWSInterface::setOutputProperties(int setWidth,int setHeight)
 BufferSize = avpicture_get_size( out.pixFormat,out.width, out.height);
  
  Context = sws_getContext( in.width,in.height,in.pixFormat,
-	 							out.width,out.height,out.pixFormat,SWS_PRINT_INFO,NULL,NULL,NULL);
+	 							out.width,out.height,out.pixFormat,0,NULL,NULL,NULL);
 	 							
  }
-
-
 SWSInterface::~SWSInterface(){}

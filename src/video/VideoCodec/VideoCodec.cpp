@@ -21,96 +21,81 @@
 #include "VideoCodec.h"
 
 #define VIDEOCODECPTRACE 2
-#define INBUF_SIZE 4096
 
-int VideoCodec::videoEncode(uint8_t *in_buf, uint8_t* out_buf,int in_bufferSize,int inWidth,int inHeight)
+
+int VideoCodec::videoEncode(uint8_t *in_buf, uint8_t* out_buf,int inWidth,int inHeight)
 {
+	AVFrame *IN=NULL,*SWS=NULL,*OUT=NULL;
+	int outsize;
 	
-	AVFrame *IN,*SWS;
+	
+	IN  =  encodeSWS->alloc_pictureRGB24(inWidth,inHeight,in_buf);
+	SWS = encodeSWS->alloc_picture420P(_encodeCodecCtx->width,_encodeCodecCtx->height);
+	
+	if(IN != NULL || SWS != NULL)
+	{
+ 	if (encodeSWS->Convert(IN,SWS) == false)
+ 		printf("ERROR SWS FUNCTION\n");
+ 	}
+ 	else printf("NULL\n");
+ 	
 
 	
-	//TODO check better buffer size
-	//out_buf = (uint8_t*)malloc(in_bufferSize);
-	printf("START ENCODE\n");
-	//Step 1: ALLOCATE ALL AVFRAMES
-	if ((IN = avcodec_alloc_frame()) == NULL || (SWS = avcodec_alloc_frame()) == NULL)
-         ptracesfl("OUT OF MEMORY TRYING TO ENCODE",MT_ERROR,1,true);
-	  printf("FILL\n");   
-    //get RGB picture
-    if(avpicture_fill((AVPicture *)IN, in_buf,PIX_FMT_RGB24, inWidth,inHeight) <= 0)
-    	printf("ERROR AVPICTUREFILLENCODE\n");
-    	         
-	printf("CONVERT\n");
-	
- 	if (encodeSWS->Convert(IN,SWS) == NULL)
- 		printf("ERROR SWS FUNCTION\n");;
- 	
 	//Step 2:Encode
 	//TODO GET A PROPER BUFFER SIZE
 	printf("ENCODE\n");
-	
-	if (avcodec_encode_video(_encodeCodecCtx, out_buf, 100000, SWS)< 0)
+	if ( (outsize = avcodec_encode_video(_encodeCodecCtx, out_buf, 100000, SWS))<= 0)
 		printf("ERROR ENCODE\n");
-
+		
+	printf("PTS PTS : %d\n",_encodeCodecCtx->coded_frame->pts);
+	
+	if(outsize > 1400)
+	printf("OUTSIZE : %d\n",outsize);
+	
+	
+	if(outsize <= 0)
+		ptracesfl("ERROR",MT_ERROR,1,true);
+			
+	//printf("outsize = %i\n",outsize);
 	//Step 3:Clean
-	av_free(IN);
+	
+//	OUT = decodeSWS->alloc_pictureRGB24(inWidth,inHeight,out_buf);
+//	decodeSWS->Convert(SWS,OUT);
+	
+	//if(_encodeCodecCtx->coded_frame->
+	
 	av_free(SWS);
+	av_free(IN);
 	printf("FREE\n");
-	//free(out_buf);
 
 	//return outBufferSize
-	return 100000;
+	return outsize;
 	
 	}
 
 	//decode one frame
-
 int VideoCodec::videoDecode(uint8_t *in_buf, uint8_t* out_buf,int size)
 {
-	
-	int bytesRemaining = size;
-	int *got_picture_ptr = NULL;
-	int bytesDecoded=0;
-	uint8_t *pict_buf;
+	int frame, got_picture, len;
+	uint8_t *buf;
 	AVFrame *pict;
-
-	if(in_buf == NULL)
-	printf("PROBLEM\n");
-
-	printf("DecodeStart\n");
 	
-	if ( (pict = avcodec_alloc_frame()) == NULL)
-		return -1;
-         
-    pict_buf = (uint8_t*)malloc(avpicture_get_size(PIX_FMT_YUV420P,_decodeCodecCtx->width, _decodeCodecCtx->height)*sizeof(uint8_t));     
-         
-    if( avpicture_fill((AVPicture *)pict, pict_buf,PIX_FMT_YUV420P,_decodeCodecCtx->width, _decodeCodecCtx->height) <= 0)
-    	printf("ERROR AVPICTUREFILL DECODE\n");
-    	
-  	printf("While\n");
-	while(bytesRemaining > 0){
-		
-		printf("decodeVideo\n");
-	bytesDecoded = avcodec_decode_video(_decodeCodecCtx, pict,
-            got_picture_ptr, in_buf, bytesRemaining);
+	if((buf = (uint8_t*)av_malloc(size+FF_INPUT_BUFFER_PADDING_SIZE)) == NULL)
+	printf("malloc error\n");
+    if( memcpy(buf,in_buf,size) ==NULL)
+	printf("memcpy error\n");
+	if ( memset(buf + size, 0, FF_INPUT_BUFFER_PADDING_SIZE) == NULL)
+	printf("memset error\n");
+	
+    pict = decodeSWS->alloc_picture420P(_decodeCodecCtx->coded_width,_decodeCodecCtx->coded_height);
+    printf("SWS width: %i, height: %i \n",_decodeCodecCtx->coded_width,_decodeCodecCtx->coded_height);
+    printf("Video decoding 1\n");
 
-        if(bytesDecoded < 0)
-        {
-         printf("DECODE PAS\n");
-            return false;
-        }
+      len = avcodec_decode_video(_decodeCodecCtx, pict, &got_picture,buf,size );
+   		printf("len: %i\n",len);
+    av_free(pict);
+    av_free(buf);
 
-        bytesRemaining -= bytesDecoded;
-		in_buf+=bytesDecoded;
-		
-        av_free(pict);
-        free(pict_buf);
-    }
-printf("Sortie de la boucle\n");
-    // Decode the rest of the frame
-    bytesDecoded=avcodec_decode_video(_decodeCodecCtx, pict, got_picture_ptr, in_buf, bytesRemaining);
-
-     
 	return 0;
 }
 
@@ -129,16 +114,17 @@ void VideoCodec::init(){
 	//check if active Codec
 	if(_codecName == NULL)
 	{
-	_Codec = _videoDesc->getDefaultCodec();
-	_codecName = _Codec->name;
+	ptracesfl("CODEC ERROR",MT_FATAL,1,true);
 	}
-	else
-	_Codec = _videoDesc->getCodec(_codecName);
+	else{
+	_CodecENC = _videoDesc->getCodec(_codecName);
+	_CodecDEC = _videoDesc->getCodec(_codecName);
+	}
 	
 	//These are Settings adjustements
 	initEncodeContext();
 	initDecodeContext();
-
+	frame =0;
 }
 
 void VideoCodec::initEncodeContext(){
@@ -146,49 +132,52 @@ void VideoCodec::initEncodeContext(){
 	pair<int,int> tmp; 
 	pair<int,int> Encodetmp; 
 	//initialize basic encoding context
+	_encodeCodecCtx = avcodec_alloc_context();
+
+	*_encodeCodecCtx = _videoDesc->getCodecContext(_CodecENC);
 	
-	_encodeCodecCtx = _videoDesc->getCodecContext(_Codec);
-	
-	//TODO change if it's not the webcam - NOW ENCODING IN H263 FORMAT
-	if (_cmdRes != NULL){
+	//TODO change if it's not the webcam 
 	tmp = _cmdRes->getResolution();
 	Encodetmp = getSpecialResolution(tmp.first);
 	_encodeCodecCtx->width = Encodetmp.first;
 	_encodeCodecCtx->height = Encodetmp.second;
-	}
-	else
-	{
-	_encodeCodecCtx->width = DEFAULT_WIDTH;
-	_encodeCodecCtx->height = DEFAULT_HEIGHT;	
-	}
-	
-		if(avcodec_open (_encodeCodecCtx, _Codec) < 0)
+	_encodeCodecCtx->rtp_payload_size = 1400;
+	_encodeCodecCtx->time_base.den = STREAM_FRAME_RATE;
+	_encodeCodecCtx->time_base.num = 1;
+
+		if(avcodec_open(_encodeCodecCtx, _CodecENC) < 0)
 		ptracesfl("CANNOT OPEN ENCODE CODEC",MT_FATAL,1,true);
 	
+	printf("init ENCODE width: %i\nheight: %i\nwidth: %i\nheight: %i\n",tmp.first,tmp.second,Encodetmp.first,Encodetmp.second);
 	//int InWidth,int InHeight,int InPixFormat,int OutWidth,int OutHeight,int OutPixFormat
 	encodeSWS = new SWSInterface(tmp.first,tmp.second,PIX_FMT_RGB24,Encodetmp.first,Encodetmp.second,PIX_FMT_YUV420P);
 }
 void VideoCodec::initDecodeContext()
 {
+
+	pair<int,int> codetmp; 
 	pair<int,int> tmp = _cmdRes->getResolution();
+
 	//initialize basic encoding context
-	_decodeCodecCtx = _encodeCodecCtx;
+	_decodeCodecCtx = avcodec_alloc_context();
+
+	*_decodeCodecCtx = _videoDesc->getCodecContext(_CodecDEC);
+
+//TODO change if it's not the webcam - NOW ENCODING IN H263 FORMAT
+
+	tmp = _cmdRes->getResolution();
+	codetmp = getSpecialResolution(tmp.first);
+	_decodeCodecCtx->width = codetmp.first;
+	_decodeCodecCtx->height = codetmp.second;
+
+	printf("init DECODE width: %i\nheight: %i\nwidth: %i\nheight: %i\n",tmp.first,tmp.second,codetmp.first,codetmp.second);
+	if(avcodec_open (_decodeCodecCtx, _CodecDEC) < 0)
+		ptracesfl("CANNOT OPEN DECODE CODEC",MT_FATAL,1,true);
 	
-//	//temp for debug
-//	_decodeCodecCtx->width = _encodeCodecCtx->width;
-//	_decodeCodecCtx->height = _encodeCodecCtx->height;
-//	
-//	
-//	//TODO ALLOCATE MORE MEM???
-//	//codec_tag
-//	if(_Codec->capabilities&CODEC_CAP_TRUNCATED)
-//	  _decodeCodecCtx->flags|= CODEC_FLAG_TRUNCATED;
-//
-//	//if(avcodec_open (_decodeCodecCtx, _Codec) < 0)
-//	//	ptracesfl("CANNOT OPEN DECODE CODEC",MT_FATAL,1,true);
-//	
+	
 	//intialize SWSdecodeContext
-	decodeSWS = new SWSInterface(_decodeCodecCtx->width,_decodeCodecCtx->height,PIX_FMT_YUV420P ,
+
+	decodeSWS = new SWSInterface(codetmp.first,codetmp.second,PIX_FMT_YUV420P ,
 	tmp.first,tmp.second,PIX_FMT_RGB24);
 }
 
@@ -222,19 +211,20 @@ VideoCodec::VideoCodec(char* codec){
  //128x96, 176x144, 352x288, 704x576, and 1408x1152
  pair<int,int> returnSize;
  
+ 
  if (width <= 128){
 	 returnSize.first = 128;
 	 returnSize.second = 96;
  }
- else if (width <= 176){
+ else if (width >= 129 && width < 352){
 	 returnSize.first = 176;
 	 returnSize.second = 144;
  }
- else if (width <= 352){
+ else if (width >= 352 && width < 704){
 	 returnSize.first = 352;
 	 returnSize.second = 288;
  }
- else if (width <= 704){
+ else if (width >= 704 && width < 1408){
 	 returnSize.first = 704;
 	 returnSize.second = 576;
  }
@@ -257,6 +247,8 @@ VideoCodec::VideoCodec(){
 
  VideoCodec::~VideoCodec()
  {}
+ 
+ 
 /*
  * 
  * 
