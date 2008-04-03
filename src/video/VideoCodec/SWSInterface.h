@@ -4,8 +4,11 @@
 #define SWSINTERFACE_H
 
 
+extern "C"{
 #include <ffmpeg/avcodec.h>
+#include <ffmpeg/avformat.h>
 #include <ffmpeg/swscale.h>
+}
 #include <stdlib.h>
 #include <stdio.h>
 
@@ -37,7 +40,7 @@ public:
     /**
   *  Function to change RGB to YUV420
   * */
-    uint8_t *Convert(AVFrame *In,AVFrame *Out);
+    bool Convert(AVFrame *In,AVFrame *Out);
 
     FrameProperties getInputProperties();
 
@@ -48,7 +51,11 @@ public:
 
     void setOutputProperties(int setWidth,int setHeight,int setPixFormat);
     void setOutputProperties(int setWidth,int setHeight);
-
+	AVFrame *alloc_pictureRGB24(int width, int height);
+	AVFrame *alloc_picture420P(int width, int height);
+	AVFrame *alloc_pictureRGB24(int width, int height,uint8_t *buffer);
+	AVFrame *alloc_picture420P(int width, int height,uint8_t *buffer);
+	
 private:
 
 	SWSInterface();
