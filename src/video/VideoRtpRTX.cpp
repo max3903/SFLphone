@@ -86,7 +86,7 @@ void VideoRtpRTX::run(){
       session->startRunning();
 
     unsigned long numFrames = 0;
-    uint32 tstampInc = session->getCurrentRTPClockRate()/24; //TODO: sym ?
+    uint32 tstampInc = session->getCurrentRTPClockRate()/ 24; //TODO: sym ?
     _debug("VIDEO:  Current timestamp increase!: %d\n", tstampInc);
 
     //semStart.post();
@@ -117,7 +117,7 @@ void VideoRtpRTX::run(){
     free(data_to_send);
 
     //unloadCodec((CodecID)CODEC_ID_H263,0);
-    //unloadCodec((CodecID)CODEC_ID_H263,1);
+    unloadCodec((CodecID)CODEC_ID_H263,1);
     _debug("stop stream for videortp loop\n");
 
   } catch(std::exception &e) {
@@ -140,7 +140,8 @@ void VideoRtpRTX::initBuffers()
   data_from_peer = (unsigned char *)malloc(FRAME_SIZE);
   
   rcvTimestamps=0;
-  tmpCount=0;
+  leData = (uint8 *)malloc(FRAME_SIZE*4); // TODO: ok ??
+  
 }
 	
 void VideoRtpRTX::initVideoRtpSession()
@@ -198,8 +199,7 @@ void VideoRtpRTX::initVideoRtpSession()
 	return;
       }
       
-      session->setTimeclock();
-      //session->setSessionBandwidth(384000); // TODO: a verifier!
+      //session->setTimeclock();
       session->setSessionBandwidth(768000);
     }
 
@@ -214,6 +214,7 @@ void VideoRtpRTX::sendSession(int timestamp)
 {
 
   int sizeV4L= 0;
+  int encodedSize=0;
 
   if (vidCall==0) { 
     _debug(" !ARTP: No call associated (video)\n");
@@ -225,6 +226,9 @@ void VideoRtpRTX::sendSession(int timestamp)
   // Get Data from V4l, send it to the mixer input
   Capture* cmdCapture = (Capture*) VideoDevMng->getCommand(VideoDeviceManager::CAPTURE);
   data_from_wc = cmdCapture->GetCapture(sizeV4L);
+  
+  Resolution* cmdRes= (Resolution*)VideoDevMng->getCommand(VideoDeviceManager::RESOLUTION);
+  pair<int,int> Res = cmdRes->getResolution();
 
   // Depose les data de V4L dans le Input buffer du mixer correspondant
   //vidCall->getRemoteIntputStreams()->fetchVideoStream()->putData((char*)charFromV4L,sizeV4L,timestamp);
@@ -233,7 +237,7 @@ void VideoRtpRTX::sendSession(int timestamp)
   //vidCall->getRemoteVideoOutputStream()->fetchData((char*)sendDataEncoded);
 
   // Encode it
-  //encodeCodec->videoEncode((uint8_t*)data_from_wc,(uint8_t*)data_to_send,sizeV4L);
+  encodedSize = encodeCodec->videoEncode((uint8_t*)data_from_wc,(uint8_t*)data_to_send,sizeV4L,Res.first,Res.second);
 
   //_debug("Le timeStamp est: %d \n", timestamp);
   
@@ -243,20 +247,17 @@ void VideoRtpRTX::sendSession(int timestamp)
       return;
     }*/
   
-    if (isMarked) session->setMark(isMarked);
+    //if (isMarked) session->setMark(isMarked);
     //session->setMark(isMarked);
-    
-    //if (tmp*8>session->getDefaultMaxSendSegmentSize())
-      //_debug("TROPPPPPPPPPPPPPPPPPPPPPPPPPPP GROS");
-  
-    //session->setExpireTimeout(0);
 
   // Send it
     //if (!_sym)
       //videoSessionSend->putData(timestamp, data_from_wc, sizeV4L);
     //else
-       session->sendImmediate(rcvTimestamps, data_from_peer, tmp);
+       //session->sendImmediate(rcvTimestamps, data_from_peer, tmp);
+       session->putData(timestamp, data_to_send, encodedSize);
        //session->putData(rcvTimestamps, data_from_peer, tmp);
+       session->setMark(true);
        
     while(session->isSending());
     //_debug("Nb Packet envoyé: %d \n",session->getSendPacketCount());
@@ -273,6 +274,8 @@ void VideoRtpRTX::sendSession(int timestamp)
 	
 void VideoRtpRTX::receiveSession()
 {
+	
+  
 
   if (vidCall==0) { 
     _debug(" !ARTP: No call associated (video)\n");
@@ -295,20 +298,21 @@ void VideoRtpRTX::receiveSession()
       }
     }
     
+    
+    //leData = adu->getData();
+    
+    
+    //memcpy(data_from_peer,leData,tmp);
     data_from_peer  = (unsigned char*)adu->getData(); // data in char
-    tmp = adu->getSize();
     isMarked = adu->isMarked();
+    tmp = adu->getSize();
+    //tmp +=2;
     
-    //_debug("Mx drop: %d",session->getMaxPacketDropout());
-    //if (session->isWaiting()) _debug("waiting");
+    //data_from_peer -= sizeof(char)*2;
     
-    //tmpCount++;
-    //_debug("Nb Packet recu: %d \n",tmpCount);
-    
-    //unsigned int size = adu->getSize(); // size in char
+    //adu->getRawPacket();
 
-    //int timestamp=0; //TODO: a lire sur le paquet ! important...
-    //int payload = adu->getType();
+    //if (session->isWaiting()) _debug("waiting");
 
     // Decode it
     //decodeCodec->videoDecode(data_from_peer,data_to_display,size);  //TODO: Verifier si c'est le bon size...
@@ -318,8 +322,6 @@ void VideoRtpRTX::receiveSession()
     
     // Prend les donnes de la sortie du mixer correspondant TODO: A MODIFIER NON FONCTIONNEL!!!!!!!!!
     //vidCall->getLocalVideoOutputStream()->fetchData((char*)sendDataEncoded);
-
-    //cout << "Data: " << data_from_peer << " size: " << size << endl;
 
     delete adu; //adu = NULL;
     

@@ -105,8 +105,7 @@ private:
     int tmp;
     int rcvTimestamps;
     bool isMarked;
-    int tmpCount;
-    bool firstTime;
+    const uint8* leData;
     
 	/**
 	 * Get the data from V4l, send it to the mixer, encode and send to RTP
