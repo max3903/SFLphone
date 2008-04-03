@@ -70,4 +70,5 @@ gboolean get_enable_webcam_checkbox_status();
 gboolean get_disable_webcam_checkbox_status();
 void set_enable_webcam_checkbox_status(gboolean status);
 void set_disable_webcam_checkbox_status(gboolean status);
+void video_settings_checkbox_init();
 #endif 
