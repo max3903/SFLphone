@@ -233,7 +233,7 @@ void VideoRtpRTX::sendSession(int timestamp)
   //vidCall->getRemoteVideoOutputStream()->fetchData((char*)sendDataEncoded);
 
   // Encode it
-  encodeCodec->videoEncode((uint8_t*)data_from_wc,(uint8_t*)data_to_send,sizeV4L);
+  //encodeCodec->videoEncode((uint8_t*)data_from_wc,(uint8_t*)data_to_send,sizeV4L);
 
   //_debug("Le timeStamp est: %d \n", timestamp);
   
