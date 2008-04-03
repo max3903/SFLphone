@@ -40,6 +40,10 @@ GtkToolItem * unholdButton;
 GtkToolItem * inviteButton;
 guint transfertButtonConnId; //The button toggled signal connection ID
 
+//Conference dialog
+GtkDialog *inviteDialog;
+GtkDialog *joinDialog;
+
 //Buttons on conference window popups
 GtkWidget *inviteCallButton;
 GtkWidget *inviteCancelButton;
@@ -168,30 +172,72 @@ static void webCamStatusChange( GtkWidget *widget, gpointer data )
 static void inviteUser( GtkWidget *widget, gpointer data )
 {
 	create_invite_window();
-  	//TODO: Implement Callback functions
-  	//TODO: add logic of those buttons
 	
+}
+
+static void invite_call_button(GtkButton *button, gpointer user_data)
+{
+	gchar *buf = gtk_entry_get_text(user_data);
+	printf("buffer: %s \n", buf);
+	gtk_dialog_response(inviteDialog, GTK_RESPONSE_DELETE_EVENT);
+	gtk_widget_destroy(GTK_WIDGET(inviteDialog));
+	
+	//TODO: place call
+	//TODO: wait for positive answer then show the join dialog
+	create_join_window();
+}
+
+static void invite_cancel_button(GtkButton *button, gpointer user_data)
+{
+	gtk_dialog_response(inviteDialog, GTK_RESPONSE_DELETE_EVENT);
+	gtk_widget_destroy(GTK_WIDGET(inviteDialog));
+}
+
+/* Limits the entry to numbers only */
+void insert_text_handler (GtkEntry *entry, const gchar *text, gint length,
+							gint *position, gpointer data)
+{
+	GtkEditable *editable = GTK_EDITABLE(entry);
+	int i, count=0;
+	gchar *result = g_new (gchar, length);
+
+	for (i=0; i < length; i++) 
+	{
+		if (isdigit(text[i]))
+      		result[count++] = text[i];
+	}
+  
+	if (count > 0) 
+	{
+		g_signal_handlers_block_by_func (G_OBJECT (editable),G_CALLBACK (insert_text_handler), data);
+		gtk_editable_insert_text (editable, result, count, position);
+		g_signal_handlers_unblock_by_func (G_OBJECT (editable), G_CALLBACK (insert_text_handler), data);
+	}
+  
+	g_signal_stop_emission_by_name (G_OBJECT (editable), "insert_text");
+
+	g_free (result);
 }
 
 void create_invite_window()
 {
-	GtkDialog *dialog;
+	
   	GtkWidget *dialogVBox;
   	GtkWidget *confVBox;
   	GtkWidget *phoneLabel;
   	GtkWidget *phoneEntry;
 	
 	
-	dialog = GTK_DIALOG(gtk_dialog_new_with_buttons ("Invite user",
+	inviteDialog = GTK_DIALOG(gtk_dialog_new_with_buttons ("Invite user",
 				GTK_WINDOW(get_main_window()),
 				GTK_DIALOG_DESTROY_WITH_PARENT,
 				NULL));
 				
-	gtk_dialog_set_has_separator(dialog, FALSE);
-	gtk_window_set_default_size(GTK_WINDOW(dialog), 100, 100);
-	gtk_container_set_border_width(GTK_CONTAINER(dialog), 0);
+	gtk_dialog_set_has_separator(inviteDialog, FALSE);
+	gtk_window_set_default_size(GTK_WINDOW(inviteDialog), 100, 100);
+	gtk_container_set_border_width(GTK_CONTAINER(inviteDialog), 0);
 	
-	dialogVBox = GTK_DIALOG (dialog)->vbox;
+	dialogVBox = GTK_DIALOG (inviteDialog)->vbox;
   	gtk_widget_show (dialogVBox);
   	
   	confVBox = gtk_vbox_new (FALSE, 0);
@@ -208,43 +254,60 @@ void create_invite_window()
 
   	inviteCallButton = gtk_button_new_with_mnemonic (("Call"));
   	gtk_widget_show (inviteCallButton);
-  	gtk_dialog_add_action_widget (GTK_DIALOG (dialog), inviteCallButton, 0);
+  	gtk_dialog_add_action_widget (GTK_DIALOG (inviteDialog), inviteCallButton, 0);
 
   	inviteCancelButton = gtk_button_new_with_mnemonic (("Cancel"));
   	gtk_widget_show (inviteCancelButton);
-  	gtk_dialog_add_action_widget (GTK_DIALOG (dialog), inviteCancelButton, 0);
+  	gtk_dialog_add_action_widget (GTK_DIALOG (inviteDialog), inviteCancelButton, 0);
   	
-  	gtk_dialog_run(dialog);
+  	g_signal_connect(G_OBJECT(inviteCallButton), "clicked", G_CALLBACK (invite_call_button), phoneEntry);
+  	g_signal_connect(G_OBJECT(inviteCancelButton), "clicked", G_CALLBACK (invite_cancel_button), NULL);
+  	g_signal_connect(G_OBJECT(phoneEntry), "insert_text", G_CALLBACK(insert_text_handler), NULL);
+
+  	gtk_dialog_run(inviteDialog);
 }
 
 
 /**
  * Join the 3rd person to the conference call
  */
-/*static void joinUser( GtkWidget *widget, gpointer data )
+static void joinUser( GtkWidget *widget, gpointer data )
 {
 	create_join_window();
-  	//TODO: Implement Callback functions
 	
+}
+
+static void join_button(GtkButton *button, gpointer user_data)
+{
+	//TODO: join calls
+	//TODO: update calltree
+	gtk_dialog_response(joinDialog, GTK_RESPONSE_DELETE_EVENT);
+	gtk_widget_destroy(GTK_WIDGET(joinDialog));
+}
+
+static void join_cancel_button(GtkButton *button, gpointer user_data)
+{
+	//TODO: cancel call with the callee
+	gtk_dialog_response(joinDialog, GTK_RESPONSE_DELETE_EVENT);
+	gtk_widget_destroy(GTK_WIDGET(joinDialog));
 }
 
 void create_join_window()
 {
-	GtkDialog *dialog;
   	GtkWidget *joinVBox;
   	GtkWidget *joinLabel;
   	
 
-  	dialog = GTK_DIALOG(gtk_dialog_new_with_buttons ("Invite user",
+  	joinDialog = GTK_DIALOG(gtk_dialog_new_with_buttons ("Invite user",
 				GTK_WINDOW(get_main_window()),
 				GTK_DIALOG_DESTROY_WITH_PARENT,
 				NULL));
 				
-	gtk_dialog_set_has_separator(dialog, FALSE);
-	gtk_window_set_default_size(GTK_WINDOW(dialog), 100, 100);
-	gtk_container_set_border_width(GTK_CONTAINER(dialog), 0);
+	gtk_dialog_set_has_separator(joinDialog, FALSE);
+	gtk_window_set_default_size(GTK_WINDOW(joinDialog), 100, 100);
+	gtk_container_set_border_width(GTK_CONTAINER(joinDialog), 0);
 
-  	joinVBox = GTK_DIALOG (dialog)->vbox;
+  	joinVBox = GTK_DIALOG (joinDialog)->vbox;
   	gtk_widget_show (joinVBox);
 
   	joinLabel = gtk_label_new (("The connection has been established \n Press join to start the conference"));
@@ -253,14 +316,17 @@ void create_join_window()
 
   	joinButton = gtk_button_new_with_mnemonic (("Join"));
   	gtk_widget_show (joinButton);
-  	gtk_dialog_add_action_widget (GTK_DIALOG (dialog), joinButton, 0);
+  	gtk_dialog_add_action_widget (GTK_DIALOG (joinDialog), joinButton, 0);
 
   	joinCancelButton = gtk_button_new_with_mnemonic (("Cancel"));
   	gtk_widget_show (joinCancelButton);
-  	gtk_dialog_add_action_widget (GTK_DIALOG (dialog), joinCancelButton, 0);
+  	gtk_dialog_add_action_widget (GTK_DIALOG (joinDialog), joinCancelButton, 0);
   	
-  	gtk_dialog_run(dialog);
-}*/
+  	g_signal_connect(G_OBJECT(joinButton), "clicked", G_CALLBACK (join_button), NULL);
+  	g_signal_connect(G_OBJECT(joinCancelButton), "clicked", G_CALLBACK (join_cancel_button), NULL);
+  	
+  	gtk_dialog_run(joinDialog);
+}
 
 	void 
 toolbar_update_buttons ()
