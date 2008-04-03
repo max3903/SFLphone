@@ -42,5 +42,7 @@ void update_call_tree_remove (call_t * c);
 GtkWidget * create_toolbar();
 void create_join_window();
 void create_invite_window();
+void create_enable_webcam_window();
+void create_disable_webcam_window();
 
 #endif 
