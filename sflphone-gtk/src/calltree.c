@@ -334,7 +334,15 @@ void create_disable_webcam_window()
  */
 static void inviteUser( GtkWidget *widget, gpointer data )
 {
-	create_invite_window();
+	call_t * selectedCall = call_get_selected();
+	if(selectedCall)
+	{
+		if(selectedCall->state == CALL_STATE_CURRENT)
+		{
+			dbus_hold(selectedCall);
+			create_invite_window();
+		}
+	}
 	
 }
 
