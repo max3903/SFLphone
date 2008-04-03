@@ -53,8 +53,11 @@ bool VideoDeviceManager::changeDevice(const char* srcName){
     	return false;
     }
     
-    Command::videoDevice->closeDevice();
-    delete Command::videoDevice;
+    if(Command::videoDevice != NULL)
+    {
+    	Command::videoDevice->closeDevice();
+    	delete Command::videoDevice;
+    }
     
     Command::videoDevice= tmpDevice;
         

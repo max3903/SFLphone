@@ -29,6 +29,7 @@
 #include <screen.h>
 #include <sliders.h>
 #include <glwidget.h>
+#include <dbus.h>
 
 #include <gtk/gtk.h>
 
@@ -154,7 +155,7 @@ create_main_window ()
   gtk_box_pack_start (GTK_BOX (vbox), widget, FALSE /*expand*/, TRUE /*fill*/, 0 /*padding*/);
   gtk_box_pack_start (GTK_BOX (vbox), create_call_tree(), TRUE /*expand*/, TRUE /*fill*/,  0 /*padding*/);
   
-  gtk_box_pack_start (GTK_BOX (vbox), subvbox, FALSE /*expand*/, FALSE /*fill*/, 0 /*padding*/);
+  gtk_box_pack_start (GTK_BOX (vbox), subvbox, TRUE /*expand*/, TRUE /*fill*/, 0 /*padding*/);
  
   //widget = create_screen();
   // TODO Add the screen when we are decided
@@ -240,7 +241,7 @@ main_window_dialpad(gboolean show){
   if(show && !showDialpad)
   {
     dialpad = create_dialpad();
-    gtk_box_pack_end (GTK_BOX (subvbox), dialpad, FALSE /*expand*/, TRUE /*fill*/, 0 /*padding*/);
+    gtk_box_pack_end (GTK_BOX (subvbox), dialpad, TRUE /*expand*/, FALSE /*fill*/, 0 /*padding*/);
     gtk_box_reorder_child(GTK_BOX (subvbox), dialpad, 1);
     gtk_widget_show_all (dialpad);
   }
@@ -303,6 +304,7 @@ gboolean main_window_glWidget( gboolean show )
 				main_window_update_WebcamStatus(showGlWidget);
 				//Show webcam configuration
 				show_config_window(3);
+				
 				return FALSE;
 				
 			// If current call active enable/disable webcam
@@ -312,8 +314,9 @@ gboolean main_window_glWidget( gboolean show )
 					  if(show && !showGlWidget)
 					  {
 					  	g_print("Enabling visualization pannel\n");
-					    drawing_area = createGLWidget();
-					    gtk_box_pack_start (GTK_BOX (subvbox), drawing_area, FALSE /*expand*/, TRUE /*fill*/, 0 /*padding*/);
+					  	
+					    drawing_area = createGLWidget(FALSE);
+					    gtk_box_pack_start (GTK_BOX (subvbox), drawing_area, TRUE /*expand*/, TRUE /*fill*/, 0 /*padding*/);
 					    gtk_box_reorder_child(GTK_BOX (subvbox), drawing_area, 0);
 					    gtk_widget_show_all (drawing_area);
 					    showGlWidget = show;
@@ -322,12 +325,14 @@ gboolean main_window_glWidget( gboolean show )
 					    main_window_update_WebcamStatus(showGlWidget);
 					    
 					    // \TODO: Add Code to send enable webcam signal
+					    dbus_enable_local_video_pref();
 					    
 					    return TRUE;
 					  }
 					  else if (!show && showGlWidget)
 					  {
 					  	g_print("Disabling visualization pannel\n");
+					  	
 					    gtk_container_remove(GTK_CONTAINER (subvbox), drawing_area);
 					    showGlWidget = show;
 					    
@@ -335,7 +340,7 @@ gboolean main_window_glWidget( gboolean show )
 					    main_window_update_WebcamStatus(showGlWidget);
 					    
 					    // \TODO: Add Code to send disable webcam signal
-					    
+					    dbus_disable_local_video_pref();
 					    return FALSE;
 					  }
 				}
@@ -354,6 +359,7 @@ gboolean main_window_glWidget( gboolean show )
 		main_window_update_WebcamStatus(showGlWidget);
 		//Show webcam configuration
 		show_config_window(3);
+
 	}
 	
 	return FALSE;

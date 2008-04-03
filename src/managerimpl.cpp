@@ -2683,7 +2683,6 @@ ManagerImpl::initVideoCodec (void)
   	}
   	
   	// if the user never set the bitrate
-  	//TODO add bitrate
 	if(getConfigString(VIDEO, "BitRate") == ""){
     	_videoCodecDescriptor->setDefaultBitRate();
 	}
@@ -2710,8 +2709,9 @@ ManagerImpl::setActiveVideoCodecList(const std::vector<std::string>& list)
 		setConfig("Video", "ActiveCodecs", s);
 		
 	}
-	else //the user doesn't have all the codecs in the config file
+	else
 	{
+		//the user doesn't have all the codecs in the config file installed
 		//so we need to reset the config file
 		setConfig("Video", "ActiveCodecs", "");
 	}
@@ -2883,7 +2883,12 @@ ManagerImpl::setWebcamDevice( const std::string& name )
 	strcpy(temp, name.c_str());
 	ptracesfl("set Webcam Device", MT_INFO, MANAGERIMPL_TRACE, false);
 	ptracesfl(temp, MT_INFO, MANAGERIMPL_TRACE, true);
-	_videoDeviceManager->changeDevice(temp);
+	if(strcmp(temp, "No device")==0)
+	{
+		_videoDeviceManager->Terminate();
+	}
+	else
+		_videoDeviceManager->changeDevice(temp);
 }
 
 
@@ -3024,8 +3029,7 @@ void* ManagerImpl::localVideCapturepref(void* pdata){
 	unsigned char* data= NULL;
 	
 	while(ManagerImpl::_localCapActive){
-		
-		printf("test\n");
+				
 		data= cmdCap->GetCapture(imgSize);
 		
 		if(data != NULL){

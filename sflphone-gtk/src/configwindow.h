@@ -63,5 +63,11 @@ GtkWidget * create_audio_tab();
 GtkWidget * create_video_tab();
 GtkWidget * create_webcam_tab();
 void show_config_window(gint page_num);
+void update_notebook();
 gchar* format_percentage_scale(GtkScale *scale, gdouble value);
+
+gboolean get_enable_webcam_checkbox_status();
+gboolean get_disable_webcam_checkbox_status();
+void set_enable_webcam_checkbox_status(gboolean status);
+void set_disable_webcam_checkbox_status(gboolean status);
 #endif 

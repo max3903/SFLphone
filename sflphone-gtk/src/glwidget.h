@@ -30,6 +30,8 @@
 int currentGLWidth;
 int currentGLHeight;
 
+gboolean prefPannel;
+
 //! Configuration information for the gl widget
 GdkGLConfig* glconfig;
 
@@ -65,7 +67,7 @@ void redraw(GtkWidget* widget);
 /*!
  * \return the created widget
  */
-GtkWidget* createGLWidget();
+GtkWidget* createGLWidget( gboolean pref );
 
 //! Draws the images from the local capture source
 /*!

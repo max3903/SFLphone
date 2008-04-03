@@ -34,6 +34,7 @@
 
 gboolean dialogOpen = FALSE;
 gboolean ringtoneEnabled = TRUE;
+gint webcamIndex = 0;
 
 GtkListStore *accountStore;
 GtkWidget *codecTreeView;		// View used instead of store to get access to selection
@@ -63,10 +64,19 @@ GtkWidget *bitrateComboBox;
 GtkWidget *moveUpButton;
 GtkWidget *moveDownButton;
 GtkWidget *moveUpButtonVideo;
-GtkWidget *moveDownButtonVideo;
+GtkWidget *moveDownButtonVideo; 
+
+GtkDialog * dialog;
+GtkWidget * notebook;
+GtkObject *brightnessAdjustment, *contrastAdjustment, *colourAdjustment;
+
+GtkWidget *activateCheckBox;
+GtkWidget *cancelCheckBox;
+gboolean enableStatus;
+gboolean disableStatus;
 
 account_t *selectedAccount;
-gint numWebcam;
+
 
 // Codec properties ID
 enum {
@@ -469,18 +479,26 @@ select_webcam_device(GtkComboBox* widget, gpointer data)
 {
 	GtkTreeModel* model;
 	GtkTreeIter iter;
-	int comboBoxIndex;
 	gchar* name;
 	
-	comboBoxIndex = gtk_combo_box_get_active(widget);
+	webcamIndex = gtk_combo_box_get_active(widget);
 	
-	if(comboBoxIndex >= 0)
+	if(webcamIndex >= 0)
 	{
 		model = gtk_combo_box_get_model(widget);
 		gtk_combo_box_get_active_iter(widget, &iter);
-		gtk_tree_model_get(model, &iter, 0, &name, -1);	
+		gtk_tree_model_get(model, &iter, 0, &name, -1);
+		dbus_disable_local_video_pref();
 		dbus_set_webcam_device(name);
+		if(strcmp(name, "No device")!=0)
+		{	
+			dbus_enable_local_video_pref();
+		}
+		update_notebook();
+		
 	}
+	
+	
 }
 
 /**
@@ -499,12 +517,17 @@ config_window_fill_webcam_device_list()
 	
 	// For each webcam included in list
 	int c = 0;
+	
 	for(webcamName = list[c]; webcamName != NULL; webcamName = list[c])
 	{
-		c++;
 		gtk_list_store_append(webcamDeviceStore, &iter);
 		gtk_list_store_set(webcamDeviceStore, &iter, 0 , webcamName, -1);
+		c++;
 	}
+	
+	//Add the option to use no device
+	gtk_list_store_append(webcamDeviceStore, &iter);
+	gtk_list_store_set(webcamDeviceStore, &iter, 0 , "No device", -1);
 }
 
 /**
@@ -513,8 +536,8 @@ config_window_fill_webcam_device_list()
 void
 select_active_webcam_device()
 {
-	// Always select the first one
-	gtk_combo_box_set_active(GTK_COMBO_BOX(webcamDeviceComboBox), 0);
+	// If none has been selected yet, select the first one
+	gtk_combo_box_set_active(GTK_COMBO_BOX(webcamDeviceComboBox), webcamIndex);
 }
 
 /**
@@ -679,7 +702,7 @@ select_active_bitrate()
 	} while(gtk_tree_model_iter_next(model, &iter));
 
 	// No index was found, select first one
-	g_print("Warning : No active resolution found\n");
+	g_print("Warning : No active bitrate found\n");
 	gtk_combo_box_set_active(GTK_COMBO_BOX(bitrateComboBox), 0);
 }
 
@@ -690,13 +713,11 @@ static void
 select_notebook_page(GtkNotebook* widget,  gpointer data)
 {
 	gint notebookPage;
-	
-	
 	notebookPage = gtk_notebook_get_current_page(widget);
-	printf("Notebook current page : %d Num webcam %d\n", notebookPage, numWebcam);
+	printf("Notebook current page : %d\n", notebookPage);
 	
 	//Webcam Settings Page
-	if(notebookPage == numWebcam)
+	if(notebookPage == 3)
 	{
 		dbus_enable_local_video_pref();
 		printf("Local video has been enabled in webcam settings \n");
@@ -721,6 +742,17 @@ detect_all_audio_settings()
 	// Select active device in combo box
 	//select_active_output_audio_device();
 	//select_active_input_audio_device();
+}
+
+/**
+ * Refresh all webcam devices
+ */
+static void
+detect_webcam_device()
+{
+	// Update lists
+	config_window_fill_webcam_device_list();
+	
 }
 
 /**
@@ -1223,6 +1255,51 @@ set_colour(GtkScale* scale, gpointer data)
 	dbus_set_colour(value);
 	
 }
+
+static void activate_checkbox(GtkToggleButton *togglebutton, gpointer user_data)
+{
+	gboolean status = gtk_toggle_button_get_active(togglebutton);
+	set_enable_webcam_checkbox_status(status);
+}
+
+static void cancel_checkbox(GtkToggleButton *togglebutton, gpointer user_data)
+{
+	gboolean status = gtk_toggle_button_get_active(togglebutton);
+	set_disable_webcam_checkbox_status(status);
+}
+
+/**
+ * Format the value of the scale to show a percentage sign after it
+ */
+gchar*
+format_percentage_scale(GtkScale *scale, gdouble value)
+{
+	return g_strdup_printf ("%0*g%%", gtk_scale_get_digits (scale), value);
+} 
+
+gboolean get_enable_webcam_checkbox_status()
+{
+	//enableStatus = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(activateCheckBox));
+	return enableStatus;
+}
+
+gboolean get_disable_webcam_checkbox_status()
+{
+	//disableStatus = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(cancelCheckBox));
+	return disableStatus;
+}
+void set_enable_webcam_checkbox_status(gboolean status)
+{
+	gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(activateCheckBox), status);
+	enableStatus = status;
+}
+
+void set_disable_webcam_checkbox_status(gboolean status)
+{
+	gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(cancelCheckBox), status);
+	disableStatus = status;
+}
+
 /**
  * Create table widget for video codecs
  */
@@ -1699,8 +1776,6 @@ create_video_tab ()
 
 	GtkWidget *bitrateLabel;
 	GtkWidget *codecBox, *videoBox;
-	GtkWidget *activateCheckBox;
-	GtkWidget *cancelCheckBox;
 	GtkWidget *codecFrame, *videoFrame;
 	GtkCellRenderer *bitrateRenderer;
 	GtkWidget *bitrateTable;
@@ -1770,11 +1845,16 @@ create_video_tab ()
 	
 	activateCheckBox = gtk_check_button_new_with_label("Always ask before activating the video capture");
 	gtk_box_pack_start(GTK_BOX(videoBox), activateCheckBox, FALSE, FALSE, 0);
+	g_signal_connect(G_OBJECT(activateCheckBox), "toggled", G_CALLBACK (activate_checkbox), NULL);
+	gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(activateCheckBox), enableStatus);
 	gtk_widget_show(activateCheckBox);
 	
 	cancelCheckBox = gtk_check_button_new_with_label("Always ask before cancelling the video capture");
 	gtk_box_pack_start(GTK_BOX(videoBox), cancelCheckBox, FALSE, FALSE, 0);
+	g_signal_connect(G_OBJECT(cancelCheckBox), "toggled", G_CALLBACK (cancel_checkbox), NULL);
+	gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(cancelCheckBox), disableStatus);
 	gtk_widget_show(cancelCheckBox);
+	
 
 	// Show all
 	gtk_widget_show_all(ret);
@@ -1782,14 +1862,7 @@ create_video_tab ()
 	return ret;
 }
 
-/**
- * Format the value of the scale to show a percentage sign after it
- */
-gchar*
-format_percentage_scale(GtkScale *scale, gdouble value)
-{
-	return g_strdup_printf ("%0*g%%", gtk_scale_get_digits (scale), value);
-} 
+
 
 /**
  * Webcam settings tab
@@ -1811,7 +1884,7 @@ create_webcam_tab ()
 	GtkWidget *brightnessLabel, *resolutionLabel;
 	GtkWidget *contrastLabel, *colourLabel;
 	GtkWidget *brightnessHScale, *contrastHScale, *colourHScale;
-	GtkObject *brightnessAdjustment, *contrastAdjustment, *colourAdjustment;
+	
 	
 	GtkWidget *drawingSpace;
 	slider_t values;
@@ -1866,6 +1939,8 @@ create_webcam_tab ()
 	refreshButton = gtk_button_new_with_label("Detect all");
 	gtk_button_set_image(GTK_BUTTON(refreshButton), gtk_image_new_from_stock(GTK_STOCK_REFRESH, GTK_ICON_SIZE_BUTTON));
 	gtk_table_attach(GTK_TABLE(deviceTable), refreshButton, 3, 4, 0, 3, GTK_EXPAND, GTK_EXPAND, 0, 0);
+	// Set event on selection
+	g_signal_connect(G_OBJECT(refreshButton), "clicked", G_CALLBACK(detect_webcam_device), NULL);
 	
     // Settings section
 	
@@ -1976,7 +2051,7 @@ create_webcam_tab ()
 	gtk_widget_show(resolutionComboBox);
 	
 	// OpenGL widget to show the local video rendering
-    drawingSpace= createGLWidget();
+    drawingSpace= createGLWidget( TRUE );
     gtk_box_pack_start(GTK_BOX(settingsHBox), drawingSpace, TRUE, TRUE, 0);
     gtk_widget_show(drawingSpace);
 	
@@ -1996,12 +2071,11 @@ create_webcam_tab ()
 /**
  * Show configuration window with tabs
  * page_num indicates the current page of the notebook
+ * set update to true only if you want to destroy the dialog window and recreate it
  */
 void
 show_config_window (gint page_num)
 {
-	GtkDialog * dialog;
-	GtkWidget * notebook;
 	GtkWidget * tabAccount, *tabAudio, *tabVideo, *tabWebcam;
 
 	dialogOpen = TRUE;
@@ -2014,7 +2088,7 @@ show_config_window (gint page_num)
 				NULL));
 
 	// Set window properties
-      	gtk_dialog_set_has_separator(dialog, FALSE);
+    gtk_dialog_set_has_separator(dialog, FALSE);
 	gtk_window_set_default_size(GTK_WINDOW(dialog), 400, 400);
 	gtk_container_set_border_width(GTK_CONTAINER(dialog), 0);
 	
@@ -2046,17 +2120,30 @@ show_config_window (gint page_num)
 	// Webcam tab
 	tabWebcam = create_webcam_tab();	
 	gtk_notebook_append_page(GTK_NOTEBOOK(notebook), tabWebcam, gtk_label_new("Webcam Settings"));
-	numWebcam = gtk_notebook_page_num(GTK_NOTEBOOK(notebook), tabWebcam);
+	gtk_notebook_page_num(GTK_NOTEBOOK(notebook), tabWebcam);
 	gtk_widget_show(tabWebcam);
 	
 	g_signal_connect_after(G_OBJECT(notebook), "switch-page", G_CALLBACK(select_notebook_page), notebook);
 
 	gtk_notebook_set_current_page(GTK_NOTEBOOK(notebook),page_num);
 	gtk_dialog_run(dialog);
-	//gtk_widget_show( GTK_WIDGET(dialog) );
+	
 	//g_signal_connect_swapped( dialog , "response" , G_CALLBACK( gtk_widget_destroy ), dialog );
+	//gtk_container_add (GTK_CONTAINER (GTK_DIALOG(dialog)->vbox), _("Preferences"));
 	
 	dialogOpen = FALSE;
 
 	gtk_widget_destroy(GTK_WIDGET(dialog));
 }
+
+//Updates the webcam settings with the new values
+void update_notebook()
+{
+	gtk_dialog_response(dialog, GTK_RESPONSE_DELETE_EVENT);
+	gtk_widget_destroy(GTK_WIDGET(dialog));
+	gtk_widget_destroy(GTK_WIDGET(notebook));
+	printf("dialog destroyed \n");
+	
+	show_config_window(3);	
+}
+

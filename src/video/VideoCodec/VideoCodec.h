@@ -64,8 +64,13 @@ public:
      * 
      */
 
-    int videoEncode(uint8_t *in_buf, uint8_t* out_buf,int in_bufferSize,int inWidth,int inHeight);
+    int videoEncode(uint8_t *in_buf, uint8_t* out_buf,int inWidth,int inHeight);
  	
+ 	/**
+ 	* Function to init the Codec resolutions for special codecs
+ 	* */
+    pair<int,int> getSpecialResolution(int width);
+    
 private:
 
  	/**
@@ -78,10 +83,7 @@ private:
  	* */
     void init();
     
-    /**
- 	* Function to init the Codec resolutions for special codecs
- 	* */
-    pair<int,int> getSpecialResolution(int width);
+    
     /**
  	* Function to init the Codec with it's proper context
  	* */
@@ -109,7 +111,8 @@ private:
 	/**
      * Libavcodec Codec type
      */
-    AVCodec* _Codec;
+    AVCodec* _CodecENC;
+	AVCodec* _CodecDEC;
     
     /**
      * Libavcodec Codec Name
@@ -121,7 +124,7 @@ private:
      * Libavcodec Codec context
      */
     AVCodecContext* _encodeCodecCtx;
-    /**En
+    /**
      * Libavcodec Codec context
      */
     AVCodecContext* _decodeCodecCtx;
@@ -133,9 +136,10 @@ private:
     
     // Video device manager instance
 	VideoDeviceManager *_v4lManager;    
-// Interface for pix conversion
+	// Interface for pix conversion
     SWSInterface *decodeSWS;
     SWSInterface *encodeSWS;
+    int64_t frame;
 };
 #endif //VIDEOCODEC_H
 
