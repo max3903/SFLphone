@@ -32,4 +32,17 @@ void show_contact_window();
 void show_contact_dialog(gchar* accountID, gchar* contactID);
 void show_entry_dialog(gchar* accountID, gchar* contactID, gchar* entryID);
 
+/**
+ * Called from the contact list to update the view
+ */
+// NOW
+void contact_window_add_account();
+void contact_window_remove_account();
+void contact_window_add_contact();
+void contact_window_edit_contact();
+void contact_window_remove_contact();
+void contact_window_add_entry();
+void contact_window_edit_entry();
+void contact_window_remove_entry();
+
 #endif 

@@ -17,7 +17,10 @@
  *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
+#include "actions.h"
+#include "callconsolewindow.h"
 #include "contactlist.h"
+#include "contactwindow.h"
 #include "dbus.h"
 
 #include <string.h>
@@ -57,7 +60,7 @@ contact_hash_table_add_contact_list(gchar* accountID)
 }
 
 GQueue*
-contact_hash_table_get_contact_list(gchar* accountID)
+contact_hash_table_get_contact_list(const gchar* accountID)
 {
 	return (GQueue*)g_hash_table_lookup(contactHashTable, accountID);
 }
@@ -72,6 +75,7 @@ contact_hash_table_clear_contact_list(GQueue* contactList)
 void
 contact_list_add(GQueue* contactList, contact_t* contact)
 {
+	// TODO Modify views
 	g_queue_push_tail(contactList, (void*) contact);
 }
 
@@ -116,15 +120,44 @@ contact_list_entry_add(contact_t* contact, contact_entry_t* entry)
 }
 
 void
-contact_list_entry_edit(contact_t* contact, gchar* entryID, contact_entry_t* newEntry)
+contact_list_entry_edit(contact_t* contact, contact_entry_t* oldEntry, contact_entry_t* newEntry)
 {
 	// TODO
 }
 
 void
-contact_list_entry_remove(contact_t* contact, gchar* entryID)
+contact_list_entry_remove(contact_t* contact, contact_entry_t* entry)
 {
 	// TODO
+}
+
+void
+contact_list_entry_change_presence_status(const gchar*accountID, const gchar* entryID, const gchar* status, const gchar* additionalInfo)
+{
+	GQueue* contactList = contact_hash_table_get_contact_list(accountID);
+	if(contactList != NULL)
+	{
+		int i;
+		contact_t* contact;
+		for(i = 0; i < contact_list_get_size(contactList); i++)
+		{
+			contact = contact_list_get_nth(contactList, i);
+			if(contact != NULL)
+			{
+				contact_entry_t* entry = contact_list_entry_get(contact, entryID);
+				if(entry != NULL)
+				{
+					entry->_presenceStatus = g_strdup(status);
+					entry->_presenceInfo = g_strdup(additionalInfo);
+
+					// Apply changes to call console
+					call_console_change_entry_presence_status(accountID, contact->_contactID, entryID, status, additionalInfo);
+					
+					// Do not return since the same entry could have more than one contact
+				}
+			}
+		}
+	}
 }
 
 guint
@@ -176,7 +209,9 @@ contact_list_new_contact_entry_from_details(gchar* contactEntryID, gchar** conta
 		contactEntry->_isSubscribed = TRUE;
 	else
 		contactEntry->_isSubscribed = FALSE;
-	contactEntry->_presence = NULL;
+	contactEntry->_presenceStatus = g_strdup(contactEntryDetails[4]);
+	contactEntry->_presenceInfo = g_strdup(contactEntryDetails[5]);
+	
 	return contactEntry;
 }
 
@@ -198,4 +233,129 @@ compare_contact_contactEntryID(gconstpointer a, gconstpointer b)
 		return 0;
 	else
 		return 1;
+}
+
+const gchar*
+contact_list_presence_status_translate(const gchar* presenceStatus)
+{
+	// TODO Some active statuses are not translated since we want
+	// to know in which precise cases these signals are sent by
+	// the call manager and should also be defined in the daemon
+	
+	// Active statuses
+	if(strcmp(presenceStatus, PRESENCE_UNKNOWN) == 0)
+	{
+		return(PRESENCE_UNKNOWN);
+	}
+	if(strcmp(presenceStatus, PRESENCE_READY) == 0) {
+		return(_("Online"));
+	}
+	if(strcmp(presenceStatus, PRESENCE_IS_BUSY) == 0) {
+		return(PRESENCE_IS_BUSY);
+	}
+	if(strcmp(presenceStatus, PRESENCE_INVALID) == 0) {
+		return(PRESENCE_INVALID);
+	}
+	if(strcmp(presenceStatus, PRESENCE_UNAVAILABLE) == 0) {
+		return(_("Offline"));
+	}
+	if(strcmp(presenceStatus, PRESENCE_ON_THE_PHONE) == 0) {
+		return(_("On the Phone"));
+	}
+	if(strcmp(presenceStatus, PRESENCE_RINGING) == 0) {
+		return(_("Ringing"));
+	}
+	if(strcmp(presenceStatus, PRESENCE_RING_IN_USE) == 0) {
+		return(PRESENCE_RING_IN_USE);
+	}
+	if(strcmp(presenceStatus, PRESENCE_HOLD_IN_USE) == 0) {
+		return(PRESENCE_HOLD_IN_USE);
+	}
+	if(strcmp(presenceStatus, PRESENCE_ON_HOLD) == 0) {
+		return(_("On Hold"));
+	}
+	// Passive statuses
+	if(strcmp(presenceStatus, PRESENCE_ONLINE) == 0) {
+		return(_("Online"));
+	}
+	if(strcmp(presenceStatus, PRESENCE_BUSY) == 0) {
+		return(_("Busy"));
+	}
+	if(strcmp(presenceStatus, PRESENCE_BE_RIGHT_BACK) == 0) {
+		return(_("Be Right Back"));
+	}
+	if(strcmp(presenceStatus, PRESENCE_AWAY) == 0) {
+		return(_("Away"));
+	}
+	if(strcmp(presenceStatus, PRESENCE_OUT_TO_LUNCH) == 0) {
+		return(_("Out to Lunch"));
+	}
+	if(strcmp(presenceStatus, PRESENCE_OFFLINE) == 0) {
+		return(_("Offline"));
+	}
+	if(strcmp(presenceStatus, PRESENCE_DO_NOT_DISTURB) == 0) {
+		return(_("Do not Disturb"));
+	}
+	return _("Unknown");
+}
+
+const gchar*
+contact_list_presence_status_get_icon_string(const gchar* presenceStatus)
+{
+	// TODO Complete icons to replace the default unknwon icon
+	// Active statuses
+	if(strcmp(presenceStatus, PRESENCE_UNKNOWN) == 0)
+	{
+		return(PRESENCE_UNKNOWN_ICON);
+	}
+	if(strcmp(presenceStatus, PRESENCE_READY) == 0) {
+		return(PRESENCE_ONLINE_ICON);
+	}
+	if(strcmp(presenceStatus, PRESENCE_IS_BUSY) == 0) {
+		return(PRESENCE_UNKNOWN_ICON);
+	}
+	if(strcmp(presenceStatus, PRESENCE_INVALID) == 0) {
+		return(PRESENCE_UNKNOWN_ICON);
+	}
+	if(strcmp(presenceStatus, PRESENCE_UNAVAILABLE) == 0) {
+		return(PRESENCE_UNKNOWN_ICON);
+	}
+	if(strcmp(presenceStatus, PRESENCE_ON_THE_PHONE) == 0) {
+		return(PRESENCE_ON_THE_PHONE_ICON);
+	}
+	if(strcmp(presenceStatus, PRESENCE_RINGING) == 0) {
+		return(PRESENCE_RINGING_ICON);
+	}
+	if(strcmp(presenceStatus, PRESENCE_RING_IN_USE) == 0) {
+		return(PRESENCE_RINGING_ICON);
+	}
+	if(strcmp(presenceStatus, PRESENCE_HOLD_IN_USE) == 0) {
+		return(PRESENCE_ON_HOLD_ICON);
+	}
+	if(strcmp(presenceStatus, PRESENCE_ON_HOLD) == 0) {
+		return(PRESENCE_ON_HOLD_ICON);
+	}
+	// Passive statuses
+	if(strcmp(presenceStatus, PRESENCE_ONLINE) == 0) {
+		return(PRESENCE_ONLINE_ICON);
+	}
+	if(strcmp(presenceStatus, PRESENCE_BUSY) == 0) {
+		return(PRESENCE_BUSY_ICON);
+	}
+	if(strcmp(presenceStatus, PRESENCE_BE_RIGHT_BACK) == 0) {
+		return(PRESENCE_BE_RIGHT_BACK_ICON);
+	}
+	if(strcmp(presenceStatus, PRESENCE_AWAY) == 0) {
+		return(PRESENCE_AWAY_ICON);
+	}
+	if(strcmp(presenceStatus, PRESENCE_OUT_TO_LUNCH) == 0) {
+		return(PRESENCE_OUT_TO_LUNCH_ICON);
+	}
+	if(strcmp(presenceStatus, PRESENCE_OFFLINE) == 0) {
+		return(PRESENCE_OFFLINE_ICON);
+	}
+	if(strcmp(presenceStatus, PRESENCE_DO_NOT_DISTURB) == 0) {
+		return(PRESENCE_DO_NOT_DISTURB_ICON);
+	}
+	return PRESENCE_UNKNOWN_ICON;
 }

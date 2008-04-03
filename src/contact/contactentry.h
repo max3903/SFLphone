@@ -39,11 +39,13 @@ public:
 	std::string getType() { return _type; }
 	bool getShownInCallConsole() { return _shownInCallConsole; }
 	bool getSubscribedToPresence() { return _subscribedToPresence; }
+	Presence* getPresence() { return _presence; }
 	
 	void setText(std::string text) { _text = text; }
 	void setType(std::string type) { _type = type; }
 	void setShownInCallConsole(bool shownInCallConsole) { _shownInCallConsole = shownInCallConsole; }
 	void setSubscribedToPresence(bool subscribedToPresence) { _subscribedToPresence = subscribedToPresence; }
+	void setPresence(Presence* presence) { _presence = presence; }
 	
 private:
 	// Attributes used for presence and call console

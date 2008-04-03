@@ -57,7 +57,7 @@ enum {
 #define TYPE_ENTRY		2
 
 // Main dialog
-GtkDialog* contactWindowDialog;
+GtkDialog* contactWindowDialog = NULL;
 
 // View and model of tree
 GtkWidget* contactTreeView;
@@ -389,6 +389,7 @@ void
 show_contact_dialog(gchar* accountID, gchar* contactID)
 {
 	guint response;
+	gboolean isNewContact;
 	
 	gchar* contactIDText = NULL;
 	gchar* firstNameText = "";
@@ -400,11 +401,16 @@ show_contact_dialog(gchar* accountID, gchar* contactID)
 
 	// Load contact list for account
 	GQueue* contactList = contact_hash_table_get_contact_list(accountID);
-	if(contactList != NULL)
+	if(contactList == NULL)
+	{
+		g_printerr("Contact list not found for %s\n", accountID);
+	}
+	else
 	{
 		// If it is a new contact, generate contact ID
 		if(contactID == NULL)
 		{
+			isNewContact = TRUE;
 			do
 			{
 				contactIDText = g_new0(gchar, 30);
@@ -414,6 +420,7 @@ show_contact_dialog(gchar* accountID, gchar* contactID)
 		}
 		else
 		{
+			isNewContact = FALSE;
 			// Try to find contact
 			contact_t* contact = contact_list_get(contactList, contactID);
 			if(contact != NULL)
@@ -484,10 +491,30 @@ show_contact_dialog(gchar* accountID, gchar* contactID)
 		
 		// Run dialog, get ok or cancel response and destroy
 		response = gtk_dialog_run(contactDialog);
+		
+		if(response == GTK_RESPONSE_ACCEPT)
+		{
+			// Build contact from text entries
+			contact_t* contact = g_new0(contact_t, 1);
+			contact->_contactID = contactIDText;
+			contact->_firstName = firstNameText;
+			contact->_email = emailText;
+			// The model of the tree view is not modified directly
+			// The contact list will be updated and will propagate
+			// changes to the contact window and the call console.
+			if(isNewContact)
+			{
+				contact_list_add(contactList, contact);
+			}
+			else
+			{
+				contact_list_edit(contactList, contactIDText, contact);
+			}
+			g_free(contact);
+		}
+		
 		gtk_widget_destroy(GTK_WIDGET(contactDialog));
 	}
-	else
-		g_printerr("Account not found for contact");
 }
 
 void

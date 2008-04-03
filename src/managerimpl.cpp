@@ -837,11 +837,42 @@ ManagerImpl::callFailure(const CallID& id)
 void
 ManagerImpl::contactEntryPresenceChanged(
 		const AccountID& accountID, const std::string entryID,
-		const std::string presence, const std::string additionalInfo)
+		const std::string presenceText, const std::string additionalInfo)
 {
+	// Save information
+	Account* account = getAccount(accountID);
+	if(account != NULL)
+	{
+		// Find entry by passing all entries in all contacts
+		std::vector<Contact*> contactList = account->getContacts();
+		std::vector<Contact*>::iterator contactIter = contactList.begin();
+		while(contactIter != contactList.end())
+		{
+			Contact* contact = (Contact*)*contactIter;
+			std::vector<ContactEntry*> entryList = contact->getEntries();
+			std::vector<ContactEntry*>::iterator entryIter = entryList.begin();
+			while(entryIter != entryList.end())
+			{
+				ContactEntry* entry = (ContactEntry*)*entryIter;
+				if(strcmp(entryID.data(), entry->getEntryID().data()) == 0)
+				{
+					// We found the entry, save the information
+					Presence* presence = new Presence(presenceText, additionalInfo);
+					entry->setPresence(presence);
+					
+					// Do not break as many contacts could have the same entry
+					// even if it is not recommended
+				}
+				entryIter++;
+			}
+			contactIter++;
+		}
+	}
+	
+	// Send information on dbus for client
 	if(_dbus) _dbus->getContactManager()->contactEntryPresenceChanged(
 			accountID, entryID,
-			presence, additionalInfo);
+			presenceText, additionalInfo);
 }
 
 //THREAD=VoIP
@@ -2343,6 +2374,16 @@ ManagerImpl::getContactEntryDetails(const std::string& accountID, const std::str
 					entryDetails.push_back("TRUE");
 				else
 					entryDetails.push_back("FALSE");
+				if(entry->getPresence() != NULL)
+				{
+					entryDetails.push_back(entry->getPresence()->getState());
+					entryDetails.push_back(entry->getPresence()->getAdditionalInfo());
+				}
+				else
+				{
+					entryDetails.push_back("");
+					entryDetails.push_back("");
+				}
 				break;
 			}
 			iter++;

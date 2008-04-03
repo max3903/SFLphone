@@ -24,6 +24,24 @@
 
 #include <gtk/gtk.h>
 
+// TODO Complete and change list of icons
+// Location of pixmaps icons to represent different presence status
+// Active statuses icons
+#define PRESENCE_UNSUBSCRIBED_ICON		ICONS_DIR "/unhold.svg"
+#define PRESENCE_UNKNOWN_ICON			ICONS_DIR "/fail.svg"
+#define PRESENCE_RINGING_ICON			ICONS_DIR "/ring.svg"
+#define PRESENCE_ON_THE_PHONE_ICON		ICONS_DIR "/current.svg"
+#define PRESENCE_ON_HOLD_ICON			ICONS_DIR "/hold.svg"
+
+// Passive statuses icons
+#define PRESENCE_ONLINE_ICON			ICONS_DIR "/dial.svg"
+#define PRESENCE_BUSY_ICON				ICONS_DIR "/dial.svg"
+#define PRESENCE_BE_RIGHT_BACK_ICON		ICONS_DIR "/dial.svg"
+#define PRESENCE_AWAY_ICON				ICONS_DIR "/dial.svg"
+#define PRESENCE_OUT_TO_LUNCH_ICON		ICONS_DIR "/dial.svg"
+#define PRESENCE_OFFLINE_ICON			ICONS_DIR "/hang_up.svg"
+#define PRESENCE_DO_NOT_DISTURB_ICON	ICONS_DIR "/dial.svg"
+
 /** 
  * @file	contactlist.h
  * @brief	A hash table that holds contact lists mapped by their account ID
@@ -31,17 +49,13 @@
  */
 
 typedef struct {
-	gchar*		_status;				// Presence status
-	gchar*		_additionalInfo;		// Additional info on status
-} presence_t;
-
-typedef struct {
 	gchar*		_entryID;				// Contact number, can be a phone number, an extension... (202, 5141231234, sip:141@...)
 	gchar*		_text;					// Simplified textual representation (Poste 202, 514-123-1234, Poste 141)
 	gchar*		_type;					// Work, home, cell...
 	gboolean	_isShownInConsole;		// Is shown in the call console
 	gboolean	_isSubscribed;			// Is contact subscribed to presence
-	presence_t*	_presence;				// Presence information obtained if entry is subscribed
+	gchar*		_presenceStatus;		// Presence information obtained if entry is subscribed
+	gchar*		_presenceInfo;			// Additional info on presence
 } contact_entry_t;
 
 typedef struct {
@@ -64,7 +78,7 @@ void contact_hash_table_clear();
  * Functions to add, get and clear contact lists contained in the hash map
  */
 void contact_hash_table_add_contact_list(gchar* accountID);
-GQueue* contact_hash_table_get_contact_list(gchar* accountID);
+GQueue* contact_hash_table_get_contact_list(const gchar* accountID);
 void contact_hash_table_clear_contact_list(GQueue* contactList);
 
 /**
@@ -85,8 +99,13 @@ contact_t* contact_list_get_nth(GQueue* contactList, guint index);
  * Functions to add, get, edit and remove a contact entry in a contact
  */
 void contact_list_entry_add(contact_t* contact, contact_entry_t* entry);
-void contact_list_entry_edit(contact_t* contact, gchar* entryID, contact_entry_t* newEntry);
-void contact_list_entry_remove(contact_t* contact, gchar* entryID);
+void contact_list_entry_edit(contact_t* contact, contact_entry_t* oldEntry, contact_entry_t* newEntry);
+void contact_list_entry_remove(contact_t* contact, contact_entry_t* entry);
+
+/**
+ * Function when an update on presence status is received from server and only entry is known, not the contact
+ */
+void contact_list_entry_change_presence_status(const gchar* accountID, const gchar* entryID, const gchar* status, const gchar* additionalInfo);
 
 /**
  * Functions to get a particular contact entry in the list and to get the list size
@@ -100,6 +119,7 @@ contact_entry_t* contact_list_entry_get_nth(contact_t* contact, guint index);
  */
 contact_t* contact_list_new_contact_from_details(gchar* contactID, gchar** details);
 contact_entry_t* contact_list_new_contact_entry_from_details(gchar* contactEntryID, gchar** details);
+//presence_t* contact_list_new_presence_from_details(const gchar* presenceStatus, const gchar* additionalInfo);
 
 /**
  * Compare function to find contact in list by contact ID
@@ -118,3 +138,6 @@ gint compare_contact_contactEntryID(gconstpointer a, gconstpointer b);
 //void contact_list_move_contact_down(GQueue* contactList, guint index);
 //void contact_list_update_to_daemon(GQueue* contactList);
 
+// TODO Presence translation
+const gchar* contact_list_presence_status_translate(const gchar* presenceStatus);
+const gchar* contact_list_presence_status_get_icon_string(const gchar* presenceStatus);

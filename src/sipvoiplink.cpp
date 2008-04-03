@@ -996,7 +996,6 @@ SIPVoIPLink::subscribePresenceForContact(ContactEntry* contactEntry)
 	// Send subscription
 	eXosip_lock();
 	i = eXosip_subscribe_send_initial_request(subscription);
-	if(i!=0) _debug("Sending of subscription to %s failed\n", to.str().c_str());
 	eXosip_unlock();
 }
 
@@ -1019,7 +1018,7 @@ SIPVoIPLink::subscriptionNotificationReceived(eXosip_event_t* event, char* body)
 	osip_uri_t* from = osip_from_get_url(event->request->from);
 	std::string status = SIPPresenceManager::getInstance()->parseNotificationPresenceStatus(body);
 	
-	// Send the new updated contact entry presence for this account
+	// Save entry information on the daemon side and send the new updated contact entry presence for this account
 	Manager::instance().contactEntryPresenceChanged(getAccountID(), from->username, status, "");
 }
 
