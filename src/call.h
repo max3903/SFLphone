@@ -222,7 +222,7 @@ protected:
     void setRemoteAudioPort(unsigned int port) { _remoteAudioPort = port; }
 
     /** Set remote's video port. [not protected] */
-    void setRemoteVideoPort(unsigned int port) { _remoteVideoPort = port; }
+    void setRemoteVideoPort(unsigned int port) { _remoteVideoPort = port; _debug("===========>>Video port: %d",_remoteVideoPort); }
 
     /** Set the audio codec used.  [not protected] */
     void setAudioCodec(AudioCodecType audioCodec) { _audioCodec = audioCodec; }

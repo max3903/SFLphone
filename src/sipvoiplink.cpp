@@ -1264,10 +1264,12 @@ SIPVoIPLink::SIPStartCall(SIPCall* call, const std::string& subject)
               "o=SFLphone 0 0 IN IP4 %s\r\n"
               "s=call\r\n"
               "c=IN IP4 %s\r\n"
+              "b=CT:384\r\n"
               "t=0 0\r\n"
               "m=audio %d RTP/AVP %s\r\n"
               "%s"
               "m=video %d RTP/AVP 34\r\n"
+              "a=rtpmap:34 H263/90000\r\n"
               "a=sendrecv\r\n",_localExternAddress.c_str(), _localExternAddress.c_str(), call->getLocalExternAudioPort(), media_audio.str().c_str(), rtpmap_attr.str().c_str(),call->getLocalExternVideoPort());
 
     // media_audio should be one, two or three numbers?

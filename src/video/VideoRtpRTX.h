@@ -102,7 +102,12 @@ private:
     unsigned char *data_from_wc;
     unsigned char *data_to_display;
 
-
+    int tmp;
+    int rcvTimestamps;
+    bool isMarked;
+    int tmpCount;
+    bool firstTime;
+    
 	/**
 	 * Get the data from V4l, send it to the mixer, encode and send to RTP
 	 * @param timestamp : puts the current time

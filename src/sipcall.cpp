@@ -123,10 +123,10 @@ SIPCall::SIPCallInvite(eXosip_event_t *event)
         _debug("            Final Local SendRecv: %d\n", _local_sendrecv);
         sdp_message_free (local_sdp);
       }
-      _debug("< Sending answer 183\n");
-      if (0 != eXosip_call_send_answer (event->tid, 183, answer)) {
-        _debug("SipCall::newIncomingCall: cannot send 183 progress?\n");
-      }
+      //_debug("< Sending answer 183\n");
+      //if (0 != eXosip_call_send_answer (event->tid, 183, answer)) {
+        //_debug("SipCall::newIncomingCall: cannot send 183 progress?\n");
+      //}
     }
   }
   eXosip_unlock ();
@@ -400,6 +400,12 @@ SIPCall::SIPCallAnsweredWithoutHold(eXosip_event_t* event)
     return false;
   }
 
+  if (!setRemoteVideoFromSDP(remote_med, remote_sdp)) {
+    _debug("SIP Failure: unable to set video port from SDP\n");
+    sdp_message_free (remote_sdp);
+    return false;
+  }
+
 #ifdef LIBOSIP2_WITHPOINTER
   char *tmp = (char*) osip_list_get(remote_med->m_payloads, 0);
 #else
@@ -527,9 +533,11 @@ SIPCall::sdp_complete_message(sdp_message_t * remote_sdp, osip_message_t * msg)
     "o=user 0 0 IN IP4 %s\r\n"
     "s=session\r\n"
     "c=IN IP4 %s\r\n"
+    "b=CT:384\r\n"
     "t=0 0\r\n"
     "%s"
     "m=video %d RTP/AVP 34\r\n"
+    "a=rtpmap:34 H263/90000\r\n"
     "a=sendrecv\r\n", getLocalIp().c_str(), getLocalIp().c_str(), media.str().c_str(),LocalVideoPort);
 
   osip_message_set_body (msg, buf, strlen (buf));
@@ -824,6 +832,8 @@ SIPCall::setRemoteVideoFromSDP(sdp_media_t* remote_med, sdp_message_t* remote_sd
   int _remote_sdp_video_port = atoi(remote_Vidmed->m_port);
   _debug(" !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  Remote video Port: %d\n", _remote_sdp_video_port);
   setRemoteVideoPort(_remote_sdp_video_port);
+  _debug(" !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  Remote video Port setter: %d\n", getRemoteVideoPort());
+
 
   if (_remote_sdp_video_port == 0) {
     return false;
