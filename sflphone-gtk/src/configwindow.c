@@ -1279,27 +1279,34 @@ format_percentage_scale(GtkScale *scale, gdouble value)
 
 gboolean get_enable_webcam_checkbox_status()
 {
-	//enableStatus = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(activateCheckBox));
+	enableStatus = dbus_get_enable_checkbox_status();
 	return enableStatus;
 }
 
 gboolean get_disable_webcam_checkbox_status()
 {
-	//disableStatus = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(cancelCheckBox));
+	disableStatus = dbus_get_disable_checkbox_status();
 	return disableStatus;
 }
 void set_enable_webcam_checkbox_status(gboolean status)
 {
 	gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(activateCheckBox), status);
 	enableStatus = status;
+	dbus_set_enable_checkbox_status(status);
 }
 
 void set_disable_webcam_checkbox_status(gboolean status)
 {
 	gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(cancelCheckBox), status);
 	disableStatus = status;
+	dbus_set_disable_checkbox_status(status);
 }
 
+void video_settings_checkbox_init()
+{
+	enableStatus = dbus_get_enable_checkbox_status();
+	disableStatus = dbus_get_disable_checkbox_status();
+}
 /**
  * Create table widget for video codecs
  */

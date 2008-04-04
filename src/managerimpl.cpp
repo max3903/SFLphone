@@ -62,7 +62,7 @@
   
 bool ManagerImpl::_localCapActive;
 KeyHolder ManagerImpl::_keyHolder;
-VideoCodec *ManagerImpl::vcodec;
+
 
 ManagerImpl::ManagerImpl (void)
 {
@@ -146,10 +146,6 @@ void ManagerImpl::init()
   // Allocate memory right now
   initMemManager();
   
- ////////////////////////////////FOR TESTS//////////////////////////
-vcodec = new  VideoCodec("h264");
- ////////////////////////////////FOR TESTS//////////////////////////
- 
   getAudioInputDeviceList();
 
   AudioLayer *audiolayer = getAudioDriver();
@@ -3023,14 +3019,7 @@ ManagerImpl::disableLocalVideoPref(){
 
 void* ManagerImpl::localVideCapturepref(void* pdata){
 	
-	//TEMP MODIFICATIONS FOR CODECS//////////
-	int outsize;
-	AVFrame *IN= NULL,*SWS = NULL;
-	unsigned char *bufferENCODED,*bufferDECODED;
-	//bufferENCODED = (uint8_t*)malloc(100000);//new uint8_t[100000];
-	unsigned char* memorySpace= new unsigned char[FF_MIN_BUFFER_SIZE]; 
-	//TEMP MODIFICATIONS FOR CODECS//////////
-	
+
 	ptracesfl("Starting Local video capture for preference window", MT_INFO, MANAGERIMPL_TRACE);
 	
 	Capture* cmdCap= (Capture*)VideoDeviceManager::getInstance()->getCommand(VideoDeviceManager::CAPTURE);
@@ -3047,41 +3036,74 @@ void* ManagerImpl::localVideCapturepref(void* pdata){
 		
 		if(data != NULL){
 			res= cmdRes->getResolution();
-			
-			printf("Encoding\n");
-			bufferENCODED= new(memorySpace) unsigned char[FF_MIN_BUFFER_SIZE];
-			memset(bufferENCODED, 0, FF_MIN_BUFFER_SIZE);
-			
-			outsize = vcodec->videoEncode(data,bufferENCODED,res.first,res.second);
-			bufferDECODED = (uint8_t*)av_malloc(imgSize);
-			printf("Decoding\n");
-			vcodec->videoDecode(bufferENCODED,bufferDECODED,outsize,res.first,res.second);
-			
-			
-			manager->putData( _keyHolder.localKey, bufferDECODED , imgSize, res.first, res.second );
+			manager->putData( _keyHolder.localKey, data , imgSize, res.first, res.second );
 			free(data);
 			data= NULL;
 			imgSize= 0;
 			
-			delete bufferDECODED;
 		}
 		
 		usleep(10);
 	}
 	
-	delete memorySpace;
 	
 	if(data != NULL)
 		delete data;
 	
 	delete cmdCap;
 	delete cmdRes;
-	//TEMP MODIFICATIONS FOR CODECS//////////
-	delete bufferENCODED;
-	//TEMP MODIFICATIONS FOR CODECS//////////
+
 	ptracesfl("Stopping Local video capture for preference window", MT_INFO, MANAGERIMPL_TRACE);
 	pthread_exit(NULL);
 	
+}
+
+bool 
+ManagerImpl::getEnableCheckboxStatus(  )
+{
+	std::string s = getConfigString(VIDEO, "EnableCheckbox");
+	if(s!= "")
+	{	
+		if(s == "1")
+			return true;
+		else
+			return false;
+	}
+	else
+	{
+		setEnableCheckboxStatus( true );
+		return true;
+	}
+}
+
+bool 
+ManagerImpl::getDisableCheckboxStatus(  )
+{
+	std::string s = getConfigString(VIDEO, "DisableCheckbox");
+	if(s!= "")
+	{	
+		if(s == "1")
+			return true;
+		else
+			return false;
+	}
+	else
+	{
+		setDisableCheckboxStatus( true );
+		return true;
+	}
+}
+
+void 
+ManagerImpl::setEnableCheckboxStatus( const bool& status )
+{
+	setConfig("Video", "EnableCheckbox", status);
+}
+
+void 
+ManagerImpl::setDisableCheckboxStatus( const bool& status )
+{
+	setConfig("Video", "DisableCheckbox", status);
 }
 
 /*

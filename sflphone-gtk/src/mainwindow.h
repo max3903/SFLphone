@@ -58,5 +58,6 @@ gboolean main_window_glWidget( gboolean show );
  * @param value the value to wich the button and the menu item must be set
  */
 void main_window_update_WebcamStatus( gboolean value );
+gboolean get_showGlWidget_status();
 
 #endif 

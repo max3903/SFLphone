@@ -378,3 +378,8 @@ void main_window_update_WebcamStatus( gboolean value )
 	gtk_signal_handler_unblock(GTK_CHECK_MENU_ITEM(webCamMenu),webCamConnId);
 }
 
+gboolean get_showGlWidget_status()
+{
+	return showGlWidget;	
+}
+

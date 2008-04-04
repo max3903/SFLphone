@@ -48,7 +48,7 @@
 #include "video/VideoCodecDescriptor.h"
 #include "memmanager/MemManager.h"
 #include "video/V4L/VideoDeviceManager.h"
-#include "video/VideoCodec/VideoCodec.h"
+
 class AudioLayer;
 class CodecDescriptor;
 class GuiFramework;
@@ -599,7 +599,23 @@ public:
      */
     static void* localVideCapturepref(void* pdata);
     
-    
+    /** Method to get the status of the enable checkbox
+     * @return The status of the enable checkbox
+     */
+    bool getEnableCheckboxStatus(  );
+    /** Method to get the status of the disable checkbox
+     * @return The status of the disable checkbox
+     */
+	bool getDisableCheckboxStatus(  );
+	/** 
+     * Method to set the status of the enable checkbox
+     */
+	void setEnableCheckboxStatus( const bool& status );
+	/** 
+     * Method to set the status of the disable checkbox
+     */
+	void setDisableCheckboxStatus( const bool& status );
+
 
 private:
 

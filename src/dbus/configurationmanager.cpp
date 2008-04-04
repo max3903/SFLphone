@@ -422,3 +422,31 @@ ConfigurationManager::disableLocalVideoPref(  )
 	return Manager::instance().disableLocalVideoPref();
 }
 
+::DBus::Bool 
+ConfigurationManager::getEnableCheckboxStatus(  )
+{
+	_debug("ConfigurationManager::getEnableCheckboxStatus received\n");
+	return Manager::instance().getEnableCheckboxStatus();
+}
+
+::DBus::Bool 
+ConfigurationManager::getDisableCheckboxStatus(  )
+{
+	_debug("ConfigurationManager::getDisableCheckboxStatus received\n");
+	return Manager::instance().getDisableCheckboxStatus();
+}
+
+void 
+ConfigurationManager::setEnableCheckboxStatus( const ::DBus::Bool& status )
+{
+	_debug("ConfigurationManager::setEnableCheckboxStatus received\n");
+	Manager::instance().setEnableCheckboxStatus(status);
+}
+
+void 
+ConfigurationManager::setDisableCheckboxStatus( const ::DBus::Bool& status )
+{
+	_debug("ConfigurationManager::setDisableCheckboxStatus received\n");
+	Manager::instance().setDisableCheckboxStatus(status);
+}
+

@@ -57,6 +57,10 @@ public:
     void setActiveVideoCodecList( const std::vector< ::DBus::String >& list );
     ::DBus::Bool enableLocalVideoPref(  );
     ::DBus::Bool disableLocalVideoPref(  );
+    ::DBus::Bool getEnableCheckboxStatus(  );
+    ::DBus::Bool getDisableCheckboxStatus(  );
+    void setEnableCheckboxStatus( const ::DBus::Bool& status );
+    void setDisableCheckboxStatus( const ::DBus::Bool& status );
     
     std::vector< ::DBus::String > getInputAudioPluginList();
     std::vector< ::DBus::String > getOutputAudioPluginList();
