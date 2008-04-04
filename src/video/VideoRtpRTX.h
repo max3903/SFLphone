@@ -36,9 +36,15 @@
 #include "V4L/VideoDeviceManager.h"
 #include "../mixer/VideoInput.h"
 #include "../mixer/VideoOutput.h"
-//#include <ortp/ortp.h>
-#include <signal.h>
-#include <stdlib.h>
+#include "../memmanager/MemManager.h"
+
+//extern "C++"{
+	//#include <ortp/event.h>
+	//#include <ortp/ortp.h>
+//}
+
+//#include <signal.h>
+//#include <stdlib.h>
 
 class SIPCall; //TODO: pourquoi pas de include SipCall..h????
 /**
@@ -104,11 +110,15 @@ private:
     unsigned char *data_from_peer;
     unsigned char *data_from_wc;
     unsigned char *data_to_display;
+    unsigned char *TMPBUFFER;
 
     int tmp;
     int rcvTimestamps;
     bool isMarked;
-    const uint8* leData;
+    int TMPLONG;
+    
+    MemManager* memManager;
+    MemKey* key;
     
 	/**
 	 * Get the data from V4l, send it to the mixer, encode and send to RTP

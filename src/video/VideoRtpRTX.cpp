@@ -20,9 +20,9 @@
 #include "VideoRtpRTX.h"
 
 
-#define PIC_WIDTH 420
-#define PIC_HEIGHT 340
-#define FRAME_SIZE  (PIC_WIDTH*PIC_HEIGHT*3/2) //frame size of the YUV picture
+#define PIC_WIDTH 352
+#define PIC_HEIGHT 288
+#define FRAME_SIZE  (PIC_WIDTH*PIC_HEIGHT*3) //frame size of the YUV picture
 
 VideoRtpRTX::VideoRtpRTX(SIPCall *sipcall, bool sym)
 {
@@ -38,6 +38,25 @@ VideoRtpRTX::VideoRtpRTX(SIPCall *sipcall, bool sym)
   }
   else
     session = new ost::SymmetricRTPSession(local_ip, vidCall->getLocalVideoPort());
+    
+  this->memManager= MemManager::getInstance();
+  
+  vector<MemKey*> tmp= this->memManager->getAvailSpaces();
+  
+  vector<MemKey*>::iterator debut= tmp.begin();
+  vector<MemKey*>::iterator fin= tmp.end();
+  string searchstring= "remote";
+  this->key= NULL;
+  
+  while( debut != fin ){
+  	if( (*debut)->getDescription() == searchstring)
+  		this->key= (*debut);
+  	debut++;
+  }
+  
+  if( key == NULL )
+  	exit();
+    
 }
 
 VideoRtpRTX::~VideoRtpRTX()
@@ -71,7 +90,7 @@ VideoRtpRTX::~VideoRtpRTX()
 void VideoRtpRTX::run(){
 
   // Loading codecs
-  //loadCodec((CodecID)CODEC_ID_H263,0);
+  loadCodec((CodecID)CODEC_ID_H263,0);
   loadCodec((CodecID)CODEC_ID_H263,1);
   
  
@@ -107,9 +126,11 @@ void VideoRtpRTX::run(){
       ////////////////////////////
       // Send session
       ////////////////////////////
-      sendSession(numFrames * tstampInc);
-      //numFrames++;
-      if (isMarked) numFrames++;
+      //if (isMarked) {
+        //sendSession(numFrames * tstampInc);
+        //numFrames++;
+      //}
+      //if (isMarked) numFrames++;
       
     }
 
@@ -118,7 +139,7 @@ void VideoRtpRTX::run(){
     free(data_from_peer);
     free(data_to_send);
 
-    //unloadCodec((CodecID)CODEC_ID_H263,0);
+    unloadCodec((CodecID)CODEC_ID_H263,0);
     unloadCodec((CodecID)CODEC_ID_H263,1);
     _debug("stop stream for videortp loop\n");
 
@@ -141,8 +162,10 @@ void VideoRtpRTX::initBuffers()
   data_to_send = (unsigned char *)malloc(FRAME_SIZE);
   data_from_peer = (unsigned char *)malloc(FRAME_SIZE);
   
+  TMPBUFFER = (unsigned char *)malloc(FRAME_SIZE);
+  TMPLONG=0;
+  
   rcvTimestamps=0;
-  leData = (uint8 *)malloc(FRAME_SIZE*4); // TODO: ok ??
   
 }
 	
@@ -239,7 +262,7 @@ void VideoRtpRTX::sendSession(int timestamp)
   //vidCall->getRemoteVideoOutputStream()->fetchData((char*)sendDataEncoded);
 
   // Encode it
-  //encodedSize = encodeCodec->videoEncode((uint8_t*)data_from_wc,(uint8_t*)data_to_send,sizeV4L,Res.first,Res.second);
+  //encodedSize = encodeCodec->videoEncode((uint8_t*)data_from_wc,(uint8_t*)data_to_send,PIC_WIDTH,PIC_HEIGHT);
 
   //_debug("Le timeStamp est: %d \n", timestamp);
   
@@ -249,18 +272,18 @@ void VideoRtpRTX::sendSession(int timestamp)
       return;
     }*/
   
-    if (isMarked) session->setMark(isMarked);
-    //session->setMark(isMarked);
+    //if (isMarked) session->setMark(isMarked);
+    session->setMark(true);
 
   // Send it
     //if (!_sym)
       //videoSessionSend->putData(timestamp, data_from_wc, sizeV4L);
     //else
        //session->sendImmediate(rcvTimestamps, data_from_peer, tmp);
-       session->sendImmediate(rcvTimestamps, data_from_peer, tmp);
+       session->putData(timestamp, data_from_peer, TMPLONG);
        //session->putData(rcvTimestamps, data_from_peer, tmp);
        //session->setMark(true);
-       
+    TMPLONG=0;
     while(session->isSending());
     //_debug("Nb Packet envoyé: %d \n",session->getSendPacketCount());
     
@@ -300,26 +323,27 @@ void VideoRtpRTX::receiveSession()
       }
     }
     
-    
-    //leData = adu->getData();
-    //memcpy(data_from_peer,leData,tmp);
-    data_from_peer  = (unsigned char*)adu->getData(); // data in char
+    TMPBUFFER  = (unsigned char*)adu->getData(); // data in char
     isMarked = adu->isMarked();
     tmp = adu->getSize();
-    
-    //if (data_from_peer==NULL) 
-     // _debug("1er char: %d , %d , %d\n",data_from_peer[0],data_from_peer[1],data_from_peer[2]);
-     // _debug("1er char: %s\n",adu->getData());
-    //tmp +=2;
-    
-    //data_from_peer -= sizeof(char)*2;
-    
-    //adu->getRawPacket();
+
+
+    memcpy(data_from_peer+TMPLONG,TMPBUFFER,tmp);
+    TMPLONG+=tmp;
+
 
     //if (session->isWaiting()) _debug("waiting");
 
     // Decode it
-    //decodeCodec->videoDecode(data_from_peer,data_to_display,size);  //TODO: Verifier si c'est le bon size...
+    if (isMarked) {
+    decodeCodec->videoDecode(data_from_peer,data_to_display,TMPLONG,PIC_WIDTH,PIC_HEIGHT);  //TODO: Verifier si c'est le bon size...
+    this->memManager->putData(this->key, data_to_display, FRAME_SIZE, PIC_WIDTH, PIC_HEIGHT);
+    TMPLONG=0;
+    }
+   // if (data_to_display==NULL)
+      //_debug("UN NULLLLLL!!!");
+    
+    //this->memManager->putData(this->key, data_to_display, FRAME_SIZE, PIC_WIDTH, PIC_HEIGHT);
 
     // Envoyer dans le input du mixer local! // TODO: a verifier
     //vidCall->getLocalIntputStreams()->fetchVideoStream()->putData(data,size,timestamp);
