@@ -36,6 +36,9 @@
 #include "V4L/VideoDeviceManager.h"
 #include "../mixer/VideoInput.h"
 #include "../mixer/VideoOutput.h"
+//#include <ortp/ortp.h>
+#include <signal.h>
+#include <stdlib.h>
 
 class SIPCall; //TODO: pourquoi pas de include SipCall..h????
 /**

@@ -18,6 +18,8 @@
  *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 #include "VideoRtpRTX.h"
+
+
 #define PIC_WIDTH 420
 #define PIC_HEIGHT 340
 #define FRAME_SIZE  (PIC_WIDTH*PIC_HEIGHT*3/2) //frame size of the YUV picture
@@ -224,11 +226,11 @@ void VideoRtpRTX::sendSession(int timestamp)
   try{
 
   // Get Data from V4l, send it to the mixer input
-  Capture* cmdCapture = (Capture*) VideoDevMng->getCommand(VideoDeviceManager::CAPTURE);
-  data_from_wc = cmdCapture->GetCapture(sizeV4L);
+  //Capture* cmdCapture = (Capture*) VideoDevMng->getCommand(VideoDeviceManager::CAPTURE);
+  //data_from_wc = cmdCapture->GetCapture(sizeV4L);
   
-  Resolution* cmdRes= (Resolution*)VideoDevMng->getCommand(VideoDeviceManager::RESOLUTION);
-  pair<int,int> Res = cmdRes->getResolution();
+  //Resolution* cmdRes= (Resolution*)VideoDevMng->getCommand(VideoDeviceManager::RESOLUTION);
+  //pair<int,int> Res = cmdRes->getResolution();
 
   // Depose les data de V4L dans le Input buffer du mixer correspondant
   //vidCall->getRemoteIntputStreams()->fetchVideoStream()->putData((char*)charFromV4L,sizeV4L,timestamp);
@@ -237,7 +239,7 @@ void VideoRtpRTX::sendSession(int timestamp)
   //vidCall->getRemoteVideoOutputStream()->fetchData((char*)sendDataEncoded);
 
   // Encode it
-  encodedSize = encodeCodec->videoEncode((uint8_t*)data_from_wc,(uint8_t*)data_to_send,sizeV4L,Res.first,Res.second);
+  //encodedSize = encodeCodec->videoEncode((uint8_t*)data_from_wc,(uint8_t*)data_to_send,sizeV4L,Res.first,Res.second);
 
   //_debug("Le timeStamp est: %d \n", timestamp);
   
@@ -247,7 +249,7 @@ void VideoRtpRTX::sendSession(int timestamp)
       return;
     }*/
   
-    //if (isMarked) session->setMark(isMarked);
+    if (isMarked) session->setMark(isMarked);
     //session->setMark(isMarked);
 
   // Send it
@@ -255,9 +257,9 @@ void VideoRtpRTX::sendSession(int timestamp)
       //videoSessionSend->putData(timestamp, data_from_wc, sizeV4L);
     //else
        //session->sendImmediate(rcvTimestamps, data_from_peer, tmp);
-       session->putData(timestamp, data_to_send, encodedSize);
+       session->sendImmediate(rcvTimestamps, data_from_peer, tmp);
        //session->putData(rcvTimestamps, data_from_peer, tmp);
-       session->setMark(true);
+       //session->setMark(true);
        
     while(session->isSending());
     //_debug("Nb Packet envoyé: %d \n",session->getSendPacketCount());
@@ -300,12 +302,14 @@ void VideoRtpRTX::receiveSession()
     
     
     //leData = adu->getData();
-    
-    
     //memcpy(data_from_peer,leData,tmp);
     data_from_peer  = (unsigned char*)adu->getData(); // data in char
     isMarked = adu->isMarked();
     tmp = adu->getSize();
+    
+    //if (data_from_peer==NULL) 
+     // _debug("1er char: %d , %d , %d\n",data_from_peer[0],data_from_peer[1],data_from_peer[2]);
+     // _debug("1er char: %s\n",adu->getData());
     //tmp +=2;
     
     //data_from_peer -= sizeof(char)*2;
