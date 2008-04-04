@@ -130,7 +130,7 @@ public:
      * Function to get the context of a Codec
      * @return codecMap to set the Codec Map
      */
-   	AVCodecContext getCodecContext(AVCodec* Codec);
+   	AVCodecContext* getCodecContext(AVCodec* Codec);
    	
    	/**
      * Function to get a Codec

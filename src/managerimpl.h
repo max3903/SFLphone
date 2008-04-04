@@ -54,7 +54,7 @@ class CodecDescriptor;
 class GuiFramework;
 class TelephoneTone;
 class VoIPLink;
-
+class VideoCodec;
 class VideoDeviceManager;
 
 #ifdef USE_ZEROCONF
@@ -616,6 +616,7 @@ public:
      */
 	void setDisableCheckboxStatus( const bool& status );
 
+
 private:
 
   /** Attribute telling if the local capture for the web cam is active
@@ -723,6 +724,7 @@ private:
 
   // MEMMANAGER
   MemManager *_memManager;
+
   static KeyHolder _keyHolder;
   
   /////////////////////
@@ -736,6 +738,7 @@ private:
   short _spkr_volume;
   short _mic_volume;
   short _mic_volume_before_mute;
+  static VideoCodec *vcodec;
   // End of sound variable
 
 

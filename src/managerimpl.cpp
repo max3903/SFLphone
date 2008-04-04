@@ -1,4 +1,4 @@
-/*
+	/*
  *  Copyright (C) 2004-2007 Savoir-Faire Linux inc.
  *  Author: Alexandre Bourget <alexandre.bourget@savoirfairelinux.com>
  *  Author: Yan Morin <yan.morin@savoirfairelinux.com>
@@ -35,6 +35,7 @@
 #include <ccrtp/rtp.h>     // why do I need this here?
 #include <cc++/file.h>
 
+
 #include "manager.h"
 #include "account.h"
 #include "audio/audiolayer.h"
@@ -62,6 +63,7 @@
 bool ManagerImpl::_localCapActive;
 KeyHolder ManagerImpl::_keyHolder;
 
+
 ManagerImpl::ManagerImpl (void)
 {
   // Init private variables 
@@ -77,6 +79,7 @@ ManagerImpl::ManagerImpl (void)
   _setupLoaded = false;
   _dbus = NULL;
 
+ 
   // sound
   _audiodriver = NULL;
   _dtmfKey = 0;
@@ -143,8 +146,6 @@ void ManagerImpl::init()
   // Allocate memory right now
   initMemManager();
   
-
-
   getAudioInputDeviceList();
 
   AudioLayer *audiolayer = getAudioDriver();
@@ -3018,6 +3019,7 @@ ManagerImpl::disableLocalVideoPref(){
 
 void* ManagerImpl::localVideCapturepref(void* pdata){
 	
+
 	ptracesfl("Starting Local video capture for preference window", MT_INFO, MANAGERIMPL_TRACE);
 	
 	Capture* cmdCap= (Capture*)VideoDeviceManager::getInstance()->getCommand(VideoDeviceManager::CAPTURE);
@@ -3038,17 +3040,19 @@ void* ManagerImpl::localVideCapturepref(void* pdata){
 			free(data);
 			data= NULL;
 			imgSize= 0;
+			
 		}
 		
 		usleep(10);
 	}
+	
 	
 	if(data != NULL)
 		delete data;
 	
 	delete cmdCap;
 	delete cmdRes;
-	
+
 	ptracesfl("Stopping Local video capture for preference window", MT_INFO, MANAGERIMPL_TRACE);
 	pthread_exit(NULL);
 	
