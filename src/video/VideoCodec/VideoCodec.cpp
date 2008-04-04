@@ -93,7 +93,7 @@ int VideoCodec::videoDecode(uint8_t *in_buf, uint8_t* out_buf,int size,int outWi
     av_free(buf);
     av_free(OUT);
 
-	return 0;
+	return avpicture_get_size(PIX_FMT_RGB24, outWidth, outHeight);;
 }
 
 void VideoCodec::init(){
@@ -140,6 +140,7 @@ void VideoCodec::initEncodeContext(){
 	_encodeCodecCtx->gop_size = GOP_SIZE;
 	_encodeCodecCtx->pix_fmt = PIX_FMT_YUV420P;
 	_encodeCodecCtx->max_b_frames = MAX_B_FRAMES;
+	
 
 		if(avcodec_open(_encodeCodecCtx, _CodecENC) < 0)
 		ptracesfl("CANNOT OPEN ENCODE CODEC",MT_FATAL,1,true);

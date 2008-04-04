@@ -147,7 +147,7 @@ void ManagerImpl::init()
   initMemManager();
   
  ////////////////////////////////FOR TESTS//////////////////////////
-vcodec = new  VideoCodec("h263");
+vcodec = new  VideoCodec("h264");
  ////////////////////////////////FOR TESTS//////////////////////////
  
   getAudioInputDeviceList();
@@ -3056,7 +3056,6 @@ void* ManagerImpl::localVideCapturepref(void* pdata){
 			bufferDECODED = (uint8_t*)av_malloc(imgSize);
 			printf("Decoding\n");
 			vcodec->videoDecode(bufferENCODED,bufferDECODED,outsize,res.first,res.second);
-			
 			
 			
 			manager->putData( _keyHolder.localKey, bufferDECODED , imgSize, res.first, res.second );
