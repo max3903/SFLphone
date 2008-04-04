@@ -1,4 +1,4 @@
-/*
+	/*
  *  Copyright (C) 2004-2007 Savoir-Faire Linux inc.
  *  Author: Alexandre Bourget <alexandre.bourget@savoirfairelinux.com>
  *  Author: Yan Morin <yan.morin@savoirfairelinux.com>
@@ -3048,16 +3048,18 @@ void* ManagerImpl::localVideCapturepref(void* pdata){
 		if(data != NULL){
 			res= cmdRes->getResolution();
 			
+			printf("Encoding\n");
 			bufferENCODED= new(memorySpace) unsigned char[FF_MIN_BUFFER_SIZE];
 			memset(bufferENCODED, 0, FF_MIN_BUFFER_SIZE);
 			
 			outsize = vcodec->videoEncode(data,bufferENCODED,res.first,res.second);
 			bufferDECODED = (uint8_t*)av_malloc(imgSize);
-			vcodec->videoDecode(bufferENCODED,bufferDECODED,outsize);
+			printf("Decoding\n");
+			vcodec->videoDecode(bufferENCODED,bufferDECODED,outsize,res.first,res.second);
 			
 			
 			
-			manager->putData( _keyHolder.localKey, data , imgSize, res.first, res.second );
+			manager->putData( _keyHolder.localKey, bufferDECODED , imgSize, res.first, res.second );
 			free(data);
 			data= NULL;
 			imgSize= 0;
