@@ -598,6 +598,23 @@ public:
      * This method is ran as a thread
      */
     static void* localVideCapturepref(void* pdata);
+    
+    /** Method to get the status of the enable checkbox
+     * @return The status of the enable checkbox
+     */
+    bool getEnableCheckboxStatus(  );
+    /** Method to get the status of the disable checkbox
+     * @return The status of the disable checkbox
+     */
+	bool getDisableCheckboxStatus(  );
+	/** 
+     * Method to set the status of the enable checkbox
+     */
+	void setEnableCheckboxStatus( const bool& status );
+	/** 
+     * Method to set the status of the disable checkbox
+     */
+	void setDisableCheckboxStatus( const bool& status );
 
 private:
 

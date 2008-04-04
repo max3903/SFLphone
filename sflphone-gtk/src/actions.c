@@ -156,6 +156,7 @@ sflphone_init()
 	codec_list_init();
 	contact_hash_table_init();
 	video_codec_list_init();
+	
 	if(!dbus_connect ())
 	{
 		main_window_error_message("Unable to connect to the SFLphone server.\nMake sure the daemon is running.");
@@ -170,6 +171,7 @@ sflphone_init()
 		sflphone_fill_contact_list();
 		sflphone_fill_video_codec_list();
 		InitMemSpaces( dbus_get_local_shared_memory_key(), dbus_get_remote_shared_memory_key());
+		video_settings_checkbox_init();
 		return TRUE;
 	}	
 }

@@ -147,25 +147,22 @@ static void webCamStatusChange( GtkWidget *widget, gpointer data )
 {
 	g_print("Changing webcam status ...\n");
 	call_t * selectedCall = call_get_selected();
-	gboolean value= main_window_glWidget(gtk_toggle_tool_button_get_active(GTK_TOGGLE_TOOL_BUTTON (widget)));
-	
-	// Changing button state to represent web cam status
-	gtk_signal_handler_block(GTK_TOGGLE_TOOL_BUTTON(widget),webCamButtonConnId);
-	gtk_toggle_tool_button_set_active(GTK_TOGGLE_TOOL_BUTTON (widget), value);
-	gtk_signal_handler_unblock(GTK_TOGGLE_TOOL_BUTTON(widget),webCamButtonConnId);
-	
 	
 	//If we are enabling the webcam
 	if( selectedCall)
 	{
 		if(selectedCall->state == CALL_STATE_CURRENT)
 		{
-			if(value)
+			if(!get_showGlWidget_status())
 			{
 				//TODO: check the status of the enabling checkbox
 				if(get_enable_webcam_checkbox_status())
 				{
 					create_enable_webcam_window();
+				}
+				else
+				{
+					main_window_glWidget(gtk_toggle_tool_button_get_active(GTK_TOGGLE_TOOL_BUTTON (webCamButton)));
 				}
 			}
 			//If we are disabling the webcam
@@ -176,8 +173,21 @@ static void webCamStatusChange( GtkWidget *widget, gpointer data )
 				{
 					create_disable_webcam_window();
 				}
+				else
+				{
+					main_window_glWidget(gtk_toggle_tool_button_get_active(GTK_TOGGLE_TOOL_BUTTON (webCamButton)));
+	
+				}
 			}
 		}
+		else
+		{
+			main_window_glWidget(gtk_toggle_tool_button_get_active(GTK_TOGGLE_TOOL_BUTTON (webCamButton)));
+		}
+	}
+	else
+	{
+		main_window_glWidget(gtk_toggle_tool_button_get_active(GTK_TOGGLE_TOOL_BUTTON (webCamButton)));
 	}
 	
 }
@@ -186,6 +196,9 @@ static void enable_yes_button(GtkButton *button, gpointer user_data)
 {
 	gtk_dialog_response(enableDialog, GTK_RESPONSE_DELETE_EVENT);
 	gtk_widget_destroy(GTK_WIDGET(enableDialog));
+	
+	main_window_glWidget(gtk_toggle_tool_button_get_active(GTK_TOGGLE_TOOL_BUTTON (webCamButton)));
+	
 	sflphone_set_video();
 	g_print("Info: enabling webcam");	
 }
@@ -200,6 +213,8 @@ static void disable_yes_button(GtkButton *button, gpointer user_data)
 {
 	gtk_dialog_response(disableDialog, GTK_RESPONSE_DELETE_EVENT);
 	gtk_widget_destroy(GTK_WIDGET(disableDialog));
+	main_window_glWidget(gtk_toggle_tool_button_get_active(GTK_TOGGLE_TOOL_BUTTON (webCamButton)));
+	
 	sflphone_unset_video();	
 	g_print("Info: disabling webcam");
 }
@@ -319,7 +334,15 @@ void create_disable_webcam_window()
  */
 static void inviteUser( GtkWidget *widget, gpointer data )
 {
-	create_invite_window();
+	call_t * selectedCall = call_get_selected();
+	if(selectedCall)
+	{
+		if(selectedCall->state == CALL_STATE_CURRENT)
+		{
+			dbus_hold(selectedCall);
+			create_invite_window();
+		}
+	}
 	
 }
 

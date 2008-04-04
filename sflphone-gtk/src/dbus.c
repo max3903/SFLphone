@@ -1845,3 +1845,96 @@ gboolean dbus_disable_local_video_pref()
 	return response;
 }
 
+/**
+ * Get the checkbox status in the video settings to enable webcam 
+ */
+gboolean 
+dbus_get_enable_checkbox_status()
+{
+	g_print("Before get enable checkbox status");
+	gboolean response;
+	GError* error = NULL;
+	org_sflphone_SFLphone_ConfigurationManager_get_enable_checkbox_status(
+			configurationManagerProxy,
+			&response,
+			&error);
+			
+	g_print("After");
+	if(error)
+	{
+		g_printerr("Failed to call get_enable_checkbox_status() on ConfigurationManager: %s\n", error->message);
+		g_error_free(error);
+	}
+	else
+		g_print("DBus called get_enable_checkbox_status() on ConfigurationManager\n");
+	return response;
+}
+
+/**
+ * Get the checkbox status in the video settings to disable webcam 
+ */
+gboolean 
+dbus_get_disable_checkbox_status()
+{
+	g_print("Before get disable checkbox status");
+	gboolean response;
+	GError* error = NULL;
+	org_sflphone_SFLphone_ConfigurationManager_get_disable_checkbox_status(
+			configurationManagerProxy,
+			&response,
+			&error);
+	g_print("After");
+	if(error)
+	{
+		g_printerr("Failed to call get_disable_checkbox_status() on ConfigurationManager: %s\n", error->message);
+		g_error_free(error);
+	}
+	else
+		g_print("DBus called get_disable_checkbox_status() on ConfigurationManager\n");
+	return response;
+}
+
+/**
+ * Set the checkbox status in the video settings to enable webcam 
+ */
+void
+dbus_set_enable_checkbox_status(gboolean status)
+{
+	g_print("Before set enable checkbox status");
+	GError* error = NULL;
+	org_sflphone_SFLphone_ConfigurationManager_set_enable_checkbox_status(
+			configurationManagerProxy,
+			status,
+			&error);
+	g_print("After");
+	if(error)
+	{
+		g_printerr("Failed to call set_enable_checkbox_status() on ConfigurationManager: %s\n", error->message);
+		g_error_free(error);
+	}
+	else
+		g_print("DBus called set_enable_checkbox_status() on ConfigurationManager\n");
+}
+
+/**
+ * Set the checkbox status in the video settings to disable webcam 
+ */
+void
+dbus_set_disable_checkbox_status(gboolean status)
+{
+	g_print("Before set disable checkbox status");
+	GError* error = NULL;
+	org_sflphone_SFLphone_ConfigurationManager_set_disable_checkbox_status(
+			configurationManagerProxy,
+			status,
+			&error);
+	g_print("After");
+	if(error)
+	{
+		g_printerr("Failed to call set_disable_checkbox_status() on ConfigurationManager: %s\n", error->message);
+		g_error_free(error);
+	}
+	else
+		g_print("DBus called set_disable_checkbox_status() on ConfigurationManager\n");
+}
+

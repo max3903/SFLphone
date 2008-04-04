@@ -74,6 +74,11 @@ void dbus_set_active_codec_list( const gchar** list );
 gchar** dbus_video_codec_list();
 gchar** dbus_get_active_video_codec_list( void );
 void dbus_set_active_video_codec_list( const gchar** list );
+//Get and set the checkboxes in video settings
+gboolean dbus_get_enable_checkbox_status();
+gboolean dbus_get_disable_checkbox_status();
+void dbus_set_enable_checkbox_status(gboolean status);
+void dbus_set_disable_checkbox_status(gboolean status);
 //Brightness of the video capture
 slider_t dbus_get_brightness();
 void dbus_set_brightness(int value);

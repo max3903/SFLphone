@@ -1905,6 +1905,156 @@ static
 inline
 #endif
 gboolean
+org_sflphone_SFLphone_ConfigurationManager_get_enable_checkbox_status (DBusGProxy *proxy, gboolean* OUT_status, GError **error)
+
+{
+  return dbus_g_proxy_call (proxy, "getEnableCheckboxStatus", error, G_TYPE_INVALID, G_TYPE_BOOLEAN, OUT_status, G_TYPE_INVALID);
+}
+
+typedef void (*org_sflphone_SFLphone_ConfigurationManager_get_enable_checkbox_status_reply) (DBusGProxy *proxy, gboolean OUT_status, GError *error, gpointer userdata);
+
+static void
+org_sflphone_SFLphone_ConfigurationManager_get_enable_checkbox_status_async_callback (DBusGProxy *proxy, DBusGProxyCall *call, void *user_data)
+{
+  DBusGAsyncData *data = (DBusGAsyncData*) user_data;
+  GError *error = NULL;
+  gboolean OUT_status;
+  dbus_g_proxy_end_call (proxy, call, &error, G_TYPE_BOOLEAN, &OUT_status, G_TYPE_INVALID);
+  (*(org_sflphone_SFLphone_ConfigurationManager_get_enable_checkbox_status_reply)data->cb) (proxy, OUT_status, error, data->userdata);
+  return;
+}
+
+static
+#ifdef G_HAVE_INLINE
+inline
+#endif
+DBusGProxyCall*
+org_sflphone_SFLphone_ConfigurationManager_get_enable_checkbox_status_async (DBusGProxy *proxy, org_sflphone_SFLphone_ConfigurationManager_get_enable_checkbox_status_reply callback, gpointer userdata)
+
+{
+  DBusGAsyncData *stuff;
+  stuff = g_new (DBusGAsyncData, 1);
+  stuff->cb = G_CALLBACK (callback);
+  stuff->userdata = userdata;
+  return dbus_g_proxy_begin_call (proxy, "getEnableCheckboxStatus", org_sflphone_SFLphone_ConfigurationManager_get_enable_checkbox_status_async_callback, stuff, g_free, G_TYPE_INVALID);
+}
+static
+#ifdef G_HAVE_INLINE
+inline
+#endif
+gboolean
+org_sflphone_SFLphone_ConfigurationManager_get_disable_checkbox_status (DBusGProxy *proxy, gboolean* OUT_status, GError **error)
+
+{
+  return dbus_g_proxy_call (proxy, "getDisableCheckboxStatus", error, G_TYPE_INVALID, G_TYPE_BOOLEAN, OUT_status, G_TYPE_INVALID);
+}
+
+typedef void (*org_sflphone_SFLphone_ConfigurationManager_get_disable_checkbox_status_reply) (DBusGProxy *proxy, gboolean OUT_status, GError *error, gpointer userdata);
+
+static void
+org_sflphone_SFLphone_ConfigurationManager_get_disable_checkbox_status_async_callback (DBusGProxy *proxy, DBusGProxyCall *call, void *user_data)
+{
+  DBusGAsyncData *data = (DBusGAsyncData*) user_data;
+  GError *error = NULL;
+  gboolean OUT_status;
+  dbus_g_proxy_end_call (proxy, call, &error, G_TYPE_BOOLEAN, &OUT_status, G_TYPE_INVALID);
+  (*(org_sflphone_SFLphone_ConfigurationManager_get_disable_checkbox_status_reply)data->cb) (proxy, OUT_status, error, data->userdata);
+  return;
+}
+
+static
+#ifdef G_HAVE_INLINE
+inline
+#endif
+DBusGProxyCall*
+org_sflphone_SFLphone_ConfigurationManager_get_disable_checkbox_status_async (DBusGProxy *proxy, org_sflphone_SFLphone_ConfigurationManager_get_disable_checkbox_status_reply callback, gpointer userdata)
+
+{
+  DBusGAsyncData *stuff;
+  stuff = g_new (DBusGAsyncData, 1);
+  stuff->cb = G_CALLBACK (callback);
+  stuff->userdata = userdata;
+  return dbus_g_proxy_begin_call (proxy, "getDisableCheckboxStatus", org_sflphone_SFLphone_ConfigurationManager_get_disable_checkbox_status_async_callback, stuff, g_free, G_TYPE_INVALID);
+}
+static
+#ifdef G_HAVE_INLINE
+inline
+#endif
+gboolean
+org_sflphone_SFLphone_ConfigurationManager_set_enable_checkbox_status (DBusGProxy *proxy, const gboolean IN_status, GError **error)
+
+{
+  return dbus_g_proxy_call (proxy, "setEnableCheckboxStatus", error, G_TYPE_BOOLEAN, IN_status, G_TYPE_INVALID, G_TYPE_INVALID);
+}
+
+typedef void (*org_sflphone_SFLphone_ConfigurationManager_set_enable_checkbox_status_reply) (DBusGProxy *proxy, GError *error, gpointer userdata);
+
+static void
+org_sflphone_SFLphone_ConfigurationManager_set_enable_checkbox_status_async_callback (DBusGProxy *proxy, DBusGProxyCall *call, void *user_data)
+{
+  DBusGAsyncData *data = (DBusGAsyncData*) user_data;
+  GError *error = NULL;
+  dbus_g_proxy_end_call (proxy, call, &error, G_TYPE_INVALID);
+  (*(org_sflphone_SFLphone_ConfigurationManager_set_enable_checkbox_status_reply)data->cb) (proxy, error, data->userdata);
+  return;
+}
+
+static
+#ifdef G_HAVE_INLINE
+inline
+#endif
+DBusGProxyCall*
+org_sflphone_SFLphone_ConfigurationManager_set_enable_checkbox_status_async (DBusGProxy *proxy, const gboolean IN_status, org_sflphone_SFLphone_ConfigurationManager_set_enable_checkbox_status_reply callback, gpointer userdata)
+
+{
+  DBusGAsyncData *stuff;
+  stuff = g_new (DBusGAsyncData, 1);
+  stuff->cb = G_CALLBACK (callback);
+  stuff->userdata = userdata;
+  return dbus_g_proxy_begin_call (proxy, "setEnableCheckboxStatus", org_sflphone_SFLphone_ConfigurationManager_set_enable_checkbox_status_async_callback, stuff, g_free, G_TYPE_BOOLEAN, IN_status, G_TYPE_INVALID);
+}
+static
+#ifdef G_HAVE_INLINE
+inline
+#endif
+gboolean
+org_sflphone_SFLphone_ConfigurationManager_set_disable_checkbox_status (DBusGProxy *proxy, const gboolean IN_status, GError **error)
+
+{
+  return dbus_g_proxy_call (proxy, "setDisableCheckboxStatus", error, G_TYPE_BOOLEAN, IN_status, G_TYPE_INVALID, G_TYPE_INVALID);
+}
+
+typedef void (*org_sflphone_SFLphone_ConfigurationManager_set_disable_checkbox_status_reply) (DBusGProxy *proxy, GError *error, gpointer userdata);
+
+static void
+org_sflphone_SFLphone_ConfigurationManager_set_disable_checkbox_status_async_callback (DBusGProxy *proxy, DBusGProxyCall *call, void *user_data)
+{
+  DBusGAsyncData *data = (DBusGAsyncData*) user_data;
+  GError *error = NULL;
+  dbus_g_proxy_end_call (proxy, call, &error, G_TYPE_INVALID);
+  (*(org_sflphone_SFLphone_ConfigurationManager_set_disable_checkbox_status_reply)data->cb) (proxy, error, data->userdata);
+  return;
+}
+
+static
+#ifdef G_HAVE_INLINE
+inline
+#endif
+DBusGProxyCall*
+org_sflphone_SFLphone_ConfigurationManager_set_disable_checkbox_status_async (DBusGProxy *proxy, const gboolean IN_status, org_sflphone_SFLphone_ConfigurationManager_set_disable_checkbox_status_reply callback, gpointer userdata)
+
+{
+  DBusGAsyncData *stuff;
+  stuff = g_new (DBusGAsyncData, 1);
+  stuff->cb = G_CALLBACK (callback);
+  stuff->userdata = userdata;
+  return dbus_g_proxy_begin_call (proxy, "setDisableCheckboxStatus", org_sflphone_SFLphone_ConfigurationManager_set_disable_checkbox_status_async_callback, stuff, g_free, G_TYPE_BOOLEAN, IN_status, G_TYPE_INVALID);
+}
+static
+#ifdef G_HAVE_INLINE
+inline
+#endif
+gboolean
 org_sflphone_SFLphone_ConfigurationManager_is_iax2_enabled (DBusGProxy *proxy, gint* OUT_res, GError **error)
 
 {

@@ -229,6 +229,22 @@
       <arg type="as" name="list" direction="in"/>
     </method>
     
+    <method name="getEnableCheckboxStatus">
+      <arg type="b" name="status" direction="out"/>
+    </method>
+    
+    <method name="getDisableCheckboxStatus">
+      <arg type="b" name="status" direction="out"/>
+    </method>
+    
+    <method name="setEnableCheckboxStatus">
+      <arg type="b" name="status" direction="in"/>
+    </method>
+    
+    <method name="setDisableCheckboxStatus">
+      <arg type="b" name="status" direction="in"/>
+    </method>
+    
     
     
   <!--        /////////////////////////////       -->
