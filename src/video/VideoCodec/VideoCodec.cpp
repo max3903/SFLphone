@@ -23,7 +23,7 @@
 #define VIDEOCODECPTRACE 2
 
 
-int VideoCodec::videoEncode(uint8_t *in_buf, uint8_t* out_buf,int inWidth,int inHeight)
+int VideoCodec::videoEncode(unsigned char*in_buf, unsigned char* out_buf,int inWidth,int inHeight)
 {
 	AVFrame *IN=NULL,*SWS=NULL,*OUT=NULL;
 	int outsize;
@@ -44,7 +44,7 @@ int VideoCodec::videoEncode(uint8_t *in_buf, uint8_t* out_buf,int inWidth,int in
 	//Step 2:Encode
 	//TODO GET A PROPER BUFFER SIZE
 	printf("ENCODE\n");
-	if ( (outsize = avcodec_encode_video(_encodeCodecCtx, out_buf, 100000, SWS))<= 0)
+	if ( (outsize = avcodec_encode_video(_encodeCodecCtx, out_buf, FF_MIN_BUFFER_SIZE, SWS))<= 0)
 		printf("ERROR ENCODE\n");
 		
 	printf("PTS PTS : %d\n",_encodeCodecCtx->coded_frame->pts);
@@ -134,7 +134,6 @@ void VideoCodec::initEncodeContext(){
 	//initialize basic encoding context
 	_encodeCodecCtx = avcodec_alloc_context();
 
-	*_encodeCodecCtx = _videoDesc->getCodecContext(_CodecENC);
 	
 	//TODO change if it's not the webcam 
 	tmp = _cmdRes->getResolution();
@@ -144,6 +143,11 @@ void VideoCodec::initEncodeContext(){
 	_encodeCodecCtx->rtp_payload_size = 1400;
 	_encodeCodecCtx->time_base.den = STREAM_FRAME_RATE;
 	_encodeCodecCtx->time_base.num = 1;
+	_encodeCodecCtx->time_base.den = STREAM_FRAME_RATE;
+	_encodeCodecCtx->time_base.num = 1;
+	_encodeCodecCtx->gop_size = GOP_SIZE;
+	_encodeCodecCtx->pix_fmt = PIX_FMT_YUV420P;
+	_encodeCodecCtx->max_b_frames = MAX_B_FRAMES;
 
 		if(avcodec_open(_encodeCodecCtx, _CodecENC) < 0)
 		ptracesfl("CANNOT OPEN ENCODE CODEC",MT_FATAL,1,true);
@@ -161,7 +165,6 @@ void VideoCodec::initDecodeContext()
 	//initialize basic encoding context
 	_decodeCodecCtx = avcodec_alloc_context();
 
-	*_decodeCodecCtx = _videoDesc->getCodecContext(_CodecDEC);
 
 //TODO change if it's not the webcam - NOW ENCODING IN H263 FORMAT
 

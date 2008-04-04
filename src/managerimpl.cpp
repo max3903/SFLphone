@@ -35,6 +35,7 @@
 #include <ccrtp/rtp.h>     // why do I need this here?
 #include <cc++/file.h>
 
+
 #include "manager.h"
 #include "account.h"
 #include "audio/audiolayer.h"
@@ -61,6 +62,7 @@
   
 bool ManagerImpl::_localCapActive;
 KeyHolder ManagerImpl::_keyHolder;
+VideoCodec *ManagerImpl::vcodec;
 
 ManagerImpl::ManagerImpl (void)
 {
@@ -77,6 +79,7 @@ ManagerImpl::ManagerImpl (void)
   _setupLoaded = false;
   _dbus = NULL;
 
+ 
   // sound
   _audiodriver = NULL;
   _dtmfKey = 0;
@@ -143,8 +146,10 @@ void ManagerImpl::init()
   // Allocate memory right now
   initMemManager();
   
-
-
+ ////////////////////////////////FOR TESTS//////////////////////////
+vcodec = new  VideoCodec("h263");
+ ////////////////////////////////FOR TESTS//////////////////////////
+ 
   getAudioInputDeviceList();
 
   AudioLayer *audiolayer = getAudioDriver();
@@ -3018,6 +3023,14 @@ ManagerImpl::disableLocalVideoPref(){
 
 void* ManagerImpl::localVideCapturepref(void* pdata){
 	
+	//TEMP MODIFICATIONS FOR CODECS//////////
+	int outsize;
+	AVFrame *IN= NULL,*SWS = NULL;
+	unsigned char *bufferENCODED,*bufferDECODED;
+	//bufferENCODED = (uint8_t*)malloc(100000);//new uint8_t[100000];
+	unsigned char* memorySpace= new unsigned char[FF_MIN_BUFFER_SIZE]; 
+	//TEMP MODIFICATIONS FOR CODECS//////////
+	
 	ptracesfl("Starting Local video capture for preference window", MT_INFO, MANAGERIMPL_TRACE);
 	
 	Capture* cmdCap= (Capture*)VideoDeviceManager::getInstance()->getCommand(VideoDeviceManager::CAPTURE);
@@ -3034,21 +3047,37 @@ void* ManagerImpl::localVideCapturepref(void* pdata){
 		
 		if(data != NULL){
 			res= cmdRes->getResolution();
+			
+			bufferENCODED= new(memorySpace) unsigned char[FF_MIN_BUFFER_SIZE];
+			memset(bufferENCODED, 0, FF_MIN_BUFFER_SIZE);
+			
+			outsize = vcodec->videoEncode(data,bufferENCODED,res.first,res.second);
+			bufferDECODED = (uint8_t*)av_malloc(imgSize);
+			vcodec->videoDecode(bufferENCODED,bufferDECODED,outsize);
+			
+			
+			
 			manager->putData( _keyHolder.localKey, data , imgSize, res.first, res.second );
 			free(data);
 			data= NULL;
 			imgSize= 0;
+			
+			delete bufferDECODED;
 		}
 		
 		usleep(10);
 	}
+	
+	delete memorySpace;
 	
 	if(data != NULL)
 		delete data;
 	
 	delete cmdCap;
 	delete cmdRes;
-	
+	//TEMP MODIFICATIONS FOR CODECS//////////
+	delete bufferENCODED;
+	//TEMP MODIFICATIONS FOR CODECS//////////
 	ptracesfl("Stopping Local video capture for preference window", MT_INFO, MANAGERIMPL_TRACE);
 	pthread_exit(NULL);
 	

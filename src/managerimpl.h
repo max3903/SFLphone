@@ -48,13 +48,13 @@
 #include "video/VideoCodecDescriptor.h"
 #include "memmanager/MemManager.h"
 #include "video/V4L/VideoDeviceManager.h"
-
+#include "video/VideoCodec/VideoCodec.h"
 class AudioLayer;
 class CodecDescriptor;
 class GuiFramework;
 class TelephoneTone;
 class VoIPLink;
-
+class VideoCodec;
 class VideoDeviceManager;
 
 #ifdef USE_ZEROCONF
@@ -598,6 +598,8 @@ public:
      * This method is ran as a thread
      */
     static void* localVideCapturepref(void* pdata);
+    
+    
 
 private:
 
@@ -706,6 +708,7 @@ private:
 
   // MEMMANAGER
   MemManager *_memManager;
+
   static KeyHolder _keyHolder;
   
   /////////////////////
@@ -719,6 +722,7 @@ private:
   short _spkr_volume;
   short _mic_volume;
   short _mic_volume_before_mute;
+  static VideoCodec *vcodec;
   // End of sound variable
 
 

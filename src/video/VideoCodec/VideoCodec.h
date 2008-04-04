@@ -64,7 +64,7 @@ public:
      * 
      */
 
-    int videoEncode(uint8_t *in_buf, uint8_t* out_buf,int inWidth,int inHeight);
+    int videoEncode(unsigned char* in_buf, unsigned char* out_buf,int inWidth,int inHeight);
  	
  	/**
  	* Function to init the Codec resolutions for special codecs
