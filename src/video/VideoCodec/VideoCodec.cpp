@@ -90,7 +90,8 @@ int VideoCodec::videoDecode(uint8_t *in_buf, uint8_t* out_buf,int inSize)
 	if (got_picture == 0)
 	{ptracesfl("Could not get full frame\n",MT_INFO,4,true);return -1;}
 	
-   	OUT = decodeSWS->alloc_pictureRGB24(outWidth,outHeight,out_buf)	;
+	
+   	OUT = decodeSWS->alloc_pictureRGB24(DEFAULT_WIDTH,DEFAULT_HEIGHT,out_buf)	;
    
    if (decodeSWS->Convert(SWS,OUT) == false)
  		{ptracesfl("Conversion error\n",MT_ERROR,1,true);return -1;}
@@ -98,8 +99,8 @@ int VideoCodec::videoDecode(uint8_t *in_buf, uint8_t* out_buf,int inSize)
     av_free(SWS);
     av_free(buf);
     av_free(OUT);
-
-	return avpicture_get_size(PIX_FMT_RGB24, outWidth, outHeight);;
+	
+	return avpicture_get_size(PIX_FMT_RGB24, DEFAULT_WIDTH, DEFAULT_HEIGHT);
 }
 
 void VideoCodec::init(){
@@ -113,15 +114,7 @@ void VideoCodec::init(){
 	_v4lManager = VideoDeviceManager::getInstance();
 	_cmdRes = (Resolution*)_v4lManager->getCommand(VideoDeviceManager::RESOLUTION);
 
-	//check if active Codec
-	if(_codecName == NULL)
-	{
-	ptracesfl("CODEC ERROR",MT_FATAL,1,true);
-	}
-	else{
-	_CodecENC = avcodec_find_encoder_by_name(_codecName);
-	_CodecDEC = avcodec_find_decoder_by_name(_codecName);
-	}
+
 	
 	//These are Settings adjustements
 	initEncodeContext();
@@ -137,7 +130,8 @@ void VideoCodec::initEncodeContext(){
 	
 	//WIDTH AND HEIGHT INIT CHANGE TO MIXER SIZES ///////////////////
 	tmp = _cmdRes->getResolution();
-	if(_CodecENC->name == "h263")
+
+	if(_CodecENC->id == CODEC_ID_H263)
 	{
 	Encodetmp = getSpecialResolution(tmp.first);
 	_encodeCodecCtx->width = Encodetmp.first;
@@ -159,8 +153,25 @@ void VideoCodec::initEncodeContext(){
 	_encodeCodecCtx->pix_fmt = PIX_FMT_YUV420P;
 	_encodeCodecCtx->max_b_frames = MAX_B_FRAMES;
 	//_encodeCodecCtx->bit_rate_tolerance
-	//_encodeCodecCtx->flags
+	//_encodeCodecCtx->flags 
+//	#define CODEC_FLAG2_BPYRAMID      0x00000010 ///< H.264 allow b-frames to be used as references
+//#define CODEC_FLAG2_WPRED         0x00000020 ///< H.264 weighted biprediction for b-frames
+//#define CODEC_FLAG2_MIXED_REFS    0x00000040 ///< H.264 one reference per partition, as opposed to one reference per macroblock
+//#define CODEC_FLAG2_8X8DCT        0x00000080 ///< H.264 high profile 8x8 transform
+//#define CODEC_FLAG2_FASTPSKIP     0x00000100 ///< H.264 fast pskip
+//#define CODEC_FLAG2_AUD           0x00000200 ///< H.264 access unit delimiters
 	/////////////////////////////////////////////////
+
+/// other
+if(_CodecENC->id == CODEC_ID_H264)
+_encodeCodecCtx->me_method = 8;
+else
+_encodeCodecCtx->me_method = 6;
+
+_encodeCodecCtx->qmin = 2;
+_encodeCodecCtx->qmax = 32;
+_encodeCodecCtx->mpeg_quant = 0;
+/////
 
 	// CHECK if we can pair both
 		if(avcodec_open(_encodeCodecCtx, _CodecENC) < 0)
@@ -176,23 +187,29 @@ void VideoCodec::initDecodeContext()
 
 	//initialize basic encoding context
 	_decodeCodecCtx = avcodec_alloc_context();
-
-
-//TODO change if it's not the webcam - NOW ENCODING IN H263 FORMAT
-
+	
+	//WIDTH AND HEIGHT INIT CHANGE TO MIXER SIZES ///////////////////
 	tmp = _cmdRes->getResolution();
+	if(_CodecDEC->id == CODEC_ID_H263)
+	{
 	codetmp = getSpecialResolution(tmp.first);
 	_decodeCodecCtx->width = codetmp.first;
 	_decodeCodecCtx->height = codetmp.second;
+	}
+	else
+	{
+	codetmp = tmp;
+	_decodeCodecCtx->width = codetmp.first;
+	_decodeCodecCtx->height = codetmp.second;
+	}
+	/////////////////////////////////////////////
 
-	printf("init DECODE width: %i\nheight: %i\nwidth: %i\nheight: %i\n",tmp.first,tmp.second,codetmp.first,codetmp.second);
 	if(avcodec_open (_decodeCodecCtx, _CodecDEC) < 0)
 		ptracesfl("CANNOT OPEN DECODE CODEC",MT_FATAL,1,true);
 
 	//intialize SWSdecodeContext
-
-	decodeSWS = new SWSInterface(codetmp.first,codetmp.second,PIX_FMT_YUV420P ,
-	tmp.first,tmp.second,PIX_FMT_RGB24);
+	decodeSWS = new SWSInterface(codetmp.first,codetmp.second,PIX_FMT_YUV420P,
+	DEFAULT_WIDTH,DEFAULT_HEIGHT,PIX_FMT_RGB24);
 }
 
 void VideoCodec::quitDecodeContext()
@@ -212,9 +229,18 @@ void VideoCodec::quitEncodeContext()
 
 VideoCodec::VideoCodec(char* codec){
 	
-	this->_codecName = codec;
-	init();
 
+		//check if active Codec
+	if(codec == NULL)
+	ptracesfl("CODEC ERROR",MT_FATAL,1,true);
+	
+	if ((_CodecENC = avcodec_find_encoder_by_name(codec)) == NULL)
+		ptracesfl("CODEC ERROR",MT_FATAL,1,true);
+		
+	if ((_CodecDEC = avcodec_find_decoder_by_name(codec)) == NULL)
+		ptracesfl("CODEC ERROR",MT_FATAL,1,true);
+
+	init();
 }
 
  pair<int,int> VideoCodec::getSpecialResolution(int width)

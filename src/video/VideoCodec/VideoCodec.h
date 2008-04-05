@@ -124,11 +124,7 @@ private:
      */
     AVCodecContext* _decodeCodecCtx;
 	AVCodec* _CodecDEC;
-    
-    /**
-     * Libavcodec Codec Name
-     */
-    const char* _codecName; 
+   
 	
     /**
      * To get the webcams resolution (to change when mixer arrives)
@@ -141,9 +137,7 @@ private:
     SWSInterface *decodeSWS;
     SWSInterface *encodeSWS;
     
-    // Width and Height for output
-    int outWidth;
-    int outHeight;
+
 
 };
 #endif //VIDEOCODEC_H
