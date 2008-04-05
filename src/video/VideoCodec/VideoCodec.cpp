@@ -152,26 +152,23 @@ void VideoCodec::initEncodeContext(){
 	_encodeCodecCtx->gop_size = GOP_SIZE;
 	_encodeCodecCtx->pix_fmt = PIX_FMT_YUV420P;
 	_encodeCodecCtx->max_b_frames = MAX_B_FRAMES;
+	_encodeCodecCtx->mpeg_quant = 0;
 	//_encodeCodecCtx->bit_rate_tolerance
 	//_encodeCodecCtx->flags 
-//	#define CODEC_FLAG2_BPYRAMID      0x00000010 ///< H.264 allow b-frames to be used as references
-//#define CODEC_FLAG2_WPRED         0x00000020 ///< H.264 weighted biprediction for b-frames
-//#define CODEC_FLAG2_MIXED_REFS    0x00000040 ///< H.264 one reference per partition, as opposed to one reference per macroblock
-//#define CODEC_FLAG2_8X8DCT        0x00000080 ///< H.264 high profile 8x8 transform
-//#define CODEC_FLAG2_FASTPSKIP     0x00000100 ///< H.264 fast pskip
-//#define CODEC_FLAG2_AUD           0x00000200 ///< H.264 access unit delimiters
-	/////////////////////////////////////////////////
+	
+	
+	/// other
+	if(_CodecENC->id == CODEC_ID_H264)
+	{
+	_encodeCodecCtx->me_method = 8;
+	}
+	else
+	_encodeCodecCtx->me_method = 7;
+	
+	_encodeCodecCtx->qmin = 2;
+	_encodeCodecCtx->qmax = 32;
 
-/// other
-if(_CodecENC->id == CODEC_ID_H264)
-_encodeCodecCtx->me_method = 8;
-else
-_encodeCodecCtx->me_method = 6;
-
-_encodeCodecCtx->qmin = 2;
-_encodeCodecCtx->qmax = 32;
-_encodeCodecCtx->mpeg_quant = 0;
-/////
+	/////
 
 	// CHECK if we can pair both
 		if(avcodec_open(_encodeCodecCtx, _CodecENC) < 0)
