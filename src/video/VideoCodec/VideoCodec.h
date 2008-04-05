@@ -21,6 +21,9 @@
  * 
  * This is the mother VideoCodec class. It's a virtual abstract class for encoding and 
  * decoding video data.
+ * 
+ *	//TODO -this class is an libavcodec interface. Any codec can be used at this time
+ * 			but the settings at initiation are made for h263 and h264 codecs mainly  
  */
 
 #ifndef VIDEOCODEC_H
@@ -46,6 +49,7 @@ public:
      * 
      */
     VideoCodec(char* codecName);
+    
 /**
 	
      * Function to decode video information
@@ -54,25 +58,26 @@ public:
      * 
      */
 
-     int videoDecode(uint8_t *in_buf, uint8_t* out_buf,int size,int outWidth,int outHeight);
+     int videoDecode(uint8_t *in_buf, uint8_t* out_buf,int inSize);
 
 /**
-     * Function to encode video information
-     * @param buf the buffer to encode
-     * @param in_buf the input buffer
-     * @param out_buf the output buffer
+     * Function to encode video information - The user has to set the input and output buffers
      * 
+     * @param in_buf 	the input buffer containing the data to encode
+     * @param out_buf	The encoded data
+     * @param inWidth	the in_buf  width
+     * @param inWidth	the in_buf height
+     * @return the size of the encoded buffer, a negative value otherwise
      */
 
     int videoEncode(unsigned char* in_buf, unsigned char* out_buf,int inWidth,int inHeight);
  	
  	/**
- 	* Function to init the Codec resolutions for special codecs
+ 	* Function to init the Codec Encoding resolutions for special codecs
  	* */
     pair<int,int> getSpecialResolution(int width);
     
 private:
-
  	/**
      * Default Constructor
      * 
@@ -82,8 +87,7 @@ private:
  	* Function to init the Codec
  	* */
     void init();
-    
-    
+        
     /**
  	* Function to init the Codec with it's proper context
  	* */
@@ -108,37 +112,38 @@ private:
  	* Instance of the VideoCodecDescriptor class
  	* */
 	VideoCodecDescriptor *_videoDesc;
+	
 	/**
-     * Libavcodec Codec type
+     * Libavcodec Encoding power duo
      */
+    AVCodecContext* _encodeCodecCtx;
     AVCodec* _CodecENC;
+    
+	/**
+     * Libavcodec Decoding power duo
+     */
+    AVCodecContext* _decodeCodecCtx;
 	AVCodec* _CodecDEC;
     
     /**
      * Libavcodec Codec Name
      */
     const char* _codecName; 
-    
-
+	
     /**
-     * Libavcodec Codec context
-     */
-    AVCodecContext* _encodeCodecCtx;
-    /**
-     * Libavcodec Codec context
-     */
-    AVCodecContext* _decodeCodecCtx;
-    
-    /**
-     * Active Resolution
+     * To get the webcams resolution (to change when mixer arrives)
      */
     Resolution* _cmdRes;
-    
-    // Video device manager instance
 	VideoDeviceManager *_v4lManager;    
-	// Interface for pix conversion
+	
+	
+	// SWSInterface for Format and width/height conversions
     SWSInterface *decodeSWS;
     SWSInterface *encodeSWS;
+    
+    // Width and Height for output
+    int outWidth;
+    int outHeight;
 
 };
 #endif //VIDEOCODEC_H
