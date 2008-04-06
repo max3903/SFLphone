@@ -83,7 +83,7 @@ int VideoCodec::videoDecode(uint8_t *in_buf, uint8_t* out_buf,int inSize)
 	{ptracesfl("MemSet Error\n",MT_ERROR,1,true);return -1;};
 	
 	// init output picture decoded
-    SWS = decodeSWS->alloc_picture420P(_decodeCodecCtx->width,_decodeCodecCtx->height);
+    SWS = avcodec_alloc_frame();
 	if(SWS == NULL)
 	{ptracesfl("CAN'T Decode OUtput picture allocation problem\n",MT_ERROR,1,true);return -1;}
 	
