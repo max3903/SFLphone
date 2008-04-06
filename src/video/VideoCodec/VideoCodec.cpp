@@ -203,17 +203,17 @@ void VideoCodec::initDecodeContext()
 	
 	
 //	//TODO change to have data from header
-//	if(_CodecDEC->id == CODEC_ID_H263)
-//	{
-//	codetmp = decodeSWS->getSpecialResolution(inputWidth);
-//	_decodeCodecCtx->width = codetmp.width;
-//	_decodeCodecCtx->height = codetmp.height;
-//	}
-//	else
-//	{
-//	_decodeCodecCtx->width = inputWidth;
-//	_decodeCodecCtx->height = inputHeight;
-//	}
+	if(_CodecDEC->id == CODEC_ID_H263)
+	{
+	codetmp = decodeSWS->getSpecialResolution(inputWidth);
+	_decodeCodecCtx->width = codetmp.width;
+	_decodeCodecCtx->height = codetmp.height;
+	}
+	else
+	{
+	_decodeCodecCtx->width = inputWidth;
+	_decodeCodecCtx->height = inputHeight;
+	}
 //	/////////////////////////////////////////////
 
 	if(avcodec_open (_decodeCodecCtx, _CodecDEC) < 0)
