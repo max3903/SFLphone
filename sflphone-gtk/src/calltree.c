@@ -53,7 +53,8 @@ GtkDialog *joinDialog;
 //Webcam enable/disable dialogs
 GtkDialog * enableDialog;
 GtkDialog * disableDialog;
-
+//The second call to make a conference
+call_t * callConf;
 
 
 /**
@@ -352,26 +353,56 @@ static void inviteUser( GtkWidget *widget, gpointer data )
 static void invite_call_button(GtkButton *button, gpointer user_data)
 {
 	char buf[20];
-	call_t * c = g_new0 (call_t, 1);
 	gboolean answer;
+	account_t * account;
+	gchar * default_account =  account_list_get_default();
+	account = account_list_get_by_id(default_account);
+	
+	//Initialize call struct
+	callConf = g_new0 (call_t, 1);
 	strcpy(buf, gtk_entry_get_text(user_data));
 	printf("buffer: %s \n", buf);
+	callConf->state = CALL_STATE_DIALING;
+	callConf->from = g_strconcat("\"\" <>", NULL);
+	callConf->callID = g_new0(gchar, 30);
+	g_sprintf(callConf->callID, "%d", rand()); 
+	callConf->to = g_strdup(buf);
+		
+		
+	if(account)
+	{
+		if(strcmp(g_hash_table_lookup(account->properties, "Status"),"REGISTERED")==0)
+		{
+			callConf->accountID = default_account;
+			//Place call
+			answer = dbus_invite_conference(callConf);
+		}
+		else
+		{
+			main_window_error_message("The account selected as default is not registered.");
+		}
+		
+	}
+	else
+	{
+		account = account_list_get_by_state (ACCOUNT_STATE_REGISTERED);
+		if(account)
+		{
+			callConf->accountID = account->accountID;
+			//Place call
+			answer = dbus_invite_conference(callConf);
+		}
+		else
+		{
+			main_window_error_message("There are no registered accounts to make this call with.");
+		}
+
+	}
+	
 	gtk_dialog_response(inviteDialog, GTK_RESPONSE_DELETE_EVENT);
 	gtk_widget_destroy(GTK_WIDGET(inviteDialog));
 	
-	c->state = CALL_STATE_DIALING;
-	c->from = g_strconcat("\"\" <>", NULL);
-	c->callID = g_new0(gchar, 30);
-	g_sprintf(c->callID, "%d", rand()); 
-	c->to = g_strdup(buf);
-	
-	//call_list_add(c);
-	//update_call_tree_add(c);  
-	//update_menus();
-	
-	//TODO: place call
-	answer = dbus_invite_conference(c);
-	//TODO: wait for positive answer then show the join dialog
+	//Wait for positive answer then show the join dialog
 	
 	if(answer)
 	{
@@ -379,12 +410,29 @@ static void invite_call_button(GtkButton *button, gpointer user_data)
 	}
 	else
 	{
+		//TODO: popup an error window
+		call_t * selectedCall = call_get_selected();
+		if(selectedCall)
+		{
+			if(selectedCall->state == CALL_STATE_HOLD)
+			{
+				dbus_unhold(selectedCall);
+			}
+		}
 		printf("connexion not established \n");	
 	}
 }
 
 static void invite_cancel_button(GtkButton *button, gpointer user_data)
 {
+	call_t * selectedCall = call_get_selected();
+	if(selectedCall)
+	{
+		if(selectedCall->state == CALL_STATE_HOLD)
+		{
+			dbus_unhold(selectedCall);
+		}
+	}
 	gtk_dialog_response(inviteDialog, GTK_RESPONSE_DELETE_EVENT);
 	gtk_widget_destroy(GTK_WIDGET(inviteDialog));
 }
@@ -469,8 +517,24 @@ void create_invite_window()
 
 static void join_button(GtkButton *button, gpointer user_data)
 {
-	//TODO: join calls
-	//TODO: update calltree
+	call_t * selectedCall = call_get_selected();
+	if(selectedCall)
+	{
+		if(selectedCall->state == CALL_STATE_HOLD)
+		{
+			//Join calls
+			if(dbus_join_conference(selectedCall, callConf))
+			{
+				dbus_unhold(selectedCall);
+				//update_menus();
+				//TODO: update calltree icons
+			}
+		}
+		selectedCall->state = CALL_STATE_CONF;
+		callConf->state = CALL_STATE_CONF;
+	}
+	
+	//toolbar_update_buttons ();
 	gtk_dialog_response(joinDialog, GTK_RESPONSE_DELETE_EVENT);
 	gtk_widget_destroy(GTK_WIDGET(joinDialog));
 }
@@ -478,6 +542,15 @@ static void join_button(GtkButton *button, gpointer user_data)
 static void join_cancel_button(GtkButton *button, gpointer user_data)
 {
 	//TODO: hangup call with the callee
+	call_t * selectedCall = call_get_selected();
+	if(selectedCall)
+	{
+		if(selectedCall->state == CALL_STATE_HOLD)
+		{
+			dbus_hang_up(callConf);
+			dbus_unhold(selectedCall);
+		}
+	}
 	gtk_dialog_response(joinDialog, GTK_RESPONSE_DELETE_EVENT);
 	gtk_widget_destroy(GTK_WIDGET(joinDialog));
 }
@@ -530,7 +603,7 @@ toolbar_update_buttons ()
 	gtk_widget_set_sensitive( GTK_WIDGET(transfertButton),  FALSE);
 	gtk_widget_set_sensitive( GTK_WIDGET(unholdButton),     FALSE);
 	gtk_widget_set_sensitive( GTK_WIDGET(webCamButton),     TRUE);
-	gtk_widget_set_sensitive( GTK_WIDGET(inviteButton),     TRUE);	
+	gtk_widget_set_sensitive( GTK_WIDGET(inviteButton),     FALSE);	
 		g_object_ref(holdButton);
 	g_object_ref(unholdButton);
 	gtk_container_remove(GTK_CONTAINER(toolbar), GTK_WIDGET(holdButton));
@@ -610,6 +683,13 @@ toolbar_update_buttons ()
 				gtk_widget_set_sensitive( GTK_WIDGET(hangupButton),     TRUE);
 				gtk_widget_set_sensitive( GTK_WIDGET(holdButton),       TRUE);
 				gtk_widget_set_sensitive( GTK_WIDGET(transfertButton),  TRUE);
+				break;
+			case CALL_STATE_CONF:
+				gtk_widget_set_sensitive( GTK_WIDGET(callButton),       FALSE);
+				gtk_widget_set_sensitive( GTK_WIDGET(inviteButton),     FALSE);
+				gtk_widget_set_sensitive( GTK_WIDGET(transfertButton),  FALSE);
+				gtk_widget_set_sensitive( GTK_WIDGET(hangupButton),     TRUE);
+				gtk_widget_set_sensitive( GTK_WIDGET(holdButton),       TRUE);
 				break;
 			default:
 				g_warning("Should not happen!");

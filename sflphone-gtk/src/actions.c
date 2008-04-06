@@ -308,6 +308,14 @@ sflphone_current( call_t * c )
 	//screen_set_call(c);
 }
 
+void 
+sflphone_conf( call_t * c )
+{
+	c->state = CALL_STATE_CONF;
+	update_call_tree(c);
+	update_menus();
+}
+
 	void 
 sflphone_set_transfert()
 {
