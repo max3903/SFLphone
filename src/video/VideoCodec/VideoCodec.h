@@ -49,7 +49,7 @@ public:
      * 
      */
     VideoCodec(char* codecName);
-    
+    VideoCodec(enum CodecID id);
 /**
 	
      * Function to decode video information

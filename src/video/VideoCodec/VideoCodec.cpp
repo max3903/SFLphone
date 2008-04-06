@@ -154,7 +154,7 @@ void VideoCodec::initEncodeContext(){
 	_encodeCodecCtx->max_b_frames = MAX_B_FRAMES;
 	_encodeCodecCtx->mpeg_quant = 0;
 	//todo change to users choice
-	_encodeCodecCtx->bit_rate = VIDEO_BIT_RATE;
+	_encodeCodecCtx->bit_rate = _videoDesc->getEncodingBitRate();
 	//_encodeCodecCtx->flags 
 	
 	
@@ -246,6 +246,21 @@ VideoCodec::VideoCodec(char* codec){
 	init();
 }
 
+VideoCodec::VideoCodec(enum CodecID id){
+	
+
+		//check if active Codec
+	if(id == 0)
+	ptracesfl("CODEC ERROR",MT_FATAL,1,true);
+	
+	if ((_CodecENC = avcodec_find_encoder(id)) == NULL)
+		ptracesfl("CODEC ERROR",MT_FATAL,1,true);
+		
+	if ((_CodecDEC = avcodec_find_decoder(id)) == NULL)
+		ptracesfl("CODEC ERROR",MT_FATAL,1,true);
+
+	init();
+}
  pair<int,int> VideoCodec::getSpecialResolution(int width)
  {
  // Text from libavcodec
