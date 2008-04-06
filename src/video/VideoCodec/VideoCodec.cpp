@@ -148,12 +148,13 @@ void VideoCodec::initEncodeContext(){
 	
 	/////////////VIDEO SETTINGS.H settings///////////
 	_encodeCodecCtx->rtp_payload_size = RTP_PAYLOAD;
- 	_encodeCodecCtx->time_base= (AVRational){1,25};
+ 	_encodeCodecCtx->time_base= (AVRational){1,STREAM_FRAME_RATE};
 	_encodeCodecCtx->gop_size = GOP_SIZE;
 	_encodeCodecCtx->pix_fmt = PIX_FMT_YUV420P;
 	_encodeCodecCtx->max_b_frames = MAX_B_FRAMES;
 	_encodeCodecCtx->mpeg_quant = 0;
-	//_encodeCodecCtx->bit_rate_tolerance
+	//todo change to users choice
+	_encodeCodecCtx->bit_rate = VIDEO_BIT_RATE;
 	//_encodeCodecCtx->flags 
 	
 	
@@ -161,12 +162,16 @@ void VideoCodec::initEncodeContext(){
 	if(_CodecENC->id == CODEC_ID_H264)
 	{
 	_encodeCodecCtx->me_method = 8;
+	_encodeCodecCtx->idct_algo = FF_IDCT_H264;
+	_encodeCodecCtx->ildct_cmp = FF_CMP_DCT264;
 	}
 	else
-	_encodeCodecCtx->me_method = 7;
-	
-	_encodeCodecCtx->qmin = 2;
-	_encodeCodecCtx->qmax = 32;
+	{
+	_encodeCodecCtx->me_method = 6;
+	_encodeCodecCtx->idct_algo = FF_IDCT_AUTO;
+	}
+
+	//intra or inter matrix
 
 	/////
 
@@ -174,6 +179,7 @@ void VideoCodec::initEncodeContext(){
 		if(avcodec_open(_encodeCodecCtx, _CodecENC) < 0)
 		ptracesfl("CANNOT OPEN ENCODE CODEC",MT_FATAL,1,true);
 	
+	// in -> from the mixer -> out special size if h263, same size otherwise
 	encodeSWS = new SWSInterface(tmp.first,tmp.second,PIX_FMT_RGB24,Encodetmp.first,Encodetmp.second,PIX_FMT_YUV420P);
 }
 void VideoCodec::initDecodeContext()
@@ -182,7 +188,7 @@ void VideoCodec::initDecodeContext()
 	pair<int,int> codetmp; 
 	pair<int,int> tmp = _cmdRes->getResolution();
 
-	//initialize basic encoding context
+	//initialize basic decoding context
 	_decodeCodecCtx = avcodec_alloc_context();
 	
 	//WIDTH AND HEIGHT INIT CHANGE TO MIXER SIZES ///////////////////
