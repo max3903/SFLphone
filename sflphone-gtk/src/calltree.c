@@ -28,6 +28,9 @@
 #include <ctype.h>
 #include <stdio.h>
 #include <string.h>
+#include <glib/gprintf.h>
+#include <stdlib.h>
+#include <unistd.h>
 
 GtkListStore * store;
 GtkWidget *view;
@@ -349,14 +352,35 @@ static void inviteUser( GtkWidget *widget, gpointer data )
 static void invite_call_button(GtkButton *button, gpointer user_data)
 {
 	char buf[20];
+	call_t * c = g_new0 (call_t, 1);
+	gboolean answer;
 	strcpy(buf, gtk_entry_get_text(user_data));
 	printf("buffer: %s \n", buf);
 	gtk_dialog_response(inviteDialog, GTK_RESPONSE_DELETE_EVENT);
 	gtk_widget_destroy(GTK_WIDGET(inviteDialog));
 	
+	c->state = CALL_STATE_DIALING;
+	c->from = g_strconcat("\"\" <>", NULL);
+	c->callID = g_new0(gchar, 30);
+	g_sprintf(c->callID, "%d", rand()); 
+	c->to = g_strdup(buf);
+	
+	//call_list_add(c);
+	//update_call_tree_add(c);  
+	//update_menus();
+	
 	//TODO: place call
+	answer = dbus_invite_conference(c);
 	//TODO: wait for positive answer then show the join dialog
-	create_join_window();
+	
+	if(answer)
+	{
+		create_join_window();
+	}
+	else
+	{
+		printf("connexion not established \n");	
+	}
 }
 
 static void invite_cancel_button(GtkButton *button, gpointer user_data)

@@ -483,8 +483,9 @@ ManagerImpl::refuseCall (const CallID& id)
 bool 
 ManagerImpl::inviteConference( const AccountID& accountId, const CallID& id, const std::string& to )
 {
-	//TODO
-	return true;	
+	bool answer;
+	answer = outgoingCall(accountId, id, to);
+	return answer;	
 }
 
 bool 
