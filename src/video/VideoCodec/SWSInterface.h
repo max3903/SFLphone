@@ -55,7 +55,8 @@ public:
 	AVFrame *alloc_picture420P(int width, int height);
 	AVFrame *alloc_pictureRGB24(int width, int height,uint8_t *buffer);
 	AVFrame *alloc_picture420P(int width, int height,uint8_t *buffer);
-	
+	FrameProperties getSpecialResolution(int width);
+
 private:
 
 	SWSInterface();
