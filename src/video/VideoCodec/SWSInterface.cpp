@@ -9,7 +9,6 @@ bool SWSInterface::Convert(AVFrame *INFrame,AVFrame *OUTFrame)
 	infoSize = sws_scale(Context,INFrame->data,INFrame->linesize,in.width,
     		in.height,OUTFrame->data,OUTFrame->linesize);
 
-    printf("SWSCALE : %i\n",infoSize);
     return true;
 }
 
