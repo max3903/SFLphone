@@ -48,8 +48,8 @@ public:
      *  Constructor we force to use
      * 
      */
-    VideoCodec(char* codecName);
-    VideoCodec(enum CodecID id);
+    VideoCodec(char* codecName,int inWidth,int inHeight);
+    VideoCodec(enum CodecID id,int inWidth,int inHeight);
 /**
 	
      * Function to decode video information
@@ -70,12 +70,9 @@ public:
      * @return the size of the encoded buffer, a negative value otherwise
      */
 
-    int videoEncode(unsigned char* in_buf, unsigned char* out_buf,int inWidth,int inHeight);
+    int videoEncode(unsigned char* in_buf, unsigned char* out_buf);
  	
- 	/**
- 	* Function to init the Codec Encoding resolutions for special codecs
- 	* */
-    pair<int,int> getSpecialResolution(int width);
+
     
 private:
  	/**
@@ -125,12 +122,26 @@ private:
     AVCodecContext* _decodeCodecCtx;
 	AVCodec* _CodecDEC;
    
-	
+   /** 
+    * width and height the codec will receive to encode
+    */
+    int inputWidth;
+    int inputHeight;
+    
+      
+   /** 
+    * width and height the codec will receive to decode
+    */
+    int outWidth;
+    int outHeight;
+    
     /**
-     * To get the webcams resolution (to change when mixer arrives)
+     * set to true if needed
+     * 
      */
-    Resolution* _cmdRes;
-	VideoDeviceManager *_v4lManager;    
+    bool padding;
+    int paddingbottom;
+    int paddingTop;
 	
 	
 	// SWSInterface for Format and width/height conversions
