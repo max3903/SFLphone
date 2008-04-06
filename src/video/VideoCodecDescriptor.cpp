@@ -134,11 +134,11 @@ VideoCodecDescriptor* VideoCodecDescriptor::getInstance()
     return "doh!";
     }
     
-	AVCodecContext VideoCodecDescriptor::getCodecContext(AVCodec* Codec)
+	AVCodecContext* VideoCodecDescriptor::getCodecContext(AVCodec* Codec)
 	{
 		VCMIterator tmp;
 		tmp = vCodecMap.find(Codec);
-		return *(*tmp).second;
+		return (*tmp).second;
 	}
 	
     VideoCodecOrder VideoCodecDescriptor::getActiveCodecs() { return vCodecOrder; }
@@ -307,18 +307,18 @@ AVCodec* VideoCodecDescriptor::getDefaultCodec()
     	{
 
 
-	(*mapIter).second->bit_rate = VIDEO_BIT_RATE;
-	if ((*mapIter).first->name == "h264")
-	(*mapIter).second->me_method = 8;
-	else
-	(*mapIter).second->me_method = 3;
-
-	(*mapIter).second->time_base.den = STREAM_FRAME_RATE;
-	(*mapIter).second->time_base.num = 1;
-	(*mapIter).second->gop_size = GOP_SIZE;
-	(*mapIter).second->pix_fmt = PIX_FMT_YUV420P;
-	(*mapIter).second->max_b_frames = MAX_B_FRAMES;
-//	(*mapIter).second->mpeg_quant = 0;
+//	(*mapIter).second->bit_rate = VIDEO_BIT_RATE;
+//	if ((*mapIter).first->name == "h264")
+//	(*mapIter).second->me_method = 8;
+//	else
+//	(*mapIter).second->me_method = 3;
+//
+////	(*mapIter).second->time_base.den = STREAM_FRAME_RATE;
+////	(*mapIter).second->time_base.num = 1;
+//	(*mapIter).second->gop_size = GOP_SIZE;
+//	(*mapIter).second->pix_fmt = PIX_FMT_YUV420P;
+//	(*mapIter).second->max_b_frames = MAX_B_FRAMES;
+////	(*mapIter).second->mpeg_quant = 0;
 //	if ((*mapIter).first->name == "h264")
 //	(*mapIter).second->idct_algo = FF_IDCT_H264;
 //	else
