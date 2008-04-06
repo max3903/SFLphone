@@ -105,6 +105,8 @@ void VideoRtpRTX::run(){
     semStart.post();
     _debug("- ARTP Action: Start (video)\n");
 
+	Thread::sleep(1000);
+	
     while (vidCall->isVideoStarted()) {
 
       ////////////////////////////

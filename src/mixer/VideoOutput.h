@@ -36,6 +36,8 @@ public:
      * \param size th size of the buffer
      */ 
     virtual void putData(char * data, int size);
+    
+    virtual const char* getType() const;
 
 
 protected:

@@ -19,10 +19,44 @@
  
 #include "tracePrintSFL.h"
 
-void tracePrintSfl::operator()(const char* Message, int type, int level, bool ret){
-	
+sem_t tracePrintSfl::access;
+
+tracePrintSfl::tracePrintSfl(){
+	sem_init(&this->access, 0 ,1);
+}
+
+tracePrintSfl::~tracePrintSfl(){
+}
+
+void tracePrintSfl::operator()(const char* Message, int type, int level, bool ret, int num, ...){
+
 	if(level > SFLTRACE_LEVEL && type != MT_ERROR && type != MT_FATAL)
 		return;
+
+	/*int lenMsg= strlen(Message) + 1;
+	char* tmpMsg= new char[ lenMsg + 100 ];
+	strcpy(tmpMsg, Message);
+		
+	if( num > 0 ){
+	
+		char* buffMsg= new char[ lenMsg + 100 ];		
+			
+		va_list param_pointer;
+		
+		// get the number of parameters
+		va_start(param_pointer,num);
+	
+		int tmpVal= -2;
+		for (int index = 0 ; index < num ; index++){
+			strcpy(buffMsg,tmpMsg);
+			tmpVal= va_arg( param_pointer, int ); 
+			sprintf(tmpMsg, buffMsg, tmpVal );	
+		}
+		
+		delete[] buffMsg;
+	}*/
+		
+	sem_wait(&this->access);
 	
 	switch(type){
 		case MT_ERROR:
@@ -63,4 +97,7 @@ void tracePrintSfl::operator()(const char* Message, int type, int level, bool re
 			break;
 	}
 	
+	//delete[] tmpMsg;
+	
+	sem_post(&this->access);
 }

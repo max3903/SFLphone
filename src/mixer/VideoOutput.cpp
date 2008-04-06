@@ -80,3 +80,6 @@ void VideoOutput::putData(short * data, int size)
   
 }
 
+const char* VideoOutput::getType() const{
+	return "Video Output Buffer";
+}

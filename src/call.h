@@ -35,6 +35,8 @@
 
 typedef std::string CallID;
 
+#define CALL_TRACE	1
+
 /**
  * A call is the base class for protocol-based calls
  *
@@ -232,6 +234,12 @@ public:
 	 * @param extraAudio The audio input buffer corresponding to the local audio input buffer of the second call in the conference.
 	 */ 
 	void setConfMode( VideoInput* extraVideo, AudioInput* extraAudio  );
+	
+	/** Method to stop the mixer went a call is destroyed
+	 * 
+	 * This method must be call before ending a call or mixing threads will run until sfphoned is stopped.
+	 */
+	void terminateMixers() const;
 	
 protected:
     /** Protect every attribute that can be changed by two threads */

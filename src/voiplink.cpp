@@ -50,6 +50,12 @@ bool
 VoIPLink::removeCall(const CallID& id)
 {
   ost::MutexLock m(_callMapMutex);
+  
+  // Stopping the mixers in the call before detorying them
+  Call* tmpCall= getCall(id);
+  tmpCall->terminateMixers();
+  tmpCall= NULL;
+  
   if (_callMap.erase(id)) {
     return true;
   }  

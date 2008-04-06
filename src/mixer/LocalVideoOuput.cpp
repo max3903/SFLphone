@@ -33,3 +33,7 @@ int LocalVideoOuput::fetchData(char* data)
 {
   return 0;
 }
+
+const char* LocalVideoOuput::getType() const{
+	return "Local Video Output Buffer";
+}

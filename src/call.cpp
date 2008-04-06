@@ -34,22 +34,32 @@ Call::Call(const CallID& id, Call::CallType type) : _id(id), _type(type),
   _remoteVideoPort = 0;
 
   // Buffer initialization
-  this->_localInputStreams= new InputStreams( new VideoInput, new AudioInput );
-  this->_remoteStandardInputStreams= new InputStreams( new VideoInput, new AudioInput );
+  VideoInput* localVideoInput= new VideoInput;
+  AudioInput* localAudioInput= new AudioInput;
+  this->_localInputStreams= new InputStreams( localVideoInput, localAudioInput );
+  
+  VideoInput* remoteVideoInput= new VideoInput;
+  AudioInput* remoteAudioInput= new AudioInput;
+  
+  this->_remoteStandardInputStreams= new InputStreams( remoteVideoInput, remoteAudioInput );
+  
   this->_remoteExtraInputStreams= NULL;
   
   this->_remote_Audio_Output= new AudioOutput;
   this->_remote_Video_Output= new VideoOutput;
   
+  this->_local_Audio_Ouput= new LocalAudioOuput;
+  this->_local_Video_Ouput= new LocalVideoOuput;
+  
   //Mixer initialization
-  vector<InputStreams*> tmpInputs;
-  tmpInputs.push_back(_localInputStreams);
-  this->_localMixer = new Mixer(Mixer::NOSYNCH_AV_STRAIGHTTHROUGH,tmpInputs,(OutputStream*)(new LocalAudioOuput),(OutputStream*)(new LocalVideoOuput));
+  vector<InputStreams*> tmpLocalInputs;
+  tmpLocalInputs.push_back(_localInputStreams);
+  this->_localMixer = new Mixer(Mixer::NOSYNCH_AV_STRAIGHTTHROUGH,tmpLocalInputs,(OutputStream*)(_local_Audio_Ouput),(OutputStream*)(_local_Video_Ouput));
   this->_localMixer->start();
-  tmpInputs.clear();
-
-  tmpInputs.push_back(_remoteStandardInputStreams);  
-  this->_remoteMixer = new Mixer(Mixer::NOSYNCH_AV_STRAIGHTTHROUGH,tmpInputs,(OutputStream*)this->_remote_Audio_Output,(OutputStream*)this->_remote_Video_Output);
+  
+  vector<InputStreams*> tmpRemoteInputs;
+  tmpRemoteInputs.push_back(_remoteStandardInputStreams);  
+  this->_remoteMixer = new Mixer(Mixer::NOSYNCH_AV_STRAIGHTTHROUGH,tmpRemoteInputs,(OutputStream*)(_remote_Audio_Output),(OutputStream*)(_remote_Video_Output));
   this->_remoteMixer->start();
   
 }
@@ -58,19 +68,14 @@ Call::Call(const CallID& id, Call::CallType type) : _id(id), _type(type),
 Call::~Call()
 {
  
-	/*this->_localMixer->terminateThreads();
-	this->_remoteMixer->terminateThreads();
+	delete this->_local_Audio_Ouput;
+	delete this->_local_Video_Ouput;
+	delete this->_localInputStreams;
 	
-	delete this->_localMixer;
-	delete this->_remoteMixer;
- 
- 	delete this->_localInputStreams;
-	delete this->_remoteStandardInputStreams;
-	delete this->_remoteExtraInputStreams;
-  
 	delete this->_remote_Audio_Output;
-	delete this->_remote_Video_Output;*/
-
+	delete this->_remote_Video_Output;
+	delete this->_remoteStandardInputStreams;
+	
 }
 
 void 
@@ -218,4 +223,15 @@ AudioOutput* Call::getRemote_Audio_Output(){
 
 void Call::setConfMode( VideoInput* extraVideo, AudioInput* extraAudio  ){
 	//\ TODO: To implement
+}
+
+void Call::terminateMixers() const{
+	
+	ptracesfl("Stopping Local Mixer for current call ...", MT_INFO, CALL_TRACE);
+	this->_localMixer->terminate();
+	ptracesfl("Local Mixer Stopped", MT_INFO, CALL_TRACE);
+	ptracesfl("Stopping Remote Mixer for current call ...", MT_INFO, CALL_TRACE);
+	this->_remoteMixer->terminate();
+	ptracesfl("Remote Mixer Stopped", MT_INFO, CALL_TRACE);
+ 
 }

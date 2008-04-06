@@ -685,8 +685,8 @@ SIPVoIPLink::hangup(const CallID& id)
   if (Manager::instance().isCurrentCall(id)) {
     _debug("* SIP Info: Stopping AudioRTP for hangup\n");
     _audiortp.closeRtpSession();
-    _debug("* SIP Info: Stopping VideoRTP for hangup\n");
-    _videortp.closeVideoSession(false); // TODO: in conf?
+    //_debug("* SIP Info: Stopping VideoRTP for hangup\n");
+    //_videortp.closeVideoSession(false); // TODO: in conf?
   }
   removeCall(id);
   return true;

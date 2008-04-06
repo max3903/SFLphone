@@ -35,6 +35,8 @@ public:
     
     void putData(char * data, int size, MemKey *localVideoMemKey, int width, int height);
     
+     virtual const char* getType() const;
+    
 private:
 	
 	//! Gets the data in the buffer
