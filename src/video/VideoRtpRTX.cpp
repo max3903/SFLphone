@@ -20,8 +20,8 @@
 #include "VideoRtpRTX.h"
 
 
-#define PIC_WIDTH 352
-#define PIC_HEIGHT 288
+#define PIC_WIDTH 320
+#define PIC_HEIGHT 240
 #define FRAME_SIZE  (PIC_WIDTH*PIC_HEIGHT*3) //frame size of the YUV picture
 
 VideoRtpRTX::VideoRtpRTX(SIPCall *sipcall, bool sym)
@@ -91,7 +91,7 @@ void VideoRtpRTX::run(){
 
   // Loading codecs
   loadCodec((CodecID)CODEC_ID_H263,0);
-  loadCodec((CodecID)CODEC_ID_H263,1);
+  //loadCodec((CodecID)CODEC_ID_H263,1);
   
  
   initBuffers();
@@ -140,7 +140,7 @@ void VideoRtpRTX::run(){
     free(data_to_send);
 
     unloadCodec((CodecID)CODEC_ID_H263,0);
-    unloadCodec((CodecID)CODEC_ID_H263,1);
+    //unloadCodec((CodecID)CODEC_ID_H263,1);
     _debug("stop stream for videortp loop\n");
 
   } catch(std::exception &e) {
@@ -331,14 +331,13 @@ void VideoRtpRTX::receiveSession()
     memcpy(data_from_peer+TMPLONG,TMPBUFFER,tmp);
     TMPLONG+=tmp;
 
-
     //if (session->isWaiting()) _debug("waiting");
 
     // Decode it
     if (isMarked) {
-    decodeCodec->videoDecode(data_from_peer,data_to_display,TMPLONG,PIC_WIDTH,PIC_HEIGHT);  //TODO: Verifier si c'est le bon size...
-    this->memManager->putData(this->key, data_to_display, FRAME_SIZE, PIC_WIDTH, PIC_HEIGHT);
-    TMPLONG=0;
+      decodeCodec->videoDecode(data_from_peer,data_to_display,TMPLONG,PIC_WIDTH,PIC_HEIGHT);  //TODO: Verifier si c'est le bon size...
+      this->memManager->putData(this->key, data_to_display, FRAME_SIZE, PIC_WIDTH, PIC_HEIGHT);
+      TMPLONG=0;
     }
    // if (data_to_display==NULL)
       //_debug("UN NULLLLLL!!!");

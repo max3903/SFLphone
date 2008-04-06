@@ -2797,11 +2797,11 @@ void ManagerImpl::initMemManager(void)
 	srand ( time(NULL) );
 	
 	ptracesfl("Initializing Local Shared memory Space ...",MT_INFO,MANAGERIMPL_TRACE,true);
-	_keyHolder.localKey = _memManager->initSpace(MaximumSize);
+	_keyHolder.localKey = _memManager->initSpace(MaximumSize, "local");
 	_keyHolder.localKey->setDescription("local");
 	
 	ptracesfl("Initializing Local Shared memory Space ...",MT_INFO,MANAGERIMPL_TRACE,true);
-	_keyHolder.remoteKey = _memManager->initSpace(MaximumSize);
+	_keyHolder.remoteKey = _memManager->initSpace(MaximumSize, "remote");
 	_keyHolder.remoteKey->setDescription("remote");
 
 }
