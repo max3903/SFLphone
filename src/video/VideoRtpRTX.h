@@ -38,9 +38,7 @@
 #include "../mixer/VideoOutput.h"
 
 class SIPCall; //TODO: pourquoi pas de include SipCall..h????
-/**
- * @author Jean-Francois Blanchard-Dionne 
- */
+
 class VideoRtpRTX : public ost::Thread, public ost::TimerPort {
 public:
 
