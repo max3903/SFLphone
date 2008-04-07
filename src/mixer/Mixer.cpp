@@ -115,11 +115,11 @@ void Mixer::createStraightThrough(Tmixer type, vector<InputStreams*> inputs, Out
 	int index1= this->intBuffers.size() - 1;
 	int index2= this->intBuffers.size() - 2;
 	
-	// Creation des deux Mixer StraightThrough
+	// Creating 2 StraightThrough Mixer
     videoTranscoder = new StraightThrough_VT(this->intBuffers[index1],videoOutput);  
     audioTranscoder = new StraightThrough_AT(this->intBuffers[index2],audioOutput);
          
-    // Creation du SynchManager NoSynch
+    // Creating NoSynch SynchManager
      synchManagers.push_back( new NoSynch(this->streamsInput[0] ,this->intBuffers[index1],this->intBuffers[index2]) );
  
 }
@@ -134,14 +134,17 @@ bool Mixer::addStream(InputStreams* input)
 		
 	if( this->streamsInput.size() < 2 ){
 		
+		// Adding input stream
 		this->streamsInput.push_back(input);
 		
+		// Adding corresponfing internal buffers
 		this->intBuffers.push_back( new InternalBuffer() );
 		this->intBuffers.push_back( new InternalBuffer() );
 		
 		int index1= this->intBuffers.size() - 1;
 		int index2= this->intBuffers.size() - 2;
 		
+		// Adding conrecponding SynchManager
 		switch(theType)
 		{
 		    case NOSYNCH_AV_STRAIGHTTHROUGH:
@@ -156,19 +159,58 @@ bool Mixer::addStream(InputStreams* input)
 		delete this->videoTranscoder;
 		delete this->audioTranscoder;
 		
+		// Creating new Mixers
 		videoTranscoder = new VideoMixer2Channels(this->intBuffers[index1], this->intBuffers[index1 - 2], videoOutput);  
     	audioTranscoder = new AudioMixer2Channels(this->intBuffers[index2], this->intBuffers[index2 - 2], audioOutput);
     	
     	this->start();		
 		
-	}else
+	}else{
+		ptracesfl("Mixer - addStream(): Cannot add more than 1 input to the mixer !", MT_FATAL, MIXER_TRACE);
 		return false;
+	}
 	
  	return true;
 }
 
 bool Mixer::removeStream(InputStreams* input){
-	// \TODO: To implement: Pause everything and remove the input(if it exists) with the corresponding buffers dans managers. one input must be in the mixer at all time
+	
+	// \TODO: Add support for convertion to something other than straithrough 
+	
+	if( this->streamsInput.size() > 1 ){
+		
+		this->terminate();
+		
+		// Removing input
+		this->streamsInput.pop_back();
+		
+		// Removing associated interball buffers
+		this->intBuffers.pop_back();
+		this->intBuffers.pop_back();
+		
+		// Removing synch manager
+		this->synchManagers.pop_back();
+		
+		// Removing mixers
+		delete this->videoTranscoder;
+		delete this->audioTranscoder;
+		
+		
+		int index1= this->intBuffers.size() - 1;
+		int index2= this->intBuffers.size() - 2;
+	
+		// Creating new mixers
+	    videoTranscoder = new StraightThrough_VT(this->intBuffers[index1],videoOutput);  
+	    audioTranscoder = new StraightThrough_AT(this->intBuffers[index2],audioOutput);
+		
+		
+		this->start();
+		
+	}else{
+		ptracesfl("Mixer - removeStream(): Mixer must have a minimum of 1 input buffer !", MT_FATAL, MIXER_TRACE);
+		return false;
+	}
+		
 	return true;
 }
 
