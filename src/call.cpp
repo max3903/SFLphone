@@ -222,7 +222,17 @@ AudioOutput* Call::getRemote_Audio_Output(){
 }
 
 void Call::setConfMode( VideoInput* extraVideo, AudioInput* extraAudio  ){
-	//\ TODO: To implement
+	
+	if( extraVideo != NULL && extraAudio != NULL ){		// Add the inputs to the remote mixer
+		this->_remoteExtraInputStreams= new InputStreams( extraVideo, extraAudio );
+		this->_remoteMixer->addStream( this->_remoteExtraInputStreams);
+	}else if( extraVideo == NULL && extraAudio == NULL ){	// Remove the inputs from the remote mixer (end of conference)
+		this->_remoteMixer->removeStream(this->_remoteExtraInputStreams);
+		delete this->_remoteExtraInputStreams;
+		this->_remoteExtraInputStreams= NULL;
+	}else
+		ptracesfl("Call - setConfMode(): Should not happen, the 2 inputs must be either equal to NULL or different", MT_FATAL, CALL_TRACE);	
+	 
 }
 
 void Call::terminateMixers() const{
