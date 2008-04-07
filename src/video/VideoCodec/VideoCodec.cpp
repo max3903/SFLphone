@@ -22,6 +22,50 @@
 
 #define VIDEOCODECPTRACE 2
 
+VideoCodec::VideoCodec(char* codecName){
+	
+		//check if active Codec
+	if(codecName == NULL)
+	ptracesfl("CODEC ERROR",MT_FATAL,1,true);
+	
+	if ((_CodecENC = avcodec_find_encoder_by_name(codecName)) == NULL)
+		ptracesfl("CODEC ERROR",MT_FATAL,1,true);
+		
+	if ((_CodecDEC = avcodec_find_decoder_by_name(codecName)) == NULL)
+		ptracesfl("CODEC ERROR",MT_FATAL,1,true);
+
+
+	inputWidth = DEFAULT_WIDTH;
+	inputHeight = DEFAULT_HEIGHT;
+	init();
+}
+
+VideoCodec::VideoCodec(enum CodecID id){
+	
+		//check if active Codec
+	if(id == 0)
+	ptracesfl("CODEC ERROR",MT_FATAL,1,true);
+	
+	if ((_CodecENC = avcodec_find_encoder(id)) == NULL)
+		ptracesfl("CODEC ERROR",MT_FATAL,1,true);
+		
+	if ((_CodecDEC = avcodec_find_decoder(id)) == NULL)
+		ptracesfl("CODEC ERROR",MT_FATAL,1,true);
+	
+		
+	inputWidth = DEFAULT_WIDTH;
+	inputHeight = DEFAULT_HEIGHT;
+
+	init();
+}
+ 
+ 
+VideoCodec::VideoCodec(){}
+
+VideoCodec::~VideoCodec(){
+	quitEncodeContext();
+	quitDecodeContext();
+ }
 
 int VideoCodec::videoEncode(unsigned char*in_buf, unsigned char* out_buf)
 {
@@ -239,51 +283,5 @@ void VideoCodec::quitEncodeContext()
 	delete encodeSWS;
 }
 
-VideoCodec::VideoCodec(char* codecName,int inWidth,int inHeight){
-	
 
-		//check if active Codec
-	if(codecName == NULL)
-	ptracesfl("CODEC ERROR",MT_FATAL,1,true);
-	
-	if ((_CodecENC = avcodec_find_encoder_by_name(codecName)) == NULL)
-		ptracesfl("CODEC ERROR",MT_FATAL,1,true);
-		
-	if ((_CodecDEC = avcodec_find_decoder_by_name(codecName)) == NULL)
-		ptracesfl("CODEC ERROR",MT_FATAL,1,true);
-
-
-	inputWidth = inWidth;
-	inputHeight = inHeight;
-	init();
-}
-
-VideoCodec::VideoCodec(enum CodecID id,int inWidth,int inHeight){
-	
-		//check if active Codec
-	if(id == 0)
-	ptracesfl("CODEC ERROR",MT_FATAL,1,true);
-	
-	if ((_CodecENC = avcodec_find_encoder(id)) == NULL)
-		ptracesfl("CODEC ERROR",MT_FATAL,1,true);
-		
-	if ((_CodecDEC = avcodec_find_decoder(id)) == NULL)
-		ptracesfl("CODEC ERROR",MT_FATAL,1,true);
-	
-		
-	inputWidth = inWidth;
-	inputHeight = inHeight;
-
-	init();
-}
- 
- 
-VideoCodec::VideoCodec(){}
-
-VideoCodec::~VideoCodec(){
- 
-quitEncodeContext();
-quitDecodeContext();
-
- }
  

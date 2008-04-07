@@ -48,8 +48,8 @@ public:
      *  Constructor we force to use
      * 
      */
-    VideoCodec(char* codecName,int inWidth,int inHeight);
-    VideoCodec(enum CodecID id,int inWidth,int inHeight);
+    VideoCodec(char* codecName);
+    VideoCodec(enum CodecID id);
 /**
 	
      * Function to decode video information
@@ -104,6 +104,8 @@ private:
  	* Function to quit the Codec with it's proper context
  	* */
     void quitDecodeContext();
+    
+    void setCorrectResolutions();
 
 	/**
  	* Instance of the VideoCodecDescriptor class
@@ -128,7 +130,6 @@ private:
     int inputWidth;
     int inputHeight;
     
-      
    /** 
     * width and height the codec will receive to decode
     */

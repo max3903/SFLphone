@@ -8,7 +8,7 @@
 #define DEFAULT_WIDTH 320
 #define DEFAULT_HEIGHT 240
 #define STREAM_FRAME_RATE 10
-#define GOP_SIZE 12
+#define GOP_SIZE 8
 #define MAX_B_FRAMES 0
 #define RTP_PAYLOAD 1400
 
