@@ -25,6 +25,13 @@
 
 #include <string.h>
 
+/**
+ * Hash table that will contain information on all contacts and their entries
+ * It is the underlying model of the contact window and call console and all
+ * modifications to these views are regrouped here and thus synchronized
+ * The keys of the hash table are the accountIDs and the values are GQueues
+ * that contain contact_t structs which contain a GQueue of contact_entry_t
+ */
 GHashTable* contactHashTable = NULL;
 
 /** Custom function to free memory in hash table for contact lists */
@@ -32,7 +39,7 @@ void
 contact_hash_value_destroy_func(void* valuePointer)
 {
 	GQueue* contactList = (GQueue*)valuePointer;
-	contact_hash_table_clear_contact_list(contactList);
+	g_queue_free(contactList);
 }
 
 void
@@ -46,7 +53,6 @@ contact_hash_table_init()
 void
 contact_hash_table_clear()
 {
-	// TODO Unregister observers (contact and call console windows)
 	// Destroys the hash table that will use its destroy functions on keys and values
 	g_hash_table_destroy(contactHashTable);
 	contactHashTable = NULL;
@@ -57,6 +63,16 @@ contact_hash_table_add_contact_list(gchar* accountID)
 {
 	// Dynamically allocate a queue in the hash table
 	g_hash_table_insert(contactHashTable, g_strdup(accountID), g_queue_new());
+	
+	// TODO Create a new row in the contact window for the new account
+}
+
+void
+contact_hash_table_remove_contact_list(gchar* accountID)
+{
+	// TODO Remove all contacts and then remove the contact list
+	
+	// TODO Remove everything in the views for this account
 }
 
 GQueue*
@@ -66,27 +82,36 @@ contact_hash_table_get_contact_list(const gchar* accountID)
 }
 
 void
-contact_hash_table_clear_contact_list(GQueue* contactList)
+contact_list_add(gchar* accountID, contact_t* contact, gboolean update)
 {
-	// TODO Clear all contact and entries
-	g_queue_free(contactList);
+	// Modify the data
+	g_queue_push_tail(contact_hash_table_get_contact_list(accountID), (void*)contact);
+
+	// Modify view
+	if(update) contact_window_add_contact(accountID, contact);
+	
+	// Send modifications to server
+	if(update) dbus_set_contact(accountID, contact->_contactID, contact->_firstName, contact->_lastName, contact->_email);
 }
 
 void
-contact_list_add(GQueue* contactList, contact_t* contact)
+contact_list_edit(gchar* accountID, contact_t* contact)
 {
-	// TODO Modify views
-	g_queue_push_tail(contactList, (void*) contact);
+	// Modify the data in the contact list
+	contact_t* oldContact = contact_list_get(contact_hash_table_get_contact_list(accountID), contact->_contactID);
+	oldContact->_firstName = contact->_firstName;
+	oldContact->_lastName = contact->_lastName;
+	oldContact->_email = contact->_email;
+
+	// Modify views
+	contact_window_edit_contact(accountID, contact);
+	
+	// Send modifications to server
+	dbus_set_contact(accountID, contact->_contactID, contact->_firstName, contact->_lastName, contact->_email);
 }
 
 void
-contact_list_edit(GQueue* contactList, gchar* contactID, contact_t* newContact)
-{
-	// TODO
-}
-
-void
-contact_list_remove(GQueue* contactList, gchar* contactID)
+contact_list_remove(gchar* accountID, gchar* contactID)
 {
 	// TODO
 }
@@ -114,9 +139,22 @@ contact_list_get_nth(GQueue* contactList, guint index)
 }
 
 void
-contact_list_entry_add(contact_t* contact, contact_entry_t* entry)
+contact_list_entry_add(gchar* accountID, gchar* contactID, contact_entry_t* entry, gboolean update)
 {
+	contact_t* contact = contact_list_get(contact_hash_table_get_contact_list(accountID), contactID);
 	g_queue_push_tail(contact->_entryList, (void*) entry);
+	
+	// TODO Modify the views (contact window and call console)
+	if(update);
+	
+	// Send modifications to server
+	gchar isShown[6], isSubscribed[6];
+	if(entry->_isShownInConsole) strcpy(isShown, "TRUE");
+	else strcpy(isShown, "FALSE");
+	if(entry->_isSubscribed) strcpy(isSubscribed, "TRUE");
+	else strcpy(isSubscribed, "FALSE");
+	if(update) dbus_set_contact_entry(accountID, contactID, entry->_entryID,
+			entry->_text, entry->_type, isShown, isSubscribed);
 }
 
 void
@@ -137,6 +175,7 @@ contact_list_entry_change_presence_status(const gchar*accountID, const gchar* en
 	GQueue* contactList = contact_hash_table_get_contact_list(accountID);
 	if(contactList != NULL)
 	{
+		// Look in all contacts if the specified entry can be found
 		int i;
 		contact_t* contact;
 		for(i = 0; i < contact_list_get_size(contactList); i++)
@@ -188,8 +227,6 @@ contact_list_new_contact_from_details(gchar* contactID, gchar** contactDetails)
 	contact->_firstName = g_strdup(contactDetails[0]);
 	contact->_lastName = g_strdup(contactDetails[1]);
 	contact->_email = g_strdup(contactDetails[2]);
-	contact->_group = g_strdup(contactDetails[3]);
-	contact->_subGroup = g_strdup(contactDetails[4]);
 	contact->_entryList = g_queue_new();
 	return contact;
 }

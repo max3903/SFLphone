@@ -108,6 +108,7 @@ public:
    * Register contacts for presence information if supported
    */
   virtual void subscribePresenceForContact(ContactEntry* contactEntry);
+  virtual void unsubscribePresenceForContact(ContactEntry* contactEntry);
   
   /**
    * Publish presence status to server

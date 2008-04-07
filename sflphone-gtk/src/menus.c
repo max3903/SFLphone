@@ -40,6 +40,8 @@ GtkWidget * copyMenu;
 GtkWidget * pasteMenu;
 GtkWidget * inviteMenu;
 
+GtkWidget* showCallConsoleMenuItem;
+
 guint holdConnId;     //The hold_menu signal connection ID
 
 void update_menus()
@@ -105,6 +107,7 @@ void update_menus()
   gtk_signal_handler_unblock(webCamMenu , webCamConnId);
   
 }
+
 /* ----------------------------------------------------------------- */
 static void 
 help_about ( void * foo)
@@ -514,6 +517,12 @@ view_call_console(GtkCheckMenuItem* checkMenuItem, void* pointer)
 	main_window_show_call_console(gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM(checkMenuItem)));
 }
 
+void
+menus_show_call_console_menu_item_set_active(gboolean active)
+{
+	gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(showCallConsoleMenuItem), active);
+}
+
 GtkWidget * 
 create_view_menu()
 {
@@ -522,14 +531,14 @@ create_view_menu()
   GtkWidget * menu_items;
 //  GtkWidget * submenu_items; UNUSED
 
-  menu      = gtk_menu_new ();
+  menu = gtk_menu_new ();
 
-  menu_items = gtk_check_menu_item_new_with_mnemonic ("_Call console");
-  gtk_menu_shell_append (GTK_MENU_SHELL (menu), menu_items);
-  g_signal_connect(G_OBJECT (menu_items), "toggled",
+  showCallConsoleMenuItem = gtk_check_menu_item_new_with_mnemonic ("_Call console");
+  gtk_menu_shell_append (GTK_MENU_SHELL (menu), showCallConsoleMenuItem);
+  g_signal_connect(G_OBJECT (showCallConsoleMenuItem), "toggled",
                   G_CALLBACK (view_call_console), 
                   NULL);
-  gtk_widget_show (menu_items);
+  gtk_widget_show(showCallConsoleMenuItem);
   
   menu_items = gtk_check_menu_item_new_with_mnemonic (_("_Dialpad"));
   gtk_check_menu_item_set_active( GTK_CHECK_MENU_ITEM ( menu_items ), TRUE);

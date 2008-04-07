@@ -147,6 +147,9 @@ public:
 
   /** Save config to file */
   bool saveConfig (void);
+  
+  /* Save contacts to file by account */
+  bool saveContacts();
 
   /**
    * Send registration information (shake hands) for a specific AccountID

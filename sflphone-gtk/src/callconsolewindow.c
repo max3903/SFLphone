@@ -32,7 +32,7 @@
 #include <gtk/gtk.h>
 
 /**
- * Defines the column of the tree model for each renderer of a row
+ * Defines the column data and renderers of the tree model
  */
 enum {
 	CALL_CONSOLE_ACCOUNT_ID,				// ID of related account
@@ -97,6 +97,25 @@ call_console_window_fill_contact_list()
 	}
 }
 
+void
+call_console_window_clear_contact_list()
+{
+	gtk_list_store_clear(contactListStore);
+	contactListStore = NULL;
+}
+
+static void
+call_console_window_closed(GtkDialog* dialog, GdkEvent* event, void* userData)
+{
+	// Set main window view call console to false
+	main_window_call_console_closed();
+	
+	// Clear model and set dialog to null
+	call_console_window_clear_contact_list();
+	gtk_widget_destroy(GTK_WIDGET(callConsoleDialog));
+	callConsoleDialog = NULL;
+}
+
 /**
  * Show contact window
  */
@@ -117,13 +136,13 @@ show_call_console_window(gboolean show)
 	}
 
 	// Create dialog and set properties
-	callConsoleDialog = GTK_DIALOG(gtk_dialog_new_with_buttons (_("Call console"),
+	callConsoleDialog = GTK_DIALOG(gtk_dialog_new_with_buttons(_("Call console"),
 				GTK_WINDOW(get_main_window()),
 				GTK_DIALOG_DESTROY_WITH_PARENT,
 				NULL));
 	gtk_window_set_modal(GTK_WINDOW(callConsoleDialog), FALSE);
 	gtk_dialog_set_has_separator(callConsoleDialog, FALSE);
-	gtk_window_set_default_size(GTK_WINDOW(callConsoleDialog), 600, 400);
+	gtk_window_set_default_size(GTK_WINDOW(callConsoleDialog), 500, 700);
 	gtk_container_set_border_width(GTK_CONTAINER(callConsoleDialog), 0);
 	
 	// Put contacts in a scrollable window
@@ -184,19 +203,11 @@ show_call_console_window(gboolean show)
 	gtk_window_set_gravity(GTK_WINDOW(callConsoleDialog), GDK_WINDOW_EDGE_NORTH_WEST);
 	gtk_window_move(GTK_WINDOW(callConsoleDialog), rootX + width + 8, rootY);
 	
+	// Catch delete signal on the call console dialog when closing window
+	g_signal_connect(G_OBJECT(callConsoleDialog), "delete-event", G_CALLBACK(call_console_window_closed), NULL);
+	
 	// Show window
 	gtk_widget_show(GTK_WIDGET(callConsoleDialog));
-	
-	// TODO Clear model and set dialog to null when quitting
-	// Run dialog and destroy when done
-//	gtk_dialog_run(callConsoleDialog);
-//	gtk_widget_destroy(GTK_WIDGET(callConsoleDialog));
-//	callConsoleDialog = NULL;
-//	
-//	// Clear view
-//	gtk_list_store_clear(contactListStore);
-	
-	// TODO Uncheck box in view menu for call console
 }
 
 void

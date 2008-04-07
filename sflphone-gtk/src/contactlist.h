@@ -63,8 +63,6 @@ typedef struct {
 	gchar*		_firstName;
 	gchar*		_lastName;
 	gchar*		_email;
-	gchar*		_group;					// Contacts can be regrouped
-	gchar*		_subGroup;				// up to two levels of hierarchy
 	GQueue*		_entryList;				// List of entries for each contact
 } contact_t;
 
@@ -77,16 +75,18 @@ void contact_hash_table_clear();
 /*
  * Functions to add, get and clear contact lists contained in the hash map
  */
+// TODO
 void contact_hash_table_add_contact_list(gchar* accountID);
+void contact_hash_table_remove_contact_list(gchar* accountID);
 GQueue* contact_hash_table_get_contact_list(const gchar* accountID);
-void contact_hash_table_clear_contact_list(GQueue* contactList);
 
 /**
  * Functions to add, edit and remove a contact in a contact list
  */
-void contact_list_add(GQueue* contactList, contact_t* contact);
-void contact_list_edit(GQueue* contactList, gchar* contactID, contact_t* newContact);
-void contact_list_remove(GQueue* contactList, gchar* contactID);
+// TODO
+void contact_list_add(gchar* accountID, contact_t* contact, gboolean update);
+void contact_list_edit(gchar* accountID, contact_t* contact);
+void contact_list_remove(gchar* accountID, gchar* contactID);
 
 /**
  * Functions to get a particular contact in the list and to get the list size
@@ -98,9 +98,10 @@ contact_t* contact_list_get_nth(GQueue* contactList, guint index);
 /**
  * Functions to add, get, edit and remove a contact entry in a contact
  */
-void contact_list_entry_add(contact_t* contact, contact_entry_t* entry);
-void contact_list_entry_edit(contact_t* contact, contact_entry_t* oldEntry, contact_entry_t* newEntry);
-void contact_list_entry_remove(contact_t* contact, contact_entry_t* entry);
+// TODO
+void contact_list_entry_add(gchar* accountID, gchar* contactID, contact_entry_t* entry, gboolean update);
+//void contact_list_entry_edit(contact_t* contact, contact_entry_t* oldEntry, contact_entry_t* newEntry);
+//void contact_list_entry_remove(contact_t* contact, contact_entry_t* entry);
 
 /**
  * Function when an update on presence status is received from server and only entry is known, not the contact
@@ -119,7 +120,6 @@ contact_entry_t* contact_list_entry_get_nth(contact_t* contact, guint index);
  */
 contact_t* contact_list_new_contact_from_details(gchar* contactID, gchar** details);
 contact_entry_t* contact_list_new_contact_entry_from_details(gchar* contactEntryID, gchar** details);
-//presence_t* contact_list_new_presence_from_details(const gchar* presenceStatus, const gchar* additionalInfo);
 
 /**
  * Compare function to find contact in list by contact ID
@@ -127,17 +127,10 @@ contact_entry_t* contact_list_new_contact_entry_from_details(gchar* contactEntry
 gint compare_contact_contactID(gconstpointer a, gconstpointer b);
 gint compare_contact_contactEntryID(gconstpointer a, gconstpointer b);
 
-#endif
-
-// TOSEE
-//void contact_show_in_console(GQueue* contactList, gchar* contactID, gboolean show);
-//void contact_subscribe(GQueue* contactList, gchar* contactID, gboolean subscribe);
-//void contact_edit(GQueue* contactList, gchar* contactID, gchar* newContactID, gchar* firstName, gchar* lastName);
-
-//void contact_list_move_contact_up(GQueue* contactList, guint index);
-//void contact_list_move_contact_down(GQueue* contactList, guint index);
-//void contact_list_update_to_daemon(GQueue* contactList);
-
-// TODO Presence translation
+/** 
+ * Presence translation and icons from defined type obtained by DBus
+ */
 const gchar* contact_list_presence_status_translate(const gchar* presenceStatus);
 const gchar* contact_list_presence_status_get_icon_string(const gchar* presenceStatus);
+
+#endif

@@ -22,6 +22,8 @@
 
 #include <gtk/gtk.h>
 
+#include "contactlist.h"
+
 /**
  * @file contactwindow.h
  * @brief The Contacts window.
@@ -38,9 +40,9 @@ void show_entry_dialog(gchar* accountID, gchar* contactID, gchar* entryID);
 // NOW
 void contact_window_add_account();
 void contact_window_remove_account();
-void contact_window_add_contact();
-void contact_window_edit_contact();
-void contact_window_remove_contact();
+void contact_window_add_contact(gchar* accountID, contact_t* contact);
+void contact_window_edit_contact(gchar* accountID, contact_t* contact);
+void contact_window_remove_contact(gchar* accountID, gchar* contactID);
 void contact_window_add_entry();
 void contact_window_edit_entry();
 void contact_window_remove_entry();

@@ -258,6 +258,12 @@ main_window_show_call_console(gboolean show)
 }
 
 void
+main_window_call_console_closed()
+{
+	menus_show_call_console_menu_item_set_active(FALSE);
+}
+
+void
 main_window_callinfo(gboolean show, call_t* current)
 {
   /*

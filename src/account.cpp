@@ -79,6 +79,12 @@ Account::getContacts()
 }
 
 void
+Account::addContact(Contact* contact)
+{
+	_contacts.push_back(contact);
+}
+
+void
 Account::subscribeContactsPresence()
 {
 	if(_link->isContactPresenceSupported())

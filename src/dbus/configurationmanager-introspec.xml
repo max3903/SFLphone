@@ -219,6 +219,7 @@
     </method>
 
   <!--        /////////////////////////////       -->
+    <!-- SEE parametersChanged signal unused -->
     <signal name="parametersChanged">
       <arg type="a{ss}" name="list" direction="out"/>
     </signal>

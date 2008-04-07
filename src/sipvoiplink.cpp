@@ -1000,6 +1000,35 @@ SIPVoIPLink::subscribePresenceForContact(ContactEntry* contactEntry)
 }
 
 void
+SIPVoIPLink::unsubscribePresenceForContact(ContactEntry* contactEntry)
+{
+	int i;
+	osip_message_t* subscription;
+	std::ostringstream to;
+	std::ostringstream from;
+	
+	// Build URL of receiver and sender
+	to << "sip:" << contactEntry->getEntryID() << "@" << getHostName().data();
+	from << "sip:" << _userpart.data() << "@" << getHostName().data();
+
+	// Unsubscribe by setting a 0 value
+	i = eXosip_subscribe_build_initial_request(&subscription,
+			to.str().c_str(),
+			from.str().c_str(),
+			NULL,
+			"presence", 0);
+	if(i!=0) return;
+	
+	// We want to receive presence in the PIDF XML format in SIP messages
+	osip_message_set_accept(subscription, "application/pidf+xml");
+	
+	// Send subscription
+	eXosip_lock();
+	i = eXosip_subscribe_send_initial_request(subscription);
+	eXosip_unlock();
+}
+
+void
 SIPVoIPLink::publishPresenceStatus(std::string status)
 {
 	_debug("Publishing presence status\n");	
