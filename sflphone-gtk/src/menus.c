@@ -92,6 +92,9 @@ void update_menus()
       case CALL_STATE_FAILURE:
         gtk_widget_set_sensitive( GTK_WIDGET(hangUpMenu), TRUE);
         break; 
+      case CALL_STATE_CONF:
+      	gtk_widget_set_sensitive( GTK_WIDGET(newCallMenu),FALSE);
+      	break;
   	  default:
   	    g_warning("Should not happen in update_menus()!");
   	    break;

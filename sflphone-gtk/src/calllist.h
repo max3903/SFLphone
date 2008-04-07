@@ -46,7 +46,9 @@ typedef enum
    /** Call is busy */
    CALL_STATE_BUSY,        
    /** Call is being transfert.  During this state, the user can enter the new number. */
-   CALL_STATE_TRANSFERT 
+   CALL_STATE_TRANSFERT, 
+   /** Call is in conference */
+   CALL_STATE_CONF
 } call_state_t;
 
 

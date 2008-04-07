@@ -96,6 +96,41 @@ AVFrame *SWSInterface::alloc_pictureRGB24(int width, int height,uint8_t *buffer)
   return pFrameRGB;
 }
 
+
+FrameProperties SWSInterface::getSpecialResolution(int width)
+ {
+	 // Text from libavcodec
+	 //128x96, 176x144, 352x288, 704x576, and 1408x1152
+	 FrameProperties returnSize;
+	 
+	 if (width <= 128){
+		 returnSize.width = 128;
+		 returnSize.height = 96;
+	 }
+	 else if (width >= 129 && width < 352){
+		 returnSize.width = 176;
+		 returnSize.height = 144;
+	 }
+	 else if (width >= 352 && width < 704){
+		 returnSize.width = 352;
+		 returnSize.height = 288;
+	 }
+	 else if (width >= 704 && width < 1408){
+		 returnSize.width = 704;
+		 returnSize.height = 576;
+	 }
+	 else
+	 {
+		 returnSize.width = 1408;
+		 returnSize.height = 1152;
+	 }
+ 
+ return returnSize;
+ }
+ 
+
+
+
 SWSInterface::SWSInterface(int InWidth,int InHeight,int InPixFormat,int OutWidth,int OutHeight,int OutPixFormat)
  {
  
@@ -106,7 +141,7 @@ SWSInterface::SWSInterface(int InWidth,int InHeight,int InPixFormat,int OutWidth
  out.width = OutWidth;
  out.pixFormat = OutPixFormat;
  
-BufferSize = avpicture_get_size( out.pixFormat,out.width, out.height);
+BufferSize = avpicture_get_size(out.pixFormat,out.width, out.height);
  
  Context = sws_getContext( in.width,in.height,in.pixFormat,
 	 							out.width,out.height,out.pixFormat,0,NULL,NULL,NULL);

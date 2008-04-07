@@ -127,6 +127,10 @@ call_state_cb (DBusGProxy *proxy,
     {
       sflphone_busy (c);
     }
+    else if ( strcmp(state, "CONF") == 0 )
+    {
+      sflphone_conf(c);
+    }
   } 
   else 
   { //The callID is unknow, threat it like a new call
