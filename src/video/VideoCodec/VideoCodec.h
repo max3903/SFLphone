@@ -70,7 +70,7 @@ public:
      * @return the size of the encoded buffer, a negative value otherwise
      */
 
-    int videoEncode(unsigned char* in_buf, unsigned char* out_buf);
+    int videoEncode(unsigned char* in_buf, unsigned char* out_buf,int width,int height);
  	
 
     
@@ -104,13 +104,17 @@ private:
  	* Function to quit the Codec with it's proper context
  	* */
     void quitDecodeContext();
-    
-    void setCorrectResolutions();
 
 	/**
  	* Instance of the VideoCodecDescriptor class
  	* */
 	VideoCodecDescriptor *_videoDesc;
+	 /**
+     * Active Resolution
+     */
+    Resolution* _cmdRes;
+    // Video device manager instance
+	VideoDeviceManager *_v4lManager; 
 	
 	/**
      * Libavcodec Encoding power duo
