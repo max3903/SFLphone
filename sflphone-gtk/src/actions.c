@@ -58,6 +58,28 @@ sflphone_notify_voice_mail (guint count)
 		status_bar_message_add(message,  __MSG_VOICE_MAILS);
 		g_free(message);
 	}
+	// TODO: add ifdef
+	if( account_list_get_size() > 0 )
+	{
+	  account_t* acc = account_list_get_by_state( ACCOUNT_STATE_REGISTERED );
+	  if( acc == NULL )
+	  {
+	    // Notify that no account is registered
+	    //notify_no_account_registered();
+	  }
+	  else
+	  {
+	    if( account_list_get_default() == NULL ){
+	      // Notify that the first registered account has count voice mails
+	      notify_voice_mails( count , acc );	
+	    }
+	    else
+	    {
+	      // Notify that the default registered account has count voice mails
+	      notify_voice_mails( count , account_list_get_by_id(account_list_get_default()) );
+	    } 
+	  }     
+	}
 }
 
 void
@@ -69,7 +91,7 @@ status_bar_display_account( call_t* c)
       acc = account_list_get_by_id(c->accountID);
     else
       acc = account_list_get_by_id( account_list_get_default());
-    msg = g_markup_printf_escaped("%s account: %s" , 
+    msg = g_markup_printf_escaped("Default: %s account- %s" , 
 				  g_hash_table_lookup( acc->properties , ACCOUNT_TYPE), 
 				  g_hash_table_lookup( acc->properties , ACCOUNT_ALIAS));
     status_bar_message_add( msg , __MSG_ACCOUNT_DEFAULT);
@@ -356,6 +378,7 @@ sflphone_unset_transfert()
 	}
 	toolbar_update_buttons();
 }
+
 	void
 sflphone_incoming_call (call_t * c) 
 {
@@ -368,7 +391,7 @@ sflphone_incoming_call (call_t * c)
 void process_dialing(call_t * c, guint keyval, gchar * key)
 {
 	// We stop the tone
-	if(strlen(c->to) == 0){
+	if(strlen(c->to) == 0 && c->state != CALL_STATE_TRANSFERT){
 	  dbus_start_tone( FALSE , 0 );
 	  dbus_play_dtmf( key );
 	}
@@ -432,10 +455,10 @@ void process_dialing(call_t * c, guint keyval, gchar * key)
 
 call_t * sflphone_new_call()
 {
+	// Play a tone when creating a new call
 	if( call_list_get_size() == 0 )
-	{
 	  dbus_start_tone( TRUE , ( voice_mails > 0 )? TONE_WITH_MESSAGE : TONE_WITHOUT_MESSAGE) ;
-	}
+
 	call_t * c = g_new0 (call_t, 1);
 	c->state = CALL_STATE_DIALING;
 	c->from = g_strconcat("\"\" <>", NULL);
@@ -573,14 +596,20 @@ sflphone_place_call ( call_t * c )
 	if(c->state == CALL_STATE_DIALING)
 	{
 		account_t * account;
-		gchar * default_account =  account_list_get_default();
-		account = account_list_get_by_id(default_account);
-		
+		gchar* account_id = account_list_get_current();
+		if( account_id == NULL ){
+		  account_id = account_list_get_default();
+		  account = account_list_get_by_id(account_id);
+		}
+		else
+		  account = account_list_get_by_id( account_id );
+
+		// Here : account_id is either the default one, either the current one selected with a right-click
 		if(account)
 		{
 			if(strcmp(g_hash_table_lookup(account->properties, "Status"),"REGISTERED")==0)
 			{
-				c->accountID = default_account;
+				c->accountID = account_id;
 				dbus_place_call(c);
 			}
 			else

@@ -435,6 +435,7 @@ ManagerImpl::transferCall(const CallID& id, const std::string& to)
   if (_dbus) _dbus->getCallManager()->callStateChanged(id, "HUNGUP");
   switchCall("");
 
+
   return returnValue;
 }
 
@@ -1212,6 +1213,9 @@ ManagerImpl::initConfigFile (void)
   fill_config_str(VOICEMAIL_NUM, DFT_VOICEMAIL);
   fill_config_int(CONFIG_ZEROCONF, CONFIG_ZEROCONF_DEFAULT_STR);
   fill_config_int(CONFIG_RINGTONE, YES_STR);
+  fill_config_int(CONFIG_DIALPAD, YES_STR);
+  fill_config_int(CONFIG_START, NO_STR);
+  fill_config_int(CONFIG_POPUP, YES_STR);
 
   // Loads config from ~/.sflphone/sflphonedrc or so..
   if (createSettingsPath() == 1) {
@@ -1542,6 +1546,43 @@ ManagerImpl::setRingtoneChoice( const std::string& tone )
 {
   // we save the absolute path 
   setConfig( AUDIO , RING_CHOICE , tone ); 
+}
+
+int
+ManagerImpl::getDialpad( void )
+{
+  return getConfigInt( PREFERENCES , CONFIG_DIALPAD );
+}
+
+void
+ManagerImpl::setDialpad( void )
+{
+  ( getConfigInt( PREFERENCES , CONFIG_DIALPAD ) == DISPLAY_DIALPAD )? setConfig(PREFERENCES , CONFIG_DIALPAD , NO_STR ) : setConfig( PREFERENCES , CONFIG_DIALPAD , YES_STR );
+
+}
+
+void 
+ManagerImpl::startHidden( void )
+{
+  ( getConfigInt( PREFERENCES , CONFIG_START ) ==  START_HIDDEN)? setConfig(PREFERENCES , CONFIG_START , NO_STR ) : setConfig( PREFERENCES , CONFIG_START , YES_STR );
+}
+
+int 
+ManagerImpl::isStartHidden( void )
+{
+  return getConfigInt( PREFERENCES , CONFIG_START );
+}
+
+void 
+ManagerImpl::switchPopupMode( void )
+{
+  ( getConfigInt( PREFERENCES , CONFIG_POPUP ) ==  WINDOW_POPUP)? setConfig(PREFERENCES , CONFIG_POPUP , NO_STR ) : setConfig( PREFERENCES , CONFIG_POPUP , YES_STR );
+}
+
+int 
+ManagerImpl::popupMode( void )
+{
+  return getConfigInt( PREFERENCES , CONFIG_POPUP );
 }
 
 void

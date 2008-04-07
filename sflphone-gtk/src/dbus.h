@@ -114,6 +114,12 @@ int dbus_is_ringtone_enabled( void );
 void dbus_ringtone_enabled( void );
 gchar* dbus_get_ringtone_choice( void );
 void dbus_set_ringtone_choice( const gchar* tone );
+void dbus_set_dialpad(  );
+int dbus_get_dialpad( void );
+void dbus_start_hidden( void );
+int dbus_is_start_hidden( void );
+void dbus_switch_popup_mode( void );
+int dbus_popup_mode( void );
 
 
 

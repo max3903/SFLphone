@@ -218,6 +218,27 @@
       <arg type="i" name="res" direction="out"/>
     </method>
 
+    <method name="getDialpad">
+      <arg type="i" name="state" direction="out"/>
+    </method>
+
+    <method name="setDialpad">
+    </method>
+
+    <method name="startHidden">
+    </method>
+
+    <method name="isStartHidden">
+      <arg type="i" name="state" direction="out"/>
+    </method>
+
+    <method name="popupMode">
+      <arg type="i" name="state" direction="out"/>
+    </method>
+
+    <method name="switchPopupMode">
+    </method>
+
   <!--        /////////////////////////////       -->
     <signal name="parametersChanged">
       <arg type="a{ss}" name="list" direction="out"/>
