@@ -303,9 +303,9 @@ void VideoRtpRTX::receiveSession()
 void VideoRtpRTX::loadCodec(enum CodecID id,int type)
 {
   if (type==0)  //decode
-    decodeCodec = new VideoCodec("h263");
+    decodeCodec = new VideoCodec("h263",PIC_WIDTH,PIC_HEIGHT);
   else  //encode
-    encodeCodec = new VideoCodec("h263");
+    encodeCodec = new VideoCodec("h263",PIC_WIDTH,PIC_HEIGHT);
 }
 
 void VideoRtpRTX::unloadCodec(enum CodecID id,int type)

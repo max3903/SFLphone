@@ -738,7 +738,6 @@ private:
   short _spkr_volume;
   short _mic_volume;
   short _mic_volume_before_mute;
-  static VideoCodec *vcodec;
   // End of sound variable
 
 
