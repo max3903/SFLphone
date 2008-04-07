@@ -40,7 +40,7 @@ public:
 	 * \param output an output buffer see OutputStream
 	 * \param infos a pointer to a CodecInfo object
 	 */
-    VideoMixer2Channels(InternalBuffer* video1, InternalBuffer* video2, OutputStream* output, CodecInfo* infos);
+    VideoMixer2Channels(InternalBuffer* video1, InternalBuffer* video2, OutputStream* output);
 
     //! Destructor
     /*!
@@ -79,7 +79,6 @@ private:
     InternalBuffer* inputBuffer2;
     
     OutputStream* outputBuffer;
-    CodecInfo* infoCodecs;
 
     char* data1;
     char* data2;

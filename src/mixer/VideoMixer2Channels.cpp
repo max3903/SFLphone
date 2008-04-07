@@ -146,15 +146,13 @@ void VideoMixer2Channels::stop()
 	terminate();	
 }
 
-VideoMixer2Channels::VideoMixer2Channels(InternalBuffer* video1, InternalBuffer* video2, OutputStream* output, CodecInfo* infos)
+VideoMixer2Channels::VideoMixer2Channels(InternalBuffer* video1, InternalBuffer* video2, OutputStream* output)
 {
 	ptracesfl("VideoMixer2Channels - VideoMixer2Channels()",MT_INFO,VIDEOMIXER2CHANNELS_TRACE);
 	inputBuffer1 = video1;
     inputBuffer2 = video2;
     
     outputBuffer = output;
-    
-    infoCodecs = infos;
     
     paddingWidth = 64;
     
