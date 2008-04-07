@@ -116,7 +116,6 @@ void Mixer::createStraightThrough(Tmixer type, vector<InputStreams*> inputs, Out
 	int index2= this->intBuffers.size() - 2;
 	
 	// Creation des deux Mixer StraightThrough
-	// TODO: ajouter les Codec Infos
     videoTranscoder = new StraightThrough_VT(this->intBuffers[index1],videoOutput);  
     audioTranscoder = new StraightThrough_AT(this->intBuffers[index2],audioOutput);
          
@@ -132,7 +131,39 @@ void Mixer::createMixer2(Tmixer type, vector<InputStreams*> inputs, OutputStream
 
 bool Mixer::addStream(InputStreams* input)
 {
-	// \TODO: To implement: Pause everything and add the new input with the corresponding buffers dans managers
+		
+	if( this->streamsInput.size() < 2 ){
+		
+		this->streamsInput.push_back(input);
+		
+		this->intBuffers.push_back( new InternalBuffer() );
+		this->intBuffers.push_back( new InternalBuffer() );
+		
+		int index1= this->intBuffers.size() - 1;
+		int index2= this->intBuffers.size() - 2;
+		
+		switch(theType)
+		{
+		    case NOSYNCH_AV_STRAIGHTTHROUGH:
+		    	this->synchManagers.push_back( new NoSynch( this->streamsInput[1] ,this->intBuffers[index1],this->intBuffers[index2] ) ); 
+		        break;
+		    case SYNCH_AV_STRAIGHTTHROUG: //TODO:
+		        break;
+		}
+				
+		this->terminate();
+		
+		delete this->videoTranscoder;
+		delete this->audioTranscoder;
+		
+		videoTranscoder = new VideoMixer2Channels(this->intBuffers[index1], this->intBuffers[index1 - 2], videoOutput);  
+    	audioTranscoder = new AudioMixer2Channels(this->intBuffers[index2], this->intBuffers[index2 - 2], audioOutput);
+    	
+    	this->start();		
+		
+	}else
+		return false;
+	
  	return true;
 }
 
