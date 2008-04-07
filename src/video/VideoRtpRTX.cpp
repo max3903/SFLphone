@@ -120,13 +120,13 @@ void VideoRtpRTX::run(){
       ////////////////////////////
       // Send session
       ////////////////////////////
-      //sendSession();
-      //timestamp += tstampInc;
+      sendSession();
+      timestamp += tstampInc;
       
       ////////////////////////////
       // Recv session
       ////////////////////////////
-      receiveSession();
+      //receiveSession();
     }
 
     free(data_to_display);
@@ -246,7 +246,9 @@ void VideoRtpRTX::sendSession()
   // Get Data from V4l, send it to the mixer input
   Capture* cmdCapture = (Capture*) VideoDevMng->getCommand(VideoDeviceManager::CAPTURE);
   data_from_wc = cmdCapture->GetCapture(sizeV4L);
-
+  
+  //if (data_from_wc==NULL)
+   //_debug("NULLLLL!!!!");
   //Resolution* cmdRes= (Resolution*)VideoDevMng->getCommand(VideoDeviceManager::RESOLUTION);
   //pair<int,int> Res = cmdRes->getResolution();
 
@@ -259,23 +261,31 @@ void VideoRtpRTX::sendSession()
   // Encode it
   encodedSize = encodeCodec->videoEncode((unsigned char*)data_from_wc,(unsigned char*)data_to_send,320,240);
 
-  unsigned char *packet;
-  packet = new unsigned char[4+encodedSize];
-  memcpy(packet+4,data_to_send,encodedSize);
-  for(int i=0;i<4;i++)
-    packet[i]=0;
+   // _debug("Le timeStamp est: %d \n", timestamp);
+   //_debug("Le size encode est: %d \n", encodedSize);
+  
+  //free(data_from_wc);
+
+    unsigned char *packet;
+    packet = new unsigned char[4+encodedSize];
+    memcpy(packet+4,data_to_send,encodedSize);
+    for(int i=0;i<4;i++)
+      packet[i]=0;
     
-  session->setMark(true);
+    session->setMark(true);
 
 
   // Send it
-    if (!_sym)
-      videoSessionSend->putData(timestamp, data_from_wc, sizeV4L);
-    else
+    //if (!_sym)
+      //videoSessionSend->putData(timestamp, data_from_wc, sizeV4L);
+    //else
+       //session->sendImmediate(rcvTimestamps, data_from_peer, TMPLONG);
        session->sendImmediate(timestamp, packet, encodedSize+4);
-       
     //while(session->isSending());
-    delete packet; packet=NULL;
+    
+    //delete packet;
+     
+     
 
   } catch(...) {
     _debugException("! ARTP: video sending failed");
