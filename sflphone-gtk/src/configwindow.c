@@ -70,6 +70,11 @@ GtkDialog * dialog;
 GtkWidget * notebook;
 GtkObject *brightnessAdjustment, *contrastAdjustment, *colourAdjustment;
 
+GtkWidget *activateCheckBox;
+GtkWidget *cancelCheckBox;
+gboolean enableStatus;
+gboolean disableStatus;
+
 account_t *selectedAccount;
 
 
@@ -1250,6 +1255,58 @@ set_colour(GtkScale* scale, gpointer data)
 	dbus_set_colour(value);
 	
 }
+
+static void activate_checkbox(GtkToggleButton *togglebutton, gpointer user_data)
+{
+	gboolean status = gtk_toggle_button_get_active(togglebutton);
+	set_enable_webcam_checkbox_status(status);
+}
+
+static void cancel_checkbox(GtkToggleButton *togglebutton, gpointer user_data)
+{
+	gboolean status = gtk_toggle_button_get_active(togglebutton);
+	set_disable_webcam_checkbox_status(status);
+}
+
+/**
+ * Format the value of the scale to show a percentage sign after it
+ */
+gchar*
+format_percentage_scale(GtkScale *scale, gdouble value)
+{
+	return g_strdup_printf ("%0*g%%", gtk_scale_get_digits (scale), value);
+} 
+
+gboolean get_enable_webcam_checkbox_status()
+{
+	enableStatus = dbus_get_enable_checkbox_status();
+	return enableStatus;
+}
+
+gboolean get_disable_webcam_checkbox_status()
+{
+	disableStatus = dbus_get_disable_checkbox_status();
+	return disableStatus;
+}
+void set_enable_webcam_checkbox_status(gboolean status)
+{
+	gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(activateCheckBox), status);
+	enableStatus = status;
+	dbus_set_enable_checkbox_status(status);
+}
+
+void set_disable_webcam_checkbox_status(gboolean status)
+{
+	gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(cancelCheckBox), status);
+	disableStatus = status;
+	dbus_set_disable_checkbox_status(status);
+}
+
+void video_settings_checkbox_init()
+{
+	enableStatus = dbus_get_enable_checkbox_status();
+	disableStatus = dbus_get_disable_checkbox_status();
+}
 /**
  * Create table widget for video codecs
  */
@@ -1726,8 +1783,6 @@ create_video_tab ()
 
 	GtkWidget *bitrateLabel;
 	GtkWidget *codecBox, *videoBox;
-	GtkWidget *activateCheckBox;
-	GtkWidget *cancelCheckBox;
 	GtkWidget *codecFrame, *videoFrame;
 	GtkCellRenderer *bitrateRenderer;
 	GtkWidget *bitrateTable;
@@ -1797,11 +1852,16 @@ create_video_tab ()
 	
 	activateCheckBox = gtk_check_button_new_with_label("Always ask before activating the video capture");
 	gtk_box_pack_start(GTK_BOX(videoBox), activateCheckBox, FALSE, FALSE, 0);
+	g_signal_connect(G_OBJECT(activateCheckBox), "toggled", G_CALLBACK (activate_checkbox), NULL);
+	gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(activateCheckBox), enableStatus);
 	gtk_widget_show(activateCheckBox);
 	
 	cancelCheckBox = gtk_check_button_new_with_label("Always ask before cancelling the video capture");
 	gtk_box_pack_start(GTK_BOX(videoBox), cancelCheckBox, FALSE, FALSE, 0);
+	g_signal_connect(G_OBJECT(cancelCheckBox), "toggled", G_CALLBACK (cancel_checkbox), NULL);
+	gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(cancelCheckBox), disableStatus);
 	gtk_widget_show(cancelCheckBox);
+	
 
 	// Show all
 	gtk_widget_show_all(ret);
@@ -1809,14 +1869,7 @@ create_video_tab ()
 	return ret;
 }
 
-/**
- * Format the value of the scale to show a percentage sign after it
- */
-gchar*
-format_percentage_scale(GtkScale *scale, gdouble value)
-{
-	return g_strdup_printf ("%0*g%%", gtk_scale_get_digits (scale), value);
-} 
+
 
 /**
  * Webcam settings tab

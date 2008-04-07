@@ -70,6 +70,10 @@ public:
         register_method(ConfigurationManager, getVideoCodecList, _getVideoCodecList_stub);
         register_method(ConfigurationManager, getActiveVideoCodecList, _getActiveVideoCodecList_stub);
         register_method(ConfigurationManager, setActiveVideoCodecList, _setActiveVideoCodecList_stub);
+        register_method(ConfigurationManager, getEnableCheckboxStatus, _getEnableCheckboxStatus_stub);
+        register_method(ConfigurationManager, getDisableCheckboxStatus, _getDisableCheckboxStatus_stub);
+        register_method(ConfigurationManager, setEnableCheckboxStatus, _setEnableCheckboxStatus_stub);
+        register_method(ConfigurationManager, setDisableCheckboxStatus, _setDisableCheckboxStatus_stub);
         register_method(ConfigurationManager, isIax2Enabled, _isIax2Enabled_stub);
     }
 
@@ -337,6 +341,26 @@ public:
             { "list", "as", true },
             { 0, 0, 0 }
         };
+        static ::DBus::IntrospectedArgument getEnableCheckboxStatus_args[] = 
+        {
+            { "status", "b", false },
+            { 0, 0, 0 }
+        };
+        static ::DBus::IntrospectedArgument getDisableCheckboxStatus_args[] = 
+        {
+            { "status", "b", false },
+            { 0, 0, 0 }
+        };
+        static ::DBus::IntrospectedArgument setEnableCheckboxStatus_args[] = 
+        {
+            { "status", "b", true },
+            { 0, 0, 0 }
+        };
+        static ::DBus::IntrospectedArgument setDisableCheckboxStatus_args[] = 
+        {
+            { "status", "b", true },
+            { 0, 0, 0 }
+        };
         static ::DBus::IntrospectedArgument isIax2Enabled_args[] = 
         {
             { "res", "i", false },
@@ -409,6 +433,10 @@ public:
             { "getVideoCodecList", getVideoCodecList_args },
             { "getActiveVideoCodecList", getActiveVideoCodecList_args },
             { "setActiveVideoCodecList", setActiveVideoCodecList_args },
+            { "getEnableCheckboxStatus", getEnableCheckboxStatus_args },
+            { "getDisableCheckboxStatus", getDisableCheckboxStatus_args },
+            { "setEnableCheckboxStatus", setEnableCheckboxStatus_args },
+            { "setDisableCheckboxStatus", setDisableCheckboxStatus_args },
             { "isIax2Enabled", isIax2Enabled_args },
             { 0, 0 }
         };
@@ -494,6 +522,10 @@ public:
     virtual std::vector< ::DBus::String > getVideoCodecList(  ) = 0;
     virtual std::vector< ::DBus::String > getActiveVideoCodecList(  ) = 0;
     virtual void setActiveVideoCodecList( const std::vector< ::DBus::String >& list ) = 0;
+    virtual ::DBus::Bool getEnableCheckboxStatus(  ) = 0;
+    virtual ::DBus::Bool getDisableCheckboxStatus(  ) = 0;
+    virtual void setEnableCheckboxStatus( const ::DBus::Bool& status ) = 0;
+    virtual void setDisableCheckboxStatus( const ::DBus::Bool& status ) = 0;
     virtual ::DBus::Int32 isIax2Enabled(  ) = 0;
 
 public:
@@ -1028,6 +1060,44 @@ private:
 
         std::vector< ::DBus::String > argin1; ri >> argin1;
         setActiveVideoCodecList(argin1);
+        ::DBus::ReturnMessage reply(call);
+        return reply;
+    }
+    ::DBus::Message _getEnableCheckboxStatus_stub( const ::DBus::CallMessage& call )
+    {
+        ::DBus::MessageIter ri = call.reader();
+
+        ::DBus::Bool argout1 = getEnableCheckboxStatus();
+        ::DBus::ReturnMessage reply(call);
+        ::DBus::MessageIter wi = reply.writer();
+        wi << argout1;
+        return reply;
+    }
+    ::DBus::Message _getDisableCheckboxStatus_stub( const ::DBus::CallMessage& call )
+    {
+        ::DBus::MessageIter ri = call.reader();
+
+        ::DBus::Bool argout1 = getDisableCheckboxStatus();
+        ::DBus::ReturnMessage reply(call);
+        ::DBus::MessageIter wi = reply.writer();
+        wi << argout1;
+        return reply;
+    }
+    ::DBus::Message _setEnableCheckboxStatus_stub( const ::DBus::CallMessage& call )
+    {
+        ::DBus::MessageIter ri = call.reader();
+
+        ::DBus::Bool argin1; ri >> argin1;
+        setEnableCheckboxStatus(argin1);
+        ::DBus::ReturnMessage reply(call);
+        return reply;
+    }
+    ::DBus::Message _setDisableCheckboxStatus_stub( const ::DBus::CallMessage& call )
+    {
+        ::DBus::MessageIter ri = call.reader();
+
+        ::DBus::Bool argin1; ri >> argin1;
+        setDisableCheckboxStatus(argin1);
         ::DBus::ReturnMessage reply(call);
         return reply;
     }

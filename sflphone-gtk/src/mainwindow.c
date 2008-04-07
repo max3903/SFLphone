@@ -29,6 +29,7 @@
 #include <screen.h>
 #include <sliders.h>
 #include <glwidget.h>
+#include <dbus.h>
 
 #include <gtk/gtk.h>
 
@@ -303,6 +304,7 @@ gboolean main_window_glWidget( gboolean show )
 				main_window_update_WebcamStatus(showGlWidget);
 				//Show webcam configuration
 				show_config_window(3);
+				
 				return FALSE;
 				
 			// If current call active enable/disable webcam
@@ -312,6 +314,7 @@ gboolean main_window_glWidget( gboolean show )
 					  if(show && !showGlWidget)
 					  {
 					  	g_print("Enabling visualization pannel\n");
+					  	
 					    drawing_area = createGLWidget(FALSE);
 					    gtk_box_pack_start (GTK_BOX (subvbox), drawing_area, TRUE /*expand*/, TRUE /*fill*/, 0 /*padding*/);
 					    gtk_box_reorder_child(GTK_BOX (subvbox), drawing_area, 0);
@@ -322,12 +325,14 @@ gboolean main_window_glWidget( gboolean show )
 					    main_window_update_WebcamStatus(showGlWidget);
 					    
 					    // \TODO: Add Code to send enable webcam signal
+					    dbus_enable_local_video_pref();
 					    
 					    return TRUE;
 					  }
 					  else if (!show && showGlWidget)
 					  {
 					  	g_print("Disabling visualization pannel\n");
+					  	
 					    gtk_container_remove(GTK_CONTAINER (subvbox), drawing_area);
 					    showGlWidget = show;
 					    
@@ -335,7 +340,7 @@ gboolean main_window_glWidget( gboolean show )
 					    main_window_update_WebcamStatus(showGlWidget);
 					    
 					    // \TODO: Add Code to send disable webcam signal
-					    
+					    dbus_disable_local_video_pref();
 					    return FALSE;
 					  }
 				}
@@ -354,6 +359,7 @@ gboolean main_window_glWidget( gboolean show )
 		main_window_update_WebcamStatus(showGlWidget);
 		//Show webcam configuration
 		show_config_window(3);
+
 	}
 	
 	return FALSE;
@@ -370,5 +376,10 @@ void main_window_update_WebcamStatus( gboolean value )
 	gtk_signal_handler_block(GTK_CHECK_MENU_ITEM(webCamMenu),webCamConnId);
 	gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(webCamMenu), value);
 	gtk_signal_handler_unblock(GTK_CHECK_MENU_ITEM(webCamMenu),webCamConnId);
+}
+
+gboolean get_showGlWidget_status()
+{
+	return showGlWidget;	
 }
 

@@ -36,11 +36,18 @@
 #include "V4L/VideoDeviceManager.h"
 #include "../mixer/VideoInput.h"
 #include "../mixer/VideoOutput.h"
+#include "../memmanager/MemManager.h"
+
+//extern "C++"{
+	//#include <ortp/event.h>
+	//#include <ortp/ortp.h>
+//}
+
+//#include <signal.h>
+//#include <stdlib.h>
 
 class SIPCall; //TODO: pourquoi pas de include SipCall..h????
-/**
- * @author Jean-Francois Blanchard-Dionne 
- */
+
 class VideoRtpRTX : public ost::Thread, public ost::TimerPort {
 public:
 
@@ -95,19 +102,26 @@ private:
     VideoOutput* localVideoOutput;
     VideoOutput* remoteVideoOutput;
 
-    int codecClockRate; // sample rate of the codec we use to encode and decode (most of time 90000HZ)
+    uint32 timestamp;
 
     unsigned char *data_to_send;
     unsigned char *data_from_peer;
     unsigned char *data_from_wc;
     unsigned char *data_to_display;
+    unsigned char *rcvWorkingBuf;
 
-
+    bool isMarked;
+    int peerBufLen;
+    int workingBufLen;
+    
+    MemManager* memManager;
+    MemKey* key;
+    
 	/**
 	 * Get the data from V4l, send it to the mixer, encode and send to RTP
 	 * @param timestamp : puts the current time
 	 */
-	void sendSession(int timestamp);
+	void sendSession();
 	/**
 	 * Receive RTP packet, decode it, send it to mixer
 	 */

@@ -132,14 +132,14 @@ MemKey* MemManager::initSpace(MemKey* key)
 }
 
 
-MemKey* MemManager::initSpace(int size)
+MemKey* MemManager::initSpace(int size,  const char* desc)
 {
 	MemKey *newKey;
 	MemSpace *newSpace;
 	key_t key = genKey();
 	vectMemSpaceIterator MemSpaceLocation;
 	
-	newKey = new MemKey(size,key);
+	newKey = new MemKey(size,key, desc);
 	
 	//create shared memory space
 	ptracesfl("\tInitializing Shared Memory space ...", MT_INFO, MEMMANAGER_TRACE, false );

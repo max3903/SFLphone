@@ -58,7 +58,7 @@ public:
 	 * \param description a description of the shared memory space
 	 * \param key is to set the key
 	 */
-    MemKey(int size,key_t key);
+    MemKey(int size,key_t key, const char* desc= NULL);
     //! Pointer copy constructor
     /*!
      * Creates an independant copy of the source object

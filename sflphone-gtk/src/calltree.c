@@ -24,8 +24,13 @@
 #include <calllist.h>
 #include <menus.h>
 #include <dbus.h>
-#include <invitewindow.h>
 #include <mainwindow.h>
+#include <ctype.h>
+#include <stdio.h>
+#include <string.h>
+#include <glib/gprintf.h>
+#include <stdlib.h>
+#include <unistd.h>
 
 GtkListStore * store;
 GtkWidget *view;
@@ -40,6 +45,16 @@ GtkToolItem * transfertButton;
 GtkToolItem * unholdButton;
 GtkToolItem * inviteButton;
 guint transfertButtonConnId; //The button toggled signal connection ID
+
+//Conference dialogs
+GtkDialog *inviteDialog;
+GtkDialog *joinDialog;
+
+//Webcam enable/disable dialogs
+GtkDialog * enableDialog;
+GtkDialog * disableDialog;
+//The second call to make a conference
+call_t * callConf;
 
 
 /**
@@ -135,25 +150,187 @@ unhold( GtkWidget *widget, gpointer   data )
 static void webCamStatusChange( GtkWidget *widget, gpointer data )
 {
 	g_print("Changing webcam status ...\n");
-	gboolean value= main_window_glWidget(gtk_toggle_tool_button_get_active(GTK_TOGGLE_TOOL_BUTTON (widget)));
+	call_t * selectedCall = call_get_selected();
 	
-	// Changing button state to represent web cam status
-	gtk_signal_handler_block(GTK_TOGGLE_TOOL_BUTTON(widget),webCamButtonConnId);
-	gtk_toggle_tool_button_set_active(GTK_TOGGLE_TOOL_BUTTON (widget), value);
-	gtk_signal_handler_unblock(GTK_TOGGLE_TOOL_BUTTON(widget),webCamButtonConnId);
-	
-	//TODO: Add send signal to enable/disable webcam
-	if(value)
+	//If we are enabling the webcam
+	if( selectedCall)
 	{
-		sflphone_set_video();
-		g_print("Info: enabling webcam");	
+		if(selectedCall->state == CALL_STATE_CURRENT)
+		{
+			if(!get_showGlWidget_status())
+			{
+				//TODO: check the status of the enabling checkbox
+				if(get_enable_webcam_checkbox_status())
+				{
+					create_enable_webcam_window();
+				}
+				else
+				{
+					main_window_glWidget(gtk_toggle_tool_button_get_active(GTK_TOGGLE_TOOL_BUTTON (webCamButton)));
+				}
+			}
+			//If we are disabling the webcam
+			else
+			{
+				//TODO: check the status of the disabling checkbox
+				if(get_disable_webcam_checkbox_status())
+				{
+					create_disable_webcam_window();
+				}
+				else
+				{
+					main_window_glWidget(gtk_toggle_tool_button_get_active(GTK_TOGGLE_TOOL_BUTTON (webCamButton)));
+	
+				}
+			}
+		}
+		else
+		{
+			main_window_glWidget(gtk_toggle_tool_button_get_active(GTK_TOGGLE_TOOL_BUTTON (webCamButton)));
+		}
 	}
 	else
 	{
-		sflphone_unset_video();	
-		g_print("Info: disabling webcam");
+		main_window_glWidget(gtk_toggle_tool_button_get_active(GTK_TOGGLE_TOOL_BUTTON (webCamButton)));
 	}
 	
+}
+
+static void enable_yes_button(GtkButton *button, gpointer user_data)
+{
+	gtk_dialog_response(enableDialog, GTK_RESPONSE_DELETE_EVENT);
+	gtk_widget_destroy(GTK_WIDGET(enableDialog));
+	
+	main_window_glWidget(gtk_toggle_tool_button_get_active(GTK_TOGGLE_TOOL_BUTTON (webCamButton)));
+	
+	sflphone_set_video();
+	g_print("Info: enabling webcam");	
+}
+
+static void enable_no_button(GtkButton *button, gpointer user_data)
+{
+	gtk_dialog_response(enableDialog, GTK_RESPONSE_DELETE_EVENT);
+	gtk_widget_destroy(GTK_WIDGET(enableDialog));
+}
+
+static void disable_yes_button(GtkButton *button, gpointer user_data)
+{
+	gtk_dialog_response(disableDialog, GTK_RESPONSE_DELETE_EVENT);
+	gtk_widget_destroy(GTK_WIDGET(disableDialog));
+	main_window_glWidget(gtk_toggle_tool_button_get_active(GTK_TOGGLE_TOOL_BUTTON (webCamButton)));
+	
+	sflphone_unset_video();	
+	g_print("Info: disabling webcam");
+}
+
+static void disable_no_button(GtkButton *button, gpointer user_data)
+{
+	gtk_dialog_response(disableDialog, GTK_RESPONSE_DELETE_EVENT);
+	gtk_widget_destroy(GTK_WIDGET(disableDialog));
+}
+
+static void enable_checkbox(GtkToggleButton *togglebutton, gpointer user_data)
+{
+	gboolean status = gtk_toggle_button_get_active(togglebutton);
+	set_enable_webcam_checkbox_status(!status);
+}
+
+static void disable_checkbox(GtkToggleButton *togglebutton, gpointer user_data)
+{
+	gboolean status = gtk_toggle_button_get_active(togglebutton);
+	set_disable_webcam_checkbox_status(!status);
+}
+/**
+ * Dialog window on webcam activation
+ */
+void create_enable_webcam_window()
+{
+  	GtkWidget *enableVBox;
+  	GtkWidget *enableLabel;
+  	GtkWidget *enableYesButton;
+	GtkWidget *enableNoButton;
+	GtkWidget *enableCheckBox;
+  	
+  	
+  	enableDialog = GTK_DIALOG(gtk_dialog_new_with_buttons ("Enable webcam",
+				GTK_WINDOW(get_main_window()),
+				GTK_DIALOG_DESTROY_WITH_PARENT,
+				NULL));
+				
+	gtk_dialog_set_has_separator(enableDialog, FALSE);
+	gtk_window_set_default_size(GTK_WINDOW(enableDialog), 100, 100);
+	gtk_container_set_border_width(GTK_CONTAINER(enableDialog), 0);
+
+  	enableVBox = GTK_DIALOG (enableDialog)->vbox;
+  	gtk_widget_show (enableVBox);
+
+  	enableLabel = gtk_label_new (("Do you want to enable webcam capture?"));
+  	gtk_widget_show (enableLabel);
+  	gtk_box_pack_start (GTK_BOX (enableVBox), enableLabel, TRUE, TRUE, 0);
+  	
+  	enableCheckBox = gtk_check_button_new_with_label("Don't show this dialog again");
+	gtk_box_pack_start(GTK_BOX(enableVBox), enableCheckBox, FALSE, FALSE, 0);
+	gtk_widget_show(enableCheckBox);
+
+  	enableYesButton = gtk_button_new_with_mnemonic (("Yes"));
+  	gtk_widget_show (enableYesButton);
+  	gtk_dialog_add_action_widget (GTK_DIALOG (enableDialog), enableYesButton, 0);
+
+  	enableNoButton = gtk_button_new_with_mnemonic (("No"));
+  	gtk_widget_show (enableNoButton);
+  	gtk_dialog_add_action_widget (GTK_DIALOG (enableDialog), enableNoButton, 0);
+  	
+  	g_signal_connect(G_OBJECT(enableYesButton), "clicked", G_CALLBACK (enable_yes_button), NULL);
+  	g_signal_connect(G_OBJECT(enableNoButton), "clicked", G_CALLBACK (enable_no_button), NULL);
+  	g_signal_connect(G_OBJECT(enableCheckBox), "toggled", G_CALLBACK (enable_checkbox), NULL);
+  	
+  	gtk_dialog_run(enableDialog);
+}
+
+/**
+ * Dialog window on webcam activation
+ */
+void create_disable_webcam_window()
+{
+  	GtkWidget *disableVBox;
+  	GtkWidget *disableLabel;
+  	GtkWidget *disableYesButton;
+	GtkWidget *disableNoButton;
+	GtkWidget *disableCheckBox;
+  	
+  	disableDialog = GTK_DIALOG(gtk_dialog_new_with_buttons ("Enable webcam",
+				GTK_WINDOW(get_main_window()),
+				GTK_DIALOG_DESTROY_WITH_PARENT,
+				NULL));
+				
+	gtk_dialog_set_has_separator(disableDialog, FALSE);
+	gtk_window_set_default_size(GTK_WINDOW(disableDialog), 100, 100);
+	gtk_container_set_border_width(GTK_CONTAINER(disableDialog), 0);
+
+  	disableVBox = GTK_DIALOG (disableDialog)->vbox;
+  	gtk_widget_show (disableVBox);
+
+  	disableLabel = gtk_label_new (("Do you want to disable webcam capture?"));
+  	gtk_widget_show (disableLabel);
+  	gtk_box_pack_start (GTK_BOX (disableVBox), disableLabel, TRUE, TRUE, 0);
+  	
+  	disableCheckBox = gtk_check_button_new_with_label("Don't show this dialog again");
+	gtk_box_pack_start(GTK_BOX(disableVBox), disableCheckBox, FALSE, FALSE, 0);
+	gtk_widget_show(disableCheckBox);
+
+  	disableYesButton = gtk_button_new_with_mnemonic (("Yes"));
+  	gtk_widget_show (disableYesButton);
+  	gtk_dialog_add_action_widget (GTK_DIALOG (disableDialog), disableYesButton, 0);
+
+  	disableNoButton = gtk_button_new_with_mnemonic (("No"));
+  	gtk_widget_show (disableNoButton);
+  	gtk_dialog_add_action_widget (GTK_DIALOG (disableDialog), disableNoButton, 0);
+  	
+  	g_signal_connect(G_OBJECT(disableYesButton), "clicked", G_CALLBACK (disable_yes_button), NULL);
+  	g_signal_connect(G_OBJECT(disableNoButton), "clicked", G_CALLBACK (disable_no_button), NULL);
+  	g_signal_connect(G_OBJECT(disableCheckBox), "toggled", G_CALLBACK (disable_checkbox), NULL);
+  	
+  	gtk_dialog_run(disableDialog);
 }
 
 /**
@@ -161,8 +338,259 @@ static void webCamStatusChange( GtkWidget *widget, gpointer data )
  */
 static void inviteUser( GtkWidget *widget, gpointer data )
 {
-	//TODO: Implement Fonctionnality
-	create_Join_conf();
+	call_t * selectedCall = call_get_selected();
+	if(selectedCall)
+	{
+		if(selectedCall->state == CALL_STATE_CURRENT)
+		{
+			dbus_hold(selectedCall);
+			create_invite_window();
+		}
+	}
+	
+}
+
+static void invite_call_button(GtkButton *button, gpointer user_data)
+{
+	char buf[20];
+	gboolean answer;
+	account_t * account;
+	gchar * default_account =  account_list_get_default();
+	account = account_list_get_by_id(default_account);
+	
+	//Initialize call struct
+	callConf = g_new0 (call_t, 1);
+	strcpy(buf, gtk_entry_get_text(user_data));
+	printf("buffer: %s \n", buf);
+	callConf->state = CALL_STATE_DIALING;
+	callConf->from = g_strconcat("\"\" <>", NULL);
+	callConf->callID = g_new0(gchar, 30);
+	g_sprintf(callConf->callID, "%d", rand()); 
+	callConf->to = g_strdup(buf);
+		
+		
+	if(account)
+	{
+		if(strcmp(g_hash_table_lookup(account->properties, "Status"),"REGISTERED")==0)
+		{
+			callConf->accountID = default_account;
+			//Place call
+			answer = dbus_invite_conference(callConf);
+		}
+		else
+		{
+			main_window_error_message("The account selected as default is not registered.");
+		}
+		
+	}
+	else
+	{
+		account = account_list_get_by_state (ACCOUNT_STATE_REGISTERED);
+		if(account)
+		{
+			callConf->accountID = account->accountID;
+			//Place call
+			answer = dbus_invite_conference(callConf);
+		}
+		else
+		{
+			main_window_error_message("There are no registered accounts to make this call with.");
+		}
+
+	}
+	
+	gtk_dialog_response(inviteDialog, GTK_RESPONSE_DELETE_EVENT);
+	gtk_widget_destroy(GTK_WIDGET(inviteDialog));
+	
+	//Wait for positive answer then show the join dialog
+	
+	if(answer)
+	{
+		create_join_window();
+	}
+	else
+	{
+		//TODO: popup an error window
+		call_t * selectedCall = call_get_selected();
+		if(selectedCall)
+		{
+			if(selectedCall->state == CALL_STATE_HOLD)
+			{
+				dbus_unhold(selectedCall);
+			}
+		}
+		printf("connexion not established \n");	
+	}
+}
+
+static void invite_cancel_button(GtkButton *button, gpointer user_data)
+{
+	call_t * selectedCall = call_get_selected();
+	if(selectedCall)
+	{
+		if(selectedCall->state == CALL_STATE_HOLD)
+		{
+			dbus_unhold(selectedCall);
+		}
+	}
+	gtk_dialog_response(inviteDialog, GTK_RESPONSE_DELETE_EVENT);
+	gtk_widget_destroy(GTK_WIDGET(inviteDialog));
+}
+
+/* Limits the entry to numbers only */
+void insert_text_handler (GtkEntry *entry, const gchar *text, gint length,
+							gint *position, gpointer data)
+{
+	GtkEditable *editable = GTK_EDITABLE(entry);
+	int i, count=0;
+	gchar *result = g_new (gchar, length);
+
+	for (i=0; i < length; i++) 
+	{
+		if (isdigit(text[i]))
+      		result[count++] = text[i];
+	}
+  
+	if (count > 0) 
+	{
+		g_signal_handlers_block_by_func (G_OBJECT (editable),G_CALLBACK (insert_text_handler), data);
+		gtk_editable_insert_text (editable, result, count, position);
+		g_signal_handlers_unblock_by_func (G_OBJECT (editable), G_CALLBACK (insert_text_handler), data);
+	}
+  
+	g_signal_stop_emission_by_name (G_OBJECT (editable), "insert_text");
+
+	g_free (result);
+}
+
+void create_invite_window()
+{
+	
+  	GtkWidget *dialogVBox;
+  	GtkWidget *confVBox;
+  	GtkWidget *phoneLabel;
+  	GtkWidget *phoneEntry;
+  	GtkWidget *inviteCallButton;
+	GtkWidget *inviteCancelButton;
+  	
+	
+	
+	inviteDialog = GTK_DIALOG(gtk_dialog_new_with_buttons ("Invite user",
+				GTK_WINDOW(get_main_window()),
+				GTK_DIALOG_DESTROY_WITH_PARENT,
+				NULL));
+				
+	gtk_dialog_set_has_separator(inviteDialog, FALSE);
+	gtk_window_set_default_size(GTK_WINDOW(inviteDialog), 100, 100);
+	gtk_container_set_border_width(GTK_CONTAINER(inviteDialog), 0);
+	
+	dialogVBox = GTK_DIALOG (inviteDialog)->vbox;
+  	gtk_widget_show (dialogVBox);
+  	
+  	confVBox = gtk_vbox_new (FALSE, 0);
+  	gtk_box_pack_start (GTK_BOX (dialogVBox), confVBox, TRUE, TRUE, 0);
+  	gtk_widget_show (confVBox);
+
+  	phoneLabel = gtk_label_new (("Enter the phone number to call then press the Call button"));
+  	gtk_widget_show (phoneLabel);
+  	gtk_box_pack_start (GTK_BOX (confVBox), phoneLabel, TRUE, TRUE, 0);
+
+  	phoneEntry = gtk_entry_new ();
+  	gtk_widget_show (phoneEntry);
+  	gtk_box_pack_start (GTK_BOX (confVBox), phoneEntry, TRUE, TRUE, 0);
+
+  	inviteCallButton = gtk_button_new_with_mnemonic (("Call"));
+  	gtk_widget_show (inviteCallButton);
+  	gtk_dialog_add_action_widget (GTK_DIALOG (inviteDialog), inviteCallButton, 0);
+
+  	inviteCancelButton = gtk_button_new_with_mnemonic (("Cancel"));
+  	gtk_widget_show (inviteCancelButton);
+  	gtk_dialog_add_action_widget (GTK_DIALOG (inviteDialog), inviteCancelButton, 0);
+  	
+  	g_signal_connect(G_OBJECT(inviteCallButton), "clicked", G_CALLBACK (invite_call_button), phoneEntry);
+  	g_signal_connect(G_OBJECT(inviteCancelButton), "clicked", G_CALLBACK (invite_cancel_button), NULL);
+  	g_signal_connect(G_OBJECT(phoneEntry), "insert_text", G_CALLBACK(insert_text_handler), NULL);
+
+  	gtk_dialog_run(inviteDialog);
+}
+
+
+static void join_button(GtkButton *button, gpointer user_data)
+{
+	call_t * selectedCall = call_get_selected();
+	if(selectedCall)
+	{
+		if(selectedCall->state == CALL_STATE_HOLD)
+		{
+			//Join calls
+			if(dbus_join_conference(selectedCall, callConf))
+			{
+				dbus_unhold(selectedCall);
+				//update_menus();
+				//TODO: update calltree icons
+			}
+		}
+		selectedCall->state = CALL_STATE_CONF;
+		callConf->state = CALL_STATE_CONF;
+	}
+	
+	//toolbar_update_buttons ();
+	gtk_dialog_response(joinDialog, GTK_RESPONSE_DELETE_EVENT);
+	gtk_widget_destroy(GTK_WIDGET(joinDialog));
+}
+
+static void join_cancel_button(GtkButton *button, gpointer user_data)
+{
+	//TODO: hangup call with the callee
+	call_t * selectedCall = call_get_selected();
+	if(selectedCall)
+	{
+		if(selectedCall->state == CALL_STATE_HOLD)
+		{
+			dbus_hang_up(callConf);
+			dbus_unhold(selectedCall);
+		}
+	}
+	gtk_dialog_response(joinDialog, GTK_RESPONSE_DELETE_EVENT);
+	gtk_widget_destroy(GTK_WIDGET(joinDialog));
+}
+
+void create_join_window()
+{
+  	GtkWidget *joinVBox;
+  	GtkWidget *joinLabel;
+  	GtkWidget *joinButton;
+	GtkWidget *joinCancelButton;
+  	
+
+  	joinDialog = GTK_DIALOG(gtk_dialog_new_with_buttons ("Invite user",
+				GTK_WINDOW(get_main_window()),
+				GTK_DIALOG_DESTROY_WITH_PARENT,
+				NULL));
+				
+	gtk_dialog_set_has_separator(joinDialog, FALSE);
+	gtk_window_set_default_size(GTK_WINDOW(joinDialog), 100, 100);
+	gtk_container_set_border_width(GTK_CONTAINER(joinDialog), 0);
+
+  	joinVBox = GTK_DIALOG (joinDialog)->vbox;
+  	gtk_widget_show (joinVBox);
+
+  	joinLabel = gtk_label_new (("The connection has been established \n Press join to start the conference"));
+  	gtk_widget_show (joinLabel);
+  	gtk_box_pack_start (GTK_BOX (joinVBox), joinLabel, TRUE, TRUE, 0);
+
+  	joinButton = gtk_button_new_with_mnemonic (("Join"));
+  	gtk_widget_show (joinButton);
+  	gtk_dialog_add_action_widget (GTK_DIALOG (joinDialog), joinButton, 0);
+
+  	joinCancelButton = gtk_button_new_with_mnemonic (("Cancel"));
+  	gtk_widget_show (joinCancelButton);
+  	gtk_dialog_add_action_widget (GTK_DIALOG (joinDialog), joinCancelButton, 0);
+  	
+  	g_signal_connect(G_OBJECT(joinButton), "clicked", G_CALLBACK (join_button), NULL);
+  	g_signal_connect(G_OBJECT(joinCancelButton), "clicked", G_CALLBACK (join_cancel_button), NULL);
+  	
+  	gtk_dialog_run(joinDialog);
 }
 
 	void 
@@ -175,7 +603,7 @@ toolbar_update_buttons ()
 	gtk_widget_set_sensitive( GTK_WIDGET(transfertButton),  FALSE);
 	gtk_widget_set_sensitive( GTK_WIDGET(unholdButton),     FALSE);
 	gtk_widget_set_sensitive( GTK_WIDGET(webCamButton),     TRUE);
-	gtk_widget_set_sensitive( GTK_WIDGET(inviteButton),     TRUE);	
+	gtk_widget_set_sensitive( GTK_WIDGET(inviteButton),     FALSE);	
 		g_object_ref(holdButton);
 	g_object_ref(unholdButton);
 	gtk_container_remove(GTK_CONTAINER(toolbar), GTK_WIDGET(holdButton));
@@ -255,6 +683,13 @@ toolbar_update_buttons ()
 				gtk_widget_set_sensitive( GTK_WIDGET(hangupButton),     TRUE);
 				gtk_widget_set_sensitive( GTK_WIDGET(holdButton),       TRUE);
 				gtk_widget_set_sensitive( GTK_WIDGET(transfertButton),  TRUE);
+				break;
+			case CALL_STATE_CONF:
+				gtk_widget_set_sensitive( GTK_WIDGET(callButton),       FALSE);
+				gtk_widget_set_sensitive( GTK_WIDGET(inviteButton),     FALSE);
+				gtk_widget_set_sensitive( GTK_WIDGET(transfertButton),  FALSE);
+				gtk_widget_set_sensitive( GTK_WIDGET(hangupButton),     TRUE);
+				gtk_widget_set_sensitive( GTK_WIDGET(holdButton),       TRUE);
 				break;
 			default:
 				g_warning("Should not happen!");

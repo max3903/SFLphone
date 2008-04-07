@@ -26,7 +26,9 @@
 #include <stdlib.h>
 #include <semaphore.h>
 
+
 #define SFLTRACE_LEVEL		1				/*Default trace level*/
+
 
 #define HEADER_ERROR	"Error: "		/*Error message Tag*/
 #define HEADER_WARNING	"Warning: "		/*Warning message Tag*/

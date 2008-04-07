@@ -1041,6 +1041,8 @@ SIPVoIPLink::subscriptionNotificationReceived(eXosip_event_t* event, char* body)
 bool 
 SIPVoIPLink::SIPStartVideo(SIPCall* call)
 {
+
+/*
   printf("DANS LA FONCTION REINVITE SIPVOIP!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!v!!!\n");
   
   std::string subject = "TEST INVITE VIDEO";
@@ -1109,7 +1111,7 @@ SIPVoIPLink::SIPStartVideo(SIPCall* call)
   // tell sip if we support SIP extension like 100rel
   // osip_message_set_supported (invite, "100rel");
 
-  /* add sdp body */
+  // add sdp body
   {
     char tmp[4096];
     snprintf (tmp, 4096,
@@ -1135,7 +1137,7 @@ SIPVoIPLink::SIPStartVideo(SIPCall* call)
   eXosip_call_build_request(call->getDid(),"INVITE",&invite);
   eXosip_call_send_request(call->getDid(),invite);
 
-/*
+
   // Keep the cid in case of cancelling
   call->setCid(cid);   // p-e pas nescessaire
 
@@ -1146,12 +1148,12 @@ SIPVoIPLink::SIPStartVideo(SIPCall* call)
     _debug("* SIP Info: Outgoing callID is %s, cid=%d\n", call->getCallId().data(), cid);
     eXosip_call_set_reference (cid, NULL);
   }
-*/
+
   
   eXosip_unlock();
 
   return true;
-  
+  */
 }
 
 
@@ -1254,9 +1256,6 @@ SIPVoIPLink::SIPStartCall(SIPCall* call, const std::string& subject)
     _debug("SDP send: %s", tmp);
   }*/
 
-  int LocalPort = call->getLocalVideoPort();
-
-
   //TODO: je lai modifier!
   {
     char tmp[4096];
@@ -1265,13 +1264,14 @@ SIPVoIPLink::SIPStartCall(SIPCall* call, const std::string& subject)
               "o=SFLphone 0 0 IN IP4 %s\r\n"
               "s=call\r\n"
               "c=IN IP4 %s\r\n"
+              "b=CT:384\r\n"
               "t=0 0\r\n"
               "m=audio %d RTP/AVP %s\r\n"
               "%s"
               "m=video %d RTP/AVP 34\r\n"
               "a=rtpmap:34 H263/90000\r\n"
-              "a=sendrecv\r\n",
-              _localExternAddress.c_str(), _localExternAddress.c_str(), call->getLocalExternAudioPort(), media_audio.str().c_str(), rtpmap_attr.str().c_str(),LocalPort);
+              "a=sendrecv\r\n",_localExternAddress.c_str(), _localExternAddress.c_str(), call->getLocalExternAudioPort(), media_audio.str().c_str(), rtpmap_attr.str().c_str(),call->getLocalExternVideoPort());
+
     // media_audio should be one, two or three numbers?
     osip_message_set_body (invite, tmp, strlen (tmp));
     osip_message_set_content_type (invite, "application/sdp");
