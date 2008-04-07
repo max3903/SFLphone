@@ -23,7 +23,6 @@
 #include <string>
 #include "call.h"
 #include "mixer/Mixer.h"
-#include "manager.h"
 
 /** Defines the type that reprensents the ID of a confCall
  */

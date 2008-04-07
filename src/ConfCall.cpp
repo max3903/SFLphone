@@ -18,6 +18,7 @@
  */
  
 #include "ConfCall.h"
+#include "manager.h"
 
 ConfCall::ConfCall(){
 }
