@@ -226,10 +226,18 @@ void Call::setConfMode( VideoInput* extraVideo, AudioInput* extraAudio  ){
 	if( extraVideo != NULL && extraAudio != NULL ){		// Add the inputs to the remote mixer
 		this->_remoteExtraInputStreams= new InputStreams( extraVideo, extraAudio );
 		this->_remoteMixer->addStream( this->_remoteExtraInputStreams);
+		
+		// Shutdown the local mixer (normally the ConfCall should have a local mixer replacing this one)
+		this->_localMixer->terminate();
+		
 	}else if( extraVideo == NULL && extraAudio == NULL ){	// Remove the inputs from the remote mixer (end of conference)
 		this->_remoteMixer->removeStream(this->_remoteExtraInputStreams);
 		delete this->_remoteExtraInputStreams;
 		this->_remoteExtraInputStreams= NULL;
+		
+		// Restart the local mixer
+		this->_localMixer->start();
+		
 	}else
 		ptracesfl("Call - setConfMode(): Should not happen, the 2 inputs must be either equal to NULL or different", MT_FATAL, CALL_TRACE);	
 	 
@@ -244,4 +252,12 @@ void Call::terminateMixers() const{
 	this->_remoteMixer->terminate();
 	ptracesfl("Remote Mixer Stopped", MT_INFO, CALL_TRACE);
  
+}
+
+void Call::setConfId( std::string ID ){
+	this->ConfId= ID;
+}
+	
+std::string Call::getConfId(){
+	return this->ConfId;
 }

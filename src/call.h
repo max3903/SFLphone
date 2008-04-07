@@ -241,6 +241,14 @@ public:
 	 */
 	void terminateMixers() const;
 	
+	/** Set the conference ID
+	 */
+	void setConfId( std::string ID );
+	
+	/** Set's the conf id
+	 */
+	std::string getConfId();
+	
 protected:
     /** Protect every attribute that can be changed by two threads */
     ost::Mutex _callMutex;
@@ -349,6 +357,9 @@ private:
     
     /* The Remote Mixer Video ouput */
     VideoOutput* _remote_Video_Output;
+    
+    /* The ID of the conference that this call is related to */
+    std::string ConfId;
 
 };
 

@@ -37,7 +37,7 @@ SUBDIRS = audio config contact dbus memmanager video mixer $(ZEROCONFDIR)
 sflphoned_SOURCES = eventthread.cpp 	main.cpp 	voiplink.cpp \
 		managerimpl.cpp	observer.cpp \
 		account.cpp sipaccount.cpp accountcreator.cpp \
-		sipvoiplink.cpp call.cpp sipcall.cpp sippresencemanager.cpp tracePrintSFL.cpp \
+		sipvoiplink.cpp call.cpp sipcall.cpp sippresencemanager.cpp tracePrintSFL.cpp ConfCall.cpp \
 		$(IAXSOURCES)
 
 sflphoned_CXXFLAGS = -DPREFIX=\"$(prefix)\" -DPROGSHAREDIR=\"${datadir}/sflphone\" $(ZEROCONFFLAGS) $(IAX_FLAGS) $(SFLPHONE_CFLAGS) $(SIP_CFLAGS)
