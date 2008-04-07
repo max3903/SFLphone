@@ -22,101 +22,63 @@
 
 #define VIDEOCODECPTRACE 2
 
-
-int VideoCodec::videoEncode(unsigned char*in_buf, unsigned char* out_buf)
-{
-	AVFrame *IN=NULL,*SWS=NULL,*TEMP=NULL;
-	int outsize;
+VideoCodec::VideoCodec(char* codecName){
 	
-	if(in_buf == NULL) 	{ptracesfl("CAN'T Encode - Input Buffer problem\n",MT_ERROR,1,true);return -1;}
-	if(out_buf == NULL) {ptracesfl("CAN'T Encode - output Buffer problem\n",MT_ERROR,1,true);return -1;}
+		//check if active Codec
+	if(codecName == NULL)
+	ptracesfl("CODEC ERROR",MT_FATAL,1,true);
 	
-	
-	if(padding == true)
-	{
-		TEMP  =  encodeSWS->alloc_pictureRGB24(inputWidth,inputHeight,in_buf);
-		av_picture_pad((AVPicture*)IN,(AVPicture*)TEMP,inputWidth,inputHeight,PIX_FMT_RGB24,paddingTop,paddingbottom,0,0,0);
-	}
-	else
-		IN  =  encodeSWS->alloc_pictureRGB24(inputWidth,inputHeight,in_buf);
-	
-	
-	SWS = encodeSWS->alloc_picture420P(_encodeCodecCtx->width,_encodeCodecCtx->height);
-	
-	if(IN != NULL || SWS != NULL)
-	{
-		if (encodeSWS->Convert(IN,SWS) == false)
- 		{ptracesfl("Conversion error\n",MT_ERROR,1,true);return -1;}
- 	}
- 	else {ptracesfl("Conversion error - NULL Frames\n",MT_ERROR,1,true);return -1;}
-
-
-	//Step 2:Encode
-	//TODO GET A PROPER BUFFER SIZE
-	if ( (outsize = avcodec_encode_video(_encodeCodecCtx, out_buf, FF_MIN_BUFFER_SIZE, SWS))<= 0)
-		{ptracesfl("Encoding error\n",MT_ERROR,1,true);return -1;}
+	if ((_CodecENC = avcodec_find_encoder_by_name(codecName)) == NULL)
+		ptracesfl("CODEC ERROR",MT_FATAL,1,true);
 		
-	// free codecs
-	av_free(SWS);
-	av_free(IN);
+	if ((_CodecDEC = avcodec_find_decoder_by_name(codecName)) == NULL)
+		ptracesfl("CODEC ERROR",MT_FATAL,1,true);
 
-	//return outBufferSize
-	return outsize;
-	}
-
-int VideoCodec::videoDecode(uint8_t *in_buf, uint8_t* out_buf,int inSize)
-{
-	int frame, got_picture, len;
-	uint8_t *buf;
-	AVFrame *SWS,*OUT;
-	
-	// Check if everything  is set properly
-	if(in_buf == NULL) 	{ptracesfl("CAN'T Encode - Input Buffer problem\n",MT_ERROR,1,true);return -1;}
-	if(out_buf == NULL) {ptracesfl("CAN'T Encode - output Buffer problem\n",MT_ERROR,1,true);return -1;}
-	
-	//set the libavcodec special memory space
-	if((buf = (uint8_t*)av_malloc(inSize+FF_INPUT_BUFFER_PADDING_SIZE)) == NULL)
-	{ptracesfl("Malloc Error\n",MT_ERROR,1,true);return -1;};
-    if( memcpy(buf,in_buf,inSize) ==NULL)
-	{ptracesfl("MemCpy Error\n",MT_ERROR,1,true);return -1;};
-	if ( memset(buf + inSize, 0, FF_INPUT_BUFFER_PADDING_SIZE) == NULL)
-	{ptracesfl("MemSet Error\n",MT_ERROR,1,true);return -1;};
-	
-	// init output picture decoded
-    SWS = avcodec_alloc_frame();
-	if(SWS == NULL)
-	{ptracesfl("CAN'T Decode OUtput picture allocation problem\n",MT_ERROR,1,true);return -1;}
-	
-	if ( avcodec_decode_video(_decodeCodecCtx, SWS, &got_picture,buf,inSize ) < 0)
-		{ptracesfl("CAN'T Decode - couldn't decode\n",MT_ERROR,1,true);return -1;}
-
-	
-	
-	// Maybe you didn't get a full picture!
-	if (got_picture == 0)
-	{ptracesfl("Could not get full frame\n",MT_INFO,4,true);return -1;}
-	
-	
-   	OUT = decodeSWS->alloc_pictureRGB24(DEFAULT_WIDTH,DEFAULT_HEIGHT,out_buf)	;
-   
-   if (decodeSWS->Convert(SWS,OUT) == false)
- 		{ptracesfl("Conversion error\n",MT_ERROR,1,true);return -1;}
-   
-    av_free(SWS);
-    av_free(buf);
-    av_free(OUT);
-	
-	return avpicture_get_size(PIX_FMT_RGB24, DEFAULT_WIDTH, DEFAULT_HEIGHT);
+	init();
 }
+
+VideoCodec::VideoCodec(enum CodecID id){
+	
+		//check if active Codec
+	if(id == 0)
+	ptracesfl("CODEC ERROR",MT_FATAL,1,true);
+	
+	if ((_CodecENC = avcodec_find_encoder(id)) == NULL)
+		ptracesfl("CODEC ERROR",MT_FATAL,1,true);
+		
+	if ((_CodecDEC = avcodec_find_decoder(id)) == NULL)
+		ptracesfl("CODEC ERROR",MT_FATAL,1,true);
+
+	init();
+}
+ 
+ 
+VideoCodec::VideoCodec(){}
+
+VideoCodec::~VideoCodec(){
+	quitEncodeContext();
+	quitDecodeContext();
+ }
+
 
 void VideoCodec::init(){
 	
+	pair<int,int> tmp; 
+
 	ptracesfl("VideoCodec initialisation",MT_INFO,5,true);
 	
 	//Get VideoDescriptor Instance
 	_videoDesc = VideoCodecDescriptor::getInstance();
-
+//Get V4LManager instance
+	_v4lManager = VideoDeviceManager::getInstance();
+	
+	_cmdRes = (Resolution*)_v4lManager->getCommand(VideoDeviceManager::RESOLUTION);
 	//These are Settings adjustements
+	tmp = _cmdRes->getResolution();
+	//default width and height
+	inputWidth = tmp.first;
+	inputHeight = tmp.second;
+	
 	initEncodeContext();
 	initDecodeContext();
 }
@@ -239,51 +201,102 @@ void VideoCodec::quitEncodeContext()
 	delete encodeSWS;
 }
 
-VideoCodec::VideoCodec(char* codecName,int inWidth,int inHeight){
-	
 
-		//check if active Codec
-	if(codecName == NULL)
-	ptracesfl("CODEC ERROR",MT_FATAL,1,true);
+
+
+int VideoCodec::videoEncode(unsigned char*in_buf, unsigned char* out_buf,int width,int height)
+{
+	AVFrame *IN=NULL,*SWS=NULL,*TEMP=NULL;
+	int outsize;
 	
-	if ((_CodecENC = avcodec_find_encoder_by_name(codecName)) == NULL)
-		ptracesfl("CODEC ERROR",MT_FATAL,1,true);
+	if(height <=0) 	{ptracesfl("CAN'T Encode - height not set properly\n",MT_ERROR,1,true);return -1;}
+	if(width <=0) 	{ptracesfl("CAN'T Encode - Width not set properly\n",MT_ERROR,1,true);return -1;}
+	if(in_buf == NULL) 	{ptracesfl("CAN'T Encode - Input Buffer problem\n",MT_ERROR,1,true);return -1;}
+	if(out_buf == NULL) {ptracesfl("CAN'T Encode - output Buffer problem\n",MT_ERROR,1,true);return -1;}
+	
+		if(width != inputWidth || height != inputHeight  )
+		{
+		//change the codecs width and height
+		quitEncodeContext();
+		inputWidth = width;
+		inputHeight = height;
+		initEncodeContext();
+		}
+
+	if(padding == true)
+	{
+		TEMP  =  encodeSWS->alloc_pictureRGB24(inputWidth,inputHeight,in_buf);
+		av_picture_pad((AVPicture*)IN,(AVPicture*)TEMP,inputWidth,inputHeight,PIX_FMT_RGB24,paddingTop,paddingbottom,0,0,0);
+	}
+	else
+		IN  =  encodeSWS->alloc_pictureRGB24(inputWidth,inputHeight,in_buf);
+	
+	
+	SWS = encodeSWS->alloc_picture420P(_encodeCodecCtx->width,_encodeCodecCtx->height);
+	
+	if(IN != NULL || SWS != NULL)
+	{
+		if (encodeSWS->Convert(IN,SWS) == false)
+ 		{ptracesfl("Conversion error\n",MT_ERROR,1,true);return -1;}
+ 	}
+ 	else {ptracesfl("Conversion error - NULL Frames\n",MT_ERROR,1,true);return -1;}
+
+
+	//Step 2:Encode
+	if ( (outsize = avcodec_encode_video(_encodeCodecCtx, out_buf, FF_MIN_BUFFER_SIZE, SWS))<= 0)
+		{ptracesfl("Encoding error\n",MT_ERROR,1,true);return -1;}
 		
-	if ((_CodecDEC = avcodec_find_decoder_by_name(codecName)) == NULL)
-		ptracesfl("CODEC ERROR",MT_FATAL,1,true);
+	// free Pictures
+	av_free(SWS);
+	av_free(IN);
 
+	//return the size of the encoded data
+	return outsize;
+	}
 
-	inputWidth = inWidth;
-	inputHeight = inHeight;
-	init();
+int VideoCodec::videoDecode(uint8_t *in_buf, uint8_t* out_buf,int inSize)
+{
+	int frame, got_picture, len;
+	uint8_t *buf;
+	AVFrame *SWS,*OUT;
+	
+	// Check if everything  is set properly
+	if(in_buf == NULL) 	{ptracesfl("CAN'T Encode - Input Buffer problem\n",MT_ERROR,1,true);return -1;}
+	if(out_buf == NULL) {ptracesfl("CAN'T Encode - output Buffer problem\n",MT_ERROR,1,true);return -1;}
+	
+	//set the libavcodec special memory space
+	if((buf = (uint8_t*)av_malloc(inSize+FF_INPUT_BUFFER_PADDING_SIZE)) == NULL)
+	{ptracesfl("Malloc Error\n",MT_ERROR,1,true);return -1;};
+    if( memcpy(buf,in_buf,inSize) ==NULL)
+	{ptracesfl("MemCpy Error\n",MT_ERROR,1,true);return -1;};
+	if ( memset(buf + inSize, 0, FF_INPUT_BUFFER_PADDING_SIZE) == NULL)
+	{ptracesfl("MemSet Error\n",MT_ERROR,1,true);return -1;};
+	
+	// init output picture decoded
+    SWS = avcodec_alloc_frame();
+	if(SWS == NULL)
+	{ptracesfl("CAN'T Decode OUtput picture allocation problem\n",MT_ERROR,1,true);return -1;}
+	
+	if ( avcodec_decode_video(_decodeCodecCtx, SWS, &got_picture,buf,inSize ) < 0)
+		{ptracesfl("CAN'T Decode - couldn't decode\n",MT_ERROR,1,true);return -1;}
+
+	
+   	OUT = decodeSWS->alloc_pictureRGB24(DEFAULT_WIDTH,DEFAULT_HEIGHT,out_buf)	;
+   
+   if (decodeSWS->Convert(SWS,OUT) == false)
+ 		{ptracesfl("Conversion error\n",MT_ERROR,1,true);return -1;}
+   
+    av_free(SWS);
+    av_free(buf);
+    av_free(OUT);
+	// Maybe you didn't get a full picture!
+	if (got_picture == 0)
+	{ptracesfl("Could not get full frame\n",MT_INFO,4,true);return -1;}
+	
+	return avpicture_get_size(PIX_FMT_RGB24, DEFAULT_WIDTH, DEFAULT_HEIGHT);
 }
 
-VideoCodec::VideoCodec(enum CodecID id,int inWidth,int inHeight){
-	
-		//check if active Codec
-	if(id == 0)
-	ptracesfl("CODEC ERROR",MT_FATAL,1,true);
-	
-	if ((_CodecENC = avcodec_find_encoder(id)) == NULL)
-		ptracesfl("CODEC ERROR",MT_FATAL,1,true);
-		
-	if ((_CodecDEC = avcodec_find_decoder(id)) == NULL)
-		ptracesfl("CODEC ERROR",MT_FATAL,1,true);
-	
-		
-	inputWidth = inWidth;
-	inputHeight = inHeight;
 
-	init();
-}
- 
- 
-VideoCodec::VideoCodec(){}
 
-VideoCodec::~VideoCodec(){
- 
-quitEncodeContext();
-quitDecodeContext();
 
- }
  

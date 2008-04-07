@@ -48,8 +48,8 @@ public:
      *  Constructor we force to use
      * 
      */
-    VideoCodec(char* codecName,int inWidth,int inHeight);
-    VideoCodec(enum CodecID id,int inWidth,int inHeight);
+    VideoCodec(char* codecName);
+    VideoCodec(enum CodecID id);
 /**
 	
      * Function to decode video information
@@ -70,7 +70,7 @@ public:
      * @return the size of the encoded buffer, a negative value otherwise
      */
 
-    int videoEncode(unsigned char* in_buf, unsigned char* out_buf);
+    int videoEncode(unsigned char* in_buf, unsigned char* out_buf,int width,int height);
  	
 
     
@@ -109,6 +109,12 @@ private:
  	* Instance of the VideoCodecDescriptor class
  	* */
 	VideoCodecDescriptor *_videoDesc;
+	 /**
+     * Active Resolution
+     */
+    Resolution* _cmdRes;
+    // Video device manager instance
+	VideoDeviceManager *_v4lManager; 
 	
 	/**
      * Libavcodec Encoding power duo
@@ -128,7 +134,6 @@ private:
     int inputWidth;
     int inputHeight;
     
-      
    /** 
     * width and height the codec will receive to decode
     */
