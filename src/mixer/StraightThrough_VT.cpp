@@ -55,6 +55,7 @@ void StraightThrough_VT::run()
     
     // This thread must sleep longer than the sync thread to create a continious stream of information for the output.
     usleep(2);
+  }
 }
 
 void StraightThrough_VT::pause()

@@ -83,7 +83,7 @@ private:
 
     char* data1;
     char* data2;
-    char* mixedData;
+    unsigned char* mixedData;
     
     int width1;
     int height1;

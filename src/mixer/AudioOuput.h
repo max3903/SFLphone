@@ -91,13 +91,13 @@ private:
 	/*!
 	 * This method is implemented as private and \b should \b not \b be \b used in AudioOutput. This method is inherited from OutputStream. putData(int16 * data, int size) instead. 
 	 */
-    virtual void putData(char * data, int size) __attribute__ ((deprecated));
+    virtual void putData(unsigned char* data, int size) __attribute__ ((deprecated));
     
     //! Method to get the data in the buffer
 	/*!
 	 * This method is implemented as private and \b should \b not \b be \b used in AudioOutput. This method is inherited from OutputStream. Use fetchData(int16 *data) instead. 
 	 */
-    virtual int fetchData(char* data) __attribute__ ((deprecated));
+    virtual int fetchData(unsigned char* data, int &width, int &height) __attribute__ ((deprecated));
 
 };
 #endif //AUDIOOUPUT_H

@@ -85,13 +85,13 @@ void AudioOutput::putData(short * data, int size)
 }
 
 // DEPRECIATED !!!!!
-int AudioOutput::fetchData(char* data)
+int AudioOutput::fetchData(unsigned char* data, int &width, int &height)
 {
   ptracesfl("AudioOuput - fetchData(char* data): This method should never be called in an AudioOutput Buffer",MT_FATAL,AUDIOOUTPUT_TRACE);
   return -1; 
 }
 // DEPRECIATED !!!!!
-void AudioOutput::putData(char * data, int size)
+void AudioOutput::putData(unsigned char * data, int size)
 { 
   ptracesfl("AudioOuput - fetchData(char* data): This method should never be called in an AudioOutput Buffer",MT_FATAL,AUDIOOUTPUT_TRACE);
 }

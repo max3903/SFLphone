@@ -60,7 +60,7 @@ void VideoMixer2Channels::run()
 							
 				// mixing data : cmposing 2 videos
 				this->paddingSize =  this->paddingWidth*biggerHeight*3;				
-				this->mixedData = new/*(mixedData)*/ char[sizeBuffer1+paddingSize+sizeBuffer2];
+				this->mixedData = new/*(mixedData)*/ unsigned char[sizeBuffer1+paddingSize+sizeBuffer2];
 						
 				this->mixVideo(); // 64 is the padding width
 				
