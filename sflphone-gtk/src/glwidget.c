@@ -40,7 +40,7 @@ gboolean draw(GtkWidget* widget, gpointer data)
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
 	gluOrtho2D(0.0, widget->allocation.width, 0.0, widget->allocation.height );
-	
+		
 	// Draw Recevied Images
 	if( prefPannel != TRUE ){
 		
@@ -211,7 +211,7 @@ gboolean drawLocal(GtkWidget* widget, gpointer data, GdkGLContext *glContext, Gd
 	}
 	
 	// Draw fetched Data
-	glClear(GL_COLOR_BUFFER_BIT);
+	//glClear(GL_COLOR_BUFFER_BIT);
 	glPixelStorei(GL_PACK_ALIGNMENT, 8);	
 	glRasterPos2f(x,y);
 	glPixelZoom( zoomX, zoomY );
@@ -243,7 +243,7 @@ gboolean drawRemote(GtkWidget* widget, gpointer data, GdkGLContext *glContext, G
 	}*/
 	
 	// Draw fetched Data
-	glClear(GL_COLOR_BUFFER_BIT);		
+	//glClear(GL_COLOR_BUFFER_BIT);		
 	glPixelStorei(GL_PACK_ALIGNMENT, 8);
 	
 	//Adapting the current resolution to the space allowed by the widget	

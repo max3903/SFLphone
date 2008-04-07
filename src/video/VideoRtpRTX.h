@@ -104,18 +104,17 @@ private:
     VideoOutput* localVideoOutput;
     VideoOutput* remoteVideoOutput;
 
-    int codecClockRate; // sample rate of the codec we use to encode and decode (most of time 90000HZ)
+    uint32 timestamp;
 
     unsigned char *data_to_send;
     unsigned char *data_from_peer;
     unsigned char *data_from_wc;
     unsigned char *data_to_display;
-    unsigned char *TMPBUFFER;
+    unsigned char *rcvWorkingBuf;
 
-    int tmp;
-    int rcvTimestamps;
     bool isMarked;
-    int TMPLONG;
+    int peerBufLen;
+    int workingBufLen;
     
     MemManager* memManager;
     MemKey* key;
@@ -124,7 +123,7 @@ private:
 	 * Get the data from V4l, send it to the mixer, encode and send to RTP
 	 * @param timestamp : puts the current time
 	 */
-	void sendSession(int timestamp);
+	void sendSession();
 	/**
 	 * Receive RTP packet, decode it, send it to mixer
 	 */
