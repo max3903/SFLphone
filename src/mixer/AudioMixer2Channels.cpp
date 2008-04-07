@@ -85,7 +85,7 @@ void AudioMixer2Channels::run()
 	
 }
 
-short mixData(short data1, short data2){
+short AudioMixer2Channels::mixData(short data1, short data2){
 	short mixedData = data1 + data2 - (data1*data2)/65536; // short is 16 bits -> 2^16 = 65536
 	
 	return mixedData;
