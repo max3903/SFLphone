@@ -50,7 +50,8 @@ void Mixer::init(Tmixer type, vector<InputStreams*> inputs, OutputStream* audioO
         break;
     case SYNCH_AV_STRAIGHTTHROUG: //TODO:
         break;
-    case NOSYNCH_AV_MIXER2: //TODO:
+    case NOSYNCH_AV_MIXER2:
+    	this->createMixer2(type, inputs, audioOut, videoOut);
         break;
     case SYNCH_AV_MIXER2: //TODO:
         break;
@@ -126,7 +127,32 @@ void Mixer::createStraightThrough(Tmixer type, vector<InputStreams*> inputs, Out
 
 void Mixer::createMixer2(Tmixer type, vector<InputStreams*> inputs, OutputStream* audioOut, OutputStream* videoOut)
 {
-  	// \TODO: To implement: Creates a 2 channel audio and video mixer
+  	ptracesfl("Creating 2 channels audio and video mixer ...", MT_INFO, MIXER_TRACE);
+  	
+	this->streamsInput.push_back(inputs[0]);
+	this->streamsInput.push_back(inputs[1]);
+	
+	ptracesfl("Affecting outputs", MT_INFO, MIXER_TRACE);
+	// Setting outputs
+  	audioOutput=audioOut;
+  	videoOutput=videoOut;
+  	
+	// Create 4 internal buffer, one for video and the other for audio	
+	this->intBuffers.push_back( new InternalBuffer() );
+	this->intBuffers.push_back( new InternalBuffer() );
+	this->intBuffers.push_back( new InternalBuffer() );
+	this->intBuffers.push_back( new InternalBuffer() );
+	
+	int index1= this->intBuffers.size() - 1;
+	int index2= this->intBuffers.size() - 2;
+		
+	// Creating 2 StraightThrough Mixer
+    videoTranscoder = new VideoMixer2Channels(this->intBuffers[index1], this->intBuffers[index1 - 2], videoOutput);  
+    audioTranscoder = new AudioMixer2Channels(this->intBuffers[index2], this->intBuffers[index2 - 2], audioOutput);
+         
+    // Creating NoSynch SynchManagers
+    synchManagers.push_back( new NoSynch(this->streamsInput[0] ,this->intBuffers[index1],this->intBuffers[index2]) );
+    synchManagers.push_back( new NoSynch(this->streamsInput[1] ,this->intBuffers[index1-2],this->intBuffers[index2-2]) );
 }
 
 bool Mixer::addStream(InputStreams* input)
