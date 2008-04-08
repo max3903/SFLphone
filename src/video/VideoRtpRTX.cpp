@@ -126,6 +126,7 @@ void VideoRtpRTX::run(){
       ////////////////////////////
       // Recv session
       ////////////////////////////
+
      // receiveSession();
     }
 
@@ -258,8 +259,14 @@ void VideoRtpRTX::sendSession()
   // Prend les donnes de la sortie du mixer correspondant
   //vidCall->getRemoteVideoOutputStream()->fetchData((char*)sendDataEncoded);
 
+  this->vidCall->getRemote_Video_Input()->putData( data_to_display, sizeV4L, 0, 320, 240 );
+  
+  int videoSize= -1;
+  int width= 0, height= 0;
+  unsigned char* dataToSend= this->vidCall->getRemote_Video_Output()->fetchData(videoSize, width, height);
   // Encode it
-  encodedSize = encodeCodec->videoEncode((unsigned char*)data_from_wc,(unsigned char*)data_to_send,320,240);
+  if( videoSize > 0 ){
+ 	encodedSize = encodeCodec->videoEncode(dataToSend,(unsigned char*)data_to_send,width,height);
 
    // _debug("Le timeStamp est: %d \n", timestamp);
    //_debug("Le size encode est: %d \n", encodedSize);
@@ -271,7 +278,7 @@ void VideoRtpRTX::sendSession()
     memcpy(packet+4,data_to_send,encodedSize);
     for(int i=0;i<4;i++)
       packet[i]=0;
-    
+       
     session->setMark(true);
 
 
@@ -284,7 +291,7 @@ void VideoRtpRTX::sendSession()
     //while(session->isSending());
     
     //delete packet;
-     
+  }
      
 
   } catch(...) {
@@ -322,8 +329,11 @@ void VideoRtpRTX::receiveSession()
 
     // Decode it
     if (isMarked) {
-      if (decodeCodec->videoDecode(data_from_peer,data_to_display,peerBufLen) >= 0)
-        this->memManager->putData(this->key, data_to_display, FRAME_SIZE, 320, 240);
+      int decodedSize= decodeCodec->videoDecode(data_from_peer,data_to_display,peerBufLen);
+      if( decodedSize >= 0 ){
+        //this->memManager->putData(this->key, data_to_display, FRAME_SIZE, 320, 240);
+        this->vidCall->getLocal_Video_Input()->putData( data_to_display, decodedSize, 0, 320, 240  );
+      }
       peerBufLen=0;
     }
     

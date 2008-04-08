@@ -201,9 +201,6 @@ void VideoCodec::quitEncodeContext()
 	delete encodeSWS;
 }
 
-
-
-
 int VideoCodec::videoEncode(unsigned char*in_buf, unsigned char* out_buf,int width,int height)
 {
 	AVFrame *IN=NULL,*SWS=NULL,*TEMP=NULL;
@@ -225,8 +222,9 @@ int VideoCodec::videoEncode(unsigned char*in_buf, unsigned char* out_buf,int wid
 
 	if(padding == true)
 	{
-		TEMP  =  encodeSWS->alloc_pictureRGB24(inputWidth,inputHeight,in_buf);
+		TEMP  =  encodeSWS->alloc_pictureRGB24(inputWidth,inputHeight,in_buf);	
 		av_picture_pad((AVPicture*)IN,(AVPicture*)TEMP,inputWidth,inputHeight,PIX_FMT_RGB24,paddingTop,paddingbottom,0,0,0);
+		av_free(TEMP);
 	}
 	else
 		IN  =  encodeSWS->alloc_pictureRGB24(inputWidth,inputHeight,in_buf);
@@ -237,14 +235,14 @@ int VideoCodec::videoEncode(unsigned char*in_buf, unsigned char* out_buf,int wid
 	if(IN != NULL || SWS != NULL)
 	{
 		if (encodeSWS->Convert(IN,SWS) == false)
- 		{ptracesfl("Conversion error\n",MT_ERROR,1,true);return -1;}
+ 		{ptracesfl("Conversion error\n",MT_ERROR,1,true);av_free(SWS);av_free(IN);return -1; }
  	}
- 	else {ptracesfl("Conversion error - NULL Frames\n",MT_ERROR,1,true);return -1;}
+ 	else {ptracesfl("Conversion error - NULL Frames\n",MT_ERROR,1,true);av_free(SWS);av_free(IN);return -1;}
 
 
 	//Step 2:Encode
 	if ( (outsize = avcodec_encode_video(_encodeCodecCtx, out_buf, FF_MIN_BUFFER_SIZE, SWS))<= 0)
-		{ptracesfl("Encoding error\n",MT_ERROR,1,true);return -1;}
+		{ptracesfl("Encoding error\n",MT_ERROR,1,true);av_free(SWS);av_free(IN);return -1;}
 		
 	// free Pictures
 	av_free(SWS);
@@ -268,23 +266,23 @@ int VideoCodec::videoDecode(uint8_t *in_buf, uint8_t* out_buf,int inSize)
 	if((buf = (uint8_t*)av_malloc(inSize+FF_INPUT_BUFFER_PADDING_SIZE)) == NULL)
 	{ptracesfl("Malloc Error\n",MT_ERROR,1,true);return -1;};
     if( memcpy(buf,in_buf,inSize) ==NULL)
-	{ptracesfl("MemCpy Error\n",MT_ERROR,1,true);return -1;};
+	{ptracesfl("MemCpy Error\n",MT_ERROR,1,true);av_free(buf);return -1;};
 	if ( memset(buf + inSize, 0, FF_INPUT_BUFFER_PADDING_SIZE) == NULL)
-	{ptracesfl("MemSet Error\n",MT_ERROR,1,true);return -1;};
+	{ptracesfl("MemSet Error\n",MT_ERROR,1,true);av_free(buf);return -1;};
 	
 	// init output picture decoded
     SWS = avcodec_alloc_frame();
 	if(SWS == NULL)
-	{ptracesfl("CAN'T Decode OUtput picture allocation problem\n",MT_ERROR,1,true);return -1;}
+	{ptracesfl("CAN'T Decode OUtput picture allocation problem\n",MT_ERROR,1,true);av_free(buf);av_free(SWS);return -1;}
 	
 	if ( avcodec_decode_video(_decodeCodecCtx, SWS, &got_picture,buf,inSize ) < 0)
-		{ptracesfl("CAN'T Decode - couldn't decode\n",MT_ERROR,1,true);return -1;}
+		{ptracesfl("CAN'T Decode - couldn't decode\n",MT_ERROR,1,true);av_free(buf);av_free(SWS);return -1;}
 
 	
    	OUT = decodeSWS->alloc_pictureRGB24(DEFAULT_WIDTH,DEFAULT_HEIGHT,out_buf)	;
    
    if (decodeSWS->Convert(SWS,OUT) == false)
- 		{ptracesfl("Conversion error\n",MT_ERROR,1,true);return -1;}
+ 		{ptracesfl("Conversion error\n",MT_ERROR,1,true);av_free(buf);av_free(SWS);av_free(OUT);return -1;}
    
     av_free(SWS);
     av_free(buf);

@@ -32,16 +32,14 @@
 #include "VideoRtp.h"
 #include <cc++/thread.h>
 #include <ccrtp/rtp.h>
-#include <ffmpeg/avcodec.h> //TODO: p-e pas nescessaire !
 #include "V4L/VideoDeviceManager.h"
-#include "../mixer/VideoInput.h"
-#include "../mixer/VideoOutput.h"
+//#include "../mixer/VideoInput.h"
+//#include "../mixer/VideoOutput.h"
 #include "../memmanager/MemManager.h"
+#include </usr/include/ortp/event.h>
 
-//extern "C++"{
-	//#include <ortp/event.h>
-	//#include <ortp/ortp.h>
-//}
+#include <ortp/ortp.h>
+
 
 //#include <signal.h>
 //#include <stdlib.h>
@@ -96,11 +94,6 @@ private:
     AVCodecContext*	codecCtx;
     /** Video Device manager **/
     VideoDeviceManager* VideoDevMng;
-    /** Input and Output buffers for the mixers**/
-    VideoInput* localVideoInput;
-    VideoInput* remoteVideoInput;
-    VideoOutput* localVideoOutput;
-    VideoOutput* remoteVideoOutput;
 
     uint32 timestamp;
 

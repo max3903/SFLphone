@@ -78,7 +78,7 @@ public:
      * \param w the width of the image
      * \param h the height of the image
      */
-    virtual void putData(char * data, int size, int timeStamp, int w, int h);
+    virtual void putData(unsigned char * data, int size, int timeStamp, int w, int h);
 
 	//! Method to get the current size of the buffer
 	/*!

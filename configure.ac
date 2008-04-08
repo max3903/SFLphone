@@ -213,6 +213,7 @@ PKG_CHECK_MODULES(ortp, ortp >= ${LIBORTP_MIN_VERSION})
 SFLPHONE_CFLAGS="$SFLPHONE_CFLAGS $ortp_CFLAGS"
 SFLPHONE_LIBS="$SFLPHONE_LIBS $ortp_LIBS"
 
+
 # check for libgsm1 (doesn't use pkg-config)
 dnl Check for libgsm
 AC_ARG_WITH([gsm],
