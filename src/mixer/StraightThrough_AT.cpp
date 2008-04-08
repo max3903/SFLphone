@@ -85,9 +85,8 @@ void StraightThrough_AT::pause()
   ptracesfl("StraightThrough_AT - pause(): Pausing ...",MT_INFO,STRAIGHTTHROUGH_TRACE);
   
   Active=false;
-  OkToKill=false;
-  
-  //Watting for the thread to stop
+    
+  //Waiting for the thread to stop
   while(!OkToKill);
 }
 

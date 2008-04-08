@@ -111,14 +111,19 @@ VoIPLink::getConf(const ConfID& id){
 bool 
 VoIPLink::addConf( const CallID& id1, const CallID& id2 ){
 	
-	ost::MutexLock mCall(_confCallMapMutex);
+	
 	Call* call1= this->getCall(id1);
 	Call* call2= this->getCall(id2);
+	
+	ost::MutexLock mCall(_confCallMapMutex);
 	ConfCall* tmpConf= new ConfCall(call1, call2);
-	ost::MutexLock mConfCall(this->_confCallMapMutex);
+	_debug("New conf call created\n");
+	_debug("Conf call thread created\n");
 	this->_confCallMap.insert( pair<ConfID, ConfCall*>( tmpConf->getConfId(), tmpConf ) );
 	
 	// \TODO: Add calls management to unhold both calls
+	return true;
+	
 	
 }
 
