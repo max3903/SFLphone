@@ -144,7 +144,7 @@ public:
    * @param Id of a Call
    * @param Id of a Call
    */
-  bool addConf( CallID& id1, CallID& id2 );
+  bool addConf(const CallID& id1,const CallID& id2 );
 
   /**
    * Get registration state

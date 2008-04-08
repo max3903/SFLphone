@@ -109,7 +109,7 @@ VoIPLink::getConf(const ConfID& id){
 }
 
 bool 
-VoIPLink::addConf( CallID& id1, CallID& id2 ){
+VoIPLink::addConf( const CallID& id1, const CallID& id2 ){
 	
 	ost::MutexLock mCall(_confCallMapMutex);
 	Call* call1= this->getCall(id1);

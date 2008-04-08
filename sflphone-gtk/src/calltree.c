@@ -525,8 +525,7 @@ static void join_button(GtkButton *button, gpointer user_data)
 			//Join calls
 			if(dbus_join_conference(selectedCall, callConf))
 			{
-				dbus_unhold(selectedCall);
-				//update_menus();
+				update_menus();
 				//TODO: update calltree icons
 			}
 		}
@@ -534,7 +533,7 @@ static void join_button(GtkButton *button, gpointer user_data)
 		callConf->state = CALL_STATE_CONF;
 	}
 	
-	//toolbar_update_buttons ();
+	toolbar_update_buttons ();
 	gtk_dialog_response(joinDialog, GTK_RESPONSE_DELETE_EVENT);
 	gtk_widget_destroy(GTK_WIDGET(joinDialog));
 }
@@ -688,8 +687,8 @@ toolbar_update_buttons ()
 				gtk_widget_set_sensitive( GTK_WIDGET(callButton),       FALSE);
 				gtk_widget_set_sensitive( GTK_WIDGET(inviteButton),     FALSE);
 				gtk_widget_set_sensitive( GTK_WIDGET(transfertButton),  FALSE);
+				gtk_widget_set_sensitive( GTK_WIDGET(holdButton),       FALSE);
 				gtk_widget_set_sensitive( GTK_WIDGET(hangupButton),     TRUE);
-				gtk_widget_set_sensitive( GTK_WIDGET(holdButton),       TRUE);
 				break;
 			default:
 				g_warning("Should not happen!");

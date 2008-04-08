@@ -191,6 +191,7 @@ sflphone_hang_up()
 			case CALL_STATE_RINGING:
 			case CALL_STATE_BUSY:
 			case CALL_STATE_FAILURE:
+			case CALL_STATE_CONF:
 				dbus_hang_up (selectedCall);
 				break;
 			case CALL_STATE_INCOMING:  
