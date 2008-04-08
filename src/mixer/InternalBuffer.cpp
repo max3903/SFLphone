@@ -36,10 +36,10 @@ bool InternalBuffer::putData(void * data, int size)
     
     // Creating new data packet
     DataPacket* tmpPack= new DataPacket;
-    tmpPack->data= new unsigned char[size];
+    tmpPack->data= (unsigned char*)data;//new unsigned char[size];
     tmpPack->size= size;
     
-    memcpy(tmpPack->data,data,tmpPack->size);
+    //memcpy(tmpPack->data,data,tmpPack->size);
 
 	//Adding packet tot the buffer
 	sem_wait(&sem_putData);    

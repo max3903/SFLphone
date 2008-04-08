@@ -29,7 +29,8 @@
 
 #include "VideoCodec/VideoCodec.h"
 #include "VideoCodecDescriptor.h"
-#include "VideoRtp.h"
+//#include "VideoRtp.h"
+#include "../sipcall.h"
 #include <cc++/thread.h>
 #include <ccrtp/rtp.h>
 #include "V4L/VideoDeviceManager.h"
@@ -94,6 +95,9 @@ private:
     AVCodecContext*	codecCtx;
     /** Video Device manager **/
     VideoDeviceManager* VideoDevMng;
+    
+    Resolution* cmdRes;
+    Capture* cmdCapture;
 
     uint32 timestamp;
 
@@ -106,9 +110,6 @@ private:
     bool isMarked;
     int peerBufLen;
     int workingBufLen;
-    
-    MemManager* memManager;
-    MemKey* key;
     
 	/**
 	 * Get the data from V4l, send it to the mixer, encode and send to RTP
