@@ -70,7 +70,7 @@ void StraightThrough_AT::run()
     	ptracesfl("StraightThrough_AT - run(): No Data to fetch", MT_WARNING, STRAIGHTTHROUGH_TRACE);
     
     // This thread must sleep longer than the sync thread to create a continious stream of information for the output.
-    usleep(7);
+    usleep(51);
     
   }
   
