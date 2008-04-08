@@ -295,8 +295,46 @@ new_entry_activated(GtkMenuItem* item, GtkTreeView* treeView)
 static void
 edit_entry_activated(GtkMenuItem* item, GtkTreeView* treeView)
 {
-	// TODO
-	g_print("Edit entry activated");
+	GtkTreeIter iter;
+	GtkTreePath* path;
+	gchar* entryID = NULL;
+	gchar* contactID = NULL;
+	gchar* accountID = NULL;
+	
+	// Find model and selection to get the entry ID
+	GtkTreeModel* model = gtk_tree_view_get_model(treeView);
+	GtkTreeSelection* selection = gtk_tree_view_get_selection(treeView);
+	gtk_tree_selection_get_selected(selection, &model, &iter);
+	gtk_tree_model_get(model, &iter,
+			CONTACT_WINDOW_ID, &entryID,
+			-1);
+	
+	// Get path and then parent path
+	path = gtk_tree_model_get_path(model, &iter);
+	gtk_tree_path_up(path);
+	
+	// Get the contact ID of the parent iter
+	gtk_tree_model_get_iter(model, &iter, path);
+	gtk_tree_model_get(model, &iter,
+			CONTACT_WINDOW_ID, &contactID,
+			-1);
+		
+	// Get path and then parent path
+	path = gtk_tree_model_get_path(model, &iter);
+	gtk_tree_path_up(path);
+	
+	// Get the account ID of the parent iter
+	gtk_tree_model_get_iter(model, &iter, path);
+	gtk_tree_model_get(model, &iter,
+			CONTACT_WINDOW_ID, &accountID,
+			-1);
+		
+	show_entry_dialog(accountID, contactID, entryID);
+	
+	gtk_tree_path_free(path);
+	g_free(entryID);
+	g_free(contactID);
+	g_free(accountID);
 }
 
 /**
@@ -686,16 +724,30 @@ show_entry_dialog(gchar* accountID, gchar* contactID, gchar* entryID)
 			entry->_isShownInConsole = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(entryIsShownCheckButton));
 			entry->_isSubscribed = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(entryIsSubcribedCheckButton));
 			
+			// Do nothing if entry ID is empty
+			if(strcmp(entry->_entryID, "") == 0) return;
+			
 			// The model of the tree view is not modified directly but the entry list will
 			// be updated and will propagate changes to the entry window and the call console.
+			
+			// Add a new entry
 			if(isNewEntry)
 				contact_list_entry_add(accountID, contactID, entry, TRUE);
 			else
-				contact_list_entry_edit(accountID, contactID, entry);
-			
-			// TODO If entry ID changed we must do a remove and add
+			{
+				// If entry ID changed we must do a remove and add
+				if(strcmp(entryID, entry->_entryID) != 0)
+				{
+					contact_list_entry_remove(accountID, contactID, entryID);
+					contact_list_entry_add(accountID, contactID, entry, TRUE);
+				}
+				else
+				{
+					// Edit entry
+					contact_list_entry_edit(accountID, contactID, entry);
+				}
+			}
 		}
-		
 		gtk_widget_destroy(GTK_WIDGET(entryDialog));
 	}
 }
