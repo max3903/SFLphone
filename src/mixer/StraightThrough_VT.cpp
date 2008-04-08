@@ -67,7 +67,6 @@ void StraightThrough_VT::pause()
 { 
   ptracesfl("StraightThrough_VT - pause(): Pausing...",MT_INFO,true);
   
-  OkToKill=false;
   Active=false;
   
   while(!OkToKill);
