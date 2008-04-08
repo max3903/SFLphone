@@ -66,7 +66,7 @@ public:
      * \param h the height of the image
      * \return the size of the fetched data or -1 if an error occured
      */
-    virtual int fetchData(unsigned char* data);
+    virtual unsigned char* fetchData(int &size);
 
     //! Changes the data contained in the buffer
     /*!

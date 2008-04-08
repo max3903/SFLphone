@@ -28,10 +28,11 @@ VideoOutput::~VideoOutput()
 {
 }
 
-int VideoOutput::fetchData(unsigned char* data, int &width, int &height)
+unsigned char* VideoOutput::fetchData(int &size, int &width, int &height)
 {
-	
- if(data ==NULL && this->fifo.size() != 0)
+  unsigned char* data= NULL;
+  
+  if(this->fifo.size() != 0)
   {
   	// Getting reference to head in queue
   	sem_wait(&sem_putData);
@@ -41,14 +42,14 @@ int VideoOutput::fetchData(unsigned char* data, int &width, int &height)
     data= tmpPak->data;
     width= tmpPak->width;
     height= tmpPak->height;
-    int sizeBuffer= tmpPak->size;
+    size= tmpPak->size;
     
     // Removing head
     sem_wait(&sem_putData); 
     this->fifo.pop_front();
     sem_post(&sem_putData);
         
-    return sizeBuffer;
+    return data;
   }
   else
   {

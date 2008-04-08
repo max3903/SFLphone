@@ -23,7 +23,6 @@ void StraightThrough_VT::run()
   Active=true;
   OkToKill=false;
   
-  int size;
   unsigned char* data= NULL;
  
   ptracesfl("StraightThrough_VT - pause(): Starting ...",MT_INFO,STRAIGHTTHROUGH_TRACE); 
@@ -40,14 +39,12 @@ void StraightThrough_VT::run()
     	//data= new unsigned char[ sizeBuffer ];
     	
     	ptracesfl("StraightThrough_VT - run(): Fetching data from internal video buffer ...",MT_INFO,STRAIGHTTHROUGH_TRACE);
-    	data = (unsigned char*)(inputBuffer->fetchData(size));
-	    if( size != -1 ){
+    	data = (unsigned char*)(inputBuffer->fetchData(sizeBuffer));
+	    if( sizeBuffer != -1 ){
 	    	ptracesfl("StraightThrough_VT - run(): Sending data to audio video buffer ...",MT_INFO,STRAIGHTTHROUGH_TRACE);
 		    outputBuffer->putData(data,sizeBuffer);
-			delete data; 
 	    }else{
    			ptracesfl("StraightThrough_VT - run(): Cannot fetch data from internal buffer",MT_ERROR,STRAIGHTTHROUGH_TRACE);
-   			delete data; 
 	    }
 	    
 	    data= NULL;
@@ -56,7 +53,7 @@ void StraightThrough_VT::run()
     	ptracesfl("StraightThrough_VT - run(): No Data to fetch", MT_WARNING, STRAIGHTTHROUGH_TRACE);
     
     // This thread must sleep longer than the sync thread to create a continious stream of information for the output.
-    usleep(2);
+    usleep(7);
   }
 }
 

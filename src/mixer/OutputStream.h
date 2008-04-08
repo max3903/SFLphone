@@ -39,7 +39,7 @@ public:
 	 * \param data a pointer to where the data is to be copied
 	 * \return the size of data
 	 */
-    virtual int fetchData(unsigned char* data, int &width, int &height) =0;
+    virtual unsigned char* fetchData( int &size, int &width, int &height) =0;
 
 	//! Method to get the data in the buffer
 	/*!
