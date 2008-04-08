@@ -97,7 +97,7 @@ private:
 	/*!
 	 * This method is implemented as private and \b should \b not \b be \b used in VideoOutput. This method is inherited from OutputStream. Use fetchData(char* data) instead. 
 	 */
-    virtual int fetchData(short *data) __attribute__ ((deprecated));
+    virtual short* fetchData(int &size) __attribute__ ((deprecated));
 
 };
 #endif //VIDEOOUTPUT_H

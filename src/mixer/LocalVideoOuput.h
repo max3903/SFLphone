@@ -64,7 +64,7 @@ private:
     /*!
      * This method is not used in this class
      */
-    virtual int fetchData(unsigned char* data);
+    virtual short* fetchData(int &size);
     
     //! Shared memory manager
     MemManager* manager;

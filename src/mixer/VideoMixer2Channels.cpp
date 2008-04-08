@@ -26,6 +26,9 @@ void VideoMixer2Channels::run()
 	Active=true;
 	OkToKill=false;
   
+	int size1;
+	int size2;
+	
 	data1= NULL;
 	data2= NULL;
 	mixedData= NULL;
@@ -45,7 +48,10 @@ void VideoMixer2Channels::run()
 			
 			ptracesfl("VideoMixer2Channels - run(): Fetching data from internal audio buffer ...",MT_INFO,VIDEOMIXER2CHANNELS_TRACE);
 			
-			if(( inputBuffer1->fetchData(data1) != -1 ) && ( inputBuffer1->fetchData(data1) != -1 )){
+			data1 = (unsigned char*)(inputBuffer1->fetchData(size1));
+			data2 = (unsigned char*)(inputBuffer1->fetchData(size2));
+			
+			if(( size1 != -1 ) && ( size2 != -1 )){
 				
 				ptracesfl("VideoMixer2Channels - run(): Mixing data ...",MT_INFO,VIDEOMIXER2CHANNELS_TRACE);
 				

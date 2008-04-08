@@ -50,25 +50,29 @@ void AudioInput::putData(short *data, int size, int timeStamp)
   }   
 }
 
-int AudioInput::fetchData(short *data) 
+short* AudioInput::fetchData(int &size) 
 { 
-  if(data!=NULL && this->fifo.size() != 0)
+  short* data;
+  
+  if(this->fifo.size() != 0)
   {
   	// Getting reference to head in queue
   	sem_wait(&sem_putData);
     AudioPacket * tmpPak= this->fifo.front();
     sem_post(&sem_putData);
         
-    memcpy(data, tmpPak->data, tmpPak->size);
+    //memcpy(data, tmpPak->data, tmpPak->size);
     
-    int sizeBuffer= tmpPak->size;
+    data = tmpPak->data;
+    size = tmpPak->size;
     
     // Removing head
     sem_wait(&sem_putData); 
     this->fifo.pop_front();
     sem_post(&sem_putData);
-        
-    return sizeBuffer;
+    
+    return data;
+    
   }
   else
   {
@@ -76,9 +80,11 @@ int AudioInput::fetchData(short *data)
   		ptracesfl("AudioInput - fetchData(): bad paramteter NULL pointer passed",MT_ERROR, AUDIOINPUT_TRACE);
   	else
     	ptracesfl("AudioInput - fetchData(): empty buffer",MT_WARNING, AUDIOINPUT_TRACE);
+    
   }
 
-  return -1;
+  size = -1;
+  return NULL;
 }
 
 int AudioInput::getSizeBuffer(){

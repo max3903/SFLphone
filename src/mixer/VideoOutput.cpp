@@ -91,7 +91,7 @@ const char* VideoOutput::getType() const{
 }
 
 // DEPRECIATED !!!!!
-int VideoOutput::fetchData(short *data)
+short* VideoOutput::fetchData(int &size)
 { 
   return 0; 
 }

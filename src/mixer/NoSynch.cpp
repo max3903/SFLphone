@@ -23,22 +23,25 @@ NoSynch::~NoSynch()
 void NoSynch::run()
 {
   OkToKill = false;
+  int size;
+  short* dataAudio;
+  
   while(Active)
   {
     // Getting audio data size
-    ptracesfl("NoSynch - run(): Getting Audio Data size ... ",MT_INFO, NOSYNCH_TRACE);
+//    ptracesfl("NoSynch - run(): Getting Audio Data size ... ",MT_INFO, NOSYNCH_TRACE);
     int sizeBufferAudio=inputStreams->fetchAudioStream()->getSizeBuffer();
     
 	// Getting and dispatching audio data
 	if( sizeBufferAudio != 0 ){
 		
-		ptracesfl("NoSynch - run(): Audio Data Size is: %d",MT_INFO, NOSYNCH_TRACE, true, 1, sizeBufferAudio);
+//		ptracesfl("NoSynch - run(): Audio Data Size is: %d",MT_INFO, NOSYNCH_TRACE, true, 1, sizeBufferAudio);
 		
-		short* dataAudio = new short[sizeBufferAudio];
-				
-		ptracesfl("NoSynch - run(): Getting Audio Data from audio input buffer ... ",MT_INFO, NOSYNCH_TRACE);
-		if( inputStreams->fetchAudioStream()->fetchData(dataAudio) != -1 ){
-			ptracesfl("NoSynch - run(): Putting Audio Data into audio internall buffer ... ",MT_INFO, NOSYNCH_TRACE);
+//		ptracesfl("NoSynch - run(): Getting Audio Data from audio input buffer ... ",MT_INFO, NOSYNCH_TRACE);
+		dataAudio = inputStreams->fetchAudioStream()->fetchData(size);
+		if( size != -1 ){
+//			ptracesfl("NoSynch - run(): Putting Audio Data into audio internall buffer ... ",MT_INFO, NOSYNCH_TRACE);
+			printf("NOSYNCH : size : %d \n", size/*dataAudio[100]*/);
 			bufferAudio->putData((void*)dataAudio,sizeBufferAudio);
 		}else
 			ptracesfl("NoSynch - run(): Cannot transfert audio data from sync manager to internal audio buffer",MT_ERROR, NOSYNCH_TRACE);
@@ -50,12 +53,12 @@ void NoSynch::run()
 		ptracesfl("NoSynch - run(): Not Audio input data to fetch",MT_WARNING, NOSYNCH_TRACE);
 	
 	// Getting video data size
-	ptracesfl("NoSynch - run(): Getting Video Data size ... ",MT_INFO, NOSYNCH_TRACE);
+//	ptracesfl("NoSynch - run(): Getting Video Data size ... ",MT_INFO, NOSYNCH_TRACE);
 	int sizeBufferVideo=inputStreams->fetchVideoStream()->getSizeBuffer();
 	
 	if( sizeBufferVideo != 0 ){
 		
-		ptracesfl("NoSynch - run(): Video Data Size is: %d",MT_INFO, NOSYNCH_TRACE, true, 1, sizeBufferVideo);
+//		ptracesfl("NoSynch - run(): Video Data Size is: %d",MT_INFO, NOSYNCH_TRACE, true, 1, sizeBufferVideo);
 		
 		// Getting and dispatching video data
 		unsigned char* dataVideo = new unsigned char[sizeBufferVideo];
@@ -75,7 +78,7 @@ void NoSynch::run()
     
   }
   
-  ptracesfl("NoSynch - stop(): Thread now stopped",MT_INFO,NOSYNCH_TRACE);
+//  ptracesfl("NoSynch - stop(): Thread now stopped",MT_INFO,NOSYNCH_TRACE);
   
   OkToKill=true;
 }

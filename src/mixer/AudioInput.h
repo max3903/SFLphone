@@ -70,7 +70,7 @@ public:
      * \param data a pointer to where the data must be copied
      * \return The size of the fetched data or -1 if an error occured 
      */
-    virtual int fetchData(short *data);
+    virtual short* fetchData(int &size);
 
 	//! Method to get the current size of the buffer
 	/*!

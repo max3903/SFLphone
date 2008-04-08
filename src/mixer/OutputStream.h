@@ -48,7 +48,7 @@ public:
 	 * \param data a pointer to where the data is to be copied
 	 * \return the size of data
 	 */
-    virtual int fetchData(short* data) =0;
+    virtual short* fetchData(int &size) =0;
 
     //! Method to change the data in the buffer
 	/*!

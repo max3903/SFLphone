@@ -28,9 +28,11 @@ AudioOutput::~AudioOutput()
 {
 }
 
-int AudioOutput::fetchData(short *data)
+short* AudioOutput::fetchData(int &size)
 { 
-  if(data!=NULL && this->fifo.size() != 0)
+  short* data;
+	
+  if(this->fifo.size() != 0)
   {
   	
   	//Getting queue head
@@ -38,16 +40,17 @@ int AudioOutput::fetchData(short *data)
     AudioOutPacket * tmpPak= this->fifo.front();
     sem_post(&sem_putData);
         
-    memcpy(data, tmpPak->data, tmpPak->size);
+    //memcpy(data, tmpPak->data, tmpPak->size);
     
-    int sizeBuffer= tmpPak->size;
+    data= tmpPak->data;
+    size= tmpPak->size;
     
     // Removing head
     sem_wait(&sem_putData); 
     this->fifo.pop_front();
     sem_post(&sem_putData);
         
-    return sizeBuffer;
+    return data;
   		
   }
   else
@@ -57,7 +60,8 @@ int AudioOutput::fetchData(short *data)
   	else
     	ptracesfl("AudioOuput - fetchData(): empty buffer",MT_WARNING, AUDIOOUTPUT_TRACE);
     	
-    return -1;
+    size = -1;
+    return NULL;
     
   }
 }

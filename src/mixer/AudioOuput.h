@@ -56,7 +56,8 @@ public:
      * \param data a pointer to the where the data will be put
      * \return the size of the buffer
      */
-    virtual int fetchData(short *data);
+//    virtual int fetchData(short *data);
+    virtual short* fetchData(int &size);
 
     //! Method to change the data contained in the buffer
     /*!

@@ -36,7 +36,9 @@ void LocalAudioOuput::putData(short * data, int size)
 		if( audioLayer ){
 			ptracesfl("LocalAudioOuput - putData () : playing Sample", MT_INFO, LOCALAUDIOOUPUT_TRACE);
 			audioLayer->playSamples( data, size );
+//			audioLayer->putUrgent( data, size );			
 			ptracesfl("LocalAudioOuput - putData () : Finnish playing Sample", MT_INFO, LOCALAUDIOOUPUT_TRACE);
+			
 		}else{
 			ptracesfl("LocalAudioOuput - putData () : Cannot get audio layer audio driver", MT_ERROR, LOCALAUDIOOUPUT_TRACE);
 		}

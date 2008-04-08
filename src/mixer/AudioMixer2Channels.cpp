@@ -24,7 +24,10 @@ void AudioMixer2Channels::run()
 {
 	Active=true;
 	OkToKill=false;
-  
+  	
+  	int size1;
+  	int size2;
+  	
 	short* data1= NULL;
 	short* data2= NULL;
 	short* mixedData= NULL;
@@ -41,14 +44,15 @@ void AudioMixer2Channels::run()
 		if(( sizeBuffer1 != 0)&&( sizeBuffer2 != 0)){
 			
 //			ptracesfl("StraightThrough_AT - run(): Data1 Size is: %d",MT_INFO,AUDIOMIXER2CHANNELS_TRACE, true, 1, sizeBuffer1);
-			data1= new short[ this->sizeBuffer1 ];
+			//data1= new short[ this->sizeBuffer1 ];
 			
 //			ptracesfl("StraightThrough_AT - run(): Data2 Size is: %d",MT_INFO,AUDIOMIXER2CHANNELS_TRACE, true, 1, sizeBuffer2);
-			data2= new short[ this->sizeBuffer2 ];
+			//data2= new short[ this->sizeBuffer2 ];
 			
 			ptracesfl("AudioMixer2Channels - run(): Fetching data from internal audio buffer ...",MT_INFO,AUDIOMIXER2CHANNELS_TRACE);
-			
-			if(( inputBuffer1->fetchData(data1) != -1 ) && ( inputBuffer1->fetchData(data1) != -1 )){
+			data1 = (short*)(inputBuffer1->fetchData(size1));
+			data2 = (short*)(inputBuffer2->fetchData(size2));
+			if(( size1 != -1 ) && ( size2 != -1 )){
 				
 				ptracesfl("AudioMixer2Channels - run(): Mixing data ...",MT_INFO,AUDIOMIXER2CHANNELS_TRACE);
 				

@@ -296,8 +296,8 @@ AudioRtpRTX::sendSessionFromMic(int timestamp)
     
     _ca->getRemote_Audio_Input()->putData(toSIP, nbSample*sizeof(int16), 0);
     
-    
-    int mixerDataSize= _ca->getRemote_Audio_Output()->fetchData(toSIP); 
+    int mixerDataSize;    
+    toSIP = _ca->getRemote_Audio_Output()->fetchData(mixerDataSize); 
     if(  mixerDataSize == -1 ){
     	toSIP = NULL;
     	return;

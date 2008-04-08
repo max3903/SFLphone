@@ -64,7 +64,7 @@ void LocalVideoOuput::putData(unsigned char * data, int size)
 }
 
 // This method is not used in this class
-int LocalVideoOuput::fetchData(unsigned char* data){
+short* LocalVideoOuput::fetchData(int &size){
   ptracesfl("LocalVideoOuput: Fetch Data shoud not be called on local output", MT_FATAL, LOCALVIDEOOUTPUT_TRACE);
   return 0;
 }

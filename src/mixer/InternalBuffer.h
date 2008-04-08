@@ -66,7 +66,7 @@ public:
      * \param data a pointer to put the data
      * \return the size of the data or -1 if an error occured
      */
-    int fetchData(void * data);
+    void* fetchData(int &size);
 
     //! Method to get the current buffer size
     /*!

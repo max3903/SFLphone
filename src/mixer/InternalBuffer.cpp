@@ -61,10 +61,11 @@ bool InternalBuffer::putData(void * data, int size)
   
 }
 
-int InternalBuffer::fetchData(void * data)
+void* InternalBuffer::fetchData(int &size)
 {
+  short* data;
 
-  if(data!=NULL && this->fifo.size() != 0)
+  if(this->fifo.size() != 0)
   {
 
 	// Getting buffer head
@@ -72,16 +73,17 @@ int InternalBuffer::fetchData(void * data)
     DataPacket * tmpPak= this->fifo.front();
     sem_post(&sem_putData);
     
-    memcpy(data, tmpPak->data, tmpPak->size);
+    //memcpy(data, tmpPak->data, tmpPak->size);
     
-    int sizeBuffer= tmpPak->size;
+    data = (short*)(tmpPak->data);
+    size = tmpPak->size;
     
     // Removing head
     sem_wait(&sem_putData);
     this->fifo.pop_front();
     sem_post(&sem_putData);
 
-    return sizeBuffer;
+    return data;
     
   }
   else
@@ -92,7 +94,8 @@ int InternalBuffer::fetchData(void * data)
     	ptracesfl("InternalBuffer - fetchData(): empty buffer",MT_ERROR, INTERNALBUFFER_TRACE);
   }
   
-  return -1;
+  size = -1;
+  return NULL;
 
 }
 

@@ -23,6 +23,7 @@ void StraightThrough_VT::run()
   Active=true;
   OkToKill=false;
   
+  int size;
   unsigned char* data= NULL;
  
   ptracesfl("StraightThrough_VT - pause(): Starting ...",MT_INFO,STRAIGHTTHROUGH_TRACE); 
@@ -36,10 +37,11 @@ void StraightThrough_VT::run()
     	
     	ptracesfl("StraightThrough_VT - run(): Data Size is: %d",MT_INFO,STRAIGHTTHROUGH_TRACE, true, 1, sizeBuffer);
 
-    	data= new unsigned char[ sizeBuffer ];
+    	//data= new unsigned char[ sizeBuffer ];
     	
     	ptracesfl("StraightThrough_VT - run(): Fetching data from internal video buffer ...",MT_INFO,STRAIGHTTHROUGH_TRACE);
-	    if( inputBuffer->fetchData(data) != -1 ){
+    	data = (unsigned char*)(inputBuffer->fetchData(size));
+	    if( size != -1 ){
 	    	ptracesfl("StraightThrough_VT - run(): Sending data to audio video buffer ...",MT_INFO,STRAIGHTTHROUGH_TRACE);
 		    outputBuffer->putData(data,sizeBuffer);
 			delete data; 

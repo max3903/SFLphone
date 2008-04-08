@@ -80,8 +80,8 @@ private:
     
     OutputStream* outputBuffer;
 
-    char* data1;
-    char* data2;
+    unsigned char* data1;
+    unsigned char* data2;
     unsigned char* mixedData;
     
     int width1;
