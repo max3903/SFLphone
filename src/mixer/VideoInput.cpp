@@ -26,7 +26,7 @@ VideoInput::VideoInput(){
 VideoInput::~VideoInput(){
 }
 
-void VideoInput::putData(char * data, int size, int timeStamp, int w, int h){
+void VideoInput::putData(unsigned char * data, int size, int timeStamp, int w, int h){
 	 
   if (data!=NULL && size>0 && w!= 0 && h!=0){
     
@@ -39,7 +39,7 @@ void VideoInput::putData(char * data, int size, int timeStamp, int w, int h){
     // Putting data in the packet in the format described in fetchData
     memcpy(tmpPak->data, &w, sizeof(int));
     memcpy(tmpPak->data + sizeof(int), &h, sizeof(int));
-    memcpy(tmpPak->data + (2*sizeof(int)), data, tmpPak->size);
+    memcpy(tmpPak->data + (2*sizeof(int)), data, size);
 
 	// Adding data to the fifo
 	sem_wait(&sem_putData); 

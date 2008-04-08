@@ -28,7 +28,7 @@ LocalVideoOuput::LocalVideoOuput()
   
   vector<MemKey*>::iterator start= tmpKeys.begin();
   vector<MemKey*>::iterator end= tmpKeys.end();
-  std:string searchString= "local";
+  std:string searchString= "remote";
   this->key= NULL;
   
   // Search for local Memkey
