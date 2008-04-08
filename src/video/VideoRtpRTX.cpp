@@ -239,7 +239,6 @@ void VideoRtpRTX::sendSession()
    //_debug("NULLLLL!!!!");
   
   // Putting captured data into mixer
-  printf("Avant mixer %dx%d\n", Res.first, Res.second );
   this->vidCall->getRemote_Video_Input()->putData( data_from_wc, sizeV4L, 0, Res.first, Res.second );
   
   int videoSize= -1;
@@ -247,11 +246,11 @@ void VideoRtpRTX::sendSession()
   
   // Getting Mixer video output
   unsigned char* dataToSend= this->vidCall->getRemote_Video_Output()->fetchData(videoSize, width, height);
-  printf("Apres mixer %dx%d\n", width, height );
+  
   // Encode it
   if( videoSize > 0 ){
-  	printf("Send ...\n");
- 	encodedSize = encodeCodec->videoEncode(dataToSend,(unsigned char*)data_to_send,width,height);
+  	
+  	encodedSize = encodeCodec->videoEncode(dataToSend,(unsigned char*)data_to_send,width,height);
 
    // _debug("Le timeStamp est: %d \n", timestamp);
    //_debug("Le size encode est: %d \n", encodedSize);
