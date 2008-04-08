@@ -855,6 +855,7 @@ SIPVoIPLink::transfer(const CallID& id, const std::string& to)
   }
   eXosip_unlock();
 
+  _audiortp.closeRtpSession();
   // shall we delete the call?
   //removeCall(id);
   return true;

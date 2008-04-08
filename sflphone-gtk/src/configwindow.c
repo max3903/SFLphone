@@ -81,6 +81,7 @@ enum {
 void
 config_window_fill_account_list()
 {
+	gchar* stock_id;
 	if(dialogOpen)
 	{
 		GtkTreeIter iter;
@@ -92,12 +93,20 @@ config_window_fill_account_list()
 			account_t * a = account_list_get_nth (i);
 			if (a)
 			{
+				if( g_hash_table_lookup(a->properties, ACCOUNT_ENABLED ) )
+				  stock_id = GTK_STOCK_CONNECT;
+				else
+				  stock_id = GTK_STOCK_DISCONNECT;
 				gtk_list_store_append (accountStore, &iter);
 				gtk_list_store_set(accountStore, &iter,
 						0, g_hash_table_lookup(a->properties, ACCOUNT_ALIAS),  // Name
 						1, g_hash_table_lookup(a->properties, ACCOUNT_TYPE),   // Protocol
 						2, account_state_name(a->state),      // Status
-						3, a,                                 // Pointer
+						3, gtk_widget_render_icon(gtk_image_new_from_stock(stock_id , GTK_ICON_SIZE_BUTTON),
+									  stock_id,
+									  GTK_ICON_SIZE_BUTTON,
+									  NULL),
+						4, a,   // Pointer
 						-1);
 			}
 		}
@@ -351,11 +360,9 @@ select_active_input_audio_device()
 void
 update_combo_box( gchar* plugin )
 {
-	  g_print("INSENSITIVE THE ALL THING\n");
 	// set insensitive the devices widget if the selected plugin is default
 	if( g_strcasecmp( plugin , "default" ) == 0)
 	{
-	  g_print("INSENSITIVE THE ALL THING\n");
 	  gtk_widget_set_sensitive( GTK_WIDGET ( outputDeviceComboBox ) , FALSE );
 	  gtk_widget_set_sensitive( GTK_WIDGET ( inputDeviceComboBox ) , FALSE );
 	}
@@ -693,8 +700,19 @@ default_account(GtkWidget *widget, gpointer data)
 int 
 is_ringtone_enabled( void )
 {
-  int res =  dbus_is_ringtone_enabled();
-  return res;  
+  return dbus_is_ringtone_enabled();  
+}
+
+void
+start_hidden( void )
+{
+  dbus_start_hidden();
+}
+
+void
+set_popup_mode( void )
+{
+  dbus_switch_popup_mode();
 }
 
 void 
@@ -732,7 +750,7 @@ select_account(GtkTreeSelection *selection, GtkTreeModel *model)
 	}
 
 	val.g_type = G_TYPE_POINTER;
-	gtk_tree_model_get_value(model, &iter, 3, &val);
+	gtk_tree_model_get_value(model, &iter, 4, &val);
 
 	selectedAccount = (account_t*)g_value_get_pointer(&val);
 	g_value_unset(&val);
@@ -1054,7 +1072,7 @@ bold_if_default_account(GtkTreeViewColumn *col,
 			gpointer data)
 {
 	GValue val = { 0, };
-	gtk_tree_model_get_value(tree_model, iter, 3, &val);
+	gtk_tree_model_get_value(tree_model, iter, 4, &val);
 	account_t *current = (account_t*)g_value_get_pointer(&val);
 	g_value_unset(&val);
 	if(g_strcasecmp(current->accountID, account_list_get_default()) == 0)
@@ -1289,10 +1307,11 @@ create_accounts_tab()
 	gtk_scrolled_window_set_shadow_type(GTK_SCROLLED_WINDOW(scrolledWindow), GTK_SHADOW_IN);
 	gtk_box_pack_start(GTK_BOX(ret), scrolledWindow, TRUE, TRUE, 0);
 
-	accountStore = gtk_list_store_new(4,
+	accountStore = gtk_list_store_new(5,
 			G_TYPE_STRING,  // Name
 			G_TYPE_STRING,  // Protocol
 			G_TYPE_STRING,  // Status
+			GDK_TYPE_PIXBUF, // Enabled / Disabled
 			G_TYPE_POINTER  // Pointer to the Object
 			);
 
@@ -1303,8 +1322,9 @@ create_accounts_tab()
 			accountStore);
 
 	gtk_tree_sortable_set_sort_column_id(GTK_TREE_SORTABLE(accountStore),
-			2, GTK_SORT_ASCENDING);
+			3, GTK_SORT_ASCENDING);
 
+	//g_signal_connect(G_OBJECT(renderer), "toggled", G_CALLBACK(codec_active_toggled), (gpointer)treeView);
 	renderer = gtk_cell_renderer_text_new();
 	treeViewColumn = gtk_tree_view_column_new_with_attributes ("Alias",
 			renderer,
@@ -1331,6 +1351,13 @@ create_accounts_tab()
 			NULL);
 	gtk_tree_view_append_column (GTK_TREE_VIEW(treeView), treeViewColumn);
 	gtk_tree_view_column_set_cell_data_func(treeViewColumn, renderer, bold_if_default_account, NULL,NULL);
+	
+	renderer = gtk_cell_renderer_pixbuf_new();
+	treeViewColumn = gtk_tree_view_column_new_with_attributes("", renderer, "pixbuf", 3 , NULL);
+	gtk_tree_view_append_column(GTK_TREE_VIEW(treeView), treeViewColumn);
+
+        // Toggle codec active property on clicked
+
 	g_object_unref(G_OBJECT(accountStore));
 	gtk_container_add(GTK_CONTAINER(scrolledWindow), treeView);
 
@@ -1451,7 +1478,7 @@ create_audio_tab ()
 	outputAudioPluginStore = gtk_list_store_new(1, G_TYPE_STRING);
 	config_window_fill_output_audio_plugin_list();
 	pluginComboBox = gtk_combo_box_new_with_model(GTK_TREE_MODEL(outputAudioPluginStore));
-	//select_active_output_audio_plugin();
+	select_active_output_audio_plugin();
 	gtk_label_set_mnemonic_widget(GTK_LABEL(titleLabel), pluginComboBox);
 	g_signal_connect(G_OBJECT(pluginComboBox), "changed", G_CALLBACK(select_output_audio_plugin), pluginComboBox);
 	
@@ -1511,7 +1538,7 @@ create_audio_tab ()
 	// Set event on selection
 	g_signal_connect(G_OBJECT(refreshButton), "clicked", G_CALLBACK(detect_all_audio_settings), NULL);
 	
-	select_active_output_audio_plugin();
+	//select_active_output_audio_plugin();
     // Codec section label
     codecFrame = gtk_frame_new(_("Codecs"));
     gtk_misc_set_alignment(GTK_MISC(codecFrame), 0, 0.5);
@@ -1534,9 +1561,9 @@ create_audio_tab ()
 	GtkWidget* box = gtk_hbox_new( TRUE , 1);
 	gtk_box_pack_start( GTK_BOX(ret) , box , FALSE , FALSE , 1);
 	enableTone = gtk_check_button_new_with_mnemonic( _("_Enable ringtones"));
-	gtk_toggle_button_set_active( GTK_TOGGLE_BUTTON(enableTone), dbus_is_ringtone_enabled() );
-	gtk_box_pack_start( GTK_BOX(box) , enableTone , TRUE , TRUE , 1);
-	g_signal_connect(G_OBJECT( enableTone) , "clicked" , G_CALLBACK( ringtone_enabled ) , NULL);
+      gtk_toggle_button_set_active( GTK_TOGGLE_BUTTON(enableTone), dbus_is_ringtone_enabled() );
+      gtk_box_pack_start( GTK_BOX(box) , enableTone , TRUE , TRUE , 1);
+      g_signal_connect(G_OBJECT( enableTone) , "clicked" , G_CALLBACK( ringtone_enabled ) , NULL);
     // file chooser button
 	fileChooser = gtk_file_chooser_button_new(_("Choose a ringtone"), GTK_FILE_CHOOSER_ACTION_OPEN);
 	gtk_file_chooser_set_current_folder(GTK_FILE_CHOOSER( fileChooser) , g_get_home_dir());	
@@ -1555,6 +1582,83 @@ create_audio_tab ()
 
 	return ret;
 }
+
+GtkWidget*
+create_general_settings ()
+{
+  GtkWidget *ret;
+
+  GtkWidget *notifFrame;
+  GtkWidget *notifBox;
+  GtkWidget *notifAll;
+  GtkWidget *notifIncoming;
+  GtkWidget *notifMails;
+
+  GtkWidget *trayFrame;
+  GtkWidget *trayBox;
+  GtkWidget *trayItem;
+
+  GtkWidget *dialFrame;
+  GtkWidget *dialBox;
+  GtkWidget *dialItem;
+
+  // Main widget
+  ret = gtk_vbox_new(FALSE, 10);
+  gtk_container_set_border_width(GTK_CONTAINER(ret), 10);
+
+  // Notifications Frame
+  notifFrame = gtk_frame_new(_("Notifications"));
+  gtk_box_pack_start(GTK_BOX(ret), notifFrame, FALSE, FALSE, 0);
+  gtk_widget_show( notifFrame );
+
+  notifBox = gtk_vbox_new(FALSE, 10);
+  gtk_box_pack_start(GTK_BOX(notifFrame), notifBox, FALSE, FALSE, 0);
+  gtk_widget_show( notifBox );
+  gtk_container_add( GTK_CONTAINER(notifFrame) , notifBox);
+  
+  notifAll = gtk_radio_button_new_with_label( NULL, _("Enable All"));
+  gtk_toggle_button_set_active( GTK_TOGGLE_BUTTON(notifAll), TRUE );
+  gtk_box_pack_start( GTK_BOX(notifBox) , notifAll , TRUE , TRUE , 1);
+  //TODO callback
+
+  notifIncoming = gtk_radio_button_new_with_label_from_widget( GTK_RADIO_BUTTON(notifAll) , _("Only Incoming Calls"));
+  gtk_toggle_button_set_active( GTK_TOGGLE_BUTTON(notifIncoming), FALSE );
+  gtk_box_pack_start( GTK_BOX(notifBox) , notifIncoming , TRUE , TRUE , 1);
+  //TODO callback
+
+  notifMails = gtk_radio_button_new_with_label_from_widget( GTK_RADIO_BUTTON(notifAll) , _("Only Voice Mails"));
+  gtk_toggle_button_set_active( GTK_TOGGLE_BUTTON(notifMails), FALSE );
+  gtk_box_pack_start( GTK_BOX(notifBox) , notifMails , TRUE , TRUE , 1);
+  //TODO callback
+
+  // System Tray option frame
+  trayFrame = gtk_frame_new(_("System Tray Icon"));
+  gtk_box_pack_start(GTK_BOX(ret), trayFrame, FALSE, FALSE, 0);
+  gtk_widget_show( trayFrame );
+
+  trayBox = gtk_vbox_new(FALSE, 10);
+  gtk_box_pack_start(GTK_BOX(trayFrame), trayBox, FALSE, FALSE, 0);
+  gtk_widget_show( trayBox );
+  gtk_container_add( GTK_CONTAINER(trayFrame) , trayBox);
+  
+  GtkWidget* trayItem1 = gtk_radio_button_new_with_label(NULL,  _("Popup Main Window On Incoming Call"));
+  gtk_toggle_button_set_active( GTK_TOGGLE_BUTTON(trayItem1), dbus_popup_mode() );
+  gtk_box_pack_start( GTK_BOX(trayBox) , trayItem1 , TRUE , TRUE , 1);
+  g_signal_connect(G_OBJECT( trayItem1 ) , "clicked" , G_CALLBACK( set_popup_mode ) , NULL);
+
+  trayItem = gtk_radio_button_new_with_label_from_widget(GTK_RADIO_BUTTON(trayItem1), _("Never Popup Main Window"));
+  gtk_toggle_button_set_active( GTK_TOGGLE_BUTTON(trayItem), !dbus_popup_mode() );
+  gtk_box_pack_start( GTK_BOX(trayBox) , trayItem , TRUE , TRUE , 1);
+  
+  trayItem = gtk_check_button_new_with_label(_("Start Hidden"));
+  gtk_toggle_button_set_active( GTK_TOGGLE_BUTTON(trayItem), dbus_is_start_hidden() );
+  gtk_box_pack_start( GTK_BOX(trayBox) , trayItem , TRUE , TRUE , 1);
+  g_signal_connect(G_OBJECT( trayItem ) , "clicked" , G_CALLBACK( start_hidden ) , NULL);
+
+  gtk_widget_show_all(ret);
+  return ret;
+}
+
 
 /**
  * Video settings tab
@@ -1875,10 +1979,10 @@ show_config_window (gint page_num)
 	gtk_widget_show(notebook);
 	
 
-	// Accounts tab
-	//tab = create_accounts_tab();
-	//gtk_notebook_append_page(GTK_NOTEBOOK(notebook), tab, gtk_label_new(_("Accounts")));
-	//gtk_notebook_page_num(GTK_NOTEBOOK(notebook), tab);
+	// General settings tab
+	tab = create_general_settings();
+	gtk_notebook_append_page(GTK_NOTEBOOK(notebook), tab, gtk_label_new(_("General Settings")));
+	gtk_notebook_page_num(GTK_NOTEBOOK(notebook), tab);
 	
 	// Audio tab
 	tab = create_audio_tab();	

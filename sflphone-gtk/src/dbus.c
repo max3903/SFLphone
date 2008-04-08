@@ -56,7 +56,8 @@ incoming_call_cb (DBusGProxy *proxy,
   c->from = g_strdup(from);
   c->state = CALL_STATE_INCOMING;
   
-  status_tray_icon_blink();
+  status_tray_icon_blink( TRUE );
+  notify_incoming_call( c );
   sflphone_incoming_call (c);
 }
 
@@ -388,6 +389,7 @@ dbus_transfert (const call_t * c)
 void
 dbus_accept (const call_t * c)
 {
+  status_tray_icon_blink( FALSE );
   GError *error = NULL;
   org_sflphone_SFLphone_CallManager_accept ( callManagerProxy, c->callID, &error);
   if (error) 
@@ -406,6 +408,9 @@ dbus_accept (const call_t * c)
 void
 dbus_refuse (const call_t * c)
 {
+  // Remove the account message from the status bar stack
+  status_bar_message_remove( __MSG_ACCOUNT_DEFAULT ); 
+  status_tray_icon_blink( FALSE );
   GError *error = NULL;
   org_sflphone_SFLphone_CallManager_refuse ( callManagerProxy, c->callID, &error);
   if (error) 
@@ -1463,6 +1468,94 @@ dbus_is_iax2_enabled()
 	return res;
 }
 
+
+void
+dbus_start_hidden()
+{
+	GError* error = NULL;
+	org_sflphone_SFLphone_ConfigurationManager_start_hidden(
+			configurationManagerProxy,
+			&error);
+	if(error)
+	  g_error_free(error);
+	else
+	  g_print("DBus called start_hidden on ConfigurationManager\n");
+}
+  
+int
+dbus_is_start_hidden()
+{
+	int state;
+	GError* error = NULL;
+	org_sflphone_SFLphone_ConfigurationManager_is_start_hidden(
+			configurationManagerProxy,
+			&state,
+			&error);
+	if(error)
+	  g_error_free(error);
+	else
+	  g_print("DBus called is_start_hidden on ConfigurationManager\n");
+	return state;
+}
+  
+void
+dbus_switch_popup_mode()
+{
+	GError* error = NULL;
+	org_sflphone_SFLphone_ConfigurationManager_switch_popup_mode(
+			configurationManagerProxy,
+			&error);
+	if(error)
+	  g_error_free(error);
+	else
+	  g_print("DBus called switch_popup_mode on ConfigurationManager\n");
+}
+int
+dbus_popup_mode()
+{
+	int state;
+	GError* error = NULL;
+	org_sflphone_SFLphone_ConfigurationManager_popup_mode(
+			configurationManagerProxy,
+			&state,
+			&error);
+	if(error)
+	  g_error_free(error);
+	else
+	  g_print("DBus called popup_mode on ConfigurationManager\n");
+	return state;
+}
+
+int
+dbus_get_dialpad()
+{
+	int state;
+	GError* error = NULL;
+	org_sflphone_SFLphone_ConfigurationManager_get_dialpad(
+			configurationManagerProxy,
+			&state,
+			&error);
+	if(error)
+	  g_error_free(error);
+	else
+	  g_print("DBus called get_dialpad on ConfigurationManager\n");
+	return state;
+}
+
+void
+dbus_set_dialpad()
+{
+	GError* error = NULL;
+        org_sflphone_SFLphone_ConfigurationManager_set_dialpad(
+                        configurationManagerProxy,
+                        &error);
+        if(error)
+          g_error_free(error);
+        else
+          g_print("DBus called set_dialpad on ConfigurationManager\n");
+}
+
+
 gchar**
 dbus_get_contacts(gchar* accountID)
 {
@@ -1889,5 +1982,4 @@ dbus_get_current_resolution()
 		g_print("DBus called get_current_resolution() on ConfigurationManager\n");
 	return name;
 }
-
 

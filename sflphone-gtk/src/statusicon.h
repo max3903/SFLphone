@@ -20,13 +20,18 @@
 #ifndef __STATUSICON_H__
 #define __STATUSICON_H__
 
+#define MINIMIZED  TRUE
+
 #include <gtk/gtk.h>
 /** @file statusicon.h
   * @brief The status icon.
   */
+
 void show_status_icon();
 void status_icon_unminimize();
-void status_tray_icon_blink();
-
+gboolean main_widget_minimized();
+void set_minimized( gboolean state );
+void status_tray_icon_blink( gboolean active );
+GtkStatusIcon* get_status_icon( void );
 
 #endif

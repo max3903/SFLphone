@@ -26,7 +26,7 @@
 
 GtkStatusIcon* status;
 GtkWidget * show_menu_item;
-gboolean minimized = FALSE;
+gboolean __minimized = MINIMIZED;
 
 void 
 status_quit ( void * foo)
@@ -40,17 +40,26 @@ status_icon_unminimize()
   gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(show_menu_item), TRUE);
 }
 
+gboolean
+main_widget_minimized()
+{
+  return __minimized;
+}
+
 void 
-show_hide (GtkWidget *menu, void * foo)
+show_hide (void)
 {
   if(gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM(show_menu_item)))
   {
     gtk_widget_show(GTK_WIDGET(get_main_window()));
+    set_minimized( !MINIMIZED );
   }   
   else
   {
     gtk_widget_hide(GTK_WIDGET(get_main_window()));
+    set_minimized( MINIMIZED );
   }
+
 }
 
 
@@ -111,14 +120,26 @@ show_status_icon()
 			  create_menu());			  
 
   // Add a tooltip to the system tray icon
-  gchar* tip = malloc(500);
-  sprintf( tip , _("SFLphone - %i accounts registered") , account_list_get_size());
+  gchar *tip =  g_markup_printf_escaped (_("SFLphone - %i accounts registered") , account_list_get_size());
   gtk_status_icon_set_tooltip( status , tip );
   g_free(tip);
 }
 
 void
-status_tray_icon_blink(  )
+status_tray_icon_blink( gboolean active )
 {
-  gtk_status_icon_set_blinking( status , !gtk_status_icon_get_blinking( status ) );
+  gtk_status_icon_set_blinking( status , active );
+}
+
+GtkStatusIcon* 
+get_status_icon( void )
+{
+  return status;
+}
+
+void
+set_minimized( gboolean state)
+{
+  __minimized = state ;
+  gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(show_menu_item), !state);
 }

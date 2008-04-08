@@ -328,6 +328,42 @@ ConfigurationManager::getContrast( ::DBus::Int32& minValue, ::DBus::Int32& maxVa
 	printf("%i %i %i %i", minValue, maxValue,stepValue, currentValue);
 }
 
+::DBus::Int32
+ConfigurationManager::getDialpad( void )
+{
+  return Manager::instance().getDialpad(  ); 
+}
+
+void
+ConfigurationManager::setDialpad( void )
+{
+  Manager::instance().setDialpad( ); 
+}
+
+void
+ConfigurationManager::startHidden( void )
+{
+  Manager::instance().startHidden(  ); 
+}
+
+::DBus::Int32
+ConfigurationManager::isStartHidden( void )
+{
+  return Manager::instance().isStartHidden(  ); 
+}
+
+void
+ConfigurationManager::switchPopupMode( void )
+{
+  Manager::instance().switchPopupMode();
+}
+
+::DBus::Int32
+ConfigurationManager::popupMode( void )
+{
+  return Manager::instance().popupMode();
+}
+
 void 
 ConfigurationManager::setContrast( const ::DBus::Int32& value )
 {
