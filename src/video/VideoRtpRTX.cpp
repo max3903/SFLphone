@@ -126,7 +126,7 @@ void VideoRtpRTX::run(){
       ////////////////////////////
       // Recv session
       ////////////////////////////
-      //receiveSession();
+     // receiveSession();
     }
 
     free(data_to_display);
@@ -313,6 +313,7 @@ void VideoRtpRTX::receiveSession()
     }
     
     isMarked = adu->isMarked();
+    
     rcvWorkingBuf  = (unsigned char*)adu->getData(); // data in char
     workingBufLen = adu->getSize();
     _debug("Le size du paquet: %d\n",workingBufLen);

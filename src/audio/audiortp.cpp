@@ -293,6 +293,7 @@ AudioRtpRTX::sendSessionFromMic(int timestamp)
     //_debug("AR: Nb sample: %d int, [0]=%d [1]=%d [2]=%d\n", nbSample, toSIP[0], toSIP[1], toSIP[2]);
     // for the mono: range = 0 to RTP_FRAME2SEND * sizeof(int16)
     // codecEncode(char *dest, int16* src, size in bytes of the src)
+   
     
     _ca->getRemote_Audio_Input()->putData(toSIP, nbSample*sizeof(int16), 0);
     
