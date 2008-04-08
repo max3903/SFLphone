@@ -27,24 +27,15 @@
 #ifndef VIDEORTPRTX_H
 #define VIDEORTPRTX_H
 
-#include <ortp/ortp.h>
+#include <ortp/rtp.h>
 #include "VideoCodec/VideoCodec.h"
 #include "VideoCodecDescriptor.h"
-//#include "VideoRtp.h"
 #include "../sipcall.h"
 #include <cc++/thread.h>
-//#include <ccrtp/rtp.h>
 #include "V4L/VideoDeviceManager.h"
-//#include "../mixer/VideoInput.h"
-//#include "../mixer/VideoOutput.h"
 #include "../memmanager/MemManager.h"
 
-//#include </usr/include/ortp/event.h>
 
-
-
-//#include <signal.h>
-//#include <stdlib.h>
 
 class SIPCall; //TODO: pourquoi pas de include SipCall..h????
 
