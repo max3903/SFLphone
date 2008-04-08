@@ -27,18 +27,20 @@
 #ifndef VIDEORTPRTX_H
 #define VIDEORTPRTX_H
 
+#include <ortp/ortp.h>
 #include "VideoCodec/VideoCodec.h"
 #include "VideoCodecDescriptor.h"
-#include "VideoRtp.h"
+//#include "VideoRtp.h"
+#include "../sipcall.h"
 #include <cc++/thread.h>
-#include <ccrtp/rtp.h>
+//#include <ccrtp/rtp.h>
 #include "V4L/VideoDeviceManager.h"
 //#include "../mixer/VideoInput.h"
 //#include "../mixer/VideoOutput.h"
 #include "../memmanager/MemManager.h"
-#include </usr/include/ortp/event.h>
 
-#include <ortp/ortp.h>
+//#include </usr/include/ortp/event.h>
+
 
 
 //#include <signal.h>
@@ -75,14 +77,14 @@ private:
     ost::Mutex          threadMutex;
     SIPCall* 		vidCall;
     /** RTP Session to send */
-    ost::RTPSession* 	videoSessionSend;
+    //ost::RTPSession* 	videoSessionSend;
     /** RTP Session to receive */
-    ost::RTPSession* 	videoSessionReceive;
+    //ost::RTPSession* 	videoSessionReceive;
     /** System Semaphore */
-    ost::Semaphore 	semStart;
+    //ost::Semaphore 	semStart;
 
     /** SYMMETRIC RTP Session to send/receive */
-    ost::SymmetricRTPSession* session;
+    //ost::SymmetricRTPSession* session;
 
     bool _sym;
 
