@@ -63,7 +63,7 @@ bool InternalBuffer::putData(void * data, int size)
 
 void* InternalBuffer::fetchData(int &size)
 {
-  short* data;
+  unsigned char* data;
 
   if(this->fifo.size() != 0)
   {
@@ -75,7 +75,7 @@ void* InternalBuffer::fetchData(int &size)
     
     //memcpy(data, tmpPak->data, tmpPak->size);
     
-    data = (short*)(tmpPak->data);
+    data = (unsigned char*)(tmpPak->data);
     size = tmpPak->size;
     
     // Removing head

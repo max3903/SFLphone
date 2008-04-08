@@ -44,29 +44,24 @@ void StraightThrough_AT::run()
   int size;
   short* data= NULL;
  
-//  ptracesfl("StraightThrough_AT - pause(): Starting ...",MT_INFO,STRAIGHTTHROUGH_TRACE); 
+  ptracesfl("StraightThrough_AT - pause(): Starting ...",MT_INFO,STRAIGHTTHROUGH_TRACE); 
   while(Active)
   {
   	
-//  	ptracesfl("StraightThrough_AT - run(): Getting internal audio buffer size",MT_INFO,STRAIGHTTHROUGH_TRACE);
+  	ptracesfl("StraightThrough_AT - run(): Getting internal audio buffer size",MT_INFO,STRAIGHTTHROUGH_TRACE);
     int sizeBuffer = inputBuffer->getSizeBuffer();
     
     if( sizeBuffer != 0){
-    	
- //   	ptracesfl("StraightThrough_AT - run(): Data Size is: %d",MT_INFO,STRAIGHTTHROUGH_TRACE, true, 1, sizeBuffer);
 
     	//data= new short[ sizeBuffer ];
     	
- //   	ptracesfl("StraightThrough_AT - run(): Fetching data from internal audio buffer ...",MT_INFO,STRAIGHTTHROUGH_TRACE);
+     	ptracesfl("StraightThrough_AT - run(): Fetching data from internal audio buffer ...",MT_INFO,STRAIGHTTHROUGH_TRACE);
     	data = (short*)(inputBuffer->fetchData(size));
 	    if( size != -1 ){
-//	    	ptracesfl("StraightThrough_AT - run(): Sending data to audio output buffer ...",MT_INFO,STRAIGHTTHROUGH_TRACE);
-			printf("STRAIGHTTHROUGH : size : %d \n", size /*data[100]*/);
+	    	ptracesfl("StraightThrough_AT - run(): Sending data to audio output buffer ...",MT_INFO,STRAIGHTTHROUGH_TRACE);
 		    outputBuffer->putData(data,sizeBuffer);
-			delete data; 
 	    }else{
    			ptracesfl("StraightThrough_AT - run(): Cannot fetch data from internal buffer",MT_ERROR,STRAIGHTTHROUGH_TRACE);
-   			delete data; 
 	    }
 	    
 	    data= NULL;
@@ -75,7 +70,7 @@ void StraightThrough_AT::run()
     	ptracesfl("StraightThrough_AT - run(): No Data to fetch", MT_WARNING, STRAIGHTTHROUGH_TRACE);
     
     // This thread must sleep longer than the sync thread to create a continious stream of information for the output.
-    usleep(2);
+    usleep(7);
     
   }
   
