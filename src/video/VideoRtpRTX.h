@@ -36,11 +36,10 @@
 //#include "../mixer/VideoInput.h"
 //#include "../mixer/VideoOutput.h"
 #include "../memmanager/MemManager.h"
+#include </usr/include/ortp/event.h>
 
-//extern "C++"{
-//	#include <ortp/event.h>
-//	#include <ortp/ortp.h>
-//}
+#include <ortp/ortp.h>
+
 
 //#include <signal.h>
 //#include <stdlib.h>
