@@ -28,7 +28,6 @@
 #include "../tracePrintSFL.h"
 
 #define VIDEOINPUT_TRACE	10
-#define MAXBUFFER			5
 
 //! This struct contains all information relative to the data
 struct VideoPacket{
