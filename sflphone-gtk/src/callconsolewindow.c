@@ -46,8 +46,8 @@ enum {
 };
 
 GtkDialog* callConsoleDialog = NULL;	// This window
-GtkWidget* contactTreeView;				// View
-GtkListStore* contactListStore;			// Model
+GtkWidget* callConsoleTreeView;			// View
+GtkListStore* callConsoleListStore;		// Model
 
 /**
  * Fills the treelist with accounts
@@ -55,7 +55,7 @@ GtkListStore* contactListStore;			// Model
 void
 call_console_window_fill_contact_list()
 {
-	gtk_list_store_clear(contactListStore);
+	gtk_list_store_clear(callConsoleListStore);
 		
 	// Fill contacts for all loaded accounts
 	int i;
@@ -80,8 +80,8 @@ call_console_window_fill_contact_list()
 					// Append the contact entry in the list if shown in call console is true
 					if(entry->_isShownInConsole)
 					{
-						gtk_list_store_append(contactListStore, &iter);
-						gtk_list_store_set(contactListStore, &iter,
+						gtk_list_store_append(callConsoleListStore, &iter);
+						gtk_list_store_set(callConsoleListStore, &iter,
 								CALL_CONSOLE_ACCOUNT_ID, account->accountID,
 								CALL_CONSOLE_CONTACT_ID, contact->_contactID,
 								CALL_CONSOLE_ENTRY_ID, entry->_entryID,
@@ -100,8 +100,8 @@ call_console_window_fill_contact_list()
 void
 call_console_window_clear_contact_list()
 {
-	gtk_list_store_clear(contactListStore);
-	contactListStore = NULL;
+	gtk_list_store_clear(callConsoleListStore);
+	callConsoleListStore = NULL;
 }
 
 static void
@@ -153,7 +153,7 @@ show_call_console_window(gboolean show)
 	gtk_widget_show(scrolledWindow);
 	
 	// Create list store with contact entries regrouped by accounts and contacts
-	contactListStore = gtk_list_store_new(COUNT_CALL_CONSOLE_WINDOW,
+	callConsoleListStore = gtk_list_store_new(COUNT_CALL_CONSOLE_WINDOW,
 			G_TYPE_STRING,		// Account ID
 			G_TYPE_STRING,		// Contact ID
 			G_TYPE_STRING,		// Entry ID
@@ -163,31 +163,31 @@ show_call_console_window(gboolean show)
 			G_TYPE_STRING		// Text
 			);
 	
-	contactTreeView = gtk_tree_view_new_with_model(GTK_TREE_MODEL(contactListStore));
+	callConsoleTreeView = gtk_tree_view_new_with_model(GTK_TREE_MODEL(callConsoleListStore));
 	
 	// Presence status icon column
 	renderer = gtk_cell_renderer_pixbuf_new();
 	treeViewColumn = gtk_tree_view_column_new_with_attributes("", renderer, "pixbuf", CALL_CONSOLE_WINDOW_ICON, NULL);
-	gtk_tree_view_append_column(GTK_TREE_VIEW(contactTreeView), treeViewColumn);
+	gtk_tree_view_append_column(GTK_TREE_VIEW(callConsoleTreeView), treeViewColumn);
 
 	// Name column
 	renderer = gtk_cell_renderer_text_new();
 	treeViewColumn = gtk_tree_view_column_new_with_attributes(_("Contact name"), renderer, "text", CALL_CONSOLE_WINDOW_NAME, NULL);
-	gtk_tree_view_append_column(GTK_TREE_VIEW(contactTreeView), treeViewColumn);
+	gtk_tree_view_append_column(GTK_TREE_VIEW(callConsoleTreeView), treeViewColumn);
 
 	// Contact column
 	renderer = gtk_cell_renderer_text_new();
 	treeViewColumn = gtk_tree_view_column_new_with_attributes(_("Contact"), renderer, "text", CALL_CONSOLE_WINDOW_CONTACT, NULL);
-	gtk_tree_view_append_column(GTK_TREE_VIEW(contactTreeView), treeViewColumn);
+	gtk_tree_view_append_column(GTK_TREE_VIEW(callConsoleTreeView), treeViewColumn);
 
 	// Presence status column
 	renderer = gtk_cell_renderer_text_new();
 	treeViewColumn = gtk_tree_view_column_new_with_attributes(_("Presence status"), renderer, "text", CALL_CONSOLE_WINDOW_PRESENCE_STATUS, NULL);
-	gtk_tree_view_append_column(GTK_TREE_VIEW(contactTreeView), treeViewColumn);
+	gtk_tree_view_append_column(GTK_TREE_VIEW(callConsoleTreeView), treeViewColumn);
 		
-	gtk_container_add(GTK_CONTAINER(scrolledWindow), contactTreeView);
-	gtk_container_set_border_width(GTK_CONTAINER(contactTreeView), 10);
-	gtk_widget_show(contactTreeView);
+	gtk_container_add(GTK_CONTAINER(scrolledWindow), callConsoleTreeView);
+	gtk_container_set_border_width(GTK_CONTAINER(callConsoleTreeView), 10);
+	gtk_widget_show(callConsoleTreeView);
 	
 	// Fill tree model
 	call_console_window_fill_contact_list();
@@ -224,7 +224,7 @@ call_console_change_entry_presence_status(const gchar* accountID, const gchar* c
 	gchar* entryIDStored = NULL;
 	
 	// Get the first iteration
-	model = gtk_tree_view_get_model(GTK_TREE_VIEW(contactTreeView));
+	model = gtk_tree_view_get_model(GTK_TREE_VIEW(callConsoleTreeView));
 	if(!gtk_tree_model_get_iter_first(model, &iter)) return;
 	do
 	{
@@ -243,7 +243,7 @@ call_console_change_entry_presence_status(const gchar* accountID, const gchar* c
 				strcmp(entryIDStored, entryID) == 0)
 		{
 			// Store the new presence status
-			gtk_list_store_set(contactListStore, &iter,
+			gtk_list_store_set(callConsoleListStore, &iter,
 					CALL_CONSOLE_WINDOW_ICON, gdk_pixbuf_new_from_file(contact_list_presence_status_get_icon_string(presence), NULL),
 					CALL_CONSOLE_WINDOW_PRESENCE_STATUS, contact_list_presence_status_translate(presence),
 					-1);
