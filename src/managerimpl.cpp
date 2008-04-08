@@ -496,7 +496,7 @@ ManagerImpl::joinConference( const CallID& onHoldCallID, const CallID& newCallID
 	//Add a conference call
 	if ( getAccountLink(accountid)->addConf(onHoldCallID, newCallID) ) 
 	{
-		_debug("The conference call was succesfully created\n");
+		printf("The conference call was succesfully created\n");
     	return true;
   	} 
   	else 
