@@ -33,8 +33,8 @@
 #include <cc++/thread.h>
 #include <ccrtp/rtp.h>
 #include "V4L/VideoDeviceManager.h"
-#include "../mixer/VideoInput.h"
-#include "../mixer/VideoOutput.h"
+//#include "../mixer/VideoInput.h"
+//#include "../mixer/VideoOutput.h"
 #include "../memmanager/MemManager.h"
 
 //extern "C++"{
@@ -95,11 +95,6 @@ private:
     AVCodecContext*	codecCtx;
     /** Video Device manager **/
     VideoDeviceManager* VideoDevMng;
-    /** Input and Output buffers for the mixers**/
-    VideoInput* localVideoInput;
-    VideoInput* remoteVideoInput;
-    VideoOutput* localVideoOutput;
-    VideoOutput* remoteVideoOutput;
 
     uint32 timestamp;
 

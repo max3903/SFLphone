@@ -66,7 +66,7 @@ void NoSynch::run()
 	}
 		ptracesfl("NoSynch - run(): Not Video input data to fetch",MT_WARNING, NOSYNCH_TRACE);
 	    
-	usleep(6);
+	usleep(50);
     
   }
   

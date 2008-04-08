@@ -53,8 +53,12 @@ void StraightThrough_VT::run()
     	ptracesfl("StraightThrough_VT - run(): No Data to fetch", MT_WARNING, STRAIGHTTHROUGH_TRACE);
     
     // This thread must sleep longer than the sync thread to create a continious stream of information for the output.
-    usleep(7);
+    usleep(51);
   }
+  
+  ptracesfl("StraightThrough_VT - run(): The run thread has stopped cleanly",MT_INFO,STRAIGHTTHROUGH_TRACE);
+  
+  OkToKill=true;
 }
 
 void StraightThrough_VT::pause()

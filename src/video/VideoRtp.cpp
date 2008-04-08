@@ -58,7 +58,7 @@ int VideoRtp::createNewVideoSession(SIPCall *call, bool Conf)
     // TODO: Lire sur les session symmetric!
     //_symmetric = Manager::instance().getConfigInt(SIGNALISATION,SYMMETRIC) ? true : false; 
     //vRTXThread = new VideoRtpRTX (call, _symmetric);
-    /*vRTXThread = new VideoRtpRTX (call, true); // symmetric!
+    vRTXThread = new VideoRtpRTX (call, true); // symmetric!
     try {
       //TODO: ACTIVER CELA POUR QUE LE THREAD RUN (probleme de semaphore)
       if (vRTXThread->start() != 0) {
@@ -68,7 +68,7 @@ int VideoRtp::createNewVideoSession(SIPCall *call, bool Conf)
     } catch(...) {
       _debugException("! ARTP Failure: when trying to start a RTP video thread\n");
       throw;
-    }*/
+    }
     return 0;
   //}
   /*

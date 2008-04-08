@@ -891,42 +891,6 @@ private:
 	 */
 	int getMode();
     void setMode(int i);
-    /*
-	 * Start it when the user activates the webcam icon
-	 * Changes the status of the mixer
-	 * The mixer should now take the input from the 
-	 * local webcam instead of a black screen
-	 */
-    bool startVideo();
-    /*
-	 * Start it when the user desactivates on the webcam icon
-	 * Changes the status of the mixer
-	 * The mixer should now take the input from a 
-	 * black screen instead of the local webcam
-	 */
-    bool stopVideo();
-    /*
-	 * Start it when there is an incoming video session
-	 * Changes the status of the mixer
-	 * The mixer should now take the input from the 
-	 * video session instead of a black screen
-	 */
-    bool startIncomingVideo();
-    /*
-	 * Stop it when a video session has ended
-	 * Changes the status of the mixer
-	 * The mixer should now take the input from a 
-	 * black screen instead of the video session
-	 */
-    bool stopIncomingVideo();
-    /*
- 	* Tells the mixer which calls to join the audio from
- 	*/
-    bool joinAudio(const CallID& id1, const CallID& id2);
-    /*
- 	* Tells the mixer which calls to join the video from
- 	*/
-    bool joinVideo(const CallID& id1, const CallID& id2);
 	
 };
 

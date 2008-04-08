@@ -492,8 +492,19 @@ ManagerImpl::inviteConference( const AccountID& accountId, const CallID& id, con
 bool 
 ManagerImpl::joinConference( const CallID& onHoldCallID, const CallID& newCallID )
 {
-	//TODO
-	return true;
+	AccountID accountid = getAccountFromCall( onHoldCallID );
+	//Add a conference call
+	if ( getAccountLink(accountid)->addConf(onHoldCallID, newCallID) ) 
+	{
+    	//switchCall(id);
+    	return true;
+  	} 
+  	else 
+  	{
+    	_debug("! Manager Error: An error occur, the conference call was not created\n");
+    	
+  	}
+  	return false;
 }
 
 bool
@@ -2782,8 +2793,6 @@ void ManagerImpl::initVideoDeviceManager(void)
 		ptracesfl("No video device could be initialized by manager. Do you have a V4L video device pluged in ?", MT_WARNING, MANAGERIMPL_TRACE);
 	}
 	
-	
-
 }
 
 void ManagerImpl::initMemManager(void)
@@ -2827,6 +2836,8 @@ ManagerImpl::getBrightness(  )
 	CmdDesc values;
 	Command *cmd = _videoDeviceManager->getCommand(VideoDeviceManager::BRIGHTNESS);
 	values = cmd->getCmdDescriptor();
+	
+	delete cmd;
 	return values;
 	
 }
@@ -2836,6 +2847,8 @@ ManagerImpl::setBrightness( const int value )
 {
 	Command* cmd = _videoDeviceManager->getCommand(VideoDeviceManager::BRIGHTNESS);
 	cmd->setTo(value);
+	
+	delete cmd;
 }
 
 CmdDesc
@@ -2844,6 +2857,8 @@ ManagerImpl::getContrast(  )
 	CmdDesc values;
 	Command *cmd =_videoDeviceManager->getCommand(VideoDeviceManager::CONTRAST);
 	values = cmd->getCmdDescriptor();
+	
+	delete cmd;
 	return values;	
 }
 
@@ -2852,6 +2867,8 @@ ManagerImpl::setContrast( const int value )
 {
 	Command* cmd = _videoDeviceManager->getCommand(VideoDeviceManager::CONTRAST);
 	cmd->setTo(value);
+	
+	delete cmd;
 }
 
 CmdDesc
@@ -2860,6 +2877,8 @@ ManagerImpl::getColour(  )
 	CmdDesc values;
 	Command *cmd = _videoDeviceManager->getCommand(VideoDeviceManager::COLOR);
 	values = cmd->getCmdDescriptor();
+	
+	delete cmd;
 	return values;	
 }
 
@@ -2868,6 +2887,8 @@ ManagerImpl::setColour( const int value )
 {
 	Command* cmd = _videoDeviceManager->getCommand(VideoDeviceManager::COLOR);
 	cmd->setTo(value);
+	
+	delete cmd;
 }
 
 std::vector<std::string> 
@@ -2925,6 +2946,8 @@ ManagerImpl::getResolutionList(  )
 		                	
 	}
 	order.push_back(temp);
+	
+	delete cmdRes;
 	return order;
 }
 
@@ -2933,10 +2956,13 @@ ManagerImpl::setResolution( const std::string& name )
 {
 	char temp[20];
 	Resolution *cmdRes = (Resolution*)_videoDeviceManager->getCommand(VideoDeviceManager::RESOLUTION);
+	
 	strcpy(temp, name.c_str());
 	ptracesfl("setResolution", MT_INFO, MANAGERIMPL_TRACE, false);
 	ptracesfl(temp, MT_INFO, MANAGERIMPL_TRACE, true);
-	cmdRes->setTo(temp);	
+	cmdRes->setTo(temp);
+	
+	delete cmdRes;	
 }
 
 std::string 
@@ -2954,6 +2980,8 @@ ManagerImpl::getCurrentResolution(  )
 	sprintf(buf, "%d", res.second);
 	temp+=buf;
 	std::cout << temp;
+	
+	delete cmdRes;
 	return temp;
 }
 
@@ -2989,7 +3017,9 @@ ManagerImpl::getCurrentBitrate(  )
 	return _videoCodecDescriptor->getCurrentBitRate();
 }
 
-
+/** Method to activate Local video Capture for the preference video
+ * @return The success of the operation
+ */
 bool 
 ManagerImpl::enableLocalVideoPref(){
 	
@@ -3009,6 +3039,9 @@ ManagerImpl::enableLocalVideoPref(){
 	return true;
 }
 
+/** Method to deactivate Local video Capture for the preference video
+ * @return The success of the operation
+ */
 bool 
 ManagerImpl::disableLocalVideoPref(){
 	
@@ -3018,6 +3051,10 @@ ManagerImpl::disableLocalVideoPref(){
 	return true;
 }
 
+/** Method that captures the data from the web cam for the prefenrences window
+ * 
+ * This method is ran as a thread
+ */
 void* ManagerImpl::localVideCapturepref(void* pdata){
 	
 
@@ -3059,6 +3096,9 @@ void* ManagerImpl::localVideCapturepref(void* pdata){
 	
 }
 
+/** Method to get the status of the enable checkbox
+ * @return The status of the enable checkbox
+ */
 bool 
 ManagerImpl::getEnableCheckboxStatus(  )
 {
@@ -3077,6 +3117,9 @@ ManagerImpl::getEnableCheckboxStatus(  )
 	}
 }
 
+/** Method to get the status of the disable checkbox
+* @return The status of the disable checkbox
+*/
 bool 
 ManagerImpl::getDisableCheckboxStatus(  )
 {
@@ -3095,70 +3138,22 @@ ManagerImpl::getDisableCheckboxStatus(  )
 	}
 }
 
+/** 
+* Method to set the status of the enable checkbox
+*/
 void 
 ManagerImpl::setEnableCheckboxStatus( const bool& status )
 {
 	setConfig("Video", "EnableCheckbox", status);
 }
 
+/** 
+* Method to set the status of the disable checkbox
+*/
 void 
 ManagerImpl::setDisableCheckboxStatus( const bool& status )
 {
 	setConfig("Video", "DisableCheckbox", status);
 }
 
-/*
- * Start it when the user activates the webcam icon
- * Changes the status of the mixer
- * The mixer should now take the input from the 
- * local webcam instead of a black screen
- */
-bool startVideo()
-{
-	
-}
-/*
- * Start it when the user desactivates on the webcam icon
- * Changes the status of the mixer
- * The mixer should now take the input from a 
- * black screen instead of the local webcam
- */
-bool stopVideo()
-{
-	
-}
-/*
- * Start it when there is an incoming video session
- * Changes the status of the mixer
- * The mixer should now take the input from the 
- * video session instead of a black screen
- */
-bool startIncomingVideo()
-{
-	
-}
-/*
- * Stop it when a video session has ended
- * Changes the status of the mixer
- * The mixer should now take the input from a 
- * black screen instead of the video session
- */
-bool stopIncomingVideo()
-{
-	
-}
-/*
- * Tells the mixer which calls to join the audio from
- */
-bool joinAudio(const CallID& id1, const CallID& id2)
-{
-	
-}
-/*
- * Tells the mixer which calls to join the video from
- */
-bool joinVideo(const CallID& id1, const CallID& id2)
-{
-	
-}
 

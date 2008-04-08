@@ -74,7 +74,7 @@ void Mixer::start()
   audioTranscoder->start();
   
   // Starting Video Mixer
-  //videoTranscoder->start();
+  videoTranscoder->start();
   
 }
 
