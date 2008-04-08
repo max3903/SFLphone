@@ -236,8 +236,10 @@ void VideoRtpRTX::sendSession()
   // Getting webcam resolution information
   pair<int,int> Res = cmdRes->getResolution();
   
-  //if (data_from_wc==NULL)
-   //_debug("NULLLLL!!!!");
+  /*if (data_from_wc==NULL){
+  	_debug("NULLLLL!!!!");
+  	return;
+  }*/
   
   // Putting captured data into mixer
   this->vidCall->getRemote_Video_Input()->putData( data_from_wc, sizeV4L, 0, Res.first, Res.second );
@@ -318,7 +320,6 @@ void VideoRtpRTX::receiveSession()
       int decodedSize= decodeCodec->videoDecode(data_from_peer,data_to_display,peerBufLen);
       
       if( decodedSize >= 0 ){
-        //this->memManager->putData(this->key, data_to_display, FRAME_SIZE, 320, 240);
         this->vidCall->getLocal_Video_Input()->putData( data_to_display, decodedSize, 0, 320, 240  );
       }
       peerBufLen=0;
