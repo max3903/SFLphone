@@ -1598,9 +1598,9 @@ create_general_settings ()
   GtkWidget *trayBox;
   GtkWidget *trayItem;
 
-  GtkWidget *dialFrame;
-  GtkWidget *dialBox;
-  GtkWidget *dialItem;
+//  GtkWidget *dialFrame;
+//  GtkWidget *dialBox;
+//  GtkWidget *dialItem;
 
   // Main widget
   ret = gtk_vbox_new(FALSE, 10);
