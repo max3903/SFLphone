@@ -41,12 +41,12 @@ MemKey* MemSpace::getMemKey()
 
 bool MemSpace::putData(unsigned char* Data, int size, int width, int height)
 {
-	int flag= -1;
+	/*int flag= -1;
 
 	do{
 		memcpy( &flag, this->baseAddress, sizeof(int) );
-		usleep(10);
-	}while(flag != 0);
+		usleep(1);
+	}while(flag != 0);*/
 			
 	// Putting image size in shared memory
 	memcpy(this->baseAddress + sizeof(int) , &width, sizeof(int));
