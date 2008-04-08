@@ -96,6 +96,9 @@ private:
     AVCodecContext*	codecCtx;
     /** Video Device manager **/
     VideoDeviceManager* VideoDevMng;
+    
+    Resolution* cmdRes;
+    Capture* cmdCapture;
 
     uint32 timestamp;
 
@@ -108,9 +111,6 @@ private:
     bool isMarked;
     int peerBufLen;
     int workingBufLen;
-    
-    MemManager* memManager;
-    MemKey* key;
     
 	/**
 	 * Get the data from V4l, send it to the mixer, encode and send to RTP

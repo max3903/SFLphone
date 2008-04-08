@@ -83,6 +83,6 @@ void NoSynch::stop()
   OkToKill= false;
   
   // Watting for the thread to stop  
-  while(!OkToKill);
+ // while(!OkToKill);
   
 }
