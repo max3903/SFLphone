@@ -208,6 +208,11 @@ PKG_CHECK_MODULES(libswscale, libswscale >= ${LIBSWSCALE_MIN_VERSION})
 SFLPHONE_CFLAGS="$SFLPHONE_CFLAGS $libswscale_CFLAGS"
 SFLPHONE_LIBS="$SFLPHONE_LIBS $libswscale_LIBS"
 
+ORTP_MIN_VERSION=0.5
+PKG_CHECK_MODULES(ortp, ortp >= ${ORTP_MIN_VERSION})
+SFLPHONE_CFLAGS="$SFLPHONE_CFLAGS $ortp"
+SFLPHONE_LIBS="$SFLPHONE_LIBS $ortp"
+
 # check for libgsm1 (doesn't use pkg-config)
 dnl Check for libgsm
 AC_ARG_WITH([gsm],

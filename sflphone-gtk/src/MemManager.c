@@ -84,7 +84,7 @@ int fetchData( MemKey *key, MemData *data )
 	
 	// Reset shared memory buffer	
 	//memset(key->BaseAdd,0, data->size + (sizeof(int) * 4) );
-	memset(key->BaseAdd,0, sizeof(int) );
+	//memset(key->BaseAdd,0, sizeof(int) );
 		
  	return 0;
 	
