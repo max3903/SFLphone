@@ -28,7 +28,7 @@ VideoInput::~VideoInput(){
 
 void VideoInput::putData(unsigned char * data, int size, int timeStamp, int w, int h){
 	 
-  if (data!=NULL && size>0 && w!= 0 && h!=0){
+  if (data!=NULL && size>0 && w!= 0 && h!=0 && MAXBUFFER > this->fifo.size()){
     
     // Creating an video data packet 
     VideoPacket * tmpPak= new VideoPacket;
@@ -47,7 +47,10 @@ void VideoInput::putData(unsigned char * data, int size, int timeStamp, int w, i
     sem_post(&sem_putData);
    
   }else{
-    ptracesfl("VideoInput - putData(): Parameter error NULL pointer passed or size < 0",MT_ERROR, VIDEOINPUT_TRACE);
+  	if( MAXBUFFER > this->fifo.size() ){
+  		ptracesfl("VideoInput - putData(): Buffer full ...",MT_WARNING, VIDEOINPUT_TRACE); 
+  	}else
+    	ptracesfl("VideoInput - putData(): Parameter error NULL pointer passed or size < 0",MT_ERROR, VIDEOINPUT_TRACE);
   }
        
 }
