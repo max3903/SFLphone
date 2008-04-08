@@ -40,8 +40,6 @@ short* AudioOutput::fetchData(int &size)
     AudioOutPacket * tmpPak= this->fifo.front();
     sem_post(&sem_putData);
         
-    //memcpy(data, tmpPak->data, tmpPak->size);
-    
     data= tmpPak->data;
     size= tmpPak->size;
     
@@ -73,11 +71,9 @@ void AudioOutput::putData(short * data, int size)
   		
   		// Creating new data packet
    		AudioOutPacket * tmpPak= new AudioOutPacket;
-	    tmpPak->data= new short[size];
+	    tmpPak->data= data;
 	    tmpPak->size= size;
-	    
-	    memcpy(tmpPak->data, data, tmpPak->size);
-	
+ 	
 		// inserting data packet
 		sem_wait(&sem_putData); 
 	    	this->fifo.push_back(tmpPak);
@@ -89,10 +85,10 @@ void AudioOutput::putData(short * data, int size)
 }
 
 // DEPRECIATED !!!!!
-int AudioOutput::fetchData(unsigned char* data, int &width, int &height)
+unsigned char* AudioOutput::fetchData(int &size, int &width, int &height)
 {
   ptracesfl("AudioOuput - fetchData(char* data): This method should never be called in an AudioOutput Buffer",MT_FATAL,AUDIOOUTPUT_TRACE);
-  return -1; 
+  return NULL; 
 }
 // DEPRECIATED !!!!!
 void AudioOutput::putData(unsigned char * data, int size)

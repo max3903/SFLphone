@@ -23,8 +23,8 @@ NoSynch::~NoSynch()
 void NoSynch::run()
 {
   OkToKill = false;
-  int size= -1;
   short* dataAudio= NULL;
+  unsigned char* dataVideo= NULL;
   
   while(Active)
   {
@@ -36,8 +36,8 @@ void NoSynch::run()
 	if( sizeBufferAudio != 0 ){
 		
 		ptracesfl("NoSynch - run(): Getting Audio Data from audio input buffer ... ",MT_INFO, NOSYNCH_TRACE);
-		dataAudio = inputStreams->fetchAudioStream()->fetchData(size);
-		if( size != -1 ){
+		dataAudio = inputStreams->fetchAudioStream()->fetchData(sizeBufferAudio);
+		if( sizeBufferAudio != -1 ){
 			ptracesfl("NoSynch - run(): Putting Audio Data into audio internall buffer ... ",MT_INFO, NOSYNCH_TRACE);
 			bufferAudio->putData((void*)dataAudio,sizeBufferAudio);
 		}else
@@ -53,16 +53,14 @@ void NoSynch::run()
 	int sizeBufferVideo=inputStreams->fetchVideoStream()->getSizeBuffer();
 	
 	if( sizeBufferVideo != 0 ){
-		
-		// Getting and dispatching video data
-		unsigned char* dataVideo = new unsigned char[sizeBufferVideo];
-			
-		if( inputStreams->fetchVideoStream()->fetchData(dataVideo) != -1){
+							
+		ptracesfl("NoSynch - run(): Getting Video Data from video input buffer ... ",MT_INFO, NOSYNCH_TRACE);
+		dataVideo= inputStreams->fetchVideoStream()->fetchData( sizeBufferVideo );
+		if( sizeBufferVideo != -1){
 			bufferVideo->putData((void*)dataVideo,sizeBufferVideo);
 		}else
-			ptracesfl("NoSynch - run(): Cannot transfert audio data from sync manager to internal audio buffer",MT_ERROR, NOSYNCH_TRACE);
-		
-		delete dataVideo;
+			ptracesfl("NoSynch - run(): Cannot transfert Video data from sync manager to internal video buffer",MT_ERROR, NOSYNCH_TRACE);
+			
 		dataVideo= NULL;
 		
 	}

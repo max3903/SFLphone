@@ -52,25 +52,26 @@ void VideoInput::putData(char * data, int size, int timeStamp, int w, int h){
        
 }
 
-int VideoInput::fetchData(unsigned char* data){
-	 
-  if(data!=NULL && this->fifo.size() != 0)
+unsigned char* VideoInput::fetchData(int &size){
+	
+  unsigned char* data= NULL;
+   
+  if(this->fifo.size() != 0)
   {
   	// Getting reference to head in queue
   	sem_wait(&sem_putData);
     VideoPacket * tmpPak= this->fifo.front();
     sem_post(&sem_putData);
-        
-    memcpy(data, tmpPak->data, tmpPak->size);
-    
-    int sizeBuffer= tmpPak->size;
+       
+    data= tmpPak->data;         
+    size= tmpPak->size;
     
     // Removing head
     sem_wait(&sem_putData); 
     this->fifo.pop_front();
     sem_post(&sem_putData);
         
-    return sizeBuffer;
+    return data;
   }
   else
   {
@@ -80,7 +81,8 @@ int VideoInput::fetchData(unsigned char* data){
     	ptracesfl("VideoInput - fetchData(): empty buffer",MT_WARNING, VIDEOINPUT_TRACE);
   }
 
-  return -1;
+  size= -1;
+  return NULL;
   
 }
 

@@ -61,8 +61,6 @@ short* AudioInput::fetchData(int &size)
     AudioPacket * tmpPak= this->fifo.front();
     sem_post(&sem_putData);
         
-    //memcpy(data, tmpPak->data, tmpPak->size);
-    
     data = tmpPak->data;
     size = tmpPak->size;
     
@@ -72,7 +70,6 @@ short* AudioInput::fetchData(int &size)
     sem_post(&sem_putData);
     
     return data;
-    
   }
   else
   {
