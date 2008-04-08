@@ -100,8 +100,8 @@ contact_t* contact_list_get_nth(GQueue* contactList, guint index);
  */
 // TODO
 void contact_list_entry_add(gchar* accountID, gchar* contactID, contact_entry_t* entry, gboolean update);
-//void contact_list_entry_edit(contact_t* contact, contact_entry_t* oldEntry, contact_entry_t* newEntry);
-//void contact_list_entry_remove(contact_t* contact, contact_entry_t* entry);
+void contact_list_entry_edit(gchar* accountID, gchar* contactID, contact_entry_t* entry);
+void contact_list_entry_remove(gchar* accountID, gchar* contactID, gchar* entryID);
 
 /**
  * Function when an update on presence status is received from server and only entry is known, not the contact

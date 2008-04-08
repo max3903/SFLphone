@@ -263,8 +263,33 @@ edit_contact_activated(GtkMenuItem* item, GtkTreeView* treeView)
 static void
 new_entry_activated(GtkMenuItem* item, GtkTreeView* treeView)
 {
-	// TODO
-	g_print("New entry activated");
+	GtkTreeIter iter;
+	gchar* contactID;
+	gchar* accountID;
+	
+	// Find model and selection to get the contact ID
+	GtkTreeModel* model = gtk_tree_view_get_model(treeView);
+	GtkTreeSelection* selection = gtk_tree_view_get_selection(treeView);
+	gtk_tree_selection_get_selected(selection, &model, &iter);
+	gtk_tree_model_get(model, &iter,
+			CONTACT_WINDOW_ID, &contactID,
+			-1);
+	
+	// Get path and then parent path
+	GtkTreePath* path = gtk_tree_model_get_path(model, &iter);
+	gtk_tree_path_up(path);
+	
+	// Get the account ID of the parent iter
+	gtk_tree_model_get_iter(model, &iter, path);
+	gtk_tree_model_get(model, &iter,
+			CONTACT_WINDOW_ID, &accountID,
+			-1);
+		
+	show_entry_dialog(accountID, contactID, NULL);
+	
+	gtk_tree_path_free(path);
+	g_free(contactID);
+	g_free(accountID);
 }
 
 static void
@@ -529,7 +554,150 @@ show_contact_dialog(gchar* accountID, gchar* contactID)
 void
 show_entry_dialog(gchar* accountID, gchar* contactID, gchar* entryID)
 {
-	// TODO
+	gint response;
+	gboolean isNewEntry;
+	
+	gchar* entryIDText = "";
+	gchar* textText = "";
+	gchar* typeText = "";
+	gboolean isShownCheck = FALSE;
+	gboolean isSubscribedCheck = FALSE;
+
+	GtkWidget* label;
+	GtkWidget* table;
+
+	// Load contact from account
+	contact_t* contact = contact_list_get(contact_hash_table_get_contact_list(accountID), contactID);
+	if(contact == NULL)
+	{
+		g_printerr("Contact not found for %s\n", accountID);
+	}
+	else
+	{
+		if(entryID == NULL)
+		{
+			isNewEntry = TRUE;
+		}
+		else
+		{
+			isNewEntry = FALSE;
+			// Try to find entry
+			contact_entry_t* entry = contact_list_entry_get(contact, entryID);
+			if(entry != NULL)
+			{
+				// Load dialog with current contact values
+				entryIDText = g_strdup(entry->_entryID);
+				textText = g_strdup(entry->_text);
+				typeText = g_strdup(entry->_type);
+				isShownCheck = entry->_isShownInConsole;
+				isSubscribedCheck = entry->_isSubscribed;
+			}
+			else
+			{
+				g_printerr("Entry not found");
+				return;
+			}
+		}
+
+		// Create dialog with values
+		entryDialog = GTK_DIALOG(gtk_dialog_new_with_buttons(
+				_("Entry settings"),
+				GTK_WINDOW(contactWindowDialog),
+				GTK_DIALOG_DESTROY_WITH_PARENT,
+				GTK_STOCK_SAVE,
+				GTK_RESPONSE_ACCEPT,
+				GTK_STOCK_CANCEL,
+				GTK_RESPONSE_CANCEL,
+				NULL));
+		gtk_dialog_set_has_separator(entryDialog, TRUE);
+		gtk_window_set_default_size(GTK_WINDOW(entryDialog), 500, -1);
+		gtk_container_set_border_width(GTK_CONTAINER(entryDialog), 0);
+
+		// Create table that will hold all entries
+		table = gtk_table_new(5, 2, FALSE);
+		gtk_table_set_row_spacings(GTK_TABLE(table), 10);
+		gtk_table_set_col_spacings(GTK_TABLE(table), 10);
+
+		// Add  contact entry ID entry
+		label = gtk_label_new_with_mnemonic(_("_Entry"));
+		gtk_misc_set_alignment(GTK_MISC(label), 0, 0.5);
+		gtk_widget_set_tooltip_text(GTK_WIDGET(label), _("Contact number as you would type it when calling\nExample : 5142765468"));
+		gtk_table_attach(GTK_TABLE(table), label, 0, 1, 0, 1, GTK_EXPAND | GTK_FILL, GTK_EXPAND | GTK_FILL, 0, 0);
+		entryIDEntry = gtk_entry_new();
+		gtk_label_set_mnemonic_widget(GTK_LABEL(label), entryIDEntry);
+		gtk_entry_set_text(GTK_ENTRY(entryIDEntry), entryIDText);
+		gtk_table_attach(GTK_TABLE(table), entryIDEntry, 1, 2, 0, 1, GTK_EXPAND | GTK_FILL, GTK_EXPAND | GTK_FILL, 0, 0);
+		
+		// Add text entry
+		label = gtk_label_new_with_mnemonic(_("_Alias"));
+		gtk_misc_set_alignment(GTK_MISC(label), 0, 0.5);
+		gtk_widget_set_tooltip_text(GTK_WIDGET(label), _("Contact number alias used for presentation\nExample : 514-276-5468"));
+		gtk_table_attach(GTK_TABLE(table), label, 0, 1, 1, 2, GTK_EXPAND | GTK_FILL, GTK_EXPAND | GTK_FILL, 0, 0);
+		entryTextEntry = gtk_entry_new();
+		gtk_label_set_mnemonic_widget(GTK_LABEL(label), entryTextEntry);
+		gtk_entry_set_text(GTK_ENTRY(entryTextEntry), textText);
+		gtk_table_attach(GTK_TABLE(table), entryTextEntry, 1, 2, 1, 2, GTK_EXPAND | GTK_FILL, GTK_EXPAND | GTK_FILL, 0, 0);
+		
+		// Add type entry
+		label = gtk_label_new_with_mnemonic(_("_Type"));
+		gtk_misc_set_alignment(GTK_MISC(label), 0, 0.5);
+		gtk_widget_set_tooltip_text(GTK_WIDGET(label), _("Type of contact (work, home, cell)"));
+		gtk_table_attach(GTK_TABLE(table), label, 0, 1, 2, 3, GTK_EXPAND | GTK_FILL, GTK_EXPAND | GTK_FILL, 0, 0);
+		entryTypeEntry = gtk_entry_new();
+		gtk_label_set_mnemonic_widget(GTK_LABEL(label), entryTypeEntry);
+		gtk_entry_set_text(GTK_ENTRY(entryTypeEntry), typeText);
+		gtk_table_attach(GTK_TABLE(table), entryTypeEntry, 1, 2, 2, 3, GTK_EXPAND | GTK_FILL, GTK_EXPAND | GTK_FILL, 0, 0);
+		
+		// Add is shown in call console check box
+		label = gtk_label_new_with_mnemonic(_("_Show in call console"));
+		gtk_misc_set_alignment(GTK_MISC(label), 0, 0.5);
+		gtk_widget_set_tooltip_text(GTK_WIDGET(label), _("Check if you want to see this entry in the call console"));
+		gtk_table_attach(GTK_TABLE(table), label, 0, 1, 3, 4, GTK_EXPAND | GTK_FILL, GTK_EXPAND | GTK_FILL, 0, 0);
+		entryIsShownCheckButton = gtk_check_button_new();
+		gtk_label_set_mnemonic_widget(GTK_LABEL(label), entryIsShownCheckButton);
+		gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(entryIsShownCheckButton), isShownCheck);
+		gtk_table_attach(GTK_TABLE(table), entryIsShownCheckButton, 1, 2, 3, 4, GTK_FILL, GTK_EXPAND | GTK_FILL, 0, 0);
+		
+		// Add is subscribed check box
+		label = gtk_label_new_with_mnemonic(_("_Presence subscription"));
+		gtk_misc_set_alignment(GTK_MISC(label), 0, 0.5);
+		gtk_widget_set_tooltip_text(GTK_WIDGET(label), _("Check if this entry should subscribe to presence information"));
+		gtk_table_attach(GTK_TABLE(table), label, 0, 1, 4, 5, GTK_EXPAND | GTK_FILL, GTK_EXPAND | GTK_FILL, 0, 0);
+		entryIsSubcribedCheckButton = gtk_check_button_new();
+		gtk_label_set_mnemonic_widget(GTK_LABEL(label), entryIsSubcribedCheckButton);
+		gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(entryIsSubcribedCheckButton), isSubscribedCheck);
+		gtk_table_attach(GTK_TABLE(table), entryIsSubcribedCheckButton, 1, 2, 4, 5, GTK_FILL, GTK_EXPAND | GTK_FILL, 0, 0);
+		
+		// Pack and show table
+		gtk_box_pack_start(GTK_BOX(entryDialog->vbox), table, TRUE, TRUE, 0);
+		gtk_container_set_border_width (GTK_CONTAINER(table), 10);
+		gtk_widget_show_all(table);
+		
+		// Run dialog, get ok or cancel response and destroy
+		response = gtk_dialog_run(entryDialog);
+		
+		if(response == GTK_RESPONSE_ACCEPT)
+		{
+			// Build entry from entries
+			contact_entry_t* entry = g_new0(contact_entry_t, 1);
+			entry->_entryID = g_strdup(gtk_entry_get_text(GTK_ENTRY(entryIDEntry)));
+			entry->_text = g_strdup(gtk_entry_get_text(GTK_ENTRY(entryTextEntry)));
+			entry->_type = g_strdup(gtk_entry_get_text(GTK_ENTRY(entryTypeEntry)));
+			entry->_isShownInConsole = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(entryIsShownCheckButton));
+			entry->_isSubscribed = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(entryIsSubcribedCheckButton));
+			
+			// The model of the tree view is not modified directly but the entry list will
+			// be updated and will propagate changes to the entry window and the call console.
+			if(isNewEntry)
+				contact_list_entry_add(accountID, contactID, entry, TRUE);
+			else
+				contact_list_entry_edit(accountID, contactID, entry);
+			
+			// TODO If entry ID changed we must do a remove and add
+		}
+		
+		gtk_widget_destroy(GTK_WIDGET(entryDialog));
+	}
 }
 
 void

@@ -146,25 +146,28 @@ contact_list_entry_add(gchar* accountID, gchar* contactID, contact_entry_t* entr
 	
 	// TODO Modify the views (contact window and call console)
 	if(update);
-	
+
 	// Send modifications to server
-	gchar isShown[6], isSubscribed[6];
-	if(entry->_isShownInConsole) strcpy(isShown, "TRUE");
-	else strcpy(isShown, "FALSE");
-	if(entry->_isSubscribed) strcpy(isSubscribed, "TRUE");
-	else strcpy(isSubscribed, "FALSE");
-	if(update) dbus_set_contact_entry(accountID, contactID, entry->_entryID,
-			entry->_text, entry->_type, isShown, isSubscribed);
+	if(update)
+	{
+		gchar isShown[6], isSubscribed[6];
+		if(entry->_isShownInConsole) strcpy(isShown, "TRUE");
+		else strcpy(isShown, "FALSE");
+		if(entry->_isSubscribed) strcpy(isSubscribed, "TRUE");
+		else strcpy(isSubscribed, "FALSE");
+		dbus_set_contact_entry(accountID, contactID, entry->_entryID,
+				entry->_text, entry->_type, isShown, isSubscribed);
+	}
 }
 
 void
-contact_list_entry_edit(contact_t* contact, contact_entry_t* oldEntry, contact_entry_t* newEntry)
+contact_list_entry_edit(gchar* accountID, gchar* contactID, contact_entry_t* entry)
 {
 	// TODO
 }
 
 void
-contact_list_entry_remove(contact_t* contact, contact_entry_t* entry)
+contact_list_entry_remove(gchar* accountID, gchar* contactID, gchar* entryID)
 {
 	// TODO
 }

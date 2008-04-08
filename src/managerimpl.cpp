@@ -2563,7 +2563,7 @@ ManagerImpl::setContactEntry(const std::string& accountID, const std::string& co
 		{
 			// Add new entry
 			entry = new ContactEntry(entryID, text, type, shown, subscribed);
-			entries.push_back(entry);
+			contact->addEntry(entry);
 			subscribedChanged = TRUE;
 			subscribe = TRUE;
 		}
