@@ -74,7 +74,7 @@ void StraightThrough_AT::run()
     
   }
   
-//  ptracesfl("StraightThrough_AT - run(): The run thread has stopped cleanly",MT_INFO,STRAIGHTTHROUGH_TRACE);
+  ptracesfl("StraightThrough_AT - run(): The run thread has stopped cleanly",MT_INFO,STRAIGHTTHROUGH_TRACE);
   
   OkToKill=true;
   
