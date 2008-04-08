@@ -313,8 +313,8 @@ bool MemManager::putData(unsigned char * Data, int size, int width, int height)
 bool MemManager::putData(key_t key, unsigned char * Data, int size, int width, int height)
 {
 	
-	//if( this->getSpaceConstol() )
-		//return false;
+	if( this->getSpaceConstol() )
+		return false;
 		
 	vector<MemSpace*>::iterator iter;
 
@@ -327,7 +327,7 @@ bool MemManager::putData(key_t key, unsigned char * Data, int size, int width, i
 		}
 	}
 	
-	//this->releaseSpaceConstol();
+	this->releaseSpaceConstol();
 	return false;
 	
 }
