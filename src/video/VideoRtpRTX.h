@@ -29,7 +29,8 @@
 
 #include "VideoCodec/VideoCodec.h"
 #include "VideoCodecDescriptor.h"
-#include "VideoRtp.h"
+//#include "VideoRtp.h"
+#include "../sipcall.h"
 #include <cc++/thread.h>
 #include <ccrtp/rtp.h>
 #include <ffmpeg/avcodec.h> //TODO: p-e pas nescessaire !
