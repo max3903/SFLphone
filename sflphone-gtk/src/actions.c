@@ -92,8 +92,8 @@ status_bar_display_account( call_t* c)
     else
       acc = account_list_get_by_id( account_list_get_default());
     msg = g_markup_printf_escaped("Default: %s account- %s" , 
-				  g_hash_table_lookup( acc->properties , ACCOUNT_TYPE), 
-				  g_hash_table_lookup( acc->properties , ACCOUNT_ALIAS));
+				  (char*)g_hash_table_lookup( acc->properties , ACCOUNT_TYPE), 
+				  (char*)g_hash_table_lookup( acc->properties , ACCOUNT_ALIAS));
     status_bar_message_add( msg , __MSG_ACCOUNT_DEFAULT);
     g_free(msg);
 }
