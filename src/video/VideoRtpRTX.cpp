@@ -38,25 +38,9 @@ VideoRtpRTX::VideoRtpRTX(SIPCall *sipcall, bool sym)
   }
   else
     session = new ost::SymmetricRTPSession(local_ip, vidCall->getLocalVideoPort());
-    
   
-  this->memManager= MemManager::getInstance();
-  
-  vector<MemKey*> tmp= this->memManager->getAvailSpaces();
-  
-  vector<MemKey*>::iterator debut= tmp.begin();
-  vector<MemKey*>::iterator fin= tmp.end();
-  string searchstring= "remote";
-  this->key= NULL;
-  
-  while( debut != fin ){
-  	if( (*debut)->getDescription() == searchstring)
-  		this->key= (*debut);
-  	debut++;
-  }
-  
-  if( key == NULL )
-  	exit();
+  cmdCapture = (Capture*) VideoDevMng->getCommand(VideoDeviceManager::CAPTURE);
+  cmdRes= (Resolution*)VideoDevMng->getCommand(VideoDeviceManager::RESOLUTION);  
 
 }
 
@@ -244,27 +228,29 @@ void VideoRtpRTX::sendSession()
   try{
   _debug("Entering Send Session\n");
   // Get Data from V4l, send it to the mixer input
-  Capture* cmdCapture = (Capture*) VideoDevMng->getCommand(VideoDeviceManager::CAPTURE);
+  
+  // Getting Image from web cam
   data_from_wc = cmdCapture->GetCapture(sizeV4L);
+  
+  // Getting webcam resolution information
+  pair<int,int> Res = cmdRes->getResolution();
   
   //if (data_from_wc==NULL)
    //_debug("NULLLLL!!!!");
-  //Resolution* cmdRes= (Resolution*)VideoDevMng->getCommand(VideoDeviceManager::RESOLUTION);
-  //pair<int,int> Res = cmdRes->getResolution();
-
-  // Depose les data de V4L dans le Input buffer du mixer correspondant
-  //vidCall->getRemoteIntputStreams()->fetchVideoStream()->putData((char*)charFromV4L,sizeV4L,timestamp);
-
-  // Prend les donnes de la sortie du mixer correspondant
-  //vidCall->getRemoteVideoOutputStream()->fetchData((char*)sendDataEncoded);
-
-  this->vidCall->getRemote_Video_Input()->putData( data_to_display, sizeV4L, 0, 320, 240 );
+  
+  // Putting captured data into mixer
+  printf("Avant mixer %dx%d\n", Res.first, Res.second );
+  this->vidCall->getRemote_Video_Input()->putData( data_from_wc, sizeV4L, 0, Res.first, Res.second );
   
   int videoSize= -1;
   int width= 0, height= 0;
+  
+  // Getting Mixer video output
   unsigned char* dataToSend= this->vidCall->getRemote_Video_Output()->fetchData(videoSize, width, height);
+  printf("Apres mixer %dx%d\n", width, height );
   // Encode it
   if( videoSize > 0 ){
+  	printf("Send ...\n");
  	encodedSize = encodeCodec->videoEncode(dataToSend,(unsigned char*)data_to_send,width,height);
 
    // _debug("Le timeStamp est: %d \n", timestamp);
@@ -327,19 +313,15 @@ void VideoRtpRTX::receiveSession()
 
     // Decode it
     if (isMarked) {
+    	
       int decodedSize= decodeCodec->videoDecode(data_from_peer,data_to_display,peerBufLen);
+      
       if( decodedSize >= 0 ){
         //this->memManager->putData(this->key, data_to_display, FRAME_SIZE, 320, 240);
         this->vidCall->getLocal_Video_Input()->putData( data_to_display, decodedSize, 0, 320, 240  );
       }
       peerBufLen=0;
     }
-    
-    // Envoyer dans le input du mixer local!
-    //vidCall->getLocalIntputStreams()->fetchVideoStream()->putData(data,size,timestamp);
-    
-    // Prend les donnes de la sortie du mixer correspondant TODO: A MODIFIER NON FONCTIONNEL!!!!!!!!!
-    //vidCall->getLocalVideoOutputStream()->fetchData((char*)sendDataEncoded);
 
     delete adu; adu = NULL;
     
