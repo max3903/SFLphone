@@ -66,7 +66,7 @@ ConfID ConfCall::getConfId() const{
 	
 void ConfCall::init(){
 	
-	// Dsitribute the counter part buffers
+	// Distribute the counter part buffers
 	this->call_1->setConfMode( this->call_2->getLocal_Video_Input(), this->call_2->getLocal_Audio_Input() );
 	this->call_1->setConfId(this->ConfId);
 	this->call_2->setConfMode( this->call_1->getLocal_Video_Input(), this->call_1->getLocal_Audio_Input() );

@@ -12,7 +12,7 @@ NoSynch::NoSynch(InputStreams* Streams, InternalBuffer* video, InternalBuffer* a
   bufferAudio = audio;
   bufferVideo = video;
   
-  Active=true;
+  Active=false;
   OkToKill=false;
 }
 
@@ -80,9 +80,9 @@ void NoSynch::stop()
   ptracesfl("NoSynch - stop(): Stopping the thread",MT_INFO,NOSYNCH_TRACE);
   
   Active=false;
-  OkToKill= false;
-  
-  // Watting for the thread to stop  
- // while(!OkToKill);
+   
+  // Waiting for the thread to stop  
+  //TODO: check why segfault when uncommenting the following line
+  //while(!OkToKill);
   
 }
