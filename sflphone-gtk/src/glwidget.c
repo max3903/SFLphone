@@ -51,7 +51,9 @@ gboolean draw(GtkWidget* widget, gpointer data)
 		glLoadIdentity();
 		gluOrtho2D(0.0, widget->allocation.width, 0.0, widget->allocation.height );
 		
-	}
+	}else
+		glClear(GL_COLOR_BUFFER_BIT);
+		
 	
 	// Draw Local Image	
 	drawLocal(widget, data, glcontext, gldrawable);
