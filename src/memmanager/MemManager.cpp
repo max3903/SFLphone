@@ -215,7 +215,7 @@ bool MemManager::CleanSpaces(){
 	ptracesfl("Cleaning all shared memory space ...", MT_INFO, MEMMANAGER_TRACE);
 	for( iter = spaces.begin(); iter != spaces.end() ;iter++)
 	{
-		ptracesfl("Dettaching shared memory space ... ", MT_INFO, MEMMANAGER_TRACE);
+		ptracesfl("Dettaching shared memory space ... ", MT_INFO, MEMMANAGER_TRACE, false);
 		int ret = shmdt((*iter)->getBaseAddress());
 		
 		if(ret == -1){
