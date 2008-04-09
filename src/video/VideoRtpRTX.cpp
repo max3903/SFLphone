@@ -38,7 +38,7 @@ VideoRtpRTX::VideoRtpRTX(SIPCall *sipcall, bool sym)
   }
   else
 */
-    session = new ost::SymmetricRTPSession(local_ip, vidCall->getLocalVideoPort());
+    //session = new ost::SymmetricRTPSession(local_ip, vidCall->getLocalVideoPort());
 
   cmdCapture = (Capture*) VideoDevMng->getCommand(VideoDeviceManager::CAPTURE);
   cmdRes= (Resolution*)VideoDevMng->getCommand(VideoDeviceManager::RESOLUTION);  
@@ -98,7 +98,7 @@ void VideoRtpRTX::run(){
     _debug("Initial time: %d\n",timestamp);
     _debug("VIDEO:  Current timestamp icrementation: %d\n", tstampInc);
     _debug("- ARTP Action: Start (video)\n");
-    //semStart.post();
+    //semStart.p#include <ortp/ortp.h>ost();
 
     while (!testCancel()) {
 
@@ -132,6 +132,7 @@ void VideoRtpRTX::run(){
     _debugException("* ARTP Action: Stop");
     throw;
   }*/
+
 
 }
 	

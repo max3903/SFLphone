@@ -3,6 +3,11 @@
 
 
 
+/** 
+ *
+ * These are the default settings assigned to a codec at init
+ * 
+ */
 
 #define VIDEO_BIT_RATE 768000
 #define DEFAULT_WIDTH 320

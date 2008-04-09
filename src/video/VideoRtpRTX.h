@@ -27,14 +27,12 @@
 #ifndef VIDEORTPRTX_H
 #define VIDEORTPRTX_H
 
-#include <ortp/rtp.h>
 #include "VideoCodec/VideoCodec.h"
 #include "VideoCodecDescriptor.h"
 #include "../sipcall.h"
 #include <cc++/thread.h>
 #include "V4L/VideoDeviceManager.h"
 #include "../memmanager/MemManager.h"
-
 
 
 class SIPCall; //TODO: pourquoi pas de include SipCall..h????
@@ -76,6 +74,8 @@ private:
 
     /** SYMMETRIC RTP Session to send/receive */
     //ost::SymmetricRTPSession* session;
+
+    
 
     bool _sym;
 

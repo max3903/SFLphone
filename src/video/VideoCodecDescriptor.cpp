@@ -295,7 +295,7 @@ AVCodec* VideoCodecDescriptor::getDefaultCodec()
     
     bool VideoCodecDescriptor::setDefaultBitRate()
     {
-    	CurrentBitRate = DEFAULTBITRATE;
+    	CurrentBitRate = VIDEO_BIT_RATE;
     	return true;
     }
     

@@ -16,14 +16,24 @@
  *  along with this program; if not, write to the Free Software
  *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
+ 
 /**
  *  VideoCodec Class
  * 
- * This is the mother VideoCodec class. It's a virtual abstract class for encoding and 
+ * This is the VideoCodec class. It's a virtual abstract class for encoding and 
  * decoding video data.
  * 
- *	//TODO -this class is an libavcodec interface. Any codec can be used at this time
- * 			but the settings at initiation are made for h263 and h264 codecs mainly  
+ *	//TODO 	-this class is a libavcodec interface. Any codec can be used at this time
+ * 			but the settings at initiation are made for h263 and h264 codecs mainly.
+ * 
+ * 			-Would be interesting to set files for loading any codec and save/load those
+ * 			settings. Would also be interesting when it will be available in the libavcodec library
+ * 			to get set default contexts in the init parts. (as of april 2008 - libavcodec does not support it)
+ * 
+ * 			-The encode and decode are made to be dynamic if the local and foreign user change its
+ * 			resolution and if we enter in a video-conference
+ * 
+ * 
  */
 
 #ifndef VIDEOCODEC_H
@@ -58,7 +68,7 @@ public:
      * 
      */
 
-     int videoDecode(uint8_t *in_buf, uint8_t* out_buf,int inSize);
+     int videoDecode(uint8_t *in_buf, uint8_t* out_buf,int inSize,int width,int height);
 
 /**
      * Function to encode video information - The user has to set the input and output buffers
@@ -137,8 +147,8 @@ private:
    /** 
     * width and height the codec will receive to decode
     */
-    int outWidth;
-    int outHeight;
+    int outputWidth;
+    int outputHeight;
     
     /**
      * set to true if needed
