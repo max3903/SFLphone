@@ -39,8 +39,8 @@ VideoRtpRTX::VideoRtpRTX(SIPCall *sipcall, bool sym)
   else
     session = new ost::SymmetricRTPSession(local_ip, vidCall->getLocalVideoPort());
   
-  cmdCapture = (Capture*) VideoDevMng->getCommand(VideoDeviceManager::CAPTURE);
-  cmdRes= (Resolution*)VideoDevMng->getCommand(VideoDeviceManager::RESOLUTION);
+  cmdCapture = (Capture*) VideoDeviceManager::getInstance()->getCommand(VideoDeviceManager::CAPTURE);
+  cmdRes= (Resolution*) VideoDeviceManager::getInstance()->getCommand(VideoDeviceManager::RESOLUTION);
 }
 
 VideoRtpRTX::~VideoRtpRTX()
@@ -243,18 +243,19 @@ void VideoRtpRTX::sendSession()
   	
   	encodedSize = encodeCodec->videoEncode(dataToSend,(unsigned char*)data_to_send,width,height);
   	
-  	//pair<int,int> ResEnc = 
+  	pair<int,int> ResEnc = encodeCodec->getOutputResolution();
+  	
+  	_debug("Widht: %s, Height: %s\n",ResEnc.first,ResEnc.second);
 
     unsigned char *packet;
     packet = new unsigned char[4+encodedSize];
     memcpy(packet+4,data_to_send,encodedSize);
     // TODO: Construire entierement le header du packet
     packet[0]=0;
-    packet[1]=64;
+    packet[1]=setHeaderPictureFormat(ResEnc);
     packet[2]=0;
     packet[3]=0;
       
-       
     session->setMark(true);
 
   // Send it
