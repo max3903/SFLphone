@@ -30,6 +30,7 @@ VideoDeviceManager* VideoDeviceManager::getInstance(){
 }
 
 VideoDeviceManager::VideoDeviceManager(){
+	createCommand= false;
 }
 
 VideoDeviceManager::~VideoDeviceManager(){
@@ -107,6 +108,8 @@ Command* VideoDeviceManager::getCommand(TCommand ref){
 			break;	
     }
     
+    createCommand= true;
+    
     return tmp;
     
 }
@@ -155,15 +158,17 @@ vector<string> VideoDeviceManager::enumVideoDevices(){
 
 
 void VideoDeviceManager::Terminate(){
-	
-	Command::ChangingDevice();
-	
+		
 	if( Command::videoDevice != NULL ){
+		
+		if( createCommand )
+			Command::ChangingDevice();
+		
 		Command::videoDevice->closeDevice();
 		delete Command::videoDevice;
 		Command::videoDevice= NULL;
+		
+		if( createCommand )
+			Command::DeviceChanged();
 	}
-	
-	Command::DeviceChanged();
-	
 }

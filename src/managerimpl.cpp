@@ -183,19 +183,15 @@ void ManagerImpl::terminate()
 
   _debug("Unload Telephone Tone\n");
   delete _telephoneTone; _telephoneTone = NULL;
+    
+  _debug("Unload Shared Memory Manager\n");
+  _memManager->CleanSpaces();
+  delete _memManager; _memManager = NULL;  
+      
+   _debug("Unload VideoDeviceManager\n");
+   _videoDeviceManager->Terminate();
+  delete _videoDeviceManager; _videoDeviceManager = NULL;
   
-  // \TODO End threads
-  
-  // \TODO Re enable after RTP video fixed
-  //_debug("Unload VideoDeviceManager\n");
-  // _videoDeviceManager->Terminate();
-  //delete _videoDeviceManager; _videoDeviceManager = NULL;
-  
-  // \TODO Re enable after RTP video fixed
-  //_debug("Unload Shared Memory Manager\n");
-  //_memManager->CleanSpaces();
-  //delete _memManager; _memManager = NULL;  
-
   _debug("Unload VideoCodecDescriptor\n");
   delete _videoCodecDescriptor; _videoCodecDescriptor = NULL;
 
@@ -3018,15 +3014,15 @@ ManagerImpl::getCurrentBitrate(  )
 bool 
 ManagerImpl::enableLocalVideoPref(){
 	
-	if( _localCapActive ){
+	if( ManagerImpl::_localCapActive ){
 		ptracesfl("Local Capture for preference windows already active", MT_WARNING, MANAGERIMPL_TRACE);
 		return true;
 	}
 	
-	_localCapActive= true;
+	ManagerImpl::_localCapActive= true;
 	
 	if( pthread_create(&_localVidCap_Thread, NULL, localVideCapturepref, NULL) != 0 ){
-		_localCapActive= false;
+		ManagerImpl::_localCapActive= false;
 		ptracesfl("Cannot create capture thread for capture (preference window)", MT_ERROR, MANAGERIMPL_TRACE);
 		return false;
 	}

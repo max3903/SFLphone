@@ -103,6 +103,9 @@ private:
 
     //! The instance of the VideoDeviceManager
     static VideoDeviceManager* instance;
+    
+    //! Variable to retaint if a command was created
+    bool createCommand;
 
 };
 #endif //VIDEODEVICEMANAGER_H

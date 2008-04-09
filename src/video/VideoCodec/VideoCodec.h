@@ -82,7 +82,12 @@ public:
 
     int videoEncode(unsigned char* in_buf, unsigned char* out_buf,int width,int height);
  	
-
+	/***
+	 * 
+	 */
+	 pair<int,int> getInputWidth();
+	 
+	 pair<int,int> getOutputWidth();
     
 private:
  	/**
