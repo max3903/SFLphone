@@ -60,8 +60,8 @@ public:
   /** Add a new outgoing call and return the call pointer or 0 if and error occurs */
   virtual Call* newOutgoingCall(const CallID& id, const std::string& toUrl) = 0;
  
-  /** Start Video within a call */
-  virtual bool newOutgoingVideoInvite(const CallID& id) = 0;
+  /** Start/Stop Video within a call */
+  virtual bool ChangeWebCamStatus(const CallID& id, bool status) = 0;
 
   virtual bool answer(const CallID& id) = 0;
 

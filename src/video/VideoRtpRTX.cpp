@@ -318,7 +318,7 @@ void VideoRtpRTX::receiveSession()
     // Decode it
     if (isMarked) {
     	
-      int decodedSize= decodeCodec->videoDecode(data_from_peer,data_to_display,peerBufLen,320,240);
+      int decodedSize= decodeCodec->videoDecode(data_from_peer,data_to_display,peerBufLen,176,144);
       
       if( decodedSize >= 0 ){
         this->vidCall->getLocal_Video_Input()->putData( data_to_display, decodedSize, 0, 320, 240  );
