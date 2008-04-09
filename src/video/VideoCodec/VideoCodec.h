@@ -85,9 +85,9 @@ public:
 	/***
 	 * 
 	 */
-	 pair<int,int> getInputWidth();
+	 pair<int,int> getIntputResolution();
 	 
-	 pair<int,int> getOutputWidth();
+	 pair<int,int> getOutputResolution();
     
 private:
  	/**

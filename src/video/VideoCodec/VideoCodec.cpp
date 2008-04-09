@@ -302,7 +302,7 @@ int VideoCodec::videoDecode(uint8_t *in_buf, uint8_t* out_buf,int inSize,int wid
 }
 
 
-	 pair<int,int> VideoCodec::getInputWidth(){
+	 pair<int,int> VideoCodec::getIntputResolution(){
 	 
 	 pair<int,int> temp;
 
@@ -313,7 +313,7 @@ int VideoCodec::videoDecode(uint8_t *in_buf, uint8_t* out_buf,int inSize,int wid
 	 
 	 }
 	 
-	 pair<int,int> VideoCodec::getOutputWidth(){
+	 pair<int,int> VideoCodec::getOutputResolution(){
 	 
 	 
 	pair<int,int> temp;
