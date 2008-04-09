@@ -45,14 +45,6 @@ extern "C"{
 #include <ffmpeg/swscale.h>
 }
 
-#define DEFAULTBITRATE 768000
-// TODO: a vérifier !
-typedef enum {
-  H263 = 33,
-  H264 = 34
-} VideoCodecPayloadType;
-
-
 /* A codec is identified by it's AVCodec, the codec utilisation by the AVCodecContext */
 typedef std::map<AVCodec*, AVCodecContext*> VideoCodecMap;
 /* VideoCodecOrder iterator typedef*/
@@ -78,9 +70,9 @@ public:
 
 //! Method to get the instance of the VideoCodecDescriptor.
     /*!
-     * If it does not exist, this method will create it
-     * 
-     * \return an instance of the manager
+     * If it does not exist, this method will create it.
+     * VideoCodec Descriptor is a singleton pattern
+     * @return an instance of the manager
      */
     static VideoCodecDescriptor* getInstance();
 

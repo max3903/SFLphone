@@ -67,6 +67,15 @@ public:
 	 * Function to create RTP Session to send Video Packets
 	 */ 
     void initVideoRtpSession();
+    /**
+	 * Function to Start the thread
+	 */ 
+    void Start();
+    /**
+	 * Function to stop the thread
+	 */ 
+    void Stop();
+    
 
 private:
 

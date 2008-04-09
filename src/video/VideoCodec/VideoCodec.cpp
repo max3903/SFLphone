@@ -17,7 +17,7 @@
  *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
  
- 
+
 #include "VideoCodec.h"
 
 #define VIDEOCODECPTRACE 2
@@ -78,6 +78,8 @@ void VideoCodec::init(){
 	//default width and height
 	inputWidth = tmp.first;
 	inputHeight = tmp.second;
+	outputWidth = DEFAULT_WIDTH;
+	outputHeight = DEFAULT_HEIGHT;
 	
 	initEncodeContext();
 	initDecodeContext();
@@ -131,7 +133,6 @@ void VideoCodec::initEncodeContext(){
 	_encodeCodecCtx->bit_rate = _videoDesc->getEncodingBitRate();
 	//_encodeCodecCtx->flags 
 	
-	
 	/// other
 	if(_CodecENC->id == CODEC_ID_H264)
 	{
@@ -144,9 +145,6 @@ void VideoCodec::initEncodeContext(){
 	_encodeCodecCtx->me_method = 6;
 	_encodeCodecCtx->idct_algo = FF_IDCT_AUTO;
 	}
-
-	//intra or inter matrix
-
 
 	// CHECK if we can pair both
 		if(avcodec_open(_encodeCodecCtx, _CodecENC) < 0)
@@ -162,19 +160,19 @@ void VideoCodec::initDecodeContext()
 
 	//initialize basic decoding context
 	_decodeCodecCtx = avcodec_alloc_context();
-	
-	
-//	//TODO change to have data from header
+
 	if(_CodecDEC->id == CODEC_ID_H263)
 	{
-	codetmp = decodeSWS->getSpecialResolution(inputWidth);
+	codetmp = decodeSWS->getSpecialResolution(outputWidth);
 	_decodeCodecCtx->width = codetmp.width;
 	_decodeCodecCtx->height = codetmp.height;
+	outputWidth = codetmp.width;
+	outputHeight = codetmp.height;
 	}
 	else
 	{
-	_decodeCodecCtx->width = inputWidth;
-	_decodeCodecCtx->height = inputHeight;
+	_decodeCodecCtx->width = outputWidth;
+	_decodeCodecCtx->height = outputHeight;
 	}
 //	/////////////////////////////////////////////
 
@@ -252,15 +250,26 @@ int VideoCodec::videoEncode(unsigned char*in_buf, unsigned char* out_buf,int wid
 	return outsize;
 	}
 
-int VideoCodec::videoDecode(uint8_t *in_buf, uint8_t* out_buf,int inSize)
+int VideoCodec::videoDecode(uint8_t *in_buf, uint8_t* out_buf,int inSize,int width,int height)
 {
 	int frame, got_picture, len;
 	uint8_t *buf;
 	AVFrame *SWS,*OUT;
 	
 	// Check if everything  is set properly
+	if(height <=0) 	{ptracesfl("CAN'T Encode - height not set properly\n",MT_ERROR,1,true);return -1;}
+	if(width <=0) 	{ptracesfl("CAN'T Encode - Width not set properly\n",MT_ERROR,1,true);return -1;}
 	if(in_buf == NULL) 	{ptracesfl("CAN'T Encode - Input Buffer problem\n",MT_ERROR,1,true);return -1;}
 	if(out_buf == NULL) {ptracesfl("CAN'T Encode - output Buffer problem\n",MT_ERROR,1,true);return -1;}
+	
+	if(width != outputWidth || height != outputHeight  )
+		{
+		//change the codecs width and height
+		quitDecodeContext();
+		outputWidth = width;
+		outputHeight = height;
+		initDecodeContext();
+		}
 	
 	//set the libavcodec special memory space
 	if((buf = (uint8_t*)av_malloc(inSize+FF_INPUT_BUFFER_PADDING_SIZE)) == NULL)
@@ -295,6 +304,3 @@ int VideoCodec::videoDecode(uint8_t *in_buf, uint8_t* out_buf,int inSize)
 }
 
 
-
-
- 
