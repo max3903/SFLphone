@@ -76,7 +76,7 @@ void VideoRtpRTX::Start(){
      // videoSessionSend->start();
 	//}
     //else
-     session->start(semStart);
+     //session->start(semStart);
 }
 
 void VideoRtpRTX::Stop(){
