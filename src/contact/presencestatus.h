@@ -50,10 +50,14 @@
  * the call manager. 
  */
 
+// Special presence status for SFLphone
+#define PRESENCE_NOT_SUBSCRIBED		"NOT_SUBSCRIBED"		// Entry is not subscribed to presence
+#define PRESENCE_NOT_INITIALIZED	"NOT_INITIALIZED"		// Entry is subscribed but no information has yet been received
+#define PRESENCE_NOT_SUPPORTED		"NOT_SUPPORTED"			// Account or entry does not support presence (ex: IAX, external phone number)
 // Same active presence status as defined in Asterisk
-#define PRESENCE_UNKNOWN			"UNKNOWN"				// Aka UNSUBSCRIBED
+#define PRESENCE_UNKNOWN			"UNKNOWN"
 #define PRESENCE_READY				"READY"					// Aka NOT_IN_USE
-#define PRESENCE_IS_BUSY			"IS_BUSY"	
+#define PRESENCE_IS_BUSY			"IS_BUSY"
 #define PRESENCE_INVALID			"INVALID"
 #define PRESENCE_UNAVAILABLE		"UNAVAILABLE"
 #define PRESENCE_ON_THE_PHONE		"ON_THE_PHONE"			// Aka INUSE

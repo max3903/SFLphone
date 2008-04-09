@@ -24,11 +24,16 @@
 
 #include <gtk/gtk.h>
 
-// TODO Complete and change list of icons
+// TODO Complete and change list of icons (create new icons in pixmaps/presence)
 // Location of pixmaps icons to represent different presence status
+
+// Special statuses icons
+#define PRESENCE_NOT_SUBSCRIBED_ICON	ICONS_DIR "/fail.svg"
+#define PRESENCE_NOT_INITIALIZED_ICON	ICONS_DIR "/accept.svg"
+#define PRESENCE_NOT_SUPPORTED_ICON		ICONS_DIR "/busy.svg"
+
 // Active statuses icons
-#define PRESENCE_UNSUBSCRIBED_ICON		ICONS_DIR "/unhold.svg"
-#define PRESENCE_UNKNOWN_ICON			ICONS_DIR "/fail.svg"
+#define PRESENCE_UNKNOWN_ICON			ICONS_DIR "/unhold.svg"
 #define PRESENCE_RINGING_ICON			ICONS_DIR "/ring.svg"
 #define PRESENCE_ON_THE_PHONE_ICON		ICONS_DIR "/current.svg"
 #define PRESENCE_ON_HOLD_ICON			ICONS_DIR "/hold.svg"
@@ -40,7 +45,7 @@
 #define PRESENCE_AWAY_ICON				ICONS_DIR "/dial.svg"
 #define PRESENCE_OUT_TO_LUNCH_ICON		ICONS_DIR "/dial.svg"
 #define PRESENCE_OFFLINE_ICON			ICONS_DIR "/hang_up.svg"
-#define PRESENCE_DO_NOT_DISTURB_ICON	ICONS_DIR "/dial.svg"
+#define PRESENCE_DO_NOT_DISTURB_ICON	ICONS_DIR "/refuse.svg"
 
 /** 
  * @file	contactlist.h

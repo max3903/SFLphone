@@ -282,6 +282,20 @@ contact_list_presence_status_translate(const gchar* presenceStatus)
 	// to know in which precise cases these signals are sent by
 	// the call manager and should also be defined in the daemon
 	
+	// Special statuses
+	if(strcmp(presenceStatus, PRESENCE_NOT_SUBSCRIBED) == 0)
+	{
+		return(_("Not subscribed"));
+	}
+	if(strcmp(presenceStatus, PRESENCE_NOT_INITIALIZED) == 0)
+	{
+		return(_("Not initialized"));
+	}
+	if(strcmp(presenceStatus, PRESENCE_NOT_SUPPORTED) == 0)
+	{
+		return(_("Not supported"));
+	}
+	
 	// Active statuses
 	if(strcmp(presenceStatus, PRESENCE_UNKNOWN) == 0)
 	{
@@ -343,6 +357,21 @@ const gchar*
 contact_list_presence_status_get_icon_string(const gchar* presenceStatus)
 {
 	// TODO Complete icons to replace the default unknwon icon
+
+	// Special statuses
+	if(strcmp(presenceStatus, PRESENCE_NOT_SUBSCRIBED) == 0)
+	{
+		return(PRESENCE_NOT_SUBSCRIBED_ICON);
+	}
+	if(strcmp(presenceStatus, PRESENCE_NOT_INITIALIZED) == 0)
+	{
+		return(PRESENCE_NOT_INITIALIZED_ICON);
+	}
+	if(strcmp(presenceStatus, PRESENCE_NOT_SUPPORTED) == 0)
+	{
+		return(PRESENCE_NOT_SUPPORTED_ICON);
+	}
+
 	// Active statuses
 	if(strcmp(presenceStatus, PRESENCE_UNKNOWN) == 0)
 	{

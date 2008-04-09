@@ -45,7 +45,8 @@ public:
 	void setType(std::string type) { _type = type; }
 	void setShownInCallConsole(bool shownInCallConsole) { _shownInCallConsole = shownInCallConsole; }
 	void setSubscribedToPresence(bool subscribedToPresence) { _subscribedToPresence = subscribedToPresence; }
-	void setPresence(Presence* presence) { _presence = presence; }
+	void setPresence(Presence* presence) { delete _presence; _presence = presence; }
+	void setPresence(std::string state, std::string additionalInfo) { delete _presence; _presence = new Presence(state, additionalInfo); }
 	
 private:
 	// Attributes used for presence and call console
