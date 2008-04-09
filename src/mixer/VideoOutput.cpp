@@ -80,6 +80,8 @@ void VideoOutput::putData(unsigned char * data, int size)
 	sem_wait(&sem_putData); 
     	this->fifo.push_back(tmpPak);
     sem_post(&sem_putData);
+    
+    delete data;
    
   }
   else{
