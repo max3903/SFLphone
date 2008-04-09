@@ -245,7 +245,7 @@ void VideoRtpRTX::sendSession()
   	
   	pair<int,int> ResEnc = encodeCodec->getOutputResolution();
   	
-  	_debug("Widht: %s, Height: %s\n",ResEnc.first,ResEnc.second);
+  	_debug("Widht: %d, Height: %d\n",ResEnc.first,ResEnc.second);
 
     unsigned char *packet;
     packet = new unsigned char[4+encodedSize];
@@ -307,22 +307,18 @@ void VideoRtpRTX::receiveSession()
     
     
     // Analyse packet and retreive the picture format
-    if (rcvWorkingBuf[1] >= 128){
+    TestFormat = rcvWorkingBuf[1] & 128;
+    if (TestFormat==128)
       PictureFormat += 128;
-    }
-    else{
-      if (rcvWorkingBuf[1] >= 64){
-      	PictureFormat += 64;
-      }
-      else{
-      	if (rcvWorkingBuf[1] >= 32){
-      	  PictureFormat += 32;
-        }
-      }
-    }
+    TestFormat = rcvWorkingBuf[1] & 64;
+    if (TestFormat==64)
+      PictureFormat += 64;
+    TestFormat = rcvWorkingBuf[1] & 32;
+    if (TestFormat==32)
+      PictureFormat += 32;
+    
     pair<int,int> Res = getPictureFormatFromHeader(PictureFormat);
     
-
     // Decode it
     if (isMarked) {
     	
