@@ -55,6 +55,7 @@ void LocalVideoOuput::putData(unsigned char * data, int size)
 	
 	int width= 0, height= 0;
 	
+	// TOTO transform memcopy
 	memcpy(&width, data, sizeof(int));
 	memcpy(&height, data + sizeof(int) , sizeof(int));
 	

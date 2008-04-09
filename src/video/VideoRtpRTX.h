@@ -35,6 +35,11 @@
 #include "../memmanager/MemManager.h"
 
 
+
+//#include <signal.h>
+//#include <stdlib.h>
+
+
 class SIPCall; //TODO: pourquoi pas de include SipCall..h????
 
 class VideoRtpRTX : public ost::Thread, public ost::TimerPort {
@@ -60,6 +65,15 @@ public:
 	 * Function to create RTP Session to send Video Packets
 	 */ 
     void initVideoRtpSession();
+    /**
+	 * Function to Start the thread
+	 */ 
+    void Start();
+    /**
+	 * Function to stop the thread
+	 */ 
+    void Stop();
+    
 
 private:
 
