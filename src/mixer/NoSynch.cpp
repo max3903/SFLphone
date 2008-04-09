@@ -22,6 +22,7 @@ NoSynch::~NoSynch()
 
 void NoSynch::run()
 {
+  Active=true;
   OkToKill = false;
   short* dataAudio= NULL;
   unsigned char* dataVideo= NULL;
