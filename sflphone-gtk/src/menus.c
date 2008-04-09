@@ -28,7 +28,6 @@
 #include <mainwindow.h>
 #include <screen.h>
 #include <gtk/gtk.h>
-#include <invitewindow.h>
 
 #include <string.h> // for strlen
 
