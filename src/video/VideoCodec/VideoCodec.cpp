@@ -69,7 +69,7 @@ void VideoCodec::init(){
 	
 	//Get VideoDescriptor Instance
 	_videoDesc = VideoCodecDescriptor::getInstance();
-//Get V4LManager instance
+	//Get V4LManager instance
 	_v4lManager = VideoDeviceManager::getInstance();
 	
 	_cmdRes = (Resolution*)_v4lManager->getCommand(VideoDeviceManager::RESOLUTION);
@@ -95,21 +95,25 @@ void VideoCodec::initEncodeContext(){
 	//if true -> padding needed!
 	if(inputWidth > inputHeight*2)
 	{
-	Encodetmp = encodeSWS->getSpecialResolution(inputWidth);
+	Encodetmp = SWSInterface::getSpecialResolution(inputWidth);
 	padding = true;
 	paddingbottom = (Encodetmp.height - inputHeight)/2;
     paddingTop = paddingbottom;
 	_encodeCodecCtx->width = Encodetmp.width;
 	_encodeCodecCtx->height = Encodetmp.height;
+	outputWidth = _encodeCodecCtx->width;
+	outputHeight = _encodeCodecCtx->height;
 	}	
 	else if(_CodecENC->id == CODEC_ID_H263)
 	{
 		padding = false;
 		paddingbottom = 0;
-    paddingTop = 0;
-	Encodetmp = encodeSWS->getSpecialResolution(inputWidth);
-	_encodeCodecCtx->width = Encodetmp.width;
-	_encodeCodecCtx->height = Encodetmp.height;
+    	paddingTop = 0;
+		Encodetmp = SWSInterface::getSpecialResolution(inputWidth);
+		_encodeCodecCtx->width = Encodetmp.width;
+		_encodeCodecCtx->height = Encodetmp.height;
+		outputWidth = _encodeCodecCtx->width;
+		outputHeight = _encodeCodecCtx->height;
 	}
 	else
 	{
@@ -118,6 +122,8 @@ void VideoCodec::initEncodeContext(){
     paddingTop = 0;
 	_encodeCodecCtx->width = inputWidth;
 	_encodeCodecCtx->height = inputHeight;
+	outputWidth = _encodeCodecCtx->width;
+	outputHeight = _encodeCodecCtx->height;
 	}
 	/////////////////////////////////////////////
 	
@@ -163,23 +169,20 @@ void VideoCodec::initDecodeContext()
 
 	if(_CodecDEC->id == CODEC_ID_H263)
 	{
-	codetmp = decodeSWS->getSpecialResolution(outputWidth);
-	outputWidth = codetmp.width;
-	outputHeight = codetmp.height;
+	codetmp = SWSInterface::getSpecialResolution(inputWidth);
+	inputWidth = codetmp.width;
+	inputHeight = codetmp.height;
 	}
-	_decodeCodecCtx->width = outputWidth;
-	_decodeCodecCtx->height = outputHeight;
-	
-	
-	//_decodeCodecCtx->idct_algo=  FF_IDCT_AUTO;
-//	/////////////////////////////////////////////
+	_decodeCodecCtx->width = inputWidth;
+	_decodeCodecCtx->height = inputWidth;
+
 
 	if(avcodec_open (_decodeCodecCtx, _CodecDEC) < 0)
 		ptracesfl("CANNOT OPEN DECODE CODEC",MT_FATAL,1,true);
 
 	//intialize SWSdecodeContext
 	decodeSWS = new SWSInterface(_decodeCodecCtx->width,_decodeCodecCtx->height,PIX_FMT_YUV420P,
-	DEFAULT_WIDTH,DEFAULT_HEIGHT,PIX_FMT_RGB24);
+	outputWidth,outputHeight,PIX_FMT_RGB24);
 }
 
 void VideoCodec::quitDecodeContext()
@@ -201,13 +204,13 @@ int VideoCodec::videoEncode(unsigned char*in_buf, unsigned char* out_buf,int wid
 {
 	AVFrame *IN=NULL,*SWS=NULL,*TEMP=NULL;
 	int outsize;
-	
+	printf("Encode resolution : %i %i \n",width,height);
 	if(height <=0) 	{ptracesfl("CAN'T Encode - height not set properly\n",MT_ERROR,1,true);return -1;}
 	if(width <=0) 	{ptracesfl("CAN'T Encode - Width not set properly\n",MT_ERROR,1,true);return -1;}
 	if(in_buf == NULL) 	{ptracesfl("CAN'T Encode - Input Buffer problem\n",MT_ERROR,1,true);return -1;}
 	if(out_buf == NULL) {ptracesfl("CAN'T Encode - output Buffer problem\n",MT_ERROR,1,true);return -1;}
 	
-		if(width != inputWidth || height != inputHeight  )
+		if(width != inputWidth )
 		{
 		//change the codecs width and height
 		quitEncodeContext();
@@ -253,7 +256,7 @@ int VideoCodec::videoDecode(uint8_t *in_buf, uint8_t* out_buf,int inSize,int wid
 	int frame, got_picture, len;
 	uint8_t *buf;
 	AVFrame *SWS,*OUT;
-	
+	printf("Decode resolution : %i %i \n",width,height);
 	// Check if everything  is set properly
 	if(height <=0) 	{ptracesfl("CAN'T Encode - height not set properly\n",MT_ERROR,1,true);return -1;}
 	if(width <=0) 	{ptracesfl("CAN'T Encode - Width not set properly\n",MT_ERROR,1,true);return -1;}
@@ -285,8 +288,7 @@ int VideoCodec::videoDecode(uint8_t *in_buf, uint8_t* out_buf,int inSize,int wid
 	if ( avcodec_decode_video(_decodeCodecCtx, SWS, &got_picture,buf,inSize ) < 0)
 		{ptracesfl("CAN'T Decode - couldn't decode\n",MT_ERROR,1,true);av_free(buf);av_free(SWS);return -1;}
 
-	
-   	OUT = decodeSWS->alloc_pictureRGB24(DEFAULT_WIDTH,DEFAULT_HEIGHT,out_buf)	;
+   	OUT = decodeSWS->alloc_pictureRGB24(DEFAULT_WIDTH,DEFAULT_HEIGHT,out_buf);
    
    if (decodeSWS->Convert(SWS,OUT) == false)
  		{ptracesfl("Conversion error\n",MT_ERROR,1,true);av_free(buf);av_free(SWS);av_free(OUT);return -1;}
@@ -301,28 +303,17 @@ int VideoCodec::videoDecode(uint8_t *in_buf, uint8_t* out_buf,int inSize,int wid
 	return avpicture_get_size(PIX_FMT_RGB24, DEFAULT_WIDTH, DEFAULT_HEIGHT);
 }
 
-
 	 pair<int,int> VideoCodec::getIntputResolution(){
-	 
 	 pair<int,int> temp;
-
 	 temp.first = inputWidth;
 	 temp.second = inputHeight;
-	 
 	 return temp;
-	 
 	 }
 	 
 	 pair<int,int> VideoCodec::getOutputResolution(){
-	 
-	 
-	pair<int,int> temp;
-
+	 pair<int,int> temp;
 	 temp.first = outputWidth;
 	 temp.second = outputHeight;
-	 
 	 return temp;
-	 
-	 
 	 }
 

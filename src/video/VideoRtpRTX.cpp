@@ -245,7 +245,7 @@ void VideoRtpRTX::sendSession()
   	
   	pair<int,int> ResEnc = encodeCodec->getOutputResolution();
   	
-  	_debug("Widht: %s, Height: %s\n",ResEnc.first,ResEnc.second);
+  	_debug("Widht: %d, Height: %d\n",ResEnc.first,ResEnc.second);
 
     unsigned char *packet;
     packet = new unsigned char[4+encodedSize];
@@ -272,8 +272,6 @@ void VideoRtpRTX::sendSession()
     throw;
   }
 }
-
-
 void VideoRtpRTX::receiveSession()
 {
   int PictureFormat=0;
@@ -322,7 +320,6 @@ void VideoRtpRTX::receiveSession()
     }
     pair<int,int> Res = getPictureFormatFromHeader(PictureFormat);
     
-
     // Decode it
     if (isMarked) {
     	

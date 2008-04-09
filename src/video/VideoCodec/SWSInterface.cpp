@@ -2,6 +2,25 @@
 
 #include "SWSInterface.h"
 
+
+SWSInterface::SWSInterface(int InWidth,int InHeight,int InPixFormat,int OutWidth,int OutHeight,int OutPixFormat)
+ {
+ 
+ in.height = InHeight;
+ in.width = InWidth;
+ in.pixFormat = InPixFormat;
+ out.height = OutHeight;
+ out.width = OutWidth;
+ out.pixFormat = OutPixFormat;
+ 
+BufferSize = avpicture_get_size(out.pixFormat,out.width, out.height);
+ 
+Context = sws_getContext( in.width,in.height,in.pixFormat,
+	 							out.width,out.height,out.pixFormat,0,NULL,NULL,NULL);
+	 							
+ }
+SWSInterface::~SWSInterface(){}
+
 bool SWSInterface::Convert(AVFrame *INFrame,AVFrame *OUTFrame)
 {
 	int infoSize;
@@ -97,6 +116,7 @@ AVFrame *SWSInterface::alloc_pictureRGB24(int width, int height,uint8_t *buffer)
 }
 
 
+
 FrameProperties SWSInterface::getSpecialResolution(int width)
  {
 	 // Text from libavcodec
@@ -129,22 +149,3 @@ FrameProperties SWSInterface::getSpecialResolution(int width)
  }
  
 
-
-
-SWSInterface::SWSInterface(int InWidth,int InHeight,int InPixFormat,int OutWidth,int OutHeight,int OutPixFormat)
- {
- 
- in.height = InHeight;
- in.width = InWidth;
- in.pixFormat = InPixFormat;
- out.height = OutHeight;
- out.width = OutWidth;
- out.pixFormat = OutPixFormat;
- 
-BufferSize = avpicture_get_size(out.pixFormat,out.width, out.height);
- 
- Context = sws_getContext( in.width,in.height,in.pixFormat,
-	 							out.width,out.height,out.pixFormat,0,NULL,NULL,NULL);
-	 							
- }
-SWSInterface::~SWSInterface(){}
