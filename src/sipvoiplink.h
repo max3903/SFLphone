@@ -52,7 +52,7 @@ public:
   bool sendUnregister(void);
 
   Call* newOutgoingCall(const CallID& id, const std::string& toUrl);
-  bool newOutgoingVideoInvite(const CallID& id);
+  bool ChangeWebCamStatus(const CallID& id,bool status);
   bool answer(const CallID& id);
 
   bool hangup(const CallID& id);
@@ -132,12 +132,6 @@ private:
   bool SIPCheckUrl(const std::string& url);
 
   /**
-   * SIPStartVideo create an invite to activate video support
-   * @return true if all is correct
-   */
-  bool SIPStartVideo(SIPCall* call);
-
-  /**
    * SIPOutgoingInvite do SIPStartCall
    * @return true if all is correct
    */
@@ -160,7 +154,6 @@ private:
    */
   bool setCallAudioLocal(SIPCall* call);
 
-  // TODO: faire lentete!
   bool setCallVideoLocal(SIPCall* call);
 
   /**

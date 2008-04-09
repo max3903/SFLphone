@@ -516,27 +516,21 @@ ManagerImpl::changeVideoAvaibility(  )
 }
 
 void
-ManagerImpl::changeWebcamStatus( const bool status, const CallID& id)
+ManagerImpl::changeWebcamStatus(const bool status, const CallID& id)
 {
-printf("ENVOIE OUTGOING RE-INVITE  MANAGER !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!v!!!!!!!!!\n");
- 
   if (getAccountFromCall(id) == AccountNULL) {
     _debug("! Manager Error: Outgoing Video Invite: call id does not exist\n");
     return;
   }
 
-  if (status){
-    printf("ENVOIE OUTGOING INVITE STATUS = ENABLED!!!!!!!!!!!!!!!!!!!!!!!!!!!!v!!!!!!!!!\n");
-    if ( getAccountLink(getAccountFromCall(id))->newOutgoingVideoInvite(id) ) {
-      return;
-    } else {
-      _debug("! Manager Error: An error occur, the video call was not created\n");
-    }
+  _debug(" !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! MANAGERIMPL! Enabled webcam!\n");
+
+  if ( getAccountLink(getAccountFromCall(id))->ChangeWebCamStatus(id,status) )
     return;
-  }
-  //else
-    // TODO: FAIRE LE GOOD BYE VIDEO !!!!!
- 
+  else{
+    _debug("! Manager Error: An error occur, the video call was not created\n");
+    return;
+  } 
 }
 
 //THREAD=Main
