@@ -40,10 +40,10 @@ gboolean draw(GtkWidget* widget, gpointer data)
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
 	gluOrtho2D(0.0, widget->allocation.width, 0.0, widget->allocation.height );
-		
+			
 	// Draw Recevied Images
 	if( prefPannel != TRUE ){
-		
+				
 		drawRemote(widget, data, glcontext, gldrawable);
 		
 		// ReLoading Initial drawing info
