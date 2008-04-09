@@ -54,8 +54,7 @@ VoIPLink::removeCall(const CallID& id)
   // Stopping the mixers in the call before detorying them
   Call* tmpCall= getCall(id);
   tmpCall->terminateMixers();
-  tmpCall= NULL;
-  
+    
   // End Conference call in progress
   if( tmpCall->getConfId() != "" )
   	this->removeConfCall(tmpCall->getConfId());	
@@ -121,7 +120,7 @@ VoIPLink::addConf( const CallID& id1, const CallID& id2 ){
 	this->_confCallMap.insert( pair<ConfID, ConfCall*>( tmpConf->getConfId(), tmpConf ) );
 	
 	_debug("New conf call created\n");
-	
+		
 	// \TODO: Add calls management to unhold both calls
 	if(call1->getState() == Call::Hold)
 		offhold(id1);

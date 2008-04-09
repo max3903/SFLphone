@@ -85,28 +85,34 @@ void StraightThrough_AT::pause()
 { 
   ptracesfl("StraightThrough_AT - pause(): Pausing ...",MT_INFO,STRAIGHTTHROUGH_TRACE);
   
+  if( !Active )
+  	return;
+  	
   Active=false;
     
   //Waiting for the thread to stop
   while(!OkToKill);
+  
 }
 
 void StraightThrough_AT::restart()
 {
   ptracesfl("StraightThrough_AT - restart(): Restarting ...",MT_INFO,STRAIGHTTHROUGH_TRACE);
-  run();
+  if(!Active)
+  	run();
 }
 
 void StraightThrough_AT::stop()
 { 
   ptracesfl("StraightThrough_AT - stop(): Stopping ...",MT_INFO,STRAIGHTTHROUGH_TRACE);
   
+  if( !Active )
+  	return;
+  	
   Active=false;
-  OkToKill=false;
-  
+    
   //Watting for the thread to stop
   while(!OkToKill);
-  
-  terminate();
+
 }
 

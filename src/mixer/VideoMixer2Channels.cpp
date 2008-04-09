@@ -20,6 +20,27 @@
 #include "VideoMixer2Channels.h"
 #include "OutputStream.h"
 
+VideoMixer2Channels::VideoMixer2Channels()
+{
+}
+
+VideoMixer2Channels::VideoMixer2Channels(InternalBuffer* video1, InternalBuffer* video2, OutputStream* output)
+{
+	ptracesfl("VideoMixer2Channels - VideoMixer2Channels()",MT_INFO,VIDEOMIXER2CHANNELS_TRACE);
+	inputBuffer1 = video1;
+    inputBuffer2 = video2;
+    
+    outputBuffer = output;
+    
+    paddingWidth = 64;
+    
+	Active=false;
+	OkToKill=false;
+}
+
+VideoMixer2Channels::~VideoMixer2Channels()
+{
+}
 
 void VideoMixer2Channels::run()
 {
@@ -89,12 +110,7 @@ void VideoMixer2Channels::run()
 	
 	ptracesfl("VideoMixer2Channels - run(): The run thread has stopped cleanly",MT_INFO,VIDEOMIXER2CHANNELS_TRACE);
 	OkToKill=true;
-	
-	
-	
-	
-	
-	
+		
 }
 
 void VideoMixer2Channels::mixVideo(/*char* data1, char* data2, int width1, int height1, int width2, int height2, int paddingWidth, char* mixedVideo*/){
@@ -134,42 +150,31 @@ void VideoMixer2Channels::mixVideo(/*char* data1, char* data2, int width1, int h
 void VideoMixer2Channels::pause()
 {
 	ptracesfl("VideoMixer2Channels - pause(): Pausing ...",MT_INFO,VIDEOMIXER2CHANNELS_TRACE);
-	Active=false;
+	if( !Active )
+  		return;
+  	
+  	Active=false;
+    
+	//Waiting for the thread to stop
+    while(!OkToKill);
 }
 
 void VideoMixer2Channels::restart()
 {
 	ptracesfl("VideoMixer2Channels - restart(): Restarting ...",MT_INFO,VIDEOMIXER2CHANNELS_TRACE);
-	run();
+	if(!Active)
+		run();
 }
 
 void VideoMixer2Channels::stop()
 {
 	ptracesfl("VideoMixer2Channels - stop(): Stopping ...",MT_INFO,VIDEOMIXER2CHANNELS_TRACE);
+	
+	if( !Active )
+		return;
+		
 	Active=false;
-	OkToKill=false;
+	
 	while(!OkToKill);
-	terminate();	
-}
-
-VideoMixer2Channels::VideoMixer2Channels(InternalBuffer* video1, InternalBuffer* video2, OutputStream* output)
-{
-	ptracesfl("VideoMixer2Channels - VideoMixer2Channels()",MT_INFO,VIDEOMIXER2CHANNELS_TRACE);
-	inputBuffer1 = video1;
-    inputBuffer2 = video2;
-    
-    outputBuffer = output;
-    
-    paddingWidth = 64;
-    
-	Active=true;
-	OkToKill=true;
-}
-
-VideoMixer2Channels::VideoMixer2Channels()
-{
-}
-
-VideoMixer2Channels::~VideoMixer2Channels()
-{
+		
 }

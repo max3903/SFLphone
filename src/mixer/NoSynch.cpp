@@ -80,10 +80,12 @@ void NoSynch::stop()
 {
   ptracesfl("NoSynch - stop(): Stopping the thread",MT_INFO,NOSYNCH_TRACE);
   
+  if(!Active)
+  	return;
+  
   Active=false;
 
   // Waiting for the thread to stop  
-  //TODO: check why segfault when uncommenting the following line
-  //while(!OkToKill);
+  while(!OkToKill);
   
 }

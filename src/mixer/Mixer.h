@@ -83,7 +83,7 @@ public:
 	/*!
 	 * Starts all the thread that are needed.
 	 */
-    void start();
+    void start( bool startVideo= true );
     
     //! Method to add an input stream
     /*!

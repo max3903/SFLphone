@@ -62,7 +62,7 @@ void Mixer::init(Tmixer type, vector<InputStreams*> inputs, OutputStream* audioO
   }
 }
 
-void Mixer::start()
+void Mixer::start( bool startVideo )
 {
   // Starting all synchManagers
   for(int i=0; i<synchManagers.size();i++)
@@ -74,7 +74,8 @@ void Mixer::start()
   audioTranscoder->start();
   
   // Starting Video Mixer
-  videoTranscoder->start();
+  if( startVideo )
+  	videoTranscoder->start();
   
 }
 
@@ -189,7 +190,7 @@ bool Mixer::addStream(InputStreams* input)
 		videoTranscoder = new VideoMixer2Channels(this->intBuffers[index1], this->intBuffers[index1 - 2], videoOutput);  
     	audioTranscoder = new AudioMixer2Channels(this->intBuffers[index2], this->intBuffers[index2 - 2], audioOutput);
     	
-    	this->start();		
+    	this->start( false );		
 		
 	}else{
 		ptracesfl("Mixer - addStream(): Cannot add more than 1 input to the mixer !", MT_FATAL, MIXER_TRACE);

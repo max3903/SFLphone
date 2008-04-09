@@ -20,6 +20,23 @@
 
 #include "AudioMixer2Channels.h"
 
+AudioMixer2Channels::AudioMixer2Channels()
+{	
+}
+
+AudioMixer2Channels::AudioMixer2Channels(InternalBuffer* input1,  InternalBuffer* input2, OutputStream* output)
+{
+	inputBuffer1 = input1;
+	inputBuffer2 = input2;
+	outputBuffer = output;
+	Active=false;
+	OkToKill=false;	
+}
+
+AudioMixer2Channels::~AudioMixer2Channels()
+{
+}
+
 void AudioMixer2Channels::run()
 {
 	Active=true;
@@ -95,42 +112,33 @@ short AudioMixer2Channels::mixData(short data1, short data2){
 	return mixedData;
 }
 
-AudioMixer2Channels::AudioMixer2Channels(InternalBuffer* input1,  InternalBuffer* input2, OutputStream* output)
-{
-	inputBuffer1 = input1;
-	inputBuffer2 = input2;
-	outputBuffer = output;
-	Active=false;
-	OkToKill=false;	
-}
-
 void AudioMixer2Channels::pause()
 { 
   ptracesfl("AudioMixer2Channels - pause(): Pausing ...",MT_INFO,AUDIOMIXER2CHANNELS_TRACE);
+  
+  if(!Active)
+  	return;
+  	
   Active=false;
+  
+  while(!OkToKill);
 }
 
 void AudioMixer2Channels::restart()
 {
   ptracesfl("AudioMixer2Channels - restart(): Restarting ...",MT_INFO,AUDIOMIXER2CHANNELS_TRACE);
-  run();
+  if( !Active )
+  	run();
 }
 
 void AudioMixer2Channels::stop()
 { 
   ptracesfl("AudioMixer2Channels - stop(): Stopping ...",MT_INFO,AUDIOMIXER2CHANNELS_TRACE);
+  
+  if(!Active)
+  	return;
+  	
   Active=false;
-  OkToKill=false;
+  
   while(!OkToKill);
-  terminate();
-}
-
-AudioMixer2Channels::AudioMixer2Channels()
-{
-	
-}
-
-AudioMixer2Channels::~AudioMixer2Channels()
-{
-	
 }
