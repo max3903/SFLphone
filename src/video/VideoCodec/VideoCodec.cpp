@@ -164,16 +164,14 @@ void VideoCodec::initDecodeContext()
 	if(_CodecDEC->id == CODEC_ID_H263)
 	{
 	codetmp = decodeSWS->getSpecialResolution(outputWidth);
-	_decodeCodecCtx->width = codetmp.width;
-	_decodeCodecCtx->height = codetmp.height;
 	outputWidth = codetmp.width;
 	outputHeight = codetmp.height;
 	}
-	else
-	{
 	_decodeCodecCtx->width = outputWidth;
 	_decodeCodecCtx->height = outputHeight;
-	}
+	
+	
+	//_decodeCodecCtx->idct_algo=  FF_IDCT_AUTO;
 //	/////////////////////////////////////////////
 
 	if(avcodec_open (_decodeCodecCtx, _CodecDEC) < 0)
@@ -303,4 +301,28 @@ int VideoCodec::videoDecode(uint8_t *in_buf, uint8_t* out_buf,int inSize,int wid
 	return avpicture_get_size(PIX_FMT_RGB24, DEFAULT_WIDTH, DEFAULT_HEIGHT);
 }
 
+
+	 pair<int,int> VideoCodec::getIntputResolution(){
+	 
+	 pair<int,int> temp;
+
+	 temp.first = inputWidth;
+	 temp.second = inputHeight;
+	 
+	 return temp;
+	 
+	 }
+	 
+	 pair<int,int> VideoCodec::getOutputResolution(){
+	 
+	 
+	pair<int,int> temp;
+
+	 temp.first = outputWidth;
+	 temp.second = outputHeight;
+	 
+	 return temp;
+	 
+	 
+	 }
 

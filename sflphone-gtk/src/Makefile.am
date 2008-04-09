@@ -24,8 +24,7 @@ sflphone_gtk_SOURCES = \
   codeclist.c \
   videocodeclist.c \
   glwidget.c \
-  MemManager.c \
-  invitewindow.c
+  MemManager.c 
 
 noinst_HEADERS =  actions.h dbus.h mainwindow.h calllist.h dialpad.h codeclist.h videocodeclist.h \
                   callmanager-glue.h configurationmanager-glue.h contactmanager-glue.h instance-glue.h \

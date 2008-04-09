@@ -39,8 +39,8 @@ VideoRtpRTX::VideoRtpRTX(SIPCall *sipcall, bool sym)
   else
     session = new ost::SymmetricRTPSession(local_ip, vidCall->getLocalVideoPort());
   
-  cmdCapture = (Capture*) VideoDevMng->getCommand(VideoDeviceManager::CAPTURE);
-  cmdRes= (Resolution*)VideoDevMng->getCommand(VideoDeviceManager::RESOLUTION);
+  cmdCapture = (Capture*) VideoDeviceManager::getInstance()->getCommand(VideoDeviceManager::CAPTURE);
+  cmdRes= (Resolution*) VideoDeviceManager::getInstance()->getCommand(VideoDeviceManager::RESOLUTION);
 }
 
 VideoRtpRTX::~VideoRtpRTX()
@@ -70,24 +70,6 @@ VideoRtpRTX::~VideoRtpRTX()
 
 }
 
-void VideoRtpRTX::Start(){
-	//if (!_sym) {
-	 // videoSessionReceive->start();
-     // videoSessionSend->start();
-	//}
-    //else
-     //session->start(semStart);
-}
-
-void VideoRtpRTX::Stop(){
-	//if (!_sym) {
-	//  videoSessionReceive->stop();
-      //videoSessionSend->stop();
-	//}
-   // else
-     // session->stop();
-}
-
 void VideoRtpRTX::run(){
 
   // Loading codecs
@@ -113,9 +95,7 @@ void VideoRtpRTX::run(){
       //uint32 tstampInc = videoSessionSend->getCurrentRTPClockRate()/ 24;
     //else
       uint32 tstampInc = session->getCurrentRTPClockRate()/ 10;
-    
-    _debug("Initial time: %d\n",timestamp);
-    _debug("VIDEO:  Current timestamp icrementation: %d\n", tstampInc);
+
     _debug("- ARTP Action: Start (video)\n");
 
     while (!testCancel()) {
@@ -262,13 +242,20 @@ void VideoRtpRTX::sendSession()
   if( videoSize > 0 ){
   	
   	encodedSize = encodeCodec->videoEncode(dataToSend,(unsigned char*)data_to_send,width,height);
+  	
+  	pair<int,int> ResEnc = encodeCodec->getOutputResolution();
+  	
+  	_debug("Widht: %s, Height: %s\n",ResEnc.first,ResEnc.second);
 
     unsigned char *packet;
     packet = new unsigned char[4+encodedSize];
     memcpy(packet+4,data_to_send,encodedSize);
-    for(int i=0;i<4;i++)
-      packet[i]=0;
-       
+    // TODO: Construire entierement le header du packet
+    packet[0]=0;
+    packet[1]=setHeaderPictureFormat(ResEnc);
+    packet[2]=0;
+    packet[3]=0;
+      
     session->setMark(true);
 
   // Send it
@@ -289,6 +276,9 @@ void VideoRtpRTX::sendSession()
 
 void VideoRtpRTX::receiveSession()
 {
+  int PictureFormat=0;
+  unsigned char TestFormat;
+	
   if (vidCall==0) { 
     _debug(" !ARTP: No call associated (video)\n");
     return; 
@@ -314,11 +304,29 @@ void VideoRtpRTX::receiveSession()
     workingBufLen = adu->getSize();
     memcpy(data_from_peer+peerBufLen,rcvWorkingBuf,workingBufLen);
     peerBufLen+=workingBufLen;
+    
+    
+    // Analyse packet and retreive the picture format
+    if (rcvWorkingBuf[1] >= 128){
+      PictureFormat += 128;
+    }
+    else{
+      if (rcvWorkingBuf[1] >= 64){
+      	PictureFormat += 64;
+      }
+      else{
+      	if (rcvWorkingBuf[1] >= 32){
+      	  PictureFormat += 32;
+        }
+      }
+    }
+    pair<int,int> Res = getPictureFormatFromHeader(PictureFormat);
+    
 
     // Decode it
     if (isMarked) {
     	
-      int decodedSize= decodeCodec->videoDecode(data_from_peer,data_to_display,peerBufLen,176,144);
+      int decodedSize= decodeCodec->videoDecode(data_from_peer,data_to_display,peerBufLen,Res.first,Res.second);
       
       if( decodedSize >= 0 ){
         this->vidCall->getLocal_Video_Input()->putData( data_to_display, decodedSize, 0, 320, 240  );
@@ -354,6 +362,27 @@ void VideoRtpRTX::unloadCodec(enum CodecID id,int type)
     delete encodeCodec;
     encodeCodec = NULL;
   }
+}
+
+pair<int,int> VideoRtpRTX::getPictureFormatFromHeader(int SRC){
+
+  pair<int,int> Return;
+
+  if (SRC==160){ Return.first=1408; Return.second=1152; return Return;}
+  if (SRC==128){ Return.first=704; Return.second=576; return Return;}
+  if (SRC==96){ Return.first=352; Return.second=288; return Return;}
+  if (SRC==64){ Return.first=176; Return.second=144; return Return;}
+}
+
+int VideoRtpRTX::setHeaderPictureFormat(pair<int,int> Res){
+	if (Res.first==176 && Res.second==144)
+	  return 64; // Bit7=0, Bit6=1, Bit5=0
+	if (Res.first==352 && Res.second==288)
+	  return 96; // Bit7=0, Bit6=1, Bit5=1
+	if (Res.first==704 && Res.second==576)
+	  return 128; // Bit7=1, Bit6=0, Bit5=0
+	if (Res.first==1408 && Res.second==1152)
+	  return 160; // Bit7=1, Bit6=0, Bit5=1
 }
 
 

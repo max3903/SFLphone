@@ -67,15 +67,6 @@ public:
 	 * Function to create RTP Session to send Video Packets
 	 */ 
     void initVideoRtpSession();
-    /**
-	 * Function to Start the thread
-	 */ 
-    void Start();
-    /**
-	 * Function to stop the thread
-	 */ 
-    void Stop();
-    
 
 private:
 
@@ -140,6 +131,9 @@ private:
 	 * @param type : 0 decode codec, 1 encode codec
 	 */
 	void unloadCodec(enum CodecID id,int type);
+	
+	pair<int,int> getPictureFormatFromHeader(int SRC);
+	int setHeaderPictureFormat(pair<int,int> Res);
 
 };
 #endif //VIDEORTPRTX_H
