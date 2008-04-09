@@ -706,7 +706,7 @@ SIPVoIPLink::hangup(const CallID& id)
     _debug("* SIP Info: Stopping AudioRTP for hangup\n");
     _audiortp.closeRtpSession();
     //_debug("* SIP Info: Stopping VideoRTP for hangup\n");
-    //_videortp.closeVideoSession(false); // TODO: in conf?
+    _videortp.closeVideoSession(false); // TODO: in conf?
   }
   removeCall(id);
   return true;
@@ -739,7 +739,7 @@ SIPVoIPLink::onhold(const CallID& id)
   call->setState(Call::Hold);
   _debug("* SIP Info: Stopping AudioRTP for onhold action\n");
   _audiortp.closeRtpSession();
-  //_videortp.closeVideoSession(false); // TODO: in conf?
+  _videortp.closeVideoSession(false); // TODO: in conf?
 
 
   int did = call->getDid();
