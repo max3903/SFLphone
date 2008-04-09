@@ -30,16 +30,15 @@ VideoRtpRTX::VideoRtpRTX(SIPCall *sipcall, bool sym)
   vidCall = sipcall;
   _sym = sym;
   std::string localipConfig = vidCall->getLocalIp();
-//  ost::InetHostAddress local_ip(localipConfig.c_str());
+  ost::InetHostAddress local_ip(localipConfig.c_str());
 
-  /*if (!_sym) {
+  if (!_sym) {
     videoSessionReceive = new ost::RTPSession(local_ip, vidCall->getLocalVideoPort());
     videoSessionSend = new ost::RTPSession(local_ip, vidCall->getLocalVideoPort());
   }
   else
-*/
-    //session = new ost::SymmetricRTPSession(local_ip, vidCall->getLocalVideoPort());
-
+    session = new ost::SymmetricRTPSession(local_ip, vidCall->getLocalVideoPort());
+  
   cmdCapture = (Capture*) VideoDevMng->getCommand(VideoDeviceManager::CAPTURE);
   cmdRes= (Resolution*)VideoDevMng->getCommand(VideoDeviceManager::RESOLUTION);
 }
@@ -62,12 +61,12 @@ VideoRtpRTX::~VideoRtpRTX()
   free(data_from_peer); data_from_peer = NULL;
   free(data_to_send); data_to_send = NULL;
 
-   /*if (!_sym) {
+   if (!_sym) {
     delete videoSessionReceive; videoSessionReceive = NULL;
     delete videoSessionSend; videoSessionSend = NULL;
    }
    else
-    delete session; session = NULL;*/
+    delete session; session = NULL;
 
 }
 
@@ -91,7 +90,7 @@ void VideoRtpRTX::Stop(){
 
 void VideoRtpRTX::run(){
 
-  /*// Loading codecs
+  // Loading codecs
   loadCodec((CodecID)CODEC_ID_H263,0);
   loadCodec((CodecID)CODEC_ID_H263,1);
   
@@ -118,8 +117,6 @@ void VideoRtpRTX::run(){
     _debug("Initial time: %d\n",timestamp);
     _debug("VIDEO:  Current timestamp icrementation: %d\n", tstampInc);
     _debug("- ARTP Action: Start (video)\n");
-
-
 
     while (!testCancel()) {
 
@@ -153,8 +150,7 @@ void VideoRtpRTX::run(){
   } catch(...) {
     _debugException("* ARTP Action: Stop");
     throw;
-  }*/
-
+  }
 
 }
 	
@@ -171,7 +167,7 @@ void VideoRtpRTX::initBuffers()
 }
 	
 void VideoRtpRTX::initVideoRtpSession()
-{/*
+{
   try {
     if (vidCall == 0) { return; }
 
@@ -229,13 +225,13 @@ void VideoRtpRTX::initVideoRtpSession()
   } catch(...) {
     _debug("! ARTP Failure: video initialisation failed");
     throw;   
-  }*/
+  }
 
 }
 
 void VideoRtpRTX::sendSession()
 {
-/*
+
   int sizeV4L= 0;
   int encodedSize=0;
 
@@ -288,13 +284,11 @@ void VideoRtpRTX::sendSession()
     _debugException("! ARTP: video sending failed");
     throw;
   }
-  */
 }
 
 
 void VideoRtpRTX::receiveSession()
 {
-	/*
   if (vidCall==0) { 
     _debug(" !ARTP: No call associated (video)\n");
     return; 
@@ -324,7 +318,7 @@ void VideoRtpRTX::receiveSession()
     // Decode it
     if (isMarked) {
     	
-      int decodedSize= decodeCodec->videoDecode(data_from_peer,data_to_display,peerBufLen);
+      int decodedSize= decodeCodec->videoDecode(data_from_peer,data_to_display,peerBufLen,320,240);
       
       if( decodedSize >= 0 ){
         this->vidCall->getLocal_Video_Input()->putData( data_to_display, decodedSize, 0, 320, 240  );
@@ -335,11 +329,9 @@ void VideoRtpRTX::receiveSession()
     delete adu; adu = NULL;
     
   } catch(...) {
-
     _debugException("! ARTP: receiving failed");
     throw;
   }
-  */
 }
 
 void VideoRtpRTX::loadCodec(enum CodecID id,int type)
