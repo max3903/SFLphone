@@ -54,12 +54,15 @@
 #define PRESENCE_NOT_SUBSCRIBED		"NOT_SUBSCRIBED"		// Entry is not subscribed to presence
 #define PRESENCE_NOT_INITIALIZED	"NOT_INITIALIZED"		// Entry is subscribed but no information has yet been received
 #define PRESENCE_NOT_SUPPORTED		"NOT_SUPPORTED"			// Account or entry does not support presence (ex: IAX, external phone number)
-// Same active presence status as defined in Asterisk
+// Same active presence status as defined in Asterisk (rasterisk : core show function EXTENSION_STATE)
+// It is possible in Asterisk to define functions that will trigger these status
+// By default the READY, RINGING, ON_THE_PHONE, UNAVAILABLE are triggered from Asterisk
+// See rasterisk core show functions, core show applications and extensions.conf in Asterisk for more details
 #define PRESENCE_UNKNOWN			"UNKNOWN"
-#define PRESENCE_READY				"READY"					// Aka NOT_IN_USE
+#define PRESENCE_READY				"READY"					// Aka NOT_INUSE, ONLINE
 #define PRESENCE_IS_BUSY			"IS_BUSY"
 #define PRESENCE_INVALID			"INVALID"
-#define PRESENCE_UNAVAILABLE		"UNAVAILABLE"
+#define PRESENCE_UNAVAILABLE		"UNAVAILABLE"			// Aka NOT_ONLINE, OFFLINE
 #define PRESENCE_ON_THE_PHONE		"ON_THE_PHONE"			// Aka INUSE
 #define PRESENCE_RINGING			"RINGING"
 #define PRESENCE_RING_IN_USE		"RING_IN_USE"

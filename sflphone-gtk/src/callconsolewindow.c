@@ -211,9 +211,49 @@ show_call_console_window(gboolean show)
 }
 
 void
+call_console_add_entry(gchar* accountID, gchar* contactID, contact_entry_t* entry)
+{
+	GtkTreeIter iter;
+	
+	contact_t* contact = contact_list_get(contact_hash_table_get_contact_list(accountID), contactID);
+	// Append the contact entry in the list if shown in call console is true
+	if(entry->_isShownInConsole)
+	{
+		gtk_list_store_append(callConsoleListStore, &iter);
+		gtk_list_store_set(callConsoleListStore, &iter,
+				CALL_CONSOLE_ACCOUNT_ID, accountID,
+				CALL_CONSOLE_CONTACT_ID, contactID,
+				CALL_CONSOLE_ENTRY_ID, entry->_entryID,
+				CALL_CONSOLE_WINDOW_ICON, gdk_pixbuf_new_from_file(contact_list_presence_status_get_icon_string(entry->_presenceStatus), NULL),
+				CALL_CONSOLE_WINDOW_NAME, contact->_firstName,
+				CALL_CONSOLE_WINDOW_CONTACT, entry->_text,
+				CALL_CONSOLE_WINDOW_PRESENCE_STATUS, contact_list_presence_status_translate(entry->_presenceStatus),
+				-1);
+	}
+}
+
+void
+call_console_edit_entry(gchar* accountID, gchar* contactID, contact_entry_t* entry)
+{
+	// TODO
+}
+
+void
+call_console_remove_entry(gchar* accountID, gchar* contactID, contact_entry_t* entry)
+{
+	// TODO
+}
+
+void
 call_console_change_entry_presence_status(const gchar* accountID, const gchar* contactID,
 		const gchar* entryID, const gchar* presence, const gchar* additionalInfo)
 {
+	// Verify that the entry is really subscribed
+	contact_entry_t* entry = contact_list_entry_get(contact_list_get(contact_hash_table_get_contact_list(accountID), contactID), entryID);
+	if(entry != NULL)
+		if(!entry->_isSubscribed)
+			return;
+	
 	// Try to find entry and change iteration
 	GtkTreeModel* model;
 	GtkTreeIter iter;
@@ -252,7 +292,6 @@ call_console_change_entry_presence_status(const gchar* accountID, const gchar* c
 		// Get the next iteration
 		path = gtk_tree_model_get_path(model, &iter);
 		gtk_tree_path_next(path);
-		gtk_tree_model_get_iter(model, &iter, path);
 	}
-	while(path != NULL);
+	while(gtk_tree_model_get_iter(model, &iter, path));
 }

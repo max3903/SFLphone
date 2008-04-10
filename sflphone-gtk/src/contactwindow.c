@@ -576,6 +576,7 @@ show_contact_dialog(gchar* accountID, gchar* contactID)
 			contact->_firstName = g_strdup(gtk_entry_get_text(GTK_ENTRY(contactFirstNameEntry)));
 			contact->_lastName = g_strdup(gtk_entry_get_text(GTK_ENTRY(contactLastNameEntry)));
 			contact->_email = g_strdup(gtk_entry_get_text(GTK_ENTRY(contactEmailEntry)));
+			contact->_entryList = g_queue_new();
 			
 			// The model of the tree view is not modified directly but the contact list will
 			// be updated and will propagate changes to the contact window and the call console.
@@ -657,7 +658,7 @@ show_entry_dialog(gchar* accountID, gchar* contactID, gchar* entryID)
 		gtk_table_set_col_spacings(GTK_TABLE(table), 10);
 
 		// Add  contact entry ID entry
-		label = gtk_label_new_with_mnemonic(_("_Entry"));
+		label = gtk_label_new_with_mnemonic(_("_Number"));
 		gtk_misc_set_alignment(GTK_MISC(label), 0, 0.5);
 		gtk_widget_set_tooltip_text(GTK_WIDGET(label), _("Contact number as you would type it when calling\nExample : 5142765468"));
 		gtk_table_attach(GTK_TABLE(table), label, 0, 1, 0, 1, GTK_EXPAND | GTK_FILL, GTK_EXPAND | GTK_FILL, 0, 0);
@@ -723,6 +724,11 @@ show_entry_dialog(gchar* accountID, gchar* contactID, gchar* entryID)
 			entry->_type = g_strdup(gtk_entry_get_text(GTK_ENTRY(entryTypeEntry)));
 			entry->_isShownInConsole = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(entryIsShownCheckButton));
 			entry->_isSubscribed = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(entryIsSubcribedCheckButton));
+			if(entry->_isSubscribed)
+				entry->_presenceStatus = PRESENCE_NOT_INITIALIZED;
+			else
+				entry->_presenceStatus = PRESENCE_NOT_SUBSCRIBED;
+			entry->_presenceInfo = "";
 			
 			// Do nothing if entry ID is empty
 			if(strcmp(entry->_entryID, "") == 0) return;
@@ -753,13 +759,13 @@ show_entry_dialog(gchar* accountID, gchar* contactID, gchar* entryID)
 }
 
 void
-contact_window_add_account()
+contact_window_add_account(account_t* account)
 {
 	// TODO
 }
 
 void
-contact_window_remove_account()
+contact_window_remove_account(account_t* account)
 {
 	// TODO
 }
@@ -814,9 +820,8 @@ contact_window_add_contact(gchar* accountID, contact_t* contact)
 		// Go to next account until null
 		path = gtk_tree_model_get_path(model, &iter);
 		gtk_tree_path_next(path);
-		gtk_tree_model_get_iter(model, &iter, path);
 	}
-	while(path != NULL);
+	while(gtk_tree_model_get_iter(model, &iter, path));
 }
 
 void
@@ -846,7 +851,7 @@ contact_window_edit_contact(gchar* accountID, contact_t* contact)
 			// The account is found so go deeper
 			contactPath = gtk_tree_model_get_path(model, &iter);
 			gtk_tree_path_down(contactPath);
-			// Try to find the account
+			// Try to find the contact
 			gtk_tree_model_get_iter(model, &iter, contactPath);
 			do
 			{
@@ -872,20 +877,18 @@ contact_window_edit_contact(gchar* accountID, contact_t* contact)
 				// Go to next contact until null
 				contactPath = gtk_tree_model_get_path(model, &iter);
 				gtk_tree_path_next(contactPath);
-				gtk_tree_model_get_iter(model, &iter, contactPath);
 			}
-			while(contactPath != NULL);
+			while(gtk_tree_model_get_iter(model, &iter, contactPath));
 		}
 		// Go to next account until null
 		accountPath = gtk_tree_model_get_path(model, &iter);
 		gtk_tree_path_next(accountPath);
-		gtk_tree_model_get_iter(model, &iter, accountPath);
 	}
-	while(accountPath != NULL);
+	while(gtk_tree_model_get_iter(model, &iter, accountPath));
 }
 
 void
-contact_window_remove_contact(gchar* accountID, gchar* contactID)
+contact_window_remove_contact(gchar* accountID, contact_t* contact)
 {
 	// TODO
 	// Get the iteration corresponding to the account
@@ -894,19 +897,77 @@ contact_window_remove_contact(gchar* accountID, gchar* contactID)
 }
 
 void
-contact_window_add_entry()
+contact_window_add_entry(gchar* accountID, gchar* contactID, contact_entry_t* entry)
 {
-	// TODO
+	// Only if the contact window is shown
+	if(contactWindowDialog == NULL) return;
+	
+	// Get the iteration corresponding to the account
+	GtkTreeModel* model;
+	GtkTreePath* accountPath;
+	GtkTreePath* contactPath;
+	GtkTreeIter iter;
+	GtkTreeIter newIter;
+	gchar* id;
+	
+	model = gtk_tree_view_get_model(GTK_TREE_VIEW(contactTreeView));
+	if(!gtk_tree_model_get_iter_first(model, &iter)) return;
+	do
+	{
+		// Get the ID of the current account iter
+		gtk_tree_model_get(model, &iter,
+				CONTACT_WINDOW_ID, &id,
+				-1);
+		if(id == NULL) return;
+		if(strcmp(id, accountID) == 0)
+		{
+			// The account is found so go deeper
+			contactPath = gtk_tree_model_get_path(model, &iter);
+			gtk_tree_path_down(contactPath);
+			// Try to find the contact
+			gtk_tree_model_get_iter(model, &iter, contactPath);
+			do
+			{
+				// Get the ID of the current contact iter
+				gtk_tree_model_get(model, &iter,
+						CONTACT_WINDOW_ID, &id,
+						-1);
+				if(id == NULL) return;
+				if(strcmp(id, contactID) == 0)
+				{
+					// Append the contact entry in the list
+					gtk_tree_store_append(contactTreeStore, &newIter, &iter);
+					gtk_tree_store_set(contactTreeStore, &newIter,
+							CONTACT_WINDOW_TYPE, TYPE_ENTRY,
+							CONTACT_WINDOW_ID, entry->_entryID,					// The contact string is also used as a unique ID
+							CONTACT_WINDOW_CALL_CONSOLE_ACTIVE, entry->_isShownInConsole,
+							CONTACT_WINDOW_CALL_CONSOLE_INCONSISTENT, FALSE,	// Never inconsistent because at bottom level of tree
+							CONTACT_WINDOW_ICON, gdk_pixbuf_new_from_file(CONTACT_WINDOW_ENTRY_ICON, NULL),
+							CONTACT_WINDOW_TEXT, entry->_text,
+							-1);
+					return;
+				}
+				// Go to next contact until null
+				contactPath = gtk_tree_model_get_path(model, &iter);
+				gtk_tree_path_next(contactPath);
+			}
+			while(gtk_tree_model_get_iter(model, &iter, contactPath));
+		}
+		// Go to next account until null
+		accountPath = gtk_tree_model_get_path(model, &iter);
+		gtk_tree_path_next(accountPath);
+	}
+	while(gtk_tree_model_get_iter(model, &iter, accountPath));
 }
 
 void
-contact_window_edit_entry()
+contact_window_edit_entry(gchar* accountID, gchar* contactID, contact_entry_t* entry)
 {
-	// TODO
+	// NOW
 }
 
 void
-contact_window_remove_entry()
+contact_window_remove_entry(gchar* accountID, gchar* contactID, contact_entry_t* entry)
 {
 	// TODO
 }

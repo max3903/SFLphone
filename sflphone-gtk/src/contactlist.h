@@ -28,9 +28,9 @@
 // Location of pixmaps icons to represent different presence status
 
 // Special statuses icons
-#define PRESENCE_NOT_SUBSCRIBED_ICON	ICONS_DIR "/fail.svg"
-#define PRESENCE_NOT_INITIALIZED_ICON	ICONS_DIR "/accept.svg"
-#define PRESENCE_NOT_SUPPORTED_ICON		ICONS_DIR "/busy.svg"
+#define PRESENCE_NOT_SUBSCRIBED_ICON	""
+#define PRESENCE_NOT_INITIALIZED_ICON	ICONS_DIR "/hang_up.svg"
+#define PRESENCE_NOT_SUPPORTED_ICON		ICONS_DIR "/fail.svg"
 
 // Active statuses icons
 #define PRESENCE_UNKNOWN_ICON			ICONS_DIR "/unhold.svg"

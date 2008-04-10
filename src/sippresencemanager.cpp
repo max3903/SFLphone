@@ -120,7 +120,7 @@ SIPPresenceManager::parseNotificationPresenceStatus(char* body)
 	// Free parser
 	XML_ParserFree(parser);
 	
-	// TODO Transform basic and note tags in a defined presence status
+	// Transform basic and note tags in a defined presence status
 	std::string status;
 	transformTagsInPresenceStatus(info.basic, info.note, status);
 	return status;
@@ -164,6 +164,9 @@ SIPPresenceManager::buildPublishPresenceStatus(std::string userPart, std::string
 	eXosip_unlock();
 }
 
+/**
+ * Small function to capitalize all letters in a string
+ */
 const char* strUp(std::string string)
 {
 	const int length = string.length();
@@ -177,18 +180,28 @@ const char* strUp(std::string string)
 void
 SIPPresenceManager::transformTagsInPresenceStatus(std::string basic, std::string note, std::string& status)
 {
+	// Transform status obtained in SIP/XML messages into an active status
+	// TODO Other active status should be catched here
+	// TOSEE How will Asterisk support passive presence status sent in the future
 	if(strcmp(strUp(basic), "OPEN") == 0)
 	{
 		if(strcmp(strUp(note), "READY") == 0)
-			status = PRESENCE_ONLINE;
-		else if(strcmp(strUp(note), "NOT ONLINE") == 0 || strcmp(strUp(note), "NOTONLINE") == 0)
-			status = PRESENCE_OFFLINE;
+			status = PRESENCE_READY;
 		else if(strcmp(strUp(note), "RINGING") == 0)
 			status = PRESENCE_RINGING;
 		else if(strcmp(strUp(note), "ON THE PHONE") == 0 || strcmp(strUp(note), "ONTHEPHONE") == 0)
 			status = PRESENCE_ON_THE_PHONE;
-		// TODO Other active status should be catched here
-		// TOSEE How will Asterisk support passive presence status sent in the future
+	}
+	else if(strcmp(strUp(basic), "CLOSED") == 0)
+	{
+		if(strcmp(strUp(note), "NOT ONLINE") == 0 || strcmp(strUp(note), "NOTONLINE") == 0)
+			status = PRESENCE_UNAVAILABLE;
+	}
+	// Return unknown presence if no status has been found
+	else
+	{
+		status = PRESENCE_UNKNOWN;
+		_debug("!!! New unknown SIP/XML status %s, %s received : Implement it rigth away !!!", basic.data(), note.data());
 	}
 }
 

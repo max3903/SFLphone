@@ -230,8 +230,8 @@ ContactManager::saveContacts(std::string accountID, std::vector<Contact*>& conta
 	file << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" << std::endl;
 	file << "<contacts>" << std::endl;
 	
-	std::vector<Contact*>::iterator iter;
-	for(iter = contactList.begin(); *iter; iter++)
+	std::vector<Contact*>::iterator iter = contactList.begin();
+	while(iter != contactList.end())
 	{
 		Contact* contact = (Contact*)*iter;
 		file << "\t<contact id=\"" << contact->getContactID() << "\">" << std::endl;
@@ -263,6 +263,7 @@ ContactManager::saveContacts(std::string accountID, std::vector<Contact*>& conta
 			file << "\t\t</entries>" << std::endl;
 		}
 		file << "\t</contact>" << std::endl;
+		iter++;
 	}
 	file << "</contacts>" << std::endl;
 	

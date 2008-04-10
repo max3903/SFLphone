@@ -2441,10 +2441,19 @@ ManagerImpl::getContactEntryDetails(const std::string& accountID, const std::str
 				{
 					if(entry->getPresence() == NULL)
 					{
-						// Return uninitialized if entry is subscribed but
-						// no information has yet been received
-						entryDetails.push_back(PRESENCE_NOT_INITIALIZED);
-						entryDetails.push_back("");
+						if(getAccount(accountID)->getVoIPLink()->isContactPresenceSupported())
+						{
+							// Return uninitialized if entry is subscribed but
+							// no information has yet been received
+							entryDetails.push_back(PRESENCE_NOT_INITIALIZED);
+							entryDetails.push_back("");
+						}
+						else
+						{
+							// Presence is not supported
+							entryDetails.push_back(PRESENCE_NOT_SUPPORTED);
+							entryDetails.push_back("");
+						}
 					}
 					else
 					{
@@ -2558,7 +2567,11 @@ ManagerImpl::setContactEntry(const std::string& accountID, const std::string& co
 					if(account->getVoIPLink()->isContactPresenceSupported())
 						entry->setPresence(PRESENCE_NOT_INITIALIZED, "");
 					else
+					{
 						entry->setPresence(PRESENCE_NOT_SUPPORTED, "");
+						// Send back unsupported information to GUI since no future event on presence will come
+						contactEntryPresenceChanged(accountID, entryID, PRESENCE_NOT_SUPPORTED, "");
+					}
 				}
 				if(entry->getSubscribedToPresence() == TRUE && subscribed == FALSE)
 				{
@@ -2574,6 +2587,7 @@ ManagerImpl::setContactEntry(const std::string& accountID, const std::string& co
 				added = true;
 				break;
 			}
+			iter++;
 		}
 		if(!added)
 		{
@@ -2593,6 +2607,11 @@ ManagerImpl::setContactEntry(const std::string& accountID, const std::string& co
 				{
 					if(subscribedChanged) account->getVoIPLink()->subscribePresenceForContact(entry);
 					else account->getVoIPLink()->unsubscribePresenceForContact(entry);
+				}
+				else
+				{
+					// Send back information to GUI that presence is not supported for this account
+					contactEntryPresenceChanged(accountID, entryID, PRESENCE_NOT_SUPPORTED, "");
 				}
 			}
 		}

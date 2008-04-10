@@ -33,10 +33,9 @@ void show_call_console_window(gboolean show);
 /**
  * Called from the contact list to update the view
  */
-// NOW
-void call_console_add_entry();
-void call_console_edit_entry();
-void call_console_remove_entry();
+void call_console_add_entry(gchar* accountID, gchar* contactID, contact_entry_t* entry);
+void call_console_edit_entry(gchar* accountID, gchar* contactID, contact_entry_t* entry);
+void call_console_remove_entry(gchar* accountID, gchar* contactID, contact_entry_t* entry);
 void call_console_change_entry_presence_status(const gchar* accountID, const gchar* contactID,
 		const gchar* entryID, const gchar* presence, const gchar* additionalInfo);
 

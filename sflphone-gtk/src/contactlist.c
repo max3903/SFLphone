@@ -142,10 +142,14 @@ void
 contact_list_entry_add(gchar* accountID, gchar* contactID, contact_entry_t* entry, gboolean update)
 {
 	contact_t* contact = contact_list_get(contact_hash_table_get_contact_list(accountID), contactID);
-	g_queue_push_tail(contact->_entryList, (void*) entry);
+	g_queue_push_tail(contact->_entryList, (void*)entry);
 	
-	// TODO Modify the views (contact window and call console)
-	if(update);
+	// Modify the views
+	if(update)
+	{
+		contact_window_add_entry(accountID, contactID, entry);
+		call_console_add_entry(accountID, contactID, entry);
+	}
 
 	// Send modifications to server
 	if(update)
@@ -289,7 +293,8 @@ contact_list_presence_status_translate(const gchar* presenceStatus)
 	}
 	if(strcmp(presenceStatus, PRESENCE_NOT_INITIALIZED) == 0)
 	{
-		return(_("Not initialized"));
+		// Return offline for now because not all subscriptions return a receipt
+		return(_("Offline"));
 	}
 	if(strcmp(presenceStatus, PRESENCE_NOT_SUPPORTED) == 0)
 	{
