@@ -22,6 +22,8 @@
 #include "sipcall.h"
 #include "global.h" // for _debug
 #include <sstream> // for media buffer
+#include "video/VideoCodecDescriptor.h"
+#include <string>
 
 #define _SENDRECV 0
 #define _SENDONLY 1
@@ -220,108 +222,6 @@ SIPCall::SIPCallReinvite(eXosip_event_t *event)
   eXosip_unlock ();
   sdp_message_free (remote_sdp);
   return true;
-
-
-
-  // MA VERSION!!!!!
-
-  /*
-  if (event->cid < 1 && event->did < 1) {
-    _debug("SIP Failure: Invalid cid and did\n");
-    return false;
-  }
-
-  if (event->request == NULL) {
-    _debug("SIP Failure: No request into the event\n");
-    return false;
-  }
-
-  // TODO: pas sure
-  //setCid(event->cid);
-  //setDid(event->did);
-  //setTid(event->tid);
-
-  //setPeerInfoFromRequest(event);
-
-  sdp_message_t* remote_sdp = getRemoteSDPFromRequest(event);
-  if (remote_sdp == 0) {
-    return false;
-  }
-
-  sdp_media_t* remote_med = getRemoteMedia(event->tid, remote_sdp);
-  if (remote_med == 0) {
-    sdp_message_free (remote_sdp);
-    return false;
-  }
-
-  if (!setRemoteAudioFromSDP(remote_med, remote_sdp)) {
-    _debug("SIP Failure: unable to set audio IP address and port from SDP\n");
-    sdp_message_free (remote_sdp);
-    return false;
-  }
-
-  // TODO: AJOUTER RemoteVideoFromSDP
-  if (!setRemoteVideoFromSDP(remote_med, remote_sdp)) {
-    _debug("SIP Failure: unable to set video IP address and port from SDP\n");
-    sdp_message_free (remote_sdp);
-    return false;
-  }
-
-  if (!setAudioCodecFromSDP(remote_med, event->tid)) {
-    sdp_message_free (remote_sdp);
-    return false;
-  }
-
-  // AJOUTER SetVideoFromSDP
-  //if (!setVideoCodecFromSDP(remote_med, event->tid)) {
-    //sdp_message_free (remote_sdp);
-    //return false;
-  //}
-
-  osip_message_t *answer = 0;
-  eXosip_lock();
-  _debug("< Building Answer 200\n");
-  if (0 == eXosip_call_build_answer (event->tid, 200, &answer)) {
-    if ( 0 != sdp_complete_message(remote_sdp, answer)) {
-      osip_message_free(answer);
-      // Send 415 Unsupported media type
-      eXosip_call_send_answer (event->tid, 415, NULL);
-      _debug("< Sending Answer 415\n");
-    } else {
-
-      sdp_message_t *local_sdp = eXosip_get_sdp_info(answer);
-      sdp_media_t *local_med = NULL;
-      sdp_media_t *local_vid_med = NULL;
-      if (local_sdp != NULL) {
-         local_med = eXosip_get_audio_media(local_sdp);
-         //local_vid_med = eXosip_get_video_media(local_sdp);
-      }
-      //if (local_sdp != NULL && local_med != NULL && local_vid_med != NULL) {
-        if (local_sdp != NULL && local_med != NULL) {
-
-        //search if stream is sendonly or recvonly
-       
-        int _remote_sendrecv = sdp_analyse_attribute (remote_sdp, remote_med);
-        int _local_sendrecv =  sdp_analyse_attribute (local_sdp, local_med);
-        _debug("            Remote SendRecv: %d\n", _remote_sendrecv);
-        _debug("            Local  SendRecv: %d\n", _local_sendrecv);
-        if (_local_sendrecv == _SENDRECV) {
-          if (_remote_sendrecv == _SENDONLY)      { _local_sendrecv = _RECVONLY; }
-          else if (_remote_sendrecv == _RECVONLY) { _local_sendrecv = _SENDONLY; }
-        }
-        _debug("            Final Local SendRecv: %d\n", _local_sendrecv);
-        sdp_message_free (local_sdp);
-      }
-      _debug("< Sending answer 200\n");
-      if (0 != eXosip_call_send_answer (event->tid, 200, answer)) {
-        _debug("SipCall::newIncomingCall: cannot send 200 OK?\n");
-      }
-    }
-  }
-  eXosip_unlock ();
-  sdp_message_free (remote_sdp);
-  return true;
-  */
 }
 
 bool 
@@ -512,21 +412,25 @@ SIPCall::sdp_complete_message(sdp_message_t * remote_sdp, osip_message_t * msg)
     iMedia++;
   }
 
-  //media << "m=" << "video" << " " << "12345" << " RTP/AVP " << "34" << "\r\n";
-  //media << "a=rtpmap:" << "34" << "H263/90000" << "\r\n";
-
- /* char buf[4096];
-  snprintf (buf, 4096,
-    "v=0\r\n"
-    "o=user 0 0 IN IP4 %s\r\n"
-    "s=session\r\n"
-    "c=IN IP4 %s\r\n"
-    "t=0 0\r\n"
-    "%s\n", getLocalIp().c_str(), getLocalIp().c_str(), media.str().c_str());
-*/
-
+  // We now retreive video codec infos
   int LocalVideoPort = getLocalExternVideoPort();
+  VideoCodecOrder CodecVector = VideoCodecDescriptor::getInstance()->getActiveCodecs();
+  VCOIterator itrStringVector;
+  const char* codecName;
+  int codecPayload;
+  int codecSimpleRate = 90000; //Same for all video codecs
 
+  for ( itrStringVector = CodecVector.begin(); itrStringVector != CodecVector.end(); itrStringVector++)
+  {
+    if ( (*itrStringVector)->id == (CodecID)CODEC_ID_H263 ){
+      codecName = (*itrStringVector)->name;
+      codecPayload = 34;
+    }
+    else
+      ; // TODO: h264, Not yet supported!
+  }
+
+  // We now construct de SDP
   char buf[4096];
   snprintf (buf, 4096,
     "v=0\r\n"
@@ -536,118 +440,14 @@ SIPCall::sdp_complete_message(sdp_message_t * remote_sdp, osip_message_t * msg)
     "b=CT:384\r\n"
     "t=0 0\r\n"
     "%s"
-    "m=video %d RTP/AVP 34\r\n"
-    "a=rtpmap:34 H263/90000\r\n"
-    "a=sendrecv\r\n", getLocalIp().c_str(), getLocalIp().c_str(), media.str().c_str(),LocalVideoPort);
+    "m=video %d RTP/AVP %d\r\n"
+    "a=rtpmap:%d %s/%d\r\n"
+    "a=sendrecv\r\n", getLocalIp().c_str(), getLocalIp().c_str(), media.str().c_str(),LocalVideoPort,codecPayload,codecPayload,codecName,codecSimpleRate);
 
   osip_message_set_body (msg, buf, strlen (buf));
   osip_message_set_content_type (msg, "application/sdp");
   _debug("          sdp: %s", buf);
   return 0;
-
-  // MA VERSION !!!!!
-  /*
-  // Format port to a char*
-  if (remote_sdp == NULL) {
-    _debug("SipCall::sdp_complete_message: No remote SDP body found for call\n");
-    return -1;
-  }
-  if (msg == NULL) {
-    _debug("SipCall::sdp_complete_message: No message to complete\n");
-    return -1;
-  }
-
-  std::ostringstream media;
-
-  // for each medias
-  int iMedia = 0;
-  char *tmp = NULL;
-  #ifdef LIBOSIP2_WITHPOINTER 
-  const osip_list_t* remote_sdp_m_medias = remote_sdp->m_medias; // old abi
-  #else
-  const osip_list_t* remote_sdp_m_medias = &(remote_sdp->m_medias);
-  #endif
-  osip_list_t* remote_med_m_payloads = 0;
-  osip_list_t* remote_med_m_payloads_vid = 0;
-
-  while (!osip_list_eol(remote_sdp_m_medias, iMedia)) {
-    sdp_media_t *remote_med = (sdp_media_t *)osip_list_get(remote_sdp_m_medias, iMedia);
-    if (remote_med == 0) { continue; }
-
-    if ( (0 != osip_strcasecmp (remote_med->m_media, "audio")) && (0 != osip_strcasecmp (remote_med->m_media, "video"))) {
-      printf("ERRURE!!!!!!!");
-      // if this is not an "audio" or "video" media, we set it to 0
-      media << "m=" << remote_med->m_media << " 0 " << remote_med->m_proto << " \r\n";
-    } else if (0 != osip_strcasecmp (remote_med->m_media, "audio")) {
-      // POUR L'AUDIO!!!!
-      std::ostringstream listCodec;
-      std::ostringstream listRtpMap;
-
-      // search for compatible codec: foreach payload
-      int iPayload = 0;
-      #ifdef LIBOSIP2_WITHPOINTER 
-      remote_med_m_payloads = remote_med->m_payloads; // old abi
-      #else
-      remote_med_m_payloads = &(remote_med->m_payloads);
-      #endif
-
-      //while (!osip_list_eol(remote_med_m_payloads, iPayload) && iPayload < 2) {
-      while (!osip_list_eol(remote_med_m_payloads, iPayload)) {
-        tmp = (char *)osip_list_get(remote_med_m_payloads, iPayload);
-        if (tmp!=NULL) {
-          int payload = atoi(tmp);
-	  _debug("remote payload = %s\n", tmp);
-          AudioCodecType audiocodec = (AudioCodecType)payload;
-          if (audiocodec != (AudioCodecType)-1 && _codecMap.isActive(audiocodec))  { 
-            listCodec << payload << " ";
-            //listRtpMap << "a=rtpmap:" << payload << " " << audiocodec->getCodecName() << "/" << audiocodec->getClockRate();
-            listRtpMap << "a=rtpmap:" << payload << " " << _codecMap.getCodecName(audiocodec) << "/" << _codecMap.getSampleRate(audiocodec);
-	    if (_codecMap.getChannel(audiocodec) != 1) {
-              listRtpMap << "/" << _codecMap.getChannel(audiocodec);
-            }
-            listRtpMap << "\r\n";
-          }
-        }
-        iPayload++;
-      }
-      if (listCodec.str().empty()) {
-        // TODO: p-e a laisse!!!!!
-        media << "m=" << remote_med->m_media << " 0 " << remote_med->m_proto << " \r\n";
-      } else {
-        // we add the media line + a=rtpmap list
-        media << "m=" << remote_med->m_media << " " << getLocalExternAudioPort() << " RTP/AVP " << listCodec.str() << "\r\n";
-        media << listRtpMap.str();
-      }
-    } 
-    
-    iMedia++;
-  } 
-
-  // Test hardcoder H263
-  //std::ostringstream tmpMediaVideo;
-  //tmpMediaVideo << "m=video 12345 RTP/AVP 34\r\n";
-  //tmpMediaVideo << "a=rtpmap:34 H263/90000\r\n";
-  // a jouter dans le buf
-
-  printf("VOICI LE SDP!");
-  printf(media.str().c_str());
-
-  char buf[4096];
-  snprintf (buf, 4096,
-    "v=0\r\n"
-    "o=user 0 0 IN IP4 %s\r\n"
-    "s=session\r\n"
-    "c=IN IP4 %s\r\n"
-    "t=0 0\r\n"
-    "%s\n", getLocalIp().c_str(), getLocalIp().c_str(), media.str().c_str());
-
-
-  osip_message_set_body (msg, buf, strlen (buf));
-  osip_message_set_content_type (msg, "application/sdp");
-  _debug("          sdp: %s", buf);
-  return 0;
-
-*/
 }
 
 

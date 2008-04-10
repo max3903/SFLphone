@@ -23,8 +23,9 @@
 #include "sipvoiplink.h"
 #include "eventthread.h"
 #include "sipcall.h"
+#include "video/VideoCodecDescriptor.h"
 #include <sstream> // for ostringstream
-
+#include <string>
 #include "manager.h"
 #include "user_cfg.h" // SIGNALISATION / PULSE #define
 #include "sippresencemanager.h"
@@ -1108,8 +1109,7 @@ SIPVoIPLink::SIPStartCall(SIPCall* call, const std::string& subject)
   int nbChannel;
   int iter;
 
-  // Set rtpmap according to the supported codec order
-  //CodecMap map = call->getCodecMap().getCodecMap();
+  // Set rtpmap according to the supported audio codec order
   CodecOrder map = call->getCodecMap().getActiveCodecs();
  
   for(iter=0 ; iter < map.size() ; iter++){
@@ -1132,29 +1132,28 @@ SIPVoIPLink::SIPStartCall(SIPCall* call, const std::string& subject)
     //*iter++;
   }
 
+  // Set rtpmap according to the supported video codec order
+  VideoCodecOrder CodecVector = VideoCodecDescriptor::getInstance()->getActiveCodecs();
+  VCOIterator itrStringVector;
+  const char* codecName;
+  int codecPayload;
+  int codecSimpleRate = 90000; //Same for all video codecs
+
+  for ( itrStringVector = CodecVector.begin(); itrStringVector != CodecVector.end(); itrStringVector++)
+  {
+    if ( (*itrStringVector)->id == (CodecID)CODEC_ID_H263 ){
+      codecName = (*itrStringVector)->name;
+      codecPayload = 34;
+    }
+    else
+      ; // TODO: h264, Not yet supported!
+  }
+
   // http://www.antisip.com/documentation/eXosip2/group__howto1__initialize.html
   // tell sip if we support SIP extension like 100rel
   // osip_message_set_supported (invite, "100rel");
 
-  /* add sdp body
-  {
-    char tmp[4096];
-    snprintf (tmp, 4096,
-              "v=0\r\n"
-              "o=SFLphone 0 0 IN IP4 %s\r\n"
-              "s=call\r\n"
-              "c=IN IP4 %s\r\n"
-              "t=0 0\r\n"
-              "m=audio %d RTP/AVP %s\r\n"
-              "%s",
-              _localExternAddress.c_str(), _localExternAddress.c_str(), call->getLocalExternAudioPort(), media_audio.str().c_str(), rtpmap_attr.str().c_str());
-    // media_audio should be one, two or three numbers?
-    osip_message_set_body (invite, tmp, strlen (tmp));
-    osip_message_set_content_type (invite, "application/sdp");
-    _debug("SDP send: %s", tmp);
-  }*/
-
-  //TODO: je lai modifier!
+  // add sdp body
   {
     char tmp[4096];
     snprintf (tmp, 4096,
@@ -1166,9 +1165,9 @@ SIPVoIPLink::SIPStartCall(SIPCall* call, const std::string& subject)
               "t=0 0\r\n"
               "m=audio %d RTP/AVP %s\r\n"
               "%s"
-              "m=video %d RTP/AVP 34\r\n"
-              "a=rtpmap:34 H263/90000\r\n"
-              "a=sendrecv\r\n",_localExternAddress.c_str(), _localExternAddress.c_str(), call->getLocalExternAudioPort(), media_audio.str().c_str(), rtpmap_attr.str().c_str(),call->getLocalExternVideoPort());
+              "m=video %d RTP/AVP %d\r\n"
+              "a=rtpmap:%d %s/%d\r\n"
+              "a=sendrecv\r\n",_localExternAddress.c_str(), _localExternAddress.c_str(), call->getLocalExternAudioPort(), media_audio.str().c_str(), rtpmap_attr.str().c_str(),call->getLocalExternVideoPort(),codecPayload,codecPayload,codecName,codecSimpleRate);
 
     // media_audio should be one, two or three numbers?
     osip_message_set_body (invite, tmp, strlen (tmp));
