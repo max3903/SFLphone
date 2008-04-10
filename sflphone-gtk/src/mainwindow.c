@@ -342,11 +342,13 @@ gboolean main_window_glWidget( gboolean show )
 					  }
 				}
 			default:
-				g_warning("Should not happen!");
-				// Keep button and menu in the same state as glwidget
-				main_window_update_WebcamStatus(showGlWidget);
-				//Show webcam configuration
-				show_config_window(3);
+
+				gtk_container_remove(GTK_CONTAINER (subvbox), drawing_area);
+			    showGlWidget = show;
+					    
+			    // Keep button and menu in the same state as glwidget
+			    main_window_update_WebcamStatus(showGlWidget);
+			    dbus_disable_local_video_pref();
 				break; 
 		}
 	}else
