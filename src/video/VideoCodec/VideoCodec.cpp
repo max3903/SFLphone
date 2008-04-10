@@ -78,6 +78,8 @@ void VideoCodec::init(){
 	//default width and height
 	inputWidth = tmp.first;
 	inputHeight = tmp.second;
+	outputWidth = tmp.first;
+	outputHeight = tmp.second;
 	
 	initEncodeContext();
 	initDecodeContext();
@@ -161,15 +163,13 @@ void VideoCodec::initDecodeContext()
 
 if(_CodecENC->id == CODEC_ID_H263)//set special h263
 	{
-		codetmp = SWSInterface::getSpecialResolution(inputWidth);
+		codetmp = SWSInterface::getSpecialResolution(outputWidth);
 		_decodeCodecCtx->width = codetmp.width;
 		_decodeCodecCtx->height = codetmp.height;
-		inputWidth = _decodeCodecCtx->width;
-		inputHeight = _decodeCodecCtx->height;
 	}
 	else{
-	_decodeCodecCtx->width = inputWidth;
-	_decodeCodecCtx->height = inputHeight;
+	_decodeCodecCtx->width = outputWidth;
+	_decodeCodecCtx->height = outputHeight;
 	}
 
 	if(avcodec_open (_decodeCodecCtx, _CodecDEC) < 0)
@@ -261,13 +261,13 @@ int VideoCodec::videoDecode(uint8_t *in_buf, uint8_t* out_buf,int inSize,int wid
 	if(in_buf == NULL) 	{ptracesfl("CAN'T Decode - Input Buffer problem\n",MT_ERROR,1,true);return -1;}
 	if(out_buf == NULL) {ptracesfl("CAN'T Decode - output Buffer problem\n",MT_ERROR,1,true);return -1;}
 	
-	if(width != inputWidth || height != inputHeight  )
+	if(width != _decodeCodecCtx->width || height != _decodeCodecCtx->height  )
 		{
 		printf("Changing Decode resolution\n");
 		//change the codecs width and height
 		quitDecodeContext();
-		inputWidth = width;
-		inputHeight = height;
+		_decodeCodecCtx->width = width;
+		_decodeCodecCtx->height = height;
 		initDecodeContext();
 		}
 	

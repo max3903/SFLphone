@@ -152,6 +152,11 @@ private:
     */
     int inputWidth;
     int inputHeight;
+    /** 
+    * width and height the codec will send
+    */
+    int outputWidth;
+    int outputHeight;
     
 
     
