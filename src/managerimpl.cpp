@@ -62,6 +62,7 @@
   
 bool ManagerImpl::_localCapActive;
 KeyHolder ManagerImpl::_keyHolder;
+bool ManagerImpl::_localCapOKKill;
 
 
 ManagerImpl::ManagerImpl (void)
@@ -521,9 +522,9 @@ ManagerImpl::changeWebcamStatus(const bool status, const CallID& id)
 
   _debug(" !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! MANAGERIMPL! Enabled webcam!\n");
 
-  if ( getAccountLink(getAccountFromCall(id))->ChangeWebCamStatus(id,status) )
+  if ( getAccountLink(getAccountFromCall(id))->ChangeWebCamStatus(id,status) ){
     return;
-  else{
+  }else{
     _debug("! Manager Error: An error occur, the video call was not created\n");
     return;
   } 
@@ -3020,6 +3021,7 @@ ManagerImpl::enableLocalVideoPref(){
 	}
 	
 	ManagerImpl::_localCapActive= true;
+	ManagerImpl::_localCapOKKill= false;
 	
 	if( pthread_create(&_localVidCap_Thread, NULL, localVideCapturepref, NULL) != 0 ){
 		ManagerImpl::_localCapActive= false;
@@ -3036,8 +3038,10 @@ ManagerImpl::enableLocalVideoPref(){
 bool 
 ManagerImpl::disableLocalVideoPref(){
 	
+	ptracesfl("Stopping Local video capture ...", MT_INFO, MANAGERIMPL_TRACE);
 	ManagerImpl::_localCapActive= false;
-	pthread_join(ManagerImpl::_localVidCap_Thread, NULL);
+	//pthread_join(ManagerImpl::_localVidCap_Thread, NULL);
+	while(!ManagerImpl::_localCapOKKill);
 	
 	return true;
 }
@@ -3049,7 +3053,7 @@ ManagerImpl::disableLocalVideoPref(){
 void* ManagerImpl::localVideCapturepref(void* pdata){
 	
 
-	ptracesfl("Starting Local video capture for preference window", MT_INFO, MANAGERIMPL_TRACE);
+	ptracesfl("Starting Local video capture ...", MT_INFO, MANAGERIMPL_TRACE);
 	
 	Capture* cmdCap= (Capture*)VideoDeviceManager::getInstance()->getCommand(VideoDeviceManager::CAPTURE);
 	Resolution* cmdRes= (Resolution*)VideoDeviceManager::getInstance()->getCommand(VideoDeviceManager::RESOLUTION);
@@ -3082,8 +3086,8 @@ void* ManagerImpl::localVideCapturepref(void* pdata){
 	delete cmdCap;
 	delete cmdRes;
 
-	ptracesfl("Stopping Local video capture for preference window", MT_INFO, MANAGERIMPL_TRACE);
-	pthread_exit(NULL);
+	ptracesfl("Local video capture Stopped ...", MT_INFO, MANAGERIMPL_TRACE);
+	ManagerImpl::_localCapOKKill= true;
 	
 }
 
