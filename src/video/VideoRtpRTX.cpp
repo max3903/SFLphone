@@ -268,8 +268,6 @@ void VideoRtpRTX::sendSession()
   	printf("test6.2\n");
   	pair<int,int> ResEnc = encodeCodec->getEncodeOutputResolution();
   	
-  	_debug("Encode Resolution Width: %d, Height: %d\n",ResEnc.first,ResEnc.second);
-
     unsigned char *packet;
     packet = new unsigned char[4+encodedSize];
     memcpy(packet+4,data_to_send,encodedSize);
@@ -331,7 +329,6 @@ void VideoRtpRTX::receiveSession()
     TestFormat = (int)(rcvWorkingBuf[1] & 0x00E0);
     pair<int,int> Res = getPictureFormatFromHeader(TestFormat);
     // Decode it
-    	_debug("Decode Resolution Width: %d, Height: %d\n",Res.first,Res.second);
     
     if (isMarked) {
     	

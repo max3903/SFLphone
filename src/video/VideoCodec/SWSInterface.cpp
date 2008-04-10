@@ -115,8 +115,6 @@ AVFrame *SWSInterface::alloc_pictureRGB24(int width, int height,uint8_t *buffer)
   return pFrameRGB;
 }
 
-
-
 FrameProperties SWSInterface::getSpecialResolution(int width)
  {
 	 // Text from libavcodec
