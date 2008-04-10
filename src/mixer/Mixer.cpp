@@ -122,7 +122,7 @@ void Mixer::createStraightThrough(Tmixer type, vector<InputStreams*> inputs, Out
     audioTranscoder = new StraightThrough_AT(this->intBuffers[index2],audioOutput);
          
     // Creating NoSynch SynchManager
-     synchManagers.push_back( new NoSynch(this->streamsInput[0] ,this->intBuffers[index1],this->intBuffers[index2]) );
+     synchManagers.push_back( new NoSynch(this->streamsInput[0] ,this->intBuffers[index1],this->intBuffers[index2], 0) );
  
 }
 
@@ -152,8 +152,8 @@ void Mixer::createMixer2(Tmixer type, vector<InputStreams*> inputs, OutputStream
     audioTranscoder = new AudioMixer2Channels(this->intBuffers[index2], this->intBuffers[index2 - 2], audioOutput);
          
     // Creating NoSynch SynchManagers
-    synchManagers.push_back( new NoSynch(this->streamsInput[0] ,this->intBuffers[index1],this->intBuffers[index2]) );
-    synchManagers.push_back( new NoSynch(this->streamsInput[1] ,this->intBuffers[index1-2],this->intBuffers[index2-2]) );
+    synchManagers.push_back( new NoSynch(this->streamsInput[0] ,this->intBuffers[index1],this->intBuffers[index2], 0) );
+    synchManagers.push_back( new NoSynch(this->streamsInput[1] ,this->intBuffers[index1-2],this->intBuffers[index2-2], 1) );
 }
 
 bool Mixer::addStream(InputStreams* input)
@@ -175,7 +175,7 @@ bool Mixer::addStream(InputStreams* input)
 		switch(theType)
 		{
 		    case NOSYNCH_AV_STRAIGHTTHROUGH:
-		    	this->synchManagers.push_back( new NoSynch( this->streamsInput[1] ,this->intBuffers[index1],this->intBuffers[index2] ) ); 
+		    	this->synchManagers.push_back( new NoSynch( this->streamsInput[1] ,this->intBuffers[index1],this->intBuffers[index2], 1) ); 
 		        break;
 		    case SYNCH_AV_STRAIGHTTHROUG: //TODO:
 		        break;

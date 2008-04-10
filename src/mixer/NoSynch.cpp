@@ -6,7 +6,7 @@ NoSynch::NoSynch()
 {
 }
 
-NoSynch::NoSynch(InputStreams* Streams, InternalBuffer* video, InternalBuffer* audio)
+NoSynch::NoSynch(InputStreams* Streams, InternalBuffer* video, InternalBuffer* audio, int index)
 {
   inputStreams = Streams;
   bufferAudio = audio;
@@ -14,6 +14,8 @@ NoSynch::NoSynch(InputStreams* Streams, InternalBuffer* video, InternalBuffer* a
   
   Active=false;
   OkToKill=false;
+  
+  this->index= index;
 }
 
 NoSynch::~NoSynch()
@@ -31,13 +33,13 @@ void NoSynch::run()
   {
     // Getting audio data size
     ptracesfl("NoSynch - run(): Getting Audio Data size ... ",MT_INFO, NOSYNCH_TRACE);
-    int sizeBufferAudio=inputStreams->fetchAudioStream()->getSizeBuffer();
+    int sizeBufferAudio=inputStreams->fetchAudioStream()->getSizeBuffer(this->index);
     
 	// Getting and dispatching audio data
 	if( sizeBufferAudio != 0 ){
 		
 		ptracesfl("NoSynch - run(): Getting Audio Data from audio input buffer ... ",MT_INFO, NOSYNCH_TRACE);
-		dataAudio = inputStreams->fetchAudioStream()->fetchData(sizeBufferAudio);
+		dataAudio = inputStreams->fetchAudioStream()->fetchData(sizeBufferAudio, this->index);
 		if( sizeBufferAudio != -1 ){
 			ptracesfl("NoSynch - run(): Putting Audio Data into audio internall buffer ... ",MT_INFO, NOSYNCH_TRACE);
 			bufferAudio->putData((void*)dataAudio,sizeBufferAudio);

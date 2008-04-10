@@ -39,7 +39,7 @@ public:
 	 * \param video The Internal buffer into wich the synch video data will be sent
 	 * \param audio The Internal buffer into wich the synch audio data will be sent
 	 */
-    NoSynch(InputStreams* Streams, InternalBuffer* video, InternalBuffer* audio);
+    NoSynch(InputStreams* Streams, InternalBuffer* video, InternalBuffer* audio, int index);
 
     //! Destructor
     virtual ~NoSynch();
@@ -75,6 +75,9 @@ private:
     
     //! Attribute representing the safe stop of the thread
     bool OkToKill;
+    
+    //! Attribute representing the buffer to query in the input
+    int index;
 
 };
 #endif //NOSYNCH_H

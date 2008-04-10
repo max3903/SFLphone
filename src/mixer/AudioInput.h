@@ -20,6 +20,7 @@
 #ifndef AUDIOINPUT_H
 #define AUDIOINPUT_H
 
+#include <vector>
 #include <list>
 #include <semaphore.h>
 
@@ -60,6 +61,7 @@ public:
      * 
      * \param data a pointer to a data buffer
      * \param size the size of the buffer
+     * \param timeStamp the time stamp associated with the data
      */
     virtual void putData(short *data, int size, int timeStamp= 0);
 
@@ -68,21 +70,34 @@ public:
      * This method returns the data. Buffer access is protected to prevent simultanious access. Once you fetch data from the buffer the data, size and time stamp no longuer exits
      * 
      * \param data a pointer to where the data must be copied
+     * \param index The index of the fifo to fetch data from
      * \return The size of the fetched data or -1 if an error occured 
      */
-    virtual short* fetchData(int &size);
+    virtual short* fetchData(int &size, int index= 0);
 
 	//! Method to get the current size of the buffer
 	/*!
 	 * \return The size of the head of the buffer. Returns 0 if the queue is empty
 	 */	 
-    virtual int getSizeBuffer();
+    virtual int getSizeBuffer(int index= 0);
     
     //! Access the timing information for current buffer
     /*!
      * This method returns the timestamp for the data contained in the head of the queue. The data is used by the synchonization manager to mix the streams 
      */
-    virtual TimeInfo* fetchTimeInfo();
+    virtual TimeInfo* fetchTimeInfo(int index= 0);
+    
+    //! Method that adds a fifo queue to fetch data from
+    /*!
+     * \return The index of the new output queue
+     */
+    virtual int AddOutput();
+    
+    //! Method that removes a fifo queue to fetch data from
+    /*!
+     * \param index The index of the output queue to remove
+     */
+    virtual void RemoveOutput( int index );
 
 private:
     
@@ -90,7 +105,7 @@ private:
     sem_t sem_putData;
    
     // The queue in wich data is stored
-    std::list<AudioPacket*> fifo;
+    std::vector< std::list<AudioPacket*> > fifo;
     
 };
 #endif //AUDIOINPUT_H
