@@ -67,8 +67,19 @@ public:
 	 * Function to create RTP Session to send Video Packets
 	 */ 
     void initVideoRtpSession();
+    
+    /**
+     * Function to stopc cleanly the video send and receive thread
+     */
+    void stop();
 
 private:
+
+	/** Boolean to represent the state of the thread **/
+	bool _Active;
+	
+	/** Boolean to represent the thread thread ended properly **/
+	bool _OkToKill;
 
     ost::Mutex          threadMutex;
     SIPCall* 		vidCall;
@@ -93,7 +104,10 @@ private:
     /** Video Device manager **/
     VideoDeviceManager* VideoDevMng;
     
+    /** Webcam Resolution command **/
     Resolution* cmdRes;
+    
+    /** Webcam Capture Command **/
     Capture* cmdCapture;
 
     uint32 timestamp;

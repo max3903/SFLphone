@@ -127,7 +127,7 @@ create_main_window ()
   window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
   gtk_container_set_border_width (GTK_CONTAINER (window), 0);
   gtk_window_set_title (GTK_WINDOW (window), PACKAGE);
-  gtk_window_set_default_size (GTK_WINDOW (window), 450, 320);
+  gtk_window_set_default_size (GTK_WINDOW (window), 460, 320);
   gtk_window_set_default_icon_from_file (ICON_DIR "/sflphone.png", 
                                           NULL);
 
@@ -155,7 +155,7 @@ create_main_window ()
   gtk_box_pack_start (GTK_BOX (vbox), widget, FALSE /*expand*/, TRUE /*fill*/, 0 /*padding*/);
   gtk_box_pack_start (GTK_BOX (vbox), create_call_tree(), TRUE /*expand*/, TRUE /*fill*/,  0 /*padding*/);
   
-  gtk_box_pack_start (GTK_BOX (vbox), subvbox, TRUE /*expand*/, TRUE /*fill*/, 0 /*padding*/);
+  gtk_box_pack_start (GTK_BOX (vbox), subvbox, FALSE /*expand*/, TRUE /*fill*/, 0 /*padding*/);
  
   //widget = create_screen();
   // TODO Add the screen when we are decided
@@ -323,9 +323,6 @@ gboolean main_window_glWidget( gboolean show )
 					    
 					    // Keep button and menu in the same state as glwidget
 					    main_window_update_WebcamStatus(showGlWidget);
-					    
-					    // \TODO: Add Code to send enable webcam signal
-					    dbus_change_webcam_status(TRUE, selectedCall);
 					    dbus_enable_local_video_pref();
 					    
 					    return TRUE;
@@ -339,19 +336,19 @@ gboolean main_window_glWidget( gboolean show )
 					    
 					    // Keep button and menu in the same state as glwidget
 					    main_window_update_WebcamStatus(showGlWidget);
-					    
-					    // \TODO: Add Code to send disable webcam signal
-					    dbus_change_webcam_status(FALSE, selectedCall);
 					    dbus_disable_local_video_pref();
+					    
 					    return FALSE;
 					  }
 				}
 			default:
-				g_warning("Should not happen!");
-				// Keep button and menu in the same state as glwidget
-				main_window_update_WebcamStatus(showGlWidget);
-				//Show webcam configuration
-				show_config_window(3);
+
+				gtk_container_remove(GTK_CONTAINER (subvbox), drawing_area);
+			    showGlWidget = show;
+					    
+			    // Keep button and menu in the same state as glwidget
+			    main_window_update_WebcamStatus(showGlWidget);
+			    dbus_disable_local_video_pref();
 				break; 
 		}
 	}else
