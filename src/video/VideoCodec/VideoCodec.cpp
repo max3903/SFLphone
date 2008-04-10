@@ -78,8 +78,6 @@ void VideoCodec::init(){
 	//default width and height
 	inputWidth = tmp.first;
 	inputHeight = tmp.second;
-	outputWidth = DEFAULT_WIDTH;
-	outputHeight = DEFAULT_HEIGHT;
 	
 	initEncodeContext();
 	initDecodeContext();
@@ -92,7 +90,7 @@ void VideoCodec::initEncodeContext(){
 	//initialize basic encoding context
 	_encodeCodecCtx = avcodec_alloc_context();
 	
-	//if true -> padding needed!
+	//if true -> padding needed! Conference call
 	if(inputWidth > inputHeight*2)
 	{
 	Encodetmp = SWSInterface::getSpecialResolution(inputWidth);
@@ -101,10 +99,9 @@ void VideoCodec::initEncodeContext(){
     paddingTop = paddingbottom;
 	_encodeCodecCtx->width = Encodetmp.width;
 	_encodeCodecCtx->height = Encodetmp.height;
-	outputWidth = _encodeCodecCtx->width;
-	outputHeight = _encodeCodecCtx->height;
+
 	}	
-	else if(_CodecENC->id == CODEC_ID_H263)
+	else if(_CodecENC->id == CODEC_ID_H263)//set special h263
 	{
 		padding = false;
 		paddingbottom = 0;
@@ -112,18 +109,16 @@ void VideoCodec::initEncodeContext(){
 		Encodetmp = SWSInterface::getSpecialResolution(inputWidth);
 		_encodeCodecCtx->width = Encodetmp.width;
 		_encodeCodecCtx->height = Encodetmp.height;
-		outputWidth = _encodeCodecCtx->width;
-		outputHeight = _encodeCodecCtx->height;
+
 	}
-	else
+	else //other codecs (h264)
 	{
 	padding = false;
 	paddingbottom = 0;
     paddingTop = 0;
 	_encodeCodecCtx->width = inputWidth;
 	_encodeCodecCtx->height = inputHeight;
-	outputWidth = _encodeCodecCtx->width;
-	outputHeight = _encodeCodecCtx->height;
+
 	}
 	/////////////////////////////////////////////
 	
@@ -167,22 +162,16 @@ void VideoCodec::initDecodeContext()
 	//initialize basic decoding context
 	_decodeCodecCtx = avcodec_alloc_context();
 
-	if(_CodecDEC->id == CODEC_ID_H263)
-	{
-	codetmp = SWSInterface::getSpecialResolution(inputWidth);
-	inputWidth = codetmp.width;
-	inputHeight = codetmp.height;
-	}
 	_decodeCodecCtx->width = inputWidth;
-	_decodeCodecCtx->height = inputWidth;
+	_decodeCodecCtx->height = inputHeight;
 
 
 	if(avcodec_open (_decodeCodecCtx, _CodecDEC) < 0)
 		ptracesfl("CANNOT OPEN DECODE CODEC",MT_FATAL,1,true);
 
 	//intialize SWSdecodeContext
-	decodeSWS = new SWSInterface(_decodeCodecCtx->width,_decodeCodecCtx->height,PIX_FMT_YUV420P,
-	outputWidth,outputHeight,PIX_FMT_RGB24);
+	decodeSWS = new SWSInterface(inputWidth,inputHeight,PIX_FMT_YUV420P,
+	DEFAULT_WIDTH,DEFAULT_HEIGHT,PIX_FMT_RGB24);
 }
 
 void VideoCodec::quitDecodeContext()
@@ -190,6 +179,7 @@ void VideoCodec::quitDecodeContext()
 	avcodec_close(_decodeCodecCtx);
 	av_free(_decodeCodecCtx);
 	delete decodeSWS;
+	decodeSWS= NULL;
 }
 
 void VideoCodec::quitEncodeContext()
@@ -198,6 +188,7 @@ void VideoCodec::quitEncodeContext()
 	avcodec_close(_encodeCodecCtx);
 	av_free(_encodeCodecCtx);
 	delete encodeSWS;
+	encodeSWS = NULL;
 }
 
 int VideoCodec::videoEncode(unsigned char*in_buf, unsigned char* out_buf,int width,int height)
@@ -213,6 +204,7 @@ int VideoCodec::videoEncode(unsigned char*in_buf, unsigned char* out_buf,int wid
 		if(width != inputWidth )
 		{
 		//change the codecs width and height
+		printf("Changing Encode resolution\n");
 		quitEncodeContext();
 		inputWidth = width;
 		inputHeight = height;
@@ -258,17 +250,18 @@ int VideoCodec::videoDecode(uint8_t *in_buf, uint8_t* out_buf,int inSize,int wid
 	AVFrame *SWS,*OUT;
 	printf("Decode resolution : %i %i \n",width,height);
 	// Check if everything  is set properly
-	if(height <=0) 	{ptracesfl("CAN'T Encode - height not set properly\n",MT_ERROR,1,true);return -1;}
-	if(width <=0) 	{ptracesfl("CAN'T Encode - Width not set properly\n",MT_ERROR,1,true);return -1;}
-	if(in_buf == NULL) 	{ptracesfl("CAN'T Encode - Input Buffer problem\n",MT_ERROR,1,true);return -1;}
-	if(out_buf == NULL) {ptracesfl("CAN'T Encode - output Buffer problem\n",MT_ERROR,1,true);return -1;}
+	if(height <=0) 	{ptracesfl("CAN'T Decode - height not set properly\n",MT_ERROR,1,true);return -1;}
+	if(width <=0) 	{ptracesfl("CAN'T Decode - Width not set properly\n",MT_ERROR,1,true);return -1;}
+	if(in_buf == NULL) 	{ptracesfl("CAN'T Decode - Input Buffer problem\n",MT_ERROR,1,true);return -1;}
+	if(out_buf == NULL) {ptracesfl("CAN'T Decode - output Buffer problem\n",MT_ERROR,1,true);return -1;}
 	
-	if(width != outputWidth || height != outputHeight  )
+	if(width != inputWidth || height != inputHeight  )
 		{
+			printf("Changing Decode resolution\n");
 		//change the codecs width and height
 		quitDecodeContext();
-		outputWidth = width;
-		outputHeight = height;
+		inputWidth = width;
+		inputHeight = height;
 		initDecodeContext();
 		}
 	
@@ -283,7 +276,7 @@ int VideoCodec::videoDecode(uint8_t *in_buf, uint8_t* out_buf,int inSize,int wid
 	// init output picture decoded
     SWS = avcodec_alloc_frame();
 	if(SWS == NULL)
-	{ptracesfl("CAN'T Decode OUtput picture allocation problem\n",MT_ERROR,1,true);av_free(buf);av_free(SWS);return -1;}
+	{ptracesfl("CAN'T Decode Output picture allocation problem\n",MT_ERROR,1,true);av_free(buf);av_free(SWS);return -1;}
 	
 	if ( avcodec_decode_video(_decodeCodecCtx, SWS, &got_picture,buf,inSize ) < 0)
 		{ptracesfl("CAN'T Decode - couldn't decode\n",MT_ERROR,1,true);av_free(buf);av_free(SWS);return -1;}
@@ -303,17 +296,32 @@ int VideoCodec::videoDecode(uint8_t *in_buf, uint8_t* out_buf,int inSize,int wid
 	return avpicture_get_size(PIX_FMT_RGB24, DEFAULT_WIDTH, DEFAULT_HEIGHT);
 }
 
-	 pair<int,int> VideoCodec::getIntputResolution(){
+	 pair<int,int> VideoCodec::getEncodeIntputResolution(){
 	 pair<int,int> temp;
 	 temp.first = inputWidth;
 	 temp.second = inputHeight;
 	 return temp;
 	 }
 	 
-	 pair<int,int> VideoCodec::getOutputResolution(){
+	 pair<int,int> VideoCodec::getEncodeOutputResolution(){
 	 pair<int,int> temp;
-	 temp.first = outputWidth;
-	 temp.second = outputHeight;
+	 temp.first = _encodeCodecCtx->width;
+	 temp.second = _encodeCodecCtx->height;
 	 return temp;
 	 }
+	 
+	 pair<int,int> VideoCodec::getDecodeIntputResolution(){
+	 pair<int,int> temp;
+	 temp.first = _decodeCodecCtx->width;
+	 temp.second =  _decodeCodecCtx->height;
+	 return temp;
+	 }
+	 
+	 pair<int,int> VideoCodec::getDecodeOutputResolution(){
+	 pair<int,int> temp;
+	 temp.first = DEFAULT_WIDTH;
+	 temp.second = DEFAULT_HEIGHT;
+	 return temp;
+	 }
+	 
 
