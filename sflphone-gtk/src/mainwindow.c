@@ -291,13 +291,14 @@ gboolean main_window_glWidget( gboolean show )
 	{
 		switch(selectedCall->state)
 		{
+			case CALL_STATE_DIALING:
+				break;
 			// If selected call in any other state show config windows
 			case CALL_STATE_INCOMING:
 			case CALL_STATE_HOLD:
 			case CALL_STATE_RINGING:
 			case CALL_STATE_BUSY:
 			case CALL_STATE_FAILURE:
-			case CALL_STATE_DIALING:
 				g_print("No active call, showing config window\n");
 
 				// Keep button and menu in the same state as glwidget
