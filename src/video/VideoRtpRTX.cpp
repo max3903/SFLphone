@@ -41,6 +41,10 @@ VideoRtpRTX::VideoRtpRTX(SIPCall *sipcall, bool sym)
   
   cmdCapture = (Capture*) VideoDeviceManager::getInstance()->getCommand(VideoDeviceManager::CAPTURE);
   cmdRes= (Resolution*) VideoDeviceManager::getInstance()->getCommand(VideoDeviceManager::RESOLUTION);
+  
+  this->_Active= false;
+  this->_OkToKill= false;
+  
 }
 
 VideoRtpRTX::~VideoRtpRTX()
@@ -56,9 +60,13 @@ VideoRtpRTX::~VideoRtpRTX()
   _debug("terminate videortprtx ended...\n");
   vidCall = 0;
 
-  free(data_to_display); data_to_display = NULL;
+  if(data_to_display != NULL) 
+  	free(data_to_display); data_to_display = NULL;
+  if(data_from_wc != NULL)
   free(data_from_wc); data_from_wc = NULL;
+  if(data_from_peer != NULL)
   free(data_from_peer); data_from_peer = NULL;
+  if(data_to_send!= NULL)
   free(data_to_send); data_to_send = NULL;
 
    if (!_sym) {
@@ -97,8 +105,11 @@ void VideoRtpRTX::run(){
       uint32 tstampInc = session->getCurrentRTPClockRate()/ 10;
 
     _debug("- ARTP Action: Start (video)\n");
+    
+    this->_Active= true;
+    this->_OkToKill= false;
 
-    while (!testCancel()) {
+    while (!testCancel() && this->_Active) {
 
       ////////////////////////////
       // Send session
@@ -115,14 +126,16 @@ void VideoRtpRTX::run(){
       
     }
 
-    free(data_to_display);
-    free(data_from_wc);
-    free(data_from_peer);
-    free(data_to_send);
+    free(data_to_display);data_to_display= NULL;
+    free(data_from_wc);data_from_wc= NULL;
+    free(data_from_peer);data_from_peer= NULL;
+    free(data_to_send);data_to_send= NULL;
 
     unloadCodec((CodecID)CODEC_ID_H263,0);
     unloadCodec((CodecID)CODEC_ID_H263,1);
     _debug("stop stream for videortp loop\n");
+    
+    this->_OkToKill= true;
 
   } catch(std::exception &e) {
     _debug("! ARTP: Stop %s\n", e.what());
@@ -387,6 +400,17 @@ int VideoRtpRTX::setHeaderPictureFormat(pair<int,int> Res){
 	  return 128; // Bit7=1, Bit6=0, Bit5=0
 	if (Res.first==1408 && Res.second==1152)
 	  return 160; // Bit7=1, Bit6=0, Bit5=1
+}
+
+void VideoRtpRTX::stop(){
+	
+	if( !this->_Active )
+		return;
+	
+	this->_Active= false;
+	
+	while(!this->_OkToKill);
+		
 }
 
 

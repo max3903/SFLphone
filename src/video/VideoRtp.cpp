@@ -97,6 +97,7 @@ void VideoRtp::closeVideoSession(bool Conf)
   ost::MutexLock m(vThreadMutex);
   // This will make RTP threads finish.
   // _debug("Stopping AudioRTP\n");
+  vRTXThread->stop();
   try {
     delete vRTXThread; vRTXThread = 0;
   } catch(...) {
