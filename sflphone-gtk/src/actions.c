@@ -358,6 +358,7 @@ sflphone_incoming_call (call_t * c)
 	void 
 sflphone_hung_up (call_t * c )
 {
+	main_window_glWidget(FALSE);
 	call_list_remove(c->callID);
 	update_call_tree_remove(c);
 	update_menus();
