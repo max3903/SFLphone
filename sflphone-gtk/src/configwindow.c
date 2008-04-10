@@ -49,8 +49,10 @@ GtkListStore *resolutionStore;
 GtkWidget *addButton;
 GtkWidget *editButton;
 GtkWidget *deleteButton;
-GtkWidget *defaultButton;
+//GtkWidget *defaultButton;
 GtkWidget *restoreButton;
+GtkWidget *accountMoveDownButton;
+GtkWidget *accountMoveUpButton;
 
 GtkWidget *outputDeviceComboBox;
 GtkWidget *inputDeviceComboBox;
@@ -62,8 +64,20 @@ GtkWidget *moveUpButton;
 GtkWidget *moveDownButton;
 GtkWidget *moveUpButtonVideo;
 GtkWidget *moveDownButtonVideo;
+GtkWidget *codecMoveUpButton;
+GtkWidget *codecMoveDownButton;
 
 account_t *selectedAccount;
+
+// Account properties
+enum {
+	COLUMN_ACCOUNT_ALIAS,
+	COLUMN_ACCOUNT_TYPE,
+	COLUMN_ACCOUNT_STATUS,
+	COLUMN_ACCOUNT_ACTIVE,
+	COLUMN_ACCOUNT_DATA,
+	COLUMN_ACCOUNT_COUNT
+};
 
 // Codec properties ID
 enum {
@@ -81,7 +95,6 @@ enum {
 void
 config_window_fill_account_list()
 {
-	gchar* stock_id;
 	if(dialogOpen)
 	{
 		GtkTreeIter iter;
@@ -93,27 +106,20 @@ config_window_fill_account_list()
 			account_t * a = account_list_get_nth (i);
 			if (a)
 			{
-				if( g_hash_table_lookup(a->properties, ACCOUNT_ENABLED ) )
-				  stock_id = GTK_STOCK_CONNECT;
-				else
-				  stock_id = GTK_STOCK_DISCONNECT;
+			  g_print("fill account list : %s\n" , g_hash_table_lookup(a->properties, ACCOUNT_ENABLED));
 				gtk_list_store_append (accountStore, &iter);
 				gtk_list_store_set(accountStore, &iter,
-						0, g_hash_table_lookup(a->properties, ACCOUNT_ALIAS),  // Name
-						1, g_hash_table_lookup(a->properties, ACCOUNT_TYPE),   // Protocol
-						2, account_state_name(a->state),      // Status
-						3, gtk_widget_render_icon(gtk_image_new_from_stock(stock_id , GTK_ICON_SIZE_BUTTON),
-									  stock_id,
-									  GTK_ICON_SIZE_BUTTON,
-									  NULL),
-						4, a,   // Pointer
+						COLUMN_ACCOUNT_ALIAS, g_hash_table_lookup(a->properties, ACCOUNT_ALIAS),  // Name
+						COLUMN_ACCOUNT_TYPE, g_hash_table_lookup(a->properties, ACCOUNT_TYPE),   // Protocol
+						COLUMN_ACCOUNT_STATUS, account_state_name(a->state),      // Status
+						COLUMN_ACCOUNT_ACTIVE, (g_strcasecmp(g_hash_table_lookup(a->properties, ACCOUNT_ENABLED),"TRUE") == 0)? TRUE:FALSE,  // Enable/Disable
+						COLUMN_ACCOUNT_DATA, a,   // Pointer
 						-1);
 			}
 		}
 
 		gtk_widget_set_sensitive( GTK_WIDGET(editButton),   FALSE);
 		gtk_widget_set_sensitive( GTK_WIDGET(deleteButton), FALSE);
-		gtk_widget_set_sensitive( GTK_WIDGET(defaultButton), FALSE);
 	}
 }
 
@@ -683,20 +689,6 @@ add_account(GtkWidget *widget, gpointer data)
 	show_account_window(NULL);
 }
 
-/*
- * Should mark the account as default
- */
-void
-default_account(GtkWidget *widget, gpointer data)
-{
-	// set account as default
-	if(selectedAccount)
-	{
-		account_list_set_default(selectedAccount->accountID);
-		dbus_set_default_account(selectedAccount->accountID);
-	}
-}
-
 int 
 is_ringtone_enabled( void )
 {
@@ -746,11 +738,13 @@ select_account(GtkTreeSelection *selection, GtkTreeModel *model)
 	if (!gtk_tree_selection_get_selected(selection, &model, &iter))
 	{
 		selectedAccount = NULL;
+		gtk_widget_set_sensitive(GTK_WIDGET(accountMoveUpButton), FALSE);
+		gtk_widget_set_sensitive(GTK_WIDGET(accountMoveDownButton), FALSE);
 		return;
 	}
 
 	val.g_type = G_TYPE_POINTER;
-	gtk_tree_model_get_value(model, &iter, 4, &val);
+	gtk_tree_model_get_value(model, &iter, COLUMN_ACCOUNT_DATA, &val);
 
 	selectedAccount = (account_t*)g_value_get_pointer(&val);
 	g_value_unset(&val);
@@ -759,7 +753,8 @@ select_account(GtkTreeSelection *selection, GtkTreeModel *model)
 	{
 		gtk_widget_set_sensitive(GTK_WIDGET(editButton), TRUE);
 		gtk_widget_set_sensitive(GTK_WIDGET(deleteButton), TRUE);
-		gtk_widget_set_sensitive(GTK_WIDGET(defaultButton), TRUE);
+		gtk_widget_set_sensitive(GTK_WIDGET(accountMoveUpButton), TRUE);
+		gtk_widget_set_sensitive(GTK_WIDGET(accountMoveDownButton), TRUE);
 	}
 	g_print("select");
 }
@@ -775,13 +770,13 @@ select_codec(GtkTreeSelection *selection, GtkTreeModel *model)
 	
 	if(!gtk_tree_selection_get_selected(selection, &model, &iter))
 	{
-		gtk_widget_set_sensitive(GTK_WIDGET(moveUpButton), FALSE);
-		gtk_widget_set_sensitive(GTK_WIDGET(moveDownButton), FALSE);
+		gtk_widget_set_sensitive(GTK_WIDGET(codecMoveUpButton), FALSE);
+		gtk_widget_set_sensitive(GTK_WIDGET(codecMoveDownButton), FALSE);
 	}
 	else
 	{
-		gtk_widget_set_sensitive(GTK_WIDGET(moveUpButton), TRUE);
-		gtk_widget_set_sensitive(GTK_WIDGET(moveDownButton), TRUE);
+		gtk_widget_set_sensitive(GTK_WIDGET(codecMoveUpButton), TRUE);
+		gtk_widget_set_sensitive(GTK_WIDGET(codecMoveDownButton), TRUE);
 	}
 }
 
@@ -852,6 +847,40 @@ codec_active_toggled(GtkCellRendererToggle *renderer, gchar *path, gpointer data
 	
 	// Perpetuate changes to the deamon
 	codec_list_update_to_daemon();
+}
+
+static void
+enable_account(GtkCellRendererToggle *rend , gchar* path,  gpointer data )
+{
+  GtkTreeIter iter;
+  GtkTreePath *treePath;
+  GtkTreeModel *model;
+  gboolean enable;
+  account_t* acc ;
+
+  // Get path of clicked codec active toggle box
+  treePath = gtk_tree_path_new_from_string(path);
+  model = gtk_tree_view_get_model(GTK_TREE_VIEW(data));
+  gtk_tree_model_get_iter(model, &iter, treePath);
+
+  // Get pointer on object
+  gtk_tree_model_get(model, &iter,
+                      COLUMN_ACCOUNT_ACTIVE, &enable,
+                      COLUMN_ACCOUNT_DATA, &acc,
+                      -1);
+  enable = !enable;
+
+  // Store value
+  gtk_list_store_set(GTK_LIST_STORE(model), &iter,
+                     COLUMN_ACCOUNT_ACTIVE, enable,
+                    -1);
+
+  gtk_tree_path_free(treePath);
+
+  // Modify account state       
+  g_hash_table_replace( acc->properties , g_strdup(ACCOUNT_ENABLED) , g_strdup((enable == 1)? "TRUE":"FALSE"));
+  //dbus_set_account_details(acc);
+  dbus_send_register( acc->accountID , enable );
 }
 
 /**
@@ -961,6 +990,58 @@ codec_move(gboolean moveUp, gpointer data)
 	codec_list_update_to_daemon();
 }
 
+static void
+account_move(gboolean moveUp, gpointer data)
+{
+	GtkTreeIter iter;
+	GtkTreeIter *iter2;
+	GtkTreeView *treeView;
+	GtkTreeModel *model;
+	GtkTreeSelection *selection;
+	GtkTreePath *treePath;
+	gchar *path;
+	
+	// Get view, model and selection of codec store
+	treeView = GTK_TREE_VIEW(data);
+	model = gtk_tree_view_get_model(GTK_TREE_VIEW(treeView));
+	selection = gtk_tree_view_get_selection(GTK_TREE_VIEW(treeView));
+    
+	// Find selected iteration and create a copy
+	gtk_tree_selection_get_selected(GTK_TREE_SELECTION(selection), &model, &iter);
+	iter2 = gtk_tree_iter_copy(&iter);
+	
+	// Find path of iteration
+	path = gtk_tree_model_get_string_from_iter(GTK_TREE_MODEL(model), &iter);
+	treePath = gtk_tree_path_new_from_string(path);
+	gint *indices = gtk_tree_path_get_indices(treePath);
+	gint indice = indices[0];
+	
+	// Depending on button direction get new path
+	if(moveUp)
+		gtk_tree_path_prev(treePath);
+	else
+		gtk_tree_path_next(treePath);
+	gtk_tree_model_get_iter(model, &iter, treePath);
+	
+	// Swap iterations if valid
+	if(gtk_list_store_iter_is_valid(GTK_LIST_STORE(model), &iter))
+		gtk_list_store_swap(GTK_LIST_STORE(model), &iter, iter2);
+	
+	// Scroll to new position
+	gtk_tree_view_scroll_to_cell(treeView, treePath, NULL, FALSE, 0, 0);
+	
+	// Free resources
+	gtk_tree_path_free(treePath);
+	gtk_tree_iter_free(iter2);
+	g_free(path);
+	
+	// Perpetuate changes in account queue
+	if(moveUp)
+		account_list_move_up(indice);
+	else
+		account_list_move_down(indice);
+}
+
 /**
  * Move codec in list depending on direction and selected video codec and
  * update changes in the deamon list and the configuration files
@@ -1027,8 +1108,8 @@ video_codec_move(gboolean moveUp, gpointer data)
 static void
 codec_move_up(GtkButton *button, gpointer data)
 {
-	// Change tree view ordering and get indice changed
-	codec_move(TRUE, data);
+  // Change tree view ordering and get indice changed
+  codec_move(TRUE, data);
 }
 
 /**
@@ -1037,8 +1118,8 @@ codec_move_up(GtkButton *button, gpointer data)
 static void
 codec_move_down(GtkButton *button, gpointer data)
 {
-	// Change tree view ordering and get indice changed
-	codec_move(FALSE, data);
+  // Change tree view ordering and get indice changed
+  codec_move(FALSE, data);
 }
 
 /**
@@ -1062,23 +1143,23 @@ video_codec_move_down(GtkButton *button, gpointer data)
 }
 
 /**
- * Select default account that is rendered in bold
+ * Called from move up account button signal
  */
-void
-bold_if_default_account(GtkTreeViewColumn *col,
-			GtkCellRenderer *rend,
-			GtkTreeModel *tree_model,
-			GtkTreeIter *iter,
-			gpointer data)
+static void
+account_move_up(GtkButton *button, gpointer data)
 {
-	GValue val = { 0, };
-	gtk_tree_model_get_value(tree_model, iter, 4, &val);
-	account_t *current = (account_t*)g_value_get_pointer(&val);
-	g_value_unset(&val);
-	if(g_strcasecmp(current->accountID, account_list_get_default()) == 0)
-		g_object_set(G_OBJECT(rend), "weight", 800, NULL);
-	else
-		g_object_set(G_OBJECT(rend), "weight", 400, NULL);
+  // Change tree view ordering and get indice changed
+  account_move(TRUE, data);
+}
+
+/**
+ * Called from move down account button signal
+ */
+static void
+account_move_down(GtkButton *button, gpointer data)
+{
+  // Change tree view ordering and get indice changed
+  account_move(FALSE, data);
 }
 
 /**
@@ -1268,15 +1349,15 @@ create_codec_table()
 	gtk_container_set_border_width(GTK_CONTAINER(buttonBox), 10);
 	gtk_box_pack_start(GTK_BOX(ret), buttonBox, FALSE, FALSE, 0);
 	
-	moveUpButton = gtk_button_new_from_stock(GTK_STOCK_GO_UP);
-	gtk_widget_set_sensitive(GTK_WIDGET(moveUpButton), FALSE);
-	gtk_box_pack_start(GTK_BOX(buttonBox), moveUpButton, FALSE, FALSE, 0);
-	g_signal_connect(G_OBJECT(moveUpButton), "clicked", G_CALLBACK(codec_move_up), codecTreeView);
+	codecMoveUpButton = gtk_button_new_from_stock(GTK_STOCK_GO_UP);
+	gtk_widget_set_sensitive(GTK_WIDGET(codecMoveUpButton), FALSE);
+	gtk_box_pack_start(GTK_BOX(buttonBox), codecMoveUpButton, FALSE, FALSE, 0);
+	g_signal_connect(G_OBJECT(codecMoveUpButton), "clicked", G_CALLBACK(codec_move_up), codecTreeView);
 	
-	moveDownButton = gtk_button_new_from_stock(GTK_STOCK_GO_DOWN);
-	gtk_widget_set_sensitive(GTK_WIDGET(moveDownButton), FALSE);
-	gtk_box_pack_start(GTK_BOX(buttonBox), moveDownButton, FALSE, FALSE, 0);
-	g_signal_connect(G_OBJECT(moveDownButton), "clicked", G_CALLBACK(codec_move_down), codecTreeView);
+	codecMoveDownButton = gtk_button_new_from_stock(GTK_STOCK_GO_DOWN);
+	gtk_widget_set_sensitive(GTK_WIDGET(codecMoveDownButton), FALSE);
+	gtk_box_pack_start(GTK_BOX(buttonBox), codecMoveDownButton, FALSE, FALSE, 0);
+	g_signal_connect(G_OBJECT(codecMoveDownButton), "clicked", G_CALLBACK(codec_move_down), codecTreeView);
 	
 	config_window_fill_codec_list();
 
@@ -1307,11 +1388,11 @@ create_accounts_tab()
 	gtk_scrolled_window_set_shadow_type(GTK_SCROLLED_WINDOW(scrolledWindow), GTK_SHADOW_IN);
 	gtk_box_pack_start(GTK_BOX(ret), scrolledWindow, TRUE, TRUE, 0);
 
-	accountStore = gtk_list_store_new(5,
+	accountStore = gtk_list_store_new(COLUMN_ACCOUNT_COUNT,
 			G_TYPE_STRING,  // Name
 			G_TYPE_STRING,  // Protocol
 			G_TYPE_STRING,  // Status
-			GDK_TYPE_PIXBUF, // Enabled / Disabled
+			G_TYPE_BOOLEAN, // Enabled / Disabled
 			G_TYPE_POINTER  // Pointer to the Object
 			);
 
@@ -1321,17 +1402,13 @@ create_accounts_tab()
 			G_CALLBACK (select_account),
 			accountStore);
 
-	gtk_tree_sortable_set_sort_column_id(GTK_TREE_SORTABLE(accountStore),
-			3, GTK_SORT_ASCENDING);
-
-	//g_signal_connect(G_OBJECT(renderer), "toggled", G_CALLBACK(codec_active_toggled), (gpointer)treeView);
 	renderer = gtk_cell_renderer_text_new();
 	treeViewColumn = gtk_tree_view_column_new_with_attributes ("Alias",
 			renderer,
-			"markup", 0,
+			"markup", COLUMN_ACCOUNT_ALIAS,
 			NULL);
 	gtk_tree_view_append_column (GTK_TREE_VIEW(treeView), treeViewColumn);
-	gtk_tree_view_column_set_cell_data_func(treeViewColumn, renderer, bold_if_default_account, NULL,NULL);
+	//gtk_tree_view_column_set_cell_data_func(treeViewColumn, renderer, bold_if_default_account, NULL,NULL);
 	
 	// A double click on the account line opens the window to edit the account
 	g_signal_connect( G_OBJECT( treeView ) , "row-activated" , G_CALLBACK( edit_account ) , NULL );
@@ -1339,32 +1416,46 @@ create_accounts_tab()
 	renderer = gtk_cell_renderer_text_new();
 	treeViewColumn = gtk_tree_view_column_new_with_attributes (_("Protocol"),
 			renderer,
-			"markup", 1,
+			"markup", COLUMN_ACCOUNT_TYPE,
 			NULL);
 	gtk_tree_view_append_column (GTK_TREE_VIEW(treeView), treeViewColumn);
-	gtk_tree_view_column_set_cell_data_func(treeViewColumn, renderer, bold_if_default_account, NULL,NULL);
+	//gtk_tree_view_column_set_cell_data_func(treeViewColumn, renderer, bold_if_default_account, NULL,NULL);
 
 	renderer = gtk_cell_renderer_text_new();
 	treeViewColumn = gtk_tree_view_column_new_with_attributes (_("Status"),
 			renderer,
-			"markup", 2,
+			"markup", COLUMN_ACCOUNT_STATUS,
 			NULL);
 	gtk_tree_view_append_column (GTK_TREE_VIEW(treeView), treeViewColumn);
-	gtk_tree_view_column_set_cell_data_func(treeViewColumn, renderer, bold_if_default_account, NULL,NULL);
+	//gtk_tree_view_column_set_cell_data_func(treeViewColumn, renderer, bold_if_default_account, NULL,NULL);
 	
-	renderer = gtk_cell_renderer_pixbuf_new();
-	treeViewColumn = gtk_tree_view_column_new_with_attributes("", renderer, "pixbuf", 3 , NULL);
+	renderer = gtk_cell_renderer_toggle_new();
+	treeViewColumn = gtk_tree_view_column_new_with_attributes("", renderer, "active", COLUMN_ACCOUNT_ACTIVE , NULL);
 	gtk_tree_view_append_column(GTK_TREE_VIEW(treeView), treeViewColumn);
-
-        // Toggle codec active property on clicked
+	g_signal_connect( G_OBJECT(renderer) , "toggled" , G_CALLBACK(enable_account), (gpointer)treeView );
 
 	g_object_unref(G_OBJECT(accountStore));
 	gtk_container_add(GTK_CONTAINER(scrolledWindow), treeView);
 
+	 // Create button box
+        buttonBox = gtk_vbox_new(FALSE, 0);
+        gtk_container_set_border_width(GTK_CONTAINER(buttonBox), 10);
+        gtk_box_pack_start(GTK_BOX(ret), buttonBox, FALSE, FALSE, 0);
+
+        accountMoveUpButton = gtk_button_new_from_stock(GTK_STOCK_GO_UP);
+        gtk_widget_set_sensitive(GTK_WIDGET(accountMoveUpButton), FALSE);
+        gtk_box_pack_start(GTK_BOX(buttonBox), accountMoveUpButton, FALSE, FALSE, 0);
+        g_signal_connect(G_OBJECT(accountMoveUpButton), "clicked", G_CALLBACK(account_move_up), treeView);
+
+        accountMoveDownButton = gtk_button_new_from_stock(GTK_STOCK_GO_DOWN);
+        gtk_widget_set_sensitive(GTK_WIDGET(accountMoveDownButton), FALSE);
+        gtk_box_pack_start(GTK_BOX(buttonBox), accountMoveDownButton, FALSE, FALSE, 0);
+        g_signal_connect(G_OBJECT(accountMoveDownButton), "clicked", G_CALLBACK(account_move_down), treeView);
+	
 	/* The buttons to press! */
 	buttonBox = gtk_hbutton_box_new();
 	gtk_box_set_spacing(GTK_BOX(buttonBox), 10); //GAIM_HIG_BOX_SPACE
-	gtk_button_box_set_layout(GTK_BUTTON_BOX(buttonBox), GTK_BUTTONBOX_START);
+	gtk_button_box_set_layout(GTK_BUTTON_BOX(buttonBox), GTK_BUTTONBOX_CENTER);
 	gtk_box_pack_start(GTK_BOX(ret), buttonBox, FALSE, FALSE, 0);
 	gtk_widget_show (buttonBox); 
 
@@ -1386,12 +1477,13 @@ create_accounts_tab()
 	gtk_box_pack_start(GTK_BOX(buttonBox), deleteButton, FALSE, FALSE, 0);
 	gtk_widget_show(deleteButton);
 	
-	defaultButton = gtk_button_new_with_mnemonic(_("Default"));
+	/*defaultButton = gtk_button_new_with_mnemonic(_("Default"));
 	gtk_widget_set_tooltip_text( GTK_WIDGET( defaultButton ) , _("Set the selected account as the default one to make calls"));
 	g_signal_connect_swapped(G_OBJECT(defaultButton), "clicked", 
 			G_CALLBACK(default_account), NULL);
 	gtk_box_pack_start(GTK_BOX(buttonBox), defaultButton, FALSE, FALSE, 0);
 	gtk_widget_show(defaultButton);
+	*/
 
 	gtk_widget_show_all(ret);
 
