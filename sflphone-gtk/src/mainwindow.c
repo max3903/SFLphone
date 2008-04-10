@@ -323,9 +323,6 @@ gboolean main_window_glWidget( gboolean show )
 					    
 					    // Keep button and menu in the same state as glwidget
 					    main_window_update_WebcamStatus(showGlWidget);
-					    
-					    // \TODO: Add Code to send enable webcam signal
-					    dbus_change_webcam_status(TRUE, selectedCall);
 					    dbus_enable_local_video_pref();
 					    
 					    return TRUE;
@@ -339,10 +336,8 @@ gboolean main_window_glWidget( gboolean show )
 					    
 					    // Keep button and menu in the same state as glwidget
 					    main_window_update_WebcamStatus(showGlWidget);
-					    
-					    // \TODO: Add Code to send disable webcam signal
-					    dbus_change_webcam_status(FALSE, selectedCall);
 					    dbus_disable_local_video_pref();
+					    
 					    return FALSE;
 					  }
 				}

@@ -623,6 +623,10 @@ private:
    */
   static bool _localCapActive;
   
+  /** Attribute telling if it is ok to kill the thread
+   */
+  static bool _localCapOKKill;
+  
   /** Local capture for preference window thread information;
    */
   pthread_t _localVidCap_Thread;
