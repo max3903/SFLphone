@@ -3038,6 +3038,9 @@ ManagerImpl::enableLocalVideoPref(){
 bool 
 ManagerImpl::disableLocalVideoPref(){
 	
+	if( !ManagerImpl::_localCapActive )
+		return true;
+	
 	ptracesfl("Stopping Local video capture ...", MT_INFO, MANAGERIMPL_TRACE);
 	ManagerImpl::_localCapActive= false;
 	//pthread_join(ManagerImpl::_localVidCap_Thread, NULL);
