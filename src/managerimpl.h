@@ -142,7 +142,7 @@ public:
   
   bool inviteConference( const AccountID& accountId, const CallID& id, const std::string& to );
   bool joinConference( const CallID& onHoldCallID, const CallID& newCallID );
-  bool changeVideoAvaibility(  );
+  void changeVideoAvaibility( const CallID& id );
   void changeWebcamStatus( const bool status , const CallID& id);
 
   /** Save config to file */
@@ -886,15 +886,6 @@ private:
    * Initialize the VideoDeviceManager -> the V4L interface
    */
   void initVideoDeviceManager(void);
-
-	enum modeEnum {modeNormal, modeServer};
-	modeEnum mode;
-	/* Get and Set the mode of the user
-	 * Server = the user is the server of a conference call
-	 * Normal = all other cases
-	 */
-	int getMode();
-    void setMode(int i);
 	
 };
 
