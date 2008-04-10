@@ -505,11 +505,21 @@ ManagerImpl::joinConference( const CallID& onHoldCallID, const CallID& newCallID
   	return false;
 }
 
-bool
-ManagerImpl::changeVideoAvaibility(  )
+void
+ManagerImpl::changeVideoAvaibility( const CallID& id )
 {
 	//TODO
-	return true;	
+	if(_dbus)
+	{
+		/*if(TODO: fonction video )
+		{
+		 	_dbus->getCallManager()->callStateChanged(id, "VIDEO");	
+		}
+		else if(TODO: fonction video )
+		{
+			_dbus->getCallManager()->callStateChanged(id, "NOVIDEO");	
+		}*/
+	}	
 }
 
 void

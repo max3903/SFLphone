@@ -87,10 +87,6 @@
     
     <!-- Webcam related methods -->
     
-    <method name="changeVideoAvaibility">
-      <arg type="b" name="status" direction="out"/>
-    </method>
-    
     <method name="changeWebcamStatus">
       <arg type="b" name="status" direction="in"/>
       <arg type="s" name="callID" direction="in"/>
