@@ -32,7 +32,7 @@
 #include <gtk/gtk.h>
 
 /**
- * Defines the column of the tree model for each renderer of a row
+ * Defines the column data and renderers of the tree model
  */
 enum {
 	CALL_CONSOLE_ACCOUNT_ID,				// ID of related account
@@ -45,13 +45,9 @@ enum {
 	COUNT_CALL_CONSOLE_WINDOW,				// Column count
 };
 
-// Location of pixmaps icons to represent different presence status
-// TMP Should be related to presencestatus.h
-#define PRESENCE_STATUS_ONLINE_ICON		ICONS_DIR "/current.svg"
-
-GtkDialog* dialog = NULL;			// This window
-GtkWidget* contactTreeView;			// View
-GtkListStore* contactListStore;		// Model
+GtkDialog* callConsoleDialog = NULL;	// This window
+GtkWidget* callConsoleTreeView;			// View
+GtkListStore* callConsoleListStore;		// Model
 
 /**
  * Fills the treelist with accounts
@@ -59,7 +55,7 @@ GtkListStore* contactListStore;		// Model
 void
 call_console_window_fill_contact_list()
 {
-	gtk_list_store_clear(contactListStore);
+	gtk_list_store_clear(callConsoleListStore);
 		
 	// Fill contacts for all loaded accounts
 	int i;
@@ -84,15 +80,15 @@ call_console_window_fill_contact_list()
 					// Append the contact entry in the list if shown in call console is true
 					if(entry->_isShownInConsole)
 					{
-						gtk_list_store_append(contactListStore, &iter);
-						gtk_list_store_set(contactListStore, &iter,
+						gtk_list_store_append(callConsoleListStore, &iter);
+						gtk_list_store_set(callConsoleListStore, &iter,
 								CALL_CONSOLE_ACCOUNT_ID, account->accountID,
 								CALL_CONSOLE_CONTACT_ID, contact->_contactID,
 								CALL_CONSOLE_ENTRY_ID, entry->_entryID,
-								CALL_CONSOLE_WINDOW_ICON, gdk_pixbuf_new_from_file(PRESENCE_STATUS_ONLINE_ICON, NULL),
+								CALL_CONSOLE_WINDOW_ICON, gdk_pixbuf_new_from_file(contact_list_presence_status_get_icon_string(entry->_presenceStatus), NULL),
 								CALL_CONSOLE_WINDOW_NAME, contact->_firstName,
 								CALL_CONSOLE_WINDOW_CONTACT, entry->_text,
-								CALL_CONSOLE_WINDOW_PRESENCE_STATUS, "Put the presence status in text and additional info",
+								CALL_CONSOLE_WINDOW_PRESENCE_STATUS, contact_list_presence_status_translate(entry->_presenceStatus),
 								-1);
 					}
 				}
@@ -101,10 +97,29 @@ call_console_window_fill_contact_list()
 	}
 }
 
+void
+call_console_window_clear_contact_list()
+{
+	gtk_list_store_clear(callConsoleListStore);
+	callConsoleListStore = NULL;
+}
+
+static void
+call_console_window_closed(GtkDialog* dialog, GdkEvent* event, void* userData)
+{
+	// Set main window view call console to false
+	main_window_call_console_closed();
+	
+	// Clear model and set dialog to null
+	call_console_window_clear_contact_list();
+	gtk_widget_destroy(GTK_WIDGET(callConsoleDialog));
+	callConsoleDialog = NULL;
+}
+
 /**
  * Show contact window
  */
-GtkDialog*
+void
 show_call_console_window(gboolean show)
 {
 	GtkWidget* scrolledWindow;
@@ -114,31 +129,31 @@ show_call_console_window(gboolean show)
 	// Close window if show is false
 	if(!show)
 	{
-		if(dialog != NULL)
-			gtk_widget_destroy(GTK_WIDGET(dialog));
-		dialog = NULL;
-		return NULL;
+		if(callConsoleDialog != NULL)
+			gtk_widget_destroy(GTK_WIDGET(callConsoleDialog));
+		callConsoleDialog = NULL;
+		return;
 	}
 
 	// Create dialog and set properties
-	dialog = GTK_DIALOG(gtk_dialog_new_with_buttons (_("Call console"),
+	callConsoleDialog = GTK_DIALOG(gtk_dialog_new_with_buttons(_("Call console"),
 				GTK_WINDOW(get_main_window()),
 				GTK_DIALOG_DESTROY_WITH_PARENT,
 				NULL));
-	gtk_window_set_modal(GTK_WINDOW(dialog), FALSE);
-	gtk_dialog_set_has_separator(dialog, FALSE);
-	gtk_window_set_default_size(GTK_WINDOW(dialog), 600, 400);
-	gtk_container_set_border_width(GTK_CONTAINER(dialog), 0);
+	gtk_window_set_modal(GTK_WINDOW(callConsoleDialog), FALSE);
+	gtk_dialog_set_has_separator(callConsoleDialog, FALSE);
+	gtk_window_set_default_size(GTK_WINDOW(callConsoleDialog), 500, 700);
+	gtk_container_set_border_width(GTK_CONTAINER(callConsoleDialog), 0);
 	
 	// Put contacts in a scrollable window
 	scrolledWindow = gtk_scrolled_window_new(NULL, NULL);
 	gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(scrolledWindow), GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
 	gtk_scrolled_window_set_shadow_type(GTK_SCROLLED_WINDOW(scrolledWindow), GTK_SHADOW_IN);
-	gtk_box_pack_start(GTK_BOX(dialog->vbox), scrolledWindow, TRUE, TRUE, 0);
+	gtk_box_pack_start(GTK_BOX(callConsoleDialog->vbox), scrolledWindow, TRUE, TRUE, 0);
 	gtk_widget_show(scrolledWindow);
 	
 	// Create list store with contact entries regrouped by accounts and contacts
-	contactListStore = gtk_list_store_new(COUNT_CALL_CONSOLE_WINDOW,
+	callConsoleListStore = gtk_list_store_new(COUNT_CALL_CONSOLE_WINDOW,
 			G_TYPE_STRING,		// Account ID
 			G_TYPE_STRING,		// Contact ID
 			G_TYPE_STRING,		// Entry ID
@@ -148,31 +163,31 @@ show_call_console_window(gboolean show)
 			G_TYPE_STRING		// Text
 			);
 	
-	contactTreeView = gtk_tree_view_new_with_model(GTK_TREE_MODEL(contactListStore));
+	callConsoleTreeView = gtk_tree_view_new_with_model(GTK_TREE_MODEL(callConsoleListStore));
 	
 	// Presence status icon column
 	renderer = gtk_cell_renderer_pixbuf_new();
 	treeViewColumn = gtk_tree_view_column_new_with_attributes("", renderer, "pixbuf", CALL_CONSOLE_WINDOW_ICON, NULL);
-	gtk_tree_view_append_column(GTK_TREE_VIEW(contactTreeView), treeViewColumn);
+	gtk_tree_view_append_column(GTK_TREE_VIEW(callConsoleTreeView), treeViewColumn);
 
 	// Name column
 	renderer = gtk_cell_renderer_text_new();
 	treeViewColumn = gtk_tree_view_column_new_with_attributes(_("Contact name"), renderer, "text", CALL_CONSOLE_WINDOW_NAME, NULL);
-	gtk_tree_view_append_column(GTK_TREE_VIEW(contactTreeView), treeViewColumn);
+	gtk_tree_view_append_column(GTK_TREE_VIEW(callConsoleTreeView), treeViewColumn);
 
 	// Contact column
 	renderer = gtk_cell_renderer_text_new();
 	treeViewColumn = gtk_tree_view_column_new_with_attributes(_("Contact"), renderer, "text", CALL_CONSOLE_WINDOW_CONTACT, NULL);
-	gtk_tree_view_append_column(GTK_TREE_VIEW(contactTreeView), treeViewColumn);
+	gtk_tree_view_append_column(GTK_TREE_VIEW(callConsoleTreeView), treeViewColumn);
 
 	// Presence status column
 	renderer = gtk_cell_renderer_text_new();
 	treeViewColumn = gtk_tree_view_column_new_with_attributes(_("Presence status"), renderer, "text", CALL_CONSOLE_WINDOW_PRESENCE_STATUS, NULL);
-	gtk_tree_view_append_column(GTK_TREE_VIEW(contactTreeView), treeViewColumn);
+	gtk_tree_view_append_column(GTK_TREE_VIEW(callConsoleTreeView), treeViewColumn);
 		
-	gtk_container_add(GTK_CONTAINER(scrolledWindow), contactTreeView);
-	gtk_container_set_border_width(GTK_CONTAINER(contactTreeView), 10);
-	gtk_widget_show(contactTreeView);
+	gtk_container_add(GTK_CONTAINER(scrolledWindow), callConsoleTreeView);
+	gtk_container_set_border_width(GTK_CONTAINER(callConsoleTreeView), 10);
+	gtk_widget_show(callConsoleTreeView);
 	
 	// Fill tree model
 	call_console_window_fill_contact_list();
@@ -185,11 +200,59 @@ show_call_console_window(gboolean show)
 	screenH = gdk_screen_get_height(screen);
 	gtk_window_get_size(mainWindow, &width, &height);
 	gtk_window_get_position(mainWindow, &rootX, &rootY);
-	gtk_window_set_gravity(GTK_WINDOW(dialog), GDK_WINDOW_EDGE_NORTH_WEST);
-	gtk_window_move(GTK_WINDOW(dialog), rootX + width + 8, rootY);
+	gtk_window_set_gravity(GTK_WINDOW(callConsoleDialog), GDK_WINDOW_EDGE_NORTH_WEST);
+	gtk_window_move(GTK_WINDOW(callConsoleDialog), rootX + width + 8, rootY);
+	
+	// Catch delete signal on the call console dialog when closing window
+	g_signal_connect(G_OBJECT(callConsoleDialog), "delete-event", G_CALLBACK(call_console_window_closed), NULL);
 	
 	// Show window
-	gtk_widget_show(GTK_WIDGET(dialog));
+	gtk_widget_show(GTK_WIDGET(callConsoleDialog));
+}
+
+void
+call_console_change_entry_presence_status(const gchar* accountID, const gchar* contactID,
+		const gchar* entryID, const gchar* presence, const gchar* additionalInfo)
+{
+	// Try to find entry and change iteration
+	GtkTreeModel* model;
+	GtkTreeIter iter;
+	GtkTreePath* path;
 	
-	return dialog;
+	gchar* accountIDStored = NULL;
+	gchar* contactIDStored = NULL;
+	gchar* entryIDStored = NULL;
+	
+	// Get the first iteration
+	model = gtk_tree_view_get_model(GTK_TREE_VIEW(callConsoleTreeView));
+	if(!gtk_tree_model_get_iter_first(model, &iter)) return;
+	do
+	{
+		// Get information on current entry
+		gtk_tree_model_get(model, &iter,
+				CALL_CONSOLE_ACCOUNT_ID, &accountIDStored,
+				CALL_CONSOLE_CONTACT_ID, &contactIDStored,
+				CALL_CONSOLE_ENTRY_ID, &entryIDStored,
+				-1);
+		
+		if(accountIDStored == NULL || contactIDStored == NULL || entryIDStored == NULL) return;
+		
+		// Compare current entry with the one that presence changed
+		if(strcmp(accountIDStored, accountID) == 0 &&
+				strcmp(contactIDStored, contactID) == 0 &&
+				strcmp(entryIDStored, entryID) == 0)
+		{
+			// Store the new presence status
+			gtk_list_store_set(callConsoleListStore, &iter,
+					CALL_CONSOLE_WINDOW_ICON, gdk_pixbuf_new_from_file(contact_list_presence_status_get_icon_string(presence), NULL),
+					CALL_CONSOLE_WINDOW_PRESENCE_STATUS, contact_list_presence_status_translate(presence),
+					-1);
+			return;
+		}
+		// Get the next iteration
+		path = gtk_tree_model_get_path(model, &iter);
+		gtk_tree_path_next(path);
+		gtk_tree_model_get_iter(model, &iter, path);
+	}
+	while(path != NULL);
 }

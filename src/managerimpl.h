@@ -147,6 +147,9 @@ public:
 
   /** Save config to file */
   bool saveConfig (void);
+  
+  /* Save contacts to file by account */
+  bool saveContacts();
 
   /**
    * Send registration information (shake hands) for a specific AccountID
@@ -512,7 +515,7 @@ public:
    * Signal emmited when a contact entry presence changes
    */
   void contactEntryPresenceChanged(const AccountID& accountID, const std::string entryID,
-		  const std::string presence, const std::string additionalInfo);
+		  const std::string presenceText, const std::string additionalInfo);
 
   /** @return 0 if no tone (init before calling this function) */
   AudioLoop* getTelephoneTone();

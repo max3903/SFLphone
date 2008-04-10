@@ -43,7 +43,7 @@ public:
 	static SIPPresenceManager* getInstance();
 	
 	std::string parseNotificationPresenceStatus(char* body);
-	void buildPublishPresenceStatus(std::string url, std::string status);
+	void buildPublishPresenceStatus(std::string userPart, std::string url, std::string status);
 	
 private:
 	void transformTagsInPresenceStatus(std::string basic, std::string note, std::string& status);

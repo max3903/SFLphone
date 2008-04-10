@@ -170,6 +170,9 @@ void ManagerImpl::init()
 void ManagerImpl::terminate()
 {
   saveConfig();
+  
+  // Save all contacts and entries for each account
+  saveContacts();
 
   unloadAccountMap();
 
@@ -532,6 +535,21 @@ ManagerImpl::saveConfig (void)
   _setupLoaded = _config.saveConfigTree(_path.data());
   return _setupLoaded;
 }
+  
+bool
+ManagerImpl::saveContacts()
+{
+	// For all accounts
+	std::vector<std::string> accountList = getAccountList();
+	std::vector<std::string>::iterator accountIter = accountList.begin();
+	while(accountIter != accountList.end())
+	{
+		std::string accountID = (std::string)*accountIter;
+		Account* account = getAccount(accountID);
+		account->saveContacts();
+		accountIter++;
+	}
+}
 
 //THREAD=Main
 bool
@@ -594,6 +612,7 @@ ManagerImpl::unregisterAccount(const AccountID& accountId)
 
   if (accountExists( accountId ) ) {
     getAccount(accountId)->unregisterVoIPLink();
+    getAccount(accountId)->saveContacts();
   }
   return true;
 }
@@ -838,11 +857,42 @@ ManagerImpl::callFailure(const CallID& id)
 void
 ManagerImpl::contactEntryPresenceChanged(
 		const AccountID& accountID, const std::string entryID,
-		const std::string presence, const std::string additionalInfo)
+		const std::string presenceText, const std::string additionalInfo)
 {
+	// Save information
+	Account* account = getAccount(accountID);
+	if(account != NULL)
+	{
+		// Find entry by checking all entries in all contacts
+		std::vector<Contact*> contactList = account->getContacts();
+		std::vector<Contact*>::iterator contactIter = contactList.begin();
+		while(contactIter != contactList.end())
+		{
+			Contact* contact = (Contact*)*contactIter;
+			std::vector<ContactEntry*> entryList = contact->getEntries();
+			std::vector<ContactEntry*>::iterator entryIter = entryList.begin();
+			while(entryIter != entryList.end())
+			{
+				ContactEntry* entry = (ContactEntry*)*entryIter;
+				if(strcmp(entryID.data(), entry->getEntryID().data()) == 0)
+				{
+					// We found the entry, save the information
+					Presence* presence = new Presence(presenceText, additionalInfo);
+					entry->setPresence(presence);
+					
+					// Do not break as many contacts could have the same entry
+					// even if it is not recommended
+				}
+				entryIter++;
+			}
+			contactIter++;
+		}
+	}
+	
+	// Send information on dbus for client
 	if(_dbus) _dbus->getContactManager()->contactEntryPresenceChanged(
 			accountID, entryID,
-			presence, additionalInfo);
+			presenceText, additionalInfo);
 }
 
 //THREAD=VoIP
@@ -2413,14 +2463,33 @@ ManagerImpl::getContactEntryDetails(const std::string& accountID, const std::str
 				// Text, type, isShown, isSubscribed
 				entryDetails.push_back(entry->getText());
 				entryDetails.push_back(entry->getType());
-				if(entry->getShownInCallConsole())
-					entryDetails.push_back("TRUE");
+				if(entry->getShownInCallConsole()) entryDetails.push_back("TRUE");
+				else entryDetails.push_back("FALSE");
+				if(entry->getSubscribedToPresence()) entryDetails.push_back("TRUE");
+				else entryDetails.push_back("FALSE");
+				
+				// Return unsubscribed if boolean to false
+				if(!entry->getSubscribedToPresence())
+				{
+					entryDetails.push_back(PRESENCE_NOT_SUBSCRIBED);
+					entryDetails.push_back("");
+				}
 				else
-					entryDetails.push_back("FALSE");
-				if(entry->getSubscribedToPresence())
-					entryDetails.push_back("TRUE");
-				else
-					entryDetails.push_back("FALSE");
+				{
+					if(entry->getPresence() == NULL)
+					{
+						// Return uninitialized if entry is subscribed but
+						// no information has yet been received
+						entryDetails.push_back(PRESENCE_NOT_INITIALIZED);
+						entryDetails.push_back("");
+					}
+					else
+					{
+						// Return status
+						entryDetails.push_back(entry->getPresence()->getState());
+						entryDetails.push_back(entry->getPresence()->getAdditionalInfo());
+					}
+				}
 				break;
 			}
 			iter++;
@@ -2432,31 +2501,24 @@ ManagerImpl::getContactEntryDetails(const std::string& accountID, const std::str
 void
 ManagerImpl::setContact(const std::string& accountID, const std::string& contactID, const std::string& firstName, const std::string& lastName, const std::string& email)
 {
-	Contact* contact;
-	
-	if(strcmp(contactID.data(), "NEW") == 0)
+	// Try to get contact or obtain null if it does not exist
+	Contact* contact = getContact(accountID, contactID);
+
+	if(contact == NULL)
 	{
-		// Add new contact
-		std::stringstream newContactID;
-		do
+		// Get account, create and push new contact
+		Account* account = getAccount(accountID);
+		if(account != NULL)
 		{
-			newContactID << time(NULL);
+			contact = new Contact(contactID, firstName, lastName, email);
+			account->addContact(contact);
 		}
-		while(getContact(accountID, newContactID.str()) != NULL);
-		contact = new Contact(newContactID.str(), firstName, lastName, email);
 	}
 	else
 	{
-		contact = getContact(accountID, contactID);
 		contact->setFirstName(firstName);
 		contact->setLastName(lastName);
 		contact->setEmail(email);
-	}
-	Account* account = getAccount(accountID);
-	if(account != NULL)
-	{
-		std::vector<Contact*> contacts = account->getContacts();
-		contacts.push_back(contact);
 	}
 }
 
@@ -2473,7 +2535,19 @@ ManagerImpl::removeContact(const std::string& accountID, const std::string& cont
 			Contact* contact = (Contact*)*iter;
 			if(contact->getContactID() == contactID)
 			{
+				// Contact found, delete all entries
 				std::vector<ContactEntry*> entries = contact->getEntries();
+				std::vector<ContactEntry*>::iterator entryIter = entries.begin();
+				if(account->getVoIPLink()->isContactPresenceSupported())
+				{
+					// Unsubscribe presence for all subscribed entries
+					while(entryIter != entries.end())
+					{
+						ContactEntry* entry = (ContactEntry*)*entryIter;
+						if(entry->getSubscribedToPresence())
+							account->getVoIPLink()->unsubscribePresenceForContact((ContactEntry*)*entryIter);
+					}
+				}
 				entries.clear();
 				contacts.erase(iter);
 				break;
@@ -2484,10 +2558,14 @@ ManagerImpl::removeContact(const std::string& accountID, const std::string& cont
 }
 
 void
-ManagerImpl::setContactEntry(const std::string& accountID, const std::string& contactID, const std::string& entryID, const std::string& text, const std::string& type, const std::string& IsShown, const std::string& IsSubscribed)
+ManagerImpl::setContactEntry(const std::string& accountID, const std::string& contactID,
+		const std::string& entryID, const std::string& text, const std::string& type,
+		const std::string& IsShown, const std::string& IsSubscribed)
 {
+	Account* account;
 	Contact* contact;
 	ContactEntry* entry;
+	bool subscribedChanged = FALSE, subscribe;
 	
 	contact = getContact(accountID, contactID);
 	if(contact != NULL)
@@ -2508,6 +2586,23 @@ ManagerImpl::setContactEntry(const std::string& accountID, const std::string& co
 			entry = (ContactEntry*)*iter;
 			if(strcmp(entry->getEntryID().data(), entryID.data()) == 0)
 			{
+				// Entry found and will be modified
+				// Set subscribe or unsubscribe if property changed
+				if(entry->getSubscribedToPresence() == FALSE && subscribed == TRUE)
+				{
+					subscribedChanged = TRUE;
+					subscribe = TRUE;
+					if(account->getVoIPLink()->isContactPresenceSupported())
+						entry->setPresence(PRESENCE_NOT_INITIALIZED, "");
+					else
+						entry->setPresence(PRESENCE_NOT_SUPPORTED, "");
+				}
+				if(entry->getSubscribedToPresence() == TRUE && subscribed == FALSE)
+				{
+					subscribedChanged = TRUE;
+					subscribe = FALSE;
+					entry->setPresence(PRESENCE_NOT_SUBSCRIBED, "");
+				}
 				// Edit entry and break
 				entry->setText(text);
 				entry->setType(type);
@@ -2521,7 +2616,22 @@ ManagerImpl::setContactEntry(const std::string& accountID, const std::string& co
 		{
 			// Add new entry
 			entry = new ContactEntry(entryID, text, type, shown, subscribed);
-			entries.push_back(entry);
+			contact->addEntry(entry);
+			subscribedChanged = TRUE;
+			subscribe = TRUE;
+		}
+		// Subscribe or unsubscribe presence to entry if supported
+		if(subscribedChanged)
+		{
+			account = getAccount(accountID);
+			if(account != NULL)
+			{
+				if(account->getVoIPLink()->isContactPresenceSupported())
+				{
+					if(subscribedChanged) account->getVoIPLink()->subscribePresenceForContact(entry);
+					else account->getVoIPLink()->unsubscribePresenceForContact(entry);
+				}
+			}
 		}
 	}
 }
@@ -2539,6 +2649,13 @@ ManagerImpl::removeContactEntry(const std::string& accountID, const std::string&
 			ContactEntry* entry = (ContactEntry*)*iter;
 			if(entry->getEntryID() == entryID)
 			{
+				// Unsubscribe entry if it was allready subscribed
+				Account* account = getAccount(accountID);
+				if(account != NULL)
+				{
+					if(account->getVoIPLink()->isContactPresenceSupported() && entry->getSubscribedToPresence())
+						account->getVoIPLink()->unsubscribePresenceForContact(entry);
+				}
 				entries.erase(iter);
 				break;
 			}

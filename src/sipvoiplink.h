@@ -65,6 +65,7 @@ public:
   bool sendMessage(const std::string& to, const std::string& body);
   bool isContactPresenceSupported();
   void subscribePresenceForContact(ContactEntry* contactEntry);
+  void unsubscribePresenceForContact(ContactEntry* contactEntry);
   void publishPresenceStatus(std::string status);
   void subscriptionNotificationReceived(eXosip_event_t* event, char* body);
   

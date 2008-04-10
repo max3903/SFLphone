@@ -129,6 +129,10 @@ gchar** dbus_get_contacts(gchar* accountID);
 gchar** dbus_get_contact_details(gchar* accountID, gchar* contactID);
 gchar** dbus_get_contact_entries(gchar* accountID, gchar* contactID);
 gchar** dbus_get_contact_entry_details(gchar* accountID, gchar* contactID, gchar* entryID);
+void dbus_set_contact(gchar* accountID, gchar* contactID, gchar* firstName, gchar* lastName, gchar* email);
+void dbus_remove_contact(gchar* accountID, gchar* contactID);
+void dbus_set_contact_entry(gchar* accountID, gchar* contactID, gchar* entryID, gchar* text, gchar* type, gchar* isShown, gchar* isSubscribed);
+void dbus_remove_contact_entry(gchar* accountID, gchar* contactID, gchar* entryID);
 
 /* Instance */
 void dbus_register( int pid, gchar * name);

@@ -257,6 +257,31 @@ main_window_show_call_console(gboolean show)
 	show_call_console_window(show);
 }
 
+void
+main_window_call_console_closed()
+{
+	menus_show_call_console_menu_item_set_active(FALSE);
+}
+
+void
+main_window_callinfo(gboolean show, call_t* current)
+{
+  /*
+  if(show && !showInfoScreen)
+  {
+    infoScreen = create_screen();
+    gtk_box_pack_start (GTK_BOX (subvbox), infoScreetkCn, FALSE , TRUE , 0 );
+    gtk_widget_show_all(infoScreen);
+    screen_set_call(current);
+  }
+  else if(!show && showInfoScreen)
+  {
+    gtk_container_remove(GTK_CONTAINER (subvbox), infoScreen);
+  }
+  showInfoScreen = show;
+  */
+}
+
 void 
 status_bar_message_add(const gchar * message, guint id)
 { 

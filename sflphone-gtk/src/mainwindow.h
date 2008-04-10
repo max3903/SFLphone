@@ -60,4 +60,6 @@ gboolean main_window_glWidget( gboolean show );
  */
 void main_window_update_WebcamStatus( gboolean value );
 
+void main_window_call_console_closed();
+
 #endif 

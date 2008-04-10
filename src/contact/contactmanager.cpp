@@ -195,7 +195,7 @@ ContactManager::readContacts(std::string accountID, std::vector<Contact*>& conta
 	while(!file.eof())
 	{
 		file.read(buf, 4096);
-		XML_Parse(parser, buf, 4096, 1);
+		XML_Parse(parser, buf, 4096, 0);
 	}
 	
 	file.close();
@@ -215,22 +215,22 @@ ContactManager::saveContacts(std::string accountID, std::vector<Contact*>& conta
 	std::fstream file;
 	std::string path;
 	
-	path = std::string(HOMEDIR) + DIR_SEPARATOR_STR + "." + PROGDIR	+ DIR_SEPARATOR_STR + accountID + "-contactlist-save.xml";
+	path = std::string(HOMEDIR) + DIR_SEPARATOR_STR + "." + PROGDIR	+ DIR_SEPARATOR_STR + accountID + "-contactlist.xml";
 	file.open(path.data(), std::fstream::out);
 	
 	if(!file.is_open()) {
 		return;
 	}
 	
-	_debug("Saving contacts in %s", path.data());
+	_debug("Saving contacts in %s\n", path.data());
 	file.seekg(0, std::ios::beg);
 	
-	// TODO Clear file
+	// TODO Clear file before saving in it
 	
 	file << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" << std::endl;
 	file << "<contacts>" << std::endl;
 	
-	std::vector<Contact*>::const_iterator iter;
+	std::vector<Contact*>::iterator iter;
 	for(iter = contactList.begin(); *iter; iter++)
 	{
 		Contact* contact = (Contact*)*iter;
@@ -243,8 +243,9 @@ ContactManager::saveContacts(std::string accountID, std::vector<Contact*>& conta
 		if(contact->getEntries().size() > 0)
 		{
 			file << "\t\t<entries>" << std::endl;
-			std::vector<ContactEntry*>::const_iterator entryIter;
-			for(entryIter = contact->getEntries().begin(); *entryIter; entryIter++)
+			std::vector<ContactEntry*> entries = contact->getEntries();
+			std::vector<ContactEntry*>::iterator entryIter = entries.begin();
+			while(entryIter != entries.end())
 			{
 				ContactEntry* entry = (ContactEntry*)*entryIter;
 				file << "\t\t\t<entry id=\"" << entry->getEntryID() << "\" text=\"" << entry->getText() << "\" type=\"" << entry->getType();
@@ -257,6 +258,7 @@ ContactManager::saveContacts(std::string accountID, std::vector<Contact*>& conta
 				else
 					file << "\" subscribed=\"false";
 				file << "\" />" << std::endl;
+				entryIter++;
 			}
 			file << "\t\t</entries>" << std::endl;
 		}

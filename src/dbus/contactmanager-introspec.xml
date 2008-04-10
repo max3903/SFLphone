@@ -29,9 +29,9 @@
       <arg type="as" name="contactEntryIDs" direction="out"/>
     </method>
     
-    <!-- Called for each contact entry to get its details -->
+    <!-- Called for each contact entry to get its details and its presence -->
     <!-- text, type, shown in console, is subscribed to presence -->
-    <!-- Example can be : Poste 140, work, TRUE, FALSE -->
+    <!-- Example can be : Poste 140, work, TRUE, FALSE, ON_THE_PHONE, WITH 140 -->
     <method name="getContactEntryDetails">
       <arg type="s" name="accountID" direction="in"/>
       <arg type="s" name="contactID" direction="in"/>
@@ -42,7 +42,7 @@
     <!-- Add, edit or remove contact or entry one by one -->
     
     <!-- Called by the client to add or edit one contact -->
-    <!-- Adds a contact if the contactID is NEW -->
+    <!-- Adds a contact if the contactID does not exist -->
     <method name="setContact">
       <arg type="s" name="accountID" direction="in"/>
       <arg type="s" name="contactID" direction="in"/>

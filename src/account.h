@@ -119,6 +119,11 @@ class Account{
   const std::vector<Contact*>& getContacts();
   
   /**
+   * Adds a contact
+   */
+  void addContact(Contact* contact);
+  
+  /**
    * Suscribe presence information for selected contacts if supported
    */
   void subscribeContactsPresence();

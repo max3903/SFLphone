@@ -1006,7 +1006,35 @@ SIPVoIPLink::subscribePresenceForContact(ContactEntry* contactEntry)
 	// Send subscription
 	eXosip_lock();
 	i = eXosip_subscribe_send_initial_request(subscription);
-	if(i!=0) _debug("Sending of subscription to %s failed\n", to.str().c_str());
+	eXosip_unlock();
+}
+
+void
+SIPVoIPLink::unsubscribePresenceForContact(ContactEntry* contactEntry)
+{
+	int i;
+	osip_message_t* subscription;
+	std::ostringstream to;
+	std::ostringstream from;
+	
+	// Build URL of receiver and sender
+	to << "sip:" << contactEntry->getEntryID() << "@" << getHostName().data();
+	from << "sip:" << _userpart.data() << "@" << getHostName().data();
+
+	// Unsubscribe by setting a 0 value
+	i = eXosip_subscribe_build_initial_request(&subscription,
+			to.str().c_str(),
+			from.str().c_str(),
+			NULL,
+			"presence", 0);
+	if(i!=0) return;
+	
+	// We want to receive presence in the PIDF XML format in SIP messages
+	osip_message_set_accept(subscription, "application/pidf+xml");
+	
+	// Send subscription
+	eXosip_lock();
+	i = eXosip_subscribe_send_initial_request(subscription);
 	eXosip_unlock();
 }
 
@@ -1019,7 +1047,7 @@ SIPVoIPLink::publishPresenceStatus(std::string status)
 	// Build URL of sender
 	url << "sip:" << _userpart.data() << "@" << getHostName().data();
 	
-	SIPPresenceManager::getInstance()->buildPublishPresenceStatus(url.str().c_str(), status);
+	SIPPresenceManager::getInstance()->buildPublishPresenceStatus(_userpart.data(), url.str().c_str(), status);
 }
 
 void
@@ -1029,7 +1057,7 @@ SIPVoIPLink::subscriptionNotificationReceived(eXosip_event_t* event, char* body)
 	osip_uri_t* from = osip_from_get_url(event->request->from);
 	std::string status = SIPPresenceManager::getInstance()->parseNotificationPresenceStatus(body);
 	
-	// Send the new updated contact entry presence for this account
+	// Save entry information on the daemon side and send the new updated contact entry presence for this account
 	Manager::instance().contactEntryPresenceChanged(getAccountID(), from->username, status, "");
 }
 

@@ -127,7 +127,7 @@ SIPPresenceManager::parseNotificationPresenceStatus(char* body)
 }
 
 void
-SIPPresenceManager::buildPublishPresenceStatus(std::string url, std::string status)
+SIPPresenceManager::buildPublishPresenceStatus(std::string userPart, std::string url, std::string status)
 {
 	_debug("Publishing presence status\n");
 	char buf[4096];
@@ -143,7 +143,7 @@ SIPPresenceManager::buildPublishPresenceStatus(std::string url, std::string stat
 <presence xmlns=\"urn:ietf:params:xml:ns:pidf\"\n\
 	xmlns:es=\"urn:ietf:params:xml:ns:pidf:status:rpid-status\"\n\
 	entity=\"%s\">\n\
-	<tuple id=\"sg89ae\">\n\
+	<tuple id=\"%s\">\n\
 		<status>\n\
 			<basic>%s</basic>\n\
 			<es:activities>\n\
@@ -154,7 +154,7 @@ SIPPresenceManager::buildPublishPresenceStatus(std::string url, std::string stat
 	<note>%s</note>\n\
 	</tuple>\n\
 </presence>"
-			, url.data(), basic.data(), url.data(), note.data());
+			, url.data(), userPart.data(), basic.data(), url.data(), note.data());
 
 	// Build publish request in PIDF
 	i = eXosip_build_publish(&publication, url.data(), url.data(), NULL, "presence", "1800", "application/pidf+xml", buf);

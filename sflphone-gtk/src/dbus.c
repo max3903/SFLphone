@@ -165,6 +165,7 @@ contact_entry_presence_changed(DBusGProxy* proxy,
 {
 	// TMP
 	g_print("%s : %s is %s\n", accountID, entryID, presence);
+	contact_list_entry_change_presence_status(accountID, entryID, presence, additionalInfo);
 }
 
 static void
@@ -1658,8 +1659,86 @@ dbus_get_contact_entry_details(gchar* accountID, gchar* contactID, gchar* entryI
 	return array;
 }
 
+void
+dbus_set_contact(gchar* accountID, gchar* contactID, gchar* firstName, gchar* lastName, gchar* email)
+{
+	GError* error = NULL;
+	org_sflphone_SFLphone_ContactManager_set_contact(
+			contactManagerProxy,
+			accountID,
+			contactID,
+			firstName,
+			lastName,
+			email,
+			&error);
+	if(error)
+	{
+		g_printerr ("Failed to call set_contact on ContactManager: %s\n", error->message);
+		g_error_free (error);
+	}
+	else
+		g_print ("DBus called set_contact on ContactManager\n");
+}
 
+void
+dbus_remove_contact(gchar* accountID, gchar* contactID)
+{
+	GError* error = NULL;
+	org_sflphone_SFLphone_ContactManager_remove_contact(
+			contactManagerProxy,
+			accountID,
+			contactID,
+			&error);
+	if(error)
+	{
+		g_printerr ("Failed to call remove_contact on ContactManager: %s\n", error->message);
+		g_error_free (error);
+	}
+	else
+		g_print ("DBus called remove_contact on ContactManager\n");
+}
 
+void
+dbus_set_contact_entry(gchar* accountID, gchar* contactID, gchar* entryID, gchar* text, gchar* type, gchar* isShown, gchar* isSubscribed)
+{
+	GError* error = NULL;
+	org_sflphone_SFLphone_ContactManager_set_contact_entry(
+			contactManagerProxy,
+			accountID,
+			contactID,
+			entryID,
+			text,
+			type,
+			isShown,
+			isSubscribed,
+			&error);
+	if(error)
+	{
+		g_printerr ("Failed to call set_contact_entry on ContactManager: %s\n", error->message);
+		g_error_free (error);
+	}
+	else
+		g_print ("DBus called set_contact_entry on ContactManager\n");
+}
+
+void
+dbus_remove_contact_entry(gchar* accountID, gchar* contactID, gchar* entryID)
+{
+	GError* error = NULL;
+	org_sflphone_SFLphone_ContactManager_remove_contact_entry(
+			contactManagerProxy,
+			accountID,
+			contactID,
+			entryID,
+			&error);
+	if(error)
+	{
+		g_printerr ("Failed to call remove_contact_entry on ContactManager: %s\n", error->message);
+		g_error_free (error);
+	}
+	else
+		g_print ("DBus called remove_contact_entry on ContactManager\n");
+}
 
 //Brightness of the video capture
 slider_t
