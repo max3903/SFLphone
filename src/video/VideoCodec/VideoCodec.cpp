@@ -84,8 +84,7 @@ void VideoCodec::init(){
 }
 
 void VideoCodec::initEncodeContext(){
-		
-
+	
 	FrameProperties Encodetmp; 
 	//initialize basic encoding context
 	_encodeCodecCtx = avcodec_alloc_context();
@@ -120,8 +119,6 @@ void VideoCodec::initEncodeContext(){
 	_encodeCodecCtx->height = inputHeight;
 
 	}
-	/////////////////////////////////////////////
-	
 	
 	/////////////VIDEO SETTINGS.H settings///////////
 	_encodeCodecCtx->rtp_payload_size = RTP_PAYLOAD;
@@ -179,7 +176,7 @@ if(_CodecENC->id == CODEC_ID_H263)//set special h263
 		ptracesfl("CANNOT OPEN DECODE CODEC",MT_FATAL,1,true);
 
 	//intialize SWSdecodeContext
-	decodeSWS = new SWSInterface(_decodeCodecCtx->width,inputHeight,_decodeCodecCtx->height,
+	decodeSWS = new SWSInterface(_decodeCodecCtx->width,_decodeCodecCtx->height,PIX_FMT_YUV420P,
 	DEFAULT_WIDTH,DEFAULT_HEIGHT,PIX_FMT_RGB24);
 }
 
