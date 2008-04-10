@@ -131,6 +131,14 @@ call_state_cb (DBusGProxy *proxy,
     {
       sflphone_conf(c);
     }
+    else if ( strcmp(state, "VIDEO") == 0 )
+    {
+      //sflphone_conf(c);
+    }
+    else if ( strcmp(state, "NOVIDEO") == 0 )
+    {
+      //sflphone_conf(c);
+    }
   } 
   else 
   { //The callID is unknow, threat it like a new call
@@ -488,27 +496,6 @@ dbus_get_remote_shared_memory_key()
 	
 }
 
-//Remote video status change - enable or disable remote video display
-gboolean 
-dbus_change_video_avaibility()
-{
-	g_print("Before change video avaibility");
-	gboolean response;
-	GError* error = NULL;
-	org_sflphone_SFLphone_CallManager_change_video_avaibility(
-			callManagerProxy,
-			&response,
-			&error);
-	g_print("After");
-	if(error)
-	{
-		g_printerr("Failed to call change_video_avaibility() on CallManager: %s\n", error->message);
-		g_error_free(error);
-	}
-	else
-		g_print("DBus called change_video_avaibility() on CallManager\n");
-	return response;
-}
 
 //Webcam Status change - enable or disable video capture
 void 
