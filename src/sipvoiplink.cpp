@@ -225,15 +225,21 @@ SIPVoIPLink::getEvent()
 
 	_debugMid("> SIP Event: [cdt=%4d:%4d:%4d] type=#%03d %s  = ", event->cid, event->did, event->tid, event->type, event->textinfo);
 	switch (event->type) {
-	
+	  
 	/* REGISTER related events */
 	case EXOSIP_REGISTRATION_NEW:         /** 00 < announce new registration.       */
 		_debugMid(" !EXOSIP_REGISTRATION_NEW event is not implemented\n");
 		break;
 	case EXOSIP_REGISTRATION_SUCCESS:     /** 01 < user is successfully registred.  */
-		setRegistrationState(Registered);
-		_debugMid(" !EXOSIP_REGISTRATION_SUCCES\n");
-		//Manager::instance().registrationSucceed(getAccountID());
+		_debugMid(" !EXOSIP_REGISTRATION_SUCCESS \n");
+		if(_eXosipRegID == EXOSIP_ERROR_STD){
+		  setRegistrationState(Unregistered);
+		  Manager::instance().unregistrationSucceed(getAccountID());
+		}
+		else{
+		  setRegistrationState(Registered);
+		  Manager::instance().registrationSucceed(getAccountID());
+		}
 		break;
 	case EXOSIP_REGISTRATION_FAILURE:     /** 02 < user is not registred.           */
 		setRegistrationState(Error, "SIP registration failure.");
@@ -440,6 +446,8 @@ SIPVoIPLink::getEvent()
 bool
 SIPVoIPLink::sendRegister()
 {
+  _debug("SEND REGISTER \n");
+
   if (_eXosipRegID != EXOSIP_ERROR_STD) {
     Manager::instance().displayError("! SIP Error: Registration already sent. Try to unregister");
     return false;
@@ -537,6 +545,7 @@ SIPVoIPLink::sendSIPAuthentification()
 bool
 SIPVoIPLink::sendUnregister()
 {
+  _debug("SEND UNREGISTER\n");
   if ( _eXosipRegID == EXOSIP_ERROR_STD) return false;
   int eXosipErr = EXOSIP_ERROR_NO;
   osip_message_t *reg = NULL;
