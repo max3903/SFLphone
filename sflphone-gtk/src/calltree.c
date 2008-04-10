@@ -159,7 +159,6 @@ static void webCamStatusChange( GtkWidget *widget, gpointer data )
 		{
 			if(!get_showGlWidget_status())
 			{
-				//TODO: check the status of the enabling checkbox
 				if(get_enable_webcam_checkbox_status())
 				{
 					create_enable_webcam_window();
@@ -167,12 +166,12 @@ static void webCamStatusChange( GtkWidget *widget, gpointer data )
 				else
 				{
 					main_window_glWidget(gtk_toggle_tool_button_get_active(GTK_TOGGLE_TOOL_BUTTON (webCamButton)));
+					sflphone_set_video();
 				}
 			}
 			//If we are disabling the webcam
 			else
 			{
-				//TODO: check the status of the disabling checkbox
 				if(get_disable_webcam_checkbox_status())
 				{
 					create_disable_webcam_window();
@@ -180,7 +179,7 @@ static void webCamStatusChange( GtkWidget *widget, gpointer data )
 				else
 				{
 					main_window_glWidget(gtk_toggle_tool_button_get_active(GTK_TOGGLE_TOOL_BUTTON (webCamButton)));
-	
+					sflphone_unset_video();
 				}
 			}
 		}
