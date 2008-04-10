@@ -146,6 +146,7 @@ void contact_end_element_handler(void *userData, const char *name)
 		// Save entry, push in contact
 		info->contact->addEntry(info->entry);
 	}
+	info->lastElement = "";
 }
 
 void
