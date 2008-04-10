@@ -414,7 +414,6 @@ SIPCall::sdp_complete_message(sdp_message_t * remote_sdp, osip_message_t * msg)
 
   // We now retreive video codec infos
   int LocalVideoPort = getLocalExternVideoPort();
-  /*
   VideoCodecOrder CodecVector = VideoCodecDescriptor::getInstance()->getActiveCodecs();
   VCOIterator itrStringVector;
   const char* codecName;
@@ -430,7 +429,6 @@ SIPCall::sdp_complete_message(sdp_message_t * remote_sdp, osip_message_t * msg)
     else
       ; // TODO: h264, Not yet supported!
   }
-  */
 
   // We now construct de SDP
   char buf[4096];
@@ -442,9 +440,9 @@ SIPCall::sdp_complete_message(sdp_message_t * remote_sdp, osip_message_t * msg)
     "b=CT:384\r\n"
     "t=0 0\r\n"
     "%s"
-    "m=video %d RTP/AVP 34\r\n"
-    "a=rtpmap:34 H263/90000\r\n"
-    "a=sendrecv\r\n", getLocalIp().c_str(), getLocalIp().c_str(), media.str().c_str(),LocalVideoPort);
+    "m=video %d RTP/AVP %d\r\n"
+    "a=rtpmap:%d %s/%d\r\n"
+    "a=sendrecv\r\n", getLocalIp().c_str(), getLocalIp().c_str(), media.str().c_str(),LocalVideoPort,codecPayload,codecPayload,codecName,codecName,codecSimpleRate);
 
   osip_message_set_body (msg, buf, strlen (buf));
   osip_message_set_content_type (msg, "application/sdp");
