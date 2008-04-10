@@ -122,7 +122,7 @@ show_account_window (account_t * a)
   {
     curAccountID = a->accountID;
     curAccountType = g_hash_table_lookup(currentAccount->properties, ACCOUNT_TYPE);
-    g_print("account window = %s\n" , g_hash_table_lookup(currentAccount->properties, ACCOUNT_ENABLED));
+    g_print("account window = %s\n" , (gchar*)g_hash_table_lookup(currentAccount->properties, ACCOUNT_ENABLED));
     curAccountEnabled = g_hash_table_lookup(currentAccount->properties, ACCOUNT_ENABLED);
 
     if (strcmp(curAccountType, "IAX") == 0) {

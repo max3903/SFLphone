@@ -106,7 +106,7 @@ config_window_fill_account_list()
 			account_t * a = account_list_get_nth (i);
 			if (a)
 			{
-			  g_print("fill account list : %s\n" , g_hash_table_lookup(a->properties, ACCOUNT_ENABLED));
+			  g_print("fill account list : %s\n" , (gchar*)g_hash_table_lookup(a->properties, ACCOUNT_ENABLED));
 				gtk_list_store_append (accountStore, &iter);
 				gtk_list_store_set(accountStore, &iter,
 						COLUMN_ACCOUNT_ALIAS, g_hash_table_lookup(a->properties, ACCOUNT_ALIAS),  // Name

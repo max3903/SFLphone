@@ -121,8 +121,8 @@ notify_current_account( account_t* acc )
   notify_init("sflphone");
 
   body = g_markup_printf_escaped(_("Calling with %s account <i>%s</i>") ,
-				  g_hash_table_lookup( acc->properties , ACCOUNT_TYPE) ,
-				  g_hash_table_lookup( acc->properties , ACCOUNT_ALIAS));
+				  (gchar*)g_hash_table_lookup( acc->properties , ACCOUNT_TYPE) ,
+				  (gchar*)g_hash_table_lookup( acc->properties , ACCOUNT_ALIAS));
 
   title = g_markup_printf_escaped(_("Current account"));
 
@@ -196,6 +196,7 @@ notify_no_registered_accounts(  )
   notification = notify_notification_new( title,
       body,
       NULL,
+      NULL);
 
   notify_notification_set_icon_from_pixbuf (notification, pixbuf);
   notify_notification_attach_to_status_icon( notification , get_status_icon() );
