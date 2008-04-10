@@ -589,14 +589,12 @@ SIPVoIPLink::newOutgoingCall(const CallID& id, const std::string& toUrl)
 bool 
 SIPVoIPLink::ChangeWebCamStatus(const CallID& id,bool status)
 {
-   _debug("SIPVOIPLINK Enabled webcam!\n");	
-	
+
   SIPCall* call = getSIPCall(id);
   
   if (call) {
     if (status){
       if (_videortp.createNewVideoSession(call,false) == 0) {
-      	_debug("STATUS = VRAI\n");	
         call->setVideoStart(true);
         return true;
       } else {
