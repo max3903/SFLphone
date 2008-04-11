@@ -2547,18 +2547,22 @@ ManagerImpl::removeContact(const std::string& accountID, const std::string& cont
 				// Contact found, delete all entries
 				std::vector<ContactEntry*> entries = contact->getEntries();
 				std::vector<ContactEntry*>::iterator entryIter = entries.begin();
-				if(account->getVoIPLink()->isContactPresenceSupported())
+				while(entryIter != entries.end())
 				{
+					ContactEntry* entry = (ContactEntry*)*entryIter;
 					// Unsubscribe presence for all subscribed entries
-					while(entryIter != entries.end())
+					if(account->getVoIPLink()->isContactPresenceSupported())
 					{
-						ContactEntry* entry = (ContactEntry*)*entryIter;
+						// FIXME Weird bug in this area
 						if(entry->getSubscribedToPresence())
-							account->getVoIPLink()->unsubscribePresenceForContact((ContactEntry*)*entryIter);
+							account->getVoIPLink()->unsubscribePresenceForContact(entry);
 					}
+					delete entry;
+					entryIter++;
 				}
 				entries.clear();
 				contacts.erase(iter);
+				delete contact;
 				break;
 			}
 			iter++;
@@ -2668,7 +2672,7 @@ ManagerImpl::removeContactEntry(const std::string& accountID, const std::string&
 			ContactEntry* entry = (ContactEntry*)*iter;
 			if(entry->getEntryID() == entryID)
 			{
-				// Unsubscribe entry if it was allready subscribed
+				// Unsubscribe entry if it was already subscribed
 				Account* account = getAccount(accountID);
 				if(account != NULL)
 				{

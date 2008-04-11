@@ -1740,6 +1740,25 @@ dbus_remove_contact_entry(gchar* accountID, gchar* contactID, gchar* entryID)
 		g_print ("DBus called remove_contact_entry on ContactManager\n");
 }
 
+void
+dbus_set_presence(gchar* accountID, gchar* presenceStatus, gchar* presenceInfo)
+{
+	GError* error = NULL;
+	org_sflphone_SFLphone_ContactManager_set_presence(
+			contactManagerProxy,
+			accountID,
+			presenceStatus,
+			presenceInfo,
+			&error);
+	if(error)
+	{
+		g_printerr ("Failed to call set_presence on ContactManager: %s\n", error->message);
+		g_error_free (error);
+	}
+	else
+		g_print ("DBus called set_presence on ContactManager\n");
+}
+
 //Brightness of the video capture
 slider_t
 dbus_get_brightness()

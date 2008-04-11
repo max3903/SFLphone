@@ -122,8 +122,6 @@ int dbus_is_start_hidden( void );
 void dbus_switch_popup_mode( void );
 int dbus_popup_mode( void );
 
-
-
 /** ContactManager */
 gchar** dbus_get_contacts(gchar* accountID);
 gchar** dbus_get_contact_details(gchar* accountID, gchar* contactID);
@@ -133,12 +131,11 @@ void dbus_set_contact(gchar* accountID, gchar* contactID, gchar* firstName, gcha
 void dbus_remove_contact(gchar* accountID, gchar* contactID);
 void dbus_set_contact_entry(gchar* accountID, gchar* contactID, gchar* entryID, gchar* text, gchar* type, gchar* isShown, gchar* isSubscribed);
 void dbus_remove_contact_entry(gchar* accountID, gchar* contactID, gchar* entryID);
+void dbus_set_presence(gchar* accountID, gchar* presenceStatus, gchar* presenceInfo);	// UNUSED for now but ready to be called
 
 /* Instance */
 void dbus_register( int pid, gchar * name);
 void dbus_unregister(int pid);
 int dbus_get_registration_count( void );
-
-
 
 #endif
