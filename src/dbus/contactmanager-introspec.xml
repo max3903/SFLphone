@@ -4,6 +4,8 @@
     
   <!-- Contacts related methods -->
   
+    <!-- Load all contacts and entries -->
+  
     <!-- Called by the client to get all saved contactIDs -->
     <!-- Returns array of contactIDs -->
     <method name="getContacts">
@@ -20,16 +22,16 @@
     </method>
     
     <!-- Called for each contact to get all its contact entries id -->
-    <!-- Array of contact entries, examples can be : 140, 514-123-1234... -->
+    <!-- Array of contact entries, examples can be : 140, 5141231234... -->
     <method name="getContactEntries">
       <arg type="s" name="accountID" direction="in"/>
       <arg type="s" name="contactID" direction="in"/>
       <arg type="as" name="contactEntryIDs" direction="out"/>
     </method>
     
-    <!-- Called for each contact entry to get its details -->
+    <!-- Called for each contact entry to get its details and its presence -->
     <!-- text, type, shown in console, is subscribed to presence -->
-    <!-- Example can be : Poste 140, work, true, false -->
+    <!-- Example can be : Poste 140, work, TRUE, FALSE, ON_THE_PHONE, WITH 140 -->
     <method name="getContactEntryDetails">
       <arg type="s" name="accountID" direction="in"/>
       <arg type="s" name="contactID" direction="in"/>
@@ -37,18 +39,44 @@
       <arg type="as" name="details" direction="out"/>
     </method>
     
-        
-    <!-- TODO Same as get (4 functions) -->
-    <!-- Called by the client to save all local contacts -->
-    <method name="setContacts">
+    <!-- Add, edit or remove contact or entry one by one -->
+    
+    <!-- Called by the client to add or edit one contact -->
+    <!-- Adds a contact if the contactID does not exist -->
+    <method name="setContact">
       <arg type="s" name="accountID" direction="in"/>
-      <arg type="as" name="details" direction="in"/>
+      <arg type="s" name="contactID" direction="in"/>
+      <arg type="s" name="firstName" direction="in"/>
+      <arg type="s" name="lastName" direction="in"/>
+      <arg type="s" name="email" direction="in"/>
+      <!-- Groups and subgroups currently unused -->
+      <!-- <arg type="s" name="group" direction="in"/> -->
+      <!-- <arg type="s" name="subGroup" direction="in"/> -->
     </method>
    
-    <!-- Called by the client to save all contact entries -->
-    <method name="setContactEntries">
+    <!-- Called by the client to remove one contact -->
+    <method name="removeContact">
+      <arg type="s" name="accountID" direction="in"/>
       <arg type="s" name="contactID" direction="in"/>
-      <arg type="as" name="details" direction="in"/>
+    </method>
+   
+    <!-- Called by the client to add or edit one contact entry -->
+    <!-- Adds an entry if the entryID does not exist -->
+    <method name="setContactEntry">
+      <arg type="s" name="accountID" direction="in"/>
+      <arg type="s" name="contactID" direction="in"/>
+      <arg type="s" name="entryID" direction="in"/>
+      <arg type="s" name="text" direction="in"/>
+      <arg type="s" name="type" direction="in"/>
+      <arg type="s" name="IsShown" direction="in"/>
+      <arg type="s" name="IsSubscribed" direction="in"/>
+    </method>
+   
+    <!-- Called by the client to remove one entry -->
+    <method name="removeContactEntry">
+      <arg type="s" name="accountID" direction="in"/>
+      <arg type="s" name="contactID" direction="in"/>
+      <arg type="s" name="entryID" direction="in"/>
     </method>
    
   <!--      ///////////////////////               -->

@@ -115,7 +115,6 @@ ManagerImpl::~ManagerImpl (void)
   delete _DNSService; _DNSService = 0;
 #endif
 
-  //notifyErrClient( " done " );
   _debug("%s stop correctly.\n", PROGNAME);
 }
 
@@ -173,6 +172,9 @@ void ManagerImpl::init()
 void ManagerImpl::terminate()
 {
   saveConfig();
+  
+  // Save all contacts and entries for each account
+  saveContacts();
 
   unloadAccountMap();
 
@@ -294,7 +296,7 @@ ManagerImpl::answerCall(const CallID& id)
     removeCallAccount(id);
     return false;
   }
-
+  
   //Place current call on hold if it isn't
 
 
@@ -438,6 +440,7 @@ ManagerImpl::transferCall(const CallID& id, const std::string& to)
   if (_dbus) _dbus->getCallManager()->callStateChanged(id, "HUNGUP");
   switchCall("");
 
+
   return returnValue;
 }
 
@@ -551,6 +554,21 @@ ManagerImpl::saveConfig (void)
   _setupLoaded = _config.saveConfigTree(_path.data());
   return _setupLoaded;
 }
+  
+bool
+ManagerImpl::saveContacts()
+{
+	// For all accounts
+	std::vector<std::string> accountList = getAccountList();
+	std::vector<std::string>::iterator accountIter = accountList.begin();
+	while(accountIter != accountList.end())
+	{
+		std::string accountID = (std::string)*accountIter;
+		Account* account = getAccount(accountID);
+		account->saveContacts();
+		accountIter++;
+	}
+}
 
 //THREAD=Main
 bool
@@ -561,9 +579,9 @@ ManagerImpl::initRegisterAccounts()
 	while( iter != _accountMap.end() ) {
 		if ( iter->second) {
 			iter->second->loadConfig();
+			iter->second->loadContacts();
 			if ( iter->second->isEnabled() ) {
 				iter->second->registerVoIPLink();
-				iter->second->loadContacts();
 				iter->second->publishPresence(PRESENCE_ONLINE);
 				iter->second->subscribeContactsPresence();
 			}
@@ -571,35 +589,37 @@ ManagerImpl::initRegisterAccounts()
 		iter++;
 	}
 	// calls the client notification here in case of errors at startup...
-	if( _audiodriver -> getErrorMessage() != "" )
+	if( _audiodriver -> getErrorMessage() != -1 )
 		notifyErrClient( _audiodriver -> getErrorMessage() );
 	return true;
 }
 
 //THREAD=Main
 // Currently unused
-  bool
+// TODO Should be called when an account changes state
+// and two accounts should be possible at the same time
+bool
 ManagerImpl::registerAccount(const AccountID& accountId)
 {
-  _debug("Register one VoIP Link\n");
+	_debug("Register VoIP Link for %s\n", accountId.data());
 
-  // right now, we don't support two SIP account
-  // so we close everything before registring a new account
-  Account* account = getAccount(accountId);
-  if (account != 0) {
-    AccountMap::iterator iter = _accountMap.begin();
-    while ( iter != _accountMap.end() ) {
-      if ( iter->second ) {
-	iter->second->unregisterVoIPLink();
-      }
-      iter++;
-    }
-    account->registerVoIPLink();
-    account->loadContacts();
-    account->publishPresence(PRESENCE_ONLINE);
-    account->subscribeContactsPresence();
-  }
-  return true;
+	// right now, we don't support two SIP account
+	// so we close everything before registring a new account
+	Account* account = getAccount(accountId);
+	if (account != NULL)
+	{
+		AccountMap::iterator iter = _accountMap.begin();
+		while ( iter != _accountMap.end() ) {
+			if ( iter->second ) {
+				iter->second->unregisterVoIPLink();
+			}
+			iter++;
+		}
+		account->registerVoIPLink();
+		account->publishPresence(PRESENCE_ONLINE);
+		account->subscribeContactsPresence();
+	}
+	return true;
 }
 
 //THREAD=Main
@@ -611,6 +631,7 @@ ManagerImpl::unregisterAccount(const AccountID& accountId)
 
   if (accountExists( accountId ) ) {
     getAccount(accountId)->unregisterVoIPLink();
+    getAccount(accountId)->saveContacts();
   }
   return true;
 }
@@ -621,7 +642,8 @@ ManagerImpl::sendDtmf(const CallID& id, char code)
 {
   AccountID accountid = getAccountFromCall( id );
   if (accountid == AccountNULL) {
-    _debug("Send DTMF: call doesn't exists\n");
+    //_debug("Send DTMF: call doesn't exists\n");
+    playDtmf(code, false);
     return false;
   }
 
@@ -629,7 +651,7 @@ ManagerImpl::sendDtmf(const CallID& id, char code)
   bool returnValue = false;
   switch (sendType) {
     case 0: // SIP INFO
-      playDtmf(code);
+      playDtmf(code , true);
       returnValue = getAccountLink(accountid)->carryingDTMFdigits(id, code);
       break;
 
@@ -645,7 +667,7 @@ ManagerImpl::sendDtmf(const CallID& id, char code)
 
 //THREAD=Main | VoIPLink
   bool
-ManagerImpl::playDtmf(char code)
+ManagerImpl::playDtmf(char code, bool isTalking)
 {
   // HERE are the variable:
   // - boolean variable to play or not (config)
@@ -685,7 +707,7 @@ ManagerImpl::playDtmf(char code)
     // Put buffer to urgentRingBuffer 
     // put the size in bytes...
     // so size * 1 channel (mono) * sizeof (bytes for the data)
-    audiolayer->playSamples(_buf, size * sizeof(SFLDataFormat));
+    audiolayer->playSamples(_buf, size * sizeof(SFLDataFormat), isTalking);
     //audiolayer->putUrgent(_buf, size * sizeof(SFLDataFormat));
 
     // We activate the stream if it's not active yet.
@@ -840,8 +862,8 @@ ManagerImpl::callBusy(const CallID& id) {
   void
 ManagerImpl::callFailure(const CallID& id) 
 {
-  _debug("Call failed\n");
   if (_dbus) _dbus->getCallManager()->callStateChanged(id, "FAILURE");
+  _debug("CALL ID = %s\n" , id.c_str());
   if (isCurrentCall(id) ) {
     playATone(Tone::TONE_BUSY);
     switchCall("");
@@ -854,11 +876,42 @@ ManagerImpl::callFailure(const CallID& id)
 void
 ManagerImpl::contactEntryPresenceChanged(
 		const AccountID& accountID, const std::string entryID,
-		const std::string presence, const std::string additionalInfo)
+		const std::string presenceText, const std::string additionalInfo)
 {
+	// Save information
+	Account* account = getAccount(accountID);
+	if(account != NULL)
+	{
+		// Find entry by checking all entries in all contacts
+		std::vector<Contact*> contactList = account->getContacts();
+		std::vector<Contact*>::iterator contactIter = contactList.begin();
+		while(contactIter != contactList.end())
+		{
+			Contact* contact = (Contact*)*contactIter;
+			std::vector<ContactEntry*> entryList = contact->getEntries();
+			std::vector<ContactEntry*>::iterator entryIter = entryList.begin();
+			while(entryIter != entryList.end())
+			{
+				ContactEntry* entry = (ContactEntry*)*entryIter;
+				if(strcmp(entryID.data(), entry->getEntryID().data()) == 0)
+				{
+					// We found the entry, save the information
+					Presence* presence = new Presence(presenceText, additionalInfo);
+					entry->setPresence(presence);
+					
+					// Do not break as many contacts could have the same entry
+					// even if it is not recommended
+				}
+				entryIter++;
+			}
+			contactIter++;
+		}
+	}
+	
+	// Send information on dbus for client
 	if(_dbus) _dbus->getContactManager()->contactEntryPresenceChanged(
 			accountID, entryID,
-			presence, additionalInfo);
+			presenceText, additionalInfo);
 }
 
 //THREAD=VoIP
@@ -928,9 +981,17 @@ ManagerImpl::registrationSucceed(const AccountID& accountid)
 {
   Account* acc = getAccount(accountid);
   if ( acc ) { 
-    //acc->setState(true); 
+    _debug("REGISTRATION SUCCEED\n");
     if (_dbus) _dbus->getConfigurationManager()->accountsChanged();
   }
+}
+
+//THREAD=VoIP
+  void 
+ManagerImpl::unregistrationSucceed(const AccountID& accountid)
+{
+  _debug("UNREGISTRATION SUCCEED\n");
+  if (_dbus) _dbus->getConfigurationManager()->accountsChanged();
 }
 
 //THREAD=VoIP
@@ -940,6 +1001,7 @@ ManagerImpl::registrationFailed(const AccountID& accountid)
   Account* acc = getAccount(accountid);
   if ( acc ) { 
     //acc->setState(false);
+    _debug("REGISTRATION FAILED\n");
     if (_dbus) _dbus->getConfigurationManager()->accountsChanged();
   }
 }
@@ -961,7 +1023,6 @@ ManagerImpl::playATone(Tone::TONEID toneId) {
     unsigned int nbSampling = audioloop->getSize();
     AudioLayer* audiolayer = getAudioDriver();
     SFLDataFormat buf[nbSampling];
-    //audioloop->getNext(buf, (int) nbSampling);
     if ( audiolayer ) { 
       audiolayer->putUrgent( buf, nbSampling );
     }
@@ -1002,8 +1063,16 @@ ManagerImpl::stopTone(bool stopAudio=true) {
   bool
 ManagerImpl::playTone()
 {
-  //return playATone(Tone::TONE_DIALTONE);
   playATone(Tone::TONE_DIALTONE);
+}
+
+/**
+ * Multi Thread
+ */
+  bool
+ManagerImpl::playToneWithMessage()
+{
+  playATone(Tone::TONE_CONGESTION);
 }
 
 /**
@@ -1105,7 +1174,7 @@ ManagerImpl::notificationIncomingCall(void) {
     unsigned int nbSampling = tone.getSize();
     SFLDataFormat buf[nbSampling];
     tone.getNext(buf, tone.getSize());
-    audiolayer->playSamples(buf, sizeof(SFLDataFormat)*nbSampling);
+    audiolayer->playSamples(buf, sizeof(SFLDataFormat)*nbSampling, true);
   }
 }
 
@@ -1190,6 +1259,9 @@ ManagerImpl::createSettingsPath (void) {
   void
 ManagerImpl::initConfigFile (void) 
 {
+  std::string mes = gettext("Init config file\n");
+  _debug("%s",mes.c_str());
+
   std::string type_str("string");
   std::string type_int("int");
 
@@ -1219,6 +1291,9 @@ ManagerImpl::initConfigFile (void)
   fill_config_str(VOICEMAIL_NUM, DFT_VOICEMAIL);
   fill_config_int(CONFIG_ZEROCONF, CONFIG_ZEROCONF_DEFAULT_STR);
   fill_config_int(CONFIG_RINGTONE, YES_STR);
+  fill_config_int(CONFIG_DIALPAD, YES_STR);
+  fill_config_int(CONFIG_START, NO_STR);
+  fill_config_int(CONFIG_POPUP, YES_STR);
 
   // Loads config from ~/.sflphone/sflphonedrc or so..
   if (createSettingsPath() == 1) {
@@ -1394,14 +1469,14 @@ ManagerImpl::getOutputAudioPluginList(void)
 ManagerImpl::setInputAudioPlugin(const std::string& audioPlugin)
 {
   _debug("Set input audio plugin\n");
-  _audiodriver -> setErrorMessage( "" );
+  _audiodriver -> setErrorMessage( -1 );
   _audiodriver -> openDevice( _audiodriver -> getIndexIn(),
       _audiodriver -> getIndexOut(),
       _audiodriver -> getSampleRate(),
       _audiodriver -> getFrameSize(),
       SFL_PCM_CAPTURE,
       audioPlugin);
-  if( _audiodriver -> getErrorMessage() != "")
+  if( _audiodriver -> getErrorMessage() != -1)
     notifyErrClient( _audiodriver -> getErrorMessage() );
 }
 
@@ -1412,14 +1487,14 @@ ManagerImpl::setInputAudioPlugin(const std::string& audioPlugin)
 ManagerImpl::setOutputAudioPlugin(const std::string& audioPlugin)
 {
   _debug("Set output audio plugin\n");
-  _audiodriver -> setErrorMessage( "" );
+  _audiodriver -> setErrorMessage( -1 );
   _audiodriver -> openDevice( _audiodriver -> getIndexIn(),
       _audiodriver -> getIndexOut(),
       _audiodriver -> getSampleRate(),
       _audiodriver -> getFrameSize(),
-      SFL_PCM_PLAYBACK,
+      SFL_PCM_BOTH,
       audioPlugin);
-  if( _audiodriver -> getErrorMessage() != "")
+  if( _audiodriver -> getErrorMessage() != -1)
     notifyErrClient( _audiodriver -> getErrorMessage() );
   // set config
   setConfig( AUDIO , ALSA_PLUGIN , audioPlugin );
@@ -1442,14 +1517,14 @@ ManagerImpl::getAudioOutputDeviceList(void)
 ManagerImpl::setAudioOutputDevice(const int index)
 {
   _debug("Set audio output device: %i\n", index);
-  _audiodriver -> setErrorMessage( "" );
+  _audiodriver -> setErrorMessage( -1 );
   _audiodriver->openDevice(_audiodriver->getIndexIn(), 
       index, 
       _audiodriver->getSampleRate(), 
       _audiodriver->getFrameSize(), 
       SFL_PCM_PLAYBACK,
       _audiodriver->getAudioPlugin());
-  if( _audiodriver -> getErrorMessage() != "")
+  if( _audiodriver -> getErrorMessage() != -1)
     notifyErrClient( _audiodriver -> getErrorMessage() );
   // set config
   setConfig( AUDIO , ALSA_CARD_ID_OUT , index );
@@ -1472,14 +1547,14 @@ ManagerImpl::getAudioInputDeviceList(void)
 ManagerImpl::setAudioInputDevice(const int index)
 {
   _debug("Set audio input device %i\n", index);
-  _audiodriver -> setErrorMessage( "" );
+  _audiodriver -> setErrorMessage( -1 );
   _audiodriver->openDevice(index, 
       _audiodriver->getIndexOut(), 
       _audiodriver->getSampleRate(), 
       _audiodriver->getFrameSize(), 
       SFL_PCM_CAPTURE,
       _audiodriver->getAudioPlugin());
-  if( _audiodriver -> getErrorMessage() != "")
+  if( _audiodriver -> getErrorMessage() != -1)
     notifyErrClient( _audiodriver -> getErrorMessage() );
   // set config
   setConfig( AUDIO , ALSA_CARD_ID_IN , index );
@@ -1551,12 +1626,49 @@ ManagerImpl::setRingtoneChoice( const std::string& tone )
   setConfig( AUDIO , RING_CHOICE , tone ); 
 }
 
-void
-ManagerImpl::notifyErrClient( const std::string& errMsg )
+int
+ManagerImpl::getDialpad( void )
 {
-  if( _dbus ) {
-    _debug("Call notifyErrClient: %s\n" , errMsg.c_str());
-    _dbus -> getConfigurationManager() -> errorAlert( errMsg , 0 );
+  return getConfigInt( PREFERENCES , CONFIG_DIALPAD );
+}
+
+void
+ManagerImpl::setDialpad( void )
+{
+  ( getConfigInt( PREFERENCES , CONFIG_DIALPAD ) == DISPLAY_DIALPAD )? setConfig(PREFERENCES , CONFIG_DIALPAD , NO_STR ) : setConfig( PREFERENCES , CONFIG_DIALPAD , YES_STR );
+
+}
+
+void 
+ManagerImpl::startHidden( void )
+{
+  ( getConfigInt( PREFERENCES , CONFIG_START ) ==  START_HIDDEN)? setConfig(PREFERENCES , CONFIG_START , NO_STR ) : setConfig( PREFERENCES , CONFIG_START , YES_STR );
+}
+
+int 
+ManagerImpl::isStartHidden( void )
+{
+  return getConfigInt( PREFERENCES , CONFIG_START );
+}
+
+void 
+ManagerImpl::switchPopupMode( void )
+{
+  ( getConfigInt( PREFERENCES , CONFIG_POPUP ) ==  WINDOW_POPUP)? setConfig(PREFERENCES , CONFIG_POPUP , NO_STR ) : setConfig( PREFERENCES , CONFIG_POPUP , YES_STR );
+}
+
+int 
+ManagerImpl::popupMode( void )
+{
+  return getConfigInt( PREFERENCES , CONFIG_POPUP );
+}
+
+void
+ManagerImpl::notifyErrClient( const int& errCode )
+{
+  if( _dbus ){
+    _debug("NOTIFY ERR NUMBER %i\n" , errCode); 
+    _dbus -> getConfigurationManager() -> errorAlert( errCode );
   }
 }
 
@@ -1587,9 +1699,9 @@ ManagerImpl::initAudioDriver(void)
   if (_audiodriver == 0) {
     _debug("Init audio driver error\n");
   } else {
-    std::string error = getAudioDriver()->getErrorMessage();
-    if (!error.empty()) {
-      _debug("Init audio driver: %s\n", error.c_str());
+    int error = getAudioDriver()->getErrorMessage();
+    if (error == -1) {
+      _debug("Init audio driver: %i\n", error);
     }
   } 
 }
@@ -1623,9 +1735,9 @@ ManagerImpl::selectAudioDriver (void)
   }
 
   _debugInit(" AudioLayer Opening Device");
-  _audiodriver->setErrorMessage("");
+  _audiodriver->setErrorMessage(-1);
   _audiodriver->openDevice( numCardIn , numCardOut, sampleRate, frameSize, SFL_PCM_BOTH, alsaPlugin ); 
-  if( _audiodriver -> getErrorMessage() != "")
+  if( _audiodriver -> getErrorMessage() != -1 )
     notifyErrClient( _audiodriver -> getErrorMessage());
 }
 
@@ -1817,7 +1929,6 @@ ManagerImpl::getCallStatus(const std::string& sequenceId)
 }
 
 //THREAD=Main
-/* Unused, Deprecated */
   bool 
 ManagerImpl::getConfigAll(const std::string& sequenceId)
 {
@@ -2017,6 +2128,7 @@ ManagerImpl::getAccountDetails(const AccountID& accountID)
     getConfigString(accountID, CONFIG_ACCOUNT_AUTO_REGISTER)== "1" ? "TRUE": "FALSE"
     )
     );*/
+  _debug("Get account details:  %s\n" , getConfigString(accountID, CONFIG_ACCOUNT_ENABLE).c_str());
   a.insert(
       std::pair<std::string, std::string>(
 	CONFIG_ACCOUNT_ENABLE, 
@@ -2126,6 +2238,7 @@ ManagerImpl::getAccountDetails(const AccountID& accountID)
 ManagerImpl::setAccountDetails( const ::DBus::String& accountID, 
     const std::map< ::DBus::String, ::DBus::String >& details )
 {
+
   std::string accountType = (*details.find(CONFIG_ACCOUNT_TYPE)).second;
 
   setConfig(accountID, CONFIG_ACCOUNT_ALIAS, (*details.find(CONFIG_ACCOUNT_ALIAS)).second);
@@ -2156,28 +2269,54 @@ ManagerImpl::setAccountDetails( const ::DBus::String& accountID,
   }
 
   saveConfig();
-
-  /*
-   * register if it was just enabled, and we hadn't registered
-   * unregister if it was enabled/registered, and we want it closed
-   */
   Account* acc = getAccount(accountID);
-
   acc->loadConfig();
   if (acc->isEnabled()) {
     // Verify we aren't already registered, then register
-    if (acc->getRegistrationState() == VoIPLink::Unregistered) {
+    if (acc->getRegistrationState() != VoIPLink::Registered) {
+      _debug("SET ACCOUNTS DETAILS - non registered - > registered\n");
       acc->registerVoIPLink();
     }
   } else {
     // Verify we are already registered, then unregister
     if (acc->getRegistrationState() == VoIPLink::Registered) {
+      _debug("SET ACCOUNTS DETAILS - registered - > non registered\n");
       acc->unregisterVoIPLink();
+      //unregisterAccount(accountID);
+    }
+  }    
+  // Update account details
+  if (_dbus) _dbus->getConfigurationManager()->accountsChanged();
+}
+
+/*
+ * register if it was just enabled, and we hadn't registered
+ * unregister if it was enabled/registered, and we want it closed
+ * unregister <=> expire = 0 ( FALSE )
+ * register <=> expire = 1 ( TRUE )
+ */
+void
+ManagerImpl::sendRegister( const ::DBus::String& accountID , bool expire )
+{
+  // Update the active field
+  setConfig( accountID, CONFIG_ACCOUNT_ENABLE, expire );
+  
+  Account* acc = getAccount(accountID);
+  acc->loadConfig();
+  if (acc->isEnabled()) {
+    // Verify we aren't already registered, then register
+    if (acc->getRegistrationState() != VoIPLink::Registered) {
+      _debug("SET ACCOUNTS DETAILS - non registered - > registered\n");
+      acc->registerVoIPLink();
+    }
+  } else {
+    // Verify we are already registered, then unregister
+    if (acc->getRegistrationState() == VoIPLink::Registered) {
+      _debug("SET ACCOUNTS DETAILS - registered - > non registered\n");
+      acc->unregisterVoIPLink();
+      //unregisterAccount(accountID);
     }
   }
-
-  /** @todo Make the daemon use the new settings */
-  if (_dbus) _dbus->getConfigurationManager()->accountsChanged();
 }                   
 
 
@@ -2227,6 +2366,7 @@ ManagerImpl::removeAccount(const AccountID& accountID)
 
   saveConfig();
 
+  _debug("REMOVE ACCOUNT\n");
   if (_dbus) _dbus->getConfigurationManager()->accountsChanged();
 }
 
@@ -2342,20 +2482,231 @@ ManagerImpl::getContactEntryDetails(const std::string& accountID, const std::str
 				// Text, type, isShown, isSubscribed
 				entryDetails.push_back(entry->getText());
 				entryDetails.push_back(entry->getType());
-				if(entry->getShownInCallConsole())
-					entryDetails.push_back("TRUE");
+				if(entry->getShownInCallConsole()) entryDetails.push_back("TRUE");
+				else entryDetails.push_back("FALSE");
+				if(entry->getSubscribedToPresence()) entryDetails.push_back("TRUE");
+				else entryDetails.push_back("FALSE");
+				
+				// Return unsubscribed if boolean to false
+				if(!entry->getSubscribedToPresence())
+				{
+					entryDetails.push_back(PRESENCE_NOT_SUBSCRIBED);
+					entryDetails.push_back("");
+				}
 				else
-					entryDetails.push_back("FALSE");
-				if(entry->getSubscribedToPresence())
-					entryDetails.push_back("TRUE");
-				else
-					entryDetails.push_back("FALSE");
+				{
+					if(entry->getPresence() == NULL)
+					{
+						if(getAccount(accountID)->getVoIPLink()->isContactPresenceSupported())
+						{
+							// Return uninitialized if entry is subscribed but
+							// no information has yet been received
+							entryDetails.push_back(PRESENCE_NOT_INITIALIZED);
+							entryDetails.push_back("");
+						}
+						else
+						{
+							// Presence is not supported
+							entryDetails.push_back(PRESENCE_NOT_SUPPORTED);
+							entryDetails.push_back("");
+						}
+					}
+					else
+					{
+						// Return status
+						entryDetails.push_back(entry->getPresence()->getState());
+						entryDetails.push_back(entry->getPresence()->getAdditionalInfo());
+					}
+				}
 				break;
 			}
 			iter++;
 		}
 	}
 	return entryDetails;
+}
+
+void
+ManagerImpl::setContact(const std::string& accountID, const std::string& contactID, const std::string& firstName, const std::string& lastName, const std::string& email)
+{
+	// Try to get contact or obtain null if it does not exist
+	Contact* contact = getContact(accountID, contactID);
+
+	if(contact == NULL)
+	{
+		// Get account, create and push new contact
+		Account* account = getAccount(accountID);
+		if(account != NULL)
+		{
+			contact = new Contact(contactID, firstName, lastName, email);
+			account->addContact(contact);
+		}
+	}
+	else
+	{
+		contact->setFirstName(firstName);
+		contact->setLastName(lastName);
+		contact->setEmail(email);
+	}
+}
+
+void
+ManagerImpl::removeContact(const std::string& accountID, const std::string& contactID)
+{
+	Account* account = getAccount(accountID);
+	if(account != NULL)
+	{
+		std::vector<Contact*> contacts = account->getContacts();
+		std::vector<Contact*>::iterator iter = contacts.begin();
+		while(iter != contacts.end())
+		{
+			Contact* contact = (Contact*)*iter;
+			if(contact->getContactID() == contactID)
+			{
+				// Contact found, delete all entries
+				std::vector<ContactEntry*> entries = contact->getEntries();
+				std::vector<ContactEntry*>::iterator entryIter = entries.begin();
+				if(account->getVoIPLink()->isContactPresenceSupported())
+				{
+					// Unsubscribe presence for all subscribed entries
+					while(entryIter != entries.end())
+					{
+						ContactEntry* entry = (ContactEntry*)*entryIter;
+						if(entry->getSubscribedToPresence())
+							account->getVoIPLink()->unsubscribePresenceForContact((ContactEntry*)*entryIter);
+					}
+				}
+				entries.clear();
+				contacts.erase(iter);
+				break;
+			}
+			iter++;
+		}
+	}
+}
+
+void
+ManagerImpl::setContactEntry(const std::string& accountID, const std::string& contactID,
+		const std::string& entryID, const std::string& text, const std::string& type,
+		const std::string& IsShown, const std::string& IsSubscribed)
+{
+	Account* account;
+	Contact* contact;
+	ContactEntry* entry;
+	bool subscribedChanged = FALSE, subscribe;
+	
+	account = getAccount(accountID);
+	contact = getContact(accountID, contactID);
+	if(contact != NULL)
+	{
+		// Change boolean strings to booleans
+		bool shown, subscribed;
+		if(strcmp(IsShown.data(), "TRUE") == 0) shown = true;
+		else shown = false;
+		if(strcmp(IsSubscribed.data(), "TRUE") == 0) subscribed = true;
+		else subscribed = false;
+
+		// Edit entry if it exists, otherwise add it
+		std::vector<ContactEntry*> entries = contact->getEntries();
+		std::vector<ContactEntry*>::iterator iter = entries.begin();
+		bool added = false;
+		while(iter != entries.end())
+		{
+			entry = (ContactEntry*)*iter;
+			if(strcmp(entry->getEntryID().data(), entryID.data()) == 0)
+			{
+				// Entry found and will be modified
+				// Set subscribe or unsubscribe if property changed
+				if(entry->getSubscribedToPresence() == FALSE && subscribed == TRUE)
+				{
+					subscribedChanged = TRUE;
+					subscribe = TRUE;
+					if(account->getVoIPLink()->isContactPresenceSupported())
+						entry->setPresence(PRESENCE_NOT_INITIALIZED, "");
+					else
+					{
+						entry->setPresence(PRESENCE_NOT_SUPPORTED, "");
+						// Send back unsupported information to GUI since no future event on presence will come
+						contactEntryPresenceChanged(accountID, entryID, PRESENCE_NOT_SUPPORTED, "");
+					}
+				}
+				if(entry->getSubscribedToPresence() == TRUE && subscribed == FALSE)
+				{
+					subscribedChanged = TRUE;
+					subscribe = FALSE;
+					entry->setPresence(PRESENCE_NOT_SUBSCRIBED, "");
+				}
+				// Edit entry and break
+				entry->setText(text);
+				entry->setType(type);
+				entry->setShownInCallConsole(shown);
+				entry->setSubscribedToPresence(subscribed);
+				added = true;
+				break;
+			}
+			iter++;
+		}
+		if(!added)
+		{
+			// Add new entry
+			entry = new ContactEntry(entryID, text, type, shown, subscribed);
+			contact->addEntry(entry);
+			subscribedChanged = TRUE;
+			subscribe = TRUE;
+		}
+		// Subscribe or unsubscribe presence to entry if supported
+		if(subscribedChanged)
+		{
+			if(account != NULL)
+			{
+				if(account->getVoIPLink()->isContactPresenceSupported())
+				{
+					if(subscribedChanged) account->getVoIPLink()->subscribePresenceForContact(entry);
+					else account->getVoIPLink()->unsubscribePresenceForContact(entry);
+				}
+				else
+				{
+					// Send back information to GUI that presence is not supported for this account
+					contactEntryPresenceChanged(accountID, entryID, PRESENCE_NOT_SUPPORTED, "");
+				}
+			}
+		}
+	}
+}
+
+void
+ManagerImpl::removeContactEntry(const std::string& accountID, const std::string& contactID, const std::string& entryID)
+{
+	Contact* contact = getContact(accountID, contactID);
+	if(contact != NULL)
+	{
+		std::vector<ContactEntry*> entries = contact->getEntries();
+		std::vector<ContactEntry*>::iterator iter = entries.begin();
+		while(iter != entries.end())
+		{
+			ContactEntry* entry = (ContactEntry*)*iter;
+			if(entry->getEntryID() == entryID)
+			{
+				// Unsubscribe entry if it was allready subscribed
+				Account* account = getAccount(accountID);
+				if(account != NULL)
+				{
+					if(account->getVoIPLink()->isContactPresenceSupported() && entry->getSubscribedToPresence())
+						account->getVoIPLink()->unsubscribePresenceForContact(entry);
+				}
+				entries.erase(iter);
+				break;
+			}
+			iter++;
+		}
+	}
+}
+
+void
+ManagerImpl::setPresence(const std::string& accountID, const std::string& presence, const std::string& additionalInfo)
+{
+	Account* account = getAccount(accountID);
+	if(account != NULL) account->publishPresence(presence);
 }
 
 //THREAD=Main
@@ -2376,10 +2727,10 @@ ManagerImpl::setSwitch(const std::string& switchName, std::string& message) {
     audiolayer = getAudioDriver();
 
     if (audiolayer) {
-      std::string error = audiolayer->getErrorMessage();
+      int error = audiolayer->getErrorMessage();
       int newSampleRate = audiolayer->getSampleRate();
 
-      if (!error.empty()) {
+      if (error == -1) {
 	message = error;
 	return false;
       }
@@ -2403,11 +2754,11 @@ ManagerImpl::setSwitch(const std::string& switchName, std::string& message) {
       }
 
       message = _("Change with success");
-      playDtmf('9');
+      playDtmf('9', true);
       //getAudioDriver()->sleep(300); // in milliseconds
-      playDtmf('1');
+      playDtmf('1', true);
       //getAudioDriver()->sleep(300); // in milliseconds
-      playDtmf('1');
+      playDtmf('1', true);
       return true;
     }
   } else if ( switchName == "echo" ) {

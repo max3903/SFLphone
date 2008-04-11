@@ -27,6 +27,7 @@ public:
         register_method(ConfigurationManager, getAccountList, _getAccountList_stub);
         register_method(ConfigurationManager, getDefaultAccount, _getDefaultAccount_stub);
         register_method(ConfigurationManager, setDefaultAccount, _setDefaultAccount_stub);
+        register_method(ConfigurationManager, sendRegister, _sendRegister_stub);
         register_method(ConfigurationManager, getToneLocaleList, _getToneLocaleList_stub);
         register_method(ConfigurationManager, getVersion, _getVersion_stub);
         register_method(ConfigurationManager, getRingtoneList, _getRingtoneList_stub);
@@ -75,6 +76,12 @@ public:
         register_method(ConfigurationManager, setEnableCheckboxStatus, _setEnableCheckboxStatus_stub);
         register_method(ConfigurationManager, setDisableCheckboxStatus, _setDisableCheckboxStatus_stub);
         register_method(ConfigurationManager, isIax2Enabled, _isIax2Enabled_stub);
+        register_method(ConfigurationManager, getDialpad, _getDialpad_stub);
+        register_method(ConfigurationManager, setDialpad, _setDialpad_stub);
+        register_method(ConfigurationManager, startHidden, _startHidden_stub);
+        register_method(ConfigurationManager, isStartHidden, _isStartHidden_stub);
+        register_method(ConfigurationManager, popupMode, _popupMode_stub);
+        register_method(ConfigurationManager, switchPopupMode, _switchPopupMode_stub);
     }
 
     ::DBus::IntrospectedInterface* const introspect() const 
@@ -114,6 +121,12 @@ public:
         static ::DBus::IntrospectedArgument setDefaultAccount_args[] = 
         {
             { "accountID", "s", true },
+            { 0, 0, 0 }
+        };
+        static ::DBus::IntrospectedArgument sendRegister_args[] = 
+        {
+            { "accountID", "s", true },
+            { "expire", "i", true },
             { 0, 0, 0 }
         };
         static ::DBus::IntrospectedArgument getToneLocaleList_args[] = 
@@ -366,6 +379,33 @@ public:
             { "res", "i", false },
             { 0, 0, 0 }
         };
+        static ::DBus::IntrospectedArgument getDialpad_args[] = 
+        {
+            { "state", "i", false },
+            { 0, 0, 0 }
+        };
+        static ::DBus::IntrospectedArgument setDialpad_args[] = 
+        {
+            { 0, 0, 0 }
+        };
+        static ::DBus::IntrospectedArgument startHidden_args[] = 
+        {
+            { 0, 0, 0 }
+        };
+        static ::DBus::IntrospectedArgument isStartHidden_args[] = 
+        {
+            { "state", "i", false },
+            { 0, 0, 0 }
+        };
+        static ::DBus::IntrospectedArgument popupMode_args[] = 
+        {
+            { "state", "i", false },
+            { 0, 0, 0 }
+        };
+        static ::DBus::IntrospectedArgument switchPopupMode_args[] = 
+        {
+            { 0, 0, 0 }
+        };
         static ::DBus::IntrospectedArgument parametersChanged_args[] = 
         {
             { "list", "a{ss}", false },
@@ -377,7 +417,6 @@ public:
         };
         static ::DBus::IntrospectedArgument errorAlert_args[] = 
         {
-            { "errMsg", "s", false },
             { "code", "i", false },
             { 0, 0, 0 }
         };
@@ -390,6 +429,7 @@ public:
             { "getAccountList", getAccountList_args },
             { "getDefaultAccount", getDefaultAccount_args },
             { "setDefaultAccount", setDefaultAccount_args },
+            { "sendRegister", sendRegister_args },
             { "getToneLocaleList", getToneLocaleList_args },
             { "getVersion", getVersion_args },
             { "getRingtoneList", getRingtoneList_args },
@@ -438,6 +478,12 @@ public:
             { "setEnableCheckboxStatus", setEnableCheckboxStatus_args },
             { "setDisableCheckboxStatus", setDisableCheckboxStatus_args },
             { "isIax2Enabled", isIax2Enabled_args },
+            { "getDialpad", getDialpad_args },
+            { "setDialpad", setDialpad_args },
+            { "startHidden", startHidden_args },
+            { "isStartHidden", isStartHidden_args },
+            { "popupMode", popupMode_args },
+            { "switchPopupMode", switchPopupMode_args },
             { 0, 0 }
         };
         static ::DBus::IntrospectedMethod ConfigurationManager_signals[] = 
@@ -479,6 +525,7 @@ public:
     virtual std::vector< ::DBus::String > getAccountList(  ) = 0;
     virtual ::DBus::String getDefaultAccount(  ) = 0;
     virtual void setDefaultAccount( const ::DBus::String& accountID ) = 0;
+    virtual void sendRegister( const ::DBus::String& accountID, const ::DBus::Int32& expire ) = 0;
     virtual std::vector< ::DBus::String > getToneLocaleList(  ) = 0;
     virtual ::DBus::String getVersion(  ) = 0;
     virtual std::vector< ::DBus::String > getRingtoneList(  ) = 0;
@@ -527,6 +574,12 @@ public:
     virtual void setEnableCheckboxStatus( const ::DBus::Bool& status ) = 0;
     virtual void setDisableCheckboxStatus( const ::DBus::Bool& status ) = 0;
     virtual ::DBus::Int32 isIax2Enabled(  ) = 0;
+    virtual ::DBus::Int32 getDialpad(  ) = 0;
+    virtual void setDialpad(  ) = 0;
+    virtual void startHidden(  ) = 0;
+    virtual ::DBus::Int32 isStartHidden(  ) = 0;
+    virtual ::DBus::Int32 popupMode(  ) = 0;
+    virtual void switchPopupMode(  ) = 0;
 
 public:
 
@@ -544,12 +597,11 @@ public:
         ::DBus::SignalMessage sig("accountsChanged");
         emit_signal(sig);
     }
-    void errorAlert( const ::DBus::String& arg1, const ::DBus::Int32& arg2 )
+    void errorAlert( const ::DBus::Int32& arg1 )
     {
         ::DBus::SignalMessage sig("errorAlert");
         ::DBus::MessageIter wi = sig.writer();
         wi << arg1;
-        wi << arg2;
         emit_signal(sig);
     }
 
@@ -622,6 +674,16 @@ private:
 
         ::DBus::String argin1; ri >> argin1;
         setDefaultAccount(argin1);
+        ::DBus::ReturnMessage reply(call);
+        return reply;
+    }
+    ::DBus::Message _sendRegister_stub( const ::DBus::CallMessage& call )
+    {
+        ::DBus::MessageIter ri = call.reader();
+
+        ::DBus::String argin1; ri >> argin1;
+        ::DBus::Int32 argin2; ri >> argin2;
+        sendRegister(argin1, argin2);
         ::DBus::ReturnMessage reply(call);
         return reply;
     }
@@ -1109,6 +1171,60 @@ private:
         ::DBus::ReturnMessage reply(call);
         ::DBus::MessageIter wi = reply.writer();
         wi << argout1;
+        return reply;
+    }
+    ::DBus::Message _getDialpad_stub( const ::DBus::CallMessage& call )
+    {
+        ::DBus::MessageIter ri = call.reader();
+
+        ::DBus::Int32 argout1 = getDialpad();
+        ::DBus::ReturnMessage reply(call);
+        ::DBus::MessageIter wi = reply.writer();
+        wi << argout1;
+        return reply;
+    }
+    ::DBus::Message _setDialpad_stub( const ::DBus::CallMessage& call )
+    {
+        ::DBus::MessageIter ri = call.reader();
+
+        setDialpad();
+        ::DBus::ReturnMessage reply(call);
+        return reply;
+    }
+    ::DBus::Message _startHidden_stub( const ::DBus::CallMessage& call )
+    {
+        ::DBus::MessageIter ri = call.reader();
+
+        startHidden();
+        ::DBus::ReturnMessage reply(call);
+        return reply;
+    }
+    ::DBus::Message _isStartHidden_stub( const ::DBus::CallMessage& call )
+    {
+        ::DBus::MessageIter ri = call.reader();
+
+        ::DBus::Int32 argout1 = isStartHidden();
+        ::DBus::ReturnMessage reply(call);
+        ::DBus::MessageIter wi = reply.writer();
+        wi << argout1;
+        return reply;
+    }
+    ::DBus::Message _popupMode_stub( const ::DBus::CallMessage& call )
+    {
+        ::DBus::MessageIter ri = call.reader();
+
+        ::DBus::Int32 argout1 = popupMode();
+        ::DBus::ReturnMessage reply(call);
+        ::DBus::MessageIter wi = reply.writer();
+        wi << argout1;
+        return reply;
+    }
+    ::DBus::Message _switchPopupMode_stub( const ::DBus::CallMessage& call )
+    {
+        ::DBus::MessageIter ri = call.reader();
+
+        switchPopupMode();
+        ::DBus::ReturnMessage reply(call);
         return reply;
     }
 };

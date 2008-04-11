@@ -1,5 +1,6 @@
 /*
- *  Copyright (C) 2004-2006 Savoir-Faire Linux inc.
+ *  Copyright (C) 2004-2008 Savoir-Faire Linux inc.
+ *  Author: Emmanuel Milou <emmanuel.milou@savoirfairelinux.com>
  *  Author: Yan Morin <yan.morin@savoirfairelinux.com>
  *  Author: Laurielle Lea <laurielle.lea@savoirfairelinux.com>
  *                                                                              
@@ -23,9 +24,12 @@
 
 #include <assert.h>
 #include <stdio.h>
+#include <libintl.h>
+#include <locale.h>
 
 typedef float float32;
 typedef short int16;
+
 
 #ifdef DATAFORMAT_IS_FLOAT
 #define SFLDataFormat float32
@@ -57,8 +61,8 @@ typedef short int16;
   #define _debugAlsa(...)
 #endif
 
-#define SFLPHONED_VERSION "0.7.2"
-#define SFLPHONED_VERSIONNUM 0x000702
+#define SFLPHONED_VERSION "0.8.2"
+#define SFLPHONED_VERSIONNUM 0x000802
 
 #define PROGNAME         "sflphoned"
 #define PROGNAME_GLOBAL  "sflphone"
@@ -105,5 +109,14 @@ typedef short int16;
 #define SPEEX_STRING_DESCRIPTION  "speex"
 #define ILBC_STRING_DESCRIPTION  "ilbc"
 #define RINGTONE_ENABLED	  1
+#define DISPLAY_DIALPAD		  1
+#define START_HIDDEN		  1
+#define WINDOW_POPUP		  1
+
+#define ERROR_ALSA_CAPTURE_DEVICE	0
+#define ERROR_ALSA_PLAYBACK_DEVICE	1
+//#define ERROR_ALSA_OPENING_CAPTURE_DEVICE	0
+//#define ERROR_ALSA_OPENING_CAPTURE_DEVICE	0
+//#define ERROR_ALSA_OPENING_CAPTURE_DEVICE	0
 
 #endif	// __GLOBAL_H__

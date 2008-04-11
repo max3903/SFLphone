@@ -166,21 +166,21 @@ static
 inline
 #endif
 gboolean
-org_sflphone_SFLphone_ContactManager_set_contacts (DBusGProxy *proxy, const char * IN_accountID, const char ** IN_details, GError **error)
+org_sflphone_SFLphone_ContactManager_set_contact (DBusGProxy *proxy, const char * IN_accountID, const char * IN_contactID, const char * IN_firstName, const char * IN_lastName, const char * IN_email, GError **error)
 
 {
-  return dbus_g_proxy_call (proxy, "setContacts", error, G_TYPE_STRING, IN_accountID, G_TYPE_STRV, IN_details, G_TYPE_INVALID, G_TYPE_INVALID);
+  return dbus_g_proxy_call (proxy, "setContact", error, G_TYPE_STRING, IN_accountID, G_TYPE_STRING, IN_contactID, G_TYPE_STRING, IN_firstName, G_TYPE_STRING, IN_lastName, G_TYPE_STRING, IN_email, G_TYPE_INVALID, G_TYPE_INVALID);
 }
 
-typedef void (*org_sflphone_SFLphone_ContactManager_set_contacts_reply) (DBusGProxy *proxy, GError *error, gpointer userdata);
+typedef void (*org_sflphone_SFLphone_ContactManager_set_contact_reply) (DBusGProxy *proxy, GError *error, gpointer userdata);
 
 static void
-org_sflphone_SFLphone_ContactManager_set_contacts_async_callback (DBusGProxy *proxy, DBusGProxyCall *call, void *user_data)
+org_sflphone_SFLphone_ContactManager_set_contact_async_callback (DBusGProxy *proxy, DBusGProxyCall *call, void *user_data)
 {
   DBusGAsyncData *data = (DBusGAsyncData*) user_data;
   GError *error = NULL;
   dbus_g_proxy_end_call (proxy, call, &error, G_TYPE_INVALID);
-  (*(org_sflphone_SFLphone_ContactManager_set_contacts_reply)data->cb) (proxy, error, data->userdata);
+  (*(org_sflphone_SFLphone_ContactManager_set_contact_reply)data->cb) (proxy, error, data->userdata);
   return;
 }
 
@@ -189,35 +189,35 @@ static
 inline
 #endif
 DBusGProxyCall*
-org_sflphone_SFLphone_ContactManager_set_contacts_async (DBusGProxy *proxy, const char * IN_accountID, const char ** IN_details, org_sflphone_SFLphone_ContactManager_set_contacts_reply callback, gpointer userdata)
+org_sflphone_SFLphone_ContactManager_set_contact_async (DBusGProxy *proxy, const char * IN_accountID, const char * IN_contactID, const char * IN_firstName, const char * IN_lastName, const char * IN_email, org_sflphone_SFLphone_ContactManager_set_contact_reply callback, gpointer userdata)
 
 {
   DBusGAsyncData *stuff;
   stuff = g_new (DBusGAsyncData, 1);
   stuff->cb = G_CALLBACK (callback);
   stuff->userdata = userdata;
-  return dbus_g_proxy_begin_call (proxy, "setContacts", org_sflphone_SFLphone_ContactManager_set_contacts_async_callback, stuff, g_free, G_TYPE_STRING, IN_accountID, G_TYPE_STRV, IN_details, G_TYPE_INVALID);
+  return dbus_g_proxy_begin_call (proxy, "setContact", org_sflphone_SFLphone_ContactManager_set_contact_async_callback, stuff, g_free, G_TYPE_STRING, IN_accountID, G_TYPE_STRING, IN_contactID, G_TYPE_STRING, IN_firstName, G_TYPE_STRING, IN_lastName, G_TYPE_STRING, IN_email, G_TYPE_INVALID);
 }
 static
 #ifdef G_HAVE_INLINE
 inline
 #endif
 gboolean
-org_sflphone_SFLphone_ContactManager_set_contact_entries (DBusGProxy *proxy, const char * IN_contactID, const char ** IN_details, GError **error)
+org_sflphone_SFLphone_ContactManager_remove_contact (DBusGProxy *proxy, const char * IN_accountID, const char * IN_contactID, GError **error)
 
 {
-  return dbus_g_proxy_call (proxy, "setContactEntries", error, G_TYPE_STRING, IN_contactID, G_TYPE_STRV, IN_details, G_TYPE_INVALID, G_TYPE_INVALID);
+  return dbus_g_proxy_call (proxy, "removeContact", error, G_TYPE_STRING, IN_accountID, G_TYPE_STRING, IN_contactID, G_TYPE_INVALID, G_TYPE_INVALID);
 }
 
-typedef void (*org_sflphone_SFLphone_ContactManager_set_contact_entries_reply) (DBusGProxy *proxy, GError *error, gpointer userdata);
+typedef void (*org_sflphone_SFLphone_ContactManager_remove_contact_reply) (DBusGProxy *proxy, GError *error, gpointer userdata);
 
 static void
-org_sflphone_SFLphone_ContactManager_set_contact_entries_async_callback (DBusGProxy *proxy, DBusGProxyCall *call, void *user_data)
+org_sflphone_SFLphone_ContactManager_remove_contact_async_callback (DBusGProxy *proxy, DBusGProxyCall *call, void *user_data)
 {
   DBusGAsyncData *data = (DBusGAsyncData*) user_data;
   GError *error = NULL;
   dbus_g_proxy_end_call (proxy, call, &error, G_TYPE_INVALID);
-  (*(org_sflphone_SFLphone_ContactManager_set_contact_entries_reply)data->cb) (proxy, error, data->userdata);
+  (*(org_sflphone_SFLphone_ContactManager_remove_contact_reply)data->cb) (proxy, error, data->userdata);
   return;
 }
 
@@ -226,14 +226,88 @@ static
 inline
 #endif
 DBusGProxyCall*
-org_sflphone_SFLphone_ContactManager_set_contact_entries_async (DBusGProxy *proxy, const char * IN_contactID, const char ** IN_details, org_sflphone_SFLphone_ContactManager_set_contact_entries_reply callback, gpointer userdata)
+org_sflphone_SFLphone_ContactManager_remove_contact_async (DBusGProxy *proxy, const char * IN_accountID, const char * IN_contactID, org_sflphone_SFLphone_ContactManager_remove_contact_reply callback, gpointer userdata)
 
 {
   DBusGAsyncData *stuff;
   stuff = g_new (DBusGAsyncData, 1);
   stuff->cb = G_CALLBACK (callback);
   stuff->userdata = userdata;
-  return dbus_g_proxy_begin_call (proxy, "setContactEntries", org_sflphone_SFLphone_ContactManager_set_contact_entries_async_callback, stuff, g_free, G_TYPE_STRING, IN_contactID, G_TYPE_STRV, IN_details, G_TYPE_INVALID);
+  return dbus_g_proxy_begin_call (proxy, "removeContact", org_sflphone_SFLphone_ContactManager_remove_contact_async_callback, stuff, g_free, G_TYPE_STRING, IN_accountID, G_TYPE_STRING, IN_contactID, G_TYPE_INVALID);
+}
+static
+#ifdef G_HAVE_INLINE
+inline
+#endif
+gboolean
+org_sflphone_SFLphone_ContactManager_set_contact_entry (DBusGProxy *proxy, const char * IN_accountID, const char * IN_contactID, const char * IN_entryID, const char * IN_text, const char * IN_type, const char * IN_IsShown, const char * IN_IsSubscribed, GError **error)
+
+{
+  return dbus_g_proxy_call (proxy, "setContactEntry", error, G_TYPE_STRING, IN_accountID, G_TYPE_STRING, IN_contactID, G_TYPE_STRING, IN_entryID, G_TYPE_STRING, IN_text, G_TYPE_STRING, IN_type, G_TYPE_STRING, IN_IsShown, G_TYPE_STRING, IN_IsSubscribed, G_TYPE_INVALID, G_TYPE_INVALID);
+}
+
+typedef void (*org_sflphone_SFLphone_ContactManager_set_contact_entry_reply) (DBusGProxy *proxy, GError *error, gpointer userdata);
+
+static void
+org_sflphone_SFLphone_ContactManager_set_contact_entry_async_callback (DBusGProxy *proxy, DBusGProxyCall *call, void *user_data)
+{
+  DBusGAsyncData *data = (DBusGAsyncData*) user_data;
+  GError *error = NULL;
+  dbus_g_proxy_end_call (proxy, call, &error, G_TYPE_INVALID);
+  (*(org_sflphone_SFLphone_ContactManager_set_contact_entry_reply)data->cb) (proxy, error, data->userdata);
+  return;
+}
+
+static
+#ifdef G_HAVE_INLINE
+inline
+#endif
+DBusGProxyCall*
+org_sflphone_SFLphone_ContactManager_set_contact_entry_async (DBusGProxy *proxy, const char * IN_accountID, const char * IN_contactID, const char * IN_entryID, const char * IN_text, const char * IN_type, const char * IN_IsShown, const char * IN_IsSubscribed, org_sflphone_SFLphone_ContactManager_set_contact_entry_reply callback, gpointer userdata)
+
+{
+  DBusGAsyncData *stuff;
+  stuff = g_new (DBusGAsyncData, 1);
+  stuff->cb = G_CALLBACK (callback);
+  stuff->userdata = userdata;
+  return dbus_g_proxy_begin_call (proxy, "setContactEntry", org_sflphone_SFLphone_ContactManager_set_contact_entry_async_callback, stuff, g_free, G_TYPE_STRING, IN_accountID, G_TYPE_STRING, IN_contactID, G_TYPE_STRING, IN_entryID, G_TYPE_STRING, IN_text, G_TYPE_STRING, IN_type, G_TYPE_STRING, IN_IsShown, G_TYPE_STRING, IN_IsSubscribed, G_TYPE_INVALID);
+}
+static
+#ifdef G_HAVE_INLINE
+inline
+#endif
+gboolean
+org_sflphone_SFLphone_ContactManager_remove_contact_entry (DBusGProxy *proxy, const char * IN_accountID, const char * IN_contactID, const char * IN_entryID, GError **error)
+
+{
+  return dbus_g_proxy_call (proxy, "removeContactEntry", error, G_TYPE_STRING, IN_accountID, G_TYPE_STRING, IN_contactID, G_TYPE_STRING, IN_entryID, G_TYPE_INVALID, G_TYPE_INVALID);
+}
+
+typedef void (*org_sflphone_SFLphone_ContactManager_remove_contact_entry_reply) (DBusGProxy *proxy, GError *error, gpointer userdata);
+
+static void
+org_sflphone_SFLphone_ContactManager_remove_contact_entry_async_callback (DBusGProxy *proxy, DBusGProxyCall *call, void *user_data)
+{
+  DBusGAsyncData *data = (DBusGAsyncData*) user_data;
+  GError *error = NULL;
+  dbus_g_proxy_end_call (proxy, call, &error, G_TYPE_INVALID);
+  (*(org_sflphone_SFLphone_ContactManager_remove_contact_entry_reply)data->cb) (proxy, error, data->userdata);
+  return;
+}
+
+static
+#ifdef G_HAVE_INLINE
+inline
+#endif
+DBusGProxyCall*
+org_sflphone_SFLphone_ContactManager_remove_contact_entry_async (DBusGProxy *proxy, const char * IN_accountID, const char * IN_contactID, const char * IN_entryID, org_sflphone_SFLphone_ContactManager_remove_contact_entry_reply callback, gpointer userdata)
+
+{
+  DBusGAsyncData *stuff;
+  stuff = g_new (DBusGAsyncData, 1);
+  stuff->cb = G_CALLBACK (callback);
+  stuff->userdata = userdata;
+  return dbus_g_proxy_begin_call (proxy, "removeContactEntry", org_sflphone_SFLphone_ContactManager_remove_contact_entry_async_callback, stuff, g_free, G_TYPE_STRING, IN_accountID, G_TYPE_STRING, IN_contactID, G_TYPE_STRING, IN_entryID, G_TYPE_INVALID);
 }
 static
 #ifdef G_HAVE_INLINE

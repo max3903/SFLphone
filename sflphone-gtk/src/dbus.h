@@ -25,6 +25,8 @@
 
 #include <accountlist.h>
 #include <configwindow.h>
+#include <calllist.h>
+#include <SFLnotify.h>
 
 /** @file dbus.h
   * @brief General DBus functions wrappers.
@@ -56,11 +58,13 @@ void dbus_change_webcam_status(gboolean status, const call_t * c);
 gchar ** dbus_account_list();
 GHashTable * dbus_account_details(gchar * accountID);
 void dbus_set_account_details(account_t *a);
+void dbus_send_register( gchar* accountID , int expire );
 void dbus_add_account(account_t *a);
 void dbus_remove_account(gchar * accountID);
 void dbus_set_volume(const gchar * device, gdouble value);
 gdouble dbus_get_volume(const gchar * device);
 void dbus_play_dtmf(const gchar * key);
+void dbus_start_tone(const int start, const guint type);
 gchar* dbus_get_default_account();
 void dbus_set_default_account(gchar * accountID);
 gchar** dbus_codec_list();
@@ -120,6 +124,12 @@ int dbus_is_ringtone_enabled( void );
 void dbus_ringtone_enabled( void );
 gchar* dbus_get_ringtone_choice( void );
 void dbus_set_ringtone_choice( const gchar* tone );
+void dbus_set_dialpad(  );
+int dbus_get_dialpad( void );
+void dbus_start_hidden( void );
+int dbus_is_start_hidden( void );
+void dbus_switch_popup_mode( void );
+int dbus_popup_mode( void );
 
 
 
@@ -128,6 +138,10 @@ gchar** dbus_get_contacts(gchar* accountID);
 gchar** dbus_get_contact_details(gchar* accountID, gchar* contactID);
 gchar** dbus_get_contact_entries(gchar* accountID, gchar* contactID);
 gchar** dbus_get_contact_entry_details(gchar* accountID, gchar* contactID, gchar* entryID);
+void dbus_set_contact(gchar* accountID, gchar* contactID, gchar* firstName, gchar* lastName, gchar* email);
+void dbus_remove_contact(gchar* accountID, gchar* contactID);
+void dbus_set_contact_entry(gchar* accountID, gchar* contactID, gchar* entryID, gchar* text, gchar* type, gchar* isShown, gchar* isSubscribed);
+void dbus_remove_contact_entry(gchar* accountID, gchar* contactID, gchar* entryID);
 
 /* Instance */
 void dbus_register( int pid, gchar * name);

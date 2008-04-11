@@ -32,5 +32,6 @@ guint webCamConnId;     //The webcam_menu signal connection ID
 GtkWidget * create_menus();
 void update_menus();
 void show_popup_menu (GtkWidget *my_widget, GdkEventButton *event);
+void menus_show_call_console_menu_item_set_active(gboolean active);
 
 #endif 

@@ -30,6 +30,9 @@ extern void g_cclosure_user_marshal_VOID__STRING_STRING (GClosure     *closure,
                                                          gpointer      invocation_hint,
                                                          gpointer      marshal_data);
 
+/* VOID:INT (marshaller.list:3) */
+#define g_cclosure_user_marshal_VOID__INT	g_cclosure_marshal_VOID__INT
+
 /* VOID:STRING,INT (marshaller.list:4) */
 extern void g_cclosure_user_marshal_VOID__STRING_INT (GClosure     *closure,
                                                       GValue       *return_value,

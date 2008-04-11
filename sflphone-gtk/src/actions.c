@@ -36,23 +36,52 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-#define ALSA_ERROR  0
+#define ALSA_ERROR_CAPTURE_DEVICE     0
+#define ALSA_ERROR_PLAYBACK_DEVICE    1
+
+#define TONE_WITHOUT_MESSAGE  0 
+#define TONE_WITH_MESSAGE     1
+
+guint voice_mails;
 
 	void
 sflphone_notify_voice_mail (guint count)
 {
+	voice_mails = count ;
 	if(count > 0)
 	{
 		gchar * message = g_new0(gchar, 50);
-		g_sprintf(message, _("%d new voice mail%s"), count, (count > 1? "s" : "")); 
-		status_bar_message(message);
+		if( count > 1)
+		  g_sprintf(message, _("%d voice mails"), count);
+		else
+		  g_sprintf(message, _("%d voice mail"), count);	  
+		status_bar_message_add(message,  __MSG_VOICE_MAILS);
 		g_free(message);
 	}
-	else
+	// TODO: add ifdef
+	if( account_list_get_size() > 0 )
 	{
-		status_bar_message("");
+	  account_t* acc = account_list_get_by_state( ACCOUNT_STATE_REGISTERED );
+	  if( acc != NULL )
+	      notify_voice_mails( count , acc );	
 	}
 }
+
+void
+status_bar_display_account( call_t* c)
+{
+    gchar* msg;
+    account_t* acc;
+    if(c->accountID != NULL){
+      acc = account_list_get_by_id(c->accountID);
+      msg = g_markup_printf_escaped("%s account- %s" , 
+				  (gchar*)g_hash_table_lookup( acc->properties , ACCOUNT_TYPE), 
+				  (gchar*)g_hash_table_lookup( acc->properties , ACCOUNT_ALIAS));
+      status_bar_message_add( msg , __MSG_ACCOUNT_DEFAULT);
+      g_free(msg);
+  }
+}
+  
 
 	gboolean
 sflphone_quit ()
@@ -85,7 +114,6 @@ sflphone_hold(call_t * c )
 	c->state = CALL_STATE_HOLD;
 	update_call_tree(c);
 	update_menus();
-	//screen_clear();
 }
 
 	void 
@@ -95,6 +123,17 @@ sflphone_ringing(call_t * c )
 	update_call_tree(c);
 	update_menus();
 }
+
+  void
+sflphone_hung_up( call_t * c)
+{
+  main_window_glWidget(FALSE);
+  call_list_remove( c->callID);
+  update_call_tree_remove(c);
+  update_menus();
+  status_tray_icon_blink( FALSE );
+}
+
 
 /** Internal to actions: Fill account list */
 	void
@@ -146,6 +185,7 @@ sflphone_fill_account_list(gboolean toolbarInitialized)
 	// Prevent update being called when toolbar is not yet initialized
 	if(toolbarInitialized)
 		toolbar_update_buttons();
+	
 }
 
 	gboolean
@@ -159,19 +199,20 @@ sflphone_init()
 	
 	if(!dbus_connect ())
 	{
-		main_window_error_message("Unable to connect to the SFLphone server.\nMake sure the daemon is running.");
+		main_window_error_message(_("Unable to connect to the SFLphone server.\nMake sure the daemon is running."));
 		return FALSE;
 	}
 	else 
 	{
 		dbus_register(getpid(), "Gtk+ Client");
 		sflphone_fill_account_list(FALSE);
-		sflphone_set_default_account();
 		sflphone_fill_codec_list();
 		sflphone_fill_contact_list();
 		sflphone_fill_video_codec_list();
 		InitMemSpaces( dbus_get_local_shared_memory_key(), dbus_get_remote_shared_memory_key());
 		video_settings_checkbox_init();
+		sflphone_set_current_account();
+
 		return TRUE;
 	}	
 }
@@ -180,7 +221,6 @@ sflphone_init()
 sflphone_hang_up()
 {
 	call_t * selectedCall = call_get_selected();
-	//main_window_callinfo(FALSE, selectedCall);
 	if(selectedCall)
 	{
 		switch(selectedCall->state)
@@ -212,18 +252,14 @@ sflphone_hang_up()
 sflphone_pick_up()
 {
 	call_t * selectedCall = call_get_selected();
-        //printf("full name: %s\n",g_hash_table_lookup(selectedCall->properties, ACCOUNT_IAX_FULL_NAME));
-	//main_window_callinfo(TRUE, selectedCall);
 	if(selectedCall)
 	{
 		switch(selectedCall->state)
 		{
 			case CALL_STATE_DIALING:
 				sflphone_place_call (selectedCall);
-        			printf("accountID=%s\n",selectedCall->accountID);
 				break;
 			case CALL_STATE_INCOMING:
-				printf("CALL ID = %s\n", selectedCall->callID);
 				dbus_accept (selectedCall);
 				break;
 			case CALL_STATE_HOLD:
@@ -288,7 +324,6 @@ sflphone_fail( call_t * c )
 	c->state = CALL_STATE_FAILURE;
 	update_call_tree(c);
 	update_menus();
-	//main_window_callinfo(FALSE, c);
 }
 
 	void 
@@ -297,7 +332,6 @@ sflphone_busy( call_t * c )
 	c->state = CALL_STATE_BUSY;
 	update_call_tree(c);
 	update_menus();
-	//screen_set_call(c);
 }
 
 	void 
@@ -306,7 +340,6 @@ sflphone_current( call_t * c )
 	c->state = CALL_STATE_CURRENT;
 	update_call_tree(c);
 	update_menus();
-	//screen_set_call(c);
 }
 
 void 
@@ -325,7 +358,6 @@ sflphone_set_transfert()
 	{
 		c->state = CALL_STATE_TRANSFERT;
 		c->to = g_strdup("");
-		//screen_set_call(c);
 		update_call_tree(c);
 		update_menus();
 	}
@@ -340,33 +372,31 @@ sflphone_unset_transfert()
 	{
 		c->state = CALL_STATE_CURRENT;
 		c->to = g_strdup("");
-		//screen_set_call(c);
 		update_call_tree(c);
 		update_menus();
 	}
 	toolbar_update_buttons();
 }
+
 	void
 sflphone_incoming_call (call_t * c) 
 {
 	call_list_add ( c );
-	status_icon_unminimize();
+	//status_icon_unminimize();
 	update_call_tree_add(c);
 	update_menus();
 }
 
-	void 
-sflphone_hung_up (call_t * c )
-{
-	main_window_glWidget(FALSE);
-	call_list_remove(c->callID);
-	update_call_tree_remove(c);
-	update_menus();
-	//main_window_callinfo(FALSE, c);
-}
+
+
 
 void process_dialing(call_t * c, guint keyval, gchar * key)
 {
+	// We stop the tone
+	if(strlen(c->to) == 0 && c->state != CALL_STATE_TRANSFERT){
+	  dbus_start_tone( FALSE , 0 );
+	  //dbus_play_dtmf( key );
+	}
 	switch (keyval)
 	{
 		case 65293: /* ENTER */
@@ -374,12 +404,12 @@ void process_dialing(call_t * c, guint keyval, gchar * key)
 			sflphone_place_call(c);
 			break;
 		case 65307: /* ESCAPE */
-			dbus_hang_up(c);
+			sflphone_hang_up(c);
 			break;
 		case 65288: /* BACKSPACE */
 			{  /* Brackets mandatory because of local vars */
 				gchar * before = c->to;
-				if(strlen(c->to) > 1){
+				if(strlen(c->to) >= 1){
 					c->to = g_strndup(c->to, strlen(c->to) -1);
 					g_free(before);
 					g_print("TO: %s\n", c->to);
@@ -389,11 +419,11 @@ void process_dialing(call_t * c, guint keyval, gchar * key)
 						g_free(c->from);
 						c->from = g_strconcat("\"\" <", c->to, ">", NULL);
 					}
-					//screen_set_call(c);
 					update_call_tree(c);
 				} 
-				else if(strlen(c->to) == 1)
+				else if(strlen(c->to) == 0)
 				{
+				  if(c->state != CALL_STATE_TRANSFERT)
 					dbus_hang_up(c);
 				}
 			}
@@ -407,6 +437,8 @@ void process_dialing(call_t * c, guint keyval, gchar * key)
 		default:
 			if (keyval < 255 || (keyval >65453 && keyval < 65466))
 			{ 
+				if(c->state != CALL_STATE_TRANSFERT)
+				  dbus_play_dtmf( key );
 				gchar * before = c->to;
 				c->to = g_strconcat(c->to, key, NULL);
 				g_free(before);
@@ -417,7 +449,6 @@ void process_dialing(call_t * c, guint keyval, gchar * key)
 					g_free(c->from);
 					c->from = g_strconcat("\"\" <", c->to, ">", NULL);
 				}
-				//screen_set_call(c);
 				update_call_tree(c);
 			}
 			break;
@@ -428,6 +459,10 @@ void process_dialing(call_t * c, guint keyval, gchar * key)
 
 call_t * sflphone_new_call()
 {
+	// Play a tone when creating a new call
+	if( call_list_get_size() == 0 )
+	  dbus_start_tone( TRUE , ( voice_mails > 0 )? TONE_WITH_MESSAGE : TONE_WITHOUT_MESSAGE) ;
+
 	call_t * c = g_new0 (call_t, 1);
 	c->state = CALL_STATE_DIALING;
 	c->from = g_strconcat("\"\" <>", NULL);
@@ -438,7 +473,6 @@ call_t * sflphone_new_call()
 	c->to = g_strdup("");
 
 	call_list_add(c);
-	//screen_set_call(c);
 	update_call_tree_add(c);  
 	update_menus();
 
@@ -455,6 +489,7 @@ sflphone_keypad( guint keyval, gchar * key)
 		switch(c->state) 
 		{
 			case CALL_STATE_DIALING: // Currently dialing => edit number
+				//dbus_play_dtmf(key);
 				process_dialing(c, keyval, key);
 				break;
 			case CALL_STATE_CURRENT:
@@ -464,6 +499,7 @@ sflphone_keypad( guint keyval, gchar * key)
 						dbus_hang_up(c);
 						break;
 					default:  // TODO should this be here?
+						// To play the dtmf when calling mail box for instance
 						dbus_play_dtmf(key);
 						if (keyval < 255 || (keyval >65453 && keyval < 65466))
 						{ 
@@ -472,8 +508,7 @@ sflphone_keypad( guint keyval, gchar * key)
 							c->from = g_strconcat("\"",call_get_name(c) ,"\" <", temp, ">", NULL);
 							g_free(before);
 							g_free(temp);
-							//screen_set_call(c);
-							update_call_tree(c);
+							//update_call_tree(c);
 						}
 						break;
 				}
@@ -483,6 +518,7 @@ sflphone_keypad( guint keyval, gchar * key)
 				{
 					case 65293: /* ENTER */
 					case 65421: /* ENTER numpad */
+						//status_bar_display_account(c);
 						dbus_accept(c);
 						break;
 					case 65307: /* ESCAPE */
@@ -498,7 +534,7 @@ sflphone_keypad( guint keyval, gchar * key)
 						dbus_transfert(c);
 						break;
 					case 65307: /* ESCAPE */
-						sflphone_hang_up(c); 
+						sflphone_unset_transfert(c); 
 						break;
 					default: // When a call is on transfert, typing new numbers will add it to c->to
 						process_dialing(c, keyval, key);
@@ -536,6 +572,7 @@ sflphone_keypad( guint keyval, gchar * key)
 	}
 	else 
 	{ // Not in a call, not dialing, create a new call 
+		//dbus_play_dtmf(key);
 		switch (keyval)
 		{
 			case 65293: /* ENTER */
@@ -560,59 +597,73 @@ sflphone_keypad( guint keyval, gchar * key)
 void 
 sflphone_place_call ( call_t * c )
 {
-	if(c->state == CALL_STATE_DIALING)
-	{
-		account_t * account;
-		gchar * default_account =  account_list_get_default();
-		account = account_list_get_by_id(default_account);
-		
-		if(account)
-		{
-			if(strcmp(g_hash_table_lookup(account->properties, "Status"),"REGISTERED")==0)
-			{
-				c->accountID = default_account;
-				dbus_place_call(c);
-			}
-			else
-			{
-				main_window_error_message("The account selected as default is not registered.");
-			}
-			
-		}
-		else{
-			account = account_list_get_by_state (ACCOUNT_STATE_REGISTERED);
-			if(account)
-			{
-				c->accountID = account->accountID;
-				dbus_place_call(c);
-			}
-			else
-			{
-				main_window_error_message("There are no registered accounts to make this call with.");
-			}
-
-		}
+  if(c->state == CALL_STATE_DIALING)
+  {
+    if( account_list_get_size() == 0 )
+      notify_no_accounts();
+    else if( account_list_get_by_state( ACCOUNT_STATE_REGISTERED ) == NULL )
+      notify_no_registered_accounts();
+    else
+    {
+      account_t * current = account_list_get_current();
+      if( current )
+      {
+	if(g_strcasecmp(g_hash_table_lookup( current->properties, "Status"),"REGISTERED")==0)
+	{ 
+	  // OK, everything alright - the call is made with the current account
+	  c -> accountID = current -> accountID;
+	  status_bar_display_account(c);
+	  dbus_place_call(c);
 	}
+	else
+	{
+	  // No current accounts have been setup. 
+	  // So we place a call with the first registered account
+	  // And we change the current account
+	  current = account_list_get_by_state( ACCOUNT_STATE_REGISTERED );
+	  c -> accountID = current -> accountID;
+	  dbus_place_call(c);
+	  notify_current_account( current );
+	  status_bar_display_account(c);
+	  account_list_set_current_id( c-> accountID );
+	}
+      }
+      else
+      {
+	// No current accounts have been setup. 
+	// So we place a call with the first registered account
+	// and we change the current account
+	current = account_list_get_by_state( ACCOUNT_STATE_REGISTERED );
+	c -> accountID = current -> accountID;
+	dbus_place_call(c);
+	notify_current_account( current );
+	status_bar_display_account(c);
+	account_list_set_current_id( c-> accountID );
+      }
+    }
+  }
 }
 
-/* Internal to action - set the DEFAULT_ACCOUNT variable */
+/* Internal to action - set the __CURRENT_ACCOUNT variable */
 	void
-sflphone_set_default_account( )
+sflphone_set_current_account()
 {
-	gchar* default_id = strdup(dbus_get_default_account());
-	account_list_set_default(default_id);	
+  if( account_list_get_size() > 0 )
+    account_list_set_current_pos( 0 );	
 }
 
 void
-sflphone_throw_exception( gchar* msg , int err )
+sflphone_throw_exception( int errCode )
 {
   gchar* markup = malloc(1000);
-  switch( err ){
-    case ALSA_ERROR:
-      sprintf( markup , "<b>ALSA notification</b>\n\n");
+  switch( errCode ){
+    case ALSA_ERROR_PLAYBACK_DEVICE:
+      sprintf( markup , _("<b>ALSA notification</b>\n\nError while opening playback device"));
+      break;
+    case ALSA_ERROR_CAPTURE_DEVICE:
+      sprintf( markup , _("<b>ALSA notification</b>\n\nError while opening capture device"));
       break;
   }
-  sprintf( markup , "%s%s" , markup , msg );
   main_window_error_message( markup );  
   free( markup );
 }
@@ -663,7 +714,7 @@ sflphone_fill_codec_list()
   }
   if( codec_list_get_size() == 0) {
     gchar* markup = malloc(1000);
-    sprintf(markup , "<b>Error: No audio codecs found.\n\n</b> SFL audio codecs have to be placed in <i>%s</i> or in the <b>.sflphone</b> directory in your home( <i>%s</i> )", CODECS_DIR , g_get_home_dir());
+    sprintf(markup , _("<b>Error: No audio codecs found.\n\n</b> SFL audio codecs have to be placed in <i>%s</i> or in the <b>.sflphone</b> directory in your home( <i>%s</i> )"), CODECS_DIR , g_get_home_dir());
     main_window_error_message( markup );
     g_free( markup );
     dbus_unregister(getpid());
@@ -674,78 +725,44 @@ sflphone_fill_codec_list()
 void
 sflphone_fill_contact_list()
 {
-	// Get each enabled and registered account
+	// Get contacts for all accounts
 	int i;
 	for(i = 0; i < account_list_get_size(); i++)
 	{
 		account_t* account = account_list_get_nth(i);
-		if(account->state == ACCOUNT_STATE_REGISTERED &&
-				strcmp((gchar*)g_hash_table_lookup(account->properties, ACCOUNT_ENABLED), "TRUE") == 0)
+		// Get new queue to put all our contacts for this account
+		contact_hash_table_add_contact_list(account->accountID);
+		
+		// Get all contacts for this account
+		gchar** contactIDList = dbus_get_contacts(account->accountID);
+		gchar** contactID;
+		for(contactID = contactIDList; *contactID; contactID++)
 		{
-			// Get new queue to put all our contacts for this account
-			GQueue* contactList = contact_hash_table_add_contact_list(account->accountID);
-			
-			// Get all contacts for this account
-			gchar** contactIDList = dbus_get_contacts(account->accountID);
-			gchar** contactID;
-			for(contactID = contactIDList; *contactID; contactID++)
+			// Get details on contact and add it to the list
+			gchar** contactDetails = dbus_get_contact_details(account->accountID, *contactID);
+			contact_t* contact = contact_list_new_contact_from_details(*contactID, contactDetails);
+			contact_list_add(account->accountID, contact, FALSE);
+
+			// Get all entries for this contact
+			gchar** contactEntryIDList = dbus_get_contact_entries(account->accountID, *contactID);
+			gchar** contactEntryID;
+			for(contactEntryID = contactEntryIDList; *contactEntryID; contactEntryID++)
 			{
-				// Get details on contact and add it to the list
-				gchar** contactDetails = dbus_get_contact_details(account->accountID, *contactID);
-				contact_t* contact = contact_list_new_contact_from_details(*contactID, contactDetails);
-				contact_list_add(contactList, contact);
-				
-				// Get all entries for this contact
-				gchar** contactEntryIDList = dbus_get_contact_entries(account->accountID, *contactID);
-				gchar** contactEntryID;
-				for(contactEntryID = contactEntryIDList; *contactEntryID; contactEntryID++)
-				{
-					// Get details on the entry and add it to the list
-					gchar** contactEntryDetails = dbus_get_contact_entry_details(account->accountID, *contactID, *contactEntryID);
-					contact_entry_t* contactEntry = contact_list_new_contact_entry_from_details(*contactEntryID, contactEntryDetails);
-					contact_list_entry_add(contact, contactEntry);
-				}
+				// Get details on the entry and add it to the list
+				gchar** contactEntryDetails = dbus_get_contact_entry_details(account->accountID, *contactID, *contactEntryID);
+				contact_entry_t* contactEntry = contact_list_new_contact_entry_from_details(*contactEntryID, contactEntryDetails);
+				contact_list_entry_add(account->accountID, *contactID, contactEntry, FALSE);
+				g_strfreev(contactEntryDetails);
+				contactEntryDetails = NULL;
 			}
+			g_strfreev(contactEntryIDList);
+			contactEntryIDList = NULL;
+			g_strfreev(contactDetails);
+			contactDetails = NULL;
 		}
+		g_strfreev(contactIDList);
+		contactIDList = NULL;
 	}
-	// TMP TEST for showing all loaded contacts by account
-//	for(i = 0; i < account_list_get_size(); i++)
-//	{
-//		account_t* account = account_list_get_nth(i);
-//		if(account->state == ACCOUNT_STATE_REGISTERED &&
-//				strcmp((gchar*)g_hash_table_lookup(account->properties, ACCOUNT_ENABLED), "TRUE") == 0)
-//		{
-//			g_print("======= %s =========\n", account->accountID);
-//			GQueue* contactList = contact_hash_table_get_contact_list(account->accountID);
-//			guint j;
-//			for(j = 0; j < contact_list_get_size(contactList); j++)
-//			{
-//				contact_t* contact = contact_list_get_nth(contactList, j);
-//				g_print("  ----- Contact %s -----\n", contact->_contactID);
-//				g_print("  First name : %s\n", contact->_firstName);
-//				g_print("  Last name  : %s\n", contact->_lastName);
-//				g_print("  Email      : %s\n", contact->_email);
-//				g_print("  Group      : %s\n", contact->_group);
-//				g_print("  SubGroup   : %s\n", contact->_subGroup);
-//				
-//				guint k;
-//				for(k = 0; k < contact_list_entry_get_size(contact); k++)
-//				{
-//					contact_entry_t* entry = contact_list_entry_get_nth(contact, k);
-//					g_print("    _____ Entry %s ____\n", entry->_contact);
-//					g_print("    Type         : %s\n", entry->_type);
-//					g_print("    Call console : %d\n", entry->_isShownInConsole);
-//					g_print("    Subscribed   : %d\n", entry->_isSubscribed);
-//				}
-//				// TEST for get functions with compare functions called
-//				contact_t* contact2 = contact_list_get(contactList, contact->_contactID);
-//				g_print("---------> Contact : %s\n", contact2->_contactID);
-//				contact_entry_t* entry2 = contact_list_entry_get_nth(contact, k-1);
-//				contact_entry_t* entry3 = contact_list_entry_get(contact2, entry2->_contact);
-//				g_print("---------> Entry   : %s\n", entry3->_contact);
-//			}
-//		}
-//	}
 }
 
 /* Internal to action - get the codec list */
@@ -791,7 +808,6 @@ sflphone_set_video()
 	{
 		dbus_change_webcam_status(1, c);
 	}
-	
 }
 
 	void 
@@ -802,6 +818,4 @@ sflphone_unset_video()
 	{
 		dbus_change_webcam_status(0, c);
 	}
-	
 }
-  

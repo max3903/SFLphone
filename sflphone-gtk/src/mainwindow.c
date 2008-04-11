@@ -183,7 +183,7 @@ create_main_window ()
                                   GTK_DIALOG_DESTROY_WITH_PARENT,
                                   GTK_MESSAGE_INFO,
                                   GTK_BUTTONS_YES_NO,
-                                  "<b><big>Welcome to SFLphone!</big></b>\n\nThere are no VoIP accounts configured, would you like to edit the preferences now?");
+                                  _("<b><big>Welcome to SFLphone!</big></b>\n\nThere is no VoIP account configured.\n Would you like to create one now?"));
 
     int response = gtk_dialog_run (GTK_DIALOG(dialog));
     
@@ -191,7 +191,7 @@ create_main_window ()
 
     if (response == GTK_RESPONSE_YES)
     {
-      show_config_window(0);
+      show_accounts_window();
     }
    
   }
@@ -259,6 +259,12 @@ main_window_show_call_console(gboolean show)
 }
 
 void
+main_window_call_console_closed()
+{
+	menus_show_call_console_menu_item_set_active(FALSE);
+}
+
+void
 main_window_callinfo(gboolean show, call_t* current)
 {
   /*
@@ -274,13 +280,19 @@ main_window_callinfo(gboolean show, call_t* current)
     gtk_container_remove(GTK_CONTAINER (subvbox), infoScreen);
   }
   showInfoScreen = show;
-*/
+  */
 }
 
 void 
-status_bar_message(const gchar * message)
+status_bar_message_add(const gchar * message, guint id)
 { 
-  gtk_statusbar_push(GTK_STATUSBAR(statusBar), 0, message);
+  gtk_statusbar_push(GTK_STATUSBAR(statusBar), id, message);
+}
+
+void 
+status_bar_message_remove(guint id)
+{ 
+  gtk_statusbar_pop(GTK_STATUSBAR(statusBar), id);
 }
 
 gboolean main_window_glWidget( gboolean show )
@@ -300,11 +312,10 @@ gboolean main_window_glWidget( gboolean show )
 			case CALL_STATE_BUSY:
 			case CALL_STATE_FAILURE:
 				g_print("No active call, showing config window\n");
-
 				// Keep button and menu in the same state as glwidget
 				main_window_update_WebcamStatus(showGlWidget);
 				//Show webcam configuration
-				show_config_window(3);
+				show_config_window(4);
 				
 				return FALSE;
 				
@@ -358,7 +369,7 @@ gboolean main_window_glWidget( gboolean show )
 		// Keep button and menu in the same state as glwidget
 		main_window_update_WebcamStatus(showGlWidget);
 		//Show webcam configuration
-		show_config_window(3);
+		show_config_window(4);
 
 	}
 	

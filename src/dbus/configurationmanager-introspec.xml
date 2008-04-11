@@ -33,6 +33,11 @@
       <arg type="s" name="accountID" direction="in"/>
     </method>
    
+    <method name="sendRegister">
+      <arg type="s" name="accountID" direction="in"/>
+      <arg type="i" name="expire" direction="in"/>
+    </method>
+
    <!--      ///////////////////////               -->
 
   <!-- Various audio-related methods   -->
@@ -253,7 +258,29 @@
       <arg type="i" name="res" direction="out"/>
     </method>
 
+    <method name="getDialpad">
+      <arg type="i" name="state" direction="out"/>
+    </method>
+
+    <method name="setDialpad">
+    </method>
+
+    <method name="startHidden">
+    </method>
+
+    <method name="isStartHidden">
+      <arg type="i" name="state" direction="out"/>
+    </method>
+
+    <method name="popupMode">
+      <arg type="i" name="state" direction="out"/>
+    </method>
+
+    <method name="switchPopupMode">
+    </method>
+
   <!--        /////////////////////////////       -->
+    <!-- SEE parametersChanged signal unused -->
     <signal name="parametersChanged">
       <arg type="a{ss}" name="list" direction="out"/>
     </signal>
@@ -262,7 +289,6 @@
     </signal>
 
     <signal name="errorAlert">
-      <arg type="s" name="errMsg" direction="out"/>
       <arg type="i" name="code" direction="out"/>
     </signal>
 

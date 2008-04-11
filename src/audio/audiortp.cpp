@@ -393,7 +393,6 @@ AudioRtpRTX::receiveSessionForSpkr (int& countTime)
 	  ptracesfl("AudioRtpRTX - receiveSessionForSpkr(): Putting data into Local Input buffer ...", MT_INFO, AUDIO_RTPRTX_TRACE );
 	  _ca->getLocal_Audio_Input()->putData(toAudioLayer, nbSample * sizeof(SFLDataFormat), 0 );
 
-      //audiolayer->playSamples(toAudioLayer, nbSample * sizeof(SFLDataFormat));
       // Notify (with a beep) an incoming call when there is already a call 
       countTime += time->getSecond();
       if (Manager::instance().incomingCallWaiting() > 0) {

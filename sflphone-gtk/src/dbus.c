@@ -29,6 +29,7 @@
 #include <mainwindow.h>
 #include <marshaller.h>
 #include <sliders.h>
+#include <statusicon.h>
 
 #include <dbus.h>
 #include <actions.h>
@@ -55,6 +56,8 @@ incoming_call_cb (DBusGProxy *proxy,
   c->from = g_strdup(from);
   c->state = CALL_STATE_INCOMING;
   
+  status_tray_icon_blink( TRUE );
+  notify_incoming_call( c );
   sflphone_incoming_call (c);
 }
 
@@ -174,16 +177,16 @@ contact_entry_presence_changed(DBusGProxy* proxy,
 {
 	// TMP
 	g_print("%s : %s is %s\n", accountID, entryID, presence);
+	contact_list_entry_change_presence_status(accountID, entryID, presence, additionalInfo);
 }
 
 static void
 error_alert(DBusGProxy *proxy,
-		gchar* errMsg,
-		int err,
-		void * foo)
+		  int errCode,
+                  void * foo  )
 {
-	g_print ("Error notifying : (%s)\n" , errMsg);
-	sflphone_throw_exception( errMsg , err );
+  g_print ("Error notifying : (%i)\n" , errCode);
+  sflphone_throw_exception( errCode );
 }
 
 gboolean 
@@ -285,10 +288,10 @@ dbus_connect ()
     "accountsChanged", G_CALLBACK(accounts_changed_cb), NULL, NULL);
   
   /* Function error alert and register a marshaller for STRING, INT */
-  dbus_g_object_register_marshaller(g_cclosure_user_marshal_VOID__STRING_INT,
-          G_TYPE_NONE, G_TYPE_STRING, G_TYPE_INT , G_TYPE_INVALID);
+  dbus_g_object_register_marshaller(g_cclosure_user_marshal_VOID__INT,
+          G_TYPE_NONE, G_TYPE_INT , G_TYPE_INVALID);
   dbus_g_proxy_add_signal (configurationManagerProxy, 
-    "errorAlert", G_TYPE_STRING , G_TYPE_INT , G_TYPE_INVALID);
+    "errorAlert", G_TYPE_INT , G_TYPE_INVALID);
   dbus_g_proxy_connect_signal (configurationManagerProxy,
     "errorAlert", G_CALLBACK(error_alert), NULL, NULL);
   
@@ -322,6 +325,7 @@ dbus_clean ()
     g_object_unref (configurationManagerProxy);
     g_object_unref (contactManagerProxy);
 }
+
 
 void
 dbus_hold (const call_t * c)
@@ -398,6 +402,7 @@ dbus_transfert (const call_t * c)
 void
 dbus_accept (const call_t * c)
 {
+  status_tray_icon_blink( FALSE );
   GError *error = NULL;
   org_sflphone_SFLphone_CallManager_accept ( callManagerProxy, c->callID, &error);
   if (error) 
@@ -416,6 +421,9 @@ dbus_accept (const call_t * c)
 void
 dbus_refuse (const call_t * c)
 {
+  // Remove the account message from the status bar stack
+  status_bar_message_remove( __MSG_ACCOUNT_DEFAULT ); 
+  status_tray_icon_blink( FALSE );
   GError *error = NULL;
   org_sflphone_SFLphone_CallManager_refuse ( callManagerProxy, c->callID, &error);
   if (error) 
@@ -613,6 +621,23 @@ dbus_account_details(gchar * accountID)
   return details;
 }
 
+void
+dbus_send_register ( gchar* accountID , int expire)
+{
+  GError *error = NULL;
+  org_sflphone_SFLphone_ConfigurationManager_send_register ( configurationManagerProxy, accountID, expire ,&error);
+  if (error) 
+  {
+    g_printerr ("Failed to call send_register() on ConfigurationManager: %s\n",
+                error->message);
+    g_error_free (error);
+  } 
+  else 
+  {
+    g_print ("DBus called send_register() on ConfigurationManager\n");
+  }
+}
+
 gchar * 
 dbus_get_default_account( )
 {
@@ -790,6 +815,30 @@ dbus_play_dtmf(const gchar * key)
   else 
   {
     g_print ("DBus called playDTMF() on callManagerProxy\n");
+
+  }
+}
+
+void
+dbus_start_tone(const int start , const guint type )
+{
+  GError *error = NULL;
+  
+  org_sflphone_SFLphone_CallManager_start_tone(
+    callManagerProxy, 
+    start,
+    type, 
+    &error);
+
+  if (error) 
+  {
+    g_printerr ("Failed to call startTone() on callManagerProxy: %s\n",
+                error->message);
+    g_error_free (error);
+  } 
+  else 
+  {
+    g_print ("DBus called startTone() on callManagerProxy\n");
 
   }
 }
@@ -1400,6 +1449,94 @@ dbus_is_iax2_enabled()
 	return res;
 }
 
+
+void
+dbus_start_hidden()
+{
+	GError* error = NULL;
+	org_sflphone_SFLphone_ConfigurationManager_start_hidden(
+			configurationManagerProxy,
+			&error);
+	if(error)
+	  g_error_free(error);
+	else
+	  g_print("DBus called start_hidden on ConfigurationManager\n");
+}
+  
+int
+dbus_is_start_hidden()
+{
+	int state;
+	GError* error = NULL;
+	org_sflphone_SFLphone_ConfigurationManager_is_start_hidden(
+			configurationManagerProxy,
+			&state,
+			&error);
+	if(error)
+	  g_error_free(error);
+	else
+	  g_print("DBus called is_start_hidden on ConfigurationManager\n");
+	return state;
+}
+  
+void
+dbus_switch_popup_mode()
+{
+	GError* error = NULL;
+	org_sflphone_SFLphone_ConfigurationManager_switch_popup_mode(
+			configurationManagerProxy,
+			&error);
+	if(error)
+	  g_error_free(error);
+	else
+	  g_print("DBus called switch_popup_mode on ConfigurationManager\n");
+}
+int
+dbus_popup_mode()
+{
+	int state;
+	GError* error = NULL;
+	org_sflphone_SFLphone_ConfigurationManager_popup_mode(
+			configurationManagerProxy,
+			&state,
+			&error);
+	if(error)
+	  g_error_free(error);
+	else
+	  g_print("DBus called popup_mode on ConfigurationManager\n");
+	return state;
+}
+
+int
+dbus_get_dialpad()
+{
+	int state;
+	GError* error = NULL;
+	org_sflphone_SFLphone_ConfigurationManager_get_dialpad(
+			configurationManagerProxy,
+			&state,
+			&error);
+	if(error)
+	  g_error_free(error);
+	else
+	  g_print("DBus called get_dialpad on ConfigurationManager\n");
+	return state;
+}
+
+void
+dbus_set_dialpad()
+{
+	GError* error = NULL;
+        org_sflphone_SFLphone_ConfigurationManager_set_dialpad(
+                        configurationManagerProxy,
+                        &error);
+        if(error)
+          g_error_free(error);
+        else
+          g_print("DBus called set_dialpad on ConfigurationManager\n");
+}
+
+
 gchar**
 dbus_get_contacts(gchar* accountID)
 {
@@ -1485,8 +1622,86 @@ dbus_get_contact_entry_details(gchar* accountID, gchar* contactID, gchar* entryI
 	return array;
 }
 
+void
+dbus_set_contact(gchar* accountID, gchar* contactID, gchar* firstName, gchar* lastName, gchar* email)
+{
+	GError* error = NULL;
+	org_sflphone_SFLphone_ContactManager_set_contact(
+			contactManagerProxy,
+			accountID,
+			contactID,
+			firstName,
+			lastName,
+			email,
+			&error);
+	if(error)
+	{
+		g_printerr ("Failed to call set_contact on ContactManager: %s\n", error->message);
+		g_error_free (error);
+	}
+	else
+		g_print ("DBus called set_contact on ContactManager\n");
+}
 
+void
+dbus_remove_contact(gchar* accountID, gchar* contactID)
+{
+	GError* error = NULL;
+	org_sflphone_SFLphone_ContactManager_remove_contact(
+			contactManagerProxy,
+			accountID,
+			contactID,
+			&error);
+	if(error)
+	{
+		g_printerr ("Failed to call remove_contact on ContactManager: %s\n", error->message);
+		g_error_free (error);
+	}
+	else
+		g_print ("DBus called remove_contact on ContactManager\n");
+}
 
+void
+dbus_set_contact_entry(gchar* accountID, gchar* contactID, gchar* entryID, gchar* text, gchar* type, gchar* isShown, gchar* isSubscribed)
+{
+	GError* error = NULL;
+	org_sflphone_SFLphone_ContactManager_set_contact_entry(
+			contactManagerProxy,
+			accountID,
+			contactID,
+			entryID,
+			text,
+			type,
+			isShown,
+			isSubscribed,
+			&error);
+	if(error)
+	{
+		g_printerr ("Failed to call set_contact_entry on ContactManager: %s\n", error->message);
+		g_error_free (error);
+	}
+	else
+		g_print ("DBus called set_contact_entry on ContactManager\n");
+}
+
+void
+dbus_remove_contact_entry(gchar* accountID, gchar* contactID, gchar* entryID)
+{
+	GError* error = NULL;
+	org_sflphone_SFLphone_ContactManager_remove_contact_entry(
+			contactManagerProxy,
+			accountID,
+			contactID,
+			entryID,
+			&error);
+	if(error)
+	{
+		g_printerr ("Failed to call remove_contact_entry on ContactManager: %s\n", error->message);
+		g_error_free (error);
+	}
+	else
+		g_print ("DBus called remove_contact_entry on ContactManager\n");
+}
 
 //Brightness of the video capture
 slider_t
@@ -1725,6 +1940,7 @@ dbus_get_current_resolution()
 	return name;
 }
 
+
 //Bitrate list
 gchar** 
 dbus_get_bitrate_list()
@@ -1928,4 +2144,5 @@ dbus_set_disable_checkbox_status(gboolean status)
 	else
 		g_print("DBus called set_disable_checkbox_status() on ConfigurationManager\n");
 }
+
 

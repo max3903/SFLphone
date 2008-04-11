@@ -20,11 +20,24 @@
 #ifndef __CALLCONSOLEWINDOW_H__
 #define __CALLCONSOLEWINDOW_H__
 
+#include <gtk/gtk.h>
+
 /**
  * @file contactwindow.h
  * @brief The Contacts window.
  */
 void call_console_window_fill_contact_list();
-GtkDialog* show_call_console_window(gboolean show);
+void call_console_window_clear_contact_list();
+void show_call_console_window(gboolean show);
+
+/**
+ * Called from the contact list to update the view
+ */
+void call_console_edit_contact(gchar* accountID, contact_t* contact);
+void call_console_add_entry(gchar* accountID, gchar* contactID, contact_entry_t* entry);
+void call_console_edit_entry(gchar* accountID, gchar* contactID, contact_entry_t* entry);
+void call_console_remove_entry(gchar* accountID, gchar* contactID, contact_entry_t* entry);
+void call_console_change_entry_presence_status(const gchar* accountID, const gchar* contactID,
+		const gchar* entryID, const gchar* presence, const gchar* additionalInfo);
 
 #endif 
