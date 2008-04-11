@@ -963,7 +963,83 @@ contact_window_add_entry(gchar* accountID, gchar* contactID, contact_entry_t* en
 void
 contact_window_edit_entry(gchar* accountID, gchar* contactID, contact_entry_t* entry)
 {
-	// NOW
+	// Only if the contact window is shown
+	if(contactWindowDialog == NULL) return;
+	
+	// Get the iteration corresponding to the account
+	GtkTreeModel* model;
+	GtkTreePath* accountPath;
+	GtkTreePath* contactPath;
+	GtkTreePath* entryPath;
+	GtkTreeIter iter;
+	gchar* id;
+	
+	model = gtk_tree_view_get_model(GTK_TREE_VIEW(contactTreeView));
+	if(!gtk_tree_model_get_iter_first(model, &iter)) return;
+	do
+	{
+		// Get the ID of the current account iter
+		gtk_tree_model_get(model, &iter,
+				CONTACT_WINDOW_ID, &id,
+				-1);
+		if(id == NULL) return;
+		if(strcmp(id, accountID) == 0)
+		{
+			// The account is found so go deeper
+			contactPath = gtk_tree_model_get_path(model, &iter);
+			gtk_tree_path_down(contactPath);
+			// Try to find the contact
+			gtk_tree_model_get_iter(model, &iter, contactPath);
+			do
+			{
+				// Get the ID of the current contact iter
+				gtk_tree_model_get(model, &iter,
+						CONTACT_WINDOW_ID, &id,
+						-1);
+				if(id == NULL) return;
+				if(strcmp(id, contactID) == 0)
+				{
+					// The contact is found so go deeper
+					entryPath = gtk_tree_model_get_path(model, &iter);
+					gtk_tree_path_down(entryPath);
+					// Try to find the contact
+					gtk_tree_model_get_iter(model, &iter, entryPath);
+					do
+					{
+						// Get the ID of the current contact iter
+						gtk_tree_model_get(model, &iter,
+								CONTACT_WINDOW_ID, &id,
+								-1);
+						if(id == NULL) return;
+						if(strcmp(id, entry->_entryID) == 0)
+						{
+							gtk_tree_store_set(contactTreeStore, &iter,
+									CONTACT_WINDOW_TYPE, TYPE_ENTRY,
+									CONTACT_WINDOW_ID, entry->_entryID,					// The contact string is also used as a unique ID
+									CONTACT_WINDOW_CALL_CONSOLE_ACTIVE, entry->_isShownInConsole,
+									CONTACT_WINDOW_CALL_CONSOLE_INCONSISTENT, FALSE,	// Never inconsistent because at bottom level of tree
+									CONTACT_WINDOW_ICON, gdk_pixbuf_new_from_file(CONTACT_WINDOW_ENTRY_ICON, NULL),
+									CONTACT_WINDOW_TEXT, entry->_text,
+									-1);
+							return;
+						}
+						// Go to next contact until null
+						entryPath = gtk_tree_model_get_path(model, &iter);
+						gtk_tree_path_next(entryPath);
+					}
+					while(gtk_tree_model_get_iter(model, &iter, entryPath));
+				}
+				// Go to next contact until null
+				contactPath = gtk_tree_model_get_path(model, &iter);
+				gtk_tree_path_next(contactPath);
+			}
+			while(gtk_tree_model_get_iter(model, &iter, contactPath));
+		}
+		// Go to next account until null
+		accountPath = gtk_tree_model_get_path(model, &iter);
+		gtk_tree_path_next(accountPath);
+	}
+	while(gtk_tree_model_get_iter(model, &iter, accountPath));
 }
 
 void

@@ -33,6 +33,7 @@ void show_call_console_window(gboolean show);
 /**
  * Called from the contact list to update the view
  */
+void call_console_edit_contact(gchar* accountID, contact_t* contact);
 void call_console_add_entry(gchar* accountID, gchar* contactID, contact_entry_t* entry);
 void call_console_edit_entry(gchar* accountID, gchar* contactID, contact_entry_t* entry);
 void call_console_remove_entry(gchar* accountID, gchar* contactID, contact_entry_t* entry);

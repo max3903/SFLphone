@@ -80,13 +80,15 @@ call_console_window_fill_contact_list()
 					// Append the contact entry in the list if shown in call console is true
 					if(entry->_isShownInConsole)
 					{
+						gchar fullName[1000];
+						sprintf(fullName, "%s %s", contact->_firstName, contact->_lastName);
 						gtk_list_store_append(callConsoleListStore, &iter);
 						gtk_list_store_set(callConsoleListStore, &iter,
 								CALL_CONSOLE_ACCOUNT_ID, account->accountID,
 								CALL_CONSOLE_CONTACT_ID, contact->_contactID,
 								CALL_CONSOLE_ENTRY_ID, entry->_entryID,
 								CALL_CONSOLE_WINDOW_ICON, gdk_pixbuf_new_from_file(contact_list_presence_status_get_icon_string(entry->_presenceStatus), NULL),
-								CALL_CONSOLE_WINDOW_NAME, contact->_firstName,
+								CALL_CONSOLE_WINDOW_NAME, fullName,
 								CALL_CONSOLE_WINDOW_CONTACT, entry->_text,
 								CALL_CONSOLE_WINDOW_PRESENCE_STATUS, contact_list_presence_status_translate(entry->_presenceStatus),
 								-1);
@@ -211,21 +213,67 @@ show_call_console_window(gboolean show)
 }
 
 void
+call_console_edit_contact(gchar* accountID, contact_t* contact)
+{
+	// Only if the call console is shown
+	if(callConsoleDialog == NULL) return;
+	
+	GtkTreeModel* model;
+	GtkTreePath* path;
+	GtkTreeIter iter;
+	
+	gchar* accountIDStored = NULL;
+	gchar* contactIDStored = NULL;
+	
+	model = gtk_tree_view_get_model(GTK_TREE_VIEW(callConsoleTreeView));
+	if(!gtk_tree_model_get_iter_first(model, &iter)) return;
+	do
+	{
+		// Get the ID of the current account iter
+		gtk_tree_model_get(model, &iter,
+				CALL_CONSOLE_ACCOUNT_ID, &accountIDStored,
+				CALL_CONSOLE_CONTACT_ID, &contactIDStored,
+				-1);
+		if(accountIDStored == NULL || contactIDStored == NULL) return;
+		
+		// Compare current entry with the one that presence changed
+		if(strcmp(accountIDStored, accountID) == 0 &&
+				strcmp(contactIDStored, contact->_contactID) == 0)
+		{
+			gchar fullName[1000];
+			sprintf(fullName, "%s %s", contact->_firstName, contact->_lastName);
+			gtk_list_store_set(callConsoleListStore, &iter,
+					CALL_CONSOLE_WINDOW_NAME, fullName,
+					-1);
+		}
+		// Get the next iteration
+		path = gtk_tree_model_get_path(model, &iter);
+		gtk_tree_path_next(path);
+	}
+	while(gtk_tree_model_get_iter(model, &iter, path));
+}
+
+void
 call_console_add_entry(gchar* accountID, gchar* contactID, contact_entry_t* entry)
 {
+	// Only if the call console is shown
+	if(callConsoleDialog == NULL) return;
+
 	GtkTreeIter iter;
 	
 	contact_t* contact = contact_list_get(contact_hash_table_get_contact_list(accountID), contactID);
 	// Append the contact entry in the list if shown in call console is true
 	if(entry->_isShownInConsole)
 	{
+		gchar fullName[1000];
+		sprintf(fullName, "%s %s", contact->_firstName, contact->_lastName);
 		gtk_list_store_append(callConsoleListStore, &iter);
 		gtk_list_store_set(callConsoleListStore, &iter,
 				CALL_CONSOLE_ACCOUNT_ID, accountID,
 				CALL_CONSOLE_CONTACT_ID, contactID,
 				CALL_CONSOLE_ENTRY_ID, entry->_entryID,
 				CALL_CONSOLE_WINDOW_ICON, gdk_pixbuf_new_from_file(contact_list_presence_status_get_icon_string(entry->_presenceStatus), NULL),
-				CALL_CONSOLE_WINDOW_NAME, contact->_firstName,
+				CALL_CONSOLE_WINDOW_NAME, fullName,
 				CALL_CONSOLE_WINDOW_CONTACT, entry->_text,
 				CALL_CONSOLE_WINDOW_PRESENCE_STATUS, contact_list_presence_status_translate(entry->_presenceStatus),
 				-1);
@@ -235,7 +283,61 @@ call_console_add_entry(gchar* accountID, gchar* contactID, contact_entry_t* entr
 void
 call_console_edit_entry(gchar* accountID, gchar* contactID, contact_entry_t* entry)
 {
-	// TODO
+	// Only if the call console is shown
+	if(callConsoleDialog == NULL) return;
+
+	GtkTreeModel* model;
+	GtkTreePath* path;
+	GtkTreeIter iter;
+	
+	gchar* accountIDStored = NULL;
+	gchar* contactIDStored = NULL;
+	gchar* entryIDStored = NULL;
+	
+	model = gtk_tree_view_get_model(GTK_TREE_VIEW(callConsoleTreeView));
+	if(!gtk_tree_model_get_iter_first(model, &iter)) return;
+	do
+	{
+		// Get the ID of the current account iter
+		gtk_tree_model_get(model, &iter,
+				CALL_CONSOLE_ACCOUNT_ID, &accountIDStored,
+				CALL_CONSOLE_CONTACT_ID, &contactIDStored,
+				CALL_CONSOLE_ENTRY_ID, &entryIDStored,
+				-1);
+		if(accountIDStored == NULL || contactIDStored == NULL || entryIDStored == NULL) return;
+		
+		// Compare current entry with the one that presence changed
+		if(strcmp(accountIDStored, accountID) == 0 &&
+				strcmp(contactIDStored, contactID) == 0 &&
+				strcmp(entryIDStored, entry->_entryID) == 0)
+		{
+			contact_t* contact = contact_list_get(contact_hash_table_get_contact_list(accountID), contactID);
+			// Edit the new presence status if subscribed, otherwise remove it
+			if(entry->_isSubscribed)
+			{
+				gchar fullName[1000];
+				sprintf(fullName, "%s %s", contact->_firstName, contact->_lastName);
+				gtk_list_store_set(callConsoleListStore, &iter,
+						CALL_CONSOLE_ACCOUNT_ID, accountID,
+						CALL_CONSOLE_CONTACT_ID, contactID,
+						CALL_CONSOLE_ENTRY_ID, entry->_entryID,
+						CALL_CONSOLE_WINDOW_ICON, gdk_pixbuf_new_from_file(contact_list_presence_status_get_icon_string(entry->_presenceStatus), NULL),
+						CALL_CONSOLE_WINDOW_NAME, fullName,
+						CALL_CONSOLE_WINDOW_CONTACT, entry->_text,
+						CALL_CONSOLE_WINDOW_PRESENCE_STATUS, contact_list_presence_status_translate(entry->_presenceStatus),
+						-1);
+			}
+			else
+			{
+				gtk_list_store_remove(callConsoleListStore, &iter);
+			}
+			return;
+		}
+		// Get the next iteration
+		path = gtk_tree_model_get_path(model, &iter);
+		gtk_tree_path_next(path);
+	}
+	while(gtk_tree_model_get_iter(model, &iter, path));
 }
 
 void
@@ -252,7 +354,7 @@ call_console_change_entry_presence_status(const gchar* accountID, const gchar* c
 	contact_entry_t* entry = contact_list_entry_get(contact_list_get(contact_hash_table_get_contact_list(accountID), contactID), entryID);
 	if(entry != NULL)
 		if(!entry->_isSubscribed)
-			return;
+			presence = PRESENCE_NOT_SUBSCRIBED;
 	
 	// Try to find entry and change iteration
 	GtkTreeModel* model;

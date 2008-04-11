@@ -2576,6 +2576,7 @@ ManagerImpl::setContactEntry(const std::string& accountID, const std::string& co
 	ContactEntry* entry;
 	bool subscribedChanged = FALSE, subscribe;
 	
+	account = getAccount(accountID);
 	contact = getContact(accountID, contactID);
 	if(contact != NULL)
 	{
@@ -2637,7 +2638,6 @@ ManagerImpl::setContactEntry(const std::string& accountID, const std::string& co
 		// Subscribe or unsubscribe presence to entry if supported
 		if(subscribedChanged)
 		{
-			account = getAccount(accountID);
 			if(account != NULL)
 			{
 				if(account->getVoIPLink()->isContactPresenceSupported())

@@ -105,6 +105,7 @@ contact_list_edit(gchar* accountID, contact_t* contact)
 
 	// Modify views
 	contact_window_edit_contact(accountID, contact);
+	call_console_edit_contact(accountID, contact);
 	
 	// Send modifications to server
 	dbus_set_contact(accountID, contact->_contactID, contact->_firstName, contact->_lastName, contact->_email);
@@ -142,6 +143,9 @@ void
 contact_list_entry_add(gchar* accountID, gchar* contactID, contact_entry_t* entry, gboolean update)
 {
 	contact_t* contact = contact_list_get(contact_hash_table_get_contact_list(accountID), contactID);
+	// Assert that this entry ID is not allready in use or return
+	if(contact_list_entry_get(contact, entry->_entryID) != NULL) return;
+	// Modify the data in contact list
 	g_queue_push_tail(contact->_entryList, (void*)entry);
 	
 	// Modify the views
@@ -167,7 +171,20 @@ contact_list_entry_add(gchar* accountID, gchar* contactID, contact_entry_t* entr
 void
 contact_list_entry_edit(gchar* accountID, gchar* contactID, contact_entry_t* entry)
 {
-	// TODO
+	// Modify contact list
+	contact_entry_t* oldEntry = contact_list_entry_get(contact_list_get(contact_hash_table_get_contact_list(accountID), contactID), entry->_entryID);
+	oldEntry->_text = entry->_text;
+	oldEntry->_type = entry->_type;
+	oldEntry->_isShownInConsole = entry->_isShownInConsole;
+	oldEntry->_isSubscribed = entry->_isSubscribed;
+	
+	// Modify both views
+	contact_window_edit_entry(accountID, contactID, entry);
+	call_console_edit_entry(accountID, contactID, entry);
+	
+	// Send modifications to server
+	dbus_set_contact_entry(accountID, contactID, entry->_entryID, entry->_text, entry->_type,
+			entry->_isShownInConsole ? "TRUE" : "FALSE", entry->_isSubscribed ? "TRUE" : "FALSE");
 }
 
 void
@@ -392,7 +409,7 @@ contact_list_presence_status_get_icon_string(const gchar* presenceStatus)
 		return(PRESENCE_UNKNOWN_ICON);
 	}
 	if(strcmp(presenceStatus, PRESENCE_UNAVAILABLE) == 0) {
-		return(PRESENCE_UNKNOWN_ICON);
+		return(PRESENCE_OFFLINE_ICON);
 	}
 	if(strcmp(presenceStatus, PRESENCE_ON_THE_PHONE) == 0) {
 		return(PRESENCE_ON_THE_PHONE_ICON);
