@@ -19,7 +19,6 @@
  */
 #include "VideoRtpRTX.h"
 
-
 #define PIC_WIDTH 352
 #define PIC_HEIGHT 288
 #define FRAME_SIZE  (PIC_WIDTH*PIC_HEIGHT*3) //frame size of the RGB picture
@@ -129,7 +128,7 @@ void VideoRtpRTX::run(){
     free(data_to_display);data_to_display= NULL;
     free(data_from_peer);data_from_peer= NULL;
     free(data_to_send);data_to_send= NULL;
-
+	
     unloadCodec((CodecID)CODEC_ID_H263,0);
     unloadCodec((CodecID)CODEC_ID_H263,1);
     _debug("stop stream for videortp loop\n");
@@ -332,11 +331,13 @@ void VideoRtpRTX::receiveSession()
     }
 
     delete adu; adu = NULL;
+   
     
   } catch(...) {
     _debugException("! ARTP: receiving failed");
     throw;
   }
+   
 }
 
 void VideoRtpRTX::loadCodec(enum CodecID id,int type)
