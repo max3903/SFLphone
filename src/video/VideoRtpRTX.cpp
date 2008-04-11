@@ -127,7 +127,6 @@ void VideoRtpRTX::run(){
     }
 
     free(data_to_display);data_to_display= NULL;
-    free(data_from_wc);data_from_wc= NULL;
     free(data_from_peer);data_from_peer= NULL;
     free(data_to_send);data_to_send= NULL;
 
@@ -150,7 +149,6 @@ void VideoRtpRTX::run(){
 void VideoRtpRTX::initBuffers()
 {
   data_to_display = (unsigned char *)malloc(FRAME_SIZE);
-  data_from_wc = (unsigned char *)malloc(FRAME_SIZE);
   data_to_send = (unsigned char *)malloc(FRAME_SIZE);
   data_from_peer = (unsigned char *)malloc(FRAME_SIZE);
   rcvWorkingBuf = (unsigned char *)malloc(FRAME_SIZE);
@@ -259,7 +257,7 @@ void VideoRtpRTX::sendSession()
   if( videoSize > 0 ){
   	
   	encodedSize = encodeCodec->videoEncode(dataToSend,(unsigned char*)data_to_send,width,height);
-  	  	
+  	 delete dataToSend; dataToSend = NULL;
   	pair<int,int> ResEnc = encodeCodec->getEncodeOutputResolution();
   	
     unsigned char *packet;
@@ -309,7 +307,6 @@ void VideoRtpRTX::receiveSession()
     
     if (adu==NULL)
        return;
-    
     isMarked = adu->isMarked();
     
     // On jumelle les donnes partielles recues
