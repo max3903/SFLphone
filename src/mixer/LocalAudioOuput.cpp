@@ -36,7 +36,7 @@ void LocalAudioOuput::putData(short * data, int size)
 		if( audioLayer ){
 			ptracesfl("LocalAudioOuput - putData () : playing Sample", MT_INFO, LOCALAUDIOOUPUT_TRACE);
 			audioLayer->playSamples( data, size );
-//			audioLayer->putUrgent( data, size );			
+			delete data;			
 			ptracesfl("LocalAudioOuput - putData () : Finnish playing Sample", MT_INFO, LOCALAUDIOOUPUT_TRACE);
 			
 		}else{

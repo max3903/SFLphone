@@ -48,7 +48,9 @@ unsigned char* VideoOutput::fetchData(int &size, int &width, int &height)
     sem_wait(&sem_putData); 
     this->fifo.pop_front();
     sem_post(&sem_putData);
-        
+    
+    delete tmpPak;
+    
     return data;
   }
   else

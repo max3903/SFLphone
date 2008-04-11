@@ -70,6 +70,8 @@ unsigned char* VideoInput::fetchData(int &size){
     sem_wait(&sem_putData); 
     this->fifo.pop_front();
     sem_post(&sem_putData);
+    
+    delete tmpPak;
         
     return data;
   }
