@@ -34,9 +34,10 @@ void show_call_console_window(gboolean show);
  * Called from the contact list to update the view
  */
 void call_console_edit_contact(gchar* accountID, contact_t* contact);
+void call_console_remove_contact(gchar* accountID, gchar* contactID);
 void call_console_add_entry(gchar* accountID, gchar* contactID, contact_entry_t* entry);
 void call_console_edit_entry(gchar* accountID, gchar* contactID, contact_entry_t* entry);
-void call_console_remove_entry(gchar* accountID, gchar* contactID, contact_entry_t* entry);
+void call_console_remove_entry(gchar* accountID, gchar* contactID, gchar* entryID);
 void call_console_change_entry_presence_status(const gchar* accountID, const gchar* contactID,
 		const gchar* entryID, const gchar* presence, const gchar* additionalInfo);
 

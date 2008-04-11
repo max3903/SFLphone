@@ -29,7 +29,7 @@
 
 // Special statuses icons
 #define PRESENCE_NOT_SUBSCRIBED_ICON	""
-#define PRESENCE_NOT_INITIALIZED_ICON	ICONS_DIR "/hang_up.svg"
+#define PRESENCE_NOT_INITIALIZED_ICON	ICONS_DIR "/transfert.svg"
 #define PRESENCE_NOT_SUPPORTED_ICON		ICONS_DIR "/fail.svg"
 
 // Active statuses icons
@@ -88,7 +88,6 @@ GQueue* contact_hash_table_get_contact_list(const gchar* accountID);
 /**
  * Functions to add, edit and remove a contact in a contact list
  */
-// TODO
 void contact_list_add(gchar* accountID, contact_t* contact, gboolean update);
 void contact_list_edit(gchar* accountID, contact_t* contact);
 void contact_list_remove(gchar* accountID, gchar* contactID);
@@ -103,7 +102,6 @@ contact_t* contact_list_get_nth(GQueue* contactList, guint index);
 /**
  * Functions to add, get, edit and remove a contact entry in a contact
  */
-// TODO
 void contact_list_entry_add(gchar* accountID, gchar* contactID, contact_entry_t* entry, gboolean update);
 void contact_list_entry_edit(gchar* accountID, gchar* contactID, contact_entry_t* entry);
 void contact_list_entry_remove(gchar* accountID, gchar* contactID, gchar* entryID);

@@ -114,7 +114,25 @@ contact_list_edit(gchar* accountID, contact_t* contact)
 void
 contact_list_remove(gchar* accountID, gchar* contactID)
 {
+	// Modify data
+	GQueue* contactList = contact_hash_table_get_contact_list(accountID);
+	GList* contacts = g_queue_find_custom(contactList, contactID, compare_contact_contactID);
+	if(contacts)
+	{
+		// Remove all entries and remove contact
+		contact_t* contact = (contact_t*)contacts->data;
+		g_queue_clear(contact->_entryList);
+		g_queue_remove(contactList, contacts->data);
+	}
+	
+	// Modify both views
 	// TODO
+	contact_window_remove_contact(accountID, contactID);
+	call_console_remove_contact(accountID, contactID);
+	
+	// Send modifications to server
+	// TOSEE
+	//dbus_remove_contact(accountID, contactID);
 }
 
 guint
@@ -143,7 +161,7 @@ void
 contact_list_entry_add(gchar* accountID, gchar* contactID, contact_entry_t* entry, gboolean update)
 {
 	contact_t* contact = contact_list_get(contact_hash_table_get_contact_list(accountID), contactID);
-	// Assert that this entry ID is not allready in use or return
+	// Assert that this entry ID is not already in use or return
 	if(contact_list_entry_get(contact, entry->_entryID) != NULL) return;
 	// Modify the data in contact list
 	g_queue_push_tail(contact->_entryList, (void*)entry);
@@ -177,7 +195,7 @@ contact_list_entry_edit(gchar* accountID, gchar* contactID, contact_entry_t* ent
 	oldEntry->_type = entry->_type;
 	oldEntry->_isShownInConsole = entry->_isShownInConsole;
 	oldEntry->_isSubscribed = entry->_isSubscribed;
-	
+		
 	// Modify both views
 	contact_window_edit_entry(accountID, contactID, entry);
 	call_console_edit_entry(accountID, contactID, entry);
@@ -190,7 +208,18 @@ contact_list_entry_edit(gchar* accountID, gchar* contactID, contact_entry_t* ent
 void
 contact_list_entry_remove(gchar* accountID, gchar* contactID, gchar* entryID)
 {
-	// TODO
+	// Modify contact list
+	contact_t* contact = contact_list_get(contact_hash_table_get_contact_list(accountID), contactID);
+	GList* entries = g_queue_find_custom(contact->_entryList, entryID, compare_contact_contactEntryID);
+	if(entries) g_queue_remove(contact->_entryList, entries->data);
+	
+	// Modify both views
+	contact_window_remove_entry(accountID, contactID, entryID);
+	call_console_remove_entry(accountID, contactID, entryID);
+	
+	// Send modifications to server
+	// FIXME
+	//dbus_remove_contact_entry(accountID, contactID, entryID);
 }
 
 void
@@ -311,7 +340,7 @@ contact_list_presence_status_translate(const gchar* presenceStatus)
 	if(strcmp(presenceStatus, PRESENCE_NOT_INITIALIZED) == 0)
 	{
 		// Return offline for now because not all subscriptions return a receipt
-		return(_("Offline"));
+		return(_("Unreachable"));
 	}
 	if(strcmp(presenceStatus, PRESENCE_NOT_SUPPORTED) == 0)
 	{

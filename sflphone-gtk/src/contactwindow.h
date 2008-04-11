@@ -39,12 +39,12 @@ void show_entry_dialog(gchar* accountID, gchar* contactID, gchar* entryID);
  * Called from the contact list to update the view
  */
 void contact_window_add_account(account_t* account);
-void contact_window_remove_account(account_t* account);
+void contact_window_remove_account(gchar* accountID);
 void contact_window_add_contact(gchar* accountID, contact_t* contact);
 void contact_window_edit_contact(gchar* accountID, contact_t* contact);
-void contact_window_remove_contact(gchar* accountID, contact_t* contact);
+void contact_window_remove_contact(gchar* accountID, gchar* contactID);
 void contact_window_add_entry(gchar* accountID, gchar* contactID, contact_entry_t* entry);
 void contact_window_edit_entry(gchar* accountID, gchar* contactID, contact_entry_t* entry);
-void contact_window_remove_entry(gchar* accountID, gchar* contactID, contact_entry_t* entry);
+void contact_window_remove_entry(gchar* accountID, gchar* contactID, gchar* entryID);
 
 #endif 

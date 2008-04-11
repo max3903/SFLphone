@@ -98,58 +98,58 @@ contact_window_fill_contact_list()
 	for(i = 0; i < account_list_get_size(); i++)
 	{
 		account_t* account = account_list_get_nth(i);
-		if(strcmp((gchar*)g_hash_table_lookup(account->properties, ACCOUNT_ENABLED), "TRUE") == 0)
+		GtkTreeIter accountIter;
+		// Append the account in the list
+		gtk_tree_store_append(contactTreeStore, &accountIter, NULL);
+		gtk_tree_store_set(contactTreeStore, &accountIter,
+				CONTACT_WINDOW_TYPE, TYPE_ACCOUNT,
+				CONTACT_WINDOW_ID, account->accountID,
+				CONTACT_WINDOW_CALL_CONSOLE_ACTIVE, TRUE,
+				CONTACT_WINDOW_CALL_CONSOLE_INCONSISTENT, TRUE,		// TODO Should be a function to pass all contacts if all selected or not
+				CONTACT_WINDOW_ICON, gdk_pixbuf_new_from_file(CONTACT_WINDOW_ACCOUNT_ICON, NULL),
+				CONTACT_WINDOW_TEXT, (gchar*)g_hash_table_lookup(account->properties, ACCOUNT_ALIAS),
+				-1);
+
+		// Get contact list for account
+		GQueue* contactList = contact_hash_table_get_contact_list(account->accountID);
+		int j;
+		for(j = 0; j < contact_list_get_size(contactList); j++)
 		{
-			GtkTreeIter accountIter;
-			// Append the account in the list
-			gtk_tree_store_append(contactTreeStore, &accountIter, NULL);
-			gtk_tree_store_set(contactTreeStore, &accountIter,
-					CONTACT_WINDOW_TYPE, TYPE_ACCOUNT,
-					CONTACT_WINDOW_ID, account->accountID,
+			contact_t* contact = contact_list_get_nth(contactList, j);
+			GtkTreeIter contactIter;
+			// Append the contact in the list
+			gchar fullName[1000];
+			sprintf(fullName, "%s %s", contact->_firstName, contact->_lastName);
+			gtk_tree_store_append(contactTreeStore, &contactIter, &accountIter);
+			gtk_tree_store_set(contactTreeStore, &contactIter,
+					CONTACT_WINDOW_TYPE, TYPE_CONTACT,
+					CONTACT_WINDOW_ID, contact->_contactID,
 					CONTACT_WINDOW_CALL_CONSOLE_ACTIVE, TRUE,
 					CONTACT_WINDOW_CALL_CONSOLE_INCONSISTENT, TRUE,		// TODO Should be a function to pass all contacts if all selected or not
-					CONTACT_WINDOW_ICON, gdk_pixbuf_new_from_file(CONTACT_WINDOW_ACCOUNT_ICON, NULL),
-					CONTACT_WINDOW_TEXT, (gchar*)g_hash_table_lookup(account->properties, ACCOUNT_ALIAS),
+					CONTACT_WINDOW_ICON, gdk_pixbuf_new_from_file(CONTACT_WINDOW_CONTACT_ICON, NULL),
+					CONTACT_WINDOW_TEXT, fullName,
 					-1);
-			
-			// Get contact list for account
-			GQueue* contactList = contact_hash_table_get_contact_list(account->accountID);
-			int j;
-			for(j = 0; j < contact_list_get_size(contactList); j++)
+
+			int k;
+			for(k = 0; k < contact_list_entry_get_size(contact); k++)
 			{
-				contact_t* contact = contact_list_get_nth(contactList, j);
-				GtkTreeIter contactIter;
-				// Append the contact in the list
-				gchar fullName[1000];
-				sprintf(fullName, "%s %s", contact->_firstName, contact->_lastName);
-				gtk_tree_store_append(contactTreeStore, &contactIter, &accountIter);
-				gtk_tree_store_set(contactTreeStore, &contactIter,
-						CONTACT_WINDOW_TYPE, TYPE_CONTACT,
-						CONTACT_WINDOW_ID, contact->_contactID,
-						CONTACT_WINDOW_CALL_CONSOLE_ACTIVE, TRUE,
-						CONTACT_WINDOW_CALL_CONSOLE_INCONSISTENT, TRUE,		// TODO Should be a function to pass all contacts if all selected or not
-						CONTACT_WINDOW_ICON, gdk_pixbuf_new_from_file(CONTACT_WINDOW_CONTACT_ICON, NULL),
-						CONTACT_WINDOW_TEXT, fullName,
+				contact_entry_t* entry = contact_list_entry_get_nth(contact, k);
+				GtkTreeIter contactEntryIter;
+				// Append the contact entry in the list
+				gtk_tree_store_append(contactTreeStore, &contactEntryIter, &contactIter);
+				gtk_tree_store_set(contactTreeStore, &contactEntryIter,
+						CONTACT_WINDOW_TYPE, TYPE_ENTRY,
+						CONTACT_WINDOW_ID, entry->_entryID,					// The contact string is also used as a unique ID
+						CONTACT_WINDOW_CALL_CONSOLE_ACTIVE, entry->_isShownInConsole,
+						CONTACT_WINDOW_CALL_CONSOLE_INCONSISTENT, FALSE,	// Never inconsistent because at bottom level of tree
+						CONTACT_WINDOW_ICON, gdk_pixbuf_new_from_file(CONTACT_WINDOW_ENTRY_ICON, NULL),
+						CONTACT_WINDOW_TEXT, entry->_text,
 						-1);
-				
-				int k;
-				for(k = 0; k < contact_list_entry_get_size(contact); k++)
-				{
-					contact_entry_t* entry = contact_list_entry_get_nth(contact, k);
-					GtkTreeIter contactEntryIter;
-					// Append the contact entry in the list
-					gtk_tree_store_append(contactTreeStore, &contactEntryIter, &contactIter);
-					gtk_tree_store_set(contactTreeStore, &contactEntryIter,
-							CONTACT_WINDOW_TYPE, TYPE_ENTRY,
-							CONTACT_WINDOW_ID, entry->_entryID,					// The contact string is also used as a unique ID
-							CONTACT_WINDOW_CALL_CONSOLE_ACTIVE, entry->_isShownInConsole,
-							CONTACT_WINDOW_CALL_CONSOLE_INCONSISTENT, FALSE,	// Never inconsistent because at bottom level of tree
-							CONTACT_WINDOW_ICON, gdk_pixbuf_new_from_file(CONTACT_WINDOW_ENTRY_ICON, NULL),
-							CONTACT_WINDOW_TEXT, entry->_text,
-							-1);
-				}
 			}
-			// Expand accounts nodes by default
+		}
+		// Expand enabled accounts nodes by default
+		if(strcmp((gchar*)g_hash_table_lookup(account->properties, ACCOUNT_ENABLED), "TRUE") == 0)
+		{
 			GtkTreePath* path = gtk_tree_model_get_path(GTK_TREE_MODEL(contactTreeStore), &accountIter);
 			gtk_tree_view_expand_to_path(GTK_TREE_VIEW(contactTreeView), path);
 			gtk_tree_path_free(path);
@@ -261,6 +261,38 @@ edit_contact_activated(GtkMenuItem* item, GtkTreeView* treeView)
 }
 
 static void
+remove_contact_activated(GtkMenuItem* item, GtkTreeView* treeView)
+{
+	GtkTreeIter iter;
+	gchar* contactID = NULL;
+	gchar* accountID = NULL;
+	
+	// Find model and selection to get the contact ID
+	GtkTreeModel* model = gtk_tree_view_get_model(treeView);
+	GtkTreeSelection* selection = gtk_tree_view_get_selection(treeView);
+	gtk_tree_selection_get_selected(selection, &model, &iter);
+	gtk_tree_model_get(model, &iter,
+			CONTACT_WINDOW_ID, &contactID,
+			-1);
+	
+	// Get path and then parent path
+	GtkTreePath* path = gtk_tree_model_get_path(model, &iter);
+	gtk_tree_path_up(path);
+	
+	// Get the account ID of the parent iter
+	gtk_tree_model_get_iter(model, &iter, path);
+	gtk_tree_model_get(model, &iter,
+			CONTACT_WINDOW_ID, &accountID,
+			-1);
+		
+	contact_list_remove(accountID, contactID);
+	
+	gtk_tree_path_free(path);
+	g_free(contactID);
+	g_free(accountID);
+}
+
+static void
 new_entry_activated(GtkMenuItem* item, GtkTreeView* treeView)
 {
 	GtkTreeIter iter;
@@ -337,6 +369,51 @@ edit_entry_activated(GtkMenuItem* item, GtkTreeView* treeView)
 	g_free(accountID);
 }
 
+static void
+remove_entry_activated(GtkMenuItem* item, GtkTreeView* treeView)
+{
+	GtkTreeIter iter;
+	GtkTreePath* path;
+	gchar* entryID = NULL;
+	gchar* contactID = NULL;
+	gchar* accountID = NULL;
+	
+	// Find model and selection to get the entry ID
+	GtkTreeModel* model = gtk_tree_view_get_model(treeView);
+	GtkTreeSelection* selection = gtk_tree_view_get_selection(treeView);
+	gtk_tree_selection_get_selected(selection, &model, &iter);
+	gtk_tree_model_get(model, &iter,
+			CONTACT_WINDOW_ID, &entryID,
+			-1);
+	
+	// Get path and then parent path
+	path = gtk_tree_model_get_path(model, &iter);
+	gtk_tree_path_up(path);
+	
+	// Get the contact ID of the parent iter
+	gtk_tree_model_get_iter(model, &iter, path);
+	gtk_tree_model_get(model, &iter,
+			CONTACT_WINDOW_ID, &contactID,
+			-1);
+		
+	// Get path and then parent path
+	path = gtk_tree_model_get_path(model, &iter);
+	gtk_tree_path_up(path);
+	
+	// Get the account ID of the parent iter
+	gtk_tree_model_get_iter(model, &iter, path);
+	gtk_tree_model_get(model, &iter,
+			CONTACT_WINDOW_ID, &accountID,
+			-1);
+		
+	contact_list_entry_remove(accountID, contactID, entryID);
+	
+	gtk_tree_path_free(path);
+	g_free(entryID);
+	g_free(contactID);
+	g_free(accountID);
+}
+
 /**
  * 
  */
@@ -350,11 +427,17 @@ contact_window_create_popup_menus()
 	GtkWidget* editContactMenuItem = gtk_menu_item_new_with_label(_("Edit contact"));
 	g_signal_connect(G_OBJECT(editContactMenuItem), "activate", G_CALLBACK(edit_contact_activated), contactTreeView);
 
+	GtkWidget* removeContactMenuItem = gtk_menu_item_new_with_label(_("Remove contact"));
+	g_signal_connect(G_OBJECT(removeContactMenuItem), "activate", G_CALLBACK(remove_contact_activated), contactTreeView);
+
 	GtkWidget* newEntryMenuItem = gtk_menu_item_new_with_label(_("New entry"));
 	g_signal_connect(G_OBJECT(newEntryMenuItem), "activate", G_CALLBACK(new_entry_activated), contactTreeView);
 
 	GtkWidget* editEntryMenuItem = gtk_menu_item_new_with_label(_("Edit entry"));
 	g_signal_connect(G_OBJECT(editEntryMenuItem), "activate", G_CALLBACK(edit_entry_activated), contactTreeView);
+
+	GtkWidget* removeEntryMenuItem = gtk_menu_item_new_with_label(_("Remove entry"));
+	g_signal_connect(G_OBJECT(removeEntryMenuItem), "activate", G_CALLBACK(remove_entry_activated), contactTreeView);
 
 	// Create different menus and append items
 	accountMenu = gtk_menu_new();
@@ -363,13 +446,15 @@ contact_window_create_popup_menus()
 	gtk_widget_show_all(accountMenu);
 
 	contactMenu = gtk_menu_new();
-	gtk_menu_shell_append(GTK_MENU_SHELL(contactMenu), editContactMenuItem);
 	gtk_menu_shell_append(GTK_MENU_SHELL(contactMenu), newEntryMenuItem);
+	gtk_menu_shell_append(GTK_MENU_SHELL(contactMenu), editContactMenuItem);
+	gtk_menu_shell_append(GTK_MENU_SHELL(contactMenu), removeContactMenuItem);
 	gtk_menu_attach_to_widget(GTK_MENU(contactMenu), contactTreeView, NULL);
 	gtk_widget_show_all(contactMenu);
 
 	entryMenu = gtk_menu_new();
 	gtk_menu_shell_append(GTK_MENU_SHELL(entryMenu), editEntryMenuItem);
+	gtk_menu_shell_append(GTK_MENU_SHELL(entryMenu), removeEntryMenuItem);
 	gtk_menu_attach_to_widget(GTK_MENU(entryMenu), contactTreeView, NULL);
 	gtk_widget_show_all(entryMenu);
 }
@@ -765,7 +850,7 @@ contact_window_add_account(account_t* account)
 }
 
 void
-contact_window_remove_account(account_t* account)
+contact_window_remove_account(gchar* accountID)
 {
 	// TODO
 }
@@ -888,7 +973,7 @@ contact_window_edit_contact(gchar* accountID, contact_t* contact)
 }
 
 void
-contact_window_remove_contact(gchar* accountID, contact_t* contact)
+contact_window_remove_contact(gchar* accountID, gchar* contactID)
 {
 	// TODO
 	// Get the iteration corresponding to the account
@@ -1043,7 +1128,76 @@ contact_window_edit_entry(gchar* accountID, gchar* contactID, contact_entry_t* e
 }
 
 void
-contact_window_remove_entry(gchar* accountID, gchar* contactID, contact_entry_t* entry)
+contact_window_remove_entry(gchar* accountID, gchar* contactID, gchar* entryID)
 {
-	// TODO
+	// Only if the contact window is shown
+	if(contactWindowDialog == NULL) return;
+	
+	// Get the iteration corresponding to the account
+	GtkTreeModel* model;
+	GtkTreePath* accountPath;
+	GtkTreePath* contactPath;
+	GtkTreePath* entryPath;
+	GtkTreeIter iter;
+	gchar* id;
+	
+	model = gtk_tree_view_get_model(GTK_TREE_VIEW(contactTreeView));
+	if(!gtk_tree_model_get_iter_first(model, &iter)) return;
+	do
+	{
+		// Get the ID of the current account iter
+		gtk_tree_model_get(model, &iter,
+				CONTACT_WINDOW_ID, &id,
+				-1);
+		if(id == NULL) return;
+		if(strcmp(id, accountID) == 0)
+		{
+			// The account is found so go deeper
+			contactPath = gtk_tree_model_get_path(model, &iter);
+			gtk_tree_path_down(contactPath);
+			// Try to find the contact
+			gtk_tree_model_get_iter(model, &iter, contactPath);
+			do
+			{
+				// Get the ID of the current contact iter
+				gtk_tree_model_get(model, &iter,
+						CONTACT_WINDOW_ID, &id,
+						-1);
+				if(id == NULL) return;
+				if(strcmp(id, contactID) == 0)
+				{
+					// The contact is found so go deeper
+					entryPath = gtk_tree_model_get_path(model, &iter);
+					gtk_tree_path_down(entryPath);
+					// Try to find the contact
+					gtk_tree_model_get_iter(model, &iter, entryPath);
+					do
+					{
+						// Get the ID of the current contact iter
+						gtk_tree_model_get(model, &iter,
+								CONTACT_WINDOW_ID, &id,
+								-1);
+						if(id == NULL) return;
+						if(strcmp(id, entryID) == 0)
+						{
+							gtk_tree_store_remove(contactTreeStore, &iter);
+							return;
+						}
+						// Go to next contact until null
+						entryPath = gtk_tree_model_get_path(model, &iter);
+						gtk_tree_path_next(entryPath);
+					}
+					while(gtk_tree_model_get_iter(model, &iter, entryPath));
+				}
+				// Go to next contact until null
+				contactPath = gtk_tree_model_get_path(model, &iter);
+				gtk_tree_path_next(contactPath);
+			}
+			while(gtk_tree_model_get_iter(model, &iter, contactPath));
+		}
+		// Go to next account until null
+		accountPath = gtk_tree_model_get_path(model, &iter);
+		gtk_tree_path_next(accountPath);
+	}
+	while(gtk_tree_model_get_iter(model, &iter, accountPath));
 }
