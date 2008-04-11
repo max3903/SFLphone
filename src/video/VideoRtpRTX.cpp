@@ -236,36 +236,30 @@ void VideoRtpRTX::sendSession()
   try{
   _debug("Entering Send Session\n");
   
-  printf("test0\n");
   // Getting Image from web cam
   data_from_wc = cmdCapture->GetCapture(sizeV4L);
-  printf("test1\n");
+  
   if( sizeV4L <= 0 )
   	return;
-  printf("test2\n");
+  
   // Getting webcam resolution information
   pair<int,int> Res = cmdRes->getResolution();
-  
-  printf("test3\n");
+    
   // Putting captured data into mixer
   this->vidCall->getRemote_Video_Input()->putData( data_from_wc, sizeV4L, 0, Res.first, Res.second );
+  free(data_from_wc); data_from_wc= NULL;
   
-  printf("test4\n");
   int videoSize= -1;
   int width= 0, height= 0;
-  
-  printf("test5\n");
+    
   // Getting Mixer video output
   unsigned char* dataToSend= this->vidCall->getRemote_Video_Output()->fetchData(videoSize, width, height);
   
-  printf("test6\n");
   // Encode it
   if( videoSize > 0 ){
   	
-  	printf("test6.1\n");
   	encodedSize = encodeCodec->videoEncode(dataToSend,(unsigned char*)data_to_send,width,height);
-  	
-  	printf("test6.2\n");
+  	  	
   	pair<int,int> ResEnc = encodeCodec->getEncodeOutputResolution();
   	
     unsigned char *packet;
