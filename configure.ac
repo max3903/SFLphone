@@ -26,14 +26,12 @@ dnl What to generate
 dnl AC_CONFIG_FILES([stamp-h], [echo timestamp > stamp-h])
 AC_CONFIG_FILES([Makefile])
 AC_CONFIG_FILES([libs/Makefile \
-  libs/taxidermy/Makefile \
   libs/stund/Makefile \
   libs/utilspp/Makefile \
   libs/utilspp/functor/Makefile \
   libs/utilspp/singleton/Makefile])
   
 AC_CONFIG_FILES([src/Makefile \
-  src/sflphone \
   src/audio/Makefile \
   src/audio/codecs/Makefile
   src/audio/codecs/ilbc/Makefile \
@@ -47,9 +45,7 @@ AC_CONFIG_FILES([src/Makefile \
   src/memmanager/Makefile \
   src/mixer/Makefile])
   
-AC_CONFIG_FILES([skins/Makefile \
-  skins/metal/Makefile \
-  skins/gmetal/Makefile \
+AC_CONFIG_FILES([po/Makefile \
   ringtones/Makefile])
 
 AC_CONFIG_FILES([doc/Makefile \
@@ -163,6 +159,12 @@ dnl PKG_CHECK_MODULES(gsm, gsm >= ${LIBGSM1_MIN_VERSION})
 dnl SFLPHONE_CFLAGS="$SFLPHONE_CFLAGS $libgsm1_CFLAGS"
 dnl SFLPHONE_LIBS="$SFLPHONE_LIBS $libgsm1_LIBS"
 
+LIBASOUND2_MIN_VERSION=1.0
+PKG_CHECK_MODULES(alsa, alsa >= ${LIBASOUND2_MIN_VERSION})
+SFLPHONE_CFLAGS="$SFLPHONE_CFLAGS $libasound2_CFLAGS"
+SFLPHONE_LIBS="$SFLPHONE_LIBS $libasound2_LIBS"
+
+
 LIBSAMPLERATE_MIN_VERSION=0.1.1
 PKG_CHECK_MODULES(samplerate, samplerate >= ${LIBSAMPLERATE_MIN_VERSION})
 SFLPHONE_CFLAGS="$SFLPHONE_CFLAGS $samplerate_CFLAGS"
@@ -207,11 +209,6 @@ LIBSWSCALE_MIN_VERSION=0.5
 PKG_CHECK_MODULES(libswscale, libswscale >= ${LIBSWSCALE_MIN_VERSION})
 SFLPHONE_CFLAGS="$SFLPHONE_CFLAGS $libswscale_CFLAGS"
 SFLPHONE_LIBS="$SFLPHONE_LIBS $libswscale_LIBS"
-
-LIBORTP_MIN_VERSION=0.13.1
-PKG_CHECK_MODULES(ortp, ortp >= ${LIBORTP_MIN_VERSION})
-SFLPHONE_CFLAGS="$SFLPHONE_CFLAGS $ortp_CFLAGS"
-SFLPHONE_LIBS="$SFLPHONE_LIBS $ortp_LIBS"
 
 
 # check for libgsm1 (doesn't use pkg-config)

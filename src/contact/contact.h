@@ -31,7 +31,7 @@
  */
 class Contact {
 public:
-	Contact();
+	Contact(const std::string contactID);
 	Contact(const std::string contactID, const std::string firstName, const std::string lastName, const std::string email);
 	Contact(const std::string contactID, const std::string firstName, const std::string lastName,
 			const std::string email, const std::string group, const std::string subGroup);
@@ -44,7 +44,13 @@ public:
 	std::string getGroup() { return _group; }
 	std::string getSubGroup() { return _subGroup; }
 	
-	const std::vector<ContactEntry*> getEntries();
+	void setFirstName(std::string firstName) { _firstName = firstName; }
+	void setLastName(std::string lastName) { _lastName = lastName; }
+	void setEmail(std::string email) { _email = email; }
+	void setGroup(std::string group) { _group = group; }
+	void setSubGroup(std::string subGroup) { _subGroup = subGroup; }
+
+	const std::vector<ContactEntry*>& getEntries();
 	void addEntry(ContactEntry* entry);
 		
 private:

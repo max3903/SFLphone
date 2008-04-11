@@ -127,7 +127,7 @@ create_main_window ()
   window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
   gtk_container_set_border_width (GTK_CONTAINER (window), 0);
   gtk_window_set_title (GTK_WINDOW (window), PACKAGE);
-  gtk_window_set_default_size (GTK_WINDOW (window), 450, 320);
+  gtk_window_set_default_size (GTK_WINDOW (window), 460, 320);
   gtk_window_set_default_icon_from_file (ICON_DIR "/sflphone.png", 
                                           NULL);
 
@@ -155,7 +155,7 @@ create_main_window ()
   gtk_box_pack_start (GTK_BOX (vbox), widget, FALSE /*expand*/, TRUE /*fill*/, 0 /*padding*/);
   gtk_box_pack_start (GTK_BOX (vbox), create_call_tree(), TRUE /*expand*/, TRUE /*fill*/,  0 /*padding*/);
   
-  gtk_box_pack_start (GTK_BOX (vbox), subvbox, TRUE /*expand*/, TRUE /*fill*/, 0 /*padding*/);
+  gtk_box_pack_start (GTK_BOX (vbox), subvbox, FALSE /*expand*/, TRUE /*fill*/, 0 /*padding*/);
  
   //widget = create_screen();
   // TODO Add the screen when we are decided
@@ -183,7 +183,7 @@ create_main_window ()
                                   GTK_DIALOG_DESTROY_WITH_PARENT,
                                   GTK_MESSAGE_INFO,
                                   GTK_BUTTONS_YES_NO,
-                                  "<b><big>Welcome to SFLphone!</big></b>\n\nThere are no VoIP accounts configured, would you like to edit the preferences now?");
+                                  _("<b><big>Welcome to SFLphone!</big></b>\n\nThere is no VoIP account configured.\n Would you like to create one now?"));
 
     int response = gtk_dialog_run (GTK_DIALOG(dialog));
     
@@ -191,7 +191,7 @@ create_main_window ()
 
     if (response == GTK_RESPONSE_YES)
     {
-      show_config_window(0);
+      show_accounts_window();
     }
    
   }
@@ -259,6 +259,12 @@ main_window_show_call_console(gboolean show)
 }
 
 void
+main_window_call_console_closed()
+{
+	menus_show_call_console_menu_item_set_active(FALSE);
+}
+
+void
 main_window_callinfo(gboolean show, call_t* current)
 {
   /*
@@ -274,13 +280,19 @@ main_window_callinfo(gboolean show, call_t* current)
     gtk_container_remove(GTK_CONTAINER (subvbox), infoScreen);
   }
   showInfoScreen = show;
-*/
+  */
 }
 
 void 
-status_bar_message(const gchar * message)
+status_bar_message_add(const gchar * message, guint id)
 { 
-  gtk_statusbar_push(GTK_STATUSBAR(statusBar), 0, message);
+  gtk_statusbar_push(GTK_STATUSBAR(statusBar), id, message);
+}
+
+void 
+status_bar_message_remove(guint id)
+{ 
+  gtk_statusbar_pop(GTK_STATUSBAR(statusBar), id);
 }
 
 gboolean main_window_glWidget( gboolean show )
@@ -291,19 +303,19 @@ gboolean main_window_glWidget( gboolean show )
 	{
 		switch(selectedCall->state)
 		{
+			case CALL_STATE_DIALING:
+				break;
 			// If selected call in any other state show config windows
 			case CALL_STATE_INCOMING:
 			case CALL_STATE_HOLD:
 			case CALL_STATE_RINGING:
 			case CALL_STATE_BUSY:
 			case CALL_STATE_FAILURE:
-			case CALL_STATE_DIALING:
 				g_print("No active call, showing config window\n");
-
 				// Keep button and menu in the same state as glwidget
 				main_window_update_WebcamStatus(showGlWidget);
 				//Show webcam configuration
-				show_config_window(3);
+				show_config_window(4);
 				
 				return FALSE;
 				
@@ -323,9 +335,6 @@ gboolean main_window_glWidget( gboolean show )
 					    
 					    // Keep button and menu in the same state as glwidget
 					    main_window_update_WebcamStatus(showGlWidget);
-					    
-					    // \TODO: Add Code to send enable webcam signal
-					    dbus_change_webcam_status(TRUE, selectedCall);
 					    dbus_enable_local_video_pref();
 					    
 					    return TRUE;
@@ -339,19 +348,19 @@ gboolean main_window_glWidget( gboolean show )
 					    
 					    // Keep button and menu in the same state as glwidget
 					    main_window_update_WebcamStatus(showGlWidget);
-					    
-					    // \TODO: Add Code to send disable webcam signal
-					    dbus_change_webcam_status(FALSE, selectedCall);
 					    dbus_disable_local_video_pref();
+					    
 					    return FALSE;
 					  }
 				}
 			default:
-				g_warning("Should not happen!");
-				// Keep button and menu in the same state as glwidget
-				main_window_update_WebcamStatus(showGlWidget);
-				//Show webcam configuration
-				show_config_window(3);
+
+				gtk_container_remove(GTK_CONTAINER (subvbox), drawing_area);
+			    showGlWidget = show;
+					    
+			    // Keep button and menu in the same state as glwidget
+			    main_window_update_WebcamStatus(showGlWidget);
+			    dbus_disable_local_video_pref();
 				break; 
 		}
 	}else
@@ -360,7 +369,7 @@ gboolean main_window_glWidget( gboolean show )
 		// Keep button and menu in the same state as glwidget
 		main_window_update_WebcamStatus(showGlWidget);
 		//Show webcam configuration
-		show_config_window(3);
+		show_config_window(4);
 
 	}
 	

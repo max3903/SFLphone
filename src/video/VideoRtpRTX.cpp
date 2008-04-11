@@ -19,7 +19,6 @@
  */
 #include "VideoRtpRTX.h"
 
-
 #define PIC_WIDTH 352
 #define PIC_HEIGHT 288
 #define FRAME_SIZE  (PIC_WIDTH*PIC_HEIGHT*3) //frame size of the RGB picture
@@ -41,6 +40,10 @@ VideoRtpRTX::VideoRtpRTX(SIPCall *sipcall, bool sym)
   
   cmdCapture = (Capture*) VideoDeviceManager::getInstance()->getCommand(VideoDeviceManager::CAPTURE);
   cmdRes= (Resolution*) VideoDeviceManager::getInstance()->getCommand(VideoDeviceManager::RESOLUTION);
+  
+  this->_Active= false;
+  this->_OkToKill= false;
+  
 }
 
 VideoRtpRTX::~VideoRtpRTX()
@@ -56,9 +59,13 @@ VideoRtpRTX::~VideoRtpRTX()
   _debug("terminate videortprtx ended...\n");
   vidCall = 0;
 
-  free(data_to_display); data_to_display = NULL;
+  if(data_to_display != NULL) 
+  	free(data_to_display); data_to_display = NULL;
+  if(data_from_wc != NULL)
   free(data_from_wc); data_from_wc = NULL;
+  if(data_from_peer != NULL)
   free(data_from_peer); data_from_peer = NULL;
+  if(data_to_send!= NULL)
   free(data_to_send); data_to_send = NULL;
 
    if (!_sym) {
@@ -97,8 +104,11 @@ void VideoRtpRTX::run(){
       uint32 tstampInc = session->getCurrentRTPClockRate()/ 10;
 
     _debug("- ARTP Action: Start (video)\n");
+    
+    this->_Active= true;
+    this->_OkToKill= false;
 
-    while (!testCancel()) {
+    while (!testCancel() && this->_Active) {
 
       ////////////////////////////
       // Send session
@@ -115,14 +125,15 @@ void VideoRtpRTX::run(){
       
     }
 
-    free(data_to_display);
-    free(data_from_wc);
-    free(data_from_peer);
-    free(data_to_send);
-
+    free(data_to_display);data_to_display= NULL;
+    free(data_from_peer);data_from_peer= NULL;
+    free(data_to_send);data_to_send= NULL;
+	
     unloadCodec((CodecID)CODEC_ID_H263,0);
     unloadCodec((CodecID)CODEC_ID_H263,1);
     _debug("stop stream for videortp loop\n");
+    
+    this->_OkToKill= true;
 
   } catch(std::exception &e) {
     _debug("! ARTP: Stop %s\n", e.what());
@@ -137,7 +148,6 @@ void VideoRtpRTX::run(){
 void VideoRtpRTX::initBuffers()
 {
   data_to_display = (unsigned char *)malloc(FRAME_SIZE);
-  data_from_wc = (unsigned char *)malloc(FRAME_SIZE);
   data_to_send = (unsigned char *)malloc(FRAME_SIZE);
   data_from_peer = (unsigned char *)malloc(FRAME_SIZE);
   rcvWorkingBuf = (unsigned char *)malloc(FRAME_SIZE);
@@ -223,40 +233,32 @@ void VideoRtpRTX::sendSession()
   try{
   _debug("Entering Send Session\n");
   
-  printf("test0\n");
   // Getting Image from web cam
   data_from_wc = cmdCapture->GetCapture(sizeV4L);
-  printf("test1\n");
+  
   if( sizeV4L <= 0 )
   	return;
-  printf("test2\n");
+  
   // Getting webcam resolution information
   pair<int,int> Res = cmdRes->getResolution();
-  
-  printf("test3\n");
+    
   // Putting captured data into mixer
   this->vidCall->getRemote_Video_Input()->putData( data_from_wc, sizeV4L, 0, Res.first, Res.second );
+  free(data_from_wc); data_from_wc= NULL;
   
-  printf("test4\n");
   int videoSize= -1;
   int width= 0, height= 0;
-  
-  printf("test5\n");
+    
   // Getting Mixer video output
   unsigned char* dataToSend= this->vidCall->getRemote_Video_Output()->fetchData(videoSize, width, height);
   
-  printf("test6\n");
   // Encode it
   if( videoSize > 0 ){
   	
-  	printf("test6.1\n");
   	encodedSize = encodeCodec->videoEncode(dataToSend,(unsigned char*)data_to_send,width,height);
+  	delete dataToSend; dataToSend = NULL;
+  	pair<int,int> ResEnc = encodeCodec->getEncodeOutputResolution();
   	
-  	printf("test6.2\n");
-  	pair<int,int> ResEnc = encodeCodec->getOutputResolution();
-  	
-  	_debug("Widht: %d, Height: %d\n",ResEnc.first,ResEnc.second);
-
     unsigned char *packet;
     packet = new unsigned char[4+encodedSize];
     memcpy(packet+4,data_to_send,encodedSize);
@@ -285,7 +287,7 @@ void VideoRtpRTX::sendSession()
 void VideoRtpRTX::receiveSession()
 {
   int PictureFormat=0;
-  unsigned char TestFormat;
+  unsigned int TestFormat=0;
 	
   if (vidCall==0) { 
     _debug(" !ARTP: No call associated (video)\n");
@@ -304,7 +306,6 @@ void VideoRtpRTX::receiveSession()
     
     if (adu==NULL)
        return;
-    
     isMarked = adu->isMarked();
     
     // On jumelle les donnes partielles recues
@@ -315,12 +316,12 @@ void VideoRtpRTX::receiveSession()
     
     printf("%i",sizeof(rcvWorkingBuf[1]));
     // Analyse packet and retreive the picture format
-    
-    
-    
-    pair<int,int> Res = getPictureFormatFromHeader(PictureFormat);
-    
+
+    TestFormat = (int)(rcvWorkingBuf[1] & 0x00E0);
+    pair<int,int> Res = getPictureFormatFromHeader(TestFormat);
+
     // Decode it
+    
     if (isMarked) {
     	
       int decodedSize= decodeCodec->videoDecode(data_from_peer,data_to_display,peerBufLen,Res.first,Res.second);
@@ -332,11 +333,13 @@ void VideoRtpRTX::receiveSession()
     }
 
     delete adu; adu = NULL;
+   
     
   } catch(...) {
     _debugException("! ARTP: receiving failed");
     throw;
   }
+   
 }
 
 void VideoRtpRTX::loadCodec(enum CodecID id,int type)
@@ -380,6 +383,17 @@ int VideoRtpRTX::setHeaderPictureFormat(pair<int,int> Res){
 	  return 128; // Bit7=1, Bit6=0, Bit5=0
 	if (Res.first==1408 && Res.second==1152)
 	  return 160; // Bit7=1, Bit6=0, Bit5=1
+}
+
+void VideoRtpRTX::stop(){
+	
+	if( !this->_Active )
+		return;
+	
+	this->_Active= false;
+	
+	while(!this->_OkToKill);
+		
 }
 
 

@@ -24,8 +24,10 @@ public:
         register_method(ContactManager, getContactDetails, _getContactDetails_stub);
         register_method(ContactManager, getContactEntries, _getContactEntries_stub);
         register_method(ContactManager, getContactEntryDetails, _getContactEntryDetails_stub);
-        register_method(ContactManager, setContacts, _setContacts_stub);
-        register_method(ContactManager, setContactEntries, _setContactEntries_stub);
+        register_method(ContactManager, setContact, _setContact_stub);
+        register_method(ContactManager, removeContact, _removeContact_stub);
+        register_method(ContactManager, setContactEntry, _setContactEntry_stub);
+        register_method(ContactManager, removeContactEntry, _removeContactEntry_stub);
         register_method(ContactManager, setPresence, _setPresence_stub);
     }
 
@@ -59,16 +61,37 @@ public:
             { "details", "as", false },
             { 0, 0, 0 }
         };
-        static ::DBus::IntrospectedArgument setContacts_args[] = 
+        static ::DBus::IntrospectedArgument setContact_args[] = 
         {
             { "accountID", "s", true },
-            { "details", "as", true },
+            { "contactID", "s", true },
+            { "firstName", "s", true },
+            { "lastName", "s", true },
+            { "email", "s", true },
             { 0, 0, 0 }
         };
-        static ::DBus::IntrospectedArgument setContactEntries_args[] = 
+        static ::DBus::IntrospectedArgument removeContact_args[] = 
         {
+            { "accountID", "s", true },
             { "contactID", "s", true },
-            { "details", "as", true },
+            { 0, 0, 0 }
+        };
+        static ::DBus::IntrospectedArgument setContactEntry_args[] = 
+        {
+            { "accountID", "s", true },
+            { "contactID", "s", true },
+            { "entryID", "s", true },
+            { "text", "s", true },
+            { "type", "s", true },
+            { "IsShown", "s", true },
+            { "IsSubscribed", "s", true },
+            { 0, 0, 0 }
+        };
+        static ::DBus::IntrospectedArgument removeContactEntry_args[] = 
+        {
+            { "accountID", "s", true },
+            { "contactID", "s", true },
+            { "entryID", "s", true },
             { 0, 0, 0 }
         };
         static ::DBus::IntrospectedArgument setPresence_args[] = 
@@ -92,8 +115,10 @@ public:
             { "getContactDetails", getContactDetails_args },
             { "getContactEntries", getContactEntries_args },
             { "getContactEntryDetails", getContactEntryDetails_args },
-            { "setContacts", setContacts_args },
-            { "setContactEntries", setContactEntries_args },
+            { "setContact", setContact_args },
+            { "removeContact", removeContact_args },
+            { "setContactEntry", setContactEntry_args },
+            { "removeContactEntry", removeContactEntry_args },
             { "setPresence", setPresence_args },
             { 0, 0 }
         };
@@ -131,8 +156,10 @@ public:
     virtual std::vector< ::DBus::String > getContactDetails( const ::DBus::String& accountID, const ::DBus::String& contactID ) = 0;
     virtual std::vector< ::DBus::String > getContactEntries( const ::DBus::String& accountID, const ::DBus::String& contactID ) = 0;
     virtual std::vector< ::DBus::String > getContactEntryDetails( const ::DBus::String& accountID, const ::DBus::String& contactID, const ::DBus::String& contactEntryID ) = 0;
-    virtual void setContacts( const ::DBus::String& accountID, const std::vector< ::DBus::String >& details ) = 0;
-    virtual void setContactEntries( const ::DBus::String& contactID, const std::vector< ::DBus::String >& details ) = 0;
+    virtual void setContact( const ::DBus::String& accountID, const ::DBus::String& contactID, const ::DBus::String& firstName, const ::DBus::String& lastName, const ::DBus::String& email ) = 0;
+    virtual void removeContact( const ::DBus::String& accountID, const ::DBus::String& contactID ) = 0;
+    virtual void setContactEntry( const ::DBus::String& accountID, const ::DBus::String& contactID, const ::DBus::String& entryID, const ::DBus::String& text, const ::DBus::String& type, const ::DBus::String& IsShown, const ::DBus::String& IsSubscribed ) = 0;
+    virtual void removeContactEntry( const ::DBus::String& accountID, const ::DBus::String& contactID, const ::DBus::String& entryID ) = 0;
     virtual void setPresence( const ::DBus::String& accountID, const ::DBus::String& presence, const ::DBus::String& additionalInfo ) = 0;
 
 public:
@@ -202,23 +229,52 @@ private:
         wi << argout1;
         return reply;
     }
-    ::DBus::Message _setContacts_stub( const ::DBus::CallMessage& call )
+    ::DBus::Message _setContact_stub( const ::DBus::CallMessage& call )
     {
         ::DBus::MessageIter ri = call.reader();
 
         ::DBus::String argin1; ri >> argin1;
-        std::vector< ::DBus::String > argin2; ri >> argin2;
-        setContacts(argin1, argin2);
+        ::DBus::String argin2; ri >> argin2;
+        ::DBus::String argin3; ri >> argin3;
+        ::DBus::String argin4; ri >> argin4;
+        ::DBus::String argin5; ri >> argin5;
+        setContact(argin1, argin2, argin3, argin4, argin5);
         ::DBus::ReturnMessage reply(call);
         return reply;
     }
-    ::DBus::Message _setContactEntries_stub( const ::DBus::CallMessage& call )
+    ::DBus::Message _removeContact_stub( const ::DBus::CallMessage& call )
     {
         ::DBus::MessageIter ri = call.reader();
 
         ::DBus::String argin1; ri >> argin1;
-        std::vector< ::DBus::String > argin2; ri >> argin2;
-        setContactEntries(argin1, argin2);
+        ::DBus::String argin2; ri >> argin2;
+        removeContact(argin1, argin2);
+        ::DBus::ReturnMessage reply(call);
+        return reply;
+    }
+    ::DBus::Message _setContactEntry_stub( const ::DBus::CallMessage& call )
+    {
+        ::DBus::MessageIter ri = call.reader();
+
+        ::DBus::String argin1; ri >> argin1;
+        ::DBus::String argin2; ri >> argin2;
+        ::DBus::String argin3; ri >> argin3;
+        ::DBus::String argin4; ri >> argin4;
+        ::DBus::String argin5; ri >> argin5;
+        ::DBus::String argin6; ri >> argin6;
+        ::DBus::String argin7; ri >> argin7;
+        setContactEntry(argin1, argin2, argin3, argin4, argin5, argin6, argin7);
+        ::DBus::ReturnMessage reply(call);
+        return reply;
+    }
+    ::DBus::Message _removeContactEntry_stub( const ::DBus::CallMessage& call )
+    {
+        ::DBus::MessageIter ri = call.reader();
+
+        ::DBus::String argin1; ri >> argin1;
+        ::DBus::String argin2; ri >> argin2;
+        ::DBus::String argin3; ri >> argin3;
+        removeContactEntry(argin1, argin2, argin3);
         ::DBus::ReturnMessage reply(call);
         return reply;
     }

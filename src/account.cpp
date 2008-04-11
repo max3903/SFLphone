@@ -61,29 +61,27 @@ Account::loadConfig()
 void
 Account::loadContacts()
 {
-	// TMP
-	// Exemple de chargement de contacts pour account 203
-	Contact* contact1 = new Contact("GuillaumeID", "Guillaume", "Carmel-Archambault", "guillaume.carmel-archambault@savoirfairelinux.com");
-	ContactEntry* entry1 = new ContactEntry("201", "Poste 201", "work", true, true);
-	contact1->addEntry(entry1);
-	ContactEntry* entry2 = new ContactEntry("5141231234", "514-123-1234", "home", false, false);
-	contact1->addEntry(entry2);
-	_contacts.push_back(contact1);
-	
-	Contact* contact2 = new Contact("JeromeID", "Jerome", "Oufella", "jerome.oufella@savoirfairelinux.com");
-	ContactEntry* entry3 = new ContactEntry("204", "Poste 204", "work", true, true);
-	contact2->addEntry(entry3);
-	ContactEntry* entry4 = new ContactEntry("5149879876", "514-987-9876", "home", true, false);
-	contact2->addEntry(entry4);
-	_contacts.push_back(contact2);
-
-	// TODO Load contact file containing list of contacts
+	// Load contact file containing all contacts and entries for account
+	ContactManager::getInstance()->readContacts(_accountID, _contacts);
 }
 
-const std::vector<Contact*>
+void
+Account::saveContacts()
+{
+	// Save contacts in contact file
+	ContactManager::getInstance()->saveContacts(_accountID, _contacts);	
+}
+
+const std::vector<Contact*>&
 Account::getContacts()
 {
 	return _contacts;
+}
+
+void
+Account::addContact(Contact* contact)
+{
+	_contacts.push_back(contact);
 }
 
 void

@@ -49,6 +49,12 @@ ConfigurationManager::setAccountDetails( const ::DBus::String& accountID,
 }
 
 	void 
+ConfigurationManager::sendRegister( const ::DBus::String& accountID, const ::DBus::Int32& expire )
+{
+	Manager::instance().sendRegister(accountID, expire);
+}
+
+	void 
 ConfigurationManager::addAccount( const std::map< ::DBus::String, ::DBus::String >& details )
 {
 	_debug("ConfigurationManager::addAccount received\n");
@@ -320,6 +326,42 @@ ConfigurationManager::getContrast( ::DBus::Int32& minValue, ::DBus::Int32& maxVa
 	stepValue = values.Step;
 	currentValue = values.Current;
 	printf("%i %i %i %i", minValue, maxValue,stepValue, currentValue);
+}
+
+::DBus::Int32
+ConfigurationManager::getDialpad( void )
+{
+  return Manager::instance().getDialpad(  ); 
+}
+
+void
+ConfigurationManager::setDialpad( void )
+{
+  Manager::instance().setDialpad( ); 
+}
+
+void
+ConfigurationManager::startHidden( void )
+{
+  Manager::instance().startHidden(  ); 
+}
+
+::DBus::Int32
+ConfigurationManager::isStartHidden( void )
+{
+  return Manager::instance().isStartHidden(  ); 
+}
+
+void
+ConfigurationManager::switchPopupMode( void )
+{
+  Manager::instance().switchPopupMode();
+}
+
+::DBus::Int32
+ConfigurationManager::popupMode( void )
+{
+  return Manager::instance().popupMode();
 }
 
 void 

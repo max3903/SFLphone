@@ -32,6 +32,12 @@
 #include <contactlist.h>
 #include <videocodeclist.h>
 
+#define __MSG_INCOMING_CALL  0 
+#define __MSG_CALLING	     1
+#define __MSG_VOICE_MAILS    2
+#define __MSG_ACCOUNT_DEFAULT  3
+
+
 /** @file actions.h
   * @brief General functions that change the state of the application.
   * All of these functions are called when dbus signals are triggered.  Exceptions
@@ -121,11 +127,13 @@ void sflphone_place_call ( call_t * c );
  * Initially load data for accounts, codecs and contacts
  */
 void sflphone_fill_account_list(gboolean toolbarInitialized);
-void sflphone_set_default_account();
+void sflphone_set_current_account();
 
-void sflphone_throw_exception( gchar* msg , int err );
+void sflphone_throw_exception( int errCode );
 void sflphone_fill_codec_list();
 void sflphone_fill_contact_list();
 
 void sflphone_fill_video_codec_list();
+
+void sflphone_show_contact_list();	// UNUSED
 #endif 

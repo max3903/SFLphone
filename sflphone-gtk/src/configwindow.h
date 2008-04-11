@@ -54,6 +54,7 @@ void config_window_fill_resolution_list();
 void select_active_resolution();
 void config_window_fill_bitrate_list();
 void select_active_bitrate();
+void update_combo_box( gchar* plugin );
 void default_account(GtkWidget *widget, gpointer data);
 void bold_if_default_account(GtkTreeViewColumn *col, GtkCellRenderer *rend, GtkTreeModel *tree_model, GtkTreeIter *iter, gpointer data);
 void default_codecs(GtkWidget* widget, gpointer data);
@@ -65,10 +66,13 @@ GtkWidget * create_webcam_tab();
 void show_config_window(gint page_num);
 void update_notebook();
 gchar* format_percentage_scale(GtkScale *scale, gdouble value);
+gchar* format_percentage_scale (GtkScale *scale, gdouble value);
+void show_accounts_window();
 
 gboolean get_enable_webcam_checkbox_status();
 gboolean get_disable_webcam_checkbox_status();
 void set_enable_webcam_checkbox_status(gboolean status);
 void set_disable_webcam_checkbox_status(gboolean status);
 void video_settings_checkbox_init();
+
 #endif 

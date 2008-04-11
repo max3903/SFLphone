@@ -35,8 +35,8 @@ void LocalAudioOuput::putData(short * data, int size)
 		audioLayer = Manager::instance().getAudioDriver();
 		if( audioLayer ){
 			ptracesfl("LocalAudioOuput - putData () : playing Sample", MT_INFO, LOCALAUDIOOUPUT_TRACE);
-			audioLayer->playSamples( data, size );
-//			audioLayer->putUrgent( data, size );			
+			audioLayer->playSamples( data, size, true );
+			delete data;			
 			ptracesfl("LocalAudioOuput - putData () : Finnish playing Sample", MT_INFO, LOCALAUDIOOUPUT_TRACE);
 			
 		}else{

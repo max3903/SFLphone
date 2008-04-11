@@ -62,6 +62,8 @@ void LocalVideoOuput::putData(unsigned char * data, int size)
 	if( this->key != NULL )
 		if( !this->manager->putData(this->key, data + ( 2* sizeof(int) ), size - ( 2* sizeof(int) ), width, height))
   			ptracesfl("LocalVideoOutput - putData(): Can't put data", MT_ERROR, LOCALVIDEOOUTPUT_TRACE);
+  	
+  	delete data;
 }
 
 // This method is not used in this class

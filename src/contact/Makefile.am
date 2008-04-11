@@ -9,4 +9,5 @@ libcontact_la_SOURCES = \
 	presence.h \
 	contact.cpp \
 	contactentry.cpp \
+	contactmanager.cpp \
 	presence.cpp

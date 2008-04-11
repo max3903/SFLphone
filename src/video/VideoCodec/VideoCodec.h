@@ -85,9 +85,13 @@ public:
 	/***
 	 * 
 	 */
-	 pair<int,int> getIntputResolution();
+	 pair<int,int> getEncodeIntputResolution();
 	 
-	 pair<int,int> getOutputResolution();
+	 pair<int,int> getEncodeOutputResolution();
+	 
+	 pair<int,int> getDecodeIntputResolution();
+	 
+	 pair<int,int> getDecodeOutputResolution();
     
 private:
  	/**
@@ -144,16 +148,17 @@ private:
 	AVCodec* _CodecDEC;
    
    /** 
-    * width and height the codec will receive to encode
+    * width and height the codec will receive as input
     */
     int inputWidth;
     int inputHeight;
-    
-   /** 
-    * width and height the codec will receive to decode
+    /** 
+    * width and height the codec will send
     */
     int outputWidth;
     int outputHeight;
+    
+
     
     /**
      * set to true if needed

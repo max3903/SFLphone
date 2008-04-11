@@ -23,8 +23,9 @@
 #include "sipvoiplink.h"
 #include "eventthread.h"
 #include "sipcall.h"
+#include "video/VideoCodecDescriptor.h"
 #include <sstream> // for ostringstream
-
+#include <string>
 #include "manager.h"
 #include "user_cfg.h" // SIGNALISATION / PULSE #define
 #include "sippresencemanager.h"
@@ -225,15 +226,21 @@ SIPVoIPLink::getEvent()
 
 	_debugMid("> SIP Event: [cdt=%4d:%4d:%4d] type=#%03d %s  = ", event->cid, event->did, event->tid, event->type, event->textinfo);
 	switch (event->type) {
-	
+	  
 	/* REGISTER related events */
 	case EXOSIP_REGISTRATION_NEW:         /** 00 < announce new registration.       */
 		_debugMid(" !EXOSIP_REGISTRATION_NEW event is not implemented\n");
 		break;
 	case EXOSIP_REGISTRATION_SUCCESS:     /** 01 < user is successfully registred.  */
-		setRegistrationState(Registered);
-		_debugMid(" !EXOSIP_REGISTRATION_SUCCES\n");
-		//Manager::instance().registrationSucceed(getAccountID());
+		_debugMid(" !EXOSIP_REGISTRATION_SUCCESS \n");
+		if(_eXosipRegID == EXOSIP_ERROR_STD){
+		  setRegistrationState(Unregistered);
+		  Manager::instance().unregistrationSucceed(getAccountID());
+		}
+		else{
+		  setRegistrationState(Registered);
+		  Manager::instance().registrationSucceed(getAccountID());
+		}
 		break;
 	case EXOSIP_REGISTRATION_FAILURE:     /** 02 < user is not registred.           */
 		setRegistrationState(Error, "SIP registration failure.");
@@ -250,8 +257,8 @@ SIPVoIPLink::getEvent()
 
 	/* INVITE related events within calls */
 	case EXOSIP_CALL_INVITE:          /** 05 < announce a new call                   */
-		SIPCallInvite(event);
 		_debugMid(" !EXOSIP_CALL_INVITE\n");
+		SIPCallInvite(event);
 		break;
 	case EXOSIP_CALL_REINVITE:        /** 06 < announce a new INVITE within call     */
 		//SIPCallReinvite(event);
@@ -440,6 +447,8 @@ SIPVoIPLink::getEvent()
 bool
 SIPVoIPLink::sendRegister()
 {
+  _debug("SEND REGISTER \n");
+
   if (_eXosipRegID != EXOSIP_ERROR_STD) {
     Manager::instance().displayError("! SIP Error: Registration already sent. Try to unregister");
     return false;
@@ -537,6 +546,7 @@ SIPVoIPLink::sendSIPAuthentification()
 bool
 SIPVoIPLink::sendUnregister()
 {
+  _debug("SEND UNREGISTER\n");
   if ( _eXosipRegID == EXOSIP_ERROR_STD) return false;
   int eXosipErr = EXOSIP_ERROR_NO;
   osip_message_t *reg = NULL;
@@ -589,14 +599,12 @@ SIPVoIPLink::newOutgoingCall(const CallID& id, const std::string& toUrl)
 bool 
 SIPVoIPLink::ChangeWebCamStatus(const CallID& id,bool status)
 {
-   _debug("SIPVOIPLINK Enabled webcam!\n");	
-	
+
   SIPCall* call = getSIPCall(id);
   
   if (call) {
     if (status){
       if (_videortp.createNewVideoSession(call,false) == 0) {
-      	_debug("STATUS = VRAI\n");	
         call->setVideoStart(true);
         return true;
       } else {
@@ -607,16 +615,7 @@ SIPVoIPLink::ChangeWebCamStatus(const CallID& id,bool status)
   }
   else
     return false;
-    
-  /*  
-  SIPCall* call = getSIPCall(id);
-  if (call) {
-    if ( SIPStartVideo(call) )
-      return true;
-    else
-      return false;
-  }
-  */
+
 }
 
 
@@ -631,13 +630,6 @@ SIPVoIPLink::answer(const CallID& id)
     _debug("! SIP Failure: SIPCall doesn't exists\n");
     return false;
   }
-
-  // Send 180 RINGING
-  _debug("< Send 180 Ringing\n");
-  eXosip_lock ();
-  eXosip_call_send_answer(call->getTid(), SIP_RINGING, NULL);
-  eXosip_unlock ();
-  call->setConnectionState(Call::Ringing);
 
   // Send 200 OK
   osip_message_t *answerMessage = NULL;
@@ -889,8 +881,9 @@ SIPVoIPLink::transfer(const CallID& id, const std::string& to)
   }
   eXosip_unlock();
 
+  _audiortp.closeRtpSession();
   // shall we delete the call?
-  removeCall(id);
+  //removeCall(id);
   return true;
 }
 
@@ -1030,7 +1023,35 @@ SIPVoIPLink::subscribePresenceForContact(ContactEntry* contactEntry)
 	// Send subscription
 	eXosip_lock();
 	i = eXosip_subscribe_send_initial_request(subscription);
-	if(i!=0) _debug("Sending of subscription tp %s failed\n", to.str().c_str());
+	eXosip_unlock();
+}
+
+void
+SIPVoIPLink::unsubscribePresenceForContact(ContactEntry* contactEntry)
+{
+	int i;
+	osip_message_t* subscription;
+	std::ostringstream to;
+	std::ostringstream from;
+	
+	// Build URL of receiver and sender
+	to << "sip:" << contactEntry->getEntryID() << "@" << getHostName().data();
+	from << "sip:" << _userpart.data() << "@" << getHostName().data();
+
+	// Unsubscribe by setting a 0 value
+	i = eXosip_subscribe_build_initial_request(&subscription,
+			to.str().c_str(),
+			from.str().c_str(),
+			NULL,
+			"presence", 0);
+	if(i!=0) return;
+	
+	// We want to receive presence in the PIDF XML format in SIP messages
+	osip_message_set_accept(subscription, "application/pidf+xml");
+	
+	// Send subscription
+	eXosip_lock();
+	i = eXosip_subscribe_send_initial_request(subscription);
 	eXosip_unlock();
 }
 
@@ -1043,7 +1064,7 @@ SIPVoIPLink::publishPresenceStatus(std::string status)
 	// Build URL of sender
 	url << "sip:" << _userpart.data() << "@" << getHostName().data();
 	
-	SIPPresenceManager::getInstance()->buildPublishPresenceStatus(url.str().c_str(), status);
+	SIPPresenceManager::getInstance()->buildPublishPresenceStatus(_userpart.data(), url.str().c_str(), status);
 }
 
 void
@@ -1053,7 +1074,7 @@ SIPVoIPLink::subscriptionNotificationReceived(eXosip_event_t* event, char* body)
 	osip_uri_t* from = osip_from_get_url(event->request->from);
 	std::string status = SIPPresenceManager::getInstance()->parseNotificationPresenceStatus(body);
 	
-	// Send the new updated contact entry presence for this account
+	// Save entry information on the daemon side and send the new updated contact entry presence for this account
 	Manager::instance().contactEntryPresenceChanged(getAccountID(), from->username, status, "");
 }
 
@@ -1110,8 +1131,7 @@ SIPVoIPLink::SIPStartCall(SIPCall* call, const std::string& subject)
   int nbChannel;
   int iter;
 
-  // Set rtpmap according to the supported codec order
-  //CodecMap map = call->getCodecMap().getCodecMap();
+  // Set rtpmap according to the supported audio codec order
   CodecOrder map = call->getCodecMap().getActiveCodecs();
  
   for(iter=0 ; iter < map.size() ; iter++){
@@ -1134,29 +1154,28 @@ SIPVoIPLink::SIPStartCall(SIPCall* call, const std::string& subject)
     //*iter++;
   }
 
+  // Set rtpmap according to the supported video codec order
+  VideoCodecOrder CodecVector = VideoCodecDescriptor::getInstance()->getActiveCodecs();
+  VCOIterator itrStringVector;
+  const char* codecName;
+  int codecPayload;
+  int codecSimpleRate = 90000; //Same for all video codecs
+
+  for ( itrStringVector = CodecVector.begin(); itrStringVector != CodecVector.end(); itrStringVector++)
+  {
+    if ( (*itrStringVector)->id == (CodecID)CODEC_ID_H263 ){
+      codecName = (*itrStringVector)->name;
+      codecPayload = 34;
+    }
+    else
+      ; // TODO: h264, Not yet supported!
+  }
+
   // http://www.antisip.com/documentation/eXosip2/group__howto1__initialize.html
   // tell sip if we support SIP extension like 100rel
   // osip_message_set_supported (invite, "100rel");
 
-  /* add sdp body
-  {
-    char tmp[4096];
-    snprintf (tmp, 4096,
-              "v=0\r\n"
-              "o=SFLphone 0 0 IN IP4 %s\r\n"
-              "s=call\r\n"
-              "c=IN IP4 %s\r\n"
-              "t=0 0\r\n"
-              "m=audio %d RTP/AVP %s\r\n"
-              "%s",
-              _localExternAddress.c_str(), _localExternAddress.c_str(), call->getLocalExternAudioPort(), media_audio.str().c_str(), rtpmap_attr.str().c_str());
-    // media_audio should be one, two or three numbers?
-    osip_message_set_body (invite, tmp, strlen (tmp));
-    osip_message_set_content_type (invite, "application/sdp");
-    _debug("SDP send: %s", tmp);
-  }*/
-
-  //TODO: je lai modifier!
+  // add sdp body
   {
     char tmp[4096];
     snprintf (tmp, 4096,
@@ -1168,9 +1187,9 @@ SIPVoIPLink::SIPStartCall(SIPCall* call, const std::string& subject)
               "t=0 0\r\n"
               "m=audio %d RTP/AVP %s\r\n"
               "%s"
-              "m=video %d RTP/AVP 34\r\n"
-              "a=rtpmap:34 H263/90000\r\n"
-              "a=sendrecv\r\n",_localExternAddress.c_str(), _localExternAddress.c_str(), call->getLocalExternAudioPort(), media_audio.str().c_str(), rtpmap_attr.str().c_str(),call->getLocalExternVideoPort());
+              "m=video %d RTP/AVP %d\r\n"
+              "a=rtpmap:%d %s/%d\r\n"
+              "a=sendrecv\r\n",_localExternAddress.c_str(), _localExternAddress.c_str(), call->getLocalExternAudioPort(), media_audio.str().c_str(), rtpmap_attr.str().c_str(),call->getLocalExternVideoPort(),codecPayload,codecPayload,codecName,codecSimpleRate);
 
     // media_audio should be one, two or three numbers?
     osip_message_set_body (invite, tmp, strlen (tmp));
@@ -1323,7 +1342,6 @@ void
 SIPVoIPLink::SIPCallInvite(eXosip_event_t *event)
 {
   _debug("> INVITE (receive)\n");
-
   CallID id = Manager::instance().getNewCallID();
 
   SIPCall* call = new SIPCall(id, Call::Incoming);
@@ -1331,6 +1349,7 @@ SIPVoIPLink::SIPCallInvite(eXosip_event_t *event)
     _debug("! SIP Failure: unable to create an incoming call");
     return;
   }
+
   setCallAudioLocal(call);
   setCallVideoLocal(call);
   call->setCodecMap(Manager::instance().getCodecDescriptorMap());
@@ -1344,6 +1363,12 @@ SIPVoIPLink::SIPCallInvite(eXosip_event_t *event)
   } else {
     delete call; call = 0;
   }
+  // Send 180 RINGING
+  _debug("< Send 180 Ringing\n");
+  eXosip_lock ();
+  eXosip_call_send_answer(event->tid, 180, NULL);
+  eXosip_unlock ();
+  call->setConnectionState(Call::Ringing);
 }
 
 void
@@ -1377,6 +1402,7 @@ SIPVoIPLink::SIPCallReinvite(eXosip_event_t *event)
 void
 SIPVoIPLink::SIPCallRinging(eXosip_event_t *event)
 {
+  
   SIPCall* call = findSIPCallWithCid(event->cid);
   if (!call) {
     _debug("! SIP Failure: unknown call\n");
@@ -1771,7 +1797,7 @@ SIPVoIPLink::handleDtmfRelay(eXosip_event_t* event) {
       
       if (!signal.empty()) {
         if (Manager::instance().isCurrentCall(call->getCallId())) {
-          Manager::instance().playDtmf(signal[0]);
+          Manager::instance().playDtmf(signal[0], true);
           returnValue = true;
         }
       }

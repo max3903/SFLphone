@@ -23,6 +23,12 @@ Presence::Presence()
 {
 }
 
+Presence::Presence(std::string state, std::string additionalInfo)
+{
+	_state = state;
+	_additionalInfo = additionalInfo;
+}
+
 Presence::~Presence()
 {
 }

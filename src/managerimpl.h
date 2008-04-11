@@ -142,11 +142,14 @@ public:
   
   bool inviteConference( const AccountID& accountId, const CallID& id, const std::string& to );
   bool joinConference( const CallID& onHoldCallID, const CallID& newCallID );
-  bool changeVideoAvaibility(  );
+  void changeVideoAvaibility( const CallID& id );
   void changeWebcamStatus( const bool status , const CallID& id);
 
   /** Save config to file */
   bool saveConfig (void);
+  
+  /* Save contacts to file by account */
+  bool saveContacts();
 
   /**
    * Send registration information (shake hands) for a specific AccountID
@@ -191,8 +194,9 @@ public:
    * @param   code: pressed key.
    */
   bool sendDtmf(const CallID& id, char code);
-  bool playDtmf(char code);
+  bool playDtmf(char code, bool isTalking);
   bool playTone ();
+  bool playToneWithMessage ();
   void stopTone(bool stopAudio/*=true*/);
 
   // From links
@@ -220,9 +224,11 @@ public:
 
   /** Notify the user that registration succeeded  */
   void registrationSucceed(const AccountID& accountId);
-  /** Notify the user that registration succeeded  */
+  /** Notify the user that unregistration succeeded  */
+  void unregistrationSucceed(const AccountID& accountId);
+  /** Notify the user that registration failed  */
   void registrationFailed(const AccountID& accountId);
-
+  void sendRegister( const AccountID& accountId , bool expire );
   // configuration function requests
 
   /**
@@ -306,6 +312,31 @@ public:
    * @return type of entry (home, work...), show entry in call console, subscribe to entry for presence
    */
   std::vector<std::string> getContactEntryDetails(const std::string& accountID, const std::string& contactID, const std::string& contactEntryID);
+  
+  /**
+   * TOCOMMENT
+   */
+  void setContact(const std::string& accountID, const std::string& contactID, const std::string& firstName, const std::string& lastName, const std::string& email);
+  
+  /**
+   * TOCOMMENT
+   */
+  void removeContact(const std::string& accountID, const std::string& contactID);
+  
+  /**
+   * TOCOMMENT
+   */
+  void setContactEntry(const std::string& accountID, const std::string& contactID, const std::string& entryID, const std::string& text, const std::string& type, const std::string& IsShown, const std::string& IsSubscribed);
+  
+  /**
+   * TOCOMMENT
+   */
+  void removeContactEntry(const std::string& accountID, const std::string& contactID, const std::string& entryID);
+  
+  /**
+   * TOCOMMENT
+   */
+  void setPresence( const std::string& accountID, const std::string& presence, const std::string& additionalInfo );
   
   /**
    * Get the list of codecs we supports, not ordered
@@ -413,6 +444,14 @@ public:
   void ringtoneEnabled( void ); 
   std::string getRingtoneChoice( void );
   void setRingtoneChoice( const std::string& );
+  int getDialpad( void );
+  void setDialpad( void );
+  int isStartHidden( void );
+  void startHidden( void );
+  int popupMode( void );
+  void switchPopupMode( void );
+
+
   /**
    * Inverse of serialize
    */
@@ -434,7 +473,7 @@ public:
    * Notify the client that an error occured
    * @param errMsg The error message that should popup on the client side
    */
-  void notifyErrClient( const std::string& errMsg );
+  void notifyErrClient( const ::DBus::Int32& errCode );
 
   bool getConfigAll(const std::string& sequenceId);
   bool getConfig(const std::string& section, const std::string& name, TokenList& arg);
@@ -476,7 +515,7 @@ public:
    * Signal emmited when a contact entry presence changes
    */
   void contactEntryPresenceChanged(const AccountID& accountID, const std::string entryID,
-		  const std::string presence, const std::string additionalInfo);
+		  const std::string presenceText, const std::string additionalInfo);
 
   /** @return 0 if no tone (init before calling this function) */
   AudioLoop* getTelephoneTone();
@@ -622,6 +661,10 @@ private:
   /** Attribute telling if the local capture for the web cam is active
    */
   static bool _localCapActive;
+  
+  /** Attribute telling if it is ok to kill the thread
+   */
+  static bool _localCapOKKill;
   
   /** Local capture for preference window thread information;
    */
@@ -882,15 +925,6 @@ private:
    * Initialize the VideoDeviceManager -> the V4L interface
    */
   void initVideoDeviceManager(void);
-
-	enum modeEnum {modeNormal, modeServer};
-	modeEnum mode;
-	/* Get and Set the mode of the user
-	 * Server = the user is the server of a conference call
-	 * Normal = all other cases
-	 */
-	int getMode();
-    void setMode(int i);
 	
 };
 

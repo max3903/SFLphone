@@ -30,7 +30,14 @@ class Presence {
 	
 public:
 	Presence();
+	Presence(std::string state, std::string additionalInfo);
 	virtual ~Presence();
+	
+	std::string getState() { return _state; }
+	std::string getAdditionalInfo() { return _additionalInfo; }
+	
+	void setState(std::string state) { _state = state; }
+	void setAdditionalInfo(std::string additionalInfo) { _additionalInfo = additionalInfo; }
 		
 protected:
 	

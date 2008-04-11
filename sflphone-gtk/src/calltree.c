@@ -91,15 +91,6 @@ call_button( GtkWidget *widget, gpointer   data )
 }
 
 /**
- * Pick up
-*/
-/*	static void 
-pick_up( GtkWidget *widget, gpointer   data )
-{
-	sflphone_pick_up();
-}*/
-
-/**
  * Hang up the line
  */
 	static void 
@@ -159,7 +150,6 @@ static void webCamStatusChange( GtkWidget *widget, gpointer data )
 		{
 			if(!get_showGlWidget_status())
 			{
-				//TODO: check the status of the enabling checkbox
 				if(get_enable_webcam_checkbox_status())
 				{
 					create_enable_webcam_window();
@@ -167,12 +157,12 @@ static void webCamStatusChange( GtkWidget *widget, gpointer data )
 				else
 				{
 					main_window_glWidget(gtk_toggle_tool_button_get_active(GTK_TOGGLE_TOOL_BUTTON (webCamButton)));
+					sflphone_set_video();
 				}
 			}
 			//If we are disabling the webcam
 			else
 			{
-				//TODO: check the status of the disabling checkbox
 				if(get_disable_webcam_checkbox_status())
 				{
 					create_disable_webcam_window();
@@ -180,7 +170,7 @@ static void webCamStatusChange( GtkWidget *widget, gpointer data )
 				else
 				{
 					main_window_glWidget(gtk_toggle_tool_button_get_active(GTK_TOGGLE_TOOL_BUTTON (webCamButton)));
-	
+					sflphone_unset_video();
 				}
 			}
 		}
@@ -354,9 +344,6 @@ static void invite_call_button(GtkButton *button, gpointer user_data)
 {
 	char buf[20];
 	gboolean answer;
-	account_t * account;
-	gchar * default_account =  account_list_get_default();
-	account = account_list_get_by_id(default_account);
 	
 	//Initialize call struct
 	callConf = g_new0 (call_t, 1);
@@ -368,36 +355,7 @@ static void invite_call_button(GtkButton *button, gpointer user_data)
 	g_sprintf(callConf->callID, "%d", rand()); 
 	callConf->to = g_strdup(buf);
 		
-		
-	if(account)
-	{
-		if(strcmp(g_hash_table_lookup(account->properties, "Status"),"REGISTERED")==0)
-		{
-			callConf->accountID = default_account;
-			//Place call
-			answer = dbus_invite_conference(callConf);
-		}
-		else
-		{
-			main_window_error_message("The account selected as default is not registered.");
-		}
-		
-	}
-	else
-	{
-		account = account_list_get_by_state (ACCOUNT_STATE_REGISTERED);
-		if(account)
-		{
-			callConf->accountID = account->accountID;
-			//Place call
-			answer = dbus_invite_conference(callConf);
-		}
-		else
-		{
-			main_window_error_message("There are no registered accounts to make this call with.");
-		}
-
-	}
+	//TODO: Place a new call
 	
 	gtk_dialog_response(inviteDialog, GTK_RESPONSE_DELETE_EVENT);
 	gtk_widget_destroy(GTK_WIDGET(inviteDialog));
@@ -657,7 +615,6 @@ toolbar_update_buttons ()
 				break;
 			case CALL_STATE_DIALING:
 				gtk_widget_set_sensitive( GTK_WIDGET(hangupButton),     TRUE);
-				//gtk_widget_set_sensitive( GTK_WIDGET(callButton),       TRUE);
 				gtk_widget_set_sensitive( GTK_WIDGET(pickupButton),       TRUE);
 				g_object_ref(callButton);
 				gtk_container_remove(GTK_CONTAINER(toolbar), GTK_WIDGET(callButton));
@@ -1026,8 +983,6 @@ update_call_tree (call_t * c)
 
 	} 
 	toolbar_update_buttons();
-	//return row_ref;
-
 }
 
 void 
@@ -1078,9 +1033,7 @@ update_call_tree_add (call_t * c)
 	if (pixbuf != NULL)
 		g_object_unref(G_OBJECT(pixbuf));
 
-	//g_free(markup);
 	sel = gtk_tree_view_get_selection(GTK_TREE_VIEW(view));
 	gtk_tree_selection_select_iter(GTK_TREE_SELECTION(sel), &iter);
 	toolbar_update_buttons();
-	//return row_ref;
 }

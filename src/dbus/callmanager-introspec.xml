@@ -37,6 +37,11 @@
       <arg type="s" name="key" direction="in"/>
     </method>
     
+    <method name="startTone">
+      <arg type="i" name="start" direction="in"/>
+      <arg type="i" name="type" direction="in"/>
+    </method>
+
     <method name="setVolume">
       <arg type="s" name="device" direction="in"/>
       <arg type="d" name="value" direction="in"/>
@@ -86,10 +91,6 @@
     <!--      ///////////////////////               -->
     
     <!-- Webcam related methods -->
-    
-    <method name="changeVideoAvaibility">
-      <arg type="b" name="status" direction="out"/>
-    </method>
     
     <method name="changeWebcamStatus">
       <arg type="b" name="status" direction="in"/>

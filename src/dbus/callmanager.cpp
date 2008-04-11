@@ -162,19 +162,26 @@ CallManager::joinConference( const ::DBus::String& onHoldCallID, const ::DBus::S
     return Manager::instance().joinConference(onHoldCallID, newCallID);
 }
 
-/* Video avaibility */
-::DBus::Bool 
-CallManager::changeVideoAvaibility(  )
-{
-	_debug("CallManager::changeVideoAvaibility() received\n");
-    return Manager::instance().changeVideoAvaibility();
-}
 
 void 
 CallManager::changeWebcamStatus( const ::DBus::Bool& status, const ::DBus::String& callID  )
 {
 	_debug("CallManager::changeWebcamStatus() received\n");
     Manager::instance().changeWebcamStatus(status, callID);
+}
+
+    void
+CallManager::startTone( const ::DBus::Int32& start , const ::DBus::Int32& type )
+{
+  if( start == true )
+  {
+    if( type == 0 )
+      Manager::instance().playTone();
+    else
+      Manager::instance().playToneWithMessage();
+  }
+  else
+    Manager::instance().stopTone(true);
 }
 
 

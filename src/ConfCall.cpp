@@ -52,8 +52,11 @@ void ConfCall::endConf(){
 	// Reset the Call's mixers
 	this->call_1->setConfMode( NULL, NULL );
 	this->call_1->setConfId( "" );
+	this->call_1->getLocal_Audio_Input()->RemoveOutput(1);
+	
 	this->call_2->setConfMode( NULL, NULL );
 	this->call_2->setConfId( "" );
+	this->call_2->getLocal_Audio_Input()->RemoveOutput(1);
 	
 	delete audioOut;
 	delete videoOut;
@@ -67,8 +70,11 @@ ConfID ConfCall::getConfId() const{
 void ConfCall::init(){
 	
 	// Distribute the counter part buffers
+	this->call_2->getLocal_Audio_Input()->AddOutput();
 	this->call_1->setConfMode( this->call_2->getLocal_Video_Input(), this->call_2->getLocal_Audio_Input() );
 	this->call_1->setConfId(this->ConfId);
+	
+	this->call_1->getLocal_Audio_Input()->AddOutput();
 	this->call_2->setConfMode( this->call_1->getLocal_Video_Input(), this->call_1->getLocal_Audio_Input() );
 	this->call_2->setConfId(this->ConfId);
 	

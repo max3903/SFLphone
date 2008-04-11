@@ -19,8 +19,10 @@
 
 #include "contactentry.h"
 
-ContactEntry::ContactEntry()
+ContactEntry::ContactEntry(std::string entryID)
 {
+	_entryID = entryID;
+	_presence = NULL;
 }
 
 ContactEntry::ContactEntry(std::string entryID, std::string text, std::string type, bool showInCallConsole, bool subscribeToPresence)

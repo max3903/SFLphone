@@ -45,7 +45,8 @@ void main_window_warning_message(gchar * markup);
 
 void main_window_info_message(gchar * markup);
 
-void status_bar_message(const gchar * message);
+void status_bar_message_add(const gchar * message , guint id);
+void status_bar_message_remove(guint id);
 
 /**
  * Shows the OpenGl visualization window
@@ -59,5 +60,7 @@ gboolean main_window_glWidget( gboolean show );
  */
 void main_window_update_WebcamStatus( gboolean value );
 gboolean get_showGlWidget_status();
+
+void main_window_call_console_closed();
 
 #endif 

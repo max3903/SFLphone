@@ -111,7 +111,7 @@ class AudioLayer {
      * @params toCopy The number of samples, in bytes
      * @return int The number of bytes played
      */
-    int playSamples(void* buffer, int toCopy);
+    int playSamples(void* buffer, int toCopy, bool isTalking);
 
     /*
      * Send a chunk of data to the hardware buffer to start the playback
@@ -157,8 +157,8 @@ class AudioLayer {
     bool soundCardIndexExist( int card , int stream );
     int soundCardGetIndex( std::string description );
 
-    void setErrorMessage(const std::string& error) { _errorMessage = error; }
-    std::string getErrorMessage() { return _errorMessage; }
+    void setErrorMessage(const int& error) { _errorMessage = error; }
+    int getErrorMessage() { return _errorMessage; }
 
     /*
      * Get the index of the audio card for capture
@@ -287,6 +287,7 @@ class AudioLayer {
      */
     snd_pcm_t* _PlaybackHandle;
     snd_pcm_t* _CaptureHandle;
+    snd_pcm_uframes_t _periodSize;
 
     /*
      * Handle on asynchronous event
@@ -359,7 +360,7 @@ class AudioLayer {
 
     std::vector<HwIDPair> IDSoundCards;
 
-    std::string _errorMessage;
+    int _errorMessage;
     ost::Mutex _mutex;
 
 };

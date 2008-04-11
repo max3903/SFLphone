@@ -20,11 +20,13 @@
 #include <gtk/gtk.h>
 #include <actions.h>
 #include <mainwindow.h>
+#include <accountlist.h>
 #include <statusicon.h>
+#include <stdlib.h>
 
 GtkStatusIcon* status;
 GtkWidget * show_menu_item;
-gboolean minimized = FALSE;
+gboolean __minimized = MINIMIZED;
 
 void 
 status_quit ( void * foo)
@@ -38,17 +40,26 @@ status_icon_unminimize()
   gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(show_menu_item), TRUE);
 }
 
+gboolean
+main_widget_minimized()
+{
+  return __minimized;
+}
+
 void 
-show_hide (GtkWidget *menu, void * foo)
+show_hide (void)
 {
   if(gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM(show_menu_item)))
   {
     gtk_widget_show(GTK_WIDGET(get_main_window()));
+    set_minimized( !MINIMIZED );
   }   
   else
   {
     gtk_widget_hide(GTK_WIDGET(get_main_window()));
+    set_minimized( MINIMIZED );
   }
+
 }
 
 
@@ -76,7 +87,7 @@ create_menu()
   
   menu      = gtk_menu_new ();
   
-  show_menu_item = gtk_check_menu_item_new_with_mnemonic ("_Show main window");
+  show_menu_item = gtk_check_menu_item_new_with_mnemonic (_("_Show main window"));
   gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(show_menu_item), TRUE);
   gtk_menu_shell_append (GTK_MENU_SHELL (menu), show_menu_item);
   g_signal_connect(G_OBJECT (show_menu_item), "toggled",
@@ -107,5 +118,28 @@ show_status_icon()
   g_signal_connect (G_OBJECT (status), "popup-menu",
 			  G_CALLBACK (menu),
 			  create_menu());			  
+
+  // Add a tooltip to the system tray icon
+  gchar *tip =  g_markup_printf_escaped (_("SFLphone - %i accounts registered") , account_list_get_size());
+  gtk_status_icon_set_tooltip( status , tip );
+  g_free(tip);
 }
 
+void
+status_tray_icon_blink( gboolean active )
+{
+  gtk_status_icon_set_blinking( status , active );
+}
+
+GtkStatusIcon* 
+get_status_icon( void )
+{
+  return status;
+}
+
+void
+set_minimized( gboolean state)
+{
+  __minimized = state ;
+  gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(show_menu_item), !state);
+}
