@@ -313,7 +313,7 @@ call_console_edit_entry(gchar* accountID, gchar* contactID, contact_entry_t* ent
 		{
 			contact_t* contact = contact_list_get(contact_hash_table_get_contact_list(accountID), contactID);
 			// Edit the new presence status if subscribed, otherwise remove it
-			if(entry->_isSubscribed)
+			if(entry->_isShownInConsole)
 			{
 				gchar fullName[1000];
 				sprintf(fullName, "%s %s", contact->_firstName, contact->_lastName);
