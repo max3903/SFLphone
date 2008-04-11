@@ -105,6 +105,7 @@ AVFrame * SWSInterface::alloc_pictureRGB24(int width, int height) {
   uint8_t *buffer= (uint8_t *)av_malloc(numBytes);
   avpicture_fill((AVPicture *)pFrameRGB, buffer, PIX_FMT_RGB24, width, 
 height);
+av_free(buffer);
   return pFrameRGB;
 }
 
