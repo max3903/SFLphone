@@ -89,8 +89,6 @@ public:
 
     void setOutputProperties(int setWidth,int setHeight,int setPixFormat);
     void setOutputProperties(int setWidth,int setHeight);
-	AVFrame *alloc_pictureRGB24(int width, int height);
-	AVFrame *alloc_picture420P(int width, int height);
 	AVFrame *alloc_pictureRGB24(int width, int height,uint8_t *buffer);
 	AVFrame *alloc_picture420P(int width, int height,uint8_t *buffer);
 	static FrameProperties getSpecialResolution(int width);

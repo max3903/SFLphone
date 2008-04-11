@@ -200,6 +200,8 @@ void VideoCodec::quitEncodeContext()
 int VideoCodec::videoEncode(unsigned char*in_buf, unsigned char* out_buf,int width,int height)
 {
 	AVFrame *IN=NULL,*SWS=NULL,*TEMP=NULL;
+	int numBytes = avpicture_get_size(PIX_FMT_RGB24, width, height);
+  	uint8_t *SWS_buffer= (uint8_t *)av_malloc(numBytes);
 	int outsize;
 	printf("Encode resolution : %i %i \n",width,height);
 	if(height <=0) 	{ptracesfl("CAN'T Encode - height not set properly\n",MT_ERROR,1,true);return -1;}
@@ -226,7 +228,7 @@ int VideoCodec::videoEncode(unsigned char*in_buf, unsigned char* out_buf,int wid
 	else
 		IN  =  encodeSWS->alloc_pictureRGB24(inputWidth,inputHeight,in_buf);
 
-	SWS = encodeSWS->alloc_picture420P(_encodeCodecCtx->width,_encodeCodecCtx->height);
+	SWS = encodeSWS->alloc_picture420P(_encodeCodecCtx->width,_encodeCodecCtx->height,SWS_buffer);
 	
 	if(IN != NULL || SWS != NULL)
 	{
@@ -242,6 +244,7 @@ int VideoCodec::videoEncode(unsigned char*in_buf, unsigned char* out_buf,int wid
 	// free Pictures
 	av_free(SWS);
 	av_free(IN);
+	av_free(SWS_buffer);
 
 	//return the size of the encoded data
 	return outsize;
