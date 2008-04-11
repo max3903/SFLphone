@@ -46,7 +46,7 @@ class SIPCall; //TODO: pourquoi pas de include SipCall..h????
 
 class VideoRtpRTX : public ost::Thread, public ost::TimerPort {
 public:
-
+	struct {unsigned int first:1;unsigned int second:1;unsigned int rest:6;}h263rtpPaquet;
 	/**
 	 * Destructor
 	 */ 	

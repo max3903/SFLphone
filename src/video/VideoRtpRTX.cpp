@@ -313,17 +313,10 @@ void VideoRtpRTX::receiveSession()
     memcpy(data_from_peer+peerBufLen,rcvWorkingBuf,workingBufLen);
     peerBufLen+=workingBufLen;
     
-    
+    printf("%i",sizeof(rcvWorkingBuf[1]));
     // Analyse packet and retreive the picture format
-    TestFormat = rcvWorkingBuf[1] and 128;
-    if (TestFormat==128)
-      PictureFormat += 128;
-    TestFormat = rcvWorkingBuf[1] and 64;
-    if (TestFormat==64)
-      PictureFormat += 64;
-    TestFormat = rcvWorkingBuf[1] and 32;
-    if (TestFormat==32)
-      PictureFormat += 32;
+    
+    
     
     pair<int,int> Res = getPictureFormatFromHeader(PictureFormat);
     
