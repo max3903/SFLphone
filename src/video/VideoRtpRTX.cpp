@@ -256,7 +256,7 @@ void VideoRtpRTX::sendSession()
   if( videoSize > 0 ){
   	
   	encodedSize = encodeCodec->videoEncode(dataToSend,(unsigned char*)data_to_send,width,height);
-  	 delete dataToSend; dataToSend = NULL;
+  	delete dataToSend; dataToSend = NULL;
   	pair<int,int> ResEnc = encodeCodec->getEncodeOutputResolution();
   	
     unsigned char *packet;

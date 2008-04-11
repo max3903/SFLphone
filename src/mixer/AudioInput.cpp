@@ -71,6 +71,8 @@ short* AudioInput::fetchData(int &size, int index)
     this->fifo[index].pop_front();
     sem_post(&sem_putData);
     
+    delete tmpPak;
+    
     return data;
   }
   else

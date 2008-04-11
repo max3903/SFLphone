@@ -606,16 +606,7 @@ SIPVoIPLink::ChangeWebCamStatus(const CallID& id,bool status)
   }
   else
     return false;
-    
-  /*  
-  SIPCall* call = getSIPCall(id);
-  if (call) {
-    if ( SIPStartVideo(call) )
-      return true;
-    else
-      return false;
-  }
-  */
+
 }
 
 
