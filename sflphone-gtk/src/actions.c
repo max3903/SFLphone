@@ -103,6 +103,7 @@ sflphone_quit ()
 		//account_list_clean()
 		contact_hash_table_clear();
 		gtk_main_quit ();
+		DestroyMemSpaces();
 	}
 	return quit;
 }
@@ -126,11 +127,13 @@ sflphone_ringing(call_t * c )
   void
 sflphone_hung_up( call_t * c)
 {
+  main_window_glWidget(FALSE);
   call_list_remove( c->callID);
   update_call_tree_remove(c);
   update_menus();
   status_tray_icon_blink( FALSE );
 }
+
 
 /** Internal to actions: Fill account list */
 	void
@@ -193,6 +196,7 @@ sflphone_init()
 	codec_list_init();
 	contact_hash_table_init();
 	video_codec_list_init();
+	
 	if(!dbus_connect ())
 	{
 		main_window_error_message(_("Unable to connect to the SFLphone server.\nMake sure the daemon is running."));
@@ -206,7 +210,9 @@ sflphone_init()
 		sflphone_fill_contact_list();
 		sflphone_fill_video_codec_list();
 		InitMemSpaces( dbus_get_local_shared_memory_key(), dbus_get_remote_shared_memory_key());
+		video_settings_checkbox_init();
 		sflphone_set_current_account();
+
 		return TRUE;
 	}	
 }
@@ -225,6 +231,7 @@ sflphone_hang_up()
 			case CALL_STATE_RINGING:
 			case CALL_STATE_BUSY:
 			case CALL_STATE_FAILURE:
+			case CALL_STATE_CONF:
 				dbus_hang_up (selectedCall);
 				break;
 			case CALL_STATE_INCOMING:  
@@ -335,6 +342,14 @@ sflphone_current( call_t * c )
 	update_menus();
 }
 
+void 
+sflphone_conf( call_t * c )
+{
+	c->state = CALL_STATE_CONF;
+	update_call_tree(c);
+	update_menus();
+}
+
 	void 
 sflphone_set_transfert()
 {
@@ -371,6 +386,9 @@ sflphone_incoming_call (call_t * c)
 	update_call_tree_add(c);
 	update_menus();
 }
+
+
+
 
 void process_dialing(call_t * c, guint keyval, gchar * key)
 {

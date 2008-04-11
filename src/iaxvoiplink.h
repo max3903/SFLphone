@@ -74,7 +74,7 @@ public:
   bool sendUnregister (void);
 
   Call* newOutgoingCall(const CallID& id, const std::string& toUrl);
-  bool newOutgoingVideoInvite(const CallID& id);
+  bool ChangeWebCamStatus(const CallID& id,bool status);
   bool answer(const CallID& id);
 
   bool hangup(const CallID& id);

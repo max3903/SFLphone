@@ -650,44 +650,6 @@ static
 inline
 #endif
 gboolean
-org_sflphone_SFLphone_CallManager_change_video_avaibility (DBusGProxy *proxy, gboolean* OUT_status, GError **error)
-
-{
-  return dbus_g_proxy_call (proxy, "changeVideoAvaibility", error, G_TYPE_INVALID, G_TYPE_BOOLEAN, OUT_status, G_TYPE_INVALID);
-}
-
-typedef void (*org_sflphone_SFLphone_CallManager_change_video_avaibility_reply) (DBusGProxy *proxy, gboolean OUT_status, GError *error, gpointer userdata);
-
-static void
-org_sflphone_SFLphone_CallManager_change_video_avaibility_async_callback (DBusGProxy *proxy, DBusGProxyCall *call, void *user_data)
-{
-  DBusGAsyncData *data = (DBusGAsyncData*) user_data;
-  GError *error = NULL;
-  gboolean OUT_status;
-  dbus_g_proxy_end_call (proxy, call, &error, G_TYPE_BOOLEAN, &OUT_status, G_TYPE_INVALID);
-  (*(org_sflphone_SFLphone_CallManager_change_video_avaibility_reply)data->cb) (proxy, OUT_status, error, data->userdata);
-  return;
-}
-
-static
-#ifdef G_HAVE_INLINE
-inline
-#endif
-DBusGProxyCall*
-org_sflphone_SFLphone_CallManager_change_video_avaibility_async (DBusGProxy *proxy, org_sflphone_SFLphone_CallManager_change_video_avaibility_reply callback, gpointer userdata)
-
-{
-  DBusGAsyncData *stuff;
-  stuff = g_new (DBusGAsyncData, 1);
-  stuff->cb = G_CALLBACK (callback);
-  stuff->userdata = userdata;
-  return dbus_g_proxy_begin_call (proxy, "changeVideoAvaibility", org_sflphone_SFLphone_CallManager_change_video_avaibility_async_callback, stuff, g_free, G_TYPE_INVALID);
-}
-static
-#ifdef G_HAVE_INLINE
-inline
-#endif
-gboolean
 org_sflphone_SFLphone_CallManager_change_webcam_status (DBusGProxy *proxy, const gboolean IN_status, const char * IN_callID, GError **error)
 
 {

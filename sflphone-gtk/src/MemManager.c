@@ -74,25 +74,17 @@ int fetchData( MemKey *key, MemData *data )
 	if( data->size == 0 )
 		return -1;
 	
-	printf("\tPayload size: %d\n", data->size);
-	
-	printf("Base: %p\n",  key->BaseAdd );
-	printf("Base: %p\n",  key->BaseAdd + sizeof(int) );
-	printf("Base: %p\n",  key->BaseAdd + (sizeof(int) * 2) );
-	printf("Base: %p\n",  key->BaseAdd + (sizeof(int) * 3) );
-	
 	// Get image width and height
 	memcpy(&data->width, key->BaseAdd + sizeof(int), sizeof(int));
-	printf("\tPayload width: %d\n", data->width);
 	memcpy(&data->height, key->BaseAdd + (sizeof(int) * 2), sizeof(int));
-	printf("\tPayload height: %d\n", data->height);
 		
 	// Get Image payload
 	//data->data= (unsigned char*)calloc(1,data->size);
 	memcpy(data->data, key->BaseAdd + (sizeof(int) * 3), data->size);
 	
 	// Reset shared memory buffer	
-	memset(key->BaseAdd,0, data->size + (sizeof(int) * 4) );
+	//memset(key->BaseAdd,0, data->size + (sizeof(int) * 4) );
+	//memset(key->BaseAdd,0, sizeof(int) );
 		
  	return 0;
 	
@@ -176,18 +168,12 @@ int DestroyMemSpaces()
 	}
 
 	if( remoteBuff != NULL)
-	{
-		if( remoteBuff->data != NULL )
-			free(remoteBuff->data);
-		
+	{		
 		free(remoteBuff);
 	}
  	
 	if( localBuff != NULL)
-	{
-		if( localBuff->data != NULL )
-			free(localBuff->data);
-		
+	{		
 		free(localBuff);
 	}
 		

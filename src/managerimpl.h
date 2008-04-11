@@ -54,7 +54,7 @@ class CodecDescriptor;
 class GuiFramework;
 class TelephoneTone;
 class VoIPLink;
-
+class VideoCodec;
 class VideoDeviceManager;
 
 #ifdef USE_ZEROCONF
@@ -142,7 +142,7 @@ public:
   
   bool inviteConference( const AccountID& accountId, const CallID& id, const std::string& to );
   bool joinConference( const CallID& onHoldCallID, const CallID& newCallID );
-  bool changeVideoAvaibility(  );
+  void changeVideoAvaibility( const CallID& id );
   void changeWebcamStatus( const bool status , const CallID& id);
 
   /** Save config to file */
@@ -616,6 +616,10 @@ public:
     std::vector< std::string > getResolutionList(  );
     void setResolution( const std::string& name );
     std::string getCurrentResolution(  );
+    /* Video Settings */
+    std::vector< std::string > getBitrateList(  );
+    void setBitrate( const std::string& name );
+    std::string getCurrentBitrate(  );
     
     
     /** Method to activate Local video Capture for the preference video
@@ -633,12 +637,34 @@ public:
      * This method is ran as a thread
      */
     static void* localVideCapturepref(void* pdata);
+    
+    /** Method to get the status of the enable checkbox
+     * @return The status of the enable checkbox
+     */
+    bool getEnableCheckboxStatus(  );
+    /** Method to get the status of the disable checkbox
+     * @return The status of the disable checkbox
+     */
+	bool getDisableCheckboxStatus(  );
+	/** 
+     * Method to set the status of the enable checkbox
+     */
+	void setEnableCheckboxStatus( const bool& status );
+	/** 
+     * Method to set the status of the disable checkbox
+     */
+	void setDisableCheckboxStatus( const bool& status );
+
 
 private:
 
   /** Attribute telling if the local capture for the web cam is active
    */
   static bool _localCapActive;
+  
+  /** Attribute telling if it is ok to kill the thread
+   */
+  static bool _localCapOKKill;
   
   /** Local capture for preference window thread information;
    */
@@ -741,6 +767,7 @@ private:
 
   // MEMMANAGER
   MemManager *_memManager;
+
   static KeyHolder _keyHolder;
   
   /////////////////////
@@ -898,51 +925,6 @@ private:
    * Initialize the VideoDeviceManager -> the V4L interface
    */
   void initVideoDeviceManager(void);
-
-	enum modeEnum {modeNormal, modeServer};
-	modeEnum mode;
-	/* Get and Set the mode of the user
-	 * Server = the user is the server of a conference call
-	 * Normal = all other cases
-	 */
-	int getMode();
-    void setMode(int i);
-    /*
-	 * Start it when the user activates the webcam icon
-	 * Changes the status of the mixer
-	 * The mixer should now take the input from the 
-	 * local webcam instead of a black screen
-	 */
-    bool startVideo();
-    /*
-	 * Start it when the user desactivates on the webcam icon
-	 * Changes the status of the mixer
-	 * The mixer should now take the input from a 
-	 * black screen instead of the local webcam
-	 */
-    bool stopVideo();
-    /*
-	 * Start it when there is an incoming video session
-	 * Changes the status of the mixer
-	 * The mixer should now take the input from the 
-	 * video session instead of a black screen
-	 */
-    bool startIncomingVideo();
-    /*
-	 * Stop it when a video session has ended
-	 * Changes the status of the mixer
-	 * The mixer should now take the input from a 
-	 * black screen instead of the video session
-	 */
-    bool stopIncomingVideo();
-    /*
- 	* Tells the mixer which calls to join the audio from
- 	*/
-    bool joinAudio(const CallID& id1, const CallID& id2);
-    /*
- 	* Tells the mixer which calls to join the video from
- 	*/
-    bool joinVideo(const CallID& id1, const CallID& id2);
 	
 };
 

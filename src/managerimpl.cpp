@@ -1,4 +1,4 @@
-/*
+	/*
  *  Copyright (C) 2004-2007 Savoir-Faire Linux inc.
  *  Author: Alexandre Bourget <alexandre.bourget@savoirfairelinux.com>
  *  Author: Yan Morin <yan.morin@savoirfairelinux.com>
@@ -35,6 +35,7 @@
 #include <ccrtp/rtp.h>     // why do I need this here?
 #include <cc++/file.h>
 
+
 #include "manager.h"
 #include "account.h"
 #include "audio/audiolayer.h"
@@ -61,6 +62,8 @@
   
 bool ManagerImpl::_localCapActive;
 KeyHolder ManagerImpl::_keyHolder;
+bool ManagerImpl::_localCapOKKill;
+
 
 ManagerImpl::ManagerImpl (void)
 {
@@ -77,6 +80,7 @@ ManagerImpl::ManagerImpl (void)
   _setupLoaded = false;
   _dbus = NULL;
 
+ 
   // sound
   _audiodriver = NULL;
   _dtmfKey = 0;
@@ -142,8 +146,6 @@ void ManagerImpl::init()
   // Allocate memory right now
   initMemManager();
   
-
-
   getAudioInputDeviceList();
 
   AudioLayer *audiolayer = getAudioDriver();
@@ -163,8 +165,8 @@ void ManagerImpl::init()
   initZeroconf();
   
   // \TODO: To remove for debug purpose only
-  if( !this->enableLocalVideoPref() )
-  	exit(-1);
+  //if( !this->enableLocalVideoPref() )
+  	//exit(-1);
 }
 
 void ManagerImpl::terminate()
@@ -184,17 +186,17 @@ void ManagerImpl::terminate()
 
   _debug("Unload Telephone Tone\n");
   delete _telephoneTone; _telephoneTone = NULL;
-  
-  // \TODO delete memory allocation
-	delete _memManager; _memManager = NULL;  
-  // \TODO End threads
-  // \TODO Probably need to unload video driver too
-  
+    
+  _debug("Unload Shared Memory Manager\n");
+  _memManager->CleanSpaces();
+  delete _memManager; _memManager = NULL;  
+      
    _debug("Unload VideoDeviceManager\n");
-  delete _videoDeviceManager; _videoDeviceManager = NULL; 
-
- _debug("Unload VideoCodecDescriptor\n");
- delete _videoCodecDescriptor; _videoCodecDescriptor = NULL;
+   _videoDeviceManager->Terminate();
+  delete _videoDeviceManager; _videoDeviceManager = NULL;
+  
+  _debug("Unload VideoCodecDescriptor\n");
+  delete _videoCodecDescriptor; _videoCodecDescriptor = NULL;
 
   _debug("Unload Audio Codecs\n");
   _codecDescriptorMap.deleteHandlePointer();
@@ -482,46 +484,63 @@ ManagerImpl::refuseCall (const CallID& id)
 bool 
 ManagerImpl::inviteConference( const AccountID& accountId, const CallID& id, const std::string& to )
 {
-	//TODO
-	return true;	
+	bool answer;
+	answer = outgoingCall(accountId, id, to);
+	return answer;	
 }
 
 bool 
 ManagerImpl::joinConference( const CallID& onHoldCallID, const CallID& newCallID )
 {
-	//TODO
-	return true;
-}
+	AccountID accountid = getAccountFromCall( onHoldCallID );
+	//Add a conference call
+	if ( getAccountLink(accountid)->addConf(onHoldCallID, newCallID) ) 
+	{
+		_debug("The conference call was succesfully created\n");
 
-bool
-ManagerImpl::changeVideoAvaibility(  )
-{
-	//TODO
-	return true;	
+    	return true;
+  	} 
+  	else 
+  	{
+    	_debug("! Manager Error: An error occur, the conference call was not created\n");
+    	
+  	}
+  	return false;
 }
 
 void
-ManagerImpl::changeWebcamStatus( const bool status, const CallID& id)
+ManagerImpl::changeVideoAvaibility( const CallID& id )
 {
-printf("ENVOIE OUTGOING RE-INVITE  MANAGER !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!v!!!!!!!!!\n");
- 
+	//TODO
+	if(_dbus)
+	{
+		/*if(TODO: fonction video )
+		{
+		 	_dbus->getCallManager()->callStateChanged(id, "VIDEO");	
+		}
+		else if(TODO: fonction video )
+		{
+			_dbus->getCallManager()->callStateChanged(id, "NOVIDEO");	
+		}*/
+	}	
+}
+
+void
+ManagerImpl::changeWebcamStatus(const bool status, const CallID& id)
+{
   if (getAccountFromCall(id) == AccountNULL) {
     _debug("! Manager Error: Outgoing Video Invite: call id does not exist\n");
     return;
   }
 
-  if (status){
-    printf("ENVOIE OUTGOING INVITE STATUS = ENABLED!!!!!!!!!!!!!!!!!!!!!!!!!!!!v!!!!!!!!!\n");
-    if ( getAccountLink(getAccountFromCall(id))->newOutgoingVideoInvite(id) ) {
-      return;
-    } else {
-      _debug("! Manager Error: An error occur, the video call was not created\n");
-    }
+  _debug(" !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! MANAGERIMPL! Enabled webcam!\n");
+
+  if ( getAccountLink(getAccountFromCall(id))->ChangeWebCamStatus(id,status) ){
     return;
-  }
-  //else
-    // TODO: FAIRE LE GOOD BYE VIDEO !!!!!
- 
+  }else{
+    _debug("! Manager Error: An error occur, the video call was not created\n");
+    return;
+  } 
 }
 
 //THREAD=Main
@@ -3034,13 +3053,13 @@ ManagerImpl::initVideoCodec (void)
   	}
   	
   	// if the user never set the bitrate
-  	//TODO add bitrate
 	if(getConfigString(VIDEO, "BitRate") == ""){
     	_videoCodecDescriptor->setDefaultBitRate();
 	}
   	// else retrieve the one set in the user config file
 	else{
-	//TODO Mamer !
+		std::string active_bitrate = getConfigString(VIDEO, "BitRate"); 
+		setBitrate(active_bitrate);
   	}
   	
 }
@@ -3048,16 +3067,24 @@ ManagerImpl::initVideoCodec (void)
   void
 ManagerImpl::setActiveVideoCodecList(const std::vector<std::string>& list)
 {
-	// TODO: replace with video codec list
-	// the following code is only there to avoid errors
-  _debug("Set active Video codecs list\n");
+	_debug("Set active Video codecs list\n");
+	std::vector<std::string> codecMap = _videoCodecDescriptor->getStringCodecMap();
   
 	if(_videoCodecDescriptor->saveActiveCodecs(list))
+	{
 		ptracesfl("videoCodecs saved",MT_INFO,5,true);
-  // setConfig
-  std::string s = serialize(list);
-  printf("%s\n", s.c_str());
-  setConfig("Video", "ActiveCodecs", s);
+		// setConfig
+		std::string s = serialize(list);
+		printf("%s\n", s.c_str());
+		setConfig("Video", "ActiveCodecs", s);
+		
+	}
+	else
+	{
+		//the user doesn't have all the codecs in the config file installed
+		//so we need to reset the config file
+		setConfig("Video", "ActiveCodecs", "");
+	}
 }
 
 
@@ -3078,42 +3105,21 @@ ManagerImpl::getVideoCodecList( void )
   return _videoCodecDescriptor->getStringCodecMap();
 }
 
-  std::vector<std::string>
-ManagerImpl::getVideoCodecDetails( const ::DBus::Int32& payload )
-{
-	// TODO: replace with video codec details
-	// the following code is only there to avoid errors
-  std::vector<std::string> v;
-  std::stringstream ss;
-
-  v.push_back(_codecDescriptorMap.getCodecName((AudioCodecType)payload));
-  ss << _codecDescriptorMap.getSampleRate((AudioCodecType)payload);
-  v.push_back((ss.str()).data()); 
-  ss.str("");
-  ss << _codecDescriptorMap.getBitRate((AudioCodecType)payload);
-  v.push_back((ss.str()).data());
-  ss.str("");
-  ss << _codecDescriptorMap.getBandwidthPerCall((AudioCodecType)payload);
-  v.push_back((ss.str()).data());
-  ss.str("");
-
-  return v;
-}
 
 
 std::vector<std::string>
 ManagerImpl::retrieveActiveVideoCodecs()
 {
 	ptracesfl("retrieving video codecs",MT_INFO,5,true);
-	  std::vector<std::string> order; 
-	  std::string  temp;
-	  std::string s = getConfigString(VIDEO, "ActiveCodecs");
+	std::vector<std::string> order; 
+	std::string  temp;
+	std::string s = getConfigString(VIDEO, "ActiveCodecs");
 	  
 	while (s.find("/", 0) != std::string::npos)
 	{
 		size_t  pos = s.find("/", 0); 			
 		temp = s.substr(0, pos);      	
-		s.erase(0, pos + 1);          		
+		s.erase(0, pos + 1);       		
 		order.push_back(temp);                	
 	}
 	
@@ -3125,27 +3131,45 @@ void ManagerImpl::initVideoDeviceManager(void)
 {
 
 	_videoDeviceManager = VideoDeviceManager::getInstance();
-	ptracesfl("Video Device Manager init",MT_INFO,5,true);
-	//TODO: send a signal if the return value is false
-	_videoDeviceManager->createDevice("/dev/video0");
-
+	ptracesfl("Video Device Manager init",MT_INFO,MANAGERIMPL_TRACE);
+	
+	int found= -1;
+	vector<string> devices= _videoDeviceManager->enumVideoDevices();
+	
+	for( int i= 0; i < devices.size(); i++){
+		if( _videoDeviceManager->createDevice(devices[i].c_str()) ){
+			found= i;
+			break;
+		}
+	}
+	
+	if( found != -1){
+		ptracesfl("Manager found and enabled device: ", MT_INFO, MANAGERIMPL_TRACE, false);
+		ptracesfl(devices[found].c_str(), MT_NONE, MANAGERIMPL_TRACE);
+	}else{
+		ptracesfl("No video device could be initialized by manager. Do you have a V4L video device pluged in ?", MT_WARNING, MANAGERIMPL_TRACE);
+	}
+	
 }
 
 void ManagerImpl::initMemManager(void)
 {
-	int dummySize = 7400000;
+	// Maximum Shared memory space corresponding to a buffer for a resolution of 640x480
+	int MaximumSize = 7400000;
 
+	ptracesfl("Initializing Shared memory manager ...",MT_INFO,MANAGERIMPL_TRACE,true);
 	_memManager = MemManager::getInstance();
-	ptracesfl("MEMSPACE INIT MANAGER",MT_INFO,1,true);
-	//TODO GET SIZE FROM WEBCAM 
+	
 	//SetSpace and attach to running process
 	srand ( time(NULL) );
-	_keyHolder.localKey = _memManager->initSpace(dummySize);
+	
+	ptracesfl("Initializing Local Shared memory Space ...",MT_INFO,MANAGERIMPL_TRACE,true);
+	_keyHolder.localKey = _memManager->initSpace(MaximumSize, "local");
 	_keyHolder.localKey->setDescription("local");
-	ptracesfl("LOCAL MEMSPACE started",MT_INFO,2,true);
-	_keyHolder.remoteKey = _memManager->initSpace(dummySize);
+	
+	ptracesfl("Initializing Local Shared memory Space ...",MT_INFO,MANAGERIMPL_TRACE,true);
+	_keyHolder.remoteKey = _memManager->initSpace(MaximumSize, "remote");
 	_keyHolder.remoteKey->setDescription("remote");
-	ptracesfl("REMOTE MEMSPACE started",MT_INFO,2,true);
 
 }
 
@@ -3167,7 +3191,10 @@ CmdDesc
 ManagerImpl::getBrightness(  )
 {
 	CmdDesc values;
-	values = _videoDeviceManager->getCommand(VideoDeviceManager::BRIGHTNESS)->getCmdDescriptor();
+	Command *cmd = _videoDeviceManager->getCommand(VideoDeviceManager::BRIGHTNESS);
+	values = cmd->getCmdDescriptor();
+	
+	delete cmd;
 	return values;
 	
 }
@@ -3175,35 +3202,50 @@ ManagerImpl::getBrightness(  )
 void 
 ManagerImpl::setBrightness( const int value )
 {
-	_videoDeviceManager->getCommand(VideoDeviceManager::BRIGHTNESS)->setTo(value);
+	Command* cmd = _videoDeviceManager->getCommand(VideoDeviceManager::BRIGHTNESS);
+	cmd->setTo(value);
+	
+	delete cmd;
 }
 
 CmdDesc
 ManagerImpl::getContrast(  )
 {
 	CmdDesc values;
-	values = _videoDeviceManager->getCommand(VideoDeviceManager::CONTRAST)->getCmdDescriptor();
+	Command *cmd =_videoDeviceManager->getCommand(VideoDeviceManager::CONTRAST);
+	values = cmd->getCmdDescriptor();
+	
+	delete cmd;
 	return values;	
 }
 
 void 
 ManagerImpl::setContrast( const int value )
 {
-	_videoDeviceManager->getCommand(VideoDeviceManager::CONTRAST)->setTo(value);
+	Command* cmd = _videoDeviceManager->getCommand(VideoDeviceManager::CONTRAST);
+	cmd->setTo(value);
+	
+	delete cmd;
 }
 
 CmdDesc
 ManagerImpl::getColour(  )
 {
 	CmdDesc values;
-	values = _videoDeviceManager->getCommand(VideoDeviceManager::COLOR)->getCmdDescriptor();
+	Command *cmd = _videoDeviceManager->getCommand(VideoDeviceManager::COLOR);
+	values = cmd->getCmdDescriptor();
+	
+	delete cmd;
 	return values;	
 }
 
 void 
 ManagerImpl::setColour( const int value )
 {
-	_videoDeviceManager->getCommand(VideoDeviceManager::COLOR)->setTo(value);
+	Command* cmd = _videoDeviceManager->getCommand(VideoDeviceManager::COLOR);
+	cmd->setTo(value);
+	
+	delete cmd;
 }
 
 std::vector<std::string> 
@@ -3221,17 +3263,14 @@ ManagerImpl::setWebcamDevice( const std::string& name )
 	strcpy(temp, name.c_str());
 	ptracesfl("set Webcam Device", MT_INFO, MANAGERIMPL_TRACE, false);
 	ptracesfl(temp, MT_INFO, MANAGERIMPL_TRACE, true);
-	_videoDeviceManager->changeDevice(temp);
+	if(strcmp(temp, "No device")==0)
+	{
+		_videoDeviceManager->Terminate();
+	}
+	else
+		_videoDeviceManager->changeDevice(temp);
 }
 
-//TODO: remove from D-bus and all the way to the GUI
-//The first device available will be choosen
-std::string
-ManagerImpl::getCurrentWebcamDevice(  )
-{
-	std::string v = "/dev/video0";
-	return v;
-}
 
 std::vector< std::string > 
 ManagerImpl::getResolutionList(  )
@@ -3239,7 +3278,8 @@ ManagerImpl::getResolutionList(  )
 	int i=0;
 	std::vector<std::string> order; 
 	std::string temp;
-	const char* tmp= ((Resolution*)_videoDeviceManager->getCommand(VideoDeviceManager::RESOLUTION))->enumResolution();
+	Resolution* cmdRes= (Resolution*)_videoDeviceManager->getCommand(VideoDeviceManager::RESOLUTION);
+	const char* tmp= cmdRes->enumResolution();
 	
 	if( tmp == NULL ){
 		ptracesfl("Resolution list is empty",MT_WARNING,2,false);
@@ -3263,6 +3303,8 @@ ManagerImpl::getResolutionList(  )
 		                	
 	}
 	order.push_back(temp);
+	
+	delete cmdRes;
 	return order;
 }
 
@@ -3270,10 +3312,14 @@ void
 ManagerImpl::setResolution( const std::string& name )
 {
 	char temp[20];
+	Resolution *cmdRes = (Resolution*)_videoDeviceManager->getCommand(VideoDeviceManager::RESOLUTION);
+	
 	strcpy(temp, name.c_str());
 	ptracesfl("setResolution", MT_INFO, MANAGERIMPL_TRACE, false);
 	ptracesfl(temp, MT_INFO, MANAGERIMPL_TRACE, true);
-	((Resolution*)_videoDeviceManager->getCommand(VideoDeviceManager::RESOLUTION))->setTo(temp);	
+	cmdRes->setTo(temp);
+	
+	delete cmdRes;	
 }
 
 std::string 
@@ -3282,7 +3328,8 @@ ManagerImpl::getCurrentResolution(  )
 	pair<int,int> res;
 	char buf[10];
 	std::string temp;
-	res = ((Resolution*)_videoDeviceManager->getCommand(VideoDeviceManager::RESOLUTION))->getResolution();
+	Resolution *cmdRes =(Resolution*)_videoDeviceManager->getCommand(VideoDeviceManager::RESOLUTION);
+	res = cmdRes->getResolution();
 	temp.clear();
 	sprintf(buf,"%d", res.first);
 	temp+=buf;
@@ -3290,39 +3337,91 @@ ManagerImpl::getCurrentResolution(  )
 	sprintf(buf, "%d", res.second);
 	temp+=buf;
 	std::cout << temp;
+	
+	delete cmdRes;
 	return temp;
 }
 
+std::vector< std::string > 
+ManagerImpl::getBitrateList(  )
+{
+	std::vector<std::string> order; 
+	std::string temp;
+	std::string s = _videoCodecDescriptor->getBitRates();
+	  
+	while (s.find(";", 0) != std::string::npos)
+	{
+		size_t  pos = s.find(";", 0); 			
+		temp = s.substr(0, pos);      	
+		s.erase(0, pos + 1);          		
+		order.push_back(temp);                	
+	}
+	
+	return order;
+}
 
+void 
+ManagerImpl::setBitrate( const std::string& name )
+{
+	_videoCodecDescriptor->setCurrentBitRate(name);
+	setConfig("Video", "BitRate", name);
+}
+
+std::string 
+ManagerImpl::getCurrentBitrate(  )
+{
+	
+	return _videoCodecDescriptor->getCurrentBitRate();
+}
+
+/** Method to activate Local video Capture for the preference video
+ * @return The success of the operation
+ */
 bool 
 ManagerImpl::enableLocalVideoPref(){
 	
-	if( _localCapActive ){
+	if( ManagerImpl::_localCapActive ){
 		ptracesfl("Local Capture for preference windows already active", MT_WARNING, MANAGERIMPL_TRACE);
 		return true;
 	}
 	
-	_localCapActive= true;
+	ManagerImpl::_localCapActive= true;
+	ManagerImpl::_localCapOKKill= false;
 	
 	if( pthread_create(&_localVidCap_Thread, NULL, localVideCapturepref, NULL) != 0 ){
-		ptracesfl("Cannot create capture thread for capture (preference widnow)", MT_ERROR, MANAGERIMPL_TRACE);
+		ManagerImpl::_localCapActive= false;
+		ptracesfl("Cannot create capture thread for capture (preference window)", MT_ERROR, MANAGERIMPL_TRACE);
 		return false;
 	}
 			
 	return true;
 }
 
+/** Method to deactivate Local video Capture for the preference video
+ * @return The success of the operation
+ */
 bool 
 ManagerImpl::disableLocalVideoPref(){
 	
-	_localCapActive= false;
+	if( !ManagerImpl::_localCapActive )
+		return true;
+	
+	ptracesfl("Stopping Local video capture ...", MT_INFO, MANAGERIMPL_TRACE);
+	ManagerImpl::_localCapActive= false;
+	//pthread_join(ManagerImpl::_localVidCap_Thread, NULL);
+	while(!ManagerImpl::_localCapOKKill);
 	
 	return true;
 }
 
+/** Method that captures the data from the web cam for the prefenrences window
+ * 
+ * This method is ran as a thread
+ */
 void* ManagerImpl::localVideCapturepref(void* pdata){
 	
-	ptracesfl("Starting Local video capture for preference window", MT_INFO, MANAGERIMPL_TRACE);
+
+	ptracesfl("Starting Local video capture ...", MT_INFO, MANAGERIMPL_TRACE);
 	
 	Capture* cmdCap= (Capture*)VideoDeviceManager::getInstance()->getCommand(VideoDeviceManager::CAPTURE);
 	Resolution* cmdRes= (Resolution*)VideoDeviceManager::getInstance()->getCommand(VideoDeviceManager::RESOLUTION);
@@ -3332,87 +3431,92 @@ void* ManagerImpl::localVideCapturepref(void* pdata){
 	pair<int,int> res;
 	unsigned char* data= NULL;
 	
-	while(_localCapActive){
-		
+	while(ManagerImpl::_localCapActive){
+				
 		data= cmdCap->GetCapture(imgSize);
 		
 		if(data != NULL){
-			printf("OK data\n");
 			res= cmdRes->getResolution();
-			if( !manager->putData( _keyHolder.localKey, data , imgSize, res.first, res.second ) ){
-				printf("CANNOT put data\n");
-			}
+			manager->putData( _keyHolder.localKey, data , imgSize, res.first, res.second );
 			free(data);
 			data= NULL;
 			imgSize= 0;
-		}else
-			printf("NULL data\n");
+			
+		}
 		
 		usleep(10);
 	}
+	
 	
 	if(data != NULL)
 		delete data;
 	
 	delete cmdCap;
 	delete cmdRes;
-	
-	ptracesfl("Stopping Local video capture for preference window", MT_INFO, MANAGERIMPL_TRACE);
+
+	ptracesfl("Local video capture Stopped ...", MT_INFO, MANAGERIMPL_TRACE);
+	ManagerImpl::_localCapOKKill= true;
 	
 }
 
-/*
- * Start it when the user activates the webcam icon
- * Changes the status of the mixer
- * The mixer should now take the input from the 
- * local webcam instead of a black screen
+/** Method to get the status of the enable checkbox
+ * @return The status of the enable checkbox
  */
-bool startVideo()
+bool 
+ManagerImpl::getEnableCheckboxStatus(  )
 {
-	
+	std::string s = getConfigString(VIDEO, "EnableCheckbox");
+	if(s!= "")
+	{	
+		if(s == "1")
+			return true;
+		else
+			return false;
+	}
+	else
+	{
+		setEnableCheckboxStatus( true );
+		return true;
+	}
 }
-/*
- * Start it when the user desactivates on the webcam icon
- * Changes the status of the mixer
- * The mixer should now take the input from a 
- * black screen instead of the local webcam
- */
-bool stopVideo()
+
+/** Method to get the status of the disable checkbox
+* @return The status of the disable checkbox
+*/
+bool 
+ManagerImpl::getDisableCheckboxStatus(  )
 {
-	
+	std::string s = getConfigString(VIDEO, "DisableCheckbox");
+	if(s!= "")
+	{	
+		if(s == "1")
+			return true;
+		else
+			return false;
+	}
+	else
+	{
+		setDisableCheckboxStatus( true );
+		return true;
+	}
 }
-/*
- * Start it when there is an incoming video session
- * Changes the status of the mixer
- * The mixer should now take the input from the 
- * video session instead of a black screen
- */
-bool startIncomingVideo()
+
+/** 
+* Method to set the status of the enable checkbox
+*/
+void 
+ManagerImpl::setEnableCheckboxStatus( const bool& status )
 {
-	
+	setConfig("Video", "EnableCheckbox", status);
 }
-/*
- * Stop it when a video session has ended
- * Changes the status of the mixer
- * The mixer should now take the input from a 
- * black screen instead of the video session
- */
-bool stopIncomingVideo()
+
+/** 
+* Method to set the status of the disable checkbox
+*/
+void 
+ManagerImpl::setDisableCheckboxStatus( const bool& status )
 {
-	
+	setConfig("Video", "DisableCheckbox", status);
 }
-/*
- * Tells the mixer which calls to join the audio from
- */
-bool joinAudio(const CallID& id1, const CallID& id2)
-{
-	
-}
-/*
- * Tells the mixer which calls to join the video from
- */
-bool joinVideo(const CallID& id1, const CallID& id2)
-{
-	
-}
+
 

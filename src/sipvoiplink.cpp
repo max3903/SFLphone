@@ -23,8 +23,9 @@
 #include "sipvoiplink.h"
 #include "eventthread.h"
 #include "sipcall.h"
+#include "video/VideoCodecDescriptor.h"
 #include <sstream> // for ostringstream
-
+#include <string>
 #include "manager.h"
 #include "user_cfg.h" // SIGNALISATION / PULSE #define
 #include "sippresencemanager.h"
@@ -596,22 +597,32 @@ SIPVoIPLink::newOutgoingCall(const CallID& id, const std::string& toUrl)
 }
 
 bool 
-SIPVoIPLink::newOutgoingVideoInvite(const CallID& id)
+SIPVoIPLink::ChangeWebCamStatus(const CallID& id,bool status)
 {
+
   SIPCall* call = getSIPCall(id);
+  
   if (call) {
-    // TODO: AJOUTER CODEC VIDEO dans le call????
-    if ( SIPStartVideo(call) )
-      return true;
-    else
-      return false;
+    if (status){
+      if (_videortp.createNewVideoSession(call,false) == 0) {
+        call->setVideoStart(true);
+        return true;
+      } else {
+        _debug("! SIP Failure: Unable to start video when answering %s/%d\n", __FILE__, __LINE__);
+      }
+    }else
+  	  _videortp.closeVideoSession(false); 
   }
+  else
+    return false;
+
 }
 
 
 bool
 SIPVoIPLink::answer(const CallID& id)
 {
+
   _debug("- SIP Action: start answering\n");
 
   SIPCall* call = getSIPCall(id);
@@ -648,9 +659,6 @@ SIPVoIPLink::answer(const CallID& id)
   }
   eXosip_unlock();
 
-  // TODO: a enlever
-  printf("SIPVoIPLink::answer called!");
-
   if(i==0) {
     // Incoming call is answered, start the sound thread.
     _debug("* SIP Info: Starting AudioRTP when answering\n");
@@ -662,6 +670,12 @@ SIPVoIPLink::answer(const CallID& id)
     } else {
       _debug("! SIP Failure: Unable to start sound when answering %s/%d\n", __FILE__, __LINE__);
     }
+    //if (_videortp.createNewVideoSession(call,false) == 0) {
+      //call->setVideoStart(true);
+      //return true;
+    //} else {
+     // _debug("! SIP Failure: Unable to start video when answering %s/%d\n", __FILE__, __LINE__);
+    //}
   }
   removeCall(call->getCallId());
   return false;
@@ -683,6 +697,8 @@ SIPVoIPLink::hangup(const CallID& id)
   if (Manager::instance().isCurrentCall(id)) {
     _debug("* SIP Info: Stopping AudioRTP for hangup\n");
     _audiortp.closeRtpSession();
+    //_debug("* SIP Info: Stopping VideoRTP for hangup\n");
+    _videortp.closeVideoSession(false); // TODO: in conf?
   }
   removeCall(id);
   return true;
@@ -715,6 +731,7 @@ SIPVoIPLink::onhold(const CallID& id)
   call->setState(Call::Hold);
   _debug("* SIP Info: Stopping AudioRTP for onhold action\n");
   _audiortp.closeRtpSession();
+  _videortp.closeVideoSession(false); // TODO: in conf?
 
 
   int did = call->getDid();
@@ -1061,124 +1078,6 @@ SIPVoIPLink::subscriptionNotificationReceived(eXosip_event_t* event, char* body)
 	Manager::instance().contactEntryPresenceChanged(getAccountID(), from->username, status, "");
 }
 
-// EN CONSTRUCTION!! NE PAS APPELER
-bool 
-SIPVoIPLink::SIPStartVideo(SIPCall* call)
-{
-  printf("DANS LA FONCTION REINVITE SIPVOIP!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!v!!!\n");
-  
-  std::string subject = "TEST INVITE VIDEO";
-
-  if (!call) return false;
-
-  std::string to    = getSipTo(call->getPeerNumber());
-  std::string from  = getSipFrom();
-  std::string route = getSipRoute();
-  _debug("            From: %s\n", from.data());
-  _debug("            Route: %s\n", route.data());
-
-  if (!SIPCheckUrl(from)) {
-    _debug("! SIP Error: Source address is invalid %s\n", from.data());
-    Manager::instance().displayConfigError("Error in source address");
-    return false;
-  }
-  if (!SIPCheckUrl(to)) {
-    Manager::instance().displayErrorText(call->getCallId(), "Error in destination address");
-    return false;
-  }
-
-  osip_message_t *invite;
-  eXosip_lock();
-  int eXosipError = eXosip_call_build_initial_invite (&invite, (char*)to.data(),
-                                        (char*)from.data(),
-                                        (char*)route.data(),
-                                        (char*)subject.data());
-  
-  if (eXosipError != 0) {
-    eXosip_unlock();
-    return false; // error when building the invite
-  }
-
-  std::ostringstream media_audio;
-  std::ostringstream rtpmap_attr;
-  AudioCodecType payload;
-  int nbChannel;
-  int iter;
-
-  // Set rtpmap according to the supported codec order
-  //CodecMap map = call->getCodecMap().getCodecMap();
-  CodecOrder map = call->getCodecMap().getActiveCodecs();
- 
-  for(iter=0 ; iter < map.size() ; iter++){
-      if(map[iter] != -1){
-	payload = map[iter];
-        // add each payload in the list of payload
-        media_audio << payload << " ";
-
-        rtpmap_attr << "a=rtpmap:" << payload << " " << 
-        call->getCodecMap().getCodecName(payload) << "/" << call->getCodecMap().getSampleRate(payload);
-
-    	//TODO add channel infos
-        nbChannel = call->getCodecMap().getChannel(payload);
-        if (nbChannel!=1) {
-          rtpmap_attr << "/" << nbChannel;
-        }
-        rtpmap_attr << "\r\n";
-      }
-    // go to next codec
-    //*iter++;
-  }
-  
-  // http://www.antisip.com/documentation/eXosip2/group__howto1__initialize.html
-  // tell sip if we support SIP extension like 100rel
-  // osip_message_set_supported (invite, "100rel");
-
-  /* add sdp body */
-  {
-    char tmp[4096];
-    snprintf (tmp, 4096,
-              "v=0\r\n"
-              "o=SFLphone 0 0 IN IP4 %s\r\n"
-              "s=Video\r\n"
-              "c=IN IP4 %s\r\n"
-              "t=0 0\r\n"
-              "m=audio %d RTP/AVP %s\r\n"
-              "%s"
-	      "m=video 12345 RTP/AVP 34\r\n"
-              "a=rtpmap:34 H263/90000 \r\n",
-              _localExternAddress.c_str(), _localExternAddress.c_str(), call->getLocalExternAudioPort(), media_audio.str().c_str(), rtpmap_attr.str().c_str());
-
-    // media_audio should be one, two or three numbers?
-    osip_message_set_body (invite, tmp, strlen (tmp));
-    osip_message_set_content_type (invite, "application/sdp");
-    
-    _debug("SDP send: %s", tmp);
-  }
-  
-  _debug("> REINVITE To <%s>\n", to.data());
-  eXosip_call_build_request(call->getDid(),"INVITE",&invite);
-  eXosip_call_send_request(call->getDid(),invite);
-
-/*
-  // Keep the cid in case of cancelling
-  call->setCid(cid);   // p-e pas nescessaire
-
-  if (cid <= 0) {
-    eXosip_unlock();
-    return false ;
-  } else {
-    _debug("* SIP Info: Outgoing callID is %s, cid=%d\n", call->getCallId().data(), cid);
-    eXosip_call_set_reference (cid, NULL);
-  }
-*/
-  
-  eXosip_unlock();
-
-  return true;
-  
-}
-
-
 bool
 SIPVoIPLink::SIPOutgoingInvite(SIPCall* call) 
 {
@@ -1224,6 +1123,7 @@ SIPVoIPLink::SIPStartCall(SIPCall* call, const std::string& subject)
   }
 
   setCallAudioLocal(call);
+  setCallVideoLocal(call);
 
   std::ostringstream media_audio;
   std::ostringstream rtpmap_attr;
@@ -1231,8 +1131,7 @@ SIPVoIPLink::SIPStartCall(SIPCall* call, const std::string& subject)
   int nbChannel;
   int iter;
 
-  // Set rtpmap according to the supported codec order
-  //CodecMap map = call->getCodecMap().getCodecMap();
+  // Set rtpmap according to the supported audio codec order
   CodecOrder map = call->getCodecMap().getActiveCodecs();
  
   for(iter=0 ; iter < map.size() ; iter++){
@@ -1255,11 +1154,28 @@ SIPVoIPLink::SIPStartCall(SIPCall* call, const std::string& subject)
     //*iter++;
   }
 
+  // Set rtpmap according to the supported video codec order
+  VideoCodecOrder CodecVector = VideoCodecDescriptor::getInstance()->getActiveCodecs();
+  VCOIterator itrStringVector;
+  const char* codecName;
+  int codecPayload;
+  int codecSimpleRate = 90000; //Same for all video codecs
+
+  for ( itrStringVector = CodecVector.begin(); itrStringVector != CodecVector.end(); itrStringVector++)
+  {
+    if ( (*itrStringVector)->id == (CodecID)CODEC_ID_H263 ){
+      codecName = (*itrStringVector)->name;
+      codecPayload = 34;
+    }
+    else
+      ; // TODO: h264, Not yet supported!
+  }
+
   // http://www.antisip.com/documentation/eXosip2/group__howto1__initialize.html
   // tell sip if we support SIP extension like 100rel
   // osip_message_set_supported (invite, "100rel");
 
-  /* add sdp body */
+  // add sdp body
   {
     char tmp[4096];
     snprintf (tmp, 4096,
@@ -1267,10 +1183,14 @@ SIPVoIPLink::SIPStartCall(SIPCall* call, const std::string& subject)
               "o=SFLphone 0 0 IN IP4 %s\r\n"
               "s=call\r\n"
               "c=IN IP4 %s\r\n"
+              "b=CT:384\r\n"
               "t=0 0\r\n"
               "m=audio %d RTP/AVP %s\r\n"
-              "%s",
-              _localExternAddress.c_str(), _localExternAddress.c_str(), call->getLocalExternAudioPort(), media_audio.str().c_str(), rtpmap_attr.str().c_str());
+              "%s"
+              "m=video %d RTP/AVP %d\r\n"
+              "a=rtpmap:%d %s/%d\r\n"
+              "a=sendrecv\r\n",_localExternAddress.c_str(), _localExternAddress.c_str(), call->getLocalExternAudioPort(), media_audio.str().c_str(), rtpmap_attr.str().c_str(),call->getLocalExternVideoPort(),codecPayload,codecPayload,codecName,codecSimpleRate);
+
     // media_audio should be one, two or three numbers?
     osip_message_set_body (invite, tmp, strlen (tmp));
     osip_message_set_content_type (invite, "application/sdp");
@@ -1399,7 +1319,7 @@ bool
 SIPVoIPLink::setCallVideoLocal(SIPCall* call) 
 {
   // Setting Video
-  unsigned int callLocalVideoPort = 12345; // a changer!
+  unsigned int callLocalVideoPort = RANDOM_LOCAL_PORT; // a changer!
   unsigned int callLocalExternVideoPort = callLocalVideoPort;
   if (_useStun) {
     // If use Stun server
@@ -1431,7 +1351,7 @@ SIPVoIPLink::SIPCallInvite(eXosip_event_t *event)
   }
 
   setCallAudioLocal(call);
-  setCallVideoLocal(call); // ajouté!
+  setCallVideoLocal(call);
   call->setCodecMap(Manager::instance().getCodecDescriptorMap());
   call->setConnectionState(Call::Progressing);
   if (call->SIPCallInvite(event)) {
@@ -1472,7 +1392,8 @@ SIPVoIPLink::SIPCallReinvite(eXosip_event_t *event)
     _debug("* SIP Info: Stopping AudioRTP when reinvite\n");
     _audiortp.closeRtpSession();
     call->setAudioStart(false);
-    // TODO: p-e il faut fermer le video ici!
+    _videortp.closeVideoSession(false); // TODO: In conf ?
+    call->setVideoStart(false);
   }
   call->SIPCallReinvite(event);
 
@@ -1520,6 +1441,12 @@ SIPVoIPLink::SIPCallAnswered(eXosip_event_t *event)
       } else {
         call->setAudioStart(true);
       }
+      //if ( _videortp.createNewVideoSession(call,false)!=0) {
+        //_debug("RTP Failure: unable to create new video session\n");
+      //} else {
+        //_debug("Session video cree!\n");
+        //call->setVideoStart(true); // TODO: a verifier!
+      //}
     }
   } else {
      _debug("* SIP Info: Answering call (on/off hold to send ACK)\n");
@@ -1609,10 +1536,10 @@ SIPVoIPLink::SIPCallServerFailure(eXosip_event_t *event)
 void
 SIPVoIPLink::SIPCallAck(eXosip_event_t *event) 
 {
-  printf("ACK RECU!!!!");
 
   SIPCall* call = findSIPCallWithCidDid(event->cid, event->did);
   if (!call) { return; }
+
   if (!call->isAudioStarted()) {
     if (Manager::instance().isCurrentCall(call->getCallId())) {
       _debug("* SIP Info: Starting AudioRTP when ack\n");
@@ -1621,14 +1548,19 @@ SIPVoIPLink::SIPCallAck(eXosip_event_t *event)
       }
       _debug("* SIP Info: Starting VideoRTP when ack\n");
       // todo: verifier que nous sommes en train denvoyer un REINVITE!
-      if ( _videortp.createNewVideoSession(call,false) ) {
-        printf("RTP VIDEO CREE!");
-        call->setVideoStart(true);
-      }
-      else
-        printf("IMPOSSIBLE CREE RTP VIDEO!");
+      
     }
   }
+
+    //if (Manager::instance().isCurrentCall(call->getCallId())) {
+      //if ( _videortp.createNewVideoSession(call,false) ==0) {
+       //_debug("RTP VIDEO CREE!");
+        //call->setVideoStart(true);
+      //}
+      //else
+        //_debug("IMPOSSIBLE CREE RTP VIDEO!");
+    //}
+  //}
 }
 
 void
@@ -1673,8 +1605,11 @@ SIPVoIPLink::SIPCallClosed(eXosip_event_t *event)
   call->setDid(event->did);
   if (Manager::instance().isCurrentCall(id)) {
     call->setAudioStart(false);
+    call->setVideoStart(false);
     _debug("* SIP Info: Stopping AudioRTP when closing\n");
     _audiortp.closeRtpSession();
+    _debug("* SIP Info: Stopping VideoRTP when closing\n");
+    _videortp.closeVideoSession(false); // TODO: in conf?
   }
   Manager::instance().peerHungupCall(id);
   removeCall(id);

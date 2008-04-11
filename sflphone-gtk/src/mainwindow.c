@@ -29,6 +29,7 @@
 #include <screen.h>
 #include <sliders.h>
 #include <glwidget.h>
+#include <dbus.h>
 
 #include <gtk/gtk.h>
 
@@ -126,7 +127,7 @@ create_main_window ()
   window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
   gtk_container_set_border_width (GTK_CONTAINER (window), 0);
   gtk_window_set_title (GTK_WINDOW (window), PACKAGE);
-  gtk_window_set_default_size (GTK_WINDOW (window), 450, 320);
+  gtk_window_set_default_size (GTK_WINDOW (window), 460, 320);
   gtk_window_set_default_icon_from_file (ICON_DIR "/sflphone.png", 
                                           NULL);
 
@@ -154,7 +155,7 @@ create_main_window ()
   gtk_box_pack_start (GTK_BOX (vbox), widget, FALSE /*expand*/, TRUE /*fill*/, 0 /*padding*/);
   gtk_box_pack_start (GTK_BOX (vbox), create_call_tree(), TRUE /*expand*/, TRUE /*fill*/,  0 /*padding*/);
   
-  gtk_box_pack_start (GTK_BOX (vbox), subvbox, FALSE /*expand*/, FALSE /*fill*/, 0 /*padding*/);
+  gtk_box_pack_start (GTK_BOX (vbox), subvbox, FALSE /*expand*/, TRUE /*fill*/, 0 /*padding*/);
  
   //widget = create_screen();
   // TODO Add the screen when we are decided
@@ -240,7 +241,7 @@ main_window_dialpad(gboolean show){
   if(show && !showDialpad)
   {
     dialpad = create_dialpad();
-    gtk_box_pack_end (GTK_BOX (subvbox), dialpad, FALSE /*expand*/, TRUE /*fill*/, 0 /*padding*/);
+    gtk_box_pack_end (GTK_BOX (subvbox), dialpad, TRUE /*expand*/, FALSE /*fill*/, 0 /*padding*/);
     gtk_box_reorder_child(GTK_BOX (subvbox), dialpad, 1);
     gtk_widget_show_all (dialpad);
   }
@@ -302,18 +303,20 @@ gboolean main_window_glWidget( gboolean show )
 	{
 		switch(selectedCall->state)
 		{
+			case CALL_STATE_DIALING:
+				break;
 			// If selected call in any other state show config windows
 			case CALL_STATE_INCOMING:
 			case CALL_STATE_HOLD:
 			case CALL_STATE_RINGING:
 			case CALL_STATE_BUSY:
 			case CALL_STATE_FAILURE:
-			case CALL_STATE_DIALING:
 				g_print("No active call, showing config window\n");
 				// Keep button and menu in the same state as glwidget
 				main_window_update_WebcamStatus(showGlWidget);
 				//Show webcam configuration
-				show_config_window(3);
+				show_config_window(4);
+				
 				return FALSE;
 				
 			// If current call active enable/disable webcam
@@ -323,39 +326,41 @@ gboolean main_window_glWidget( gboolean show )
 					  if(show && !showGlWidget)
 					  {
 					  	g_print("Enabling visualization pannel\n");
-					    drawing_area = createGLWidget();
-					    gtk_box_pack_start (GTK_BOX (subvbox), drawing_area, FALSE /*expand*/, TRUE /*fill*/, 0 /*padding*/);
+					  	
+					    drawing_area = createGLWidget(FALSE);
+					    gtk_box_pack_start (GTK_BOX (subvbox), drawing_area, TRUE /*expand*/, TRUE /*fill*/, 0 /*padding*/);
 					    gtk_box_reorder_child(GTK_BOX (subvbox), drawing_area, 0);
 					    gtk_widget_show_all (drawing_area);
 					    showGlWidget = show;
 					    
 					    // Keep button and menu in the same state as glwidget
 					    main_window_update_WebcamStatus(showGlWidget);
-					    
-					    // \TODO: Add Code to send enable webcam signal
+					    dbus_enable_local_video_pref();
 					    
 					    return TRUE;
 					  }
 					  else if (!show && showGlWidget)
 					  {
 					  	g_print("Disabling visualization pannel\n");
+					  	
 					    gtk_container_remove(GTK_CONTAINER (subvbox), drawing_area);
 					    showGlWidget = show;
 					    
 					    // Keep button and menu in the same state as glwidget
 					    main_window_update_WebcamStatus(showGlWidget);
-					    
-					    // \TODO: Add Code to send disable webcam signal
+					    dbus_disable_local_video_pref();
 					    
 					    return FALSE;
 					  }
 				}
 			default:
-				g_warning("Should not happen!");
-				// Keep button and menu in the same state as glwidget
-				main_window_update_WebcamStatus(showGlWidget);
-				//Show webcam configuration
-				show_config_window(3);
+
+				gtk_container_remove(GTK_CONTAINER (subvbox), drawing_area);
+			    showGlWidget = show;
+					    
+			    // Keep button and menu in the same state as glwidget
+			    main_window_update_WebcamStatus(showGlWidget);
+			    dbus_disable_local_video_pref();
 				break; 
 		}
 	}else
@@ -364,7 +369,8 @@ gboolean main_window_glWidget( gboolean show )
 		// Keep button and menu in the same state as glwidget
 		main_window_update_WebcamStatus(showGlWidget);
 		//Show webcam configuration
-		show_config_window(3);
+		show_config_window(4);
+
 	}
 	
 	return FALSE;
@@ -381,5 +387,10 @@ void main_window_update_WebcamStatus( gboolean value )
 	gtk_signal_handler_block(GTK_CHECK_MENU_ITEM(webCamMenu),webCamConnId);
 	gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(webCamMenu), value);
 	gtk_signal_handler_unblock(GTK_CHECK_MENU_ITEM(webCamMenu),webCamConnId);
+}
+
+gboolean get_showGlWidget_status()
+{
+	return showGlWidget;	
 }
 

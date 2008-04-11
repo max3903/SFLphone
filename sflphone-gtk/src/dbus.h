@@ -49,8 +49,6 @@ gchar* dbus_get_remote_shared_memory_key();
 //Invite 3rd person in a conference
 gboolean dbus_invite_conference( const call_t * c );
 gboolean dbus_join_conference( const call_t * onHoldCall,  const call_t * newCall);
-//Remote video status change - enable or disable remote video display
-gboolean dbus_change_video_avaibility();
 //Webcam Status change - enable or disable video capture
 void dbus_change_webcam_status(gboolean status, const call_t * c);
 
@@ -76,9 +74,13 @@ gchar** dbus_get_active_codec_list( void );
 void dbus_set_active_codec_list( const gchar** list );
 //Video codec list in Video Settings
 gchar** dbus_video_codec_list();
-gchar** dbus_video_codec_details(int payload);
 gchar** dbus_get_active_video_codec_list( void );
 void dbus_set_active_video_codec_list( const gchar** list );
+//Get and set the checkboxes in video settings
+gboolean dbus_get_enable_checkbox_status();
+gboolean dbus_get_disable_checkbox_status();
+void dbus_set_enable_checkbox_status(gboolean status);
+void dbus_set_disable_checkbox_status(gboolean status);
 //Brightness of the video capture
 slider_t dbus_get_brightness();
 void dbus_set_brightness(int value);
@@ -91,11 +93,18 @@ void dbus_set_colour(int value);
 //Webcam list
 gchar** dbus_get_webcam_device_list();
 void dbus_set_webcam_device(gchar* name);
-gchar* dbus_get_current_webcam_device();
 //Resolution list
 gchar** dbus_get_resolution_list();
 void dbus_set_resolution(gchar* name);
 gchar* dbus_get_current_resolution();
+//Bitrate list
+gchar** dbus_get_bitrate_list();
+void dbus_set_bitrate(gchar* name);
+gchar* dbus_get_current_bitrate();
+
+//Enables/Disables local video capture in the preferences webcam settings tab
+gboolean dbus_enable_local_video_pref();
+gboolean dbus_disable_local_video_pref();
 
 // Audio devices related methods
 gchar** dbus_get_input_audio_plugin_list();

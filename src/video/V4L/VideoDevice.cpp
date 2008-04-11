@@ -19,7 +19,7 @@
 
 #include "VideoDevice.h"
 
-VideoDevice::VideoDevice(char* srcName){
+VideoDevice::VideoDevice(const char* srcName){
      
     initDevice(srcName);
     
@@ -31,7 +31,7 @@ VideoDevice::VideoDevice(char* srcName){
 VideoDevice::~VideoDevice(){
 }
 
-void VideoDevice::initDevice(char* srcName){
+void VideoDevice::initDevice(const char* srcName){
     
     ptracesfl("Initializing device ...", MT_INFO, VIDEODEVICE_TRACE);
     // initiate the path (i.e. "/dev/video0" )
@@ -327,5 +327,19 @@ v4l2_capability* VideoDevice::getVideoCapability(){
    		}
    		
    		return false;
+   		
+   }
+   
+   int VideoDevice::getFPS(){
+	   	
+   		v4l2_streamparm* tmpSParam= this->getStreamingParam();
+   		
+   		if( tmpSParam != NULL ){
+   			int ret= tmpSParam->parm.capture.timeperframe.denominator;
+   			free(tmpSParam);
+   			return ret;   			
+   		}
+   		
+   		return -1;
    		
    }

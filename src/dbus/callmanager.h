@@ -57,8 +57,6 @@ public:
     /* Conference call */
     ::DBus::Bool inviteConference( const ::DBus::String& accountID, const ::DBus::String& callID, const ::DBus::String& to );
     ::DBus::Bool joinConference( const ::DBus::String& onHoldCallID, const ::DBus::String& newCallID );
-    /* Video avaibility */
-    ::DBus::Bool changeVideoAvaibility(  );
     void changeWebcamStatus( const ::DBus::Bool& status, const ::DBus::String& callID  );
     void startTone( const ::DBus::Int32& start, const ::DBus::Int32& type );
     

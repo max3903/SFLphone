@@ -50,10 +50,40 @@ bool
 VoIPLink::removeCall(const CallID& id)
 {
   ost::MutexLock m(_callMapMutex);
+  
+  // Stopping the mixers in the call before detorying them
+  Call* tmpCall= getCall(id);
+  tmpCall->terminateMixers();
+    
+  // End Conference call in progress
+  if( tmpCall->getConfId() != "" )
+  	this->removeConfCall(tmpCall->getConfId());	
+    
   if (_callMap.erase(id)) {
     return true;
   }  
   return false;
+}
+
+bool 
+VoIPLink::removeConfCall(const ConfID& id){
+	
+	// Get ConfCall
+	ConfCall* tmpConf= this->getConf( id );
+	
+	if( tmpConf == NULL )
+		return false;
+	
+	// Stop Conference
+  	ost::MutexLock mConfCall( _confCallMapMutex );
+  	
+  	tmpConf->endConf();
+  	
+    if (_confCallMap.erase(id)) {
+    	return true;
+  	}
+  	  
+  	return false;  	
 }
 
 Call*
@@ -65,6 +95,41 @@ VoIPLink::getCall(const CallID& id)
     return iter->second;
   }
   return 0;
+}
+
+ConfCall* 
+VoIPLink::getConf(const ConfID& id){
+  ost::MutexLock m(_confCallMapMutex);
+  ConfCallMap::iterator iter = _confCallMap.find(id);
+  if ( iter != _confCallMap.end() ) {
+    return iter->second;
+  }
+  return 0;
+}
+
+bool 
+VoIPLink::addConf( const CallID& id1, const CallID& id2 ){
+	
+	
+	Call* call1= this->getCall(id1);
+	Call* call2= this->getCall(id2);
+	
+	ost::MutexLock mCall(_confCallMapMutex);
+	ConfCall* tmpConf= new ConfCall(call1, call2);
+
+	this->_confCallMap.insert( pair<ConfID, ConfCall*>( tmpConf->getConfId(), tmpConf ) );
+	
+	_debug("New conf call created\n");
+		
+	// \TODO: Add calls management to unhold both calls
+	if(call1->getState() == Call::Hold)
+		offhold(id1);
+	if(call2->getState() == Call::Hold)
+		offhold(id2);
+
+	return true;
+	
+	
 }
 
 bool

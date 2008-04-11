@@ -30,12 +30,13 @@ VideoDeviceManager* VideoDeviceManager::getInstance(){
 }
 
 VideoDeviceManager::VideoDeviceManager(){
+	createCommand= false;
 }
 
 VideoDeviceManager::~VideoDeviceManager(){
 }
 
-bool VideoDeviceManager::changeDevice(char* srcName){
+bool VideoDeviceManager::changeDevice(const char* srcName){
 
 	VideoDevice* tmpDevice= NULL;
 
@@ -53,8 +54,11 @@ bool VideoDeviceManager::changeDevice(char* srcName){
     	return false;
     }
     
-    Command::videoDevice->closeDevice();
-    delete Command::videoDevice;
+    if(Command::videoDevice != NULL)
+    {
+    	Command::videoDevice->closeDevice();
+    	delete Command::videoDevice;
+    }
     
     Command::videoDevice= tmpDevice;
         
@@ -64,7 +68,7 @@ bool VideoDeviceManager::changeDevice(char* srcName){
     
 }
 
-bool VideoDeviceManager::createDevice(char* srcName){
+bool VideoDeviceManager::createDevice(const char* srcName){
     
     VideoDevice* tmpDevice= NULL;
     
@@ -104,13 +108,15 @@ Command* VideoDeviceManager::getCommand(TCommand ref){
 			break;	
     }
     
+    createCommand= true;
+    
     return tmp;
     
 }
 
 vector<string> VideoDeviceManager::enumVideoDevices(){
 
-	vector<string> ret;
+  vector<string> ret;
   LibHalContext *hal_context= NULL;
   DBusConnection *dbus= dbus_bus_get( DBUS_BUS_SYSTEM, NULL );
   
@@ -150,3 +156,19 @@ vector<string> VideoDeviceManager::enumVideoDevices(){
   
 }
 
+
+void VideoDeviceManager::Terminate(){
+		
+	if( Command::videoDevice != NULL ){
+		
+		if( createCommand )
+			Command::ChangingDevice();
+		
+		Command::videoDevice->closeDevice();
+		delete Command::videoDevice;
+		Command::videoDevice= NULL;
+		
+		if( createCommand )
+			Command::DeviceChanged();
+	}
+}

@@ -25,6 +25,10 @@ Capture::~Capture(){}
 
 unsigned char* Capture::GetCapture( int& size){
     
+    size= 0;
+    if( Command::videoDevice == NULL )
+		return NULL;
+    
 	ptracesfl("Capture getting device ...", MT_INFO, COMMAND_TRACE);
     this->getVideoDeviceAccess();
     

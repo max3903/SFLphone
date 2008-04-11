@@ -162,13 +162,6 @@ CallManager::joinConference( const ::DBus::String& onHoldCallID, const ::DBus::S
     return Manager::instance().joinConference(onHoldCallID, newCallID);
 }
 
-/* Video avaibility */
-::DBus::Bool 
-CallManager::changeVideoAvaibility(  )
-{
-	_debug("CallManager::changeVideoAvaibility() received\n");
-    return Manager::instance().changeVideoAvaibility();
-}
 
 void 
 CallManager::changeWebcamStatus( const ::DBus::Bool& status, const ::DBus::String& callID  )

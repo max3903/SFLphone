@@ -28,7 +28,6 @@
 #include <mainwindow.h>
 #include <screen.h>
 #include <gtk/gtk.h>
-#include <invitewindow.h>
 
 #include <string.h> // for strlen
 
@@ -92,12 +91,17 @@ void update_menus()
         break;
       case CALL_STATE_BUSY:
       case CALL_STATE_FAILURE:
-	gtk_widget_set_sensitive( GTK_WIDGET(hangUpMenu), TRUE);
-	break; 
-      default:
-	g_warning("Should not happen in update_menus()!");
-	break;
-    }
+
+        gtk_widget_set_sensitive( GTK_WIDGET(hangUpMenu), TRUE);
+        break; 
+      case CALL_STATE_CONF:
+      	gtk_widget_set_sensitive( GTK_WIDGET(newCallMenu),FALSE);
+      	break;
+  	  default:
+  	    g_warning("Should not happen in update_menus()!");
+  	    break;
+  	}
+
   } 
   else
   {
@@ -232,7 +236,7 @@ static void changeWebCamStatus ( void *foo )
 static void invitePerson(void* foo)
 {
 	//TODO: Implement Fonctionnality
-	create_Call_conf();
+	create_invite_window();
 }
 
   GtkWidget * 

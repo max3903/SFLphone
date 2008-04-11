@@ -956,7 +956,7 @@ IAXVoIPLink::iaxCodecMapToFormat(IAXCall* call)
 }
 
 bool 
-IAXVoIPLink::newOutgoingVideoInvite(const CallID& id)
+IAXVoIPLink::ChangeWebCamStatus(const CallID& id,bool status)
 {
   //TODO: a faire
 }

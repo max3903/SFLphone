@@ -19,244 +19,333 @@
  */
 #include "VideoRtpRTX.h"
 
-
+#define PIC_WIDTH 352
+#define PIC_HEIGHT 288
+#define FRAME_SIZE  (PIC_WIDTH*PIC_HEIGHT*3) //frame size of the RGB picture
 
 VideoRtpRTX::VideoRtpRTX(SIPCall *sipcall, bool sym)
 {
   setCancel(cancelDeferred);
-  //time = new ost::Time();
   vidCall = sipcall;
-  //_sym = sym;
+  _sym = sym;
   std::string localipConfig = vidCall->getLocalIp();
   ost::InetHostAddress local_ip(localipConfig.c_str());
 
-  //TODO: Ajouter la symmetric symmetric!!
+  if (!_sym) {
     videoSessionReceive = new ost::RTPSession(local_ip, vidCall->getLocalVideoPort());
     videoSessionSend = new ost::RTPSession(local_ip, vidCall->getLocalVideoPort());
+  }
+  else
+    session = new ost::SymmetricRTPSession(local_ip, vidCall->getLocalVideoPort());
+  
+  cmdCapture = (Capture*) VideoDeviceManager::getInstance()->getCommand(VideoDeviceManager::CAPTURE);
+  cmdRes= (Resolution*) VideoDeviceManager::getInstance()->getCommand(VideoDeviceManager::RESOLUTION);
+  
+  this->_Active= false;
+  this->_OkToKill= false;
+  
 }
 
 VideoRtpRTX::~VideoRtpRTX()
 {
-  semStart.wait();
+  //semStart.wait();
 
   try {
     this->terminate();
   } catch(...) {
-    //_debugException("! ARTP: Thread destructor didn't terminate correctly");
+    _debugException("! ARTP: Video Thread destructor didn't terminate correctly");
     throw;
   }
-  //_debug("terminate videortprtx ended...\n");
+  _debug("terminate videortprtx ended...\n");
   vidCall = 0;
 
-   //TODO: Symmetric session
+  if(data_to_display != NULL) 
+  	free(data_to_display); data_to_display = NULL;
+  if(data_from_wc != NULL)
+  free(data_from_wc); data_from_wc = NULL;
+  if(data_from_peer != NULL)
+  free(data_from_peer); data_from_peer = NULL;
+  if(data_to_send!= NULL)
+  free(data_to_send); data_to_send = NULL;
+
+   if (!_sym) {
     delete videoSessionReceive; videoSessionReceive = NULL;
     delete videoSessionSend; videoSessionSend = NULL;
-
-  delete [] sendDataEncoded; sendDataEncoded = NULL;
-  delete [] receiveDataDecoded; receiveDataDecoded = NULL;
+   }
+   else
+    delete session; session = NULL;
 
 }
 
-
 void VideoRtpRTX::run(){
-  	
-  //Getting Basic AVCodecContext settings from Video Call
-  codecCtx = vidCall->getVideoCodecContext();
 
-  // Loading codecs  TODO: ATTENTE DE JF!
-  //loadCodec(codecCtx->codec_id,0);
-  //loadCodec(codecCtx->codec_id,1);
+  // Loading codecs
+  loadCodec((CodecID)CODEC_ID_H263,0);
+  loadCodec((CodecID)CODEC_ID_H263,1);
   
+  // Initializing buffers
   initBuffers();
-  int step;
-
+  
   try {
-    // Init the session
+    // Initializing the RTP session
     initVideoRtpSession();
-    step = (int) ( codecCtx->frame_size * codecCtx->sample_rate / 1000 ); // TODO: à vérifier!!!!
+
+    // Starting Session
+    if (!_sym) {
+      videoSessionReceive->startRunning();
+      videoSessionSend->startRunning();
+    } else
+      session->startRunning();
+
+    timestamp = 0;
+    //if (!_sym) {
+      //uint32 tstampInc = videoSessionSend->getCurrentRTPClockRate()/ 24;
+    //else
+      uint32 tstampInc = session->getCurrentRTPClockRate()/ 10;
+
+    _debug("- ARTP Action: Start (video)\n");
     
-    // start running the packet queue scheduler.
-    videoSessionReceive->startRunning();
-    videoSessionSend->startRunning();
+    this->_Active= true;
+    this->_OkToKill= false;
 
-    int timestamp = 0; // pour V4L
-    TimerPort::setTimer(codecCtx->frame_size); // TODO: à vérifier si nescessaire
-
-    //_start.post();
-    // _debug("- ARTP Action: Start\n");
-    while (true) { // TODO: a changer jimagine...
+    while (!testCancel() && this->_Active) {
 
       ////////////////////////////
       // Send session
       ////////////////////////////
-      sendSession(timestamp);
-      timestamp += step;
-
+      sendSession();
+      timestamp += tstampInc;
+      
       ////////////////////////////
       // Recv session
       ////////////////////////////
       receiveSession();
-
-      // Let's wait for the next transmit cycle
-      Thread::sleep(TimerPort::getTimer());
-      TimerPort::incTimer(codecCtx->frame_size); // 'frameSize' ms
+      
+      Thread::sleep(24);
+      
     }
-    //unloadCodec();
-    //_debug("stop stream for audiortp loop\n");
+
+    free(data_to_display);data_to_display= NULL;
+    free(data_from_peer);data_from_peer= NULL;
+    free(data_to_send);data_to_send= NULL;
+	
+    unloadCodec((CodecID)CODEC_ID_H263,0);
+    unloadCodec((CodecID)CODEC_ID_H263,1);
+    _debug("stop stream for videortp loop\n");
+    
+    this->_OkToKill= true;
+
   } catch(std::exception &e) {
-    //_start.post();
     _debug("! ARTP: Stop %s\n", e.what());
     throw;
   } catch(...) {
-    //_start.post();
     _debugException("* ARTP Action: Stop");
     throw;
   }
+
 }
 	
 void VideoRtpRTX::initBuffers()
 {
-
-
-  // TODO: à faire
-  // sendDataDecoded = new ...
-  // sendDataEncoded = new ...
+  data_to_display = (unsigned char *)malloc(FRAME_SIZE);
+  data_to_send = (unsigned char *)malloc(FRAME_SIZE);
+  data_from_peer = (unsigned char *)malloc(FRAME_SIZE);
+  rcvWorkingBuf = (unsigned char *)malloc(FRAME_SIZE);
+  
+  peerBufLen=0;
+  workingBufLen=0;
 }
 	
 void VideoRtpRTX::initVideoRtpSession()
 {
-  
   try {
     if (vidCall == 0) { return; }
 
-    // TODO: J'imagine qu'il ne faudrait pas le hardcoder, checker CodecContext...
-    codecClockRate = 90000;
-
-    // TODO: A verifier!
     VideoDevMng = VideoDeviceManager::getInstance();
-
+    
     ost::InetHostAddress remote_ip(vidCall->getRemoteIp().c_str());
     if (!remote_ip) {
-      //_debug("! ARTP Thread Error: Target IP address [%s] is not correct!\n", _ca->getRemoteIp().data());
+      _debug("! ARTP Video Thread Error: Target IP address [%s] is not correct!\n",vidCall->getRemoteIp().c_str());
       return;
     }
 
     // Initialization
-     //TODO: Symmetric session
+    if (!_sym) {
+      // Receive Session
       videoSessionReceive->setSchedulingTimeout (10000);
       videoSessionReceive->setExpireTimeout(1000000);
+      if ( !videoSessionReceive->addDestination(remote_ip, (unsigned short) vidCall->getRemoteVideoPort()) ) {
+	_debug("Video RTP Thread Error: could not connect to port %d\n",  vidCall->getRemoteVideoPort());
+	return;
+      }
+      if ( !videoSessionReceive->setPayloadFormat(ost::StaticPayloadFormat((ost::StaticPayloadType) 34)) ) {
+	_debug("Video RTP Thread Error: could not set session PayloadFormat\n");
+	return;
+      }
 
+      // Send Session
       videoSessionSend->setSchedulingTimeout(10000);
       videoSessionSend->setExpireTimeout(1000000);
-
-
-      //TODO: Symmetric session
-      if ( !videoSessionReceive->addDestination(remote_ip, (unsigned short) vidCall->getRemoteVideoPort()) ) {
-	//_debug("Video RTP Thread Error: could not connect to port %d\n",  vidCall->getRemoteAudioPort());
-	return;
-      }
       if (!videoSessionSend->addDestination(remote_ip, (unsigned short) vidCall->getRemoteVideoPort())) {
-	//_debug("! Video ARTP Thread Error: could not connect to port %d\n",  vidCall->getRemoteAudioPort());
+	_debug("! Video ARTP Thread Error: could not connect to port %d\n",  vidCall->getRemoteVideoPort());
 	return;
       }
-
-      bool payloadIsSet = false;
-      if (encodeCodec!=NULL && decodeCodec!=NULL) {
-	  payloadIsSet= videoSessionReceive->setPayloadFormat(ost::StaticPayloadFormat((ost::StaticPayloadType) codecCtx->rtp_payload_size));
-	  payloadIsSet = videoSessionSend->setPayloadFormat(ost::StaticPayloadFormat((ost::StaticPayloadType) codecCtx->rtp_payload_size));
+      if ( !videoSessionSend->setPayloadFormat(ost::StaticPayloadFormat((ost::StaticPayloadType) 34)) ) {
+	_debug("Video RTP Thread Error: could not set session PayloadFormat\n");
+	return;
       }
+    }
+    else{
+      // Symmetric Session
+      session->setSchedulingTimeout(10000);
+      session->setExpireTimeout(1000000);
+
+      if ( !session->addDestination(remote_ip, (unsigned short) vidCall->getRemoteVideoPort()) ) {
+	_debug("Video RTP Thread Error: could not connect to port %d\n",  vidCall->getRemoteVideoPort());
+	return;
+      }
+      if ( !session->setPayloadFormat(ost::StaticPayloadFormat((ost::StaticPayloadType) ost::sptH263) ) ) {
+	_debug("Video RTP Thread Error: could not set symmetric session PayloadFormat\n");
+	return;
+      }
+      
+      session->setSessionBandwidth(768000);
+    }
+
   } catch(...) {
-    //_debugException("! ARTP Failure: initialisation failed");
+    _debug("! ARTP Failure: video initialisation failed");
     throw;   
   }
+
 }
-	 	
-void VideoRtpRTX::sendSession(int timestamp)
+
+void VideoRtpRTX::sendSession()
 {
-  // no call, so we do nothing
+
+  int sizeV4L= 0;
+  int encodedSize=0;
+
   if (vidCall==0) { 
     _debug(" !ARTP: No call associated (video)\n");
     return; 
   }
  
   try{
-  // Get Data from V4l, send it to the mixer input
-  Capture* cmdCapture = (Capture*) VideoDevMng->getCommand(VideoDeviceManager::CAPTURE);
-  Resolution* cmdRes = (Resolution*) VideoDevMng->getCommand(VideoDeviceManager::RESOLUTION);
-  int sizeV4L= 0;
-  unsigned char* charFromV4L = cmdCapture->GetCapture(sizeV4L);
-
-  // Depose les data de V4L dans le Input buffer du mixer correspondant
-  vidCall->getRemoteIntputStreams()->fetchVideoStream()->putData((char*)charFromV4L,sizeV4L,timestamp);
-
-  // Prend les donnes de la sortie du mixer correspondant
-  vidCall->getRemoteVideoOutputStream()->fetchData((char*)sendDataEncoded);
-
-  // Encode it TODO: Verifier largeur, longeur AVEC JF !!!
-  //encodeCodec->videoEncode(codecCtx->width,codecCtx->height,(uint8_t*)charFromV4L,sizeV4L);
-  //TODO: sendDataEncoded = ???? TODO: attente VideoCodec ......
+  _debug("Entering Send Session\n");
+  
+  // Getting Image from web cam
+  data_from_wc = cmdCapture->GetCapture(sizeV4L);
+  
+  if( sizeV4L <= 0 )
+  	return;
+  
+  // Getting webcam resolution information
+  pair<int,int> Res = cmdRes->getResolution();
+    
+  // Putting captured data into mixer
+  this->vidCall->getRemote_Video_Input()->putData( data_from_wc, sizeV4L, 0, Res.first, Res.second );
+  free(data_from_wc); data_from_wc= NULL;
+  
+  int videoSize= -1;
+  int width= 0, height= 0;
+    
+  // Getting Mixer video output
+  unsigned char* dataToSend= this->vidCall->getRemote_Video_Output()->fetchData(videoSize, width, height);
+  
+  // Encode it
+  if( videoSize > 0 ){
+  	
+  	encodedSize = encodeCodec->videoEncode(dataToSend,(unsigned char*)data_to_send,width,height);
+  	delete dataToSend; dataToSend = NULL;
+  	pair<int,int> ResEnc = encodeCodec->getEncodeOutputResolution();
+  	
+    unsigned char *packet;
+    packet = new unsigned char[4+encodedSize];
+    memcpy(packet+4,data_to_send,encodedSize);
+    // TODO: Construire entierement le header du packet
+    packet[0]=0;
+    packet[1]=setHeaderPictureFormat(ResEnc);
+    packet[2]=0;
+    packet[3]=0;
+      
+    session->setMark(true);
 
   // Send it
-  videoSessionSend->putData(timestamp, sendDataEncoded, sizeV4L);
-
-  free(charFromV4L); // A verifier !!!!
-
+    if (!_sym)
+      videoSessionSend->sendImmediate(timestamp, packet, encodedSize+4);
+    else
+       session->sendImmediate(timestamp, packet, encodedSize+4);
+       
+    delete packet;
+  }
+     
   } catch(...) {
-    _debugException("! ARTP: sending failed");
+    _debugException("! ARTP: video sending failed");
     throw;
   }
 }
-
-		
 void VideoRtpRTX::receiveSession()
 {
-  
-  // no call, so we do nothing
+  int PictureFormat=0;
+  unsigned int TestFormat=0;
+	
   if (vidCall==0) { 
     _debug(" !ARTP: No call associated (video)\n");
     return; 
   }
-  
+
   try {
     const ost::AppDataUnit* adu = NULL;
 
     // Lit les donnes recues
-    adu = videoSessionReceive->getData(videoSessionReceive->getFirstTimestamp());
-
-    if (adu == NULL) {
-      //_debug("No RTP video stream\n");
-      return;
+    if (!_sym)
+      adu = videoSessionReceive->getData(videoSessionReceive->getFirstTimestamp());
+    else{
+      adu = session->getData(session->getFirstTimestamp());
+    }
+    
+    if (adu==NULL)
+       return;
+    isMarked = adu->isMarked();
+    
+    // On jumelle les donnes partielles recues
+    rcvWorkingBuf  = (unsigned char*)adu->getData();
+    workingBufLen = adu->getSize();
+    memcpy(data_from_peer+peerBufLen,rcvWorkingBuf,workingBufLen);
+    peerBufLen+=workingBufLen;
+    
+    
+    // Analyse packet and retreive the picture format
+    TestFormat = (int)(rcvWorkingBuf[1] & 0x00E0);
+    pair<int,int> Res = getPictureFormatFromHeader(TestFormat);
+    // Decode it
+    
+    if (isMarked) {
+    	
+      int decodedSize= decodeCodec->videoDecode(data_from_peer,data_to_display,peerBufLen,Res.first,Res.second);
+      
+      if( decodedSize >= 0 ){
+        this->vidCall->getLocal_Video_Input()->putData( data_to_display, decodedSize, 0, 320, 240  );
+      }
+      peerBufLen=0;
     }
 
-    int payload = adu->getType(); // codec type
-    char* data  = (char*)adu->getData(); // data in char
-    unsigned int size = adu->getSize(); // size in char
-    int timestamp=0; //TODO: a lire sur le paquet ! important...
-
-    // DECODE
-    // A mes yeux il manque les size des buffers sur cet appel.
-    // decodeCodec->videoDecode(data,codecCtx->width,codecCtx->height,...);  //TODO: a faire!!
-
-    // Envoyer dans le input du mixer local! // TODO: a verifier
-    vidCall->getLocalIntputStreams()->fetchVideoStream()->putData(data,size,timestamp);
-    
-    // Prend les donnes de la sortie du mixer correspondant TODO: A MODIFIER NON FONCTIONNEL!!!!!!!!!
-    vidCall->getLocalVideoOutputStream()->fetchData((char*)sendDataEncoded);
-
     delete adu; adu = NULL;
+   
+    
   } catch(...) {
     _debugException("! ARTP: receiving failed");
     throw;
   }
-
+   
 }
 
 void VideoRtpRTX::loadCodec(enum CodecID id,int type)
 {
-//  if (type==0)  //decode
-//    decodeCodec = new VideoCodec(avcodec_find_decoder(id));
-//  else  //encode
-//    encodeCodec = new VideoCodec(avcodec_find_encoder(id));
+  if (type==0)  //decode
+    decodeCodec = new VideoCodec("h263");
+  else  //encode
+    encodeCodec = new VideoCodec("h263");
 }
 
 void VideoRtpRTX::unloadCodec(enum CodecID id,int type)
@@ -272,3 +361,37 @@ void VideoRtpRTX::unloadCodec(enum CodecID id,int type)
     encodeCodec = NULL;
   }
 }
+
+pair<int,int> VideoRtpRTX::getPictureFormatFromHeader(int SRC){
+
+  pair<int,int> Return;
+
+  if (SRC==160){ Return.first=1408; Return.second=1152; return Return;}
+  if (SRC==128){ Return.first=704; Return.second=576; return Return;}
+  if (SRC==96){ Return.first=352; Return.second=288; return Return;}
+  if (SRC==64){ Return.first=176; Return.second=144; return Return;}
+}
+
+int VideoRtpRTX::setHeaderPictureFormat(pair<int,int> Res){
+	if (Res.first==176 && Res.second==144)
+	  return 64; // Bit7=0, Bit6=1, Bit5=0
+	if (Res.first==352 && Res.second==288)
+	  return 96; // Bit7=0, Bit6=1, Bit5=1
+	if (Res.first==704 && Res.second==576)
+	  return 128; // Bit7=1, Bit6=0, Bit5=0
+	if (Res.first==1408 && Res.second==1152)
+	  return 160; // Bit7=1, Bit6=0, Bit5=1
+}
+
+void VideoRtpRTX::stop(){
+	
+	if( !this->_Active )
+		return;
+	
+	this->_Active= false;
+	
+	while(!this->_OkToKill);
+		
+}
+
+

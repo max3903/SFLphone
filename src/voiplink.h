@@ -24,6 +24,7 @@
 
 #include <string>
 #include "call.h"
+#include "ConfCall.h"
 #include "contact/contact.h"
 #include <map>
 #include <cc++/thread.h> // for mutex
@@ -35,6 +36,8 @@ class AudioCodec;
 typedef std::string AccountID;
 
 typedef std::map<CallID, Call*> CallMap;
+
+typedef std::map<ConfID, ConfCall*> ConfCallMap;
 
 /**
  * Listener and manager interface for each VoIP protocol
@@ -57,8 +60,8 @@ public:
   /** Add a new outgoing call and return the call pointer or 0 if and error occurs */
   virtual Call* newOutgoingCall(const CallID& id, const std::string& toUrl) = 0;
  
-  /** Start Video within a call */
-  virtual bool newOutgoingVideoInvite(const CallID& id) = 0;
+  /** Start/Stop Video within a call */
+  virtual bool ChangeWebCamStatus(const CallID& id, bool status) = 0;
 
   virtual bool answer(const CallID& id) = 0;
 
@@ -132,6 +135,18 @@ public:
    */
   Call* getCall(const CallID& id);
 
+  /** Get the confcall pointer from the confcall map (protected by mutex)
+   * @param id A ConfCall ID
+   * @return call pointer or 0
+   */
+  ConfCall* getConf(const ConfID& id);
+  
+  /** Method to add a conference call
+   * @param Id of a Call
+   * @param Id of a Call
+   */
+  bool addConf(const CallID& id1,const CallID& id2 );
+
   /**
    * Get registration state
    */
@@ -194,6 +209,12 @@ protected:
    * @return true if the call was correctly removed
    */
   bool removeCall(const CallID& id);
+  
+  /** Remove a conference from the confcall map (protected by mutex)
+   * @param id A ConfCall ID
+   * @return true if the call was correctly removed
+   */
+  bool removeConfCall(const ConfID& id);
 
   /**
    * Remove all the call from the map
@@ -202,9 +223,15 @@ protected:
 
   /** Contains all the calls for this Link, protected by mutex */
   CallMap _callMap;
+  
+  /** Constains all the conferences calls*/
+  ConfCallMap _confCallMap;
 
   /** Mutex to protect call map */
   ost::Mutex _callMapMutex;
+  
+  /** Mutex to protect ConfCall map */
+  ost::Mutex _confCallMapMutex;
 
   /** Get Local IP Address (ie: 127.0.0.1, 192.168.0.1, ...) */
   std::string _localIPAddress;

@@ -94,6 +94,11 @@ void sflphone_fail( call_t * c );
 void sflphone_current ( call_t * c);
 
 /**
+ * Put the call in Conference state
+ */
+void sflphone_conf( call_t * c);
+
+/**
  * The callee has hung up 
  */
 void sflphone_hung_up( call_t * c);

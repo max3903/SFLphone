@@ -293,7 +293,19 @@ AudioRtpRTX::sendSessionFromMic(int timestamp)
     //_debug("AR: Nb sample: %d int, [0]=%d [1]=%d [2]=%d\n", nbSample, toSIP[0], toSIP[1], toSIP[2]);
     // for the mono: range = 0 to RTP_FRAME2SEND * sizeof(int16)
     // codecEncode(char *dest, int16* src, size in bytes of the src)
-    int compSize = _audiocodec->codecEncode(_sendDataEncoded, toSIP, nbSample*sizeof(int16));
+   
+    
+    _ca->getRemote_Audio_Input()->putData(toSIP, nbSample*sizeof(int16), 0);
+    
+    int mixerDataSize;    
+    toSIP = _ca->getRemote_Audio_Output()->fetchData(mixerDataSize); 
+    if(  mixerDataSize == -1 ){
+    	toSIP = NULL;
+    	return;
+    }
+    
+    
+    int compSize = _audiocodec->codecEncode(_sendDataEncoded, toSIP, mixerDataSize);//nbSample*sizeof(int16));
     //printf("jusqu'ici tout vas bien\n");
 
     // encode divise by two
@@ -378,8 +390,9 @@ AudioRtpRTX::receiveSessionForSpkr (int& countTime)
       toAudioLayer = _dataAudioLayer;
 #endif
 
+	  ptracesfl("AudioRtpRTX - receiveSessionForSpkr(): Putting data into Local Input buffer ...", MT_INFO, AUDIO_RTPRTX_TRACE );
+	  _ca->getLocal_Audio_Input()->putData(toAudioLayer, nbSample * sizeof(SFLDataFormat), 0 );
 
-      audiolayer->playSamples(toAudioLayer, nbSample * sizeof(SFLDataFormat), true);
       // Notify (with a beep) an incoming call when there is already a call 
       countTime += time->getSecond();
       if (Manager::instance().incomingCallWaiting() > 0) {

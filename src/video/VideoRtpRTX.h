@@ -29,18 +29,21 @@
 
 #include "VideoCodec/VideoCodec.h"
 #include "VideoCodecDescriptor.h"
-#include "VideoRtp.h"
+//#include "VideoRtp.h"
+#include "../sipcall.h"
 #include <cc++/thread.h>
 #include <ccrtp/rtp.h>
-#include <ffmpeg/avcodec.h>
 #include "V4L/VideoDeviceManager.h"
-#include "../mixer/VideoInput.h"
-#include "../mixer/VideoOutput.h"
+//#include "../mixer/VideoInput.h"
+//#include "../mixer/VideoOutput.h"
+#include "../memmanager/MemManager.h"
+
+
+//#include <signal.h>
+//#include <stdlib.h>
 
 class SIPCall; //TODO: pourquoi pas de include SipCall..h????
-/**
- * @author Jean-Francois Blanchard-Dionne 
- */
+
 class VideoRtpRTX : public ost::Thread, public ost::TimerPort {
 public:
 
@@ -64,8 +67,19 @@ public:
 	 * Function to create RTP Session to send Video Packets
 	 */ 
     void initVideoRtpSession();
+    
+    /**
+     * Function to stopc cleanly the video send and receive thread
+     */
+    void stop();
 
 private:
+
+	/** Boolean to represent the state of the thread **/
+	bool _Active;
+	
+	/** Boolean to represent the thread thread ended properly **/
+	bool _OkToKill;
 
     ost::Mutex          threadMutex;
     SIPCall* 		vidCall;
@@ -75,6 +89,12 @@ private:
     ost::RTPSession* 	videoSessionReceive;
     /** System Semaphore */
     ost::Semaphore 	semStart;
+
+    /** SYMMETRIC RTP Session to send/receive */
+    ost::SymmetricRTPSession* session;
+
+    bool _sym;
+
     /** Codec for encoding */
     VideoCodec* 	encodeCodec;
     /** Codec for decoding */
@@ -83,25 +103,30 @@ private:
     AVCodecContext*	codecCtx;
     /** Video Device manager **/
     VideoDeviceManager* VideoDevMng;
-    /** Input and Output buffers for the mixers**/
-    VideoInput* localVideoInput;
-    VideoInput* remoteVideoInput;
-    VideoOutput* localVideoOutput;
-    VideoOutput* remoteVideoOutput;
+    
+    /** Webcam Resolution command **/
+    Resolution* cmdRes;
+    
+    /** Webcam Capture Command **/
+    Capture* cmdCapture;
 
-    int codecClockRate; // sample rate of the codec we use to encode and decode (most of time 90000HZ)
+    uint32 timestamp;
 
-    /** buffer for received Data */
-   char* receiveDataDecoded;
+    unsigned char *data_to_send;
+    unsigned char *data_from_peer;
+    unsigned char *data_from_wc;
+    unsigned char *data_to_display;
+    unsigned char *rcvWorkingBuf;
 
-    /** Buffer for Data to send */
-    unsigned char* sendDataEncoded;
-
+    bool isMarked;
+    int peerBufLen;
+    int workingBufLen;
+    
 	/**
 	 * Get the data from V4l, send it to the mixer, encode and send to RTP
 	 * @param timestamp : puts the current time
 	 */
-	void sendSession(int timestamp);
+	void sendSession();
 	/**
 	 * Receive RTP packet, decode it, send it to mixer
 	 */
@@ -120,6 +145,9 @@ private:
 	 * @param type : 0 decode codec, 1 encode codec
 	 */
 	void unloadCodec(enum CodecID id,int type);
+	
+	pair<int,int> getPictureFormatFromHeader(int SRC);
+	int setHeaderPictureFormat(pair<int,int> Res);
 
 };
 #endif //VIDEORTPRTX_H

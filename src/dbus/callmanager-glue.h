@@ -37,7 +37,6 @@ public:
         register_method(CallManager, getRemoteSharedMemoryKey, _getRemoteSharedMemoryKey_stub);
         register_method(CallManager, inviteConference, _inviteConference_stub);
         register_method(CallManager, joinConference, _joinConference_stub);
-        register_method(CallManager, changeVideoAvaibility, _changeVideoAvaibility_stub);
         register_method(CallManager, changeWebcamStatus, _changeWebcamStatus_stub);
     }
 
@@ -140,11 +139,6 @@ public:
             { "response", "b", false },
             { 0, 0, 0 }
         };
-        static ::DBus::IntrospectedArgument changeVideoAvaibility_args[] = 
-        {
-            { "status", "b", false },
-            { 0, 0, 0 }
-        };
         static ::DBus::IntrospectedArgument changeWebcamStatus_args[] = 
         {
             { "status", "b", true },
@@ -206,7 +200,6 @@ public:
             { "getRemoteSharedMemoryKey", getRemoteSharedMemoryKey_args },
             { "inviteConference", inviteConference_args },
             { "joinConference", joinConference_args },
-            { "changeVideoAvaibility", changeVideoAvaibility_args },
             { "changeWebcamStatus", changeWebcamStatus_args },
             { 0, 0 }
         };
@@ -262,7 +255,6 @@ public:
     virtual ::DBus::String getRemoteSharedMemoryKey(  ) = 0;
     virtual ::DBus::Bool inviteConference( const ::DBus::String& accountID, const ::DBus::String& callID, const ::DBus::String& to ) = 0;
     virtual ::DBus::Bool joinConference( const ::DBus::String& onHoldCallID, const ::DBus::String& newCallID ) = 0;
-    virtual ::DBus::Bool changeVideoAvaibility(  ) = 0;
     virtual void changeWebcamStatus( const ::DBus::Bool& status, const ::DBus::String& callID ) = 0;
 
 public:
@@ -489,16 +481,6 @@ private:
         ::DBus::String argin1; ri >> argin1;
         ::DBus::String argin2; ri >> argin2;
         ::DBus::Bool argout1 = joinConference(argin1, argin2);
-        ::DBus::ReturnMessage reply(call);
-        ::DBus::MessageIter wi = reply.writer();
-        wi << argout1;
-        return reply;
-    }
-    ::DBus::Message _changeVideoAvaibility_stub( const ::DBus::CallMessage& call )
-    {
-        ::DBus::MessageIter ri = call.reader();
-
-        ::DBus::Bool argout1 = changeVideoAvaibility();
         ::DBus::ReturnMessage reply(call);
         ::DBus::MessageIter wi = reply.writer();
         wi << argout1;

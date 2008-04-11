@@ -16,167 +16,176 @@
  *  along with this program; if not, write to the Free Software
  *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
+ 
+
 #include "VideoCodec.h"
 
 #define VIDEOCODECPTRACE 2
 
-int VideoCodec::videoEncode(uint8_t *in_buf, uint8_t* out_buf,int bufferSize,int width,int height)
-{
-	AVFrame *pict;
+VideoCodec::VideoCodec(char* codecName){
 	
-	//Step 1: change in_buf in AVFRAME pict
-	pict = avcodec_alloc_frame();
-	if (pict == NULL)
-         return -1;
-                
-    avpicture_fill((AVPicture *)pict, in_buf,PIX_FMT_RGB24, width, height);
-    
-    
-	//Step 2:Encode
-	avcodec_encode_video(_encodeCodecCtx, out_buf, bufferSize, pict);
-
-	//Step 3:Clean
-	av_free(pict);
+		//check if active Codec
+	if(codecName == NULL)
+	ptracesfl("CODEC ERROR",MT_FATAL,1,true);
 	
-	//success
-	return 1;
-	
-	}
-	
-	
+	if ((_CodecENC = avcodec_find_encoder_by_name(codecName)) == NULL)
+		ptracesfl("CODEC ERROR",MT_FATAL,1,true);
+		
+	if ((_CodecDEC = avcodec_find_decoder_by_name(codecName)) == NULL)
+		ptracesfl("CODEC ERROR",MT_FATAL,1,true);
 
-int VideoCodec::videoDecode(uint8_t *in_buf, uint8_t* out_buf,int size  )
-{
-	
-	int bytesRemaining = size;
-	int *got_picture_ptr = NULL;
-	
-
-	return 0;
-	
-	
-	/*
-	 * static int frameFinished = 0;  //this is the got_picture_pointer
-argument
-    int bytesDecoded=0;
-    int bytesRemaining = data_size;
-
-    while(bytesRemaining > 0)
-    {
-        bytesDecoded=avcodec_decode_video(pCodecCtx, pFrame,
-            &frameFinished, rawData, bytesRemaining);
-
-        if(bytesDecoded < 0)
-            return false;
-
-        bytesRemaining-=bytesDecoded;
-        rawData+=bytesDecoded;
-
-        if(frameFinished)
-            return true;
-    }
-
-    // Decode the rest of the last frame
-    bytesDecoded=avcodec_decode_video(pCodecCtx, pFrame, &frameFinished,
-
-        rawData, bytesRemaining);
-
-    return frameFinished!=0;
-	 * 
-	 * */
-	
+	init();
 }
+
+VideoCodec::VideoCodec(enum CodecID id){
+	
+		//check if active Codec
+	if(id == 0)
+	ptracesfl("CODEC ERROR",MT_FATAL,1,true);
+	
+	if ((_CodecENC = avcodec_find_encoder(id)) == NULL)
+		ptracesfl("CODEC ERROR",MT_FATAL,1,true);
+		
+	if ((_CodecDEC = avcodec_find_decoder(id)) == NULL)
+		ptracesfl("CODEC ERROR",MT_FATAL,1,true);
+
+	init();
+}
+ 
+ 
+VideoCodec::VideoCodec(){}
+
+VideoCodec::~VideoCodec(){
+	quitEncodeContext();
+	quitDecodeContext();
+ }
+
 
 void VideoCodec::init(){
 	
-	ptracesfl("VideoCodec initialisation",MT_INFO,VIDEOCODECPTRACE,true);
+	pair<int,int> tmp; 
+
+	ptracesfl("VideoCodec initialisation",MT_INFO,5,true);
 	
 	//Get VideoDescriptor Instance
 	_videoDesc = VideoCodecDescriptor::getInstance();
-	
 	//Get V4LManager instance
 	_v4lManager = VideoDeviceManager::getInstance();
 	
 	_cmdRes = (Resolution*)_v4lManager->getCommand(VideoDeviceManager::RESOLUTION);
-
-	//check if active Codec
-	if(_codecName == NULL)
-	{
-	_Codec = _videoDesc->getDefaultCodec();
-	_codecName = _Codec->name;
-	}
-	else
-	_Codec = _videoDesc->getCodec(_codecName);
-	
 	//These are Settings adjustements
+	tmp = _cmdRes->getResolution();
+	//default width and height
+	inputWidth = tmp.first;
+	inputHeight = tmp.second;
+	outputWidth = tmp.first;
+	outputHeight = tmp.second;
+	
 	initEncodeContext();
 	initDecodeContext();
-	
-	
 }
 
 void VideoCodec::initEncodeContext(){
-
 	
-	pair<int,int> tmp; 
+	FrameProperties Encodetmp; 
 	//initialize basic encoding context
-	
 	_encodeCodecCtx = avcodec_alloc_context();
 	
-	_encodeCodecCtx->bit_rate = VIDEO_BIT_RATE;
-	
-	if (_cmdRes != NULL){
-	tmp = _cmdRes->getResolution();
-	_encodeCodecCtx->width = tmp.first;
-	_encodeCodecCtx->height = tmp.second;
-	
+	//if true -> padding needed! Conference call
+	if(inputWidth > inputHeight*2)
+	{
+	Encodetmp = SWSInterface::getSpecialResolution(inputWidth);
+	padding = true;
+	paddingbottom = (Encodetmp.height - inputHeight)/2;
+    paddingTop = paddingbottom;
+	_encodeCodecCtx->width = Encodetmp.width;
+	_encodeCodecCtx->height = Encodetmp.height;
+
+	}	
+	else if(_CodecENC->id == CODEC_ID_H263)//set special h263
+	{
+		padding = false;
+		paddingbottom = 0;
+    	paddingTop = 0;
+		Encodetmp = SWSInterface::getSpecialResolution(inputWidth);
+		_encodeCodecCtx->width = Encodetmp.width;
+		_encodeCodecCtx->height = Encodetmp.height;
+
 	}
-	else{
-		_encodeCodecCtx->width = DEFAULT_WIDTH;
-	_encodeCodecCtx->height = DEFAULT_HEIGHT;	
+	else //other codecs (h264)
+	{
+	padding = false;
+	paddingbottom = 0;
+    paddingTop = 0;
+	_encodeCodecCtx->width = inputWidth;
+	_encodeCodecCtx->height = inputHeight;
+
 	}
 	
-	
-	if (_codecName == "h264")
-	_encodeCodecCtx->me_method = 8;
-	else
-	_encodeCodecCtx->me_method = 7;
-	
-	_encodeCodecCtx->time_base.den = STREAM_FRAME_RATE;
-	_encodeCodecCtx->time_base.num = 1;
+	/////////////VIDEO SETTINGS.H settings///////////
+	_encodeCodecCtx->rtp_payload_size = RTP_PAYLOAD;
+ 	_encodeCodecCtx->time_base= (AVRational){1,STREAM_FRAME_RATE};
 	_encodeCodecCtx->gop_size = GOP_SIZE;
-	_encodeCodecCtx->pix_fmt = PIX_FMT_RGB24;
+	_encodeCodecCtx->pix_fmt = PIX_FMT_YUV420P;
 	_encodeCodecCtx->max_b_frames = MAX_B_FRAMES;
-
-	if (_codecName == "h263")
 	_encodeCodecCtx->mpeg_quant = 0;
-	else
-	_encodeCodecCtx->mpeg_quant = 1;
+	//todo change to users choice
+	_encodeCodecCtx->bit_rate = _videoDesc->getEncodingBitRate();
+	//_encodeCodecCtx->flags 
 	
-	if (_codecName == "h264")
+	/// other
+	if(_CodecENC->id == CODEC_ID_H264)
+	{
+	_encodeCodecCtx->me_method = 8;
 	_encodeCodecCtx->idct_algo = FF_IDCT_H264;
+	_encodeCodecCtx->ildct_cmp = FF_CMP_DCT264;
+	}
 	else
-	_encodeCodecCtx->idct_algo = FF_IDCT_LIBMPEG2MMX;
+	{
+	_encodeCodecCtx->me_method = 6;
+	_encodeCodecCtx->idct_algo = FF_IDCT_AUTO;
+	}
+
+	// CHECK if we can pair both
+		if(avcodec_open(_encodeCodecCtx, _CodecENC) < 0)
+		ptracesfl("CANNOT OPEN ENCODE CODEC",MT_FATAL,1,true);
 	
-	_encodeCodecCtx->mb_decision = FF_MB_DECISION_BITS;
-
-	avcodec_open(_encodeCodecCtx, _Codec);
-
+	// in -> from the mixer -> out special size if h263, same size otherwise
+	encodeSWS = new SWSInterface(inputWidth,inputHeight,PIX_FMT_RGB24,_encodeCodecCtx->width,_encodeCodecCtx->height,PIX_FMT_YUV420P);
 }
-
 void VideoCodec::initDecodeContext()
 {
 
-//initialize basic encoding context
+	FrameProperties codetmp; 
+
+	//initialize basic decoding context
 	_decodeCodecCtx = avcodec_alloc_context();
-	avcodec_open (_decodeCodecCtx, _Codec);
+
+if(_CodecENC->id == CODEC_ID_H263)//set special h263
+	{
+		codetmp = SWSInterface::getSpecialResolution(outputWidth);
+		_decodeCodecCtx->width = codetmp.width;
+		_decodeCodecCtx->height = codetmp.height;
+	}
+	else{
+	_decodeCodecCtx->width = outputWidth;
+	_decodeCodecCtx->height = outputHeight;
+	}
+
+	if(avcodec_open (_decodeCodecCtx, _CodecDEC) < 0)
+		ptracesfl("CANNOT OPEN DECODE CODEC",MT_FATAL,1,true);
+
+	//intialize SWSdecodeContext
+	decodeSWS = new SWSInterface(_decodeCodecCtx->width,_decodeCodecCtx->height,PIX_FMT_YUV420P,
+	DEFAULT_WIDTH,DEFAULT_HEIGHT,PIX_FMT_RGB24);
 }
 
 void VideoCodec::quitDecodeContext()
 {
 	avcodec_close(_decodeCodecCtx);
 	av_free(_decodeCodecCtx);
-
+	delete decodeSWS;
+	decodeSWS= NULL;
 }
 
 void VideoCodec::quitEncodeContext()
@@ -184,255 +193,142 @@ void VideoCodec::quitEncodeContext()
 	//initialize basic encoding context
 	avcodec_close(_encodeCodecCtx);
 	av_free(_encodeCodecCtx);
+	delete encodeSWS;
+	encodeSWS = NULL;
+}
+
+int VideoCodec::videoEncode(unsigned char*in_buf, unsigned char* out_buf,int width,int height)
+{
+	AVFrame *IN=NULL,*SWS=NULL,*TEMP=NULL;
+	int numBytes = avpicture_get_size(PIX_FMT_RGB24, width, height);
+  	uint8_t *SWS_buffer= (uint8_t *)av_malloc(numBytes);
+	int outsize;
+	printf("Encode resolution : %i %i \n",width,height);
+	if(height <=0) 	{ptracesfl("CAN'T Encode - height not set properly\n",MT_ERROR,1,true);return -1;}
+	if(width <=0) 	{ptracesfl("CAN'T Encode - Width not set properly\n",MT_ERROR,1,true);return -1;}
+	if(in_buf == NULL) 	{ptracesfl("CAN'T Encode - Input Buffer problem\n",MT_ERROR,1,true);return -1;}
+	if(out_buf == NULL) {ptracesfl("CAN'T Encode - output Buffer problem\n",MT_ERROR,1,true);return -1;}
 	
-}
+		if(width != inputWidth  || height != inputHeight)
+		{
+		//change the codecs width and height
+		printf("Changing Encode resolution\n");
+		quitEncodeContext();
+		inputWidth = width;
+		inputHeight = height;
+		initEncodeContext();
+		}
 
+	if(padding == true)
+	{
+		TEMP  =  encodeSWS->alloc_pictureRGB24(inputWidth,inputHeight,in_buf);	
+		av_picture_pad((AVPicture*)IN,(AVPicture*)TEMP,inputWidth,inputHeight,PIX_FMT_RGB24,paddingTop,paddingbottom,0,0,0);
+		av_free(TEMP);
+	}
+	else
+		IN  =  encodeSWS->alloc_pictureRGB24(inputWidth,inputHeight,in_buf);
 
-VideoCodec::~VideoCodec() {
-	delete _videoDesc;
-	_videoDesc = NULL;
-
-}
-VideoCodec::VideoCodec(char* codec){
+	SWS = encodeSWS->alloc_picture420P(_encodeCodecCtx->width,_encodeCodecCtx->height,SWS_buffer);
 	
+	if(IN != NULL || SWS != NULL)
+	{
+		if (encodeSWS->Convert(IN,SWS) == false)
+ 		{ptracesfl("Conversion error\n",MT_ERROR,1,true);av_free(SWS);av_free(IN);return -1; }
+ 	}
+ 	else {ptracesfl("Conversion error - NULL Frames\n",MT_ERROR,1,true);av_free(SWS);av_free(IN);return -1;}
+
+	//Step 2:Encode
+	if ( (outsize = avcodec_encode_video(_encodeCodecCtx, out_buf, FF_MIN_BUFFER_SIZE, SWS))<= 0)
+		{ptracesfl("Encoding error\n",MT_ERROR,1,true);av_free(SWS);av_free(IN);return -1;}
+		
+	// free Pictures
+	av_free(SWS);
+	av_free(IN);
+	av_free(SWS_buffer);
+
+	//return the size of the encoded data
+	return outsize;
+	}
+
+int VideoCodec::videoDecode(uint8_t *in_buf, uint8_t* out_buf,int inSize,int width,int height)
+{
+	int frame, got_picture, len;
+	uint8_t *buf;
+	AVFrame *SWS,*OUT;
+	printf("Decode resolution : %i %i \n",width,height);
+	// Check if everything  is set properly
+	if(height <=0) 	{ptracesfl("CAN'T Decode - height not set properly\n",MT_ERROR,1,true);return -1;}
+	if(width <=0) 	{ptracesfl("CAN'T Decode - Width not set properly\n",MT_ERROR,1,true);return -1;}
+	if(in_buf == NULL) 	{ptracesfl("CAN'T Decode - Input Buffer problem\n",MT_ERROR,1,true);return -1;}
+	if(out_buf == NULL) {ptracesfl("CAN'T Decode - output Buffer problem\n",MT_ERROR,1,true);return -1;}
 	
-	this->_codecName = codec;
-	this->_encodeCodecCtx = NULL;
-	this->_decodeCodecCtx = NULL;
+	if(width != _decodeCodecCtx->width || height != _decodeCodecCtx->height  )
+		{
+		printf("Changing Decode resolution\n");
+		//change the codecs width and height
+		quitDecodeContext();
+		_decodeCodecCtx->width = width;
+		_decodeCodecCtx->height = height;
+		initDecodeContext();
+		}
 	
-	init();
-
-}
-
-VideoCodec::VideoCodec(){
+	//set the libavcodec special memory space
+	if((buf = (uint8_t*)av_malloc(inSize+FF_INPUT_BUFFER_PADDING_SIZE)) == NULL)
+	{ptracesfl("Malloc Error\n",MT_ERROR,1,true);return -1;};
+    if( memcpy(buf,in_buf,inSize) ==NULL)
+	{ptracesfl("MemCpy Error\n",MT_ERROR,1,true);av_free(buf);return -1;};
+	if ( memset(buf + inSize, 0, FF_INPUT_BUFFER_PADDING_SIZE) == NULL)
+	{ptracesfl("MemSet Error\n",MT_ERROR,1,true);av_free(buf);return -1;};
 	
-	this->_codecName = NULL;
-	this->_encodeCodecCtx = NULL;
-	this->_decodeCodecCtx = NULL;
+	// init output picture decoded
+    SWS = avcodec_alloc_frame();
+	if(SWS == NULL)
+	{ptracesfl("CAN'T Decode Output picture allocation problem\n",MT_ERROR,1,true);av_free(buf);av_free(SWS);return -1;}
 	
-	init();
+	if ( avcodec_decode_video(_decodeCodecCtx, SWS, &got_picture,buf,inSize ) < 0)
+		{ptracesfl("CAN'T Decode - couldn't decode\n",MT_ERROR,1,true);av_free(buf);av_free(SWS);return -1;}
 
+   	OUT = decodeSWS->alloc_pictureRGB24(DEFAULT_WIDTH,DEFAULT_HEIGHT,out_buf);
+   
+   if (decodeSWS->Convert(SWS,OUT) == false)
+ 		{ptracesfl("Conversion error\n",MT_ERROR,1,true);av_free(buf);av_free(SWS);av_free(OUT);return -1;}
+   
+    av_free(SWS);
+    av_free(buf);
+    av_free(OUT);
+	// Maybe you didn't get a full picture!
+	if (got_picture == 0)
+	{ptracesfl("Could not get full frame\n",MT_INFO,4,true);return -1;}
+	
+	return avpicture_get_size(PIX_FMT_RGB24, DEFAULT_WIDTH, DEFAULT_HEIGHT);
 }
 
-
-
-/*
- * 
- * 
- * Tran Huu Tri wrote:
-> Hi,
-> 
-> I need to write the program that capture buffer from webcam
-> in RGB format and use ffmpeg codecs library to convert to
-> mpeg video file with the codecs as CODEC_ID_MPEG1VIDEO or
-> CODEC_ID_H263,…
-> 
->  
-> 
-> But I don’t know how to convert RGB buffer to AVFrame
-> structure.
-> 
-
-delphi code:
-
-const
-   in_fmt: PIX_FMT_YUV420P;
-var
-   YUVframe, RGBframe, ENCframe: PAVFrame;
-   YUVbuf,
-   RGBbuf: pointer;
-   size: integer;
-   dwWidth, dwHeight: integer;
-
-   codec_ctx: PAVCodecContext;
-   codec: PAVCodec;
-
-...
-
-   YUVframe := avcodec_alloc_frame ();
-   size := avpicture_get_size (in_fmt, dwWidth, dwHeight);
-   YUVbuf := AllocMem (size);
-   avpicture_fill (PAVPicture (YUVframe), YUVbuf, in_fmt, dwWidth, 
-dwHeight);
-
-   RGBframe := avcodec_alloc_frame ();
-   size := avpicture_get_size (PIX_FMT_RGBA32, dwWidth, dwHeight);
-   RGBbuf := AllocMem (size);
-   avpicture_fill (PAVPicture (RGBframe), RGBbuf, PIX_FMT_RGBA32, 
-dwWidth, dwHeight);
-
-   codec_ctx := avcodec_alloc_context ();
-
-   codec_ctx.codec_type := CODEC_TYPE_VIDEO;
-   codec_ctx.codec_id := CODEC_ID_XVID;
-
-   codec_ctx.bit_rate := 100000;
-   codec_ctx.time_base.num := 25;
-   codec_ctx.time_base.den := 1;
-   codec_ctx.pix_fmt := in_fmt;
-
-   codec := avcodec_find_encoder (codec_ctx.codec_id);
-   avcodec_open (codec_ctx, codec);
-
-...
-getting data in RGBbuf
-...
-
-    img_convert (PAVPicture (YuvFrame), in_fmt,
-                 PAVPicture (RgbFrame), PIX_FMT_RGBA32,
-                 dwWidth, dwHeight);
-    avcodec_encode_video (codec_ctx, EncodedBuf, 100000, YuvFrame);
-    
-    */
-    
-    
-    
-    
-    
-    
-    /*
-     * 
-     * // A small sample program that shows how to use libavformat and libavcodec to
-// read video from a file.
- 
-#include <string>
-#include <iostream>
-#include <stdexcept>
- 
-#include <ffmpeg/avcodec.h>
-#include <ffmpeg/avformat.h>
- 
-#include <Data/VideoParser.hpp>
- 
-using namespace std;
-using namespace caviar;
- 
-string VideoParser::SaveFrame(AVFrame *pFrame, int width, int height) {
-    FILE *pFile;
-    char szFilename[32];
-    int y;
- 
-    // Open file
-    sprintf(szFilename, "frame.ppm");
-    pFile=fopen(szFilename, "wb");
-    if (pFile==NULL)
-        throw runtime_error("Could not open file (VideoParser::SaveFrame)");
- 
-    // Write header
-    fprintf(pFile, "P6\n%d %d\n255\n", width, height);
- 
-    // Write pixel data
-    for (y=0; y<height; y++)
-        fwrite(pFrame->data[0]+y*pFrame->linesize[0], 1, width*3, pFile);
- 
-    // Close file
-    fclose(pFile);
-    return szFilename;
-}
- 
-VideoParser::VideoParser(const string& filename) {
- 
-    // Register all formats and codecs
-    av_register_all();
- 
-    // Open video file
-    if (av_open_input_file(&pFormatCtx, filename.c_str(), NULL, 0, NULL)!=0)
-        throw runtime_error("Couldn't open file");
- 
-    // Retrieve stream information
-    if (av_find_stream_info(pFormatCtx)<0)
-        throw runtime_error("Couldn't find stream information");
- 
-    // Dump information about file onto standard error
-    dump_format(pFormatCtx, 0, filename.c_str(), 0);
- 
-    // Find the first video stream
-    videoStream=-1;
-    for (int i=0; i<pFormatCtx->nb_streams; i++)
-        if (pFormatCtx->streams[i]->codec->codec_type==CODEC_TYPE_VIDEO) {
-            videoStream=i;
-            break;
-        }
-    if (videoStream==-1)
-        throw runtime_error("Didn't find a video stream");
- 
-    // Get a pointer to the codec context for the video stream
-    pCodecCtx=pFormatCtx->streams[videoStream]->codec;
- 
-    // Find the decoder for the video stream
-    pCodec=avcodec_find_decoder(pCodecCtx->codec_id);
-    if (pCodec==NULL) {
-        cerr << "Unsupported codec!\n";
-        throw runtime_error("Codec not found");
-    }
-    // Open codec
-    if (avcodec_open(pCodecCtx, pCodec)<0)
-        throw runtime_error("Could not open codec");
- 
-    // Allocate video frame
-    pFrame=avcodec_alloc_frame();
- 
-    // Allocate an AVFrame structure
-    pFrameRGB=avcodec_alloc_frame();
-    if (pFrameRGB==NULL)
-        throw runtime_error("Allocation problem");
- 
-    // Determine required buffer size and allocate buffer
-    numBytes=avpicture_get_size(PIX_FMT_RGB24, pCodecCtx->width,
-            pCodecCtx->height);
-    buffer=(uint8_t *)av_malloc(numBytes*sizeof(uint8_t));
- 
-    // Assign appropriate parts of buffer to image planes in pFrameRGB
-    // Note that pFrameRGB is an AVFrame, but AVFrame is a superset
-    // of AVPicture
-    avpicture_fill((AVPicture *)pFrameRGB, buffer, PIX_FMT_RGB24,
-            pCodecCtx->width, pCodecCtx->height);
-}
- 
-string VideoParser::getFrame() {
-    int frameFinished=0;
-    string frameFilename("");
- 
-    while (!frameFinished) {
-        if (av_read_frame(pFormatCtx, &packet)>=0) {
-            // Is this a packet from the video stream?
-            if (packet.stream_index==videoStream) {
-                // Decode video frame
-                avcodec_decode_video(pCodecCtx, pFrame, &frameFinished,
-                        packet.data, packet.size);
- 
-                // Did we get a video frame?
-                if (frameFinished) {
-                    // Convert the image from its native format to RGB
-                    img_convert((AVPicture *)pFrameRGB, PIX_FMT_RGB24,
-                            (AVPicture*)pFrame, pCodecCtx->pix_fmt,
-                            pCodecCtx->width, pCodecCtx->height);
- 
-                    // Save the frame to disk
-                    frameFilename = SaveFrame(pFrameRGB, pCodecCtx->width,
-                            pCodecCtx->height);
-                }
-            }
- 
-            // Free the packet that was allocated by av_read_frame
-            av_free_packet(&packet);
-        }
-    }
-    return frameFilename;
-}
- 
-
-// * Free the RGB image
-// * Free the YUV frame
-// * Close the codec
-// * Close the video file
-// * 
-VideoParser::~VideoParser() {
-    av_free(buffer);
-    av_free(pFrameRGB);
-    av_free(pFrame);
-    avcodec_close(pCodecCtx);
-    av_close_input_file(pFormatCtx);
-}
-*/
+	 pair<int,int> VideoCodec::getEncodeIntputResolution(){
+	 pair<int,int> temp;
+	 temp.first = inputWidth;
+	 temp.second = inputHeight;
+	 return temp;
+	 }
+	 
+	 pair<int,int> VideoCodec::getEncodeOutputResolution(){
+	 pair<int,int> temp;
+	 temp.first = _encodeCodecCtx->width;
+	 temp.second = _encodeCodecCtx->height;
+	 return temp;
+	 }
+	 
+	 pair<int,int> VideoCodec::getDecodeIntputResolution(){
+	 pair<int,int> temp;
+	 temp.first = _decodeCodecCtx->width;
+	 temp.second =  _decodeCodecCtx->height;
+	 return temp;
+	 }
+	 
+	 pair<int,int> VideoCodec::getDecodeOutputResolution(){
+	 pair<int,int> temp;
+	 temp.first = DEFAULT_WIDTH;
+	 temp.second = DEFAULT_HEIGHT;
+	 return temp;
+	 }
+	 
 

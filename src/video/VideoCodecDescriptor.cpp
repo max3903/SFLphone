@@ -16,6 +16,7 @@
  *  along with this program; if not, write to the Free Software
  *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
+ 
 #include "VideoCodecDescriptor.h"
 
 #include <string>
@@ -61,6 +62,7 @@ VideoCodecDescriptor* VideoCodecDescriptor::getInstance()
 	    {
 	    	ptracesfl("BitRates error",MT_FATAL,2,true);
 	    }
+	   
     }
     
      bool VideoCodecDescriptor::initCodecMap()
@@ -70,18 +72,19 @@ VideoCodecDescriptor* VideoCodecDescriptor::getInstance()
 		
 		char *codec;
 		AVCodec* tmp;
-//(avcodec_find_decoder_by_name("h264") != NULL) &&
-    		if( ((tmp = avcodec_find_decoder_by_name("h264")) != NULL) )
+
+    		if( ( (avcodec_find_decoder(CODEC_ID_H264) != NULL)
+    		 && (tmp = avcodec_find_decoder(CODEC_ID_H264)) != NULL) )
     			{
-    			//map Codec
+    			//map Codectmp
     			ptracesfl(tmp->name,MT_INFO,2,false);
     			ptracesfl(" Found",MT_NONE,2,true);
     			vCodecMap[tmp] = avcodec_alloc_context();	
     			}
     			else return false;
     
-    		if((avcodec_find_decoder_by_name("h263") != NULL) &&
-    		 ((tmp = avcodec_find_encoder_by_name("h263")) != NULL))
+    		if((avcodec_find_decoder(CODEC_ID_H263) != NULL) &&
+    		 ((tmp = avcodec_find_encoder(CODEC_ID_H263)) != NULL))
     			{
     			//map Codec
     			ptracesfl(tmp->name,MT_INFO,2,false);
@@ -89,7 +92,9 @@ VideoCodecDescriptor* VideoCodecDescriptor::getInstance()
     			vCodecMap[tmp] = avcodec_alloc_context();	
     			}
     			else return false;
-
+ 
+ 		
+    			
     return true;
     }
     
@@ -290,9 +295,15 @@ AVCodec* VideoCodecDescriptor::getDefaultCodec()
     
     bool VideoCodecDescriptor::setDefaultBitRate()
     {
-    	CurrentBitRate = DEFAULTBITRATE;
+    	CurrentBitRate = VIDEO_BIT_RATE;
     	return true;
     }
     
+    int VideoCodecDescriptor::getEncodingBitRate()
+    {
+    return CurrentBitRate;
     
     
+    }
+   
+

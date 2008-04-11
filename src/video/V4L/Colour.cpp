@@ -25,6 +25,9 @@ Colour::~Colour(){}
 
 bool Colour::increase(){
   	
+  	if( Command::videoDevice == NULL )
+		return false;
+		
   	// Get Hue Control
 	Control* tmpCtrl= Command::videoDevice->getConfigSet()->getControl( Control::COLOR );
   	
@@ -42,6 +45,9 @@ bool Colour::increase(){
 
 bool Colour::decrease(){
     
+    if( Command::videoDevice == NULL )
+		return false;
+		
     // Get Hue Control
 	Control* tmpCtrl= Command::videoDevice->getConfigSet()->getControl( Control::COLOR );
   	
@@ -59,6 +65,9 @@ bool Colour::decrease(){
 
 bool Colour::setTo(__u16 value){
 
+	if( Command::videoDevice == NULL )
+		return false;
+		
 	// Get Hue Control
     Control* tmpCtrl= Command::videoDevice->getConfigSet()->getControl( Control::COLOR );
   	
@@ -76,6 +85,9 @@ bool Colour::setTo(__u16 value){
 
 bool Colour::reset(){
 
+	if( Command::videoDevice == NULL )
+		return false;
+		
 	// Get Hue Control
     Control* tmpCtrl= Command::videoDevice->getConfigSet()->getControl( Control::COLOR );
   	
@@ -93,6 +105,9 @@ bool Colour::reset(){
   
 int Colour::getColour(){
 
+	if( Command::videoDevice == NULL )
+		return -1;
+		
 	// Get Hue Control
     Control* tmpCtrl= Command::videoDevice->getConfigSet()->getControl( Control::COLOR );
   	
@@ -104,13 +119,16 @@ int Colour::getColour(){
   	ptracesfl(" (", MT_NONE, COMMAND_TRACE, false);
   	ptracesfl(Command::videoDevice->getName(), MT_NONE, COMMAND_TRACE, false);
   	ptracesfl(" )", MT_NONE, COMMAND_TRACE);
-  	return false;
+  	return -1;
   	
 }
   
 CmdDesc Colour::getCmdDescriptor(){
 	
 	CmdDesc tmpDesc= {-1,-1,-1,-1};
+	
+	if( Command::videoDevice == NULL )
+		return tmpDesc;
 	
 	// Get Hue Control
     Control* tmpCtrl= Command::videoDevice->getConfigSet()->getControl( Control::COLOR );

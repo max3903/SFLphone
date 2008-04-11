@@ -43,11 +43,11 @@ MemKey::MemKey(int size)
 }
 
 
-MemKey::MemKey(int size,key_t key)
+MemKey::MemKey(int size,key_t key, const char* desc)
 {
 	this->size = size;
 	this->key = key;
-	this->description = "";
+	this->description = desc;
 }
 
 

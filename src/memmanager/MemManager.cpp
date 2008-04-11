@@ -20,13 +20,18 @@
 #include "MemManager.h"
 
 MemManager* MemManager::instance= 0;
+sem_t MemManager::Available;
+sem_t MemManager::Active;
 
 MemManager* MemManager::getInstance()
 {
 	//if no instance made create one,
 	//ref. singleton pattern
-	if (instance == 0)
-	MemManager::instance = new MemManager;
+	if (instance == 0){
+		MemManager::instance = new MemManager;
+		sem_init(&MemManager::Active, 0, 1);
+		sem_init(&MemManager::Available, 0, 1);
+	}
 
 	return instance;
 }
@@ -39,7 +44,6 @@ MemManager::MemManager()
 MemManager::~MemManager()
 {
 	CleanSpaces();
-
 }
 
 MemKey* MemManager::initSpace(key_t key,int size)
@@ -50,25 +54,28 @@ MemKey* MemManager::initSpace(key_t key,int size)
 	MemSpace *newSpace = new MemSpace(newKey);
 	vectMemSpaceIterator MemSpaceLocation;
 	
-	
 	//Get the IPC-specific identifier associated with the IPC key using shmget(2)
 	// for shared memory
+	ptracesfl("\tInitializing Shared Memory space ...", MT_INFO, MEMMANAGER_TRACE, false );
 	newKey->setShmid(shmget(key, size, IPC_CREAT | 0666));
 	
 	if ( newKey->getShmid() < 0)
 	{
-		perror("shmget");
-        exit(1);
-	}
+		ptracesfl("\tNO", MT_NONE, MEMMANAGER_TRACE);
+		ptracesfl("Error cannot get Shared Memory space, Please try again in a few seconds", MT_FATAL, MEMMANAGER_TRACE);
+	}else
+		ptracesfl("\tOK", MT_NONE, MEMMANAGER_TRACE);
 	
 	//Attach shared memory to baseAddress shmat returns pointer to the
 	// shared memory segment
+	ptracesfl("\tAttaching shared memory segment ...", MT_INFO, MEMMANAGER_TRACE, false);
     newSpace->setBaseAddress((unsigned char *)shmat(newKey->getShmid(), (void *) 0, 0));
     
     if ( newSpace->getBaseAddress() == (unsigned char *) -1) {
-        perror("shmat");
-        exit(1);
-    } 
+    	ptracesfl("\tNO", MT_NONE, MEMMANAGER_TRACE);
+        ptracesfl("Error cannot attach Shared Memory space", MT_FATAL, MEMMANAGER_TRACE);
+    }else
+    	ptracesfl("\tOK", MT_NONE, MEMMANAGER_TRACE);
     
 	//add the newly created space to the vector 
 	spaces.push_back(newSpace);
@@ -91,21 +98,25 @@ MemKey* MemManager::initSpace(MemKey* key)
 	
 	
 	//create shared memory space
+	ptracesfl("\tInitializing Shared Memory space ...", MT_INFO, MEMMANAGER_TRACE, false );
 	key->setShmid(shmget(key->getKey(), key->getSize(), IPC_CREAT | 0666));
 	
 	if ( key->getShmid() < 0)
 	{
-        perror("shmget");
-        exit(1);
-    }
+		ptracesfl("\tNO", MT_NONE, MEMMANAGER_TRACE);
+		ptracesfl("Error cannot get Shared Memory space, Please try again in a few seconds", MT_FATAL, MEMMANAGER_TRACE);
+	}else
+		ptracesfl("\tOK", MT_NONE, MEMMANAGER_TRACE);
     
     //attach shared memory to baseAddress
+    ptracesfl("\tAttaching shared memory segment ...", MT_INFO, MEMMANAGER_TRACE, false);
     newSpace->setBaseAddress((unsigned char *)shmat(key->getShmid(), 0, 0));
     
     if ( newSpace->getBaseAddress() == (unsigned char *) -1) {
-        perror("shmat");
-        exit(1);
-    }
+    	ptracesfl("\tNO", MT_NONE, MEMMANAGER_TRACE);
+        ptracesfl("Error cannot attach Shared Memory space", MT_FATAL, MEMMANAGER_TRACE);
+    }else
+    	ptracesfl("\tOK", MT_NONE, MEMMANAGER_TRACE);
     
     //add the newly created space to the vector 
 	spaces.push_back(newSpace);
@@ -121,33 +132,37 @@ MemKey* MemManager::initSpace(MemKey* key)
 }
 
 
-MemKey* MemManager::initSpace(int size)
+MemKey* MemManager::initSpace(int size,  const char* desc)
 {
 	MemKey *newKey;
 	MemSpace *newSpace;
 	key_t key = genKey();
 	vectMemSpaceIterator MemSpaceLocation;
 	
-	newKey = new MemKey(size,key);
+	newKey = new MemKey(size,key, desc);
 	
 	//create shared memory space
+	ptracesfl("\tInitializing Shared Memory space ...", MT_INFO, MEMMANAGER_TRACE, false );
 	newKey->setShmid(shmget(key, size, IPC_CREAT | 0666));
 	
 	if ( newKey->getShmid() < 0)
 	{
-        perror("shmget");
-        exit(1);
-    }
+		ptracesfl("\tNO", MT_NONE, MEMMANAGER_TRACE);
+		ptracesfl("Error cannot get Shared Memory space, Please try again in a few seconds", MT_FATAL, MEMMANAGER_TRACE);
+	}else
+		ptracesfl("\tOK", MT_NONE, MEMMANAGER_TRACE);
     
 	newSpace = new MemSpace(newKey);
 	
     //attach shared memory to baseAddress
+    ptracesfl("\tAttaching shared memory segment ...", MT_INFO, MEMMANAGER_TRACE, false);
     newSpace->setBaseAddress((unsigned char *)shmat(newKey->getShmid(), 0, 0));
     
     if ( newSpace->getBaseAddress() == (unsigned char *) -1) {
-        perror("shmat");
-        exit(1);
-    }
+    	ptracesfl("\tNO", MT_NONE, MEMMANAGER_TRACE);
+        ptracesfl("Error cannot attach Shared Memory space", MT_FATAL, MEMMANAGER_TRACE);
+    }else
+    	ptracesfl("\tOK", MT_NONE, MEMMANAGER_TRACE);
     
     //Adds the index to the key
 	MemSpaceLocation = spaces.end() -1;
@@ -161,52 +176,63 @@ MemKey* MemManager::initSpace(int size)
 	if(spaces.size() == 1)
 		defaultIndex = spaces.end() -1;
 	
-	ptracesfl("MemSpace Created : ",MT_INFO,1,false);
-	ptracesfl(newKey->getDescription().c_str(),MT_NONE,1,true);
-	
 	return newKey;
 }
 
 bool MemManager::deleteSpace(MemKey* key)
-{
-
-	int i;
+{	
+	vectMemSpaceIterator result= this->search(key);
 	
-	i = shmdt((*(key->getIndex()))->getBaseAddress());
+	if( result == this->spaces.end() )
+		return false;
 	
-	if(i == -1) 
-   		perror("shmop: shmdt failed");
-    	 else 
-  		 fprintf(stderr, "shmop: shmdt returned %d\n", i);
+	this->getManagerControl();
+	
+	ptracesfl("Detaching shared memory segment", MT_ERROR, MEMMANAGER_TRACE);
+	int ret = shmdt((*(key->getIndex()))->getBaseAddress());
+	
+	if(ret == -1){
+		ptracesfl("\tNO", MT_NONE, MEMMANAGER_TRACE);
+   		ptracesfl("Cannot detach shared memory segment", MT_ERROR, MEMMANAGER_TRACE);
+   		return false;
+	}else
+  		 ptracesfl("\tOK", MT_NONE, MEMMANAGER_TRACE);
   				
-			//delete memspace
-			delete (*(key->getIndex()));
+	this->spaces.erase(result);
+	
+	this->releaseManagerControl();
 			
-			return true;
+	return true;
 }
 
 bool MemManager::CleanSpaces(){
 
-vector<MemSpace*>::iterator iter;
-int i;
+	vector<MemSpace*>::iterator iter;
+	
+	this->getManagerControl();
 
-	//for each mes	ptracesfl(newKey->,MT_NONE,1,false);pace detach memory
+	//for each mespace detach memory
+	ptracesfl("Cleaning all shared memory space ...", MT_INFO, MEMMANAGER_TRACE);
 	for( iter = spaces.begin(); iter != spaces.end() ;iter++)
 	{
-		i = shmdt((*iter)->getBaseAddress());
+		ptracesfl("Dettaching shared memory space ... ", MT_INFO, MEMMANAGER_TRACE, false);
+		int ret = shmdt((*iter)->getBaseAddress());
 		
-		if(i == -1) 
-		{
-   		perror("shmop: shmdt failed");
-   		return false;
-		}
+		if(ret == -1){
+			ptracesfl("\tNO", MT_NONE, MEMMANAGER_TRACE);
+   			ptracesfl("Cannot detach shared memory segment", MT_ERROR, MEMMANAGER_TRACE);
+   			return false;
+		}else
+  		 	ptracesfl("\tOK", MT_NONE, MEMMANAGER_TRACE);
 			
 	}
 	
 	//clean vector
 	spaces.clear();
 	
-		return true;
+	this->releaseManagerControl();
+	
+	return true;
 
 }
 
@@ -246,51 +272,69 @@ MemData* MemManager::fetchData()
 
 MemData* MemManager::fetchData(key_t key)
 {
+	if( this->getSpaceConstol() )
+		return false;
+		
 	vector<MemSpace*>::iterator iter;
 
 	//find the memspace containing the key
-	for( iter = spaces.begin(); iter != spaces.end() ;iter++)
+	for( iter = spaces.begin(); iter != spaces.end() ;iter++){
 		if ((*iter)->getMemKey()->getKey() == key)
 		{
 			// returns a MemData
+			this->releaseSpaceConstol();
 			return (*iter)->fetchData();
 		}
+	}
 		
-		//if no key found return NULL
-		return NULL; 
+	//if no key found return NULL
+	this->releaseSpaceConstol();
+	return NULL; 
 }
 
 MemData* MemManager::fetchData(MemKey* key)
 {
-	return (*(key->getIndex()))->fetchData();
+	return this->fetchData(key->getKey());
+	//return (*(key->getIndex()))->fetchData();
 }
 
 bool MemManager::putData(unsigned char * Data, int size, int width, int height)
 {
+	if(this->getSpaceConstol() )
+		return false;
+	
 	(*defaultIndex)->putData(Data,size, width, height);
+	
+	this->releaseSpaceConstol();
+	
 	return true;
 }
 
 bool MemManager::putData(key_t key, unsigned char * Data, int size, int width, int height)
 {
+	
+	//if( this->getSpaceConstol() )
+		//return false;
+		
 	vector<MemSpace*>::iterator iter;
-
 
 	for( iter = spaces.begin(); iter != spaces.end() ;iter++){
 		if ((*iter)->getMemKey()->getKey() == key)
 		{
 			(*iter)->putData(Data,size, width, height);
+			this->releaseSpaceConstol();
 			return true;
 		}
 	}
-		
-		return false;
+	
+	//this->releaseSpaceConstol();
+	return false;
+	
 }
 
 bool MemManager::putData(MemKey* key, unsigned char * Data, int size, int width, int height)
 {
 	return this->putData(key->getKey(), Data, size, width, height);
-	
 }
 
 vector<MemKey*> MemManager::getAvailSpaces() 
@@ -312,8 +356,56 @@ key_t MemManager::genKey()
 	key_t tmp;
 	tmp =  ftok("/tmp",rand());
 	if(tmp == (key_t) -1)
-		ptracesfl("ERROR : KEY INVALID",MT_FATAL,1,true);
+		ptracesfl("KEY INVALID",MT_FATAL,1,true);
 
 	return tmp;	
 		
+}
+
+vectMemSpaceIterator MemManager::search(MemKey* refKey){
+	
+	vectMemSpaceIterator start= this->spaces.begin();
+	vectMemSpaceIterator end= this->spaces.end();
+	
+	MemKey* tmpKey;
+	while( start != end ){
+		tmpKey= ((MemSpace*)(*start))->getMemKey();
+		if( tmpKey->getKey() == refKey->getKey() )
+			return start;
+		start++;
+	}
+	
+	ptracesfl("Cannot find corresponding Shared memory segment", MT_ERROR, MEMMANAGER_TRACE);
+	return end;
+	
+}
+
+
+bool MemManager::getManagerControl(){
+	sem_wait(&MemManager::Available);
+	sem_wait(&MemManager::Active);
+	sem_post(&MemManager::Active);
+	return true;
+}
+
+bool MemManager::releaseManagerControl(){
+	sem_post(&MemManager::Available);
+	return true;
+}
+
+bool MemManager::getSpaceConstol(){
+	if( sem_trywait(&MemManager::Available) == -1 ){
+		sem_post(&MemManager::Available);
+		if( sem_trywait(&MemManager::Active) == -1){
+			return true;
+		}		
+	}
+	
+	return false;
+
+}
+
+bool MemManager::releaseSpaceConstol(){
+	sem_post(&MemManager::Active);
+	return true;
 }

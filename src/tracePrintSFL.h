@@ -20,10 +20,15 @@
 #ifndef TRACEPRINTSFL_H_
 #define TRACEPRINTSFL_H_
 
+#include <cstdarg>
+#include <string>
 #include <stdio.h>
 #include <stdlib.h>
+#include <semaphore.h>
 
-#define SFLTRACE_LEVEL		10				/*Default trace level*/
+
+#define SFLTRACE_LEVEL		1				/*Default trace level*/
+
 
 #define HEADER_ERROR	"Error: "		/*Error message Tag*/
 #define HEADER_WARNING	"Warning: "		/*Warning message Tag*/
@@ -47,14 +52,20 @@ class tracePrintSfl
 {
 public:
 
+	tracePrintSfl();
+	
+	~tracePrintSfl();
+
 	/** Method to print the message
 	 * @param message The message to be printed
 	 * @param type The type of the message can be: MT_INFO, MT_WARNING, MT_ERROR, MT_FATAL
 	 * @param level	The level of the message
 	 * @param ret If you want to print a line return
 	 */
-	void operator()(const char* message, int type, int level, bool ret= true);
-	
+	void operator()(const char* message, int type, int level, bool ret= true, int num= 0 ...);
+
+	static sem_t access;
+
 };
 
 #define ptracesfl tracePrintSfl() /*The instance of the functor*/

@@ -2,11 +2,19 @@
 #define VIDEOSETTINGS_H_
 
 
+
+/** 
+ *
+ * These are the default settings assigned to a codec at init
+ * 
+ */
+
 #define VIDEO_BIT_RATE 768000
-#define DEFAULT_WIDTH 640
-#define DEFAULT_HEIGHT 480
+#define DEFAULT_WIDTH 320
+#define DEFAULT_HEIGHT 240
 #define STREAM_FRAME_RATE 10
-#define GOP_SIZE 12
-#define MAX_B_FRAMES 1000
+#define GOP_SIZE 8
+#define MAX_B_FRAMES 0
+#define RTP_PAYLOAD 1400
 
 #endif /*VIDEOSETTINGS_H_*/
