@@ -2315,14 +2315,10 @@ show_config_window (gint page_num)
 
 
 
-/*
- * Show accounts tab in a different window
- */
-void
-show_accounts_window( void )
 
+//Updates the webcam settings with the new values
+void update_notebook()
 {
-
 	gtk_dialog_response(dialog, GTK_RESPONSE_DELETE_EVENT);
 	gtk_widget_destroy(GTK_WIDGET(dialog));
 	gtk_widget_destroy(GTK_WIDGET(notebook));
@@ -2331,8 +2327,11 @@ show_accounts_window( void )
 	show_config_window(4);	
 }
 
-//Updates the webcam settings with the new values
-void update_notebook()
+/*
+ * Show accounts tab in a different window
+ */
+void
+show_accounts_window( void )
 {
   GtkDialog * dialog;
   GtkWidget * accountFrame;
