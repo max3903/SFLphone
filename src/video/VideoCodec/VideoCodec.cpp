@@ -225,8 +225,7 @@ int VideoCodec::videoEncode(unsigned char*in_buf, unsigned char* out_buf,int wid
 	}
 	else
 		IN  =  encodeSWS->alloc_pictureRGB24(inputWidth,inputHeight,in_buf);
-	
-	
+
 	SWS = encodeSWS->alloc_picture420P(_encodeCodecCtx->width,_encodeCodecCtx->height);
 	
 	if(IN != NULL || SWS != NULL)
@@ -235,7 +234,6 @@ int VideoCodec::videoEncode(unsigned char*in_buf, unsigned char* out_buf,int wid
  		{ptracesfl("Conversion error\n",MT_ERROR,1,true);av_free(SWS);av_free(IN);return -1; }
  	}
  	else {ptracesfl("Conversion error - NULL Frames\n",MT_ERROR,1,true);av_free(SWS);av_free(IN);return -1;}
-
 
 	//Step 2:Encode
 	if ( (outsize = avcodec_encode_video(_encodeCodecCtx, out_buf, FF_MIN_BUFFER_SIZE, SWS))<= 0)

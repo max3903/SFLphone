@@ -81,6 +81,7 @@ AVFrame *SWSInterface::alloc_picture420P(int width, int height) {
     return NULL;
   }
   avpicture_fill((AVPicture *)picture, picture_buf, PIX_FMT_YUV420P, width, height);
+
   return picture;
 }
 AVFrame * SWSInterface::alloc_picture420P(int width, int height,uint8_t *buffer) {
@@ -105,7 +106,7 @@ AVFrame * SWSInterface::alloc_pictureRGB24(int width, int height) {
   uint8_t *buffer= (uint8_t *)av_malloc(numBytes);
   avpicture_fill((AVPicture *)pFrameRGB, buffer, PIX_FMT_RGB24, width, 
 height);
-av_free(buffer);
+
   return pFrameRGB;
 }
 
