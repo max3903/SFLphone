@@ -40,7 +40,6 @@ public:
 	 * 
 	 * \param video a pointer to an InternalBuffer acting as input
 	 * \param output a pointer to an OutputStream
-	 * \param infos a pointer to the CodecInfo
 	 */
     StraightThrough_VT(InternalBuffer* video,  OutputStream* output);
 

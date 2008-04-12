@@ -17,7 +17,7 @@
  *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
  
-/**
+/*!
  *  VideoCodec Class
  * 
  * This is the VideoCodec class. It's a virtual abstract class for encoding and 
@@ -60,11 +60,14 @@ public:
      */
     VideoCodec(char* codecName);
     VideoCodec(enum CodecID id);
-/**
+	/**
 	
      * Function to decode video information
      * @param in_buf the input buffer
      * @param out_buf the output buffer
+     * @param inSize input's buffer size
+     * @param width - width of the input buffer
+     * @param height - height of the input buffer
      * 
      */
 
@@ -73,17 +76,17 @@ public:
 /**
      * Function to encode video information - The user has to set the input and output buffers
      * 
-     * @param in_buf 	the input buffer containing the data to encode
-     * @param out_buf	The encoded data
-     * @param inWidth	the in_buf  width
-     * @param inWidth	the in_buf height
+     * @param[in] in_buf 	the input buffer containing the data to encode
+     * @param[out] out_buf	The encoded data
+     * @param[in] width	the in_buf  width
+     * @param[in] height	the in_buf height
      * @return the size of the encoded buffer, a negative value otherwise
      */
 
     int videoEncode(unsigned char* in_buf, unsigned char* out_buf,int width,int height);
  	
 	/***
-	 * 
+	 * Functions to get the encoding input or output resolution
 	 */
 	 pair<int,int> getEncodeIntputResolution();
 	 
@@ -156,12 +159,10 @@ private:
     * width and height the codec will send
     */
     int outputWidth;
-    int outputHeight;
-    
-
-    
+    int outputHeight;    
     /**
      * set to true if needed
+     * the padding will auto adjust while encoding.
      * 
      */
     bool padding;

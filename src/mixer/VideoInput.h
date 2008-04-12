@@ -58,13 +58,10 @@ public:
     //! Access the data contained the the buffer
     /*!
      * This method returns the data. Buffer access is protected to prevent simultanious access. 
-     * The pointer points to data with the flowing format: [w][h][payload]. 
-     * So the size returned is the sum of the size of two int and the payload.
+     * The pointer points to data with the following format: [w][h][payload]. 
+     * \param size the size of the fetched data
+     * \return data a pointer to where the data must be copied
      * 
-     * \param data a pointer to where the data must be copied
-     * \param w the width of the image
-     * \param h the height of the image
-     * \return the size of the fetched data or -1 if an error occured
      */
     virtual unsigned char* fetchData(int &size);
 

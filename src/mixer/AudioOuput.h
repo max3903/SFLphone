@@ -51,29 +51,28 @@ public:
      */
     ~AudioOutput();
 
-    //! Method to get the data contained by the buffer
-    /*!
-     * \param data a pointer to the where the data will be put
-     * \return the size of the buffer
+
+    /*Method to get the data contained by the buffer
+     * \param size the size of the buffer
+     * \return a pointer to the where the data will be put
      */
-//    virtual int fetchData(short *data);
     virtual short* fetchData(int &size);
 
-    //! Method to change the data contained in the buffer
-    /*!
+
+    /* Method to change the data contained in the buffer
      * \param data a pointer to the data to copy
      * \param size th size of the buffer
      */ 
     virtual void putData(short * data, int size);
     
-    //! Method to get the size of the current buffer
-    /*!
+
+    /*Method to get the size of the current buffer
      * \return The size of the buffer
      */
     virtual int getSize();
     
-    //! Method to get the current Type of ouput buffer
-    /*
+
+    /*Method to get the current Type of ouput buffer
      * \return A string containing the description of the buffer
      */
     virtual const char* getType() const;
@@ -88,17 +87,24 @@ protected:
     
 private:
 	
-	//! Method to change the data in the buffer
-	/*!
+	/* Method to change the data in the buffer
 	 * This method is implemented as private and \b should \b not \b be \b used in AudioOutput. This method is inherited from OutputStream. putData(int16 * data, int size) instead. 
+	 * @param data pointer to the data you want to put
+	 * @param size of thebuffer
+	 * 
 	 */
     virtual void putData(unsigned char* data, int size) __attribute__ ((deprecated));
     
-    //! Method to get the data in the buffer
-	/*!
-	 * This method is implemented as private and \b should \b not \b be \b used in AudioOutput. This method is inherited from OutputStream. Use fetchData(int16 *data) instead. 
+
+	/*  
+	 *	This method is implemented as private and \b should \b not \b be \b used in AudioOutput.
+	 *  This method is inherited from OutputStream. Use fetchData(int16 *data) instead. 
+	 * @param size size to fetch
+	 * @param width
+	 * @param height
+	 * @return pointer
 	 */
-    virtual unsigned char* fetchData(int &size, int &width, int &height) __attribute__ ((deprecated));
+    virtual unsigned char* fetchData(int &size, int &width, int &height);
 
 };
 #endif //AUDIOOUPUT_H

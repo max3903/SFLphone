@@ -38,6 +38,7 @@ public:
 	 * \param Streams An InputStreams contaning the data to synch
 	 * \param video The Internal buffer into wich the synch video data will be sent
 	 * \param audio The Internal buffer into wich the synch audio data will be sent
+	 * \param index
 	 */
     NoSynch(InputStreams* Streams, InternalBuffer* video, InternalBuffer* audio, int index);
 

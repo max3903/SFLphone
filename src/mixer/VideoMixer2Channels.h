@@ -38,7 +38,6 @@ public:
 	 * \param video1 an input buffer see InternalBuffer
 	 * \param video2 an input buffer see InternalBuffer
 	 * \param output an output buffer see OutputStream
-	 * \param infos a pointer to a CodecInfo object
 	 */
     VideoMixer2Channels(InternalBuffer* video1, InternalBuffer* video2, OutputStream* output);
 

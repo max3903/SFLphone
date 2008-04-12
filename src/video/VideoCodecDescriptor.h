@@ -16,7 +16,7 @@
  *  along with this program; if not, write to the Free Software
  *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
-/**
+/*!
  *  VideoCodecDescriptor Class
  * 
  * This class  acts like a container. It generates at startup a map of all
@@ -68,8 +68,9 @@ class VideoCodecDescriptor {
 public:
 
 
-//! Method to get the instance of the VideoCodecDescriptor.
-    /*!
+
+    /*
+     * Method to get the instance of the VideoCodecDescriptor.
      * If it does not exist, this method will create it.
      * VideoCodec Descriptor is a singleton pattern
      * @return an instance of the manager
@@ -102,13 +103,13 @@ public:
     
 	/**
      * Function to set the map
-     * @param activeC to set the Codec Map with another map
+     * @param vCodecOrder to set the Codec Map with another map
      * (not really suppose to happen)
      */
     void setActiveCodecs(VideoCodecOrder vCodecOrder);
 	/**
      * Function to set the map with all the codecs used by sflphone
-     * @param codecMap to set the Codec Map
+     * @param codec to set the Codec Map
      * (not really suppose to happen)
      */
     void setCodecMap(VideoCodecMap codec);
@@ -157,7 +158,7 @@ public:
     
     /**
      * Function to save the the vector containing the active Codecs
-     * @param activeCodecs a string list of vectors
+     * @param sActiveCodecs a string list of vectors
      */
     bool saveActiveCodecs(StringVector sActiveCodecs);
     

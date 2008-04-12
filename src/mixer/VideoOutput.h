@@ -55,10 +55,10 @@ public:
 
     //! Method to get the data contained by the buffer
     /*!
-     * \param data a pointer to the where the data will be put
+     * \param size the size you want to fetch
      * \param width The width of the output image
      * \param height The heigh of the output image
-     * \return the size of the buffer
+     * \return a pointer to the bufferthe size of the buffer
      */
     virtual unsigned char* fetchData( int &size, int &width, int &height);
 

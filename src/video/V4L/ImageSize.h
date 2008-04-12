@@ -44,7 +44,7 @@ public:
 	 * @param w the width
 	 * @param h the height
 	 * @param fd the file descriptor to the device
-	 * @imgFormat the Format of the image
+	 * @param imgFormat the Format of the image
 	 */
 	ImageSize(int w, int h, int fd, int imgFormat);
 
@@ -78,13 +78,13 @@ public:
     int getCurrentFps();
     
     /** Method to set the current fps rate
-     * @param the desired fps rate
+     * @param fps the desired fps rate
      * @return The success of the operation
      */ 
     bool setCurrent(int fps);
     
     /** Validation method for the fps rate
-     * @param the fps rate to validate
+     * @param fps rate to validate
      * @return if the fps rate is supported
      */ 
     bool isFPSSupported(int fps);    
@@ -98,8 +98,8 @@ private:
     ImageSize();
     
     /** Method to enumerate the possible frame rates of the camera
-     * @param The file descriptor to the device
-     * @param The image format
+     * @param fd The file descriptor to the device
+     * @param imgFormat The image format
      */
     void init_enumerateFPS(int fd, int imgFormat);
     

@@ -63,7 +63,7 @@ public:
     /*!
      * This method creates a new shared memory space and a new key.
      * \param size the size of the shared memory space
-     * \param description is a description of the key to initialize
+     * \param desc is a description of the key to initialize
      * \return a MemKey that identifies the MemSpace and is necessary for future access
      */
     MemKey* initSpace(int size, const char* desc= NULL);
@@ -74,10 +74,9 @@ public:
      * 
      * \param key the key identifiying the shared memory space
      * \param size the size of the shared memory space
-     * \param description is a description of the key to initialize
      * \return a MemKey linking to a MemSpace dans that is needed for future access
      */
-    MemKey* initSpace(int key, int size);
+    MemKey* initSpace(key_t key, int size);
 
     //! Initialise a shared memory space with the specified info
     /*!
@@ -149,6 +148,8 @@ public:
     /*!
      * \param Data a pointer to the new data
      * \param size the size of Data
+     * \param width width of the data
+     * \param height of the data
      * \return the success of the operation
      */
     bool putData(unsigned char * Data, int size, int width, int height);
@@ -158,6 +159,8 @@ public:
      * \param key the key of the MemSpace
      * \param Data a pointer to the new data
      * \param size the size of Data
+     * \param width width of the data
+     * \param height of the data
      * \return the success of the operation
      */
     bool putData(key_t key, unsigned char * Data, int size, int width, int height);
@@ -167,6 +170,8 @@ public:
      * \param key the key of the MemSpace
      * \param Data a pointer to the new data
      * \param size the size of Data
+     * \param width width of the data
+     * \param height of the data
      * \return the success of the operation
      */
     bool putData(MemKey* key, unsigned char * Data, int size, int width, int height);

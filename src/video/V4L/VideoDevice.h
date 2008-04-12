@@ -119,7 +119,7 @@ public:
 	v4l2_streamparm* getStreamingParam();
 	
 	//! Method to set streaming information
-    /*!
+    /*
      * \param A pointer to a v4l2_streamparm structure
      * \return a bool representing the success of parameters changing
      */

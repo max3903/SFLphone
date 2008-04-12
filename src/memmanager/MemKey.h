@@ -45,18 +45,15 @@ public:
 	//! Constructor
 	/*!
 	 * Initiate the object
-	 * 
 	 * \param size the maximum size of the shared memory space
-	 * \param description a description of the shared memory space
 	 */
     MemKey(int size);
 	//! Constructor
-	/*!
-	 * Initiate the object
-	 * 
-	 * \param size the maximum size of the shared memory space
-	 * \param description a description of the shared memory space
-	 * \param key is to set the key
+	/*! Initiate the object
+	  
+	  \param size the maximum size of the shared memory space
+	  \param key is to set the key
+	  \param desc a description of the shared memory space
 	 */
     MemKey(int size,key_t key, const char* desc= NULL);
     //! Pointer copy constructor
@@ -124,7 +121,7 @@ public:
     
     //! Modification method to the size of the memory space in the MemManager
     /*!
-     * \param index the index in the MemManager
+     * \param size you want to change in the memmanager
      */
     void setSize(int size);
     
