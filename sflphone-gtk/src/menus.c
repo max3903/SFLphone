@@ -235,7 +235,6 @@ static void changeWebCamStatus ( void *foo )
 
 static void invitePerson(void* foo)
 {
-	//TODO: Implement Fonctionnality
 	create_invite_window();
 }
 
