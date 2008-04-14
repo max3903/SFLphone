@@ -747,7 +747,7 @@ select_notebook_page(GtkNotebook* widget,  gpointer data)
 	printf("Notebook current page : %d\n", notebookPage);
 	
 	//Webcam Settings Page
-	if(notebookPage == 3)
+	if(notebookPage == 4)
 	{
 		dbus_enable_local_video_pref();
 		printf("Local video has been enabled in webcam settings \n");
