@@ -197,12 +197,12 @@ contact_list_entry_edit(gchar* accountID, gchar* contactID, contact_entry_t* ent
 	oldEntry->_isSubscribed = entry->_isSubscribed;
 		
 	// Modify both views
-	contact_window_edit_entry(accountID, contactID, entry);
-	call_console_edit_entry(accountID, contactID, entry);
+	contact_window_edit_entry(accountID, contactID, oldEntry);
+	call_console_edit_entry(accountID, contactID, oldEntry);
 	
 	// Send modifications to server
-	dbus_set_contact_entry(accountID, contactID, entry->_entryID, entry->_text, entry->_type,
-			entry->_isShownInConsole ? "TRUE" : "FALSE", entry->_isSubscribed ? "TRUE" : "FALSE");
+	dbus_set_contact_entry(accountID, contactID, oldEntry->_entryID, oldEntry->_text, oldEntry->_type,
+			oldEntry->_isShownInConsole ? "TRUE" : "FALSE", oldEntry->_isSubscribed ? "TRUE" : "FALSE");
 }
 
 void

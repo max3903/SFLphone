@@ -622,7 +622,7 @@ show_contact_dialog(gchar* accountID, gchar* contactID)
 		// Add first name entry
 		label = gtk_label_new_with_mnemonic(_("_First name"));
 		gtk_misc_set_alignment(GTK_MISC(label), 0, 0.5);
-		gtk_table_attach(GTK_TABLE(table), label, 0, 1, 0, 1, GTK_EXPAND | GTK_FILL, GTK_EXPAND | GTK_FILL, 0, 0);
+		gtk_table_attach(GTK_TABLE(table), label, 0, 1, 0, 1, GTK_FILL, GTK_EXPAND | GTK_FILL, 0, 0);
 		contactFirstNameEntry = gtk_entry_new();
 		gtk_label_set_mnemonic_widget(GTK_LABEL(label), contactFirstNameEntry);
 		gtk_entry_set_text(GTK_ENTRY(contactFirstNameEntry), firstNameText);
@@ -631,7 +631,7 @@ show_contact_dialog(gchar* accountID, gchar* contactID)
 		// Add last name entry
 		label = gtk_label_new_with_mnemonic(_("_Last name"));
 		gtk_misc_set_alignment(GTK_MISC(label), 0, 0.5);
-		gtk_table_attach(GTK_TABLE(table), label, 0, 1, 1, 2, GTK_EXPAND | GTK_FILL, GTK_EXPAND | GTK_FILL, 0, 0);
+		gtk_table_attach(GTK_TABLE(table), label, 0, 1, 1, 2, GTK_FILL, GTK_EXPAND | GTK_FILL, 0, 0);
 		contactLastNameEntry = gtk_entry_new();
 		gtk_label_set_mnemonic_widget(GTK_LABEL(label), contactLastNameEntry);
 		gtk_entry_set_text(GTK_ENTRY(contactLastNameEntry), lastNameText);
@@ -640,7 +640,7 @@ show_contact_dialog(gchar* accountID, gchar* contactID)
 		// Add email entry
 		label = gtk_label_new_with_mnemonic(_("_Email"));
 		gtk_misc_set_alignment(GTK_MISC(label), 0, 0.5);
-		gtk_table_attach(GTK_TABLE(table), label, 0, 1, 2, 3, GTK_EXPAND | GTK_FILL, GTK_EXPAND | GTK_FILL, 0, 0);
+		gtk_table_attach(GTK_TABLE(table), label, 0, 1, 2, 3, GTK_FILL, GTK_EXPAND | GTK_FILL, 0, 0);
 		contactEmailEntry = gtk_entry_new();
 		gtk_label_set_mnemonic_widget(GTK_LABEL(label), contactEmailEntry);
 		gtk_entry_set_text(GTK_ENTRY(contactEmailEntry), emailText);
@@ -747,7 +747,7 @@ show_entry_dialog(gchar* accountID, gchar* contactID, gchar* entryID)
 		label = gtk_label_new_with_mnemonic(_("_Number"));
 		gtk_misc_set_alignment(GTK_MISC(label), 0, 0.5);
 		gtk_widget_set_tooltip_text(GTK_WIDGET(label), _("Contact number as you would type it when calling\nExample : 5142765468"));
-		gtk_table_attach(GTK_TABLE(table), label, 0, 1, 0, 1, GTK_EXPAND | GTK_FILL, GTK_EXPAND | GTK_FILL, 0, 0);
+		gtk_table_attach(GTK_TABLE(table), label, 0, 1, 0, 1, GTK_FILL, GTK_EXPAND | GTK_FILL, 0, 0);
 		entryIDEntry = gtk_entry_new();
 		gtk_label_set_mnemonic_widget(GTK_LABEL(label), entryIDEntry);
 		gtk_entry_set_text(GTK_ENTRY(entryIDEntry), entryIDText);
@@ -757,7 +757,7 @@ show_entry_dialog(gchar* accountID, gchar* contactID, gchar* entryID)
 		label = gtk_label_new_with_mnemonic(_("_Alias"));
 		gtk_misc_set_alignment(GTK_MISC(label), 0, 0.5);
 		gtk_widget_set_tooltip_text(GTK_WIDGET(label), _("Contact number alias used for presentation\nExample : 514-276-5468"));
-		gtk_table_attach(GTK_TABLE(table), label, 0, 1, 1, 2, GTK_EXPAND | GTK_FILL, GTK_EXPAND | GTK_FILL, 0, 0);
+		gtk_table_attach(GTK_TABLE(table), label, 0, 1, 1, 2, GTK_FILL, GTK_EXPAND | GTK_FILL, 0, 0);
 		entryTextEntry = gtk_entry_new();
 		gtk_label_set_mnemonic_widget(GTK_LABEL(label), entryTextEntry);
 		gtk_entry_set_text(GTK_ENTRY(entryTextEntry), textText);
@@ -766,8 +766,8 @@ show_entry_dialog(gchar* accountID, gchar* contactID, gchar* entryID)
 		// Add type entry
 		label = gtk_label_new_with_mnemonic(_("_Type"));
 		gtk_misc_set_alignment(GTK_MISC(label), 0, 0.5);
-		gtk_widget_set_tooltip_text(GTK_WIDGET(label), _("Type of contact"));
-		gtk_table_attach(GTK_TABLE(table), label, 0, 1, 2, 3, GTK_EXPAND | GTK_FILL, GTK_EXPAND | GTK_FILL, 0, 0);
+		gtk_widget_set_tooltip_text(GTK_WIDGET(label), _("Type of entry"));
+		gtk_table_attach(GTK_TABLE(table), label, 0, 1, 2, 3, GTK_FILL, GTK_EXPAND | GTK_FILL, 0, 0);
 		entryTypeComboBox = gtk_combo_box_new_text();
 		gtk_combo_box_append_text(GTK_COMBO_BOX(entryTypeComboBox), _("Work"));
 		gtk_combo_box_append_text(GTK_COMBO_BOX(entryTypeComboBox), _("Home"));
@@ -797,7 +797,7 @@ show_entry_dialog(gchar* accountID, gchar* contactID, gchar* entryID)
 		label = gtk_label_new_with_mnemonic(_("_Show in call console"));
 		gtk_misc_set_alignment(GTK_MISC(label), 0, 0.5);
 		gtk_widget_set_tooltip_text(GTK_WIDGET(label), _("Check if you want to see this entry in the call console"));
-		gtk_table_attach(GTK_TABLE(table), label, 0, 1, 3, 4, GTK_EXPAND | GTK_FILL, GTK_EXPAND | GTK_FILL, 0, 0);
+		gtk_table_attach(GTK_TABLE(table), label, 0, 1, 3, 4, GTK_FILL, GTK_EXPAND | GTK_FILL, 0, 0);
 		entryIsShownCheckButton = gtk_check_button_new();
 		gtk_label_set_mnemonic_widget(GTK_LABEL(label), entryIsShownCheckButton);
 		gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(entryIsShownCheckButton), isShownCheck);
@@ -807,7 +807,7 @@ show_entry_dialog(gchar* accountID, gchar* contactID, gchar* entryID)
 		label = gtk_label_new_with_mnemonic(_("_Presence subscription"));
 		gtk_misc_set_alignment(GTK_MISC(label), 0, 0.5);
 		gtk_widget_set_tooltip_text(GTK_WIDGET(label), _("Check if this entry should subscribe to presence information"));
-		gtk_table_attach(GTK_TABLE(table), label, 0, 1, 4, 5, GTK_EXPAND | GTK_FILL, GTK_EXPAND | GTK_FILL, 0, 0);
+		gtk_table_attach(GTK_TABLE(table), label, 0, 1, 4, 5, GTK_FILL, GTK_EXPAND | GTK_FILL, 0, 0);
 		entryIsSubcribedCheckButton = gtk_check_button_new();
 		gtk_label_set_mnemonic_widget(GTK_LABEL(label), entryIsSubcribedCheckButton);
 		gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(entryIsSubcribedCheckButton), isSubscribedCheck);
