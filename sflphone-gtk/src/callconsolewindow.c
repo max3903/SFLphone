@@ -203,7 +203,8 @@ show_call_console_window(gboolean show)
 	gtk_window_get_size(mainWindow, &width, &height);
 	gtk_window_get_position(mainWindow, &rootX, &rootY);
 	gtk_window_set_gravity(GTK_WINDOW(callConsoleDialog), GDK_WINDOW_EDGE_NORTH_WEST);
-	gtk_window_move(GTK_WINDOW(callConsoleDialog), rootX + width + 8, rootY);
+	// TOSEE Can change depending on window manager
+	gtk_window_move(GTK_WINDOW(callConsoleDialog), rootX + width + 12, rootY + 24);
 	
 	// Catch delete signal on the call console dialog when closing window
 	g_signal_connect(G_OBJECT(callConsoleDialog), "delete-event", G_CALLBACK(call_console_window_closed), NULL);
