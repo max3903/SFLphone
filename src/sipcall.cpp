@@ -636,9 +636,9 @@ SIPCall::setRemoteVideoFromSDP(sdp_media_t* remote_med, sdp_message_t* remote_sd
 		return false;
   // Remote video port
   int _remote_sdp_video_port = atoi(remote_Vidmed->m_port);
-  _debug(" !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  Remote video Port: %d\n", _remote_sdp_video_port);
+  _debug("Remote video Port: %d\n", _remote_sdp_video_port);
   setRemoteVideoPort(_remote_sdp_video_port);
-  _debug(" !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  Remote video Port setter: %d\n", getRemoteVideoPort());
+  _debug("Remote video Port setter: %d\n", getRemoteVideoPort());
 
 
   if (_remote_sdp_video_port == 0) {
