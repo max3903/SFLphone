@@ -647,7 +647,7 @@ SIPCall::setRemoteVideoFromSDP(sdp_media_t* remote_med, sdp_message_t* remote_sd
 bool 
 SIPCall::setVideoCodecFromSDP(sdp_media_t* remote_med, int tid)
 {
-  // On sen fou pour linstant!
+  // Hum...
 }
 
 
