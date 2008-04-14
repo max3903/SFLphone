@@ -81,7 +81,8 @@ GtkWidget* contactEmailEntry;
 // Widgets for the entry dialog
 GtkWidget* entryIDEntry;
 GtkWidget* entryTextEntry;
-GtkWidget* entryTypeEntry;
+GtkWidget* entryTypeComboBox;
+//GtkListStore* entryTypeStore;
 GtkWidget* entryIsShownCheckButton;
 GtkWidget* entryIsSubcribedCheckButton;
 
@@ -765,12 +766,32 @@ show_entry_dialog(gchar* accountID, gchar* contactID, gchar* entryID)
 		// Add type entry
 		label = gtk_label_new_with_mnemonic(_("_Type"));
 		gtk_misc_set_alignment(GTK_MISC(label), 0, 0.5);
-		gtk_widget_set_tooltip_text(GTK_WIDGET(label), _("Type of contact (work, home, cell)"));
+		gtk_widget_set_tooltip_text(GTK_WIDGET(label), _("Type of contact"));
 		gtk_table_attach(GTK_TABLE(table), label, 0, 1, 2, 3, GTK_EXPAND | GTK_FILL, GTK_EXPAND | GTK_FILL, 0, 0);
-		entryTypeEntry = gtk_entry_new();
-		gtk_label_set_mnemonic_widget(GTK_LABEL(label), entryTypeEntry);
-		gtk_entry_set_text(GTK_ENTRY(entryTypeEntry), typeText);
-		gtk_table_attach(GTK_TABLE(table), entryTypeEntry, 1, 2, 2, 3, GTK_EXPAND | GTK_FILL, GTK_EXPAND | GTK_FILL, 0, 0);
+		entryTypeComboBox = gtk_combo_box_new_text();
+		gtk_combo_box_append_text(GTK_COMBO_BOX(entryTypeComboBox), _("Work"));
+		gtk_combo_box_append_text(GTK_COMBO_BOX(entryTypeComboBox), _("Home"));
+		gtk_combo_box_append_text(GTK_COMBO_BOX(entryTypeComboBox), _("Mobile"));
+		gtk_combo_box_append_text(GTK_COMBO_BOX(entryTypeComboBox), _("Paget"));
+		gtk_combo_box_append_text(GTK_COMBO_BOX(entryTypeComboBox), _("Other"));
+		gtk_widget_show(entryTypeComboBox);
+		
+		gtk_label_set_mnemonic_widget(GTK_LABEL(label), entryTypeComboBox);
+
+		if(!isNewEntry)
+		{
+			if(strcmp(ENTRY_TYPE_WORK, typeText) == 0)
+				gtk_combo_box_set_active(GTK_COMBO_BOX(entryTypeComboBox), 0);
+			else if(strcmp(ENTRY_TYPE_HOME, typeText) == 0)
+				gtk_combo_box_set_active(GTK_COMBO_BOX(entryTypeComboBox), 1);
+			else if(strcmp(ENTRY_TYPE_MOBILE, typeText) == 0)
+				gtk_combo_box_set_active(GTK_COMBO_BOX(entryTypeComboBox), 2);
+			else if(strcmp(ENTRY_TYPE_PAGET, typeText) == 0)
+				gtk_combo_box_set_active(GTK_COMBO_BOX(entryTypeComboBox), 3);
+			else if(strcmp(ENTRY_TYPE_OTHER, typeText) == 0)
+				gtk_combo_box_set_active(GTK_COMBO_BOX(entryTypeComboBox), 4);
+		}
+		gtk_table_attach(GTK_TABLE(table), entryTypeComboBox, 1, 2, 2, 3, GTK_EXPAND | GTK_FILL, GTK_EXPAND | GTK_FILL, 0, 0);
 		
 		// Add is shown in call console check box
 		label = gtk_label_new_with_mnemonic(_("_Show in call console"));
@@ -806,7 +827,27 @@ show_entry_dialog(gchar* accountID, gchar* contactID, gchar* entryID)
 			contact_entry_t* entry = g_new0(contact_entry_t, 1);
 			entry->_entryID = g_strdup(gtk_entry_get_text(GTK_ENTRY(entryIDEntry)));
 			entry->_text = g_strdup(gtk_entry_get_text(GTK_ENTRY(entryTextEntry)));
-			entry->_type = g_strdup(gtk_entry_get_text(GTK_ENTRY(entryTypeEntry)));
+			switch(gtk_combo_box_get_active(GTK_COMBO_BOX(entryTypeComboBox)))
+			{
+			case 0:
+				entry->_type = ENTRY_TYPE_WORK;
+				break;
+			case 1:
+				entry->_type = ENTRY_TYPE_HOME;
+				break;
+			case 2:
+				entry->_type = ENTRY_TYPE_MOBILE;
+				break;
+			case 3:
+				entry->_type = ENTRY_TYPE_PAGET;
+				break;
+			case 4:
+				entry->_type = ENTRY_TYPE_OTHER;
+				break;
+			default:
+				entry->_type = "";
+				break;
+			}
 			entry->_isShownInConsole = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(entryIsShownCheckButton));
 			entry->_isSubscribed = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(entryIsSubcribedCheckButton));
 			if(entry->_isSubscribed)

@@ -47,6 +47,16 @@
 #define PRESENCE_OFFLINE_ICON			ICONS_DIR "/hang_up.svg"
 #define PRESENCE_DO_NOT_DISTURB_ICON	ICONS_DIR "/refuse.svg"
 
+/* 
+ * Entry type used for saving entry type in contact list
+ * Do not translate directly as it is used in all langages
+ */
+#define ENTRY_TYPE_WORK		"work"
+#define ENTRY_TYPE_HOME		"home"
+#define ENTRY_TYPE_MOBILE	"mobile"
+#define ENTRY_TYPE_PAGET	"paget"
+#define ENTRY_TYPE_OTHER	"other"
+
 /** 
  * @file	contactlist.h
  * @brief	A hash table that holds contact lists mapped by their account ID
