@@ -47,13 +47,17 @@ void select_active_output_audio_device();
 void config_window_fill_input_audio_device_list();
 void select_active_input_audio_device();
 void select_active_output_audio_plugin();
+
 void config_window_fill_webcam_device_list();
 void select_active_webcam_device();
 void select_webcam(GtkComboBox* widget, gpointer data);
+
 void config_window_fill_resolution_list();
 void select_active_resolution();
+
 void config_window_fill_bitrate_list();
 void select_active_bitrate();
+
 void update_combo_box( gchar* plugin );
 void default_account(GtkWidget *widget, gpointer data);
 void bold_if_default_account(GtkTreeViewColumn *col, GtkCellRenderer *rend, GtkTreeModel *tree_model, GtkTreeIter *iter, gpointer data);
@@ -65,8 +69,6 @@ GtkWidget * create_video_tab();
 GtkWidget * create_webcam_tab();
 void show_config_window(gint page_num);
 void update_notebook();
-gchar* format_percentage_scale(GtkScale *scale, gdouble value);
-gchar* format_percentage_scale (GtkScale *scale, gdouble value);
 void show_accounts_window();
 
 gboolean get_enable_webcam_checkbox_status();

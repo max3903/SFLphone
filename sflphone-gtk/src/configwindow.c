@@ -1341,15 +1341,6 @@ static void cancel_checkbox(GtkToggleButton *togglebutton, gpointer user_data)
 	set_disable_webcam_checkbox_status(status);
 }
 
-/**
- * Format the value of the scale to show a percentage sign after it
- */
-gchar*
-format_percentage_scale(GtkScale *scale, gdouble value)
-{
-	return g_strdup_printf ("%0*g%%", gtk_scale_get_digits (scale), value);
-} 
-
 gboolean get_enable_webcam_checkbox_status()
 {
 	enableStatus = dbus_get_enable_checkbox_status();

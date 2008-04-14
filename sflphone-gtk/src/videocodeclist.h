@@ -32,13 +32,46 @@ typedef struct {
   gchar * name;
 }videoCodec_t;
 
+//! Initialize the video codec list
 void video_codec_list_init();
+
+//! Clear the video codec list
 void video_codec_list_clear();
+
+//! Add a new video codec to the list
+/*!
+ * \param the new video codec to add
+ */
 void video_codec_list_add(videoCodec_t * c);
+
+//! Set a video codec as active
+/*!
+ * \param the name of the video codec
+ */
 void video_codec_set_active(gchar* name);
+
+//! Set a video codec as inactive
+/*!
+ * \param the name of the video codec
+ */
 void video_codec_set_inactive(gchar* name);
+
+//! Get the size of the video codec list
+/*!
+ * \return the size of the codec list
+ */
 guint video_codec_list_get_size();
+
+//! Get the size of the video codec list
+/*!
+ * \return the size of the codec list
+ */
 videoCodec_t * video_codec_list_get(const gchar * name);
+
+//! Get the size of the video codec list
+/*!
+ * \return the size of the codec list
+ */
 videoCodec_t* video_codec_list_get_nth(guint index);
 
 /**
@@ -46,8 +79,20 @@ videoCodec_t* video_codec_list_get_nth(guint index);
  * @param index The position in the list of the prefered video codec
  */ 
 void video_codec_set_prefered_order(guint index);
+
+//! Move a video codec up in the list
+/*!
+ * \param the index of the codec to move up
+ */
 void video_codec_list_move_codec_up(guint index);
+
+//! Move a video codec down in the list
+/*!
+ * \param the index of the codec to move down
+ */
 void video_codec_list_move_codec_down(guint index);
+
+//! Send the updated list to the daemon
 void video_codec_list_update_to_daemon();
 
 #endif /*VIDEOCODECLIST_H_*/
