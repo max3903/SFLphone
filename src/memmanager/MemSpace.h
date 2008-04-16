@@ -71,6 +71,8 @@ public:
     /*!
      * \param Data a pointer to the new data
      * \param size the size of the new data
+     * \param width the data's width
+     * \param height the data's height
      * \return the success of the operation
      */
     bool putData(unsigned char* Data, int size, int width, int height);

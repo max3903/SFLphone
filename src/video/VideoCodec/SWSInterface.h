@@ -18,7 +18,7 @@
  */
 
 
-/**
+/*!
  * 
  * This is an interface for the libswscale library
  * It's main function is to convert from a given 
@@ -62,13 +62,13 @@ public:
      */
    ~SWSInterface();
   
-   /**
-     *  Constructor we force to use
+   /* Constructor we force to use
      * @param[in] InWidth the input width
      * @param[in] InHeight the input height
-     * @param[In] InPixFormat - see avcodec<s documentation for the typedefs 
-     * 									representing each of the format
-     * 
+     * @param[In] InPixFormat - see avcodec's documentation for the typedefs representing each of the format
+     * @param[In] OutWidth - output picture width
+     * @param[In] OutHeight - output picture height
+     * @param[In] OutPixFormat - output picture Format
      */
     
     SWSInterface(int InWidth,int InHeight,int InPixFormat,int OutWidth,int OutHeight,int OutPixFormat);

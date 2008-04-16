@@ -60,15 +60,15 @@ public:
 
     //! Method to access the data in the buffer
     /*!
-     * \param data a pointer to where the data will be copied
+     * \param dataOuput a pointer to where the data will be copied
      * \return the size of data
      */
     int fetchData(unsigned char * dataOuput);
 
     //! Method to change the data in the buffer
     /*!
-     * \param data a pointer to the new data
-     * \param size the size of data
+     * \param dataInput a pointer to the new data
+     * \param sizeInput the size of data
      */
     void putData(unsigned char * dataInput, int sizeInput);
     

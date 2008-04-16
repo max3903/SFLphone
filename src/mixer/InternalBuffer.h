@@ -63,8 +63,8 @@ public:
 
     //! Gets the data contained in the buffer
     /*!
-     * \param data a pointer to put the data
-     * \return the size of the data or -1 if an error occured
+      \param size size of the data
+      \return a pointer to the data
      */
     void* fetchData(int &size);
 

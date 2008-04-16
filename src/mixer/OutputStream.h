@@ -36,8 +36,10 @@ public:
 	/*!
 	 * Must be implemented in child class. This version is for the video buffer.
 	 * 
-	 * \param data a pointer to where the data is to be copied
-	 * \return the size of data
+	 * \return data a pointer to where the data is to be copied
+	 * \param size the size of data
+	 * \param width the width of data
+	 * \param height the height of data
 	 */
     virtual unsigned char* fetchData( int &size, int &width, int &height) =0;
 
@@ -45,8 +47,8 @@ public:
 	/*!
 	 * Must be implemented in child class. This version is for the audio buffer.
 	 * 
-	 * \param data a pointer to where the data is to be copied
-	 * \return the size of data
+	 * \return data a pointer to where the data is to be copied
+	 * \param size the size of data
 	 */
     virtual short* fetchData(int &size) =0;
 

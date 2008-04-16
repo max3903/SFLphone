@@ -65,8 +65,8 @@ public:
      */
     virtual void putData(short *data, int size, int timeStamp= 0);
 
-    //! Access the data contained the the buffer
-    /*!
+
+    /* Access the data contained the the buffer
      * This method returns the data. Buffer access is protected to prevent simultanious access. Once you fetch data from the buffer the data, size and time stamp no longuer exits
      * 
      * \param data a pointer to where the data must be copied

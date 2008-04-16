@@ -93,6 +93,7 @@ private:
      * @param pFormat a char poiter to the FourCC code
      * @param Description a char pointer to the description of the image format.
      * @param theFormat the format of the image as described in the pixelformat field of the v4l2_fmtdesc structure.
+     * @param fd the fileDescriptor
      * @return the supported format, if the format is not supported the return value is NULL
      */
     Format* getFormat(char * pFormat, char * Description, int fd, __u32 theFormat);

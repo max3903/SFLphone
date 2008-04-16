@@ -16,7 +16,7 @@
  *  along with this program; if not, write to the Free Software
  *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
-/**
+/*!
  *  VideoTrpTTX Class
  * 
  * This class is a thread of execution for sending and receiving video data.
@@ -46,7 +46,7 @@ class SIPCall; //TODO: pourquoi pas de include SipCall..h????
 
 class VideoRtpRTX : public ost::Thread, public ost::TimerPort {
 public:
-
+	struct {unsigned int first:1;unsigned int second:1;unsigned int rest:6;}h263rtpPaquet;
 	/**
 	 * Destructor
 	 */ 	
@@ -124,7 +124,6 @@ private:
     
 	/**
 	 * Get the data from V4l, send it to the mixer, encode and send to RTP
-	 * @param timestamp : puts the current time
 	 */
 	void sendSession();
 	/**

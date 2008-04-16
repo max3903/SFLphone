@@ -2,6 +2,7 @@
  *  Copyright (C) 2004-2006 Savoir-Faire Linux inc.
  *  Author: Yan Morin <yan.morin@savoirfairelinux.com>
  *  Author : Laurielle Lea <laurielle.lea@savoirfairelinux.com>
+ *  Author: Alexis S. Bourrelle <bourrelle@polymtl.ca>
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -260,7 +261,7 @@ protected:
     void setRemoteAudioPort(unsigned int port) { _remoteAudioPort = port; }
 
     /** Set remote's video port. [not protected] */
-    void setRemoteVideoPort(unsigned int port) { _remoteVideoPort = port; _debug("===========>>Video port: %d",_remoteVideoPort); }
+    void setRemoteVideoPort(unsigned int port) { _remoteVideoPort = port; }
 
     /** Set the audio codec used.  [not protected] */
     void setAudioCodec(AudioCodecType audioCodec) { _audioCodec = audioCodec; }

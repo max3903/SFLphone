@@ -119,8 +119,7 @@ void VideoCodec::initEncodeContext(){
     paddingTop = 0;
 	_encodeCodecCtx->width = inputWidth;
 	_encodeCodecCtx->height = inputHeight;
-
-	}
+}
 	
 	/////////////VIDEO SETTINGS.H settings///////////
 	_encodeCodecCtx->rtp_payload_size = RTP_PAYLOAD;
@@ -288,7 +287,7 @@ int VideoCodec::videoDecode(uint8_t *in_buf, uint8_t* out_buf,int inSize,int wid
 	if ( avcodec_decode_video(_decodeCodecCtx, SWS, &got_picture,buf,inSize ) < 0)
 		{ptracesfl("CAN'T Decode - couldn't decode\n",MT_ERROR,1,true);av_free(buf);av_free(SWS);return -1;}
 
-   	OUT = decodeSWS->alloc_pictureRGB24(DEFAULT_WIDTH,DEFAULT_HEIGHT,out_buf);
+   	OUT = decodeSWS->alloc_pictureRGB24(outputWidth,outputHeight,out_buf);
    
    if (decodeSWS->Convert(SWS,OUT) == false)
  		{ptracesfl("Conversion error\n",MT_ERROR,1,true);av_free(buf);av_free(SWS);av_free(OUT);return -1;}
@@ -300,7 +299,7 @@ int VideoCodec::videoDecode(uint8_t *in_buf, uint8_t* out_buf,int inSize,int wid
 	if (got_picture == 0)
 	{ptracesfl("Could not get full frame\n",MT_INFO,4,true);return -1;}
 	
-	return avpicture_get_size(PIX_FMT_RGB24, DEFAULT_WIDTH, DEFAULT_HEIGHT);
+	return avpicture_get_size(PIX_FMT_RGB24, outputWidth, outputHeight);
 }
 
 	 pair<int,int> VideoCodec::getEncodeIntputResolution(){

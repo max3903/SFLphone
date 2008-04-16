@@ -129,7 +129,6 @@ public:
    * Functions which occur with a user's action
    */
   bool outgoingCall(const AccountID& accountId, const CallID& id, const std::string& to);
-  bool outgoingConfCall(const AccountID& accountId, const CallID& id, const std::string& to);
   bool answerCall(const CallID& id);
   bool hangupCall(const CallID& id);
   bool cancelCall(const CallID& id);
@@ -140,9 +139,13 @@ public:
   void unmute();
   bool refuseCall(const CallID& id);
   
+  //Invite someone to join a conference
   bool inviteConference( const AccountID& accountId, const CallID& id, const std::string& to );
+  //Join 2 calls to start a conference
   bool joinConference( const CallID& onHoldCallID, const CallID& newCallID );
+  //Change the video avaibility of the user's correspondant
   void changeVideoAvaibility( const CallID& id );
+  //Change the video avaibility of the user
   void changeWebcamStatus( const bool status , const CallID& id);
 
   /** Save config to file */
@@ -362,12 +365,6 @@ public:
    * @return The list of the video codecs
    */  
   std::vector< ::DBus::String > getVideoCodecList( void );
-  /**
-   * Get the info about one video codec
-   * @param payload The payload of the codec
-   * @return The information
-   */
-  std::vector< ::DBus::String > getVideoCodecDetails( const ::DBus::Int32& payload);
 
 	/**
    * Get the list of video codecs active saved in the config file

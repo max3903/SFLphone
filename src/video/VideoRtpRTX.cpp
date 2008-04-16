@@ -314,10 +314,12 @@ void VideoRtpRTX::receiveSession()
     memcpy(data_from_peer+peerBufLen,rcvWorkingBuf,workingBufLen);
     peerBufLen+=workingBufLen;
     
-    
+    printf("%i",sizeof(rcvWorkingBuf[1]));
     // Analyse packet and retreive the picture format
+
     TestFormat = (int)(rcvWorkingBuf[1] & 0x00E0);
     pair<int,int> Res = getPictureFormatFromHeader(TestFormat);
+
     // Decode it
     
     if (isMarked) {

@@ -16,7 +16,7 @@
  *  along with this program; if not, write to the Free Software
  *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
-/**
+/*!
  *  VideoRTP Class
  * 
  * This class is responsible of creating the thread for getting and setting
@@ -49,14 +49,15 @@ public:
 
 	/**
 	 * Function to create a new Vrtxthread
-	 * @param conf is 0 to create a a conference video session thread
+	 * @param Conf is 0 to create a a conference video session thread
 	 * note : must have an initial normal thread going on
+	 * @param call the call you want to create a new video session
 	 * @return 0 if success , -1 if failure
 	 */ 
     int createNewVideoSession(SIPCall *call, bool Conf);
 	/**
 	 * Function to close a Vrtxthread
-	 * @param conf is 0 to create a a conference video session thread
+	 * @param Conf is 0 to create a a conference video session thread
 	 * note : must have an initial normal thread going on
 	 */ 
     void closeVideoSession(bool Conf);

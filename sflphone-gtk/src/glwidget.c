@@ -145,7 +145,7 @@ GtkWidget* createGLWidget( gboolean pref )
 	widget = (GtkWidget*)gtk_drawing_area_new ();
 
 	// TODO: Check dynamic size not fixed, does it make a difference
-	gtk_widget_set_size_request (widget, 300, 300);
+	gtk_widget_set_size_request (widget, 350, 350);
 		      
   	gtk_widget_set_gl_capability (widget, glconfig, NULL, TRUE, GDK_GL_RGBA_TYPE);
   	

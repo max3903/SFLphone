@@ -747,7 +747,7 @@ select_notebook_page(GtkNotebook* widget,  gpointer data)
 	printf("Notebook current page : %d\n", notebookPage);
 	
 	//Webcam Settings Page
-	if(notebookPage == 3)
+	if(notebookPage == 4)
 	{
 		dbus_enable_local_video_pref();
 		printf("Local video has been enabled in webcam settings \n");
@@ -1340,15 +1340,6 @@ static void cancel_checkbox(GtkToggleButton *togglebutton, gpointer user_data)
 	gboolean status = gtk_toggle_button_get_active(togglebutton);
 	set_disable_webcam_checkbox_status(status);
 }
-
-/**
- * Format the value of the scale to show a percentage sign after it
- */
-gchar*
-format_percentage_scale(GtkScale *scale, gdouble value)
-{
-	return g_strdup_printf ("%0*g%%", gtk_scale_get_digits (scale), value);
-} 
 
 gboolean get_enable_webcam_checkbox_status()
 {

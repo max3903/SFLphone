@@ -261,20 +261,6 @@ ManagerImpl::outgoingCall(const std::string& accountid, const CallID& id, const 
   return false;
 }
 
-/*
- * Outgoing call to start a conference call (3 people)
- */
-bool
-ManagerImpl::outgoingConfCall(const std::string& accountid, const CallID& id, const std::string& to)
-{
-
-	if(outgoingCall(accountid, id, to))
-	{
-		// \todo set mode to server
-		// \todo start mixing audio-video signals
-	}
-	
-}
 
 //THREAD=Main : for outgoing Call
   bool
@@ -481,6 +467,7 @@ ManagerImpl::refuseCall (const CallID& id)
   return returnValue;
 }
 
+
 bool 
 ManagerImpl::inviteConference( const AccountID& accountId, const CallID& id, const std::string& to )
 {
@@ -533,7 +520,6 @@ ManagerImpl::changeWebcamStatus(const bool status, const CallID& id)
     return;
   }
 
-  _debug(" !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! MANAGERIMPL! Enabled webcam!\n");
 
   if ( getAccountLink(getAccountFromCall(id))->ChangeWebCamStatus(id,status) ){
     return;

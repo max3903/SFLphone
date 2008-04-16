@@ -629,12 +629,16 @@ bool
 SIPCall::setRemoteVideoFromSDP(sdp_media_t* remote_med, sdp_message_t* remote_sdp)
 {
   sdp_media_t *remote_Vidmed = eXosip_get_video_media(remote_sdp);
-
+	
+	if ( remote_Vidmed == NULL)
+		return false;
+	if (strlen(remote_Vidmed->m_port) == 0)
+		return false;
   // Remote video port
   int _remote_sdp_video_port = atoi(remote_Vidmed->m_port);
-  _debug(" !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  Remote video Port: %d\n", _remote_sdp_video_port);
+  _debug("Remote video Port: %d\n", _remote_sdp_video_port);
   setRemoteVideoPort(_remote_sdp_video_port);
-  _debug(" !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  Remote video Port setter: %d\n", getRemoteVideoPort());
+  _debug("Remote video Port setter: %d\n", getRemoteVideoPort());
 
 
   if (_remote_sdp_video_port == 0) {
@@ -647,7 +651,7 @@ SIPCall::setRemoteVideoFromSDP(sdp_media_t* remote_med, sdp_message_t* remote_sd
 bool 
 SIPCall::setVideoCodecFromSDP(sdp_media_t* remote_med, int tid)
 {
-  // On sen fou pour linstant!
+  // Hum...
 }
 
 
