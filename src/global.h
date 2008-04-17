@@ -113,10 +113,10 @@ typedef short int16;
 #define START_HIDDEN		  1
 #define WINDOW_POPUP		  1
 
-#define ERROR_ALSA_CAPTURE_DEVICE	0
-#define ERROR_ALSA_PLAYBACK_DEVICE	1
-//#define ERROR_ALSA_OPENING_CAPTURE_DEVICE	0
-//#define ERROR_ALSA_OPENING_CAPTURE_DEVICE	0
-//#define ERROR_ALSA_OPENING_CAPTURE_DEVICE	0
+// Error codes for error handling
+#define NO_ERROR		      0x0000
+#define ALSA_CAPTURE_DEVICE           0x0001
+#define ALSA_PLAYBACK_DEVICE          0x0010
+#define NETWORK_UNREACHABLE           0x0011
 
 #endif	// __GLOBAL_H__

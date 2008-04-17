@@ -17,7 +17,7 @@
  *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
-#include <SFLnotify.h>
+#include <sflnotify.h>
 
 static NotifyNotification *notification;
 
@@ -57,7 +57,7 @@ notify_incoming_call( call_t* c  )
 }
 
   void
-answer_call_cb( NotifyNotification *notification, gchar *action, gpointer data  )
+answer_call_cb( NotifyNotification *notification, gpointer data  )
 {
   call_t* c = (call_t*)g_object_get_data( G_OBJECT( notification ) , "call" );
   dbus_accept(c);
@@ -67,7 +67,7 @@ answer_call_cb( NotifyNotification *notification, gchar *action, gpointer data  
 }
 
   void
-refuse_call_cb( NotifyNotification *notification, gchar *action, gpointer data )
+refuse_call_cb( NotifyNotification *notification, gpointer data )
 {
   call_t* c = (call_t*)g_object_get_data( G_OBJECT( notification ) , "call" );
   dbus_refuse(c);
@@ -75,7 +75,7 @@ refuse_call_cb( NotifyNotification *notification, gchar *action, gpointer data )
 }
 
   void
-ignore_call_cb( NotifyNotification *notification, gchar *action, gpointer data )
+ignore_call_cb( NotifyNotification *notification, gpointer data )
 {
   g_object_unref( notification );
 }
@@ -91,7 +91,7 @@ notify_voice_mails( guint count , account_t* acc )
 
   title = g_markup_printf_escaped(_("%s account: %s") ,
       (gchar*)g_hash_table_lookup(acc->properties , ACCOUNT_TYPE) ,
-      (gchar*)g_hash_table_lookup(acc->properties , ACCOUNT_ALIAS) ) ;
+     (gchar*) g_hash_table_lookup(acc->properties , ACCOUNT_ALIAS) ) ;
   body = g_markup_printf_escaped(_("%d voice mails"), count);
 
   pixbuf = gdk_pixbuf_new_from_file(ICON_DIR "/sflphone.png", NULL);
@@ -173,7 +173,7 @@ notify_no_accounts(  )
 }
 
  void
-setup_accounts_cb( NotifyNotification *notification, gchar *action, gpointer data )
+setup_accounts_cb( NotifyNotification *notification, gpointer data )
 {
   show_accounts_window();
   //g_object_unref( notification );

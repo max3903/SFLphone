@@ -49,7 +49,7 @@ public:
   VoIPLink(const AccountID& accountID);
   virtual ~VoIPLink (void);
 
-  enum RegistrationState {Unregistered, Trying, Registered, Error};
+  enum RegistrationState {Unregistered, Trying, Registered, Error, ErrorAuth , ErrorNetwork , ErrorHost};
 
   // Pure virtual functions
   virtual void getEvent (void) = 0;
@@ -134,6 +134,11 @@ public:
    */
   AccountID& getAccountID(void) { return _accountID; }
 
+  /**
+   * Set parent Account's ID
+   */
+  void setAccountID( const AccountID& accountID) { _accountID = accountID; }
+
   /** Get the call pointer from the call map (protected by mutex)
    * @param id A Call ID
    * @return call pointer or 0
@@ -160,7 +165,7 @@ public:
   /**
    * Get registration error message, if set.
    */
-  std::string getRegistrationError() { return _registrationError; }
+  int getRegistrationError() { return _registrationError; }
 
   /**
    * Set new registration state
@@ -169,7 +174,7 @@ public:
    * GUI when the state changes.
    */
   void setRegistrationState(const enum RegistrationState state,
-			    const std::string& errorMessage);
+			    const int& errorCode);
 
   /**
    * Same, but with default error value to ""
@@ -198,9 +203,9 @@ private:
   enum RegistrationState _registrationState;
 
   /**
-   * Registration error message
+   * Registration error code -> refers to global.h
    */
-  std::string _registrationError;
+  int _registrationError;
 
 protected:
   /** Add a call to the call map (protected by mutex)

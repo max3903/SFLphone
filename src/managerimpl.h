@@ -231,6 +231,8 @@ public:
   void unregistrationSucceed(const AccountID& accountId);
   /** Notify the user that registration failed  */
   void registrationFailed(const AccountID& accountId);
+  /** Notify the user that registration is trying  */
+  void registrationTrying(const AccountID& accountId);
   void sendRegister( const AccountID& accountId , bool expire );
   // configuration function requests
 
@@ -686,6 +688,10 @@ public:
 	void setDisableCheckboxStatus( const bool& status );
 
 
+  /**
+   * Map accounts parameters ( authname - hostname ) to an account ID
+   */
+ AccountID getAccountFromEvent( std::string authname );
 private:
 
   /** Attribute telling if the local capture for the web cam is active

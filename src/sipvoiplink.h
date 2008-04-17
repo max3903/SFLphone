@@ -27,13 +27,13 @@
 #include "audio/audiortp.h"
 #include "video/VideoRtp.h"
 
+#include <osip2/osip_mt.h>
 
 class EventThread;
 class SIPCall;
 
 /**
  * Specific VoIPLink for SIP (SIP core for incoming and outgoing events)
- * @author Yan Morin <yan.morin@gmail.com>
  */
 
 class SIPVoIPLink : public VoIPLink
@@ -42,6 +42,8 @@ public:
   SIPVoIPLink(const AccountID& accountID);
 
   ~SIPVoIPLink();
+
+  int eXosip_running;
 
   /** try to initiate the eXosip engine/thread and set config */
   bool init(void);
@@ -97,6 +99,7 @@ public:
 
 
 private:
+  void parseRequestUri( osip_uri_t* );
   /** Terminate every call not hangup | brutal | Protected by mutex */
   void terminateSIPCall(); 
 
@@ -121,6 +124,7 @@ private:
    * @return SIP URI for from Header
    */
   std::string SIPFromHeader(const std::string& userpart, const std::string& hostpart);
+  std::string SIPFromHeaderAlternate(const std::string& userpart, const std::string& hostpart);
 
   /**
    * Build a sip address with the number that you want to call
@@ -196,6 +200,7 @@ private:
    */
   void SIPCallServerFailure(eXosip_event_t *event);
 
+  void SIPRegistrationFailure( eXosip_event_t *event );
   /**
    * Handling ack (restart audio if reinvite)
    * @param event eXosip Event
@@ -250,8 +255,6 @@ private:
   int sdp_hold_call (sdp_message_t * sdp);
   /** To build sdp when call is off-hold */
   int sdp_off_hold_call (sdp_message_t * sdp);
-
-
 
   /** EventThread get every incoming events */
   EventThread* _evThread;

@@ -21,6 +21,9 @@
 #ifndef CALL_H
 #define CALL_H
 
+/* @file call.h 
+ * @brief A call is the base class for protocol-based calls
+ */
 #include <string>
 #include <vector>
 #include <cc++/thread.h> // for mutex
@@ -38,11 +41,6 @@ typedef std::string CallID;
 
 #define CALL_TRACE	1
 
-/**
- * A call is the base class for protocol-based calls
- *
- * @author Yan Morin <yan.morin@gmail.com>
- */
 class Call{
 public:
   /**
@@ -273,7 +271,6 @@ protected:
     CodecDescriptor _codecMap;
 
     /** Codec pointer */
-    //AudioCodec* _audioCodec;
     AudioCodecType _audioCodec;
 
     // Context du Codec Video

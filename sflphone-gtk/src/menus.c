@@ -1,6 +1,6 @@
 /*
  *  Copyright (C) 2007 Savoir-Faire Linux inc.
- *  Author: Pierre-Luc Beaudoin <pierre-luc@squidy.info>
+ *  Author: Pierre-Luc Beaudoin <pierre-luc.beaudoin@savoirfairelinux.com>
  *                                                                              
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -26,7 +26,6 @@
 #include <contactwindow.h>
 #include <dbus.h>
 #include <mainwindow.h>
-#include <screen.h>
 #include <gtk/gtk.h>
 
 #include <string.h> // for strlen
@@ -121,13 +120,13 @@ help_about ( void * foo)
     "Jérôme Oufella <jerome.oufella@savoirfairelinux.com>",
     "Julien Plissonneau Duquene <julien.plissonneau.duquene@savoirfairelinux.com>",
     "Alexandre Bourget <alexandre.bourget@savoirfairelinux.com>",
-    "Pierre-Luc Beaudoin <pierre-luc@squidy.info>", 
+    "Pierre-Luc Beaudoin <pierre-luc.beaudoin@savoirfairelinux.com>", 
     "Emmanuel Milou <emmanuel.milou@savoirfairelinux.com>"
       "Jean-Philippe Barrette-LaPierre",
     "Laurielle Lea",
     NULL};
   gchar *artists[] = {
-    "Pierre-Luc Beaudoin <pierre-luc@squidy.info>", 
+    "Pierre-Luc Beaudoin <pierre-luc.beaudoin@savoirfairelinux.com>", 
     NULL};
 
   gtk_show_about_dialog( GTK_WINDOW(get_main_window()),
@@ -417,7 +416,6 @@ edit_paste ( void * foo)
 	    g_free(selectedCall->from);
 	    selectedCall->from = g_strconcat("\"\" <", selectedCall->to, ">", NULL);
 	  }
-	  screen_set_call(selectedCall);
 	  update_call_tree(selectedCall);
 	}
 	break;
@@ -437,7 +435,6 @@ edit_paste ( void * foo)
 	  g_free(selectedCall->from);
 	  selectedCall->from = g_strconcat("\"\" <", selectedCall->to, ">", NULL);
 
-	  screen_set_call(selectedCall);
 	  update_call_tree(selectedCall);
 	}
 	break;
@@ -456,7 +453,6 @@ edit_paste ( void * foo)
 	    selectedCall->from = g_strconcat("\"",call_get_name(selectedCall) ,"\" <", temp, ">", NULL);
 	    g_free(before);
 	    g_free(temp);
-	    screen_set_call(selectedCall);
 	    update_call_tree(selectedCall);
 
 	  }
@@ -477,7 +473,6 @@ edit_paste ( void * foo)
     g_free(selectedCall->from);
     selectedCall->from = g_strconcat("\"\" <", selectedCall->to, ">", NULL);
 
-    screen_set_call(selectedCall);
     update_call_tree(selectedCall);
   }
 
@@ -564,7 +559,6 @@ create_view_menu()
   GtkWidget * menu;
   GtkWidget * root_menu;
   GtkWidget * menu_items;
-//  GtkWidget * submenu_items; UNUSED
 
   menu = gtk_menu_new ();
 

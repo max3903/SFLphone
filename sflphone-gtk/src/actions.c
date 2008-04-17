@@ -1,6 +1,6 @@
 /*
  *  Copyright (C) 2007 Savoir-Faire Linux inc.
- *  Author: Pierre-Luc Beaudoin <pierre-luc@squidy.info>
+ *  Author: Pierre-Luc Beaudoin <pierre-luc.beaudoin@savoirfairelinux.com>
  *  Author: Emmanuel Milou <emmanuel.milou@savoirfairelinux.com>
  *  Author: Jean-Francois Blanchard-Dionne <jean-francois.blanchard-dionne@polymtl.ca>
  *  Author: marilyne Mercier <marilyne.mercier@polymtl.ca> 
@@ -25,7 +25,6 @@
 #include <dbus.h>
 #include <mainwindow.h>
 #include <menus.h>
-#include <screen.h>
 #include <statusicon.h>
 #include <MemManager.h>
 
@@ -36,18 +35,13 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-#define ALSA_ERROR_CAPTURE_DEVICE     0
-#define ALSA_ERROR_PLAYBACK_DEVICE    1
-
-#define TONE_WITHOUT_MESSAGE  0 
-#define TONE_WITH_MESSAGE     1
-
 guint voice_mails;
 
 	void
-sflphone_notify_voice_mail (guint count)
+sflphone_notify_voice_mail ( const gchar* accountID , guint count )
 {
 	voice_mails = count ;
+	gchar* id = g_strdup( accountID );
 	if(count > 0)
 	{
 		gchar * message = g_new0(gchar, 50);
@@ -55,13 +49,13 @@ sflphone_notify_voice_mail (guint count)
 		  g_sprintf(message, _("%d voice mails"), count);
 		else
 		  g_sprintf(message, _("%d voice mail"), count);	  
-		status_bar_message_add(message,  __MSG_VOICE_MAILS);
+		statusbar_push_message(message,  __MSG_VOICE_MAILS);
 		g_free(message);
 	}
 	// TODO: add ifdef
 	if( account_list_get_size() > 0 )
 	{
-	  account_t* acc = account_list_get_by_state( ACCOUNT_STATE_REGISTERED );
+	  account_t* acc = account_list_get_by_id( id );
 	  if( acc != NULL )
 	      notify_voice_mails( count , acc );	
 	}
@@ -77,7 +71,7 @@ status_bar_display_account( call_t* c)
       msg = g_markup_printf_escaped("%s account- %s" , 
 				  (gchar*)g_hash_table_lookup( acc->properties , ACCOUNT_TYPE), 
 				  (gchar*)g_hash_table_lookup( acc->properties , ACCOUNT_ALIAS));
-      status_bar_message_add( msg , __MSG_ACCOUNT_DEFAULT);
+      statusbar_push_message( msg , __MSG_ACCOUNT_DEFAULT);
       g_free(msg);
   }
 }
@@ -174,6 +168,18 @@ sflphone_fill_account_list(gboolean toolbarInitialized)
 		else if(strcmp(status, "ERROR") == 0)
 		{
 			a->state = ACCOUNT_STATE_ERROR;
+		}
+		else if(strcmp( status , "ERROR_AUTH") == 0 )
+		{
+		  a->state = ACCOUNT_STATE_ERROR_AUTH;
+		}
+		else if(strcmp( status , "ERROR_NETWORK") == 0 )
+		{
+		  a->state = ACCOUNT_STATE_ERROR_NETWORK;
+		}
+		else if(strcmp( status , "ERROR_HOST") == 0 )
+		{
+		  a->state = ACCOUNT_STATE_ERROR_HOST;
 		}
 		else
 		{
@@ -498,7 +504,7 @@ sflphone_keypad( guint keyval, gchar * key)
 					case 65307: /* ESCAPE */
 						dbus_hang_up(c);
 						break;
-					default:  // TODO should this be here?
+					default:  
 						// To play the dtmf when calling mail box for instance
 						dbus_play_dtmf(key);
 						if (keyval < 255 || (keyval >65453 && keyval < 65466))
@@ -650,22 +656,6 @@ sflphone_set_current_account()
 {
   if( account_list_get_size() > 0 )
     account_list_set_current_pos( 0 );	
-}
-
-void
-sflphone_throw_exception( int errCode )
-{
-  gchar* markup = malloc(1000);
-  switch( errCode ){
-    case ALSA_ERROR_PLAYBACK_DEVICE:
-      sprintf( markup , _("<b>ALSA notification</b>\n\nError while opening playback device"));
-      break;
-    case ALSA_ERROR_CAPTURE_DEVICE:
-      sprintf( markup , _("<b>ALSA notification</b>\n\nError while opening capture device"));
-      break;
-  }
-  main_window_error_message( markup );  
-  free( markup );
 }
 
 
