@@ -1,6 +1,6 @@
 /*
  *  Copyright (C) 2007 Savoir-Faire Linux inc.
- *  Author: Pierre-Luc Beaudoin <pierre-luc@squidy.info>
+ *  Author: Pierre-Luc Beaudoin <pierre-luc.beaudoin@savoirfairelinux.com>
  *  Author: Emmanuel Milou <emmanuel.milou@savoirfairelinux.com>
  *  Author: Guillaume Carmel-Archambault <guillaume.carmel-archambault@savoirfairelinux.com>
  *                                                                              
@@ -75,11 +75,11 @@ volume_changed_cb (DBusGProxy *proxy,
 static void  
 voice_mail_cb (DBusGProxy *proxy,
                   const gchar* accountID,
-                  const gint nb,
+                  const guint nb,
                   void * foo  )
 {
   g_print ("%d Voice mail waiting! \n",nb);
-  sflphone_notify_voice_mail (nb);
+  sflphone_notify_voice_mail (accountID , nb);
 }
 
 static void  
@@ -421,8 +421,6 @@ dbus_accept (const call_t * c)
 void
 dbus_refuse (const call_t * c)
 {
-  // Remove the account message from the status bar stack
-  status_bar_message_remove( __MSG_ACCOUNT_DEFAULT ); 
   status_tray_icon_blink( FALSE );
   GError *error = NULL;
   org_sflphone_SFLphone_CallManager_refuse ( callManagerProxy, c->callID, &error);
@@ -638,49 +636,6 @@ dbus_send_register ( gchar* accountID , int expire)
   }
 }
 
-gchar * 
-dbus_get_default_account( )
-{
-	GError *error = NULL;
-	char * accountID;
-        org_sflphone_SFLphone_ConfigurationManager_get_default_account (
-                configurationManagerProxy,
-                &accountID,
-                &error);
-        if (error)
-        {
-                g_printerr("Failed to call get_default_account() on ConfigurationManager: %s\n",error->message);
-                g_error_free (error);
-        }
-        else
-        {
-                g_print ("DBus called get_default_account() on ConfigurationManager\n");
-        }
-	
-	return accountID;
-
-}
-
-
-void
-dbus_set_default_account(gchar * accountID)
-{
-	GError *error = NULL;
-	org_sflphone_SFLphone_ConfigurationManager_set_default_account (
-		configurationManagerProxy,
-		accountID,
-		&error);
-	if (error)
-	{
-		g_printerr("Failed to call set_default_account() on ConfigurationManager: %s\n",error->message);
-		g_error_free (error);
-	}
-	else
-	{
-		g_print ("DBus called set_default_account() on ConfigurationManager\n");
-	}
-
-}
 void
 dbus_remove_account(gchar * accountID)
 {
@@ -887,30 +842,6 @@ dbus_unregister(int pid)
   {
     g_print ("DBus called unregister() on instanceProxy\n");
   }
-}
-
-int
-dbus_get_registration_count( void )
-{
-  GError *error = NULL;
-  int n;
-
-  org_sflphone_SFLphone_Instance_get_registration_count(
-    instanceProxy, 
-    &n, 
-    &error);
-
-  if (error) 
-  {
-    g_printerr ("Failed to call get_registration_count() on instanceProxy: %s\n",
-                error->message);
-    g_error_free (error);
-  } 
-  else 
-  {
-    g_print ("DBus called get_registration_count() on instanceProxy\n");
-  }
-  return n;
 }
 
 gchar**
@@ -1151,9 +1082,6 @@ dbus_get_output_audio_plugin_list()
 	return array;
 }
 
-/**
- * Sets the input audio plugin from its name
- */
 void
 dbus_set_input_audio_plugin(gchar* audioPlugin)
 {
@@ -1173,9 +1101,6 @@ dbus_set_input_audio_plugin(gchar* audioPlugin)
 		g_print("DBus called set_input_audio_plugin() on ConfigurationManager\n");
 }
 
-/**
- * Sets the output audio plugin from its name
- */
 void
 dbus_set_output_audio_plugin(gchar* audioPlugin)
 {

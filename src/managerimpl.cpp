@@ -560,24 +560,25 @@ ManagerImpl::saveContacts()
 bool
 ManagerImpl::initRegisterAccounts() 
 {
-	_debugInit("Initiate VoIP Links Registration");
-	AccountMap::iterator iter = _accountMap.begin();
-	while( iter != _accountMap.end() ) {
-		if ( iter->second) {
-			iter->second->loadConfig();
-			iter->second->loadContacts();
-			if ( iter->second->isEnabled() ) {
-				iter->second->registerVoIPLink();
-				iter->second->publishPresence(PRESENCE_ONLINE);
-				iter->second->subscribeContactsPresence();
-			}
-		}
-		iter++;
-	}
-	// calls the client notification here in case of errors at startup...
-	if( _audiodriver -> getErrorMessage() != -1 )
-		notifyErrClient( _audiodriver -> getErrorMessage() );
-	return true;
+  _debugInit("Initiate VoIP Links Registration");
+  AccountMap::iterator iter = _accountMap.begin();
+  while( iter != _accountMap.end() ) {
+    if ( iter->second) {
+      iter->second->loadConfig();
+      if ( iter->second->isEnabled() ) {
+	// NOW
+	iter->second->registerVoIPLink();
+	iter->second->loadContacts();
+	iter->second->publishPresence(PRESENCE_ONLINE);
+	iter->second->subscribeContactsPresence();
+      }
+    }
+    iter++;
+  }
+  // calls the client notification here in case of errors at startup...
+  if( _audiodriver -> getErrorMessage() != -1 )
+    notifyErrClient( _audiodriver -> getErrorMessage() );
+  return true;
 }
 
 //THREAD=Main
@@ -958,7 +959,8 @@ ManagerImpl::startVoiceMessageNotification(const AccountID& accountId, const std
   void
 ManagerImpl::stopVoiceMessageNotification(const AccountID& accountId)
 {
-  if (_dbus) _dbus->getCallManager()->voiceMailNotify(accountId, 0 );
+  // TODO : do not notify when no messages
+  //if (_dbus) _dbus->getCallManager()->voiceMailNotify(accountId, 0 );
 } 
 
 //THREAD=VoIP
@@ -986,8 +988,18 @@ ManagerImpl::registrationFailed(const AccountID& accountid)
 {
   Account* acc = getAccount(accountid);
   if ( acc ) { 
-    //acc->setState(false);
     _debug("REGISTRATION FAILED\n");
+    if (_dbus) _dbus->getConfigurationManager()->accountsChanged();
+  }
+}
+
+//THREAD=VoIP
+  void 
+ManagerImpl::registrationTrying(const AccountID& accountid)
+{
+  Account* acc = getAccount(accountid);
+  if ( acc ) { 
+    _debug("REGISTRATION TRYING\n");
     if (_dbus) _dbus->getConfigurationManager()->accountsChanged();
   }
 }
@@ -2125,9 +2137,12 @@ ManagerImpl::getAccountDetails(const AccountID& accountID)
       std::pair<std::string, std::string>(
 	"Status", 
 	(state == VoIPLink::Registered ? "REGISTERED":
-	 (state == VoIPLink::Unregistered ? "UNREGISTERED":
-	  (state == VoIPLink::Trying ? "TRYING":
-	   (state == VoIPLink::Error ? "ERROR": "ERROR"))))
+	(state == VoIPLink::Unregistered ? "UNREGISTERED":
+	(state == VoIPLink::Trying ? "TRYING":
+	(state == VoIPLink::ErrorAuth ? "ERROR_AUTH": 
+	(state == VoIPLink::ErrorNetwork ? "ERROR_NETWORK": 
+	(state == VoIPLink::ErrorHost ? "ERROR_HOST": 
+	(state == VoIPLink::Error ? "ERROR": "ERROR")))))))
 	)
       );
   a.insert(
@@ -2255,22 +2270,15 @@ ManagerImpl::setAccountDetails( const ::DBus::String& accountID,
   }
 
   saveConfig();
+  
   Account* acc = getAccount(accountID);
   acc->loadConfig();
-  if (acc->isEnabled()) {
-    // Verify we aren't already registered, then register
-    if (acc->getRegistrationState() != VoIPLink::Registered) {
-      _debug("SET ACCOUNTS DETAILS - non registered - > registered\n");
-      acc->registerVoIPLink();
-    }
-  } else {
-    // Verify we are already registered, then unregister
-    if (acc->getRegistrationState() == VoIPLink::Registered) {
-      _debug("SET ACCOUNTS DETAILS - registered - > non registered\n");
-      acc->unregisterVoIPLink();
-      //unregisterAccount(accountID);
-    }
-  }    
+  if (acc->isEnabled()){ 
+    acc->unregisterVoIPLink();
+    acc->registerVoIPLink();}
+  else 
+    acc->unregisterVoIPLink();
+
   // Update account details
   if (_dbus) _dbus->getConfigurationManager()->accountsChanged();
 }
@@ -2287,24 +2295,20 @@ ManagerImpl::sendRegister( const ::DBus::String& accountID , bool expire )
   // Update the active field
   setConfig( accountID, CONFIG_ACCOUNT_ENABLE, expire );
   
+ 
   Account* acc = getAccount(accountID);
   acc->loadConfig();
-  if (acc->isEnabled()) {
+  // Test on the value freshly updated
+  if ( acc->isEnabled() ) {
     // Verify we aren't already registered, then register
-    if (acc->getRegistrationState() != VoIPLink::Registered) {
-      _debug("SET ACCOUNTS DETAILS - non registered - > registered\n");
+      _debug("Send register for account %s\n" , accountID.c_str());
       acc->registerVoIPLink();
-    }
   } else {
     // Verify we are already registered, then unregister
-    if (acc->getRegistrationState() == VoIPLink::Registered) {
-      _debug("SET ACCOUNTS DETAILS - registered - > non registered\n");
+      _debug("Send unregister for account %s\n" , accountID.c_str());
       acc->unregisterVoIPLink();
-      //unregisterAccount(accountID);
-    }
   }
 }                   
-
 
   void
 ManagerImpl::addAccount(const std::map< ::DBus::String, ::DBus::String >& details)
@@ -2777,6 +2781,22 @@ ManagerImpl::associateCallToAccount(const CallID& callID, const AccountID& accou
     return false;
   }
 }
+
+ AccountID 
+ ManagerImpl::getAccountFromEvent( std::string authname  )
+{
+  AccountID id;
+  AccountMap::iterator iter = _accountMap.begin();
+  while( iter != _accountMap.end() ){
+     if( iter -> second != NULL ){
+      id = iter -> first ;
+      if(getConfigString( id , SIP_AUTH_NAME ) == authname ) 
+	return id;
+     }
+  }
+  return NULL;
+}
+
 
   AccountID
 ManagerImpl::getAccountFromCall(const CallID& callID)

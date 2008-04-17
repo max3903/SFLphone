@@ -1,6 +1,6 @@
 /*
- *  Copyright (C) 2007 Savoir-Faire Linux inc.
- *  Author: Pierre-Luc Beaudoin <pierre-luc.beaudoin@savoirfairelinux.com>
+ *  Copyright (C) 2008 Savoir-Faire Linux inc.
+ *  Author: Emmanuel Milou <emmanuel.milou@savoirfairelinux.com> 
  *                                                                              
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -17,36 +17,21 @@
  *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
  
-#ifndef __MENUS_H__
-#define __MENUS_H__
+#ifndef __ERRORS_H
+#define __ERRORS_H
 
-#include <gtk/gtk.h>
-
-// These declaration must be in the .h so that mainwindow.c will see the variables
-GtkWidget * webCamMenu;
-guint webCamConnId;     //The webcam_menu signal connection ID
-
-/** @file menus.h
-  * @brief The menus of the main window.
+/** @file errors.h
+  * @brief Implements internal errors notifications to the client.
   */
 
-/**
- * Build the menus bar
- * @return GtkWidget* The menu bar
- */
-GtkWidget * create_menus();
+#include <sflphone_const.h>
 
 /**
- * Update the menu state
+ * Display an internal error.
+ * @param err The error code
+ *	  ALSA_PLAYBACK_ERROR
+ *	  ALSA_CAPTURE_ERROR
  */
-void update_menus();
+void sflphone_throw_exception( int err );
 
-/**
- * Create a menu on right-click
- * @param my_widget The widget you click on
- * @param event The mouse event
- */
-void show_popup_menu (GtkWidget *my_widget, GdkEventButton *event);
-void menus_show_call_console_menu_item_set_active(gboolean active);
-
-#endif 
+#endif

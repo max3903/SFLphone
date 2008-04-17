@@ -1,6 +1,6 @@
 /*
  *  Copyright (C) 2007 Savoir-Faire Linux inc.
- *  Author: Pierre-Luc Beaudoin <pierre-luc@squidy.info>
+ *  Author: Pierre-Luc Beaudoin <pierre-luc.beaudoin@savoirfairelinux.com>
  *                                                                              
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -24,10 +24,22 @@
 /** @file sliders.h
   * @brief Volume sliders at the bottom of the main window.
   */
-GtkWidget * create_mic_slider();
 
+/**
+ * Build the sliders widget
+ * @param device  Mic or speaker
+ * @return GtkWidget* The slider
+ */
 GtkWidget * create_slider(const gchar * device);
 
+
+/** 
+ * This function updates the sliders without sending the value to the server.
+ * This behavior prevents an infinite loop when receiving an updated volume from
+ * the server.
+ * @param device The device slider to update {speaker, mic}
+ * @param value The value to set [0, 1.0]
+ */
 void set_slider(const gchar * device, gdouble value);
 
 #endif 
