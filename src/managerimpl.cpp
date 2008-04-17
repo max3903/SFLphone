@@ -2576,7 +2576,7 @@ ManagerImpl::setContactEntry(const std::string& accountID, const std::string& co
 	Account* account;
 	Contact* contact;
 	ContactEntry* entry;
-	bool subscribedChanged = FALSE, subscribe;
+	bool subscribedChanged = false, subscribe;
 	
 	account = getAccount(accountID);
 	contact = getContact(accountID, contactID);
@@ -2600,10 +2600,10 @@ ManagerImpl::setContactEntry(const std::string& accountID, const std::string& co
 			{
 				// Entry found and will be modified
 				// Set subscribe or unsubscribe if property changed
-				if(entry->getSubscribedToPresence() == FALSE && subscribed == TRUE)
+				if(entry->getSubscribedToPresence() == false && subscribed == TRUE)
 				{
-					subscribedChanged = TRUE;
-					subscribe = TRUE;
+					subscribedChanged = true;
+					subscribe = true;
 					if(account->getVoIPLink()->isContactPresenceSupported())
 						entry->setPresence(PRESENCE_NOT_INITIALIZED, "");
 					else
@@ -2613,10 +2613,10 @@ ManagerImpl::setContactEntry(const std::string& accountID, const std::string& co
 						contactEntryPresenceChanged(accountID, entryID, PRESENCE_NOT_SUPPORTED, "");
 					}
 				}
-				if(entry->getSubscribedToPresence() == TRUE && subscribed == FALSE)
+				if(entry->getSubscribedToPresence() == true && subscribed == false)
 				{
-					subscribedChanged = TRUE;
-					subscribe = FALSE;
+					subscribedChanged = true;
+					subscribe = false;
 					entry->setPresence(PRESENCE_NOT_SUBSCRIBED, "");
 				}
 				// Edit entry and break
@@ -2634,8 +2634,8 @@ ManagerImpl::setContactEntry(const std::string& accountID, const std::string& co
 			// Add new entry
 			entry = new ContactEntry(entryID, text, type, shown, subscribed);
 			contact->addEntry(entry);
-			subscribedChanged = TRUE;
-			subscribe = TRUE;
+			subscribedChanged = true;
+			subscribe = true;
 		}
 		// Subscribe or unsubscribe presence to entry if supported
 		if(subscribedChanged)
