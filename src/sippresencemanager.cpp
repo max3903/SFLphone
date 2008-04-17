@@ -122,7 +122,7 @@ SIPPresenceManager::parseNotificationPresenceStatus(char* body)
 	
 	// Transform basic and note tags in a defined presence status
 	std::string status;
-	transformTagsInPresenceStatus(info.basic, info.note, status);
+	transformBasicTagsInPresenceStatus(info.basic, info.note, status);
 	return status;
 }
 
@@ -136,7 +136,7 @@ SIPPresenceManager::buildPublishPresenceStatus(std::string userPart, std::string
 
 	std::string basic;
 	std::string note;
-	transformPresenceStatusInTags(status, basic, note);
+	transformPresenceStatusInBasicTags(status, basic, note);
 
 	snprintf(buf, 4096,
 "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n\
@@ -178,11 +178,11 @@ const char* strUp(std::string string)
 }
 
 void
-SIPPresenceManager::transformTagsInPresenceStatus(std::string basic, std::string note, std::string& status)
+SIPPresenceManager::transformBasicTagsInPresenceStatus(std::string basic, std::string note, std::string& status)
 {
-	// Transform status obtained in SIP/XML messages into an active status
+	// Transform tags obtained in SIP/XML messages into an active status
 	// TODO Other active status should be catched here
-	// TOSEE How will Asterisk support passive presence status sent in the future
+	// TOSEE How will Asterisk or other call servers support passive presence status sent in the future
 	if(strcmp(strUp(basic), "OPEN") == 0)
 	{
 		if(strcmp(strUp(note), "READY") == 0)
@@ -206,11 +206,11 @@ SIPPresenceManager::transformTagsInPresenceStatus(std::string basic, std::string
 }
 
 void
-SIPPresenceManager::transformPresenceStatusInTags(std::string status, std::string& basic, std::string& note)
+SIPPresenceManager::transformPresenceStatusInBasicTags(std::string status, std::string& basic, std::string& note)
 {
 	// Send appropriate SIMPLE XML+PIDF message corresponding to status
 	// TODO Follow SIMPLE drafts and RFC to be up to date with standards, fill missing parts
-	// TOSEE Maybe the open and note tags are not the one required for the future SIMPLE standard
+	// TOSEE Maybe the open and note tags are not the one required in the SIMPLE protocol definition
 	// Asterisk still does not support these status and will return a 501 not implemented if sent
 	if(strcmp(status.data(), PRESENCE_ONLINE) == 0) {
 		basic = "open";

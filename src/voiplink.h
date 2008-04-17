@@ -110,13 +110,16 @@ public:
   virtual bool isContactPresenceSupported() = 0;
   
   /**
-   * Register contacts for presence information if supported
+   * Subscribe contacts for presence information if supported
    */
   virtual void subscribePresenceForContact(ContactEntry* contactEntry);
+  /**
+   * Unsubscribe contacts for presence information if supported
+   */
   virtual void unsubscribePresenceForContact(ContactEntry* contactEntry);
   
   /**
-   * Publish presence status to server
+   * Publish presence status to server if supported
    */
   virtual void publishPresenceStatus(std::string status);
   

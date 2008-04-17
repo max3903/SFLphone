@@ -894,7 +894,7 @@ ManagerImpl::contactEntryPresenceChanged(
 		}
 	}
 	
-	// Send information on dbus for client
+	// Send information by dbus to client
 	if(_dbus) _dbus->getContactManager()->contactEntryPresenceChanged(
 			accountID, entryID,
 			presenceText, additionalInfo);
@@ -2424,16 +2424,12 @@ ManagerImpl::getContactEntries(const std::string& accountID, const std::string& 
 
 	if(contact != NULL)
 	{
-		std::vector<ContactEntry*> contactEntries;
-		contactEntries = contact->getEntries();
-		std::vector<ContactEntry*>::const_iterator iter;
-		iter = contactEntries.begin();
-		
+		std::vector<ContactEntry*> contactEntries = contact->getEntries();
+		std::vector<ContactEntry*>::const_iterator iter = contactEntries.begin();
 		// Return all entries id in a vector
 		while(iter != contactEntries.end())
 		{
-			ContactEntry* entry;
-			entry = (ContactEntry*)*iter;
+			ContactEntry* entry = (ContactEntry*)*iter;
 			entries.push_back(entry->getEntryID());
 			iter++;
 		}
@@ -2451,15 +2447,11 @@ ManagerImpl::getContactEntryDetails(const std::string& accountID, const std::str
 
 	if(contact != NULL)
 	{
-		std::vector<ContactEntry*> contactEntries;
-		contactEntries = contact->getEntries();
-		std::vector<ContactEntry*>::const_iterator iter;
-		iter = contactEntries.begin();
-
+		std::vector<ContactEntry*> contactEntries = contact->getEntries();
+		std::vector<ContactEntry*>::const_iterator iter = contactEntries.begin();
 		while(iter != contactEntries.end())
 		{
-			ContactEntry* entry;
-			entry = (ContactEntry*)*iter;
+			ContactEntry* entry = (ContactEntry*)*iter;
 			if(entry->getEntryID() == contactEntryID)
 			{
 				// Return all details in a vector
@@ -2471,7 +2463,7 @@ ManagerImpl::getContactEntryDetails(const std::string& accountID, const std::str
 				if(entry->getSubscribedToPresence()) entryDetails.push_back("TRUE");
 				else entryDetails.push_back("FALSE");
 				
-				// Return unsubscribed if boolean to false
+				// Return status unsubscribed if isSubscribed is false
 				if(!entry->getSubscribedToPresence())
 				{
 					entryDetails.push_back(PRESENCE_NOT_SUBSCRIBED);
@@ -2515,7 +2507,6 @@ ManagerImpl::setContact(const std::string& accountID, const std::string& contact
 {
 	// Try to get contact or obtain null if it does not exist
 	Contact* contact = getContact(accountID, contactID);
-
 	if(contact == NULL)
 	{
 		// Get account, create and push new contact
@@ -2694,7 +2685,8 @@ void
 ManagerImpl::setPresence(const std::string& accountID, const std::string& presence, const std::string& additionalInfo)
 {
 	Account* account = getAccount(accountID);
-	if(account != NULL) account->publishPresence(presence);
+	if(account != NULL)
+		account->publishPresence(presence);
 }
 
 //THREAD=Main

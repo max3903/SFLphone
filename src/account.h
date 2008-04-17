@@ -16,6 +16,7 @@
  *  along with this program; if not, write to the Free Software
  *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
+
 #ifndef ACCOUNT_H
 #define ACCOUNT_H
 
@@ -108,18 +109,24 @@ class Account{
   VoIPLink::RegistrationState getRegistrationState() { return _link->getRegistrationState(); }
 
   /**
-   * Load and save all contacts
+   * Load contacts and their entries for this account
    */
   void loadContacts();
+  
+  /**
+   * Save contacts and their entries for this account
+   */
   void saveContacts();
   
   /**
    * Return contacts loaded for account
+   * @return Contact list attribute, a vector of contacts
    */
   const std::vector<Contact*>& getContacts();
   
   /**
    * Adds a contact
+   * @param contact Contact to be added in the contact list attribute
    */
   void addContact(Contact* contact);
   
@@ -130,6 +137,7 @@ class Account{
   
   /**
    * Publish our presence information to the server
+   * @param presenceStatus Passive status defined in presencestatus.h
    */
   void publishPresence(std::string presenceStatus);
 
@@ -137,7 +145,7 @@ private:
 
 protected:
   /**
-   * Account ID are assign in constructor and shall not changed
+   * Account ID are assign in constructor and shall not change
    */
   AccountID _accountID;
 

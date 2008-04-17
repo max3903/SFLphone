@@ -64,6 +64,8 @@ public:
   bool refuse (const CallID& id);
   bool carryingDTMFdigits(const CallID& id, char code);
   bool sendMessage(const std::string& to, const std::string& body);
+
+  // Inherited functions for presence
   bool isContactPresenceSupported();
   void subscribePresenceForContact(ContactEntry* contactEntry);
   void unsubscribePresenceForContact(ContactEntry* contactEntry);

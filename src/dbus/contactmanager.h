@@ -16,32 +16,32 @@
  *  along with this program; if not, write to the Free Software
  *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
- 
+
 #ifndef CONTACTMANAGER_H
 #define CONTACTMANAGER_H
 
 #include "contactmanager-glue.h"
 #include <dbus-c++/dbus.h>
-    
-class ContactManager
-: public org::sflphone::SFLphone::ContactManager,
-  public DBus::IntrospectableAdaptor,
-  public DBus::ObjectAdaptor
+
+class ContactManager : 
+	public org::sflphone::SFLphone::ContactManager,
+	public DBus::IntrospectableAdaptor,
+	public DBus::ObjectAdaptor
 {
 public:
-    ContactManager(DBus::Connection& connection);
-    static const char* SERVER_PATH;
+	ContactManager(DBus::Connection& connection);
+	static const char* SERVER_PATH;
 
 public:
-    std::vector< ::DBus::String > getContacts( const ::DBus::String& accountID );
-    std::vector< ::DBus::String > getContactDetails( const ::DBus::String& accountID, const ::DBus::String& contactID );
-    std::vector< ::DBus::String > getContactEntries( const ::DBus::String& accountID, const ::DBus::String& contactID );
-    std::vector< ::DBus::String > getContactEntryDetails( const ::DBus::String& accountID, const ::DBus::String& contactID, const ::DBus::String& contactEntryID );
-    void setContact( const ::DBus::String& accountID, const ::DBus::String& contactID, const ::DBus::String& firstName, const ::DBus::String& lastName, const ::DBus::String& email );
-    void removeContact( const ::DBus::String& accountID, const ::DBus::String& contactID );
-    void setContactEntry( const ::DBus::String& accountID, const ::DBus::String& contactID, const ::DBus::String& entryID, const ::DBus::String& text, const ::DBus::String& type, const ::DBus::String& IsShown, const ::DBus::String& IsSubscribed );
-    void removeContactEntry( const ::DBus::String& accountID, const ::DBus::String& contactID, const ::DBus::String& entryID );
-    void setPresence( const ::DBus::String& accountID, const ::DBus::String& presence, const ::DBus::String& additionalInfo );
+	std::vector< ::DBus::String > getContacts( const ::DBus::String& accountID );
+	std::vector< ::DBus::String > getContactDetails( const ::DBus::String& accountID, const ::DBus::String& contactID );
+	std::vector< ::DBus::String > getContactEntries( const ::DBus::String& accountID, const ::DBus::String& contactID );
+	std::vector< ::DBus::String > getContactEntryDetails( const ::DBus::String& accountID, const ::DBus::String& contactID, const ::DBus::String& contactEntryID );
+	void setContact( const ::DBus::String& accountID, const ::DBus::String& contactID, const ::DBus::String& firstName, const ::DBus::String& lastName, const ::DBus::String& email );
+	void removeContact( const ::DBus::String& accountID, const ::DBus::String& contactID );
+	void setContactEntry( const ::DBus::String& accountID, const ::DBus::String& contactID, const ::DBus::String& entryID, const ::DBus::String& text, const ::DBus::String& type, const ::DBus::String& IsShown, const ::DBus::String& IsSubscribed );
+	void removeContactEntry( const ::DBus::String& accountID, const ::DBus::String& contactID, const ::DBus::String& entryID );
+	void setPresence( const ::DBus::String& accountID, const ::DBus::String& presence, const ::DBus::String& additionalInfo );
 };
 
-#endif//CONTACTMANAGER_H
+#endif

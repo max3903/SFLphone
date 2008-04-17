@@ -151,7 +151,7 @@ public:
   /** Save config to file */
   bool saveConfig (void);
   
-  /* Save contacts to file by account */
+  /** Save contacts to corresponding file, one by account */
   bool saveContacts();
 
   /**
@@ -294,55 +294,83 @@ public:
   
   /** 
    * Get contact list for a given account
+   * @param accountID ID of the account to get contacts
    * @return A list of contactID
    */
   std::vector<std::string> getContacts(const AccountID& accountID);
 
   /**
    * Retrieve details about a given contact
-   * @return first name, last name, group, subgroup
+   * @param accountID ID of the account of the contact
+   * @param contactID ID of the contact to get details
+   * @return first name, last name, email
    */
   std::vector<std::string> getContactDetails(const std::string& accountID, const std::string& contactID);
   
   /**
    * Get contact entries for a given contact
+   * @param accountID ID of the account of the contact
+   * @param contactID ID of the contact to get entries
    * @return A list of contact entries (phone number, extension, url..)
    */
   std::vector<std::string> getContactEntries(const std::string& accountID, const std::string& contactID);
   
   /**
    * Get contact entry details
-   * @return type of entry (home, work...), show entry in call console, subscribe to entry for presence
+   * @param accountID ID of the account of the contact
+   * @param contactID ID of the contact of the entry
+   * @param contactEntryID ID of the entry to get details
+   * @return vector of strings, type of entry (home, work...), show entry in call console, subscribe to entry for presence
    */
   std::vector<std::string> getContactEntryDetails(const std::string& accountID, const std::string& contactID, const std::string& contactEntryID);
   
   /**
-   * TOCOMMENT
+   * Edit the contact corresponding to contact ID or add a contact if not found
+   * @param accountID ID of the account of the contact
+   * @param contactID ID of the contact
+   * @param firstName First name of the contact
+   * @param lastName Last name of the contact
+   * @param email Email of the contact
    */
   void setContact(const std::string& accountID, const std::string& contactID, const std::string& firstName, const std::string& lastName, const std::string& email);
   
   /**
-   * TOCOMMENT
+   * Remove the contact corresponding to contact ID or none if not found
+   * @param accountID ID of the account of the contact
+   * @param contactID ID of the contact
    */
   void removeContact(const std::string& accountID, const std::string& contactID);
   
   /**
-   * TOCOMMENT
+   * Edit the entry corresponding to entry ID or add an entry if not found
+   * @param accountID ID of the account of the contact
+   * @param contactID ID of the contact of the entry
+   * @param entryID ID of the entry
+   * @param text Textual representation of the entry
+   * @param type Type of entry (home, mobile...)
+   * @param isShown Entry is set to be shown in call console if true
+   * @param isSubscribed Entry is set to be subscribed to presence if true
    */
   void setContactEntry(const std::string& accountID, const std::string& contactID, const std::string& entryID, const std::string& text, const std::string& type, const std::string& IsShown, const std::string& IsSubscribed);
   
   /**
-   * TOCOMMENT
+   * Remove the entry corresponding to entry ID or none if not found
+   * @param accountID ID of the account of the contact
+   * @param contactID ID of the contact of the entry
+   * @param entryID ID of the entry
    */
   void removeContactEntry(const std::string& accountID, const std::string& contactID, const std::string& entryID);
   
   /**
-   * TOCOMMENT
+   * Publish presence information defined by a passive status
+   * @param accountID The account to publish the status for
+   * @param presence The defined status to publish
+   * @param additionalInfo Optional information related to status
    */
-  void setPresence( const std::string& accountID, const std::string& presence, const std::string& additionalInfo );
+  void setPresence(const std::string& accountID, const std::string& presence, const std::string& additionalInfo);
   
   /**
-   * Get the list of codecs we supports, not ordered
+   * Get unordered list of supported codecs
    * @return The list of the codecs
    */  
   std::vector< ::DBus::String > getCodecList( void );
@@ -509,7 +537,12 @@ public:
   void callFailure(const CallID& id);
   
   /**
-   * Signal emmited when a contact entry presence changes
+   * Function called when signal is received that a contact entry presence changed
+   * that saves data on the daemon and sends notification to client
+   * @param accountID ID of the account
+   * @param entryID ID of the entry
+   * @param presenceText Defined active or passive status received
+   * @param additionalInfo Optional information for the presence status
    */
   void contactEntryPresenceChanged(const AccountID& accountID, const std::string entryID,
 		  const std::string presenceText, const std::string additionalInfo);
@@ -896,9 +929,10 @@ private:
   VoIPLink* getAccountLink(const AccountID& accountID);
   
   /**
-   * Get a contact pointer
+   * Get a contact
    * @param id of the account
    * @param id of the contact
+   * @return Pointer on contact or null
    */
   Contact* getContact(const AccountID& accountID, const std::string& contactID);
 

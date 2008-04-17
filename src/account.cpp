@@ -87,17 +87,20 @@ Account::addContact(Contact* contact)
 void
 Account::subscribeContactsPresence()
 {
+	// Only if account type supports presence via its VoIP link
 	if(_link->isContactPresenceSupported())
 	{
 		// Subscribe to presence for each contact entry that presence is enabled
 		std::vector<Contact*>::const_iterator contactIter;		
 		for(contactIter = _contacts.begin(); contactIter != _contacts.end(); contactIter++)
 		{
+			// Get entries for each contact
 			Contact* contact = (Contact*)*contactIter;
 			std::vector<ContactEntry*> entries = contact->getEntries();
 			std::vector<ContactEntry*>::const_iterator contactEntryIter;
 			for(contactEntryIter = entries.begin(); contactEntryIter != entries.end(); contactEntryIter++)
 			{
+				// If the entry is subscribed to presence, send subscription via VoIP link
 				ContactEntry* entry = (ContactEntry*)*contactEntryIter;
 				if(entry->getSubscribedToPresence())
 					_link->subscribePresenceForContact(entry);
@@ -109,6 +112,7 @@ Account::subscribeContactsPresence()
 void
 Account::publishPresence(std::string presenceStatus)
 {
+	// Publish passive status only if account type supports presence via its VoIP link
 	if(_link->isContactPresenceSupported())
 		_link->publishPresenceStatus(presenceStatus);
 }
