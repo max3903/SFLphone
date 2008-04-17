@@ -22,9 +22,14 @@
 
 #include <string>
 
+/// Presence information for a contact entry
 /**
- * TOCOMMENT
- * @author Guillaume Carmel-Archambault
+ * Presence information on the entry if supported by the account
+ * Can be an active, passive or special status defined in presencestatus.h
+ * Additional information attribute still unused could be used to pass extensive
+ * information on the current entry status, as for example ringing from 140
+ * Initially when contacts are loaded presence will remain null
+ * until an event is received on VoIP link or changed via the GUI
  */
 class Presence {
 	
@@ -42,10 +47,8 @@ public:
 protected:
 	
 private:
-	std::string _state;
-	std::string _additionalInfo;
-	std::string _capabalities;		// UNUSED Could be an independant attribute from presence included in a contact entry
-	std::string _userAgent;			// UNUSED Name of user agent used by contact
+	std::string _state;				/// Active, passive or special status defined in presencestatus.h 
+	std::string _additionalInfo;	/// Additional information on the status, for example the person on the phone with
 };
 
 #endif

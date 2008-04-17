@@ -2410,8 +2410,6 @@ ManagerImpl::getContactDetails(const std::string& accountID, const std::string& 
 		contactDetails.push_back(contact->getFirstName());
 		contactDetails.push_back(contact->getLastName());
 		contactDetails.push_back(contact->getEmail());
-		contactDetails.push_back(contact->getGroup());
-		contactDetails.push_back(contact->getSubGroup());
 	}
 	return contactDetails;
 }

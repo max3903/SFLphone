@@ -24,9 +24,14 @@
 
 #include <string>
 
+/// Information to call a contact
 /**
- * TOCOMMENT
- * @author Guillaume Carmel-Archambault
+ * A contact entry belongs to a contact and usually represents a phone number or
+ * extension, but can be any type of textual url to find the corresponding VoIP user agent.
+ * The entry is immutable and should be a unique id per account. The text attribute represents
+ * the way to show the entry, the different types are defined in the GTK such as (work, home, mobile, paget, other)
+ * The boolean attributes will serve in the GUI to know if the entry should be displayed in the call console as a way
+ * to easily interact and check an entry and also to know if the entry should be subscribed for presence information
  */
 class ContactEntry {
 public:
@@ -50,14 +55,18 @@ public:
 	
 private:
 	// Attributes used for presence and call console
-	std::string _entryID;			// Can be an extension, phone number, url...
-	std::string _text;				// Simplified textual representation of ID, can be the same
-	std::string _type;				// Work, mobile, home...
-	bool _shownInCallConsole;		// Contact entry will be shown in call console if true
-	bool _subscribedToPresence;		// Account link will try to subscribe to presence status if true
+	std::string _entryID;			/// Unique extension, phone number, url...
+	std::string _text;				/// Simplified textual representation of the ID
+	std::string _type;				/// Work, mobile, home...
+	bool _shownInCallConsole;		/// Contact entry will be shown in call console if true
+	bool _subscribedToPresence;		/// Account link will try to subscribe to presence status if true
 	
-	// Presence information, will be null if contact is not subscribed
+	/// Presence information, will be null if contact is not subscribed, not supported or not initialized (SEE presencestatus.h)
 	Presence* _presence;
+	
+	// SEE Other possible attributes to add for general presence information on entry can be
+	// different ringing type for each contact, auto reject, auto transfer, speed dial index
+	// capabilities of the entry (audio, video, text..) and user agent type and description
 };
 
 #endif

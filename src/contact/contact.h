@@ -25,9 +25,12 @@
 #include <string>
 #include <vector>
 
+/// Contact information
 /**
- * TOCOMMENT
- * @author Guillaume Carmel-Archambault
+ * A contact is used to store information as first name, last name and email
+ * A synonym for this class would be a buddy as it is usually a person, but can
+ * also be for example an organisation, a group of people or else
+ * It can possibly have many entries, like telephone numbers related to this contact
  */
 class Contact {
 public:
@@ -41,28 +44,27 @@ public:
 	std::string getFirstName() { return _firstName; }
 	std::string getLastName() { return _lastName; }
 	std::string getEmail() { return _email; }
-	std::string getGroup() { return _group; }
-	std::string getSubGroup() { return _subGroup; }
 	
 	void setFirstName(std::string firstName) { _firstName = firstName; }
 	void setLastName(std::string lastName) { _lastName = lastName; }
 	void setEmail(std::string email) { _email = email; }
-	void setGroup(std::string group) { _group = group; }
-	void setSubGroup(std::string subGroup) { _subGroup = subGroup; }
 
 	const std::vector<ContactEntry*>& getEntries();
 	void addEntry(ContactEntry* entry);
 		
 private:
 	// Attributes only related to contact list
-	std::string _contactID;			// Unique identifier for each account generated randomly
-	std::string _firstName;
-	std::string _lastName;
-	std::string _email;
-	std::string _group;				// UNUSED but could serve to sort contacts in GUI lists
-	std::string _subGroup;			// UNUSED
+	std::string _contactID;			/// Unique identifier for each account generated randomly
+	std::string _firstName;			/// First name
+	std::string _lastName;			/// Last name (optional)
+	std::string _email;				/// Email (optional)
 
-	std::vector<ContactEntry*> _entries;	// Each contact can have multiple ways to contact him (home, mobile, work...)
+	std::vector<ContactEntry*> _entries;	/// Each contact can have multiple ways to contact him (at work, home phone, mobile...)
+	
+	// SEE Contacts could be grouped in a tree structure to allow a more convenient managment and display in contact window and call console
+	// It could for example be a string separated by a character to express a group path (ex: company/support, friends, school/students/biology)
+	// which would allow for easily folding and unfolding groups that we want in the call console or contact window
+	// Using only one string would allow to be easily transmittable by D-Bus and an unlimited depth
 };
 
 #endif

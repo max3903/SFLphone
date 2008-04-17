@@ -14,7 +14,7 @@
     </method>
     
     <!-- Called by the client to get details on a contact -->
-    <!-- Returns first name, last name, email, group, subgroup -->
+    <!-- Returns first name, last name, email -->
     <method name="getContactDetails">
       <arg type="s" name="accountID" direction="in"/>
       <arg type="s" name="contactID" direction="in"/>
@@ -49,9 +49,6 @@
       <arg type="s" name="firstName" direction="in"/>
       <arg type="s" name="lastName" direction="in"/>
       <arg type="s" name="email" direction="in"/>
-      <!-- Groups and subgroups currently unused -->
-      <!-- <arg type="s" name="group" direction="in"/> -->
-      <!-- <arg type="s" name="subGroup" direction="in"/> -->
     </method>
    
     <!-- Called by the client to remove one contact -->

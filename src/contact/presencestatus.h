@@ -20,7 +20,8 @@
 #ifndef PRESENCE_STATUS_H
 #define PRESENCE_STATUS_H
 
-/* Definition of all presence status used by the deamon and the GUI
+/**
+ * Definition of all presence status used by the deamon and the GUI
  * The deamon knows how to identify tags coming from presence servers
  * and cast them in a defined presence status presented here. 
  * The presence information is transmitted along DBus by those strings.
@@ -51,35 +52,36 @@
  */
 
 // Special presence status for SFLphone
-#define PRESENCE_NOT_SUBSCRIBED		"NOT_SUBSCRIBED"		// Entry is not subscribed to presence
-#define PRESENCE_NOT_INITIALIZED	"NOT_INITIALIZED"		// Entry is subscribed but no information has yet been received
-#define PRESENCE_NOT_SUPPORTED		"NOT_SUPPORTED"			// Account or entry does not support presence (ex: IAX, external phone number)
-// Same active presence status as defined in Asterisk (rasterisk : core show function EXTENSION_STATE)
+// On the daemon, the presence information will usually remain null when in a special presence state
+#define PRESENCE_NOT_SUBSCRIBED		"NOT_SUBSCRIBED"		/// Special status: Entry is not subscribed to presence
+#define PRESENCE_NOT_INITIALIZED	"NOT_INITIALIZED"		/// Special status: Entry is subscribed but no information has yet been received
+#define PRESENCE_NOT_SUPPORTED		"NOT_SUPPORTED"			/// Special status: Account or entry does not support presence (ex: IAX, external phone number)
+// Same active presence status as defined in Asterisk (rasterisk : core show function EXTENSION_STATE, DEVICE_STATE)
 // It is possible in Asterisk to define functions that will trigger these status
 // By default the READY, RINGING, ON_THE_PHONE, UNAVAILABLE are triggered from Asterisk
 // See rasterisk core show functions, core show applications and extensions.conf in Asterisk for more details
-#define PRESENCE_UNKNOWN			"UNKNOWN"
-#define PRESENCE_READY				"READY"					// Aka NOT_INUSE, ONLINE
-#define PRESENCE_IS_BUSY			"IS_BUSY"
-#define PRESENCE_INVALID			"INVALID"
-#define PRESENCE_UNAVAILABLE		"UNAVAILABLE"			// Aka NOT_ONLINE, OFFLINE
-#define PRESENCE_ON_THE_PHONE		"ON_THE_PHONE"			// Aka INUSE
-#define PRESENCE_RINGING			"RINGING"
-#define PRESENCE_RING_IN_USE		"RING_IN_USE"
-#define PRESENCE_HOLD_IN_USE		"HOLD_IN_USE"
-#define PRESENCE_ON_HOLD			"ON_HOLD"
+#define PRESENCE_UNKNOWN			"UNKNOWN"				/// Active status:
+#define PRESENCE_READY				"READY"					/// Active status: Can be joined, aka NOT_INUSE, ONLINE
+#define PRESENCE_IS_BUSY			"IS_BUSY"				/// Active status:
+#define PRESENCE_INVALID			"INVALID"				/// Active status:
+#define PRESENCE_UNAVAILABLE		"UNAVAILABLE"			/// Active status: Reachable but unavailable, aka NOT_ONLINE, OFFLINE
+#define PRESENCE_ON_THE_PHONE		"ON_THE_PHONE"			/// Active status: Communication established, aka INUSE
+#define PRESENCE_RINGING			"RINGING"				/// Active status: Receiving call
+#define PRESENCE_RING_IN_USE		"RING_IN_USE"			/// Active status:
+#define PRESENCE_HOLD_IN_USE		"HOLD_IN_USE"			/// Active status:
+#define PRESENCE_ON_HOLD			"ON_HOLD"				/// Active status:
 // Passive presence status defined on some hardware phones
-#define PRESENCE_ONLINE				"ONLINE"
-#define PRESENCE_BUSY				"BUSY"
-#define PRESENCE_BE_RIGHT_BACK		"BE_RIGHT_BACK"
-#define PRESENCE_AWAY				"AWAY"
-#define PRESENCE_OUT_TO_LUNCH		"OUT_TO_LUNCH"
-#define PRESENCE_OFFLINE			"OFFLINE"
-#define PRESENCE_DO_NOT_DISTURB		"DO_NOT_DISTURB"
-#define PRESENCE_IN_REUNION			"IN_REUNION"			// UNUSED
+#define PRESENCE_ONLINE				"ONLINE"				/// Passive status: User tells that he is available
+#define PRESENCE_BUSY				"BUSY"					/// Passive status: User tells that he is busy
+#define PRESENCE_BE_RIGHT_BACK		"BE_RIGHT_BACK"			/// Passive status: User tells that he will be back soon
+#define PRESENCE_AWAY				"AWAY"					/// Passive status: Usually triggered by a certain inactivity period or manually by the user to tell that he is not present at the moment
+#define PRESENCE_OUT_TO_LUNCH		"OUT_TO_LUNCH"			/// Passive status: User tells that he is eating
+#define PRESENCE_OFFLINE			"OFFLINE"				/// Passive status: User tells that he is not available, will be marked as UNAVAILABLE event if it is not the case 
+#define PRESENCE_DO_NOT_DISTURB		"DO_NOT_DISTURB"		/// Passive status: User tells that he does not wish to be disturbed
+//#define PRESENCE_IN_REUNION			"IN_REUNION"			// UNUSED
 // Other active presence status defined
-#define PRESENCE_IN_CONFERENCE_CALL	"IN_CONFERENCE_CALL"	// UNUSED
-#define PRESENCE_IN_VIDEO_CALL		"IN_VIDEO_CALL"			// UNUSED
-#define PRESENCE_IN_VIDEO_CONF_CALL	"IN_VIDEO_CONF_CALL"	// UNUSED
+//#define PRESENCE_IN_CONFERENCE_CALL	"IN_CONFERENCE_CALL"	// UNUSED
+//#define PRESENCE_IN_VIDEO_CALL		"IN_VIDEO_CALL"			// UNUSED
+//#define PRESENCE_IN_VIDEO_CONF_CALL	"IN_VIDEO_CONF_CALL"	// UNUSED
 
 #endif

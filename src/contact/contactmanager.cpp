@@ -52,6 +52,7 @@ void contact_character_data_handler(void* userData, const char* name, int len)
 	strncpy(answer, name, len);
 	answer[len] = '\0';
 	
+	// Set data contained inside the last tag element
 	if(strcmp(info->lastElement.data(), "firstName") == 0)
 	{
 		info->contact->setFirstName(answer);
@@ -80,8 +81,10 @@ void contact_start_element_handler(void* userData, const char* name, const char*
 	{
 		bool value = false;		// To know if parsing name or value
 		const char** attribute;
+		// Parse all attributes that alternate between name and value
 		for(attribute = atts; *attribute; attribute++)
 		{
+			// If checking a value and previous attribute is id
 			if(value && strcmp(*(attribute-1), "id") == 0)
 			{
 				info->contact = new Contact(*attribute);
@@ -156,7 +159,7 @@ ContactManager::readContacts(std::string accountID, std::vector<Contact*>& conta
 	std::fstream file;
 	char buf[4096];
 	
-	// Open XML file
+	// Open XML file, usually /home/user/.sflphone/Account:XXXXXXXXXX-contactlist.xml
 	path = std::string(HOMEDIR) + DIR_SEPARATOR_STR + "." + PROGDIR	+ DIR_SEPARATOR_STR + accountID + "-contactlist.xml";
 	file.open(path.data(), std::fstream::in);
 	

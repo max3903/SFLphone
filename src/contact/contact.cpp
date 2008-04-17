@@ -39,8 +39,6 @@ Contact::Contact(const std::string contactID, const std::string firstName, const
 	_firstName = firstName;
 	_lastName = lastName;
 	_email = email;
-	_group = group;
-	_subGroup = subGroup;
 }
 
 Contact::~Contact()
