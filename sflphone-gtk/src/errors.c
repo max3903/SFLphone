@@ -19,6 +19,8 @@
 
 #include <errors.h>
 
+#include "mainwindow.h"
+
   void
 sflphone_throw_exception( int err )
 {
@@ -32,5 +34,5 @@ sflphone_throw_exception( int err )
       break;
   }
   main_window_error_message( markup );  
-  free( markup );
+  g_free( markup );
 }
