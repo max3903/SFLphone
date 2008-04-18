@@ -628,7 +628,9 @@ SIPCall::setRemoteAudioFromSDP(sdp_media_t* remote_med, sdp_message_t* remote_sd
 bool 
 SIPCall::setRemoteVideoFromSDP(sdp_media_t* remote_med, sdp_message_t* remote_sdp)
 {
-  sdp_media_t *remote_Vidmed = eXosip_get_video_media(remote_sdp);
+    eXosip_lock();
+    sdp_media_t *remote_Vidmed = eXosip_get_video_media(remote_sdp);
+    eXosip_unlock();
 	
 	if ( remote_Vidmed == NULL)
 		return false;

@@ -156,10 +156,9 @@ SIPPresenceManager::buildPublishPresenceStatus(std::string userPart, std::string
 </presence>"
 			, url.data(), userPart.data(), basic.data(), url.data(), note.data());
 
+	eXosip_lock();
 	// Build publish request in PIDF
 	i = eXosip_build_publish(&publication, url.data(), url.data(), NULL, "presence", "1800", "application/pidf+xml", buf);
-
-	eXosip_lock();
 	i = eXosip_publish(publication, url.data());
 	eXosip_unlock();
 }
