@@ -230,7 +230,7 @@ SIPVoIPLink::getEvent()
 	// Wait every 50 milliseconds to check for a SIP event
 	eXosip_event_t* event = eXosip_event_wait(0, 50);
 	eXosip_lock();
-	eXosip_automatic_action();		// FIXME Crashes here sometimes on daemon startup
+	eXosip_automatic_action();		// FIXME Crashes here sometimes on daemon startup when there are multiple sip accounts configured simultaneously
 	eXosip_unlock();
 
 	if ( event == NULL ) {
