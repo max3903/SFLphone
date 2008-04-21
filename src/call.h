@@ -21,9 +21,6 @@
 #ifndef CALL_H
 #define CALL_H
 
-/* @file call.h 
- * @brief A call is the base class for protocol-based calls
- */
 #include <string>
 #include <vector>
 #include <cc++/thread.h> // for mutex
@@ -37,32 +34,37 @@
 #include "mixer/LocalVideoOuput.h"
 #include "mixer/InputStreams.h"
 
+/* 
+ * @file call.h 
+ * @brief A call is the base class for protocol-based calls
+ */
+
 typedef std::string CallID;
 
 #define CALL_TRACE	1
 
 class Call{
-public:
-  /**
-   * This determines if the call originated from the local user (Outgoing)
-   * or from some remote peer (Incoming).
-   */
-  enum CallType {Incoming, Outgoing};
-  
-  /**
-   * Tell where we're at with the call. The call gets Connected when we know
-   * from the other end what happened with out call. A call can be 'Connected'
-   * even if the call state is Busy, Refused, or Error.
-   *
-   * Audio should be transmitted when ConnectionState = Connected AND
-   * CallState = Active.
-   */
-  enum ConnectionState {Disconnected, Trying, Progressing, Ringing, Connected};
+  public:
+    /**
+     * This determines if the call originated from the local user (Outgoing)
+     * or from some remote peer (Incoming).
+     */
+    enum CallType {Incoming, Outgoing};
 
-  /**
-   * The Call State.
-   */
-  enum CallState {Inactive, Active, Hold, Busy, Refused, Error};
+    /**
+     * Tell where we're at with the call. The call gets Connected when we know
+     * from the other end what happened with out call. A call can be 'Connected'
+     * even if the call state is Busy, Refused, or Error.
+     *
+     * Audio should be transmitted when ConnectionState = Connected AND
+     * CallState = Active.
+     */
+    enum ConnectionState {Disconnected, Trying, Progressing, Ringing, Connected};
+
+    /**
+     * The Call State.
+     */
+    enum CallState {Inactive, Active, Hold, Busy, Refused, Error};
 
     /**
      * Constructor of a call
@@ -84,42 +86,63 @@ public:
      * @param number peer number
      */
     void setPeerNumber(const std::string& number) {  _peerNumber = number; }
+
+    /** 
+     * Get the peer number (destination on outgoing)
+     * not protected by mutex (when created)
+     * @return std::string The peer number
+     */
     const std::string& getPeerNumber() {  return _peerNumber; }
 
     /** 
      * Set the peer name (caller in ingoing)
      * not protected by mutex (when created)
-     * @param number peer number
+     * @param name The peer name
      */
     void setPeerName(const std::string& name) {  _peerName = name; }
+
+    /** 
+     * Get the peer name (caller in ingoing)
+     * not protected by mutex (when created)
+     * @return std::string The peer name
+     */
     const std::string& getPeerName() {  return _peerName; }
 
     /**
      * Tell if the call is incoming
+     * @return true if yes
+     *	      false otherwise
      */
     bool isIncoming() { return (_type == Incoming) ? true : false; }
 
     /** 
      * Set the connection state of the call (protected by mutex)
+     * @param state The connection state
      */
     void setConnectionState(ConnectionState state);
+
     /** 
-     * get the connection state of the call (protected by mutex)
+     * Get the connection state of the call (protected by mutex)
+     * @return ConnectionState The connection state
      */
     ConnectionState getConnectionState();
 
     /**
      * Set the state of the call (protected by mutex)
+     * @param state The call state
      */
     void setState(CallState state);
+
     /** 
-     * get the call state of the call (protected by mutex)
+     * Get the call state of the call (protected by mutex)
+     * @return CallState  The call state
      */
     CallState getState();
 
     /**
      * Set the audio start boolean (protected by mutex)
      * @param start true if we start the audio
+     *		    false otherwise
      */
     void setAudioStart(bool start);
 
@@ -132,6 +155,7 @@ public:
     /**
      * Tell if the audio is started (protected by mutex)
      * @return true if it's already started
+     *	      false otherwise
      */
     bool isAudioStarted();
 
@@ -142,8 +166,16 @@ public:
     bool isVideoStarted();
 
     // AUDIO
-    /** Set internal codec Map: initialization only, not protected */
+    /** 
+     * Set internal codec Map: initialization only, not protected 
+     * @param map The codec map
+     */
     void setCodecMap(const CodecDescriptor& map) { _codecMap = map; } 
+
+    /** 
+     * Get internal codec Map: initialization only, not protected 
+     * @return CodecDescriptor	The codec map
+     */
     CodecDescriptor& getCodecMap();
 
     // Video
@@ -151,117 +183,153 @@ public:
     //void setVideoCodecMap(const VideoCodecDescriptor& map) { _videoCodecMap = map; } 
     //VideoCodecDescriptor& getVideoCodecMap();
 
-    /** Set my IP [not protected] */
+    /** 
+     * Set my IP [not protected] 
+     * @param ip  The local IP address
+     */
     void setLocalIp(const std::string& ip)     { _localIPAddress = ip; }
 
-    /** Set local audio port, as seen by me [not protected] */
+    /** 
+     * Set local audio port, as seen by me [not protected]
+     * @param port  The local audio port
+     */
     void setLocalAudioPort(unsigned int port)  { _localAudioPort = port;}
 
     /** Set local video port, as seen by me [not protected] */
     void setLocalVideoPort(unsigned int port)  { _localVideoPort = port;}
 
-    /** Set the audio port that remote will see. */
+    /** 
+     * Set the audio port that remote will see.
+     * @param port  The external audio port
+     */
     void setLocalExternAudioPort(unsigned int port) { _localExternalAudioPort = port; }
 
     /** Set the video port that remote will see. */
     void setLocalExternVideoPort(unsigned int port) { _localExternalVideoPort = port; }
 
-    /** Return the audio port seen by the remote side. */
+    /** 
+     * Return the audio port seen by the remote side. 
+     * @return unsigned int The external audio port
+     */
     unsigned int getLocalExternAudioPort() { return _localExternalAudioPort; }
 
     /** Return the video port seen by the remote side. */
     unsigned int getLocalExternVideoPort() { return _localExternalVideoPort; }
 
-    /** Return my IP [mutex protected] */
+    /** 
+     * Return my IP [mutex protected] 
+     * @return std::string The local IP
+     */
     const std::string& getLocalIp();
-    
-    /** Return video port used locally (for my machine) [mutex protected] */
+
+    /** 
+     * Return port used locally (for my machine) [mutex protected] 
+     * @return unsigned int  The local audio port
+     */
     unsigned int getLocalAudioPort();
 
     /** Return video port used locally (for my machine) [mutex protected] */
     unsigned int getLocalVideoPort();
-    
-    /** Return audio port at destination [mutex protected] */
+
+    /** 
+     * Return audio port at destination [mutex protected] 
+     * @return unsigned int The remote audio port
+     */
     unsigned int getRemoteAudioPort();
 
     /** Return video port at destination [mutex protected] */
     unsigned int getRemoteVideoPort();
 
-    /** Return IP of destination [mutex protected] */
+    /** 
+     * Return IP of destination [mutex protected]
+     * @return const std:string	The remote IP address
+     */
     const std::string& getRemoteIp();
-     
-    /** Return audio codec [mutex protected] */
+
+    /** 
+     * Return audio codec [mutex protected]
+     * @return AudioCodecType The payload of the codec
+     */
     AudioCodecType getAudioCodec();
 
     /** Return video codec [mutex protected] */
     AVCodecContext* getVideoCodecContext();
 
-	/** Local Mixer video input buffer used in recievedSession of corresponding VideoRtpRTX.
-	 * @return The video input buffer for the local Mixer.
-	 * */
-	VideoInput* getLocal_Video_Input();
-	
-	/** Local Mixer audio input buffer used in recievedSession of corresponding AudioRtpRTX.
-	 * @return The audio input buffer for the local Audio.
-	 * */
-	AudioInput* getLocal_Audio_Input();
-	
-	/** Remote Mixer video input buffer used in sendSession of corresponding VideoRtpRTX.
-	 * @return The video input buffer for the first video input of the Remoter Mixer.
-	 * */
-	VideoInput* getRemote_Video_Input();
-	
-	/** Remote Mixer audio input buffer used in sendSession of corresponding AudioRtpRTX.
-	 * @return The audio input buffer for the first audio input of the Remoter Mixer.
-	 * */
-	AudioInput* getRemote_Audio_Input();
-				
-	/** Remote Mixer video output buffer used in sendSession of corresponding VideoRtpRTX.
-	 * @return The video output buffer for remote Mixer.
-	 * */
-	VideoOutput* getRemote_Video_Output();
-	
-	/** Remote Mixer audio output buffer used in sendSession of corresponding AudioRtpRTX.
-	 * @return The audio output buffer for remote Mixer.
-	 * */
-	AudioOutput* getRemote_Audio_Output();
-	
-	/** Methode to set the call inconference mode
-	 * 
-	 * It adds an extra InputStream (second input) to the remote Mixer and changes the mixer mode to mix the data stream contained in the remoteInput and the extra input now specifed. To change back to normal straighthrough operation you must call this method with NULL pointers.
-	 * @param extraVideo The video input buffer corresponding to the local video input buffer of the second call in the conference.
-	 * @param extraAudio The audio input buffer corresponding to the local audio input buffer of the second call in the conference.
-	 */ 
-	void setConfMode( VideoInput* extraVideo, AudioInput* extraAudio  );
-	
-	/** Method to stop the mixer went a call is destroyed
-	 * 
-	 * This method must be call before ending a call or mixing threads will run until sfphoned is stopped.
-	 */
-	void terminateMixers() const;
-	
-	/** Set the conference ID
-	 */
-	void setConfId( std::string ID );
-	
-	/** Set's the conf id
-	 */
-	std::string getConfId();
-	
-protected:
+    /** Local Mixer video input buffer used in recievedSession of corresponding VideoRtpRTX.
+     * @return The video input buffer for the local Mixer.
+     * */
+    VideoInput* getLocal_Video_Input();
+
+    /** Local Mixer audio input buffer used in recievedSession of corresponding AudioRtpRTX.
+     * @return The audio input buffer for the local Audio.
+     * */
+    AudioInput* getLocal_Audio_Input();
+
+    /** Remote Mixer video input buffer used in sendSession of corresponding VideoRtpRTX.
+     * @return The video input buffer for the first video input of the Remoter Mixer.
+     * */
+    VideoInput* getRemote_Video_Input();
+
+    /** Remote Mixer audio input buffer used in sendSession of corresponding AudioRtpRTX.
+     * @return The audio input buffer for the first audio input of the Remoter Mixer.
+     * */
+    AudioInput* getRemote_Audio_Input();
+
+    /** Remote Mixer video output buffer used in sendSession of corresponding VideoRtpRTX.
+     * @return The video output buffer for remote Mixer.
+     * */
+    VideoOutput* getRemote_Video_Output();
+
+    /** Remote Mixer audio output buffer used in sendSession of corresponding AudioRtpRTX.
+     * @return The audio output buffer for remote Mixer.
+     * */
+    AudioOutput* getRemote_Audio_Output();
+
+    /** Methode to set the call inconference mode
+     * 
+     * It adds an extra InputStream (second input) to the remote Mixer and changes the mixer mode to mix the data stream contained in the remoteInput and the extra input now specifed. To change back to normal straighthrough operation you must call this method with NULL pointers.
+     * @param extraVideo The video input buffer corresponding to the local video input buffer of the second call in the conference.
+     * @param extraAudio The audio input buffer corresponding to the local audio input buffer of the second call in the conference.
+     */ 
+    void setConfMode( VideoInput* extraVideo, AudioInput* extraAudio  );
+
+    /** Method to stop the mixer went a call is destroyed
+     * 
+     * This method must be call before ending a call or mixing threads will run until sfphoned is stopped.
+     */
+    void terminateMixers() const;
+
+    /** Set the conference ID
+    */
+    void setConfId( std::string ID );
+
+    /** Set's the conf id
+    */
+    std::string getConfId();
+
+  protected:
     /** Protect every attribute that can be changed by two threads */
     ost::Mutex _callMutex;
 
-    /** Set remote's IP addr. [not protected] */
+    /** 
+     * Set remote's IP addr. [not protected]
+     * @param ip  The remote IP address
+     */
     void setRemoteIP(const std::string& ip)    { _remoteIPAddress = ip; }
 
-    /** Set remote's audio port. [not protected] */
+    /** 
+     * Set remote's audio port. [not protected]
+     * @param port  The remote audio port
+     */
     void setRemoteAudioPort(unsigned int port) { _remoteAudioPort = port; }
 
     /** Set remote's video port. [not protected] */
     void setRemoteVideoPort(unsigned int port) { _remoteVideoPort = port; }
 
-    /** Set the audio codec used.  [not protected] */
+    /** 
+     * Set the audio codec used.  [not protected] 
+     * @param audioCodec  The payload of the codec
+     */
     void setAudioCodec(AudioCodecType audioCodec) { _audioCodec = audioCodec; }
 
     /** Set the video codec used.  [not protected] */
@@ -306,7 +374,7 @@ protected:
     unsigned int _remoteVideoPort;
 
 
-private:  
+  private:  
     /** Unique ID of the call */
     CallID _id;
 
@@ -325,37 +393,37 @@ private:
 
     /** Local Mixer */
     Mixer* _localMixer;
-    
+
     /** Local Mixer */
     Mixer* _remoteMixer;
 
     /* The Local Mixer InputStreams */
     InputStreams* _localInputStreams;
-    
+
     /* The Local Mixer Audio Output 
      * 
      * Is used to output audio to the sound card. It is not accesible from the outside because you can only add data to this buffer, no fetch is possible.
      * */
     LocalAudioOuput* _local_Audio_Ouput;
-    
-     /* The Local Mixer Video Output 
+
+    /* The Local Mixer Video Output 
      * 
      * Is used to output video to the MemManager. It is not accesible from the outside because you can only add data to this buffer, no fetch is possible.
      * */
     LocalVideoOuput* _local_Video_Ouput;
-    
+
     /* The Remote Mixer default InputStreams */
     InputStreams* _remoteStandardInputStreams;
-    
+
     /* The Remote Mixer Conference Mode InputStreams */
     InputStreams* _remoteExtraInputStreams;
-    
+
     /* The Remote Mixer Audio ouput */
     AudioOutput* _remote_Audio_Output;
-    
+
     /* The Remote Mixer Video ouput */
     VideoOutput* _remote_Video_Output;
-    
+
     /* The ID of the conference that this call is related to */
     std::string ConfId;
 

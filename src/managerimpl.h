@@ -1,8 +1,8 @@
 /*
- *  Copyright (C) 2004-2005 Savoir-Faire Linux inc.
+ *  Copyright (C) 2004-2008 Savoir-Faire Linux inc.
+ *  Author: Emmanuel Milou <emmanuel.milou@savoirfairelinux.com>
  *  Author: Yan Morin <yan.morin@savoirfairelinux.com>
  *  Author: Laurielle Lea <laurielle.lea@savoirfairelinux.com>
- *  Author: Emmanuel Milou <emmanuel.milou@savoirfairelinux.com>
  *  Author: Guillaume Carmel-Archambault <guillaume.carmel-archambault@savoirfairelinux.com>
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -22,8 +22,6 @@
 
 #ifndef __MANAGER_H__
 #define __MANAGER_H__
-
-//#define TEST
 
 #include <string>
 #include <vector>
@@ -64,587 +62,866 @@ class DNSService;
 #define MANAGERIMPL_TRACE	1
 
 struct KeyHolder{
-MemKey* localKey;
-MemKey* remoteKey;
+  MemKey* localKey;
+  MemKey* remoteKey;
 };
-/**
- * Define a type for a AccountMap container
- */
+
+/** Define a type for a AccountMap container */
 typedef std::map<AccountID, Account*> AccountMap;
- 
-/**
- * Define a type for a CallID to AccountID Map inside ManagerImpl
- */
+
+/** Define a type for a CallID to AccountID Map inside ManagerImpl */
 typedef std::map<CallID, AccountID> CallAccountMap;
 
-/**
- * Define a type for CallID vector (waiting list, incoming not answered)
- */
+/** Define a type for CallID vector (waiting list, incoming not answered) */
 typedef std::set<CallID> CallIDSet;
 
-/**
- * To send multiple string
- */
+/** To send multiple string */
 typedef std::list<std::string> TokenList;
 
-/**
- * Manager (controller) of sflphone daemon
- */
+/** Manager (controller) of sflphone daemon */
 class ManagerImpl {
-public:
-  ManagerImpl (void);
-  ~ManagerImpl (void);
+  public:
+    ManagerImpl (void);
+    ~ManagerImpl (void);
 
-  /**
-   * Initialisation of thread (sound) and map.
-   *
-   * Init a new VoIPLink, audio codec and audio driver
-   */
-  void init (void);
+    /**
+     * Initialisation of thread (sound) and map.
+     * Init a new VoIPLink, audio codec and audio driver
+     */
+    void init (void);
 
-  /**
-   * Terminate all thread (sound, link) and unload AccountMap
-   */
-  void terminate (void);
+    /**
+     * Terminate all thread (sound, link) and unload AccountMap
+     */
+    void terminate (void);
 
-  /**
-   * Set user interface manaager.
-   * @param man The DBUS interface implementation
-   */
-  void setDBusManager (DBusManagerImpl* man) { _dbus = man; }
+    /**
+     * Set user interface manager.
+     * @param man The DBUS interface implementation
+     */
+    void setDBusManager (DBusManagerImpl* man) { _dbus = man; }
 
-  /**
-   * Accessor to audiodriver.
-   *
-   * it's multi-thread and use mutex internally
-   */
-  AudioLayer* getAudioDriver(void) const { return _audiodriver; }
+    /**
+     * Accessor to audiodriver.
+     * it's multi-thread and use mutex internally
+     * @return AudioLayer*  The audio layer object
+     */
+    AudioLayer* getAudioDriver(void) const { return _audiodriver; }
 
-  /**
-   * Get a descriptor map of codec available
-   */
-  CodecDescriptor& getCodecDescriptorMap(void) {return _codecDescriptorMap;}
+    /**
+     * Get a descriptor map of codec available
+     * @return CodecDescriptor  The internal codec map
+     */
+    CodecDescriptor& getCodecDescriptorMap(void) {return _codecDescriptorMap;}
 
-  /**
-   * Functions which occur with a user's action
-   */
-  bool outgoingCall(const AccountID& accountId, const CallID& id, const std::string& to);
-  bool answerCall(const CallID& id);
-  bool hangupCall(const CallID& id);
-  bool cancelCall(const CallID& id);
-  bool onHoldCall(const CallID& id);
-  bool offHoldCall(const CallID& id);
-  bool transferCall(const CallID& id, const std::string& to);
-  void mute();
-  void unmute();
-  bool refuseCall(const CallID& id);
-  
-  //Invite someone to join a conference
-  bool inviteConference( const AccountID& accountId, const CallID& id, const std::string& to );
-  //Join 2 calls to start a conference
-  bool joinConference( const CallID& onHoldCallID, const CallID& newCallID );
-  //Change the video avaibility of the user's correspondant
-  void changeVideoAvaibility( const CallID& id );
-  //Change the video avaibility of the user
-  void changeWebcamStatus( const bool status , const CallID& id);
+    /**
+     * Functions which occur with a user's action
+     * Place a new call
+     * @param accountId	The account to make tha call with
+     * @param id  The call identifier
+     * @param to  The recipient of the call
+     * @return bool true on success
+     *		  false otherwise
+     */
+    bool outgoingCall(const AccountID& accountId, const CallID& id, const std::string& to);
 
-  /** Save config to file */
-  bool saveConfig (void);
-  
-  /** Save contacts to corresponding file, one by account */
-  bool saveContacts();
+    /**
+     * Functions which occur with a user's action
+     * Answer the call
+     * @param id  The call identifier
+     */
+    bool answerCall(const CallID& id);
 
-  /**
-   * Send registration information (shake hands) for a specific AccountID
-   *
-   * @param accountId Account to register
-   * @return true if sendRegister was called without failure, else return false
-   */
-  bool registerAccount(const AccountID& accountId);
+    /**
+     * Functions which occur with a user's action
+     * Hangup the call
+     * @param id  The call identifier
+     */
+    bool hangupCall(const CallID& id);
 
-  /**
-   * Send unregistration for a specific account. If the protocol
-   * doesn't need to send anything, then the state of the account
-   * will be set to 'Unregistered', and related objects destroyed.
-   *
-   * @param accountId Account to unregister
-   * @return true if the unregister method is send correctly
-   */
-  bool unregisterAccount(const AccountID& accountId);
+    /**
+     * Functions which occur with a user's action
+     * Cancel the call
+     * @param id  The call identifier
+     */
+    bool cancelCall(const CallID& id);
 
-  /**
-   * Send registration to all enabled accounts
-   * 
-   * @return false if exosip or the network checking fails
-   */
-  bool initRegisterAccounts();
+    /**
+     * Functions which occur with a user's action
+     * Put the call on hold
+     * @param id  The call identifier
+     */
+    bool onHoldCall(const CallID& id);
 
-  /**
-   * True if we tried to register Once
-   */
-  bool _hasTriedToRegister;
+    /**
+     * Functions which occur with a user's action
+     * Put the call off hold
+     * @param id  The call identifier
+     */
+    bool offHoldCall(const CallID& id);
 
+    /**
+     * Functions which occur with a user's action
+     * Transfer the call
+     * @param id  The call identifier
+     * @param to  The recipient of the transfer
+     */
+    bool transferCall(const CallID& id, const std::string& to);
 
-  /**
-   * Undocumented
-   */
-  bool sendTextMessage(const AccountID& accountId, const std::string& to, const std::string& message);
-	
-  /*
-   * Handle choice of the DTMF-send-way
-   *
-   * @param   id: callid of the line.
-   * @param   code: pressed key.
-   */
-  bool sendDtmf(const CallID& id, char code);
-  bool playDtmf(char code, bool isTalking);
-  bool playTone ();
-  bool playToneWithMessage ();
-  void stopTone(bool stopAudio/*=true*/);
+    /**
+     * Functions which occur with a user's action
+     * Refuse the call
+     * @param id  The call identifier
+     */
+    bool refuseCall(const CallID& id);
 
-  // From links
-  /**
-   * When receiving a new incoming call, add it to the callaccount map
-   * and notify user
-   * @param call A call pointer
-   * @param accountid an account id
-   * @return true if the call was added correctly
-   */
-  bool incomingCall(Call* call, const AccountID& accountId);
-  void peerAnsweredCall(const CallID& id);
-  void peerRingingCall(const CallID& id);
-  void peerHungupCall(const CallID& id);
-  void incomingMessage(const AccountID& accountId, const std::string& message);
+    //Invite someone to join a conference
+    bool inviteConference( const AccountID& accountId, const CallID& id, const std::string& to );
+    //Join 2 calls to start a conference
+    bool joinConference( const CallID& onHoldCallID, const CallID& newCallID );
+    //Change the video avaibility of the user's correspondant
+    void changeVideoAvaibility( const CallID& id );
+    //Change the video avaibility of the user
+    void changeWebcamStatus( const bool status , const CallID& id);
 
-  void displayTextMessage (const CallID& id, const std::string& message);
-  void displayErrorText (const CallID& id, const std::string& message);
-  void displayError(const std::string& error);
-  void displayStatus(const std::string& status);
-  void displayConfigError(const std::string& message);
+    /** 
+     * Save config to file 
+     * @return true on success
+     *	    false otherwise
+     */
+    bool saveConfig (void);
 
-  void startVoiceMessageNotification(const AccountID& accountId, const std::string& nb_msg);
-  void stopVoiceMessageNotification(const AccountID& accountId);
+    /** Save contacts to corresponding file, one by account */
+    bool saveContacts();
 
-  /** Notify the user that registration succeeded  */
-  void registrationSucceed(const AccountID& accountId);
-  /** Notify the user that unregistration succeeded  */
-  void unregistrationSucceed(const AccountID& accountId);
-  /** Notify the user that registration failed  */
-  void registrationFailed(const AccountID& accountId);
-  /** Notify the user that registration is trying  */
-  void registrationTrying(const AccountID& accountId);
-  void sendRegister( const AccountID& accountId , bool expire );
-  // configuration function requests
+    /**
+     * Send registration to all enabled accounts
+     * @return false if exosip or the network checking fails
+     */
+    bool initRegisterAccounts();
 
-  /**
-   * Start events thread. This function actually only calls the private
-   * initRegisterVoIPLink().
-   *
-   * This function should definitively be renamed!
-   *
-   * @todo Receive account name (???)
-   *
-   * DEPRECATED
-   */
-  //bool getEvents();
+    /**
+     * @return true if we tried to register once
+     */
+    bool _hasTriedToRegister;
 
-  //
-  bool getZeroconf(const std::string& sequenceId);
-  bool attachZeroconfEvents(const std::string& sequenceId, Pattern::Observer& observer);
-  bool detachZeroconfEvents(Pattern::Observer& observer);
-  bool getCallStatus(const std::string& sequenceId);
+    /**
+     * Undocumented
+     */
+    bool sendTextMessage(const AccountID& accountId, const std::string& to, const std::string& message);
 
-  /** 
-   * Get account list 
-   * @return A list of accoundIDs
-   */
-  std::vector< std::string >  getAccountList();
+    /**
+     * Handle choice of the DTMF-send-way
+     * @param   id: callid of the line.
+     * @param   code: pressed key.
+     */
+    bool sendDtmf(const CallID& id, char code);
 
-  /**
-   * Retrieve details about a given account
-   */
-  std::map< std::string, std::string > getAccountDetails(const AccountID& accountID);
+    /**
+     * Play the dtmf-associated sound
+     * @param code  The pressed key
+     * @param isTalking	In conversation or not. Useful to know whether or not the sound streams are started
+     */
+    bool playDtmf(char code, bool isTalking);
 
-  /**
-   * Save the details of an existing account, given the account ID
-   *
-   * This will load the configuration map with the given data.
-   * It will also register/unregister links where the 'Enabled' switched.
-   */
-  void setAccountDetails( const ::DBus::String& accountID, 
-                   const std::map< ::DBus::String, ::DBus::String >& details );
+    /**
+     * Play a ringtone
+     * @return bool True on success
+     *	      false otherwise
+     */
+    bool playTone ();
 
-  /**
-   * Add a new account, and give it a new account ID automatically
-   */
-  void addAccount(const std::map< ::DBus::String, ::DBus::String >& details);
+    /**
+     * Play a special ringtone ( BUSY ) if there's at least one message on the voice mail 
+     * @return bool True on success
+     *	      false otherwise
+     */
+    bool playToneWithMessage ();
 
-  /**
-   * Delete an existing account, unregister VoIPLink associated, and
-   * purge from configuration.
-   */
-  void removeAccount(const AccountID& accountID);
-  
-  /*
-   * Get the default account
-   * @return The default account
-   */
-  std::string getDefaultAccount();
+    /**
+     * Acts on the audio streams and audio files
+     * @param stopAudio	Tells whether or not to stop the streams
+     */
+    void stopTone(bool stopAudio);
 
+    /**
+     * When receiving a new incoming call, add it to the callaccount map
+     * and notify user
+     * @param call A call pointer
+     * @param accountId an account id
+     * @return bool True if the call was added correctly
+     */
+    bool incomingCall(Call* call, const AccountID& accountId);
 
-  /** Contact related methods */
-  
-  /** 
-   * Get contact list for a given account
-   * @param accountID ID of the account to get contacts
-   * @return A list of contactID
-   */
-  std::vector<std::string> getContacts(const AccountID& accountID);
+    /**
+     * Notify the user that the recipient of the call has answered and the put the
+     * call in Current state
+     * @param id  The call identifier
+     */
+    void peerAnsweredCall(const CallID& id);
 
-  /**
-   * Retrieve details about a given contact
-   * @param accountID ID of the account of the contact
-   * @param contactID ID of the contact to get details
-   * @return first name, last name, email
-   */
-  std::vector<std::string> getContactDetails(const std::string& accountID, const std::string& contactID);
-  
-  /**
-   * Get contact entries for a given contact
-   * @param accountID ID of the account of the contact
-   * @param contactID ID of the contact to get entries
-   * @return A list of contact entries (phone number, extension, url..)
-   */
-  std::vector<std::string> getContactEntries(const std::string& accountID, const std::string& contactID);
-  
-  /**
-   * Get contact entry details
-   * @param accountID ID of the account of the contact
-   * @param contactID ID of the contact of the entry
-   * @param contactEntryID ID of the entry to get details
-   * @return vector of strings, type of entry (home, work...), show entry in call console, subscribe to entry for presence
-   */
-  std::vector<std::string> getContactEntryDetails(const std::string& accountID, const std::string& contactID, const std::string& contactEntryID);
-  
-  /**
-   * Edit the contact corresponding to contact ID or add a contact if not found
-   * @param accountID ID of the account of the contact
-   * @param contactID ID of the contact
-   * @param firstName First name of the contact
-   * @param lastName Last name of the contact
-   * @param email Email of the contact
-   */
-  void setContact(const std::string& accountID, const std::string& contactID, const std::string& firstName, const std::string& lastName, const std::string& email);
-  
-  /**
-   * Remove the contact corresponding to contact ID or none if not found
-   * @param accountID ID of the account of the contact
-   * @param contactID ID of the contact
-   */
-  void removeContact(const std::string& accountID, const std::string& contactID);
-  
-  /**
-   * Edit the entry corresponding to entry ID or add an entry if not found
-   * @param accountID ID of the account of the contact
-   * @param contactID ID of the contact of the entry
-   * @param entryID ID of the entry
-   * @param text Textual representation of the entry
-   * @param type Type of entry (home, mobile...)
-   * @param isShown Entry is set to be shown in call console if true
-   * @param isSubscribed Entry is set to be subscribed to presence if true
-   */
-  void setContactEntry(const std::string& accountID, const std::string& contactID, const std::string& entryID, const std::string& text, const std::string& type, const std::string& IsShown, const std::string& IsSubscribed);
-  
-  /**
-   * Remove the entry corresponding to entry ID or none if not found
-   * @param accountID ID of the account of the contact
-   * @param contactID ID of the contact of the entry
-   * @param entryID ID of the entry
-   */
-  void removeContactEntry(const std::string& accountID, const std::string& contactID, const std::string& entryID);
-  
-  /**
-   * Publish presence information defined by a passive status
-   * @param accountID The account to publish the status for
-   * @param presence The defined status to publish
-   * @param additionalInfo Optional information related to status
-   */
-  void setPresence(const std::string& accountID, const std::string& presence, const std::string& additionalInfo);
-  
-  /**
-   * Get unordered list of supported codecs
-   * @return The list of the codecs
-   */  
-  std::vector< ::DBus::String > getCodecList( void );
-  /**
-   * Get the info about one codec
-   * Name / CLock rate / bitrate / bandwidth
-   * @param payload The payload of the codec
-   * @return The information
-   */
-  std::vector< ::DBus::String > getCodecDetails( const ::DBus::Int32& payload);
-  
-  /**
-   * Get and set the list of the active video codecs
-   */  
-  std::vector< ::DBus::String > getActiveVideoCodecList( void ); 
-  void setActiveVideoCodecList( const std::vector< ::DBus::String >& list);
+    /**
+     * Rings back because the outgoing call is ringing and the put the
+     * call in Ringing state
+     * @param id  The call identifier
+     */
+    void peerRingingCall(const CallID& id);
 
-  /**
-   * Get the list of video codecs we supports, not ordered
-   * @return The list of the video codecs
-   */  
-  std::vector< ::DBus::String > getVideoCodecList( void );
+    /**
+     * Put the call in Hungup state, remove the call from the list
+     * @param id  The call identifier
+     */
+    void peerHungupCall(const CallID& id);
 
-	/**
-   * Get the list of video codecs active saved in the config file
-   * @return The list of the video codecs
-   */ 
-  std::vector<std::string> retrieveActiveVideoCodecs();
-  
-  /**
-   * Get a list of supported input audio plugin
-   * @return List of names
-   */
-  std::vector< std::string> getInputAudioPluginList(void);
-  
-  /**
-   * Get a list of supported output audio plugin
-   * @return List of names
-   */
-  std::vector< std::string> getOutputAudioPluginList(void);
-  
-  /**
-   * Set input audio plugin 
-   */
-  void setInputAudioPlugin(const std::string& audioPlugin);
-  
-  /**
-   * Set output audio plugin 
-   */
-  void setOutputAudioPlugin(const std::string& audioPlugin);
-  
-  /**
-   * Get list of supported audio output device
-   */
-  std::vector<std::string> getAudioOutputDeviceList(void);
+    /**
+     * Notify the client with an incoming message
+     * @param accountId	The account identifier
+     * @param message The content of the message
+     */
+    void incomingMessage(const AccountID& accountId, const std::string& message);
 
-  /**
-   * Set audio output device
-   */
-  void setAudioOutputDevice(const int index);
+    /**
+     * Notify the user he has voice mails
+     * @param accountId	  The account identifier
+     * @param nb_msg The number of messages
+     */
+    void startVoiceMessageNotification(const AccountID& accountId, const std::string& nb_msg);
 
-  /**
-   * Get list of supported audio input device
-   */
-  std::vector<std::string> getAudioInputDeviceList(void);
+    /** 
+     * Notify the user that registration succeeded  
+     * @param accountId	  The account identifier
+     */
+    void registrationSucceed(const AccountID& accountId);
 
-  /**
-   * Set audio input device
-   */
-  void setAudioInputDevice(const int index);
+    /** 
+     * Notify the user that unregistration succeeded  
+     * @param accountId	  The account identifier
+     */
+    void unregistrationSucceed(const AccountID& accountId);
 
-  /**
-   * Get string array representing integer indexes of output and input device
-   */
-  std::vector<std::string> getCurrentAudioDevicesIndex();
-  
-  /**
-   * Get index of an audio device
-   */
-  int getAudioDeviceIndex( const std::string name );
+    /** 
+     * Notify the user that registration failed  
+     * @param accountId	  The account identifier
+     */
+    void registrationFailed(const AccountID& accountId);
 
-  /*
-   * Get current alsa plugin
-   */
-  std::string getCurrentAudioOutputPlugin( void ); 
-  
-  /**
-   * Convert a list of payload in a special format, readable by the server.
-   * Required format: payloads separated with one slash.
-   * @return std::string The serializabled string
-   */
-  std::string serialize(std::vector<std::string> v);
+    /** 
+     * Notify the user that registration is trying  
+     * @param accountId	  The account identifier
+     */
+    void registrationTrying(const AccountID& accountId);
 
-  int isIax2Enabled( void ); 
-  int isRingtoneEnabled( void ); 
-  void ringtoneEnabled( void ); 
-  std::string getRingtoneChoice( void );
-  void setRingtoneChoice( const std::string& );
-  int getDialpad( void );
-  void setDialpad( void );
-  int isStartHidden( void );
-  void startHidden( void );
-  int popupMode( void );
-  void switchPopupMode( void );
+    /**
+     * ConfigurationManager - Send registration request
+     * @param accountId The account to register/unregister 
+     * @param expire The flag for the type of registration
+     *		 0 for unregistration request
+     *		 1 for registration request
+     */
+    void sendRegister( const ::DBus::String& accountId , bool expire );
+
+    bool getZeroconf(const std::string& sequenceId);
+    bool attachZeroconfEvents(const std::string& sequenceId, Pattern::Observer& observer);
+    bool detachZeroconfEvents(Pattern::Observer& observer);
+    bool getCallStatus(const std::string& sequenceId);
+
+    /** 
+     * Get account list 
+     * @return std::vector<std::string> A list of accoundIDs
+     */
+    std::vector< std::string >  getAccountList();
+
+    /**
+     * Retrieve details about a given account
+     * @param accountID	  The account identifier
+     * @return std::map< std::string, std::string > The account details
+     */
+    std::map< std::string, std::string > getAccountDetails(const AccountID& accountID);
+
+    /**
+     * Save the details of an existing account, given the account ID
+     * This will load the configuration map with the given data.
+     * It will also register/unregister links where the 'Enabled' switched.
+     * @param accountID	  The account identifier
+     * @param details	  The account parameters
+     */
+    void setAccountDetails( const ::DBus::String& accountID, 
+	const std::map< ::DBus::String, ::DBus::String >& details );
+
+    /**
+     * Add a new account, and give it a new account ID automatically
+     * @param details The new account parameters
+     */
+    void addAccount(const std::map< ::DBus::String, ::DBus::String >& details);
+
+    /**
+     * Delete an existing account, unregister VoIPLink associated, and
+     * purge from configuration.
+     * @param accountID	The account unique ID
+     */
+    void removeAccount(const AccountID& accountID);
+
+    /** Contact related methods */
+
+    /** 
+     * Get contact list for a given account
+     * @param accountID ID of the account to get contacts
+     * @return A list of contactID
+     */
+    std::vector<std::string> getContacts(const AccountID& accountID);
+
+    /**
+     * Retrieve details about a given contact
+     * @param accountID ID of the account of the contact
+     * @param contactID ID of the contact to get details
+     * @return first name, last name, email
+     */
+    std::vector<std::string> getContactDetails(const std::string& accountID, const std::string& contactID);
+
+    /**
+     * Get contact entries for a given contact
+     * @param accountID ID of the account of the contact
+     * @param contactID ID of the contact to get entries
+     * @return A list of contact entries (phone number, extension, url..)
+     */
+    std::vector<std::string> getContactEntries(const std::string& accountID, const std::string& contactID);
+
+    /**
+     * Get contact entry details
+     * @param accountID ID of the account of the contact
+     * @param contactID ID of the contact of the entry
+     * @param contactEntryID ID of the entry to get details
+     * @return vector of strings, type of entry (home, work...), show entry in call console, subscribe to entry for presence
+     */
+    std::vector<std::string> getContactEntryDetails(const std::string& accountID, const std::string& contactID, const std::string& contactEntryID);
+
+    /**
+     * Edit the contact corresponding to contact ID or add a contact if not found
+     * @param accountID ID of the account of the contact
+     * @param contactID ID of the contact
+     * @param firstName First name of the contact
+     * @param lastName Last name of the contact
+     * @param email Email of the contact
+     */
+    void setContact(const std::string& accountID, const std::string& contactID, const std::string& firstName, const std::string& lastName, const std::string& email);
+
+    /**
+     * Remove the contact corresponding to contact ID or none if not found
+     * @param accountID ID of the account of the contact
+     * @param contactID ID of the contact
+     */
+    void removeContact(const std::string& accountID, const std::string& contactID);
+
+    /**
+     * Edit the entry corresponding to entry ID or add an entry if not found
+     * @param accountID ID of the account of the contact
+     * @param contactID ID of the contact of the entry
+     * @param entryID ID of the entry
+     * @param text Textual representation of the entry
+     * @param type Type of entry (home, mobile...)
+     * @param isShown Entry is set to be shown in call console if true
+     * @param isSubscribed Entry is set to be subscribed to presence if true
+     */
+    void setContactEntry(const std::string& accountID, const std::string& contactID, const std::string& entryID, const std::string& text, const std::string& type, const std::string& IsShown, const std::string& IsSubscribed);
+
+    /**
+     * Remove the entry corresponding to entry ID or none if not found
+     * @param accountID ID of the account of the contact
+     * @param contactID ID of the contact of the entry
+     * @param entryID ID of the entry
+     */
+    void removeContactEntry(const std::string& accountID, const std::string& contactID, const std::string& entryID);
+
+    /**
+     * Publish presence information defined by a passive status
+     * @param accountID The account to publish the status for
+     * @param presence The defined status to publish
+     * @param additionalInfo Optional information related to status
+     */
+    void setPresence(const std::string& accountID, const std::string& presence, const std::string& additionalInfo);
 
 
-  /**
-   * Inverse of serialize
-   */
-  std::vector<std::string> retrieveActiveCodecs( void );
-  
-  /**
-   * Get and set the list of the active codecs
-   */  
-  std::vector< ::DBus::String > getActiveCodecList( void ); 
-  void setActiveCodecList( const std::vector< ::DBus::String >& list);
+    /**
+     * Get the list of codecs we supports, not ordered
+     * @return The list of the codecs
+     */  
+    std::vector< ::DBus::String > getCodecList( void );
 
-  /*
-   * Set an account as default
-   * @param The ID of the account we want to set as default
-   */
-  void setDefaultAccount(const AccountID& accountID);
+    /**
+     * Get the info about one codec
+     * Name / Clock rate / bitrate / bandwidth
+     * @param payload The payload of the codec
+     * @return std::vector<::DBus::string> The information
+     */
+    std::vector< ::DBus::String > getCodecDetails( const ::DBus::Int32& payload);
 
-  /*
-   * Notify the client that an error occured
-   * @param errMsg The error message that should popup on the client side
-   */
-  void notifyErrClient( const ::DBus::Int32& errCode );
+    /**
+     * Get and set the list of the active video codecs
+     */
+    std::vector< ::DBus::String > getActiveVideoCodecList( void );
+    void setActiveVideoCodecList( const std::vector< ::DBus::String >& list);
 
-  bool getConfigAll(const std::string& sequenceId);
-  bool getConfig(const std::string& section, const std::string& name, TokenList& arg);
-  bool setConfig(const std::string& section, const std::string& name, const std::string& value);
-  bool setConfig(const std::string& section, const std::string& name, int value);
-  bool getConfigList(const std::string& sequenceId, const std::string& name);
-  void selectAudioDriver(void);
+    /**
+     * Get the list of video codecs we supports, not ordered
+     * @return The list of the video codecs
+     */
+    std::vector< ::DBus::String > getVideoCodecList( void );
 
-  /** 
-   * Set Audio Driver with switchName == audiodriver 
-   * @param sflphoned internal parameter to change
-   * @param message to return to the user
-   * @return true if everything is ok
-   */
-  bool setSwitch(const std::string& switchName, std::string& message);
-
-  // configuration function for extern
-  // throw an Conf::ConfigTreeItemException if not found
-  /** Get a int from the config tree */
-  int getConfigInt(const std::string& section, const std::string& name);
-  /** Get a string from the config tree */
-  std::string getConfigString(const std::string& section, const std::string& name);
-
-	/**
-	 * Handle audio sounds heard by a caller while they wait for their 
-	 * connection to a called party to be completed.
-	 */
-  void ringback ();
-
-	/**
-	 * Handle played music when an incoming call occurs
-	 */
-  void ringtone ();
-  void congestion ();
-  void callBusy(const CallID& id);
-  void callFailure(const CallID& id);
-  
-  /**
-   * Function called when signal is received that a contact entry presence changed
-   * that saves data on the daemon and sends notification to client
-   * @param accountID ID of the account
-   * @param entryID ID of the entry
-   * @param presenceText Defined active or passive status received
-   * @param additionalInfo Optional information for the presence status
-   */
-  void contactEntryPresenceChanged(const AccountID& accountID, const std::string entryID,
-		  const std::string presenceText, const std::string additionalInfo);
-
-  /** @return 0 if no tone (init before calling this function) */
-  AudioLoop* getTelephoneTone();
-  /** @return 0 if the wav is stopped */
-  AudioLoop* getTelephoneFile();
-
-  /**
-   * @return true is there is one or many incoming call waiting
-   * new call, not anwsered or refused
-   */
-  bool incomingCallWaiting(void);
-	/**
-	 * Notification of incoming call when you are already busy
-	 */
-  void notificationIncomingCall(void);
+    /**
+     * Get the list of video codecs active saved in the config file
+     * @return The list of the video codecs
+     */
+    std::vector<std::string> retrieveActiveVideoCodecs();
 
 
-  /*
-   * Inline functions to manage volume control
-   * Read by main thread and AudioLayer thread
-   * Write by main thread only
-   */
-  unsigned short getSpkrVolume(void) { return _spkr_volume; }
-  void setSpkrVolume(unsigned short spkr_vol) {  _spkr_volume = spkr_vol; }
-  unsigned short getMicVolume(void) {  return _mic_volume;  }
-  void setMicVolume(unsigned short mic_vol) {    _mic_volume = mic_vol;   }
+    /**
+     * Get a list of supported input audio plugin
+     * @return std::vector<std::string> List of names
+     */
+    std::vector< std::string> getInputAudioPluginList(void);
 
-  // Manage information about firewall
-  /*
-   * Get information about firewall 
-   * @param  stunSvrAddr: stun server
-   * @param  port         port number to open to test the connection
-   * @return true if the connection is successful
-   */
-  bool getStunInfo(StunAddress4& stunSvrAddr, int port);
+    /**
+     * Get a list of supported output audio plugin
+     * @return std::vector<std::string> List of names
+     */
+    std::vector< std::string> getOutputAudioPluginList(void);
 
-  inline int getFirewallPort(void) 		{ return _firewallPort; }
-  inline void setFirewallPort(int port) 	{ _firewallPort = port; }
-  inline std::string getFirewallAddress (void) 	{ return _firewallAddr; }
+    /**
+     * Set input audio plugin 
+     * @param audioPlugin The audio plugin
+     */
+    void setInputAudioPlugin(const std::string& audioPlugin);
 
-  /**
-   * If you are behind a NAT, you have to use STUN server, specified in 
-   * STUN configuration(you can change this one by default) to give you an 
-   * public IP address and assign a port number.
-   * Note: Set firewall port/address retreive
-   * @param svr  : serveur on which to send request
-   * @param port : on which port we want to listen to
-   * 
-   * Return true if we are behind a NAT (without error)
-   */
-  bool behindNat(const std::string& svr, int port);
+    /**
+     * Set output audio plugin 
+     * @param audioPlugin The audio plugin
+     */
+    void setOutputAudioPlugin(const std::string& audioPlugin);
 
-  /**
-   * Init default values for the different fields in the config file.
-   * Fills the local _config (Conf::ConfigTree) with the default contents.
-   *
-   * Called in main.cpp, just before Manager::init().
-   */
-  void initConfigFile (void);
+    /**
+     * Get list of supported audio output device
+     * @return std::vector<std::string> A list of the audio devices supporting playback
+     */
+    std::vector<std::string> getAudioOutputDeviceList(void);
 
-  /**
-   * Tell if the setup was already loaded
-   */
-  bool hasLoadedSetup() { return _setupLoaded; }
-	
-  /** Return a new random callid that is not present in the list
-   * @return a brand new callid
-   */
-  CallID getNewCallID();
+    /**
+     * Set audio output device
+     * @param index The index of the soundcard
+     */
+    void setAudioOutputDevice(const int index);
 
-  /**
-   * Get the current call id
-   * @return the call id or ""
-   */
-  const CallID& getCurrentCallId();
+    /**
+     * Get list of supported audio input device
+     * @return std::vector<std::string> A list of the audio devices supporting capture
+     */
+    std::vector<std::string> getAudioInputDeviceList(void);
 
-  /**
-   * Check if a call is the current one
-   * @param id the new callid
-   * @return if the id is the current call
-   */
-  bool isCurrentCall(const CallID& callId);
-  
-  /* Shared Memory Key exchange on D-Bus */
-  std::string getLocalSharedMemoryKey( void );
-  std::string getRemoteSharedMemoryKey( void );
-  
-  /* Webcam Settings */
-	CmdDesc getBrightness(  );
-	void setBrightness( const int value );
-	CmdDesc getContrast(  );
-	void setContrast( const int value );
-	CmdDesc getColour(  );
-	void setColour( const int value );
-	std::vector<std::string> getWebcamDeviceList(  );
-	void setWebcamDevice( const std::string& name );
-	std::string getCurrentWebcamDevice(  );
+    /**
+     * Set audio input device
+     * @param index The index of the soundcard
+     */
+    void setAudioInputDevice(const int index);
+
+    /**
+     * Get string array representing integer indexes of output and input device
+     * @return std::vector<std::string> A list of the current audio devices
+     */
+    std::vector<std::string> getCurrentAudioDevicesIndex();
+
+    /**
+     * Get index of an audio device
+     * @param name The string description of an audio device
+     * @return int  His index
+     */
+    int getAudioDeviceIndex( const std::string name );
+
+    /*
+     * Get current alsa plugin
+     * @return std::string  The Alsa plugin
+     */
+    std::string getCurrentAudioOutputPlugin( void ); 
+
+    /**
+     * Convert a list of payload in a special format, readable by the server.
+     * Required format: payloads separated with one slash.
+     * @return std::string The serializabled string
+     */
+    std::string serialize(std::vector<std::string> v);
+
+    /**
+     * Tells if IAX2 support is enabled
+     * @return int 1 if IAX2 is enabled
+     *	       0 otherwise
+     */
+    int isIax2Enabled( void ); 
+
+    /**
+     * Ringtone option.
+     * If ringtone is enabled, ringtone on incoming call use custom choice. If not, only standart tone. 
+     * @return int	1 if enabled
+     *	        0 otherwise
+     */
+    int isRingtoneEnabled( void ); 
+
+    /**
+     * Set the ringtone option 
+     * Inverse current value
+     */
+    void ringtoneEnabled( void ); 
+
+    /**
+     * Get the ringtone 
+     * @return gchar* The file name selected as a ringtone
+     */
+    std::string getRingtoneChoice( void );
+
+    /**
+     * Set a ringtone
+     * @param tone The file name of the ringtone
+     */
+    void setRingtoneChoice( const std::string& );
+
+    /**
+     * Tells if the user wants to display the dialpad or not 
+     * @return int 1 if dialpad has to be displayed
+     *	       0 otherwise
+     */
+    int getDialpad( void );
+
+    /**
+     * Set the dialpad visible or not
+     */
+    void setDialpad( void );
+
+    /**
+     * Configure the start-up option
+     * @return int	1 if SFLphone should start in the system tray
+     *	        0 otherwise
+     */
+    int isStartHidden( void );
+
+    /**
+     * Configure the start-up option
+     * At startup, SFLphone can be displayed or start hidden in the system tray
+     */
+    void startHidden( void );
+
+    /**
+     * Configure the popup behaviour
+     * @return int	1 if it should popup on incoming calls
+     *		0 if it should never popups  
+     */
+    int popupMode( void );
+
+    /**
+     * Configure the popup behaviour 
+     * When SFLphone is in the system tray, you can configure when it popups
+     * Never or only on incoming calls
+     */
+    void switchPopupMode( void );
+
+    /**
+     * Retrieve the formatted list of codecs payload in the user config file and
+     * load in the active list of codecs
+     * @return std::vector<std::string>	  The vector containing the active codecs
+     */
+    std::vector<std::string> retrieveActiveCodecs( void );
+
+    /**
+     * Get the list of the active codecs
+     * @return std::vector< ::DBus::String >  The list of active codecs
+     */  
+    std::vector< ::DBus::String > getActiveCodecList( void ); 
+
+    /**
+     * Set the list of the active codecs
+     * @param list  The new list of active codecs
+     */  
+    void setActiveCodecList( const std::vector< ::DBus::String >& list);
+
+    /*
+     * Notify the client that an error occured
+     * @param errCode The error code. Could be: ALSA_CAPTURE_ERROR
+     *					       ALSA_PLAYBACK_ERROR
+     */
+    void notifyErrClient( const ::DBus::Int32& errCode );
+
+    /**
+     * Retrieve in the configuration tree the value of a parameter in a specific section
+     * @param section	The section to look in
+     * @param name	The name of the parameter you want to get
+     * @param arg	Undocumented
+     * @return bool	true on success
+     *			false otherwise
+     */
+    bool getConfig(const std::string& section, const std::string& name, TokenList& arg);
+
+    /**
+     * Change a specific value in the configuration tree.
+     * This value will then be saved in the user config file sflphonedrc
+     * @param section	The section name 
+     * @param name	The parameter name
+     * @param value	The new string value 
+     * @return bool	true on success
+     *		      false otherwise
+     */
+    bool setConfig(const std::string& section, const std::string& name, const std::string& value);
+
+    /** Method to activate Local video Capture for the preference video
+     * @return The success of the operation
+     */ 
+    bool enableLocalVideoPref();
+
+    /**
+     * Change a specific value in the configuration tree.
+     * This value will then be saved in the user config file sflphonedrc
+     * @param section	The section name 
+     * @param name	The parameter name
+     * @param value	The new int value 
+     * @return bool	true on success
+     *		      false otherwise
+     */
+    bool setConfig(const std::string& section, const std::string& name, int value);
+
+    /** 
+     * Get a int from the configuration tree
+     * Throw an Conf::ConfigTreeItemException if not found
+     * @param section The section name to look in
+     * @param name    The parameter name
+     * @return int    The int value
+     */
+    int getConfigInt(const std::string& section, const std::string& name);
+
+    /** 
+     * Get a string from the configuration tree
+     * Throw an Conf::ConfigTreeItemException if not found
+     * @param section The section name to look in
+     * @param name    The parameter name
+     * @return sdt::string    The string value
+     */
+    std::string getConfigString(const std::string& section, const std::string& name);
+
+    /**
+     * Retrieve the soundcards index in the user config file and try to open audio devices
+     * with a specific alsa plugin.
+     * Set the audio layer sample rate
+     */
+    void selectAudioDriver(void);
+
+    /**
+     * Handle audio sounds heard by a caller while they wait for their 
+     * connection to a called party to be completed.
+     */
+    void ringback ();
+
+    /**
+     * Handle played music when an incoming call occurs
+     */
+    void ringtone ();
+
+    /**
+     * Handle played music when a congestion occurs
+     */
+    void congestion ();
+
+    /**
+     * Handle played sound when a call can not be conpleted because of a busy recipient
+     */
+    void callBusy(const CallID& id);
+
+    /**
+     * Handle played sound when a failure occurs
+     */
+    void callFailure(const CallID& id);
+
+    /**
+     * Function called when signal is received that a contact entry presence changed
+     * that saves data on the daemon and sends notification to client
+     * @param accountID ID of the account
+     * @param entryID ID of the entry
+     * @param presenceText Defined active or passive status received
+     * @param additionalInfo Optional information for the presence status
+     */
+    void contactEntryPresenceChanged(const AccountID& accountID, const std::string entryID,
+	const std::string presenceText, const std::string additionalInfo);
+
+    /** 
+     * Retrieve the current telephone tone
+     * @return AudioLoop*   The audio tone or 0 if no tone (init before calling this function) 
+     */
+    AudioLoop* getTelephoneTone();
+
+    /** 
+     * Retrieve the current telephone file
+     * @return AudioLoop* The audio file or 0 if the wav is stopped 
+     */
+    AudioLoop* getTelephoneFile();
+
+    /**
+     * @return true is there is one or many incoming call waiting
+     * new call, not anwsered or refused
+     */
+    bool incomingCallWaiting(void);
+
+    /**
+     * Notification of incoming call when you are already busy
+     */
+    void notificationIncomingCall(void);
+
+    /*
+     * Inline functions to manage speaker volume control
+     * Read by main thread and AudioLayer thread
+     * Write by main thread only
+     * @return unsigned short	The volume value
+     */
+    unsigned short getSpkrVolume(void) { return _spkr_volume; }
+
+    /*
+     * Inline functions to manage speaker volume control
+     * Read by main thread and AudioLayer thread
+     * Write by main thread only
+     * @param spkr_vol	The volume value
+     */
+    void setSpkrVolume(unsigned short spkr_vol) {  _spkr_volume = spkr_vol; }
+
+    /*
+     * Inline functions to manage mic volume control
+     * Read by main thread and AudioLayer thread
+     * Write by main thread only
+     * @return unsigned short	The volume value
+     */
+    unsigned short getMicVolume(void) {  return _mic_volume;  }
+
+    /*
+     * Inline functions to manage mic volume control
+     * Read by main thread and AudioLayer thread
+     * Write by main thread only
+     * @param mic_vol	The volume value
+     */
+    void setMicVolume(unsigned short mic_vol) {    _mic_volume = mic_vol;   }
+
+    // Manage information about firewall
+
+    /*
+     * Get information about firewall 
+     * @param  stunSvrAddr: stun server
+     * @param  port         port number to open to test the connection
+     * @return true if the connection is successful
+     */
+    bool getStunInfo(StunAddress4& stunSvrAddr, int port);
+
+    /*
+     * Inline functions to manage firewall settings
+     * @return int The firewall port
+     */
+    inline int getFirewallPort(void) 		{ return _firewallPort; }
+
+    /** Method to deactivate Local video Capture for the preference video
+     * @return The success of the operation
+     */
+    bool disableLocalVideoPref();
+
+    /** Method that captures the data from the web cam for the prefenrences window
+     * 
+     * This method is ran as a thread
+     */
+    static void* localVideCapturepref(void* pdata);
+
+    /*
+     * Inline functions to manage firewall settings
+     * @param port The firewall port
+     */
+    inline void setFirewallPort(int port) 	{ _firewallPort = port; }
+
+    /** Method to get the status of the enable checkbox
+     * @return The status of the enable checkbox
+     */
+    bool getEnableCheckboxStatus(  );
+
+    /** Method to get the status of the disable checkbox
+     * @return The status of the disable checkbox
+     */
+    bool getDisableCheckboxStatus(  );
+
+    /** 
+     * Method to set the status of the enable checkbox
+     */
+    void setEnableCheckboxStatus( const bool& status );
+
+    /** 
+     * Method to set the status of the disable checkbox
+     */
+    void setDisableCheckboxStatus( const bool& status );
+
+    /**
+     * Map accounts parameters ( authname - hostname ) to an account ID
+     */
+    AccountID getAccountFromEvent( std::string authname );
+
+    /*
+     * Inline functions to manage firewall settings
+     * @return std::string The firewall address
+     */
+    inline std::string getFirewallAddress (void) 	{ return _firewallAddr; }
+
+    /**
+     * If you are behind a NAT, you have to use STUN server, specified in 
+     * STUN configuration(you can change this one by default) to give you an 
+     * public IP address and assign a port number.
+     * Note: Set firewall port/address retreive
+     * @param svr   Server on which to send request
+     * @param port  On which port we want to listen to
+     * @return true if we are behind a NAT (without error)
+     */
+    bool behindNat(const std::string& svr, int port);
+
+    /**
+     * Init default values for the different fields in the config file.
+     * Fills the local _config (Conf::ConfigTree) with the default contents.
+     * Called in main.cpp, just before Manager::init().
+     */
+    void initConfigFile (void);
+
+    /**
+     * Tell if the setup was already loaded
+     * @return bool True if yes
+     *		  false otherwise
+     */
+    bool hasLoadedSetup() { return _setupLoaded; }
+
+    /** 
+     * Return a new random callid that is not present in the list
+     * @return CallID A brand new callid
+     */
+    CallID getNewCallID();
+
+    /**
+     * Get the current call id
+     * @return CallID	The call id or ""
+     */
+    const CallID& getCurrentCallId();
+
+    /**
+     * Check if a call is the current one
+     * @param callId the new callid
+     * @return bool   True if the id is the current call
+     */
+    bool isCurrentCall(const CallID& callId);
+
+    /* Shared Memory Key exchange on D-Bus */
+    std::string getLocalSharedMemoryKey( void );
+    std::string getRemoteSharedMemoryKey( void );
+
+    /* Webcam Settings */
+    CmdDesc getBrightness(  );
+    void setBrightness( const int value );
+    CmdDesc getContrast(  );
+    void setContrast( const int value );
+    CmdDesc getColour(  );
+    void setColour( const int value );
+    std::vector<std::string> getWebcamDeviceList(  );
+    void setWebcamDevice( const std::string& name );
+    std::string getCurrentWebcamDevice(  );
     std::vector< std::string > getResolutionList(  );
     void setResolution( const std::string& name );
     std::string getCurrentResolution(  );
@@ -652,317 +929,264 @@ public:
     std::vector< std::string > getBitrateList(  );
     void setBitrate( const std::string& name );
     std::string getCurrentBitrate(  );
-    
-    
-    /** Method to activate Local video Capture for the preference video
-     * @return The success of the operation
+
+
+  private:
+    /** Attribute telling if the local capture for the web cam is active
+    */
+    static bool _localCapActive;
+
+    /** Attribute telling if it is ok to kill the thread
+    */
+    static bool _localCapOKKill;
+
+    /** Local capture for preference window thread information;
+    */
+    pthread_t _localVidCap_Thread;
+
+    /**
+     * Create .PROGNAME directory in home user and create 
+     * configuration tree from the settings file if this file exists.
+     *
+     * @return	0 if creating file failed
+     *			1 if config-file exists
+     *			2 if file doesn't exist yet.
+     */
+    int createSettingsPath (void);
+
+    /*
+     * Initialize audiocodec with config setting
+     */
+    void initAudioCodec(void);
+
+    /*
+     * Initialize audiodriver
+     */
+    void initAudioDriver(void);
+
+    /*
+     * Initialize zeroconf module and scanning
+     */
+    void initZeroconf(void);
+
+    /*
+     * Init the volume for speakers/micro from 0 to 100 value
      */ 
-    bool enableLocalVideoPref();
-    
-    /** Method to deactivate Local video Capture for the preference video
-     * @return The success of the operation
+    void initVolume();
+
+    /**
+     * Tell if there is a current call processed
+     * @return bool True if there is a current call
      */
-    bool disableLocalVideoPref();
-    
-    /** Method that captures the data from the web cam for the prefenrences window
-     * 
-     * This method is ran as a thread
+    bool hasCurrentCall();
+
+    /**
+     * Switch of current call id
+     * @param id The new callid
      */
-    static void* localVideCapturepref(void* pdata);
-    
-    /** Method to get the status of the enable checkbox
-     * @return The status of the enable checkbox
+    void switchCall(const CallID& id);
+
+    /*
+     * Play one tone
+     * @return false if the driver is uninitialize
      */
-    bool getEnableCheckboxStatus(  );
-    /** Method to get the status of the disable checkbox
-     * @return The status of the disable checkbox
+    bool playATone(Tone::TONEID toneId);
+
+    /** The configuration tree. It contains accounts parameters, general user settings ,audio settings, ... */
+    Conf::ConfigTree _config;
+
+    /** Current Call ID */
+    CallID _currentCallId2;
+
+    /** Protected current call access */
+    ost::Mutex _currentCallMutex;
+
+    /** Vector of CodecDescriptor */
+    CodecDescriptor* _codecBuilder;
+
+    /** Audio layer */
+    AudioLayer* _audiodriver;
+
+    // Main thread
+
+    DTMF* _dtmfKey;
+
+    // map of codec (for configlist request)
+    CodecDescriptor _codecDescriptorMap;
+
+    // videoCodecDescriptor
+    VideoCodecDescriptor *_videoCodecDescriptor;
+
+    //Video Device Manager instance
+    VideoDeviceManager *_videoDeviceManager;
+
+    // MEMMANAGER
+    MemManager *_memManager;
+
+    static KeyHolder _keyHolder;
+
+    /////////////////////
+    // Protected by Mutex
+    /////////////////////
+    ost::Mutex _toneMutex;
+    TelephoneTone* _telephoneTone;
+    AudioFile _audiofile;
+
+    // To handle volume control
+    short _spkr_volume;
+    short _mic_volume;
+    // End of sound variable
+
+
+    // Multithread variable (protected by _mutex)
+    // 
+    /** Mutex to protect access to code section */
+    ost::Mutex _mutex;
+
+    // Multithread variable (non protected)
+    DBusManagerImpl * _dbus;
+
+    /** Waiting Call Vectors */
+    CallIDSet _waitingCall;
+
+    /** Protect waiting call list, access by many voip/audio threads */
+    ost::Mutex _waitingCallMutex;
+
+    /** Number of waiting call, synchronize with waitingcall callidvector */
+    unsigned int _nbIncomingWaitingCall;
+
+    /**
+     * Add incoming callid to the waiting list
+     * @param id CallID to add
      */
-	bool getDisableCheckboxStatus(  );
-	/** 
-     * Method to set the status of the enable checkbox
+    void addWaitingCall(const CallID& id);
+
+    /**
+     * Remove incoming callid to the waiting list
+     * @param id CallID to remove
      */
-	void setEnableCheckboxStatus( const bool& status );
-	/** 
-     * Method to set the status of the disable checkbox
+    void removeWaitingCall(const CallID& id);
+
+    /**
+     * Tell if a call is waiting and should be remove
+     * @param id CallID to test
+     * @return bool True if the call is waiting
      */
-	void setDisableCheckboxStatus( const bool& status );
+    bool isWaitingCall(const CallID& id);
 
+    /**
+     * Path of the ConfigFile 
+     */
+    std::string 	_path;
+    int _exist;
+    int _setupLoaded;
 
-  /**
-   * Map accounts parameters ( authname - hostname ) to an account ID
-   */
- AccountID getAccountFromEvent( std::string authname );
-private:
+    // To handle firewall
+    int _firewallPort;
+    std::string _firewallAddr;
 
-  /** Attribute telling if the local capture for the web cam is active
-   */
-  static bool _localCapActive;
-  
-  /** Attribute telling if it is ok to kill the thread
-   */
-  static bool _localCapOKKill;
-  
-  /** Local capture for preference window thread information;
-   */
-  pthread_t _localVidCap_Thread;
-
- /**
-  * Create .PROGNAME directory in home user and create 
-  * configuration tree from the settings file if this file exists.
-  *
-  * @return	0 if creating file failed
-  *			1 if config-file exists
-  *			2 if file doesn't exist yet.
-  */
-  int createSettingsPath (void);
-
-  /*
-   * Initialize audiocodec with config setting
-   */
-  void initAudioCodec(void);
-  
-  
-  /*
-   * Initialize audiodriver
-   */
-  void initAudioDriver(void);
-
-  /*
-   * Initialize zeroconf module and scanning
-   */
-  void initZeroconf(void);
-  
-  /*
-   * Init the Gui interface (after setting it) inside setGui
-   */
-  void initGui();
-
-  /*
-   * Init the volume for speakers/micro from 0 to 100 value
-   */ 
-  void initVolume();
-
-  /**
-   * Configuration
-   */
-  bool getDirListing(const std::string& sequenceId, const std::string& path, int *nbFile);
-  bool getAudioDeviceList(const std::string& sequenceId, int ioDeviceMask);
-  Conf::ConfigTree _config;
-  bool getCountryTones(const std::string& sequenceId);
-  void sendCountryTone(const std::string& sequenceId, int index, const std::string& name);
-   
-
-
-  /**
-   * Tell if there is a current call processed
-   * @return true if there is a current call
-   */
-  bool hasCurrentCall();
-
-  /**
-   * Switch of current call id
-   * @param id the new callid
-   */
-  void switchCall(const CallID& id);
-
-  /** Current Call ID */
-  CallID _currentCallId2;
-
-  /** Protected current call access */
-  ost::Mutex _currentCallMutex;
-
-
-  /*
-   * Play one tone
-   * @return false if the driver is uninitialize
-   */
-  bool playATone(Tone::TONEID toneId);
-  
-  //
-  // Multithread variable with extern accessor and change only inside the main thread
-  //
-  /** Vector of CodecDescriptor */
-  CodecDescriptor* _codecBuilder;
-
-  //
-  // Sound variable
-  //
-  AudioLayer* _audiodriver;
-
-  // Main thread
-  DTMF* _dtmfKey;
-
-  // map of codec (for configlist request)
-  CodecDescriptor _codecDescriptorMap;
-  
-  // videoCodecDescriptor
-  VideoCodecDescriptor *_videoCodecDescriptor;
-  
-  //Video Device Manager instance
-  VideoDeviceManager *_videoDeviceManager;
-
-  // MEMMANAGER
-  MemManager *_memManager;
-
-  static KeyHolder _keyHolder;
-  
-  /////////////////////
-  // Protected by Mutex
-  /////////////////////
-  ost::Mutex _toneMutex;
-  TelephoneTone* _telephoneTone;
-  AudioFile _audiofile;
-
-  // To handle volume control
-  short _spkr_volume;
-  short _mic_volume;
-  short _mic_volume_before_mute;
-  // End of sound variable
-
-
-  // Multithread variable (protected by _mutex)
-  // 
-  /** Mutex to protect access to code section */
-  ost::Mutex _mutex;
-
-  //
-  // Multithread variable (non protected)
-  //
-  DBusManagerImpl * _dbus;
-
-  /** Waiting Call Vectors */
-  CallIDSet _waitingCall;
-  /** Protect waiting call list, access by many voip/audio threads */
-  ost::Mutex _waitingCallMutex;
-  /** Number of waiting call, synchronize with waitingcall callidvector */
-  unsigned int _nbIncomingWaitingCall;
-  /**
-   * Add incoming callid to the waiting list
-   * @param id CallID to add
-   */
-  void addWaitingCall(const CallID& id);
-  /**
-   * Remove incoming callid to the waiting list
-   * @param id CallID to remove
-   */
-  void removeWaitingCall(const CallID& id);
-  /**
-   * Tell if a call is waiting and should be remove
-   * @param id CallID to test
-   * @return true if the call is waiting
-   */
-  bool isWaitingCall(const CallID& id);
-
-	/**
-   * Path of the ConfigFile 
-	 */
-  std::string 	_path;
-  int _exist;
-  int _setupLoaded;
-
-	// To handle firewall
-  int _firewallPort;
-  std::string _firewallAddr;
-
-  // tell if we have zeroconf is enabled
-  int _hasZeroconf;
+    // tell if we have zeroconf is enabled
+    int _hasZeroconf;
 
 #ifdef USE_ZEROCONF
-  // DNSService contain every zeroconf services
-  //  configuration detected on the network
-  DNSService *_DNSService;
+    // DNSService contain every zeroconf services
+    //  configuration detected on the network
+    DNSService *_DNSService;
 #endif
 
-  /** Map to associate a CallID to the good account */
-  CallAccountMap _callAccountMap;
-  /** Mutex to lock the call account map (main thread + voiplink thread) */
-  ost::Mutex _callAccountMapMutex;
+    /** Map to associate a CallID to the good account */
+    CallAccountMap _callAccountMap;
 
-  /** Associate a new CallID to a AccountID
-   * Protected by mutex
-   * @param callID the new CallID not in the list yet
-   * @param accountID the known accountID present in accountMap
-   * @return true if the new association is create
-   */
-  bool associateCallToAccount(const CallID& callID, const AccountID& accountID);
+    /** Mutex to lock the call account map (main thread + voiplink thread) */
+    ost::Mutex _callAccountMapMutex;
 
-  /** Return the AccountID from a CallID
-   * Protected by mutex
-   * @param callID the CallID in the list
-   * @return the accountID associated or "" if the callID is not found
-   */
-  AccountID getAccountFromCall(const CallID& callID);
+    /** Associate a new CallID to a AccountID
+     * Protected by mutex
+     * @param callID the new CallID not in the list yet
+     * @param accountID the known accountID present in accountMap
+     * @return bool True if the new association is create
+     */
+    bool associateCallToAccount(const CallID& callID, const AccountID& accountID);
 
-  /** Remove a CallID/AccountID association
-   * Protected by mutex
-   * @param callID the CallID to remove
-   * @return true if association is removed
-   */
-  bool removeCallAccount(const CallID& callID);
+    /** Return the AccountID from a CallID
+     * Protected by mutex
+     * @param callID the CallID in the list
+     * @return AccountID  The accountID associated or "" if the callID is not found
+     */
+    AccountID getAccountFromCall(const CallID& callID);
 
-  /** Contains a list of account (sip, aix, etc) and their respective voiplink/calls */
-  AccountMap _accountMap;
+    /** Remove a CallID/AccountID association
+     * Protected by mutex
+     * @param callID the CallID to remove
+     * @return bool True if association is removed
+     */
+    bool removeCallAccount(const CallID& callID);
 
-  /**
-   * Load the account from configuration
-   * @return number of account
-   */
-  short loadAccountMap();
+    /** Contains a list of account (sip, aix, etc) and their respective voiplink/calls */
+    AccountMap _accountMap;
 
-  /**
-   * Unload the account (delete them)
-   */
-  void unloadAccountMap();
+    /**
+     * Load the account from configuration
+     * @return short Number of account
+     */
+    short loadAccountMap();
 
-  /**
-   * Tell if an account exists
-   * @param accountID account ID check
-   */
-  bool accountExists(const AccountID& accountID);
+    /**
+     * Unload the account (delete them)
+     */
+    void unloadAccountMap();
 
-  /**
-   * Get an account pointer
-   * @param accountID account ID to get
-   * @param the account pointer or 0
-   */
-  Account* getAccount(const AccountID& accountID);
+    /**
+     * Tell if an account exists
+     * @param accountID account ID check
+     * @return bool True if the account exists
+     *		  false otherwise
+     */
+    bool accountExists(const AccountID& accountID);
 
-  /**
-   * Get the voip link from the account pointer
-   * @param accountID account ID to get
-   * @param the voip link from the account pointer or 0
-   */
-  VoIPLink* getAccountLink(const AccountID& accountID);
-  
-  /**
-   * Get a contact
-   * @param id of the account
-   * @param id of the contact
-   * @return Pointer on contact or null
-   */
-  Contact* getContact(const AccountID& accountID, const std::string& contactID);
+    /**
+     * Get an account pointer
+     * @param accountID account ID to get
+     * @return Account*	 The account pointer or 0
+     */
+    Account* getAccount(const AccountID& accountID);
+
+    /**
+     * Get a contact
+     * @param id of the account
+     * @param id of the contact
+     * @return Pointer on contact or null
+     */
+    Contact* getContact(const AccountID& accountID, const std::string& contactID);
+
+    /**
+     * Get the voip link from the account pointer
+     * @param accountID	  Account ID to get
+     * @return VoIPLink*   The voip link from the account pointer or 0
+     */
+    VoIPLink* getAccountLink(const AccountID& accountID);
 
 #ifdef TEST
-  bool testCallAccountMap();
-  bool testAccountMap();
+    bool testCallAccountMap();
+    bool testAccountMap();
 #endif
 
-  /*
-   * Initialize video codec with config setting
-   */
-  void initVideoCodec(void);
-  
     /*
-   * Initialize the memmanager -> the shared memory interface
-   */
-  void initMemManager(void);
-  
-  
-   /*
-   * Initialize the VideoDeviceManager -> the V4L interface
-   */
-  void initVideoDeviceManager(void);
-	
+     * Initialize video codec with config setting
+     */
+    void initVideoCodec(void);
+
+    /*
+     * Initialize the memmanager -> the shared memory interface
+     */
+    void initMemManager(void);
+
+
+    /*
+     * Initialize the VideoDeviceManager -> the V4L interface
+     */
+    void initVideoDeviceManager(void);
+
 };
 
 #endif // __MANAGER_H__

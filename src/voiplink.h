@@ -33,228 +33,325 @@
 
 class AudioCodec;
 
-//#include "account.h" // for AccountID
-// replaced by:
+/** Define AccountID type */
 typedef std::string AccountID;
 
+/** Define a map that associate a Call object to a call identifier */
 typedef std::map<CallID, Call*> CallMap;
 
 typedef std::map<ConfID, ConfCall*> ConfCallMap;
 
 /**
- * Listener and manager interface for each VoIP protocol
+ * @file voiplink.h
+ * @brief Listener and manager interface for each VoIP protocol
  */
 class VoIPLink {
-public:
-  VoIPLink(const AccountID& accountID);
-  virtual ~VoIPLink (void);
+  public:
 
-  enum RegistrationState {Unregistered, Trying, Registered, Error, ErrorAuth , ErrorNetwork , ErrorHost};
+    /**
+     * Constructor
+     * @param accountID The account identifier
+     */
+    VoIPLink(const AccountID& accountID);
 
-  // Pure virtual functions
-  virtual void getEvent (void) = 0;
-  virtual bool init (void) = 0;
-  virtual bool checkNetwork (void) = 0;
-  virtual void terminate (void) = 0;
-  virtual bool sendRegister (void) = 0;
-  virtual bool sendUnregister (void) = 0;
+    /**
+     * Virtual destructor
+     */
+    virtual ~VoIPLink (void);
 
-  /** Add a new outgoing call and return the call pointer or 0 if and error occurs */
-  virtual Call* newOutgoingCall(const CallID& id, const std::string& toUrl) = 0;
- 
-  /** Start/Stop Video within a call */
-  virtual bool ChangeWebCamStatus(const CallID& id, bool status) = 0;
+    /** Contains all the state an Voip can be in */
+    enum RegistrationState {Unregistered, Trying, Registered, Error, ErrorAuth , ErrorNetwork , ErrorHost};
 
-  virtual bool answer(const CallID& id) = 0;
+    /**
+   * Virtual method
+     * Event listener. Each event send by the call manager is received and handled from here
+     */
+    virtual void getEvent (void) = 0;
 
-  /**
-   * Hang up a call
-   */
-  virtual bool hangup(const CallID& id) = 0;
+    /** 
+     * Virtual method
+     * Try to initiate the eXosip engine/thread and set config 
+     * @return bool True if OK
+     */
+    virtual bool init (void) = 0;
+    
+    /**
+     * Virtual method
+     * Check if a local IP can be found
+     * @return bool True if network is reachable
+     */
+    virtual bool checkNetwork (void) = 0;
+    
+    /**
+     * Virtual method
+     * Delete link-related stuuf like calls
+     */
+    virtual void terminate (void) = 0;
+    
+    /**
+     * Virtual method
+     * Build and send SIP registration request
+     * @return bool True on success
+     *		  false otherwise
+     */
+    virtual bool sendRegister (void) = 0;
+    
+    /**
+     * Virtual method
+     * Build and send SIP unregistration request
+     * @return bool True on success
+     *		  false otherwise
+     */
+    virtual bool sendUnregister (void) = 0;
 
-  /**
-   * Cancel the call dialing
-   */
-  virtual bool cancel(const CallID& id) = 0;
+    /**
+     * Place a new call
+     * @param id  The call identifier
+     * @param toUrl  The Sip address of the recipient of the call
+     * @return Call* The current call
+     */
+    virtual Call* newOutgoingCall(const CallID& id, const std::string& toUrl) = 0;
 
-  /**
-   * Put a call on hold
-   */
-  virtual bool onhold(const CallID& id) = 0;
+    /** Start/Stop Video within a call */
+    virtual bool ChangeWebCamStatus(const CallID& id, bool status) = 0;
 
-  /**
-   * Resume a call from hold state
-   */
-  virtual bool offhold(const CallID& id) = 0;
+    /**
+     * Answer the call
+     * @param id The call identifier
+     * @return bool True on success
+     */
+    virtual bool answer(const CallID& id) = 0;
 
-  /**
-   * Transfer a call to specified URI
-   */
-  virtual bool transfer(const CallID& id, const std::string& to) = 0;
+    /**
+     * Hang up a call
+     * @param id The call identifier
+     * @return bool True on success
+     */
+    virtual bool hangup(const CallID& id) = 0;
 
-  /**
-   * Refuse incoming call
-   */
-  virtual bool refuse(const CallID& id) = 0;
+    /**
+     * Cancel the call dialing
+     * @param id The call identifier
+     * @return bool True on success
+     */
+    virtual bool cancel(const CallID& id) = 0;
 
-  virtual bool carryingDTMFdigits(const CallID& id, char code) = 0;
+    /**
+     * Put a call on hold
+     * @param id The call identifier
+     * @return bool True on success
+     */
+    virtual bool onhold(const CallID& id) = 0;
 
-  /**
-   * Send text message
-   */
-  virtual bool sendMessage(const std::string& to, const std::string& body) = 0;
+    /**
+     * Resume a call from hold state
+     * @param id The call identifier
+     * @return bool True on success
+     */
+    virtual bool offhold(const CallID& id) = 0;
 
-  /**
-   * Determine if link supports presence information
-   */
-  virtual bool isContactPresenceSupported() = 0;
-  
-  /**
-   * Subscribe contacts for presence information if supported
-   */
-  virtual void subscribePresenceForContact(ContactEntry* contactEntry);
-  /**
-   * Unsubscribe contacts for presence information if supported
-   */
-  virtual void unsubscribePresenceForContact(ContactEntry* contactEntry);
-  
-  /**
-   * Publish presence status to server if supported
-   */
-  virtual void publishPresenceStatus(std::string status);
-  
-  // these method are set only with 'Account init'  and can be get by everyone
-  void setFullName (const std::string& fullname) { _fullname = fullname; }
-  std::string& getFullName (void) { return _fullname; }
-  void setHostName (const std::string& hostname) {  _hostname = hostname; }
-  std::string& getHostName (void) { return _hostname; }
+    /**
+     * Transfer a call to specified URI
+     * @param id The call identifier
+     * @param to The recipient of the call
+     * @return bool True on success
+     */
+    virtual bool transfer(const CallID& id, const std::string& to) = 0;
 
-  /**
-   * Return parent Account's ID
-   */
-  AccountID& getAccountID(void) { return _accountID; }
+    /**
+     * Refuse incoming call
+     * @param id The call identifier
+     * @return bool True on success
+     */
+    virtual bool refuse(const CallID& id) = 0;
 
-  /**
-   * Set parent Account's ID
-   */
-  void setAccountID( const AccountID& accountID) { _accountID = accountID; }
+    /**
+     * Send DTMF
+     * @param id The call identifier
+     * @param code  The char code
+     * @return bool True on success
+     */
+    virtual bool carryingDTMFdigits(const CallID& id, char code) = 0;
 
-  /** Get the call pointer from the call map (protected by mutex)
-   * @param id A Call ID
-   * @return call pointer or 0
-   */
-  Call* getCall(const CallID& id);
+    /**
+     * Send text message
+     */
+    virtual bool sendMessage(const std::string& to, const std::string& body) = 0;
 
-  /** Get the confcall pointer from the confcall map (protected by mutex)
-   * @param id A ConfCall ID
-   * @return call pointer or 0
-   */
-  ConfCall* getConf(const ConfID& id);
-  
-  /** Method to add a conference call
+    // NOW
+    /**
+     * Determine if link supports presence information
+     */
+    virtual bool isContactPresenceSupported() = 0;
+
+    /**
+     * Register contacts for presence information if supported
+     */
+    virtual void subscribePresenceForContact(ContactEntry* contactEntry);
+
+    /**
+     * Unsubscribe contacts for presence information if supported
+     */
+    virtual void unsubscribePresenceForContact(ContactEntry* contactEntry);
+
+    /**
+     * Publish presence status to server
+     */
+    virtual void publishPresenceStatus(std::string status);
+
+    /**
+     * Set the account full name
+     * @param fullname	The full name
+     */
+    void setFullName (const std::string& fullname) { _fullname = fullname; }
+
+    /**
+     * Get the account full name
+     * @return std::string The full name
+     */
+    std::string& getFullName (void) { return _fullname; }
+
+    /**
+     * Set the account host name
+     * @param hostname	The host name
+     */
+    void setHostName (const std::string& hostname) {  _hostname = hostname; }
+    
+    /**
+     * Get the account host name
+     * @return std::string  The host name
+     */
+    std::string& getHostName (void) { return _hostname; }
+
+    /**
+     * @return AccountID  parent Account's ID
+     */
+    AccountID& getAccountID(void) { return _accountID; }
+
+    /**
+     * @param accountID The account identifier
+     */
+    void setAccountID( const AccountID& accountID) { _accountID = accountID; }
+
+    /** Get the call pointer from the call map (protected by mutex)
+     * @param id A Call ID
+     * @return Call*  Call pointer or 0
+     */
+    Call* getCall(const CallID& id);
+
+     /** Get the confcall pointer from the confcall map (protected by mutex)
+      * @param id A ConfCall ID
+      * @return call pointer or 0
+      */
+    ConfCall* getConf(const ConfID& id);
+
+   /** Method to add a conference call
    * @param Id of a Call
    * @param Id of a Call
    */
   bool addConf(const CallID& id1,const CallID& id2 );
 
-  /**
-   * Get registration state
-   */
-  enum RegistrationState getRegistrationState() { return _registrationState; }
+    /**
+     * Get registration state
+     * @return RegistrationState
+     */
+    enum RegistrationState getRegistrationState() { return _registrationState; }
 
-  /**
-   * Get registration error message, if set.
-   */
-  int getRegistrationError() { return _registrationError; }
+    /**
+     * Get registration error message, if set.
+     */
+    int getRegistrationError() { return _registrationError; }
 
-  /**
-   * Set new registration state
-   *
-   * We use this function, in case the server needs to PUSH to the
-   * GUI when the state changes.
-   */
-  void setRegistrationState(const enum RegistrationState state,
-			    const int& errorCode);
+    /**
+     * Set new registration state
+     * We use this function, in case the server needs to PUSH to the
+     * GUI when the state changes.
+     * @param state The registration state
+     * @param errorCode The error code
+     */
+    void setRegistrationState(const enum RegistrationState state,
+	const int& errorCode);
 
-  /**
-   * Same, but with default error value to ""
-   */
-  void setRegistrationState(const enum RegistrationState state);
-  
-private:
-  /**
-   * Full name used as outgoing Caller ID
-   */
-  std::string _fullname;
+    /**
+     * Set new registration state
+     * @param state The registration state
+     */
+    void setRegistrationState(const enum RegistrationState state);
 
-  /**
-   * Host name used for authentication
-   */
-  std::string _hostname;
+  private:
+    /**
+     * Full name used as outgoing Caller ID
+     */
+    std::string _fullname;
 
-  /**
-   * ID of parent's Account
-   */
-  AccountID _accountID;
+    /**
+     * Host name used for authentication
+     */
+    std::string _hostname;
 
-  /**
-   * State of registration
-   */
-  enum RegistrationState _registrationState;
+    /**
+     * ID of parent's Account
+     */
+    AccountID _accountID;
 
-  /**
-   * Registration error code -> refers to global.h
-   */
-  int _registrationError;
+    /**
+     * State of registration
+     */
+    enum RegistrationState _registrationState;
 
-protected:
-  /** Add a call to the call map (protected by mutex)
-   * @param call A call pointer with a unique pointer
-   * @return true if the call was unique and added
-   */
-  bool addCall(Call* call);
+    /**
+     * Registration error code -> refers to global.h
+     */
+    int _registrationError;
 
-  /** Remove a call from the call map (protected by mutex)
-   * @param id A Call ID
-   * @return true if the call was correctly removed
-   */
-  bool removeCall(const CallID& id);
-  
-  /** Remove a conference from the confcall map (protected by mutex)
+  protected:
+    /** Add a call to the call map (protected by mutex)
+     * @param call A call pointer with a unique pointer
+     * @return bool True if the call was unique and added
+     */
+    bool addCall(Call* call);
+
+    /** Remove a call from the call map (protected by mutex)
+     * @param id A Call ID
+     * @return bool True if the call was correctly removed
+     */
+    bool removeCall(const CallID& id);
+
+    /** Remove a conference from the confcall map (protected by mutex)
    * @param id A ConfCall ID
    * @return true if the call was correctly removed
    */
   bool removeConfCall(const ConfID& id);
 
-  /**
-   * Remove all the call from the map
-   */
-  bool clearCallMap();
+    /**
+     * Remove all the call from the map
+     * @return bool True on success
+     */
+    bool clearCallMap();
 
-  /** Contains all the calls for this Link, protected by mutex */
-  CallMap _callMap;
-  
-  /** Constains all the conferences calls*/
+    /** Contains all the calls for this Link, protected by mutex */
+    CallMap _callMap;
+
+     /** Constains all the conferences calls*/
   ConfCallMap _confCallMap;
 
-  /** Mutex to protect call map */
-  ost::Mutex _callMapMutex;
-  
-  /** Mutex to protect ConfCall map */
+    /** Mutex to protect call map */
+    ost::Mutex _callMapMutex;
+
+    /** Mutex to protect ConfCall map */
   ost::Mutex _confCallMapMutex;
 
-  /** Get Local IP Address (ie: 127.0.0.1, 192.168.0.1, ...) */
-  std::string _localIPAddress;
-  /** Get local listening port (5060 for SIP, ...) */
-  unsigned int _localPort;
+    /** Get Local IP Address (ie: 127.0.0.1, 192.168.0.1, ...) */
+    std::string _localIPAddress;
 
+    /** Get local listening port (5060 for SIP, ...) */
+    unsigned int _localPort;
 
-  /** Whether init() was called already or not
-   *
-   * This should be used in [IAX|SIP]VoIPLink::init() and terminate(), to
-   * indicate that init() was called, or reset by terminate().
-   */
-  bool _initDone;
+    /** Whether init() was called already or not
+     * This should be used in [IAX|SIP]VoIPLink::init() and terminate(), to
+     * indicate that init() was called, or reset by terminate().
+     */
+    bool _initDone;
 };
 
 #endif // __VOIP_LINK_H__
