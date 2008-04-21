@@ -24,8 +24,6 @@
 #define CONFIGURATIONMANAGER_H
 
 #include "configurationmanager-glue.h"
-#include <dbus-c++/dbus.h>
-
     
 class ConfigurationManager
 : public org::sflphone::SFLphone::ConfigurationManager,

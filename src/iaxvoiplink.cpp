@@ -18,11 +18,12 @@
  *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 #include "iaxvoiplink.h"
-#include "global.h" // for _debug
-#include "iaxcall.h"
 #include "eventthread.h"
+#include "iaxcall.h"
+#include "global.h" // for _debug
 
 #include "manager.h"
+#include "user_cfg.h" // SIGNALISATION / PULSE #define
 #include "audio/audiolayer.h"
 
 #include <samplerate.h>

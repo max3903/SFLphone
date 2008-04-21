@@ -21,8 +21,6 @@
 #define INSTANCE_H
 
 #include "instance-glue.h"
-#include <dbus-c++/dbus.h>
-
     
 class Instance
 : public org::sflphone::SFLphone::Instance,

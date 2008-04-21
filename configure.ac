@@ -1,7 +1,7 @@
 dnl SFLPhone - configure.ac for automake 1.9 and autoconf 2.59
 dnl
 dnl Process this file with autoconf to produce a configure script.
-AC_PREREQ(2.59)
+AC_PREREQ(2.61)
 AC_INIT([SFLPhone],[0.7],[sflphoneteam@savoirfairelinux.com],[sflphone])
 AC_COPYRIGHT([[Copyright (c) Savoir-Faire Linux 2004-2008]])
 AC_REVISION([$Revision$])
@@ -57,7 +57,7 @@ AC_CONFIG_FILES([platform/debian/changelog \
   platform/fedora/sflphone-fc6.spec])
   
 dnl the file stamp-h.in should be there before (instead of AC_CONFIG_HEADERS(config.h))
-AM_CONFIG_HEADER(config.h)
+dnl AC_CONFIG_HEADERS([config.h])
 
 dnl Get project version
 VERSION=`sed -ne 's/^#define SFLPHONED_VERSION "\(.*\)"/\1/p' ${srcdir}/src/global.h`

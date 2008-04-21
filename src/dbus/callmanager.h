@@ -21,8 +21,6 @@
 #define CALLMANAGER_H
 
 #include "callmanager-glue.h"
-#include <dbus-c++/dbus.h>
-
     
 class CallManager
 : public org::sflphone::SFLphone::CallManager,
