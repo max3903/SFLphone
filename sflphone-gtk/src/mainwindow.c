@@ -20,6 +20,7 @@
 #include <config.h>
 #include <actions.h>
 #include <callconsolewindow.h>
+#include <calltab.h>
 #include <calllist.h> 
 #include <calltree.h>
 #include <configwindow.h>
@@ -58,7 +59,7 @@ on_delete (GtkWidget * widget, gpointer data)
 /** Ask the user if he wants to hangup current calls */
 gboolean 
 main_window_ask_quit(){
-  guint count = call_list_get_size();
+  guint count = call_list_get_size(current_calls);
   GtkWidget * dialog;
   guint response;
   gchar * question;
@@ -151,7 +152,8 @@ create_main_window ()
   
   widget = create_toolbar();
   gtk_box_pack_start (GTK_BOX (vbox), widget, FALSE /*expand*/, TRUE /*fill*/, 0 /*padding*/);
-  gtk_box_pack_start (GTK_BOX (vbox), create_call_tree(), TRUE /*expand*/, TRUE /*fill*/,  0 /*padding*/);
+  gtk_box_pack_start (GTK_BOX (vbox), current_calls->tree, TRUE /*expand*/, TRUE /*fill*/,  0 /*padding*/);
+  gtk_box_pack_start (GTK_BOX (vbox), history->tree, TRUE /*expand*/, TRUE /*fill*/,  0 /*padding*/);
   
   gtk_box_pack_start (GTK_BOX (vbox), subvbox, FALSE /*expand*/, TRUE /*fill*/, 0 /*padding*/);
  
@@ -172,6 +174,10 @@ create_main_window ()
 
   /* make sure that everything, window and label, are visible */
   gtk_widget_show_all (window);
+
+  /* dont't show the history */
+  gtk_widget_hide(history->tree);
+  //gtk_widget_show(current_calls->tree);
   
   //screen_clear();
   // Welcome screen
@@ -295,7 +301,7 @@ statusbar_pop_message(guint id)
 
 gboolean main_window_glWidget( gboolean show )
 {
-	call_t * selectedCall = call_get_selected();
+	call_t * selectedCall = call_get_selected(current_calls);
 	
 	if (selectedCall)
 	{

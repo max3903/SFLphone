@@ -22,6 +22,8 @@
 
 #include <gtk/gtk.h>
 #include <calllist.h>
+#include <calltab.h>
+
 
 
 // These declaration must be in the .h so that mainwindow.c will see the variables
@@ -32,34 +34,34 @@ guint webCamButtonConnId;	 //The webCam button toggled signal connection ID
   * @brief The GtkTreeView that list calls in the main window.
   */
 
+calltab_t* active_calltree;
 /**
  * Create a new widget calltree
  * @return GtkWidget* A new widget
  */
-GtkWidget * create_call_tree();
+void create_call_tree(calltab_t* tab);
 
 /**
  * Update the toolbar's buttons state, according to the call state
  */
 void toolbar_update_buttons();
+static void toggle_history(GtkToggleToolButton *toggle_tool_button, gpointer user_data);
 
 /**
  * Add a call in the calltree
  * @param c The call to add
  */
-void update_call_tree_add (call_t * c);
-
+void update_call_tree_add (calltab_t* ct, call_t * c);
 /**
  * Update the call tree if the call state changes
  * @param c The call to update
  */ 
-void update_call_tree (call_t * c);
-
+void update_call_tree (calltab_t* ct, call_t * c);
 /**
  * Remove a call from the call tree
  * @param c The call to remove
  */
-void update_call_tree_remove (call_t * c);
+void update_call_tree_remove (calltab_t* ct, call_t * c);
 
 /**
  * Build the toolbar
