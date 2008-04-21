@@ -428,9 +428,12 @@ SIPVoIPLink::getEvent()
 	case EXOSIP_SUBSCRIPTION_NOTIFY:          /** 44 < announce new NOTIFY request     */
 		_debugMid(" !EXOSIP_SUBSCRIPTION_NOTIFY\n");
 		osip_body_t* body;
-		osip_message_get_body(event->request, 0, &body);
-		if (body != NULL && body->body != NULL) {
-			subscriptionNotificationReceived(event, body->body);
+		if(event->request != NULL)
+		{
+			osip_message_get_body(event->request, 0, &body);
+			if (body != NULL && body->body != NULL) {
+				subscriptionNotificationReceived(event, body->body);
+			}
 		}
 		break;
 	case EXOSIP_SUBSCRIPTION_RELEASED:        /** 45 < call context is cleared.        */
@@ -1028,6 +1031,7 @@ SIPVoIPLink::subscribePresenceForContact(ContactEntry* contactEntry)
 	from << "sip:" << _userpart.data() << "@" << getHostName().data();
 
 	// Subscribe for changes on server but also polls at every 5000 interval (time unit unknown)
+	eXosip_lock();
 	i = eXosip_subscribe_build_initial_request(&subscription,
 			to.str().c_str(),
 			from.str().c_str(),
@@ -1039,7 +1043,6 @@ SIPVoIPLink::subscribePresenceForContact(ContactEntry* contactEntry)
 	osip_message_set_accept(subscription, "application/pidf+xml");
 	
 	// Send subscription
-	eXosip_lock();
 	i = eXosip_subscribe_send_initial_request(subscription);
 	eXosip_unlock();
 }
@@ -1047,30 +1050,8 @@ SIPVoIPLink::subscribePresenceForContact(ContactEntry* contactEntry)
 void
 SIPVoIPLink::unsubscribePresenceForContact(ContactEntry* contactEntry)
 {
-	int i;
-	osip_message_t* subscription;
-	std::ostringstream to;
-	std::ostringstream from;
-	
-	// Build URL of receiver and sender
-	to << "sip:" << contactEntry->getEntryID() << "@" << getHostName().data();
-	from << "sip:" << _userpart.data() << "@" << getHostName().data();
-
-	// Unsubscribe by setting a 0 value
-	i = eXosip_subscribe_build_initial_request(&subscription,
-			to.str().c_str(),
-			from.str().c_str(),
-			NULL,
-			"presence", 0);
-	if(i!=0) return;
-	
-	// We want to receive presence in the PIDF XML format in SIP messages
-	osip_message_set_accept(subscription, "application/pidf+xml");
-	
-	// Send subscription
-	eXosip_lock();
-	i = eXosip_subscribe_send_initial_request(subscription);
-	eXosip_unlock();
+	// TODO Find how exosip supports unsubscription
+	// A presence request of 0 does not seem to work
 }
 
 void

@@ -345,6 +345,12 @@ call_console_edit_entry(gchar* accountID, gchar* contactID, contact_entry_t* ent
 		gtk_tree_path_next(path);
 	}
 	while(gtk_tree_model_get_iter(model, &iter, path));
+	
+	// If the entry was not found and is shown now we must add it
+	if(entry->_isShownInConsole == TRUE)
+	{
+		call_console_add_entry(accountID, contactID, entry);
+	}
 }
 
 void

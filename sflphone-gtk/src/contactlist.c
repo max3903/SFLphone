@@ -132,7 +132,7 @@ contact_list_remove(gchar* accountID, gchar* contactID)
 	
 	// Send modifications to server
 	// TOSEE
-	//dbus_remove_contact(accountID, contactID);
+	dbus_remove_contact(accountID, contactID);
 }
 
 guint
@@ -191,6 +191,18 @@ contact_list_entry_edit(gchar* accountID, gchar* contactID, contact_entry_t* ent
 {
 	// Modify contact list
 	contact_entry_t* oldEntry = contact_list_entry_get(contact_list_get(contact_hash_table_get_contact_list(accountID), contactID), entry->_entryID);
+	if(!oldEntry->_isSubscribed && entry->_isSubscribed)
+	{
+		// We need to set presence to uninitialized and wait for daemon presence signal
+		oldEntry->_presenceStatus = PRESENCE_NOT_INITIALIZED;
+		oldEntry->_presenceInfo = "";
+	}
+	else if(oldEntry->_isSubscribed && !entry->_isSubscribed)
+	{
+		// We need to set presence to uninitialized and wait for daemon presence signal
+		oldEntry->_presenceStatus = PRESENCE_NOT_SUBSCRIBED;
+		oldEntry->_presenceInfo = "";
+	}
 	oldEntry->_text = entry->_text;
 	oldEntry->_type = entry->_type;
 	oldEntry->_isShownInConsole = entry->_isShownInConsole;
@@ -219,7 +231,7 @@ contact_list_entry_remove(gchar* accountID, gchar* contactID, gchar* entryID)
 	
 	// Send modifications to server
 	// FIXME
-	//dbus_remove_contact_entry(accountID, contactID, entryID);
+	dbus_remove_contact_entry(accountID, contactID, entryID);
 }
 
 void
