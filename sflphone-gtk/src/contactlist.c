@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2007 Savoir-Faire Linux inc.
+ *  Copyright (C) 2008 Savoir-Faire Linux inc.
  *  Author: Guillaume Carmel-Archambault <guillaume.carmel-archambault@savoirfairelinux.com>
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -34,7 +34,10 @@
  */
 GHashTable* contactHashTable = NULL;
 
-/** Custom function to free memory in hash table for contact lists */
+/**
+ * Custom function to free memory in hash table for contact lists
+ * @param valuePointer Pointer on queue of contacts to delete
+ */
 void
 contact_hash_value_destroy_func(void* valuePointer)
 {
@@ -63,16 +66,6 @@ contact_hash_table_add_contact_list(gchar* accountID)
 {
 	// Dynamically allocate a queue in the hash table
 	g_hash_table_insert(contactHashTable, g_strdup(accountID), g_queue_new());
-	
-	// TODO Create a new row in the contact window for the new account
-}
-
-void
-contact_hash_table_remove_contact_list(gchar* accountID)
-{
-	// TODO Remove all contacts and then remove the contact list
-	
-	// TODO Remove everything in the views for this account
 }
 
 GQueue*
@@ -84,7 +77,9 @@ contact_hash_table_get_contact_list(const gchar* accountID)
 void
 contact_list_accounts_changed()
 {
-	// TODO Subscribe and unsubscribe all entries needed
+	// TODO Fetch all presence information needed from sflphoned
+	
+	// Update the call console with registered entries shown only
 	call_console_window_fill_contact_list();
 }
 

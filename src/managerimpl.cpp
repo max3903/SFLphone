@@ -2229,7 +2229,6 @@ ManagerImpl::removeContact(const std::string& accountID, const std::string& cont
 	Account* account = getAccount(accountID);
 	if(account != NULL)
 	{
-//		std::vector<Contact*> contacts = account->getContacts();
 		std::vector<Contact*>::iterator iter = account->getContacts().begin();
 		while(iter != account->getContacts().end())
 		{
@@ -2237,7 +2236,6 @@ ManagerImpl::removeContact(const std::string& accountID, const std::string& cont
 			if(contact->getContactID() == contactID)
 			{
 				// Contact found, delete all entries
-//				std::vector<ContactEntry*> entries = contact->getEntries();
 				std::vector<ContactEntry*>::iterator entryIter = contact->getEntries().begin();
 				while(entryIter != contact->getEntries().end())
 				{

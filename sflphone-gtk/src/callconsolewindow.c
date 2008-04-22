@@ -33,21 +33,22 @@
 
 /**
  * Defines the column data and renderers of the tree model
+ * for the 4 columns of the call console
  */
 enum {
-	CALL_CONSOLE_ACCOUNT_ID,				// ID of related account
-	CALL_CONSOLE_CONTACT_ID,				// ID of related contact
-	CALL_CONSOLE_ENTRY_ID,					// ID of entry (All ID are mandatory to retreive information on current row)
-	CALL_CONSOLE_WINDOW_ICON,				// Icon for presence status
-	CALL_CONSOLE_WINDOW_NAME,				// Name of the contact for the entry
-	CALL_CONSOLE_WINDOW_CONTACT,			// Contact entry (extension, phone number...)
-	CALL_CONSOLE_WINDOW_PRESENCE_STATUS,	// Text presenting presence status and additional information
-	COUNT_CALL_CONSOLE_WINDOW,				// Column count
+	CALL_CONSOLE_ACCOUNT_ID,				/// ID of related account
+	CALL_CONSOLE_CONTACT_ID,				/// ID of related contact
+	CALL_CONSOLE_ENTRY_ID,					/// ID of entry (All ID are mandatory to retreive information on current row)
+	CALL_CONSOLE_WINDOW_ICON,				/// Icon for presence status
+	CALL_CONSOLE_WINDOW_NAME,				/// Name of the contact for the entry
+	CALL_CONSOLE_WINDOW_CONTACT,			/// Contact entry (extension, phone number...)
+	CALL_CONSOLE_WINDOW_PRESENCE_STATUS,	/// Text presenting presence status and additional information
+	COUNT_CALL_CONSOLE_WINDOW,				/// Column count
 };
 
-GtkDialog* callConsoleDialog = NULL;	// This window
-GtkWidget* callConsoleTreeView;			// View
-GtkListStore* callConsoleListStore;		// Model
+GtkDialog* callConsoleDialog = NULL;	/// The call console window
+GtkWidget* callConsoleTreeView;			/// View of the call console
+GtkListStore* callConsoleListStore;		/// Model of the call console
 
 /**
  * Fills the treelist with accounts
@@ -55,6 +56,8 @@ GtkListStore* callConsoleListStore;		// Model
 void
 call_console_window_fill_contact_list()
 {
+	if(callConsoleDialog == NULL) return;
+	
 	gtk_list_store_clear(callConsoleListStore);
 		
 	// Fill contacts for all loaded accounts
