@@ -73,7 +73,7 @@ Account::saveContacts()
 	ContactManager::getInstance()->saveContacts(_accountID, _contacts);	
 }
 
-const std::vector<Contact*>&
+std::vector<Contact*>&
 Account::getContacts()
 {
 	return _contacts;

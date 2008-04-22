@@ -126,12 +126,10 @@ contact_list_remove(gchar* accountID, gchar* contactID)
 	}
 	
 	// Modify both views
-	// TODO
 	contact_window_remove_contact(accountID, contactID);
 	call_console_remove_contact(accountID, contactID);
 	
 	// Send modifications to server
-	// TOSEE
 	dbus_remove_contact(accountID, contactID);
 }
 

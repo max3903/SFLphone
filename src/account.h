@@ -137,7 +137,7 @@ class Account{
    * Return contacts loaded for account
    * @return Contact list attribute, a vector of contacts
    */
-  const std::vector<Contact*>& getContacts();
+  std::vector<Contact*>& getContacts();
   
   /**
    * Adds a contact

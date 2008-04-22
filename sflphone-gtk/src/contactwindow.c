@@ -1017,10 +1017,56 @@ contact_window_edit_contact(gchar* accountID, contact_t* contact)
 void
 contact_window_remove_contact(gchar* accountID, gchar* contactID)
 {
-	// TODO
+	// Only if the contact window is shown
+	if(contactWindowDialog == NULL) return;
+	
 	// Get the iteration corresponding to the account
-	// Get the iteration of the contact
-	// Remove iteration
+	GtkTreeModel* model;
+	GtkTreePath* accountPath;
+	GtkTreePath* contactPath;
+	GtkTreeIter iter;
+	gchar* id;
+	
+	model = gtk_tree_view_get_model(GTK_TREE_VIEW(contactTreeView));
+	if(!gtk_tree_model_get_iter_first(model, &iter)) return;
+	do
+	{
+		// Get the ID of the current account iter
+		gtk_tree_model_get(model, &iter,
+				CONTACT_WINDOW_ID, &id,
+				-1);
+		if(id == NULL) return;
+		if(strcmp(id, accountID) == 0)
+		{
+			// The account is found so go deeper
+			contactPath = gtk_tree_model_get_path(model, &iter);
+			gtk_tree_path_down(contactPath);
+			// Try to find the contact
+			gtk_tree_model_get_iter(model, &iter, contactPath);
+			do
+			{
+				// Get the ID of the current contact iter
+				gtk_tree_model_get(model, &iter,
+						CONTACT_WINDOW_ID, &id,
+						-1);
+				if(id == NULL) return;
+				if(strcmp(id, contactID) == 0)
+				{
+					// Remove iteration and implicitly all its children
+					gtk_tree_store_remove(contactTreeStore, &iter);
+					return;
+				}
+				// Go to next contact until null
+				contactPath = gtk_tree_model_get_path(model, &iter);
+				gtk_tree_path_next(contactPath);
+			}
+			while(gtk_tree_model_get_iter(model, &iter, contactPath));
+		}
+		// Go to next account until null
+		accountPath = gtk_tree_model_get_path(model, &iter);
+		gtk_tree_path_next(accountPath);
+	}
+	while(gtk_tree_model_get_iter(model, &iter, accountPath));
 }
 
 void

@@ -2229,17 +2229,17 @@ ManagerImpl::removeContact(const std::string& accountID, const std::string& cont
 	Account* account = getAccount(accountID);
 	if(account != NULL)
 	{
-		std::vector<Contact*> contacts = account->getContacts();
-		std::vector<Contact*>::iterator iter = contacts.begin();
-		while(iter != contacts.end())
+//		std::vector<Contact*> contacts = account->getContacts();
+		std::vector<Contact*>::iterator iter = account->getContacts().begin();
+		while(iter != account->getContacts().end())
 		{
 			Contact* contact = (Contact*)*iter;
 			if(contact->getContactID() == contactID)
 			{
 				// Contact found, delete all entries
-				std::vector<ContactEntry*> entries = contact->getEntries();
-				std::vector<ContactEntry*>::iterator entryIter = entries.begin();
-				while(entryIter != entries.end())
+//				std::vector<ContactEntry*> entries = contact->getEntries();
+				std::vector<ContactEntry*>::iterator entryIter = contact->getEntries().begin();
+				while(entryIter != contact->getEntries().end())
 				{
 					ContactEntry* entry = (ContactEntry*)*entryIter;
 					// Unsubscribe presence for all subscribed entries
@@ -2252,8 +2252,8 @@ ManagerImpl::removeContact(const std::string& accountID, const std::string& cont
 					delete entry;
 					entryIter++;
 				}
-				entries.clear();
-				contacts.erase(iter);
+				contact->getEntries().clear();
+				account->getContacts().erase(iter);
 				delete contact;
 				break;
 			}

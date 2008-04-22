@@ -257,7 +257,44 @@ call_console_edit_contact(gchar* accountID, contact_t* contact)
 void
 call_console_remove_contact(gchar* accountID, gchar* contactID)
 {
-	// TODO Remove all entries of contact
+	// Only if the call console is shown
+	if(callConsoleDialog == NULL) return;
+
+	GtkTreeModel* model;
+	GtkTreePath* path;
+	GtkTreeIter iter;
+	
+	gchar* accountIDStored = NULL;
+	gchar* contactIDStored = NULL;
+	
+	model = gtk_tree_view_get_model(GTK_TREE_VIEW(callConsoleTreeView));
+	if(!gtk_tree_model_get_iter_first(model, &iter)) return;
+	do
+	{
+		// Get the ID of the current account iter
+		gtk_tree_model_get(model, &iter,
+				CALL_CONSOLE_ACCOUNT_ID, &accountIDStored,
+				CALL_CONSOLE_CONTACT_ID, &contactIDStored,
+				-1);
+		if(accountIDStored == NULL || contactIDStored == NULL) return;
+		
+		// Compare current entry with the one that presence changed
+		if(strcmp(accountIDStored, accountID) == 0 &&
+				strcmp(contactIDStored, contactID) == 0)
+		{
+			// Remove entry in model
+			gtk_list_store_remove(callConsoleListStore, &iter);
+			// Do not return since there can be many entries for a contact
+			// Removing the entry will get to the next iteration
+		}
+		else
+		{
+			// Get the next iteration
+			path = gtk_tree_model_get_path(model, &iter);
+			gtk_tree_path_next(path);
+		}
+	}
+	while(gtk_tree_model_get_iter(model, &iter, path));
 }
 
 void
