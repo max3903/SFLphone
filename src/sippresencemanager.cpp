@@ -190,11 +190,23 @@ SIPPresenceManager::transformBasicTagsInPresenceStatus(std::string basic, std::s
 			status = PRESENCE_RINGING;
 		else if(strcmp(strUp(note), "ON THE PHONE") == 0 || strcmp(strUp(note), "ONTHEPHONE") == 0)
 			status = PRESENCE_ON_THE_PHONE;
+		else
+		{
+			status = PRESENCE_UNKNOWN;
+			_debug("!!! New unknown SIP/XML status %s, %s received : Implement it rigth away !!!", basic.data(), note.data());
+		}
 	}
 	else if(strcmp(strUp(basic), "CLOSED") == 0)
 	{
 		if(strcmp(strUp(note), "NOT ONLINE") == 0 || strcmp(strUp(note), "NOTONLINE") == 0)
 			status = PRESENCE_UNAVAILABLE;
+		else if(strcmp(strUp(note), "UNAVAILABLE") == 0)
+			status = PRESENCE_UNAVAILABLE;
+		else
+		{
+			status = PRESENCE_UNKNOWN;
+			_debug("!!! New unknown SIP/XML status %s, %s received : Implement it rigth away !!!", basic.data(), note.data());
+		}
 	}
 	// Return unknown presence if no status has been found
 	else

@@ -230,7 +230,6 @@ contact_list_entry_remove(gchar* accountID, gchar* contactID, gchar* entryID)
 	call_console_remove_entry(accountID, contactID, entryID);
 	
 	// Send modifications to server
-	// FIXME
 	dbus_remove_contact_entry(accountID, contactID, entryID);
 }
 
@@ -413,7 +412,8 @@ contact_list_presence_status_translate(const gchar* presenceStatus)
 	if(strcmp(presenceStatus, PRESENCE_DO_NOT_DISTURB) == 0) {
 		return(_("Do not Disturb"));
 	}
-	return _("Unknown");
+	g_printerr("Status \"%s\" should be defined in presencestatus.h and caught here\n", presenceStatus);
+	return ("NO PRESENCE STATUS");
 }
 
 const gchar*
