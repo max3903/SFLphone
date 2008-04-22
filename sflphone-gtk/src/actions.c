@@ -199,7 +199,7 @@ gboolean
 sflphone_init()
 {	
 	//call_list_init ();
-	int i;
+//	int i;	UNUSED
 	current_calls = calltab_init();
 	history = calltab_init();	
 	account_list_init ();

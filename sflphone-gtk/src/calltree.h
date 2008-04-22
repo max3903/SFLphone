@@ -45,7 +45,9 @@ void create_call_tree(calltab_t* tab);
  * Update the toolbar's buttons state, according to the call state
  */
 void toolbar_update_buttons();
-static void toggle_history(GtkToggleToolButton *toggle_tool_button, gpointer user_data);
+
+// UNUSED
+//static void toggle_history(GtkToggleToolButton *toggle_tool_button, gpointer user_data);
 
 /**
  * Add a call in the calltree

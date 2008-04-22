@@ -226,6 +226,7 @@ new_contact_activated(GtkMenuItem* item, GtkTreeView* treeView)
 			-1);
 	
 	show_contact_dialog(accountID, NULL);
+	
 	g_free(accountID);
 }
 

@@ -122,16 +122,15 @@ help_about ( void * foo)
     "Julien Plissonneau Duquene <julien.plissonneau.duquene@savoirfairelinux.com>",
     "Alexandre Bourget <alexandre.bourget@savoirfairelinux.com>",
     "Pierre-Luc Beaudoin <pierre-luc.beaudoin@savoirfairelinux.com>", 
-    "Emmanuel Milou <emmanuel.milou@savoirfairelinux.com>"
-      "Jean-Philippe Barrette-LaPierre",
+    "Emmanuel Milou <emmanuel.milou@savoirfairelinux.com>",
+    "Guillaume Carmel-Archambault <guillaume.carmel-archambault@savoirfairelinux.com>",
+    "Jean-Philippe Barrette-LaPierre",
     "Laurielle Lea",
     NULL};
   gchar *artists[] = {
     "Pierre-Luc Beaudoin <pierre-luc.beaudoin@savoirfairelinux.com>", 
     NULL};
-  gchar *translators[] = {
-    "<maxime.chambreuil@savoirfairelinux.com>",
-    NULL};
+  gchar *translators = "Maxime Chambreuil <maxime.chambreuil@savoirfairelinux.com>\nEmmanuel Milou <emmanuel.milou@savoirfairelinux.com>";
 
   gtk_show_about_dialog( GTK_WINDOW(get_main_window()),
       "name", PACKAGE,
@@ -142,6 +141,7 @@ help_about ( void * foo)
       "comments", _("SFLphone is a VoIP client compatible with SIP and IAX2 protocols."),
       "artists", artists,
       "authors", authors,
+      "translator-credits", translators,
       NULL);
 }
 

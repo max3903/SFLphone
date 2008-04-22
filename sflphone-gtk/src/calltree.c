@@ -96,7 +96,7 @@ call_button( GtkWidget *widget, gpointer   data )
 			selectedCall->to = call_get_number(selectedCall);
 			selectedCall->from = g_strconcat("\"\" <", selectedCall->to, ">",NULL);
 		}
-		gtk_toggle_tool_button_set_active(historyButton, FALSE);
+		gtk_toggle_tool_button_set_active(GTK_TOGGLE_TOOL_BUTTON(historyButton), FALSE);
 		printf("call : from : %s to %s\n", selectedCall->from, selectedCall->to);
 		call_list_add(current_calls, selectedCall);
 		update_call_tree_add(current_calls, selectedCall);
@@ -916,7 +916,7 @@ update_call_tree_remove (calltab_t* tab, call_t * c)
 	GValue val;
 	call_t * iterCall;
 	GtkListStore* store = tab->store;
-	GtkWidget* view = tab->view;
+//	GtkWidget* view = tab->view;	UNUSED
 
 	int nbChild = gtk_tree_model_iter_n_children(GTK_TREE_MODEL(store), NULL);
 	int i;
@@ -950,7 +950,7 @@ update_call_tree (calltab_t* tab, call_t * c)
 	GValue val;
 	call_t * iterCall;
 	GtkListStore* store = tab->store;
-	GtkWidget* view = tab->view;
+//	GtkWidget* view = tab->view;	UNUSED
 
 	int nbChild = gtk_tree_model_iter_n_children(GTK_TREE_MODEL(store), NULL);
 	int i;
