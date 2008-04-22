@@ -219,12 +219,6 @@ SIPVoIPLink::loadSIPLocalIP()
 }
 
 void
-SIPVoIPLink::parseRequestUri( osip_uri_t* req )
-{
- // _debug("%d\n",req->url_header);
-}
-
-void
 SIPVoIPLink::getEvent()
 {
 	// Wait every 50 milliseconds to check for a SIP event
@@ -317,7 +311,6 @@ SIPVoIPLink::getEvent()
 		break;
 	case EXOSIP_CALL_TIMEOUT:         /** 17 < announce that call has failed         */
 		_debugMid(" !EXOSIP_CALL_TIMEOUT\n");
-		Manager::instance().displayError(" !EXOSIP Call Error not implemented yet");
 		break;
 
 	/* Request related events within calls (except INVITE) */
@@ -343,7 +336,6 @@ SIPVoIPLink::getEvent()
 		break;
 	case EXOSIP_CALL_MESSAGE_GLOBALFAILURE:  /** 24 < announce a failure. */
 		_debugMid(" !EXOSIP_CALL_MESSAGE_GLOBALFAILURE\n");
-		Manager::instance().displayError(" !EXOSIP Call Message not implemented yet");
 		break;
 
 	case EXOSIP_CALL_CLOSED:          /** 25 < a BYE was received for this call */
@@ -371,23 +363,18 @@ SIPVoIPLink::getEvent()
 		break;
 	case EXOSIP_MESSAGE_REDIRECTED:     /** 30 < announce a failure. */
 		_debugMid(" !EXOSIP_MESSAGE_REDIRECTED\n");
-		Manager::instance().displayError(" !EXOSIP Message not implemented yet");
 		break;
 
 	case EXOSIP_MESSAGE_REQUESTFAILURE: /** 31 < announce a failure. */
 		_debugMid(" !EXOSIP_MESSAGE_REQUESTFAILURE\n");
-		if (event->response !=0 && event->response->status_code == SIP_METHOD_NOT_ALLOWED) {
+		if (event->response !=0 && event->response->status_code == SIP_METHOD_NOT_ALLOWED) 
 			Manager::instance().incomingMessage(getAccountID(), "Message are not allowed");
-		} else {
-			Manager::instance().displayError(" !EXOSIP_MESSAGE_REQUESTFAILURE not implemented yet");
-		}
 		break;
 	case EXOSIP_MESSAGE_SERVERFAILURE:  /** 32 < announce a failure. */
 		_debugMid(" !EXOSIP_MESSAGE_SERVERFAILURE\n");
 		break;
 	case EXOSIP_MESSAGE_GLOBALFAILURE:  /** 33 < announce a failure. */
 		_debugMid(" !EXOSIP_MESSAGE_GLOBALFAILURE\n");
-		Manager::instance().displayError(" !EXOSIP Message not implemented yet");
 		break;
 
 	/* Presence and Instant Messaging */
@@ -396,7 +383,6 @@ SIPVoIPLink::getEvent()
 		break;
 	case EXOSIP_SUBSCRIPTION_CLOSED:       /** 35 < announce end of subscription.     */
 		_debugMid(" !EXOSIP_SUBSCRIPTION_CLOSED\n");
-		Manager::instance().displayError(" !EXOSIP Subscription not implemented yet");
 		break;
 
 	case EXOSIP_SUBSCRIPTION_NOANSWER:        /** 37 < announce no answer              */
@@ -404,7 +390,6 @@ SIPVoIPLink::getEvent()
 		break;
 	case EXOSIP_SUBSCRIPTION_PROCEEDING:      /** 38 < announce a 1xx                  */
 		_debugMid(" !EXOSIP_SUBSCRIPTION_PROCEEDING\n");
-		Manager::instance().displayError(" !EXOSIP Subscription response not implemented yet");
 		break;
 	case EXOSIP_SUBSCRIPTION_ANSWERED:        /** 39 < announce a 200ok                */
 		_debugMid(" !EXOSIP_SUBSCRIPTION_ANSWERED\n");
@@ -438,7 +423,6 @@ SIPVoIPLink::getEvent()
 		break;
 	case EXOSIP_SUBSCRIPTION_RELEASED:        /** 45 < call context is cleared.        */
 		_debugMid(" !EXOSIP_SUBSCRIPTION_RELEASED\n");
-		Manager::instance().displayError(" !EXOSIP Subscription response not implemented yet.");
 		break;
 
 	case EXOSIP_IN_SUBSCRIPTION_NEW:          /** 46 < announce new incoming SUBSCRIBE.*/
@@ -446,7 +430,6 @@ SIPVoIPLink::getEvent()
 		break;
 	case EXOSIP_IN_SUBSCRIPTION_RELEASED:     /** 47 < announce end of subscription.   */
 		_debugMid(" !EXOSIP_IN_SUBSCRIPTION_RELEASED\n");
-		Manager::instance().displayError(" !EXOSIP Subscription not implemented yet");
 		break;
 
 	case EXOSIP_EVENT_COUNT:               /** 48 < MAX number of events  */
@@ -464,19 +447,15 @@ SIPVoIPLink::sendRegister()
 {
 
   if (_eXosipRegID != EXOSIP_ERROR_STD) {
-  _debug("nlvnslvnlsnvaljsdnvjlasnvlsfvbnnns  sjvlsvn\n");
-    Manager::instance().displayError("! SIP Error: Registration already sent. Try to unregister");
     return false;
   }
 
   std::string hostname = getHostName();
   if (hostname.empty()) {
-    Manager::instance().displayConfigError("Fill host part field");
     return false;
   }
 
   if (_userpart.empty()) {
-    Manager::instance().displayConfigError("Fill user part field");
     return false;
   }
 
@@ -534,12 +513,6 @@ SIPVoIPLink::SIPFromHeader(const std::string& userpart, const std::string& hostp
   return ("\"" + getFullName() + "\"" + " <sip:" + userpart + "@" + hostpart + ">");
 }
 
-std::string
-SIPVoIPLink::SIPFromHeaderAlternate(const std::string& userpart, const std::string& hostpart) 
-{
-  return ("<sip:" + userpart + "@" + hostpart + ">");
-}
-
 bool
 SIPVoIPLink::sendSIPAuthentification() 
 {
@@ -549,12 +522,10 @@ SIPVoIPLink::sendSIPAuthentification()
   }
   if (login.empty()) {
     /** @todo Ajouter ici un call à setRegistrationState(Error, "Fill balh") ? */
-    Manager::instance().displayConfigError("Fill authentification name");
     return false;
   }
   if (_password.empty()) {
     /** @todo Même chose ici  ? */
-    Manager::instance().displayConfigError("Fill password field");
     return false;
   }
   eXosip_lock();
@@ -978,11 +949,9 @@ SIPVoIPLink::sendMessage(const std::string& to, const std::string& body)
   std::string sipRoute = getSipRoute();
 
   if (!SIPCheckUrl(sipFrom)) {
-    Manager::instance().displayConfigError("Error in source address");
     return returnValue;
   }
   if (!SIPCheckUrl(sipTo)) {
-    Manager::instance().displayError("Error in destination address");
     return returnValue;
   }
 
@@ -1101,11 +1070,9 @@ SIPVoIPLink::SIPStartCall(SIPCall* call, const std::string& subject)
 
   if (!SIPCheckUrl(from)) {
     _debug("! SIP Error: Source address is invalid %s\n", from.data());
-    Manager::instance().displayConfigError("Error in source address");
     return false;
   }
   if (!SIPCheckUrl(to)) {
-    Manager::instance().displayErrorText(call->getCallId(), "Error in destination address");
     return false;
   }
 
@@ -1214,9 +1181,6 @@ SIPVoIPLink::SIPStartCall(SIPCall* call, const std::string& subject)
   return true;
 }
 
-/**
- * Get the Sip FROM url (add sip:, add @host, etc...)
- */ 
 std::string
 SIPVoIPLink::getSipFrom() {
 
@@ -1228,9 +1192,6 @@ SIPVoIPLink::getSipFrom() {
   return SIPFromHeader(_userpart, host);
 }
 
-/**
- * Get the Sip TO url (add sip:, add @host, etc...)
- */
 std::string
 SIPVoIPLink::getSipTo(const std::string& to_url) {
   // Form the From header field basis on configuration panel
@@ -1246,10 +1207,6 @@ SIPVoIPLink::getSipTo(const std::string& to_url) {
   return SIPToHeader(to_url);
 }
 
-/**
- * Get the sip proxy (add sip: if there is one) 
- * @return empty string or <sip:proxy;lr> url
- */
 std::string
 SIPVoIPLink::getSipRoute() {
   std::string proxy = _proxy;
@@ -1480,7 +1437,6 @@ SIPVoIPLink::SIPCallRequestFailure(eXosip_event_t *event)
         CallID& id = call->getCallId();
         call->setConnectionState(Call::Connected);
         call->setState(Call::Busy);
-        Manager::instance().displayErrorText(id, event->response->reason_phrase);
         Manager::instance().callBusy(id);
         removeCall(id);
       }
@@ -1501,13 +1457,11 @@ SIPVoIPLink::SIPCallRequestFailure(eXosip_event_t *event)
   case SIP_NOT_ACCEPTABLE_HERE: // 488 */
     // Display error on the screen phone
     {
-      _debug("--------------------------------------------------------------error message: %s\n", event->response->reason_phrase);
       SIPCall* call = findSIPCallWithCid(event->cid);
       if (call!=0) {
         CallID& id = call->getCallId();
         call->setConnectionState(Call::Connected);
         call->setState(Call::Error);
-        Manager::instance().displayErrorText(id, event->response->reason_phrase);
         Manager::instance().callFailure(id);
         removeCall(id);
       }
@@ -1699,11 +1653,7 @@ SIPVoIPLink::SIPMessageNew(eXosip_event_t *event)
     if (msgVoicemail != 0) {
       // If there is at least one voice-message, start notification
       Manager::instance().startVoiceMessageNotification(getAccountID(), nb_msg);
-    } else {
-      // Stop notification when there is 0 voice message
-      Manager::instance().stopVoiceMessageNotification(getAccountID());
     }
-
   // http://www.jdrosen.net/papers/draft-ietf-simple-im-session-00.txt
   } else if (MSG_IS_MESSAGE(event->request)) {
     _debug("> MESSAGE received\n");
@@ -1786,10 +1736,6 @@ SIPVoIPLink::getSIPCall(const CallID& id)
   return NULL;
 }
 
-/**
- * Handle an INFO with application/dtmf-relay content-type
- * @param event eXosip Event
- */
 bool
 SIPVoIPLink::handleDtmfRelay(eXosip_event_t* event) {
 

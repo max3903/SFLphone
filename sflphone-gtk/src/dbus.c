@@ -21,6 +21,7 @@
  
 #include <accountlist.h>
 #include <calllist.h>
+#include <calltab.h>
 #include <callmanager-glue.h>
 #include <configurationmanager-glue.h>
 #include <contactmanager-glue.h>
@@ -88,7 +89,7 @@ incoming_message_cb (DBusGProxy *proxy,
                   const gchar* msg,
                   void * foo  )
 {
-  g_print ("Messge %s! \n",msg);
+  g_print ("Message %s! \n",msg);
   
 }
 
@@ -99,7 +100,7 @@ call_state_cb (DBusGProxy *proxy,
                   void * foo  )
 {
   g_print ("Call %s state %s\n",callID, state);
-  call_t * c = call_list_get(callID);
+  call_t * c = call_list_get(current_calls, callID);
   if(c)
   {
     if ( strcmp(state, "HUNGUP") == 0 )

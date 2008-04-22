@@ -18,11 +18,12 @@
  *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 #include "iaxvoiplink.h"
-#include "global.h" // for _debug
-#include "iaxcall.h"
 #include "eventthread.h"
+#include "iaxcall.h"
+#include "global.h" // for _debug
 
 #include "manager.h"
+#include "user_cfg.h" // SIGNALISATION / PULSE #define
 #include "audio/audiolayer.h"
 
 #include <samplerate.h>
@@ -363,11 +364,9 @@ IAXVoIPLink::sendRegister()
   bool result = false;
 
   if (_host.empty()) {
-    Manager::instance().displayConfigError("Fill host field for IAX Account");
     return false;
   }
   if (_user.empty()) {
-    Manager::instance().displayConfigError("Fill user field for IAX Account");
     return false;
   }
 
@@ -656,7 +655,6 @@ IAXVoIPLink::iaxHandleCallEvent(iax_event* event, IAXCall* call)
     }
     call->setConnectionState(Call::Connected);
     call->setState(Call::Error);
-    Manager::instance().displayErrorText(id, "Failure");
     Manager::instance().callFailure(id);
     removeCall(id);
     break;
@@ -690,7 +688,6 @@ IAXVoIPLink::iaxHandleCallEvent(iax_event* event, IAXCall* call)
   case IAX_EVENT_BUSY:
     call->setConnectionState(Call::Connected);
     call->setState(Call::Busy);
-    Manager::instance().displayErrorText(id, "Busy");
     Manager::instance().callBusy(id);
     removeCall(id);
     break;
@@ -710,6 +707,9 @@ IAXVoIPLink::iaxHandleCallEvent(iax_event* event, IAXCall* call)
     Manager::instance().peerRingingCall(call->getCallId());
     break;
     
+  case IAX_IE_MSGCOUNT:	
+   // _debug("messssssssssssssssssssssssssssssssssssssssssssssssages\n");
+    break;
   case IAX_EVENT_PONG:
     break;
     
@@ -932,6 +932,10 @@ IAXVoIPLink::iaxHandlePrecallEvent(iax_event* event)
     
     break;
     
+  case IAX_IE_MSGCOUNT:	
+    //_debug("messssssssssssssssssssssssssssssssssssssssssssssssages\n");
+    break;
+
   default:
     _debug("Unknown event type (in precall): %d\n", event->etype);
   }

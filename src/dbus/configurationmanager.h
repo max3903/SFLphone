@@ -24,8 +24,6 @@
 #define CONFIGURATIONMANAGER_H
 
 #include "configurationmanager-glue.h"
-#include <dbus-c++/dbus.h>
-
     
 class ConfigurationManager
 : public org::sflphone::SFLphone::ConfigurationManager,
@@ -44,8 +42,6 @@ public:
     void addAccount( const std::map< ::DBus::String, ::DBus::String >& details );
     void removeAccount( const ::DBus::String& accoundID );
     std::vector< ::DBus::String > getAccountList(  );
-    ::DBus::String getDefaultAccount(  );
-    void setDefaultAccount( const ::DBus::String& accountID  );
     void sendRegister(  const ::DBus::String& accoundID , const ::DBus::Int32& expire );
     
     std::vector< ::DBus::String > getCodecList(  );

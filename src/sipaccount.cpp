@@ -18,9 +18,10 @@
  *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 #include "sipaccount.h"
+#include "account.h"
 #include "sipvoiplink.h"
 #include "manager.h"
-#include "user_cfg.h"
+//#include "user_cfg.h"
 
 SIPAccount::SIPAccount(const AccountID& accountID)
  : Account(accountID)

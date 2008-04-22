@@ -1,7 +1,6 @@
 /*
- *  Copyright (C) 2006-2007 Savoir-Faire Linux inc.
- *  Author: Alexandre Bourget <alexandre.bourget@savoirfairelinux.com>
- *  Author: Yan Morin <yan.morin@savoirfairelinux.com>
+ *  Copyright (C) 2007 Savoir-Faire Linux inc.
+ *  Author: Antoine Reversat <antoine.reversat@savoirfairelinux.com>
  *                                                                              
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -17,39 +16,14 @@
  *  along with this program; if not, write to the Free Software
  *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
-#ifndef IAXACCOUNT_H
-#define IAXACCOUNT_H
+ 
+#ifndef __NOTEBOOK_H__
+#define __NOTEBOOK_H__
 
-#include "account.h"
+#include <calllist.h>
+#include <gtk/gtk.h>
 
 
-/**
- * @file: iaxaccount.h
- * @brief An IAX Account specify IAX specific functions and objects (IAXCall/IAXVoIPLink)
- */
-class IAXAccount : public Account
-{
-public:
-  IAXAccount(const AccountID& accountID);
-
-  ~IAXAccount();
-
-  /** 
-   * Actually unuseful, since config loading is done in init() 
-   */
-  void loadConfig();
-
-  /**
-   * Register an account
-   */
-  void registerVoIPLink();
-
-  /**
-   * Unregister an account
-   */
-  void unregisterVoIPLink();
-
-private:
-};
+calltab_t* calltab_init();
 
 #endif

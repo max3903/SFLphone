@@ -40,7 +40,7 @@ tar -xvzf libeXosip2-3.1.0.tar.gz
 cd libosip2-3.1.0
 mkdir bld-linux
 cd bld-linux
-../configure
+../configure --prefix=/usr
 make
 sudo make install
 sudo ldconfig -v
@@ -51,7 +51,7 @@ cd ../../
 cd libeXosip2-3.1.0
 mkdir bld-linux
 cd bld-linux
-../configure
+../configure --prefix=/usr
 make
 sudo make install
 sudo ldconfig -v

@@ -2337,6 +2337,7 @@ show_accounts_window( void )
 	gtk_container_add(GTK_CONTAINER(accountFrame) , tab);
 
       gtk_dialog_run( dialog );
+
       dialogOpen=FALSE;
       gtk_widget_destroy(GTK_WIDGET(dialog));
 }

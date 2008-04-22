@@ -21,7 +21,6 @@
 #define CONTACTMANAGER_H
 
 #include "contactmanager-glue.h"
-#include <dbus-c++/dbus.h>
 
 class ContactManager : 
 	public org::sflphone::SFLphone::ContactManager,
