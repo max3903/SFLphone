@@ -24,6 +24,7 @@
 #include <calltab.h>
 #include <callmanager-glue.h>
 #include <configurationmanager-glue.h>
+#include <contactlist.h>
 #include <contactmanager-glue.h>
 #include <instance-glue.h>
 #include <configwindow.h>
@@ -166,6 +167,7 @@ accounts_changed_cb (DBusGProxy *proxy,
   g_print ("Accounts changed\n");
   sflphone_fill_account_list(TRUE);
   config_window_fill_account_list();
+  contact_list_accounts_changed();
 }
 
 static void

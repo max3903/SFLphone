@@ -82,6 +82,13 @@ contact_hash_table_get_contact_list(const gchar* accountID)
 }
 
 void
+contact_list_accounts_changed()
+{
+	// TODO Subscribe and unsubscribe all entries needed
+	call_console_window_fill_contact_list();
+}
+
+void
 contact_list_add(gchar* accountID, contact_t* contact, gboolean update)
 {
 	// Modify the data

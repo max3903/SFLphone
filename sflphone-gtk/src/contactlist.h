@@ -95,6 +95,8 @@ void contact_hash_table_add_contact_list(gchar* accountID);
 void contact_hash_table_remove_contact_list(gchar* accountID);
 GQueue* contact_hash_table_get_contact_list(const gchar* accountID);
 
+void contact_list_accounts_changed();
+
 /**
  * Functions to add, edit and remove a contact in a contact list
  */
