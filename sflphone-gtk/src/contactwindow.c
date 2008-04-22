@@ -286,8 +286,29 @@ remove_contact_activated(GtkMenuItem* item, GtkTreeView* treeView)
 	gtk_tree_model_get(model, &iter,
 			CONTACT_WINDOW_ID, &accountID,
 			-1);
-		
-	contact_list_remove(accountID, contactID);
+	
+	GtkDialog* confirmRemoveContactDialog;
+	confirmRemoveContactDialog = GTK_DIALOG(gtk_dialog_new_with_buttons(
+			_("Confirm contact removal"),
+			GTK_WINDOW(contactWindowDialog),
+			GTK_DIALOG_MODAL | GTK_DIALOG_DESTROY_WITH_PARENT,
+			GTK_STOCK_CANCEL,
+			GTK_RESPONSE_CANCEL,
+			GTK_STOCK_OK,
+			GTK_RESPONSE_OK,
+			NULL));
+	gtk_dialog_set_has_separator(confirmRemoveContactDialog, FALSE);
+	gtk_window_set_default_size(GTK_WINDOW(confirmRemoveContactDialog), 200, 100);
+	gtk_container_set_border_width(GTK_CONTAINER(confirmRemoveContactDialog), 0);
+	GtkWidget* label = gtk_label_new(_("Are you sure you want to delete contact and all its entries"));
+	gtk_box_pack_start(GTK_BOX(confirmRemoveContactDialog->vbox), label, TRUE, TRUE, 0);
+	gtk_widget_show(GTK_WIDGET(label));
+
+	if(gtk_dialog_run(confirmRemoveContactDialog) == GTK_RESPONSE_OK)
+	{
+		contact_list_remove(accountID, contactID);
+	}
+	gtk_widget_destroy(GTK_WIDGET(confirmRemoveContactDialog));
 	
 	gtk_tree_path_free(path);
 	g_free(contactID);
@@ -408,7 +429,28 @@ remove_entry_activated(GtkMenuItem* item, GtkTreeView* treeView)
 			CONTACT_WINDOW_ID, &accountID,
 			-1);
 		
-	contact_list_entry_remove(accountID, contactID, entryID);
+	GtkDialog* confirmRemoveEntryDialog;
+	confirmRemoveEntryDialog = GTK_DIALOG(gtk_dialog_new_with_buttons(
+			_("Confirm entry removal"),
+			GTK_WINDOW(contactWindowDialog),
+			GTK_DIALOG_MODAL | GTK_DIALOG_DESTROY_WITH_PARENT,
+			GTK_STOCK_CANCEL,
+			GTK_RESPONSE_CANCEL,
+			GTK_STOCK_OK,
+			GTK_RESPONSE_OK,
+			NULL));
+	gtk_dialog_set_has_separator(confirmRemoveEntryDialog, FALSE);
+	gtk_window_set_default_size(GTK_WINDOW(confirmRemoveEntryDialog), 200, 100);
+	gtk_container_set_border_width(GTK_CONTAINER(confirmRemoveEntryDialog), 0);
+	GtkWidget* label = gtk_label_new(_("Are you sure you want to delete entry"));
+	gtk_box_pack_start(GTK_BOX(confirmRemoveEntryDialog->vbox), label, TRUE, TRUE, 0);
+	gtk_widget_show(GTK_WIDGET(label));
+
+	if(gtk_dialog_run(confirmRemoveEntryDialog) == GTK_RESPONSE_OK)
+	{
+		contact_list_entry_remove(accountID, contactID, entryID);
+	}
+	gtk_widget_destroy(GTK_WIDGET(confirmRemoveEntryDialog));
 	
 	gtk_tree_path_free(path);
 	g_free(entryID);
