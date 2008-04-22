@@ -42,6 +42,7 @@ Account::~Account()
 		*iter = NULL;
 		iter++;
 	}
+	_contacts.clear();
 }
 
 void

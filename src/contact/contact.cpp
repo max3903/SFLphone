@@ -46,16 +46,20 @@ Contact::~Contact()
 	// Delete contact entries
 	std::vector<ContactEntry*>::iterator iter;
 	
-	iter = _entries.begin();
-	while (iter != _entries.end())
+	if(_entries.size() > 0)
 	{
-		delete *iter;
-		*iter = NULL;
-		iter++;
+		iter = _entries.begin();
+		while(iter != _entries.end())
+		{
+			delete *iter;
+			*iter = NULL;
+			iter++;
+		}
+		_entries.clear();
 	}
 }
 
-const std::vector<ContactEntry*>&
+std::vector<ContactEntry*>&
 Contact::getEntries()
 {
 	return _entries;

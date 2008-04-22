@@ -37,6 +37,9 @@ ContactEntry::ContactEntry(std::string entryID, std::string text, std::string ty
 
 ContactEntry::~ContactEntry()
 {
-	delete _presence;
-	_presence = NULL;
+	if(_presence != NULL)
+	{
+		delete _presence;
+		_presence = NULL;
+	}
 }

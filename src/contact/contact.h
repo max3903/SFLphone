@@ -48,10 +48,10 @@ public:
 	void setFirstName(std::string firstName) { _firstName = firstName; }
 	void setLastName(std::string lastName) { _lastName = lastName; }
 	void setEmail(std::string email) { _email = email; }
-
-	const std::vector<ContactEntry*>& getEntries();
+	
+	std::vector<ContactEntry*>& getEntries();
 	void addEntry(ContactEntry* entry);
-		
+	
 private:
 	// Attributes only related to contact list
 	std::string _contactID;			/// Unique identifier for each account generated randomly
