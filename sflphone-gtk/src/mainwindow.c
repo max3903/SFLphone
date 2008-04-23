@@ -38,10 +38,13 @@ GtkAccelGroup * accelGroup = NULL;
 GtkWidget * window    = NULL;
 GtkWidget * subvbox   = NULL;
 GtkWidget * dialpad   = NULL;
+GtkWidget * speaker_control = NULL;
+GtkWidget * mic_control = NULL;
 GtkWidget * statusBar = NULL;
 GtkWidget * infoScreen = NULL;
 gboolean showDialpad  = FALSE; // true if the dialpad have been shown
 gboolean showGlWidget= FALSE; // true if the glwidget have been been shown
+gboolean showControls  = FALSE; // true if the volume controls have been shown
 
 //! The glwidget it self
 GtkWidget* drawing_area;
@@ -157,16 +160,11 @@ create_main_window ()
   
   gtk_box_pack_start (GTK_BOX (vbox), subvbox, FALSE /*expand*/, TRUE /*fill*/, 0 /*padding*/);
  
-  //widget = create_screen();
-  // TODO Add the screen when we are decided
+  //widget = create_slider("speaker");
+  //gtk_box_pack_start (GTK_BOX (subvbox), widget, FALSE /*expand*/, TRUE /*fill*/, 0 /*padding*/);
+  //widget = create_slider("mic");
   //gtk_box_pack_start (GTK_BOX (subvbox), widget, FALSE /*expand*/, TRUE /*fill*/, 0 /*padding*/);
 
-  
-  widget = create_slider("speaker");
-  gtk_box_pack_start (GTK_BOX (subvbox), widget, FALSE /*expand*/, TRUE /*fill*/, 0 /*padding*/);
-  widget = create_slider("mic");
-  gtk_box_pack_start (GTK_BOX (subvbox), widget, FALSE /*expand*/, TRUE /*fill*/, 0 /*padding*/);
-  
   /* Status bar */
   statusBar = gtk_statusbar_new();
   gtk_box_pack_start (GTK_BOX (vbox), statusBar, FALSE /*expand*/, TRUE /*fill*/,  0 /*padding*/);
@@ -179,7 +177,6 @@ create_main_window ()
   gtk_widget_hide(history->tree);
   //gtk_widget_show(current_calls->tree);
   
-  //screen_clear();
   // Welcome screen
   if (account_list_get_size() == 0)
   {
@@ -190,7 +187,7 @@ create_main_window ()
                                   _("<b><big>Welcome to SFLphone!</big></b>\n\nThere is no VoIP account configured.\n Would you like to create one now?"));
 
     int response = gtk_dialog_run (GTK_DIALOG(dialog));
-    
+   
     gtk_widget_destroy (GTK_WIDGET(dialog));
 
     if (response == GTK_RESPONSE_YES)
@@ -269,22 +266,22 @@ main_window_call_console_closed()
 }
 
 void
-main_window_callinfo(gboolean show, call_t* current)
-{
-  /*
-  if(show && !showInfoScreen)
+main_window_volume_controls( gboolean show ){
+  if( show && !showControls)
   {
-    infoScreen = create_screen();
-    gtk_box_pack_start (GTK_BOX (subvbox), infoScreetkCn, FALSE , TRUE , 0 );
-    gtk_widget_show_all(infoScreen);
-    screen_set_call(current);
+    speaker_control = create_slider("speaker");
+    gtk_box_pack_start (GTK_BOX (subvbox), speaker_control, FALSE /*expand*/, TRUE /*fill*/, 0 /*padding*/);
+    gtk_widget_show_all (speaker_control);
+    mic_control = create_slider("mic");
+    gtk_box_pack_start (GTK_BOX (subvbox), mic_control, FALSE /*expand*/, TRUE /*fill*/, 0 /*padding*/);
+    gtk_widget_show_all (mic_control);
   }
-  else if(!show && showInfoScreen)
+  else if(!show && showControls)
   {
-    gtk_container_remove(GTK_CONTAINER (subvbox), infoScreen);
+    gtk_container_remove( GTK_CONTAINER(subvbox) , speaker_control );
+    gtk_container_remove( GTK_CONTAINER(subvbox) , mic_control );
   }
-  showInfoScreen = show;
-  */
+  showControls = show;
 }
 
 void 

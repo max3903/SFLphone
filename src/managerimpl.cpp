@@ -1145,6 +1145,7 @@ ManagerImpl::initConfigFile (void)
   fill_config_int(CONFIG_POPUP, YES_STR);
   fill_config_int(CONFIG_NOTIFY , YES_STR);
   fill_config_int(CONFIG_MAIL_NOTIFY , NO_STR);
+  fill_config_int(CONFIG_VOLUME , YES_STR);
 
   // Loads config from ~/.sflphone/sflphonedrc or so..
   if (createSettingsPath() == 1) {
@@ -1487,7 +1488,18 @@ void
 ManagerImpl::setDialpad( void )
 {
   ( getConfigInt( PREFERENCES , CONFIG_DIALPAD ) == DISPLAY_DIALPAD )? setConfig(PREFERENCES , CONFIG_DIALPAD , NO_STR ) : setConfig( PREFERENCES , CONFIG_DIALPAD , YES_STR );
+}
 
+int
+ManagerImpl::getVolumeControls( void )
+{
+  return getConfigInt( PREFERENCES , CONFIG_VOLUME );
+}
+
+void
+ManagerImpl::setVolumeControls( void )
+{
+  ( getConfigInt( PREFERENCES , CONFIG_VOLUME ) == DISPLAY_VOLUME_CONTROLS )? setConfig(PREFERENCES , CONFIG_VOLUME , NO_STR ) : setConfig( PREFERENCES , CONFIG_VOLUME , YES_STR );
 }
 
 void 
