@@ -176,13 +176,15 @@ AudioRtpRTX::initBuffers()
   void
 AudioRtpRTX::initAudioRtpSession (void) 
 {
-
-
-
   try {
-    if (_ca == 0) { return; }
+    if(_ca == 0) return;
     _audiocodec = Manager::instance().getCodecDescriptorMap().getCodec( _ca->getAudioCodec() );
-    _codecSampleRate = _audiocodec->getClockRate();	
+    if(_audiocodec == NULL)
+    {
+    	// FIXME Sometimes audio codec payload is not valid and thus a NULL audio codec is returned
+    	_debug("Init audio RTP session failed on get audio codec");
+    }
+    _codecSampleRate = _audiocodec->getClockRate();
 
     _debug("Init audio RTP session\n");
     ost::InetHostAddress remote_ip(_ca->getRemoteIp().c_str());
