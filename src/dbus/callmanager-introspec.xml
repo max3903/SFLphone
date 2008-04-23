@@ -2,6 +2,8 @@
 <node name="/org/sflphone/SFLphone">
   <interface name="org.sflphone.SFLphone.CallManager">
   
+    <!-- Basic call related methods -->
+    
     <method name="placeCall">
       <arg type="s" name="accountID" direction="in"/>
       <arg type="s" name="callID" direction="in"/>
@@ -52,15 +54,19 @@
       <arg type="d" name="value" direction="out"/>
     </method>
     
+    <!-- UNUSED -->
     <method name="getCallDetails">
       <arg type="s" name="callID" direction="in"/>
       <arg type="a{ss}" name="infos" direction="out"/>
     </method>
     
+    <!-- UNUSED -->
     <method name="getCurrentCallID">
       <arg type="s" name="callID" direction="out"/>
     </method>
     
+    <!--      ///////////////////////               -->
+
     <!-- Shared Memory related methods -->
     
     <method name="getLocalSharedMemoryKey">
@@ -98,6 +104,8 @@
     </method>
     
     <!--      ///////////////////////               -->
+    
+    <!-- Signals -->
     
     <signal name="incomingCall">
       <arg type="s" name="accountID" />

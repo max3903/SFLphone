@@ -44,7 +44,7 @@ DBusGProxy * configurationManagerProxy;
 DBusGProxy * contactManagerProxy;
 DBusGProxy * instanceProxy;
 
-static void  
+static void
 incoming_call_cb (DBusGProxy *proxy,
                   const gchar* accountID,
                   const gchar* callID,
@@ -178,8 +178,6 @@ contact_entry_presence_changed(DBusGProxy* proxy,
 		const gchar* additionalInfo,
 		void* nothing)
 {
-	// TMP
-	g_print("%s : %s is %s\n", accountID, entryID, presence);
 	contact_list_entry_change_presence_status(accountID, entryID, presence, additionalInfo);
 }
 
@@ -322,13 +320,12 @@ dbus_connect ()
 }
 
 void
-dbus_clean ()
+dbus_clean()
 {
     g_object_unref (callManagerProxy);
     g_object_unref (configurationManagerProxy);
     g_object_unref (contactManagerProxy);
 }
-
 
 void
 dbus_hold (const call_t * c)
@@ -340,12 +337,11 @@ dbus_hold (const call_t * c)
     g_printerr ("Failed to call hold() on CallManager: %s\n",
                 error->message);
     g_error_free (error);
-  } 
+  }
   else 
   {
     g_print ("DBus called hold() on CallManager\n");
   }
-
 }
 
 void
@@ -362,7 +358,6 @@ dbus_unhold (const call_t * c)
   else 
   {
     g_print ("DBus called unhold() on CallManager\n");
-  
   }
 }
 
@@ -381,7 +376,6 @@ dbus_hang_up (const call_t * c)
   {
     g_print ("DBus called hang_up() on CallManager\n");
   }
-
 }
 
 void
@@ -399,7 +393,6 @@ dbus_transfert (const call_t * c)
   {
     g_print ("DBus called transfert() on CallManager\n");
   }
-
 }
 
 void
@@ -418,7 +411,6 @@ dbus_accept (const call_t * c)
   {
     g_print ("DBus called accept(%s) on CallManager\n", c->callID);
   }
-
 }
 
 void
@@ -436,11 +428,8 @@ dbus_refuse (const call_t * c)
   else 
   {
     g_print ("DBus called refuse() on CallManager\n");
-  
   }
-
 }
-
 
 void
 dbus_place_call (const call_t * c)
@@ -458,7 +447,6 @@ dbus_place_call (const call_t * c)
     g_print ("DBus called placeCall() on CallManager\n");
   
   }
-
 }
 
 gchar*

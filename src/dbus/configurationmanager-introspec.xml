@@ -3,6 +3,10 @@
   <interface name="org.sflphone.SFLphone.ConfigurationManager">
     
   <!-- Accounts-related methods -->  
+    <method name="getAccountList">
+      <arg type="as" name="list" direction="out"/>
+    </method>
+   
     <method name="getAccountDetails">
       <arg type="s" name="accountID" direction="in"/>
       <arg type="a{ss}" name="details" direction="out"/>
@@ -21,10 +25,6 @@
       <arg type="s" name="accoundID" direction="in"/>
     </method>
     
-    <method name="getAccountList">
-      <arg type="as" name="list" direction="out"/>
-    </method>
-   
     <method name="sendRegister">
       <arg type="s" name="accountID" direction="in"/>
       <arg type="i" name="expire" direction="in"/>
@@ -33,23 +33,28 @@
    <!--      ///////////////////////               -->
 
   <!-- Various audio-related methods   -->
- 
+  
+    <!-- UNUSED -->
     <method name="getToneLocaleList">
       <arg type="as" name="list" direction="out"/>
     </method>
   
+    <!-- UNUSED -->
     <method name="getVersion">
       <arg type="s" name="version" direction="out"/>
     </method>
     
+    <!-- UNUSED -->
     <method name="getRingtoneList">
       <arg type="as" name="list" direction="out"/>
     </method>
    
+    <!-- UNUSED -->
    <method name="getPlaybackDeviceList">
       <arg type="as" name="list" direction="out"/>
     </method>
     
+    <!-- UNUSED -->
     <method name="getRecordDeviceList">
       <arg type="as" name="list" direction="out"/>
     </method>
@@ -250,32 +255,18 @@
       <arg type="i" name="res" direction="out"/>
     </method>
 
-    <method name="setNotify">
-    </method>
-
-    <method name="getNotify">
-      <arg type="i" name="level" direction="out"/>
-    </method>
-
-    <method name="setMailNotify">
-    </method>
-
-    <method name="getMailNotify">
-      <arg type="i" name="level" direction="out"/>
+    <method name="setDialpad">
     </method>
 
     <method name="getDialpad">
       <arg type="i" name="state" direction="out"/>
     </method>
 
-    <method name="setDialpad">
+    <method name="setVolumeControls">
     </method>
 
     <method name="getVolumeControls">
       <arg type="i" name="state" direction="out"/>
-    </method>
-
-    <method name="setVolumeControls">
     </method>
 
     <method name="startHidden">
@@ -285,15 +276,32 @@
       <arg type="i" name="state" direction="out"/>
     </method>
 
+    <method name="switchPopupMode">
+    </method>
+
     <method name="popupMode">
       <arg type="i" name="state" direction="out"/>
     </method>
 
-    <method name="switchPopupMode">
+    <method name="getNotify">
+      <arg type="i" name="level" direction="out"/>
+    </method>
+
+    <method name="setNotify">
+    </method>
+
+    <method name="getMailNotify">
+      <arg type="i" name="level" direction="out"/>
+    </method>
+
+    <method name="setMailNotify">
     </method>
 
   <!--        /////////////////////////////       -->
-    <!-- SEE parametersChanged signal unused -->
+  
+    <!-- Signals -->
+  
+    <!-- UNUSED -->
     <signal name="parametersChanged">
       <arg type="a{ss}" name="list" direction="out"/>
     </signal>

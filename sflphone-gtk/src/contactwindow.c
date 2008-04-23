@@ -82,13 +82,9 @@ GtkWidget* contactEmailEntry;
 GtkWidget* entryIDEntry;
 GtkWidget* entryTextEntry;
 GtkWidget* entryTypeComboBox;
-//GtkListStore* entryTypeStore;
 GtkWidget* entryIsShownCheckButton;
 GtkWidget* entryIsSubcribedCheckButton;
 
-/**
- * Fills the treelist with contacts and entries grouped by accounts
- */
 void
 contact_window_fill_contact_list()
 {
@@ -158,9 +154,6 @@ contact_window_fill_contact_list()
 	}
 }
 
-/**
- * Clear the model
- */
 void
 contact_window_clear_contact_list()
 {
@@ -287,6 +280,7 @@ remove_contact_activated(GtkMenuItem* item, GtkTreeView* treeView)
 			CONTACT_WINDOW_ID, &accountID,
 			-1);
 	
+	// Show deletion confirmation dialog
 	GtkDialog* confirmRemoveContactDialog;
 	confirmRemoveContactDialog = GTK_DIALOG(gtk_dialog_new_with_buttons(
 			_("Confirm contact removal"),
@@ -429,6 +423,7 @@ remove_entry_activated(GtkMenuItem* item, GtkTreeView* treeView)
 			CONTACT_WINDOW_ID, &accountID,
 			-1);
 		
+	// Show deletion confirmation dialog
 	GtkDialog* confirmRemoveEntryDialog;
 	confirmRemoveEntryDialog = GTK_DIALOG(gtk_dialog_new_with_buttons(
 			_("Confirm entry removal"),
@@ -925,18 +920,6 @@ show_entry_dialog(gchar* accountID, gchar* contactID, gchar* entryID)
 		}
 		gtk_widget_destroy(GTK_WIDGET(entryDialog));
 	}
-}
-
-void
-contact_window_add_account(account_t* account)
-{
-	// TODO
-}
-
-void
-contact_window_remove_account(gchar* accountID)
-{
-	// TODO
 }
 
 void
