@@ -40,10 +40,10 @@
 
 // Passive statuses icons
 #define PRESENCE_ONLINE_ICON			ICONS_DIR "/dial.svg"
-#define PRESENCE_BUSY_ICON				ICONS_DIR "/dial.svg"
-#define PRESENCE_BE_RIGHT_BACK_ICON		ICONS_DIR "/dial.svg"
-#define PRESENCE_AWAY_ICON				ICONS_DIR "/dial.svg"
-#define PRESENCE_OUT_TO_LUNCH_ICON		ICONS_DIR "/dial.svg"
+#define PRESENCE_BUSY_ICON				ICONS_DIR "/busy.svg"
+#define PRESENCE_BE_RIGHT_BACK_ICON		ICONS_DIR "/incoming.svg"
+#define PRESENCE_AWAY_ICON				ICONS_DIR "/outgoing.svg"
+#define PRESENCE_OUT_TO_LUNCH_ICON		ICONS_DIR "/missed.svg"
 #define PRESENCE_OFFLINE_ICON			ICONS_DIR "/hang_up.svg"
 #define PRESENCE_DO_NOT_DISTURB_ICON	ICONS_DIR "/refuse.svg"
 
