@@ -840,7 +840,7 @@ create_toolbar()
 			G_CALLBACK (transfert), NULL);
 	gtk_toolbar_insert(GTK_TOOLBAR(ret), GTK_TOOL_ITEM(transfertButton), -1); 
 	
-	image = gtk_image_new_from_file("");
+	image = gtk_image_new_from_file(ICONS_DIR "/webcam.svg");
 	webCamButton = gtk_toggle_tool_button_new ();
 	gtk_tool_button_set_icon_widget(GTK_TOOL_BUTTON(webCamButton), image);
 	gtk_widget_set_tooltip_text(GTK_WIDGET(webCamButton), "Enable WebCam");
