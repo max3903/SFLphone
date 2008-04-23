@@ -22,6 +22,7 @@
 #include <accountlist.h>
 #include <accountwindow.h>
 #include <actions.h>
+#include <calltree.h>
 #include <config.h>
 #include <dbus.h>
 #include <mainwindow.h>
@@ -835,6 +836,18 @@ void
 set_popup_mode( void )
 {
   dbus_switch_popup_mode();
+}
+
+void
+set_notif_level(  )
+{
+  dbus_set_notify();
+}
+
+void
+set_mail_notif( )
+{
+  dbus_set_mail_notify( );
 }
 
 void 
@@ -1845,7 +1858,6 @@ create_general_settings ()
   GtkWidget *notifFrame;
   GtkWidget *notifBox;
   GtkWidget *notifAll;
-  GtkWidget *notifIncoming;
   GtkWidget *notifMails;
 
   GtkWidget *trayFrame;
@@ -1857,7 +1869,7 @@ create_general_settings ()
   gtk_container_set_border_width(GTK_CONTAINER(ret), 10);
 
   // Notifications Frame
-  notifFrame = gtk_frame_new(_("Notifications"));
+  notifFrame = gtk_frame_new(_("Desktop Notification"));
   gtk_box_pack_start(GTK_BOX(ret), notifFrame, FALSE, FALSE, 0);
   gtk_widget_show( notifFrame );
 
@@ -1866,20 +1878,15 @@ create_general_settings ()
   gtk_widget_show( notifBox );
   gtk_container_add( GTK_CONTAINER(notifFrame) , notifBox);
   
-  notifAll = gtk_radio_button_new_with_label( NULL, _("Enable All"));
-  gtk_toggle_button_set_active( GTK_TOGGLE_BUTTON(notifAll), TRUE );
+  notifAll = gtk_check_button_new_with_label( _("Enable"));
+  gtk_toggle_button_set_active( GTK_TOGGLE_BUTTON(notifAll), dbus_get_notify() );
   gtk_box_pack_start( GTK_BOX(notifBox) , notifAll , TRUE , TRUE , 1);
-  //TODO callback
+  g_signal_connect(G_OBJECT( notifAll ) , "clicked" , G_CALLBACK( set_notif_level ) , NULL );
 
-  notifIncoming = gtk_radio_button_new_with_label_from_widget( GTK_RADIO_BUTTON(notifAll) , _("Only Incoming Calls"));
-  gtk_toggle_button_set_active( GTK_TOGGLE_BUTTON(notifIncoming), FALSE );
-  gtk_box_pack_start( GTK_BOX(notifBox) , notifIncoming , TRUE , TRUE , 1);
-  //TODO callback
-
-  notifMails = gtk_radio_button_new_with_label_from_widget( GTK_RADIO_BUTTON(notifAll) , _("Only Voice Mails"));
-  gtk_toggle_button_set_active( GTK_TOGGLE_BUTTON(notifMails), FALSE );
+  notifMails = gtk_check_button_new_with_label(  _("Notify Voice Mails"));
+  gtk_toggle_button_set_active( GTK_TOGGLE_BUTTON(notifMails), dbus_get_mail_notify() );
   gtk_box_pack_start( GTK_BOX(notifBox) , notifMails , TRUE , TRUE , 1);
-  //TODO callback
+  g_signal_connect(G_OBJECT( notifMails ) , "clicked" , G_CALLBACK( set_mail_notif ) , NULL);
 
   // System Tray option frame
   trayFrame = gtk_frame_new(_("System Tray Icon"));
@@ -1908,7 +1915,6 @@ create_general_settings ()
   gtk_widget_show_all(ret);
   return ret;
 }
-
 
 /**
  * Video settings tab
@@ -2006,8 +2012,6 @@ create_video_tab ()
 	return ret;
 }
 
-
-
 /**
  * Webcam settings tab
  */
@@ -2029,10 +2033,8 @@ create_webcam_tab ()
 	GtkWidget *contrastLabel, *colourLabel;
 	GtkWidget *brightnessHScale, *contrastHScale, *colourHScale;
 	
-	
 	GtkWidget *drawingSpace;
 	slider_t values;
-	
 	
 	GtkCellRenderer *deviceRenderer, *resolutionRenderer;
 	
@@ -2209,7 +2211,6 @@ create_webcam_tab ()
 	return ret;
 }
 
-
 /**
  * Show configuration window with tabs
  * page_num indicates the current page of the notebook
@@ -2239,8 +2240,6 @@ show_config_window (gint page_num)
 	gtk_box_pack_start(GTK_BOX (dialog->vbox), notebook, TRUE, TRUE, 0);
 	gtk_container_set_border_width(GTK_CONTAINER(notebook), 10);
 	gtk_widget_show(notebook);
-	
-
 
 	// Accounts tab
 	tabAccount = create_accounts_tab();
@@ -2275,6 +2274,7 @@ show_config_window (gint page_num)
 	g_signal_connect_after(G_OBJECT(notebook), "switch-page", G_CALLBACK(select_notebook_page), notebook);
 	
 	gtk_notebook_set_current_page(GTK_NOTEBOOK(notebook),page_num);
+
 	gtk_dialog_run(dialog);
 	
 	//g_signal_connect_swapped( dialog , "response" , G_CALLBACK( gtk_widget_destroy ), dialog );
@@ -2286,10 +2286,6 @@ show_config_window (gint page_num)
 
 	gtk_widget_destroy(GTK_WIDGET(dialog));
 }
-
-
-
-
 
 //Updates the webcam settings with the new values
 void update_notebook()
@@ -2308,37 +2304,40 @@ void update_notebook()
 void
 show_accounts_window( void )
 {
-  GtkDialog * dialog;
-  GtkWidget * accountFrame;
-  GtkWidget * tab;
+	GtkDialog * dialog;
+	GtkWidget * accountFrame;
+	GtkWidget * tab;
 
-  dialogOpen = TRUE;
+	dialogOpen = TRUE;
 
-  dialog = GTK_DIALOG(gtk_dialog_new_with_buttons (_("Accounts"),
-                              GTK_WINDOW(get_main_window()),
-                              GTK_DIALOG_DESTROY_WITH_PARENT,
-                              GTK_STOCK_CLOSE,
-                              GTK_RESPONSE_ACCEPT,
-                              NULL));
+	dialog = GTK_DIALOG(gtk_dialog_new_with_buttons (_("Accounts"),
+			GTK_WINDOW(get_main_window()),
+			GTK_DIALOG_DESTROY_WITH_PARENT,
+			GTK_STOCK_CLOSE,
+			GTK_RESPONSE_ACCEPT,
+			NULL));
 
-        // Set window properties
-        gtk_dialog_set_has_separator(dialog, FALSE);
-        gtk_window_set_default_size(GTK_WINDOW(dialog), 400, 400);
-        gtk_container_set_border_width(GTK_CONTAINER(dialog), 0);
+	// Set window properties
+	gtk_dialog_set_has_separator(dialog, FALSE);
+	gtk_window_set_default_size(GTK_WINDOW(dialog), 400, 400);
+	gtk_container_set_border_width(GTK_CONTAINER(dialog), 0);
 
 	accountFrame = gtk_frame_new( _("Accounts previously setup"));
 	gtk_box_pack_start( GTK_BOX( dialog->vbox ), accountFrame , TRUE, TRUE, 0);
-        gtk_container_set_border_width(GTK_CONTAINER(accountFrame), 10);
-        gtk_widget_show(accountFrame);
+	gtk_container_set_border_width(GTK_CONTAINER(accountFrame), 10);
+	gtk_widget_show(accountFrame);
 
 	// Accounts tab
-        tab = create_accounts_tab();
+	tab = create_accounts_tab();
 
 	gtk_container_add(GTK_CONTAINER(accountFrame) , tab);
 
-      gtk_dialog_run( dialog );
+	gtk_dialog_run( dialog );
 
-      dialogOpen=FALSE;
-      gtk_widget_destroy(GTK_WIDGET(dialog));
+	dialogOpen=FALSE;
+	gtk_widget_destroy(GTK_WIDGET(dialog));
+	if( account_list_get_size() >0 && account_list_get_current()==NULL ) 
+		account_list_set_current_pos(0);
+	toolbar_update_buttons();
 }
 

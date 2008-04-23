@@ -373,6 +373,30 @@ void dbus_remove_contact_entry(gchar* accountID, gchar* contactID, gchar* entryI
 void dbus_set_presence(gchar* accountID, gchar* presenceStatus, gchar* presenceInfo);	// UNUSED for now but ready to be called
 
 /**
+ * ConfigurationManager - Configure the notification level
+ * @return int	0 disable 
+ *		1 enable
+ */
+guint dbus_get_notify( void );
+
+/**
+ * ConfigurationManager - Configure the notification level
+ */
+void dbus_set_notify( void );
+
+/**
+ * ConfigurationManager - Configure the mail notification level
+ * @return int	0 disable 
+ *		1 enable
+ */
+guint dbus_get_mail_notify( void );
+
+/**
+ * ConfigurationManager - Configure the mail notification level
+ */
+void dbus_set_mail_notify( void );
+
+/**
  * ConfigurationManager - Start a tone when a new call is open and no numbers have been dialed 
  * @param start 1 to start
  *		0 to stop

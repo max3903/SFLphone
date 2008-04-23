@@ -2002,7 +2002,7 @@ gboolean dbus_disable_local_video_pref()
 /**
  * Get the checkbox status in the video settings to enable webcam 
  */
-gboolean 
+gboolean
 dbus_get_enable_checkbox_status()
 {
 	g_print("Before get enable checkbox status");
@@ -2012,7 +2012,7 @@ dbus_get_enable_checkbox_status()
 			configurationManagerProxy,
 			&response,
 			&error);
-			
+	
 	g_print("After");
 	if(error)
 	{
@@ -2092,4 +2092,73 @@ dbus_set_disable_checkbox_status(gboolean status)
 		g_print("DBus called set_disable_checkbox_status() on ConfigurationManager\n");
 }
 
+void
+dbus_set_notify(void)
+{
+	GError* error = NULL;
+	org_sflphone_SFLphone_ConfigurationManager_set_notify(
+			configurationManagerProxy,
+			&error);
+	g_print("After");
+	if(error)
+	{
+		g_error_free(error);
+	}
+	else
+		g_print("Called dbus_set_notif_level\n");
+}
 
+guint
+dbus_get_notify( void )
+{
+	g_print("Before dbus_get_notif_level()\n");
+	gint level;
+	GError* error = NULL;
+	org_sflphone_SFLphone_ConfigurationManager_get_notify(
+			configurationManagerProxy,
+			&level,
+			&error);
+	if(error)
+	{
+		g_print("Error calling dbus_get_notif_level\n");
+		g_error_free(error);
+	}
+	else
+		g_print("Called dbus_get_notif_level\n");
+	return level;
+}
+
+void
+dbus_set_mail_notify( void )
+{
+	GError* error = NULL;
+	org_sflphone_SFLphone_ConfigurationManager_set_mail_notify(
+			configurationManagerProxy,
+			&error);
+	if(error)
+	{
+		g_error_free(error);
+	}
+	else
+		g_print("Called dbus_set_mail_notif_level\n");
+}
+
+guint
+dbus_get_mail_notify( void )
+{
+	g_print("Before dbus_get_mail_notif_level()\n");
+	gint level;
+	GError* error = NULL;
+	org_sflphone_SFLphone_ConfigurationManager_get_mail_notify(
+			configurationManagerProxy,
+			&level,
+			&error);
+	if(error)
+	{
+		g_print("Error calling dbus_get_mail_notif_level\n");
+		g_error_free(error);
+	}
+	else
+		g_print("Called dbus_get_mail_notif_level\n");
+	return level;
+}

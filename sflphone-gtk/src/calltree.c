@@ -33,8 +33,6 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-
-
 GtkWidget   * toolbar;
 GtkToolItem * pickupButton;
 GtkToolItem * callButton;
@@ -44,6 +42,7 @@ GtkToolItem * transfertButton;
 GtkToolItem * unholdButton;
 GtkToolItem * inviteButton;
 GtkToolItem * historyButton;
+GtkToolItem * mailboxButton;
 guint transfertButtonConnId; //The button toggled signal connection ID
 gboolean history_shown;
 
@@ -57,17 +56,15 @@ GtkDialog * disableDialog;
 //The second call to make a conference
 call_t * callConf;
 
-
 /**
  * Show popup menu
  */
-static gboolean            
-popup_menu (GtkWidget *widget,
-            gpointer   user_data)
+static gboolean
+popup_menu (GtkWidget *widget, gpointer user_data)
 {
   show_popup_menu(widget, NULL);
   return TRUE;
-}            
+}
             
 static gboolean
 button_pressed(GtkWidget* widget, GdkEventButton *event, gpointer user_data)
@@ -79,17 +76,19 @@ button_pressed(GtkWidget* widget, GdkEventButton *event, gpointer user_data)
   }
   return FALSE;
 }
+
 /**
  * Make a call
  */
-	static void 
-call_button( GtkWidget *widget, gpointer   data )
+static void
+call_button(GtkWidget *widget, gpointer data)
 {
 	call_t * selectedCall;
 	printf("Call button pressed\n");
 	if(call_list_get_size(current_calls)>0)
 		sflphone_pick_up();
-	else if(call_list_get_size(active_calltree) > 0){
+	else if(call_list_get_size(active_calltree) > 0)
+	{
 		printf("Calling a called num\n");
 		selectedCall = call_get_selected(active_calltree);
 		if(!selectedCall->to){
@@ -108,7 +107,7 @@ call_button( GtkWidget *widget, gpointer   data )
 /**
  * Hang up the line
  */
-	static void 
+static void 
 hang_up( GtkWidget *widget, gpointer   data )
 {
 	sflphone_hang_up();
@@ -117,7 +116,7 @@ hang_up( GtkWidget *widget, gpointer   data )
 /**
  * Hold the line
  */
-	static void 
+static void 
 hold( GtkWidget *widget, gpointer   data )
 {
 	sflphone_on_hold();
@@ -126,7 +125,7 @@ hold( GtkWidget *widget, gpointer   data )
 /**
  * Transfert the line
  */
-	static void 
+static void 
 transfert  (GtkToggleToolButton *toggle_tool_button,
 		gpointer             user_data)
 {
@@ -144,7 +143,7 @@ transfert  (GtkToggleToolButton *toggle_tool_button,
 /**
  * Unhold call
  */
-	static void 
+static void 
 unhold( GtkWidget *widget, gpointer   data )
 {
 	sflphone_off_hold();
@@ -198,10 +197,10 @@ static void webCamStatusChange( GtkWidget *widget, gpointer data )
 	{
 		main_window_glWidget(gtk_toggle_tool_button_get_active(GTK_TOGGLE_TOOL_BUTTON (webCamButton)));
 	}
-	
 }
 
-static void enable_yes_button(GtkButton *button, gpointer user_data)
+static void
+enable_yes_button(GtkButton *button, gpointer user_data)
 {
 	gtk_dialog_response(enableDialog, GTK_RESPONSE_DELETE_EVENT);
 	gtk_widget_destroy(GTK_WIDGET(enableDialog));
@@ -212,13 +211,15 @@ static void enable_yes_button(GtkButton *button, gpointer user_data)
 	g_print("Info: enabling webcam");	
 }
 
-static void enable_no_button(GtkButton *button, gpointer user_data)
+static void
+enable_no_button(GtkButton *button, gpointer user_data)
 {
 	gtk_dialog_response(enableDialog, GTK_RESPONSE_DELETE_EVENT);
 	gtk_widget_destroy(GTK_WIDGET(enableDialog));
 }
 
-static void disable_yes_button(GtkButton *button, gpointer user_data)
+static void
+disable_yes_button(GtkButton *button, gpointer user_data)
 {
 	gtk_dialog_response(disableDialog, GTK_RESPONSE_DELETE_EVENT);
 	gtk_widget_destroy(GTK_WIDGET(disableDialog));
@@ -228,34 +229,38 @@ static void disable_yes_button(GtkButton *button, gpointer user_data)
 	g_print("Info: disabling webcam");
 }
 
-static void disable_no_button(GtkButton *button, gpointer user_data)
+static void
+disable_no_button(GtkButton *button, gpointer user_data)
 {
 	gtk_dialog_response(disableDialog, GTK_RESPONSE_DELETE_EVENT);
 	gtk_widget_destroy(GTK_WIDGET(disableDialog));
 }
 
-static void enable_checkbox(GtkToggleButton *togglebutton, gpointer user_data)
+static void
+enable_checkbox(GtkToggleButton *togglebutton, gpointer user_data)
 {
 	gboolean status = gtk_toggle_button_get_active(togglebutton);
 	set_enable_webcam_checkbox_status(!status);
 }
 
-static void disable_checkbox(GtkToggleButton *togglebutton, gpointer user_data)
+static void
+disable_checkbox(GtkToggleButton *togglebutton, gpointer user_data)
 {
 	gboolean status = gtk_toggle_button_get_active(togglebutton);
 	set_disable_webcam_checkbox_status(!status);
 }
+
 /**
  * Dialog window on webcam activation
  */
-void create_enable_webcam_window()
+void
+create_enable_webcam_window()
 {
   	GtkWidget *enableVBox;
   	GtkWidget *enableLabel;
   	GtkWidget *enableYesButton;
 	GtkWidget *enableNoButton;
 	GtkWidget *enableCheckBox;
-  	
   	
   	enableDialog = GTK_DIALOG(gtk_dialog_new_with_buttons ("Enable webcam",
 				GTK_WINDOW(get_main_window()),
@@ -295,7 +300,8 @@ void create_enable_webcam_window()
 /**
  * Dialog window on webcam activation
  */
-void create_disable_webcam_window()
+void
+create_disable_webcam_window()
 {
   	GtkWidget *disableVBox;
   	GtkWidget *disableLabel;
@@ -341,7 +347,8 @@ void create_disable_webcam_window()
 /**
  * Invite 3rd person to make a conference call
  */
-static void inviteUser( GtkWidget *widget, gpointer data )
+static void
+inviteUser( GtkWidget *widget, gpointer data )
 {
 	call_t * selectedCall = call_get_selected(current_calls);
 	if(selectedCall)
@@ -355,7 +362,8 @@ static void inviteUser( GtkWidget *widget, gpointer data )
 	
 }
 
-static void invite_call_button(GtkButton *button, gpointer user_data)
+static void
+invite_call_button(GtkButton *button, gpointer user_data)
 {
 	char buf[20];
 	gboolean answer;
@@ -396,7 +404,8 @@ static void invite_call_button(GtkButton *button, gpointer user_data)
 	}
 }
 
-static void invite_cancel_button(GtkButton *button, gpointer user_data)
+static void
+invite_cancel_button(GtkButton *button, gpointer user_data)
 {
 	call_t * selectedCall = call_get_selected(current_calls);
 	if(selectedCall)
@@ -411,7 +420,8 @@ static void invite_cancel_button(GtkButton *button, gpointer user_data)
 }
 
 /* Limits the entry to numbers only */
-void insert_text_handler (GtkEntry *entry, const gchar *text, gint length,
+void
+insert_text_handler (GtkEntry *entry, const gchar *text, gint length,
 							gint *position, gpointer data)
 {
 	GtkEditable *editable = GTK_EDITABLE(entry);
@@ -436,17 +446,15 @@ void insert_text_handler (GtkEntry *entry, const gchar *text, gint length,
 	g_free (result);
 }
 
-void create_invite_window()
+void
+create_invite_window()
 {
-	
   	GtkWidget *dialogVBox;
   	GtkWidget *confVBox;
   	GtkWidget *phoneLabel;
   	GtkWidget *phoneEntry;
   	GtkWidget *inviteCallButton;
 	GtkWidget *inviteCancelButton;
-  	
-	
 	
 	inviteDialog = GTK_DIALOG(gtk_dialog_new_with_buttons ("Invite user",
 				GTK_WINDOW(get_main_window()),
@@ -487,8 +495,8 @@ void create_invite_window()
   	gtk_dialog_run(inviteDialog);
 }
 
-
-static void join_button(GtkButton *button, gpointer user_data)
+static void
+join_button(GtkButton *button, gpointer user_data)
 {
 	call_t * selectedCall = call_get_selected(current_calls);
 	if(selectedCall)
@@ -511,7 +519,8 @@ static void join_button(GtkButton *button, gpointer user_data)
 	gtk_widget_destroy(GTK_WIDGET(joinDialog));
 }
 
-static void join_cancel_button(GtkButton *button, gpointer user_data)
+static void
+join_cancel_button(GtkButton *button, gpointer user_data)
 {
 	//TODO: hangup call with the callee
 	call_t * selectedCall = call_get_selected(current_calls);
@@ -527,7 +536,8 @@ static void join_cancel_button(GtkButton *button, gpointer user_data)
 	gtk_widget_destroy(GTK_WIDGET(joinDialog));
 }
 
-void create_join_window()
+void
+create_join_window()
 {
   	GtkWidget *joinVBox;
   	GtkWidget *joinLabel;
@@ -566,8 +576,7 @@ void create_join_window()
 }
 
 static void
-toggle_history(GtkToggleToolButton *toggle_tool_button,
-		gpointer	user_data)
+toggle_history(GtkToggleToolButton *toggle_tool_button, gpointer user_data)
 {
 	GtkTreeSelection *sel;
 	if(history_shown){
@@ -586,14 +595,31 @@ toggle_history(GtkToggleToolButton *toggle_tool_button,
 	toolbar_update_buttons();
 }
 
-	void 
+static void
+call_mailbox( GtkWidget* widget , gpointer data )
+{
+    account_t* current = account_list_get_current();
+    call_t* mailboxCall = g_new0( call_t , 1);
+    mailboxCall->state = CALL_STATE_DIALING;
+    mailboxCall->from = g_strconcat("\"\" <>", NULL);
+    mailboxCall->callID = g_new0(gchar, 30);
+    g_sprintf(mailboxCall->callID, "%d", rand());
+    mailboxCall->to = g_strdup(g_hash_table_lookup(current->properties, ACCOUNT_MAILBOX));
+    mailboxCall->accountID = g_strdup(current->accountID);
+    call_list_add( current_calls , mailboxCall );
+    update_call_tree_add( current_calls , mailboxCall );    
+    update_menus();
+    sflphone_place_call( mailboxCall );
+}
+
+void 
 toolbar_update_buttons ()
 {
-
 	gtk_widget_set_sensitive( GTK_WIDGET(callButton),       FALSE);
 	gtk_widget_set_sensitive( GTK_WIDGET(hangupButton),     FALSE);
 	gtk_widget_set_sensitive( GTK_WIDGET(holdButton),       FALSE);
 	gtk_widget_set_sensitive( GTK_WIDGET(transfertButton),  FALSE);
+	gtk_widget_set_sensitive( GTK_WIDGET(mailboxButton) , TRUE );
 	gtk_widget_set_sensitive( GTK_WIDGET(unholdButton),     FALSE);
 	gtk_widget_set_sensitive( GTK_WIDGET(webCamButton),     TRUE);
 	gtk_widget_set_sensitive( GTK_WIDGET(inviteButton),     FALSE);	
@@ -697,9 +723,11 @@ toolbar_update_buttons ()
 		else
 		{
 			gtk_widget_set_sensitive( GTK_WIDGET(callButton), FALSE);
+			gtk_widget_set_sensitive( GTK_WIDGET(mailboxButton), FALSE);
 		}
 	}
 }
+
 /* Call back when the user click on a call in the list */
 static void 
 selected(GtkTreeSelection *sel, void* data) 
@@ -722,10 +750,8 @@ selected(GtkTreeSelection *sel, void* data)
 }
 
 /* A row is activated when it is double clicked */
-void  row_activated(GtkTreeView       *tree_view,
-		GtkTreePath       *path,
-		GtkTreeViewColumn *column,
-		void * data) 
+void
+row_activated(GtkTreeView *tree_view, GtkTreePath *path, GtkTreeViewColumn *column, void *data) 
 {
 	call_t * selectedCall = call_get_selected(current_calls);
 	if (selectedCall)
@@ -751,11 +777,11 @@ void  row_activated(GtkTreeView       *tree_view,
 				break;
 		}
 	}
-}                  
+}
 
-
-GtkWidget * 
-create_toolbar (){
+GtkWidget *
+create_toolbar()
+{
 	GtkWidget *ret;
 	GtkWidget *image;
 
@@ -832,7 +858,7 @@ create_toolbar (){
 			G_CALLBACK (inviteUser), NULL);
 	gtk_toolbar_insert(GTK_TOOLBAR(ret), GTK_TOOL_ITEM(inviteButton), -1);
 
-	historyButton = gtk_toggle_tool_button_new_from_stock (GTK_STOCK_INDEX);
+	historyButton = gtk_toggle_tool_button_new_from_stock(GTK_STOCK_INDEX);
 	gtk_widget_set_tooltip_text(GTK_WIDGET(historyButton), _("History"));
 	gtk_tool_button_set_label(GTK_TOOL_BUTTON(historyButton), _("History"));
 	g_signal_connect (G_OBJECT (historyButton), "toggled",
@@ -841,12 +867,21 @@ create_toolbar (){
 	history_shown = FALSE;
 	active_calltree = current_calls;
 
+	image = gtk_image_new_from_file( ICONS_DIR "/mailbox.svg");
+	mailboxButton = gtk_tool_button_new( image , _("Mailbox"));
+	gtk_tool_button_set_icon_widget(GTK_TOOL_BUTTON(mailboxButton), image);
+	if( account_list_get_size() ==0 ) gtk_widget_set_state( GTK_WIDGET(mailboxButton), GTK_STATE_INSENSITIVE );
+        gtk_widget_set_tooltip_text(GTK_WIDGET(mailboxButton), _("Mailbox"));
+        g_signal_connect (G_OBJECT (mailboxButton), "clicked",
+                        G_CALLBACK (call_mailbox), NULL);
+        gtk_toolbar_insert(GTK_TOOLBAR(ret), GTK_TOOL_ITEM(mailboxButton), -1);
+
 	return ret;
+}
 
-}  
-
-void 
-create_call_tree (calltab_t* tab){
+void
+create_call_tree(calltab_t* tab)
+{
 	GtkWidget *sw;
 	GtkCellRenderer *rend;
 	GtkTreeViewColumn *col;
@@ -872,7 +907,7 @@ create_call_tree (calltab_t* tab){
 			G_CALLBACK (row_activated),
 			NULL);
 
-  // Connect the popup menu
+	// Connect the popup menu
 	g_signal_connect (G_OBJECT (tab->view), "popup-menu",
 			G_CALLBACK (popup_menu), 
 			NULL);
@@ -906,10 +941,9 @@ create_call_tree (calltab_t* tab){
 	gtk_widget_show(tab->tree); 
 	
 	//toolbar_update_buttons();
-	
 }
 
-void 
+void
 update_call_tree_remove (calltab_t* tab, call_t * c)
 {
 	GtkTreeIter iter;
@@ -942,7 +976,7 @@ update_call_tree_remove (calltab_t* tab, call_t * c)
 	toolbar_update_buttons();
 }
 
-void 
+void
 update_call_tree (calltab_t* tab, call_t * c)
 {
 	GdkPixbuf *pixbuf;
@@ -983,7 +1017,6 @@ update_call_tree (calltab_t* tab, call_t * c)
 							call_get_name(c), 
 							call_get_number(c));
 				}
-
 
 				switch(c->state)
 				{
@@ -1026,10 +1059,8 @@ update_call_tree (calltab_t* tab, call_t * c)
 
 				if (pixbuf != NULL)
 					g_object_unref(G_OBJECT(pixbuf));
-
 			} 
 		}
-
 	} 
 	toolbar_update_buttons();
 }

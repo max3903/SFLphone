@@ -389,7 +389,6 @@ ConfigurationManager::setWebcamDevice( const ::DBus::String& name )
 	Manager::instance().setWebcamDevice(name);
 }
 
-
 std::vector< ::DBus::String > 
 ConfigurationManager::getResolutionList(  )
 {
@@ -400,36 +399,50 @@ ConfigurationManager::getResolutionList(  )
 void 
 ConfigurationManager::setResolution( const ::DBus::String& name )
 {
-	_debug("ConfigurationManager::setResolution received\n");
-	Manager::instance().setResolution(name);
+  _debug("ConfigurationManager::setResolution received\n");
+  Manager::instance().setResolution(name);
+}
+
+void
+ConfigurationManager::setNotify( void )
+{
+  _debug("Manager received setNotify\n");
+  Manager::instance().setNotify();
 }
 
 ::DBus::String 
-ConfigurationManager::getCurrentResolution(  )
+ConfigurationManager::getCurrentResolution()
 {
-	_debug("ConfigurationManager::getCurrentResolution received\n");
-	return Manager::instance().getCurrentResolution();
+  _debug("ConfigurationManager::getCurrentResolution received\n");
+  return Manager::instance().getCurrentResolution();
+}
+
+::DBus::Int32
+ConfigurationManager::getNotify(void)
+{
+  _debug("Manager received getNotify\n");
+  return Manager::instance().getNotify();
 }
 
 std::vector< ::DBus::String > 
-ConfigurationManager::getBitrateList(  )
+ConfigurationManager::getBitrateList()
 {
-	_debug("ConfigurationManager::getBitrateList received\n");
-	return Manager::instance().getBitrateList();
+  _debug("ConfigurationManager::getBitrateList received\n");
+  return Manager::instance().getBitrateList();
 }
 
 void 
 ConfigurationManager::setBitrate( const ::DBus::String& name )
 {
-	_debug("ConfigurationManager::setBitrate received\n");
-	Manager::instance().setBitrate(name);
+  _debug("ConfigurationManager::setBitrate received\n");
+  Manager::instance().setBitrate(name);
 }
 
 ::DBus::String 
-ConfigurationManager::getCurrentBitrate(  )
+ConfigurationManager::getCurrentBitrate()
 {
-	_debug("ConfigurationManager::getCurrentBitrate received\n");
-	return Manager::instance().getCurrentBitrate();
+  _debug("ConfigurationManager::getCurrentBitrate received\n");
+  return Manager::instance().getCurrentBitrate();
 }
 
 ::DBus::Bool 
@@ -474,3 +487,16 @@ ConfigurationManager::setDisableCheckboxStatus( const ::DBus::Bool& status )
 	Manager::instance().setDisableCheckboxStatus(status);
 }
 
+void
+ConfigurationManager::setMailNotify( void )
+{
+  _debug("Manager received setMailNotify\n");
+  Manager::instance().setMailNotify( ); 
+}
+
+::DBus::Int32
+ConfigurationManager::getMailNotify( void )
+{
+  _debug("Manager received getMailNotify\n");
+  return Manager::instance().getMailNotify(  ); 
+}
