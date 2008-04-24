@@ -20,11 +20,11 @@ public:
     ConfigurationManager()
     : ::DBus::InterfaceAdaptor("org.sflphone.SFLphone.ConfigurationManager")
     {
+        register_method(ConfigurationManager, getAccountList, _getAccountList_stub);
         register_method(ConfigurationManager, getAccountDetails, _getAccountDetails_stub);
         register_method(ConfigurationManager, setAccountDetails, _setAccountDetails_stub);
         register_method(ConfigurationManager, addAccount, _addAccount_stub);
         register_method(ConfigurationManager, removeAccount, _removeAccount_stub);
-        register_method(ConfigurationManager, getAccountList, _getAccountList_stub);
         register_method(ConfigurationManager, sendRegister, _sendRegister_stub);
         register_method(ConfigurationManager, getToneLocaleList, _getToneLocaleList_stub);
         register_method(ConfigurationManager, getVersion, _getVersion_stub);
@@ -74,22 +74,27 @@ public:
         register_method(ConfigurationManager, setEnableCheckboxStatus, _setEnableCheckboxStatus_stub);
         register_method(ConfigurationManager, setDisableCheckboxStatus, _setDisableCheckboxStatus_stub);
         register_method(ConfigurationManager, isIax2Enabled, _isIax2Enabled_stub);
-        register_method(ConfigurationManager, setNotify, _setNotify_stub);
-        register_method(ConfigurationManager, getNotify, _getNotify_stub);
-        register_method(ConfigurationManager, setMailNotify, _setMailNotify_stub);
-        register_method(ConfigurationManager, getMailNotify, _getMailNotify_stub);
-        register_method(ConfigurationManager, getDialpad, _getDialpad_stub);
         register_method(ConfigurationManager, setDialpad, _setDialpad_stub);
-        register_method(ConfigurationManager, getVolumeControls, _getVolumeControls_stub);
+        register_method(ConfigurationManager, getDialpad, _getDialpad_stub);
         register_method(ConfigurationManager, setVolumeControls, _setVolumeControls_stub);
+        register_method(ConfigurationManager, getVolumeControls, _getVolumeControls_stub);
         register_method(ConfigurationManager, startHidden, _startHidden_stub);
         register_method(ConfigurationManager, isStartHidden, _isStartHidden_stub);
-        register_method(ConfigurationManager, popupMode, _popupMode_stub);
         register_method(ConfigurationManager, switchPopupMode, _switchPopupMode_stub);
+        register_method(ConfigurationManager, popupMode, _popupMode_stub);
+        register_method(ConfigurationManager, getNotify, _getNotify_stub);
+        register_method(ConfigurationManager, setNotify, _setNotify_stub);
+        register_method(ConfigurationManager, getMailNotify, _getMailNotify_stub);
+        register_method(ConfigurationManager, setMailNotify, _setMailNotify_stub);
     }
 
     ::DBus::IntrospectedInterface* const introspect() const 
     {
+        static ::DBus::IntrospectedArgument getAccountList_args[] = 
+        {
+            { "list", "as", false },
+            { 0, 0, 0 }
+        };
         static ::DBus::IntrospectedArgument getAccountDetails_args[] = 
         {
             { "accountID", "s", true },
@@ -110,11 +115,6 @@ public:
         static ::DBus::IntrospectedArgument removeAccount_args[] = 
         {
             { "accoundID", "s", true },
-            { 0, 0, 0 }
-        };
-        static ::DBus::IntrospectedArgument getAccountList_args[] = 
-        {
-            { "list", "as", false },
             { 0, 0, 0 }
         };
         static ::DBus::IntrospectedArgument sendRegister_args[] = 
@@ -373,22 +373,8 @@ public:
             { "res", "i", false },
             { 0, 0, 0 }
         };
-        static ::DBus::IntrospectedArgument setNotify_args[] = 
+        static ::DBus::IntrospectedArgument setDialpad_args[] = 
         {
-            { 0, 0, 0 }
-        };
-        static ::DBus::IntrospectedArgument getNotify_args[] = 
-        {
-            { "level", "i", false },
-            { 0, 0, 0 }
-        };
-        static ::DBus::IntrospectedArgument setMailNotify_args[] = 
-        {
-            { 0, 0, 0 }
-        };
-        static ::DBus::IntrospectedArgument getMailNotify_args[] = 
-        {
-            { "level", "i", false },
             { 0, 0, 0 }
         };
         static ::DBus::IntrospectedArgument getDialpad_args[] = 
@@ -396,17 +382,13 @@ public:
             { "state", "i", false },
             { 0, 0, 0 }
         };
-        static ::DBus::IntrospectedArgument setDialpad_args[] = 
+        static ::DBus::IntrospectedArgument setVolumeControls_args[] = 
         {
             { 0, 0, 0 }
         };
         static ::DBus::IntrospectedArgument getVolumeControls_args[] = 
         {
             { "state", "i", false },
-            { 0, 0, 0 }
-        };
-        static ::DBus::IntrospectedArgument setVolumeControls_args[] = 
-        {
             { 0, 0, 0 }
         };
         static ::DBus::IntrospectedArgument startHidden_args[] = 
@@ -418,12 +400,30 @@ public:
             { "state", "i", false },
             { 0, 0, 0 }
         };
+        static ::DBus::IntrospectedArgument switchPopupMode_args[] = 
+        {
+            { 0, 0, 0 }
+        };
         static ::DBus::IntrospectedArgument popupMode_args[] = 
         {
             { "state", "i", false },
             { 0, 0, 0 }
         };
-        static ::DBus::IntrospectedArgument switchPopupMode_args[] = 
+        static ::DBus::IntrospectedArgument getNotify_args[] = 
+        {
+            { "level", "i", false },
+            { 0, 0, 0 }
+        };
+        static ::DBus::IntrospectedArgument setNotify_args[] = 
+        {
+            { 0, 0, 0 }
+        };
+        static ::DBus::IntrospectedArgument getMailNotify_args[] = 
+        {
+            { "level", "i", false },
+            { 0, 0, 0 }
+        };
+        static ::DBus::IntrospectedArgument setMailNotify_args[] = 
         {
             { 0, 0, 0 }
         };
@@ -443,11 +443,11 @@ public:
         };
         static ::DBus::IntrospectedMethod ConfigurationManager_methods[] = 
         {
+            { "getAccountList", getAccountList_args },
             { "getAccountDetails", getAccountDetails_args },
             { "setAccountDetails", setAccountDetails_args },
             { "addAccount", addAccount_args },
             { "removeAccount", removeAccount_args },
-            { "getAccountList", getAccountList_args },
             { "sendRegister", sendRegister_args },
             { "getToneLocaleList", getToneLocaleList_args },
             { "getVersion", getVersion_args },
@@ -497,18 +497,18 @@ public:
             { "setEnableCheckboxStatus", setEnableCheckboxStatus_args },
             { "setDisableCheckboxStatus", setDisableCheckboxStatus_args },
             { "isIax2Enabled", isIax2Enabled_args },
-            { "setNotify", setNotify_args },
-            { "getNotify", getNotify_args },
-            { "setMailNotify", setMailNotify_args },
-            { "getMailNotify", getMailNotify_args },
-            { "getDialpad", getDialpad_args },
             { "setDialpad", setDialpad_args },
-            { "getVolumeControls", getVolumeControls_args },
+            { "getDialpad", getDialpad_args },
             { "setVolumeControls", setVolumeControls_args },
+            { "getVolumeControls", getVolumeControls_args },
             { "startHidden", startHidden_args },
             { "isStartHidden", isStartHidden_args },
-            { "popupMode", popupMode_args },
             { "switchPopupMode", switchPopupMode_args },
+            { "popupMode", popupMode_args },
+            { "getNotify", getNotify_args },
+            { "setNotify", setNotify_args },
+            { "getMailNotify", getMailNotify_args },
+            { "setMailNotify", setMailNotify_args },
             { 0, 0 }
         };
         static ::DBus::IntrospectedMethod ConfigurationManager_signals[] = 
@@ -543,11 +543,11 @@ public:
     /* methods exported by this interface,
      * you will have to implement them in your ObjectAdaptor
      */
+    virtual std::vector< ::DBus::String > getAccountList(  ) = 0;
     virtual std::map< ::DBus::String, ::DBus::String > getAccountDetails( const ::DBus::String& accountID ) = 0;
     virtual void setAccountDetails( const ::DBus::String& accountID, const std::map< ::DBus::String, ::DBus::String >& details ) = 0;
     virtual void addAccount( const std::map< ::DBus::String, ::DBus::String >& details ) = 0;
     virtual void removeAccount( const ::DBus::String& accoundID ) = 0;
-    virtual std::vector< ::DBus::String > getAccountList(  ) = 0;
     virtual void sendRegister( const ::DBus::String& accountID, const ::DBus::Int32& expire ) = 0;
     virtual std::vector< ::DBus::String > getToneLocaleList(  ) = 0;
     virtual ::DBus::String getVersion(  ) = 0;
@@ -597,18 +597,18 @@ public:
     virtual void setEnableCheckboxStatus( const ::DBus::Bool& status ) = 0;
     virtual void setDisableCheckboxStatus( const ::DBus::Bool& status ) = 0;
     virtual ::DBus::Int32 isIax2Enabled(  ) = 0;
-    virtual void setNotify(  ) = 0;
-    virtual ::DBus::Int32 getNotify(  ) = 0;
-    virtual void setMailNotify(  ) = 0;
-    virtual ::DBus::Int32 getMailNotify(  ) = 0;
-    virtual ::DBus::Int32 getDialpad(  ) = 0;
     virtual void setDialpad(  ) = 0;
-    virtual ::DBus::Int32 getVolumeControls(  ) = 0;
+    virtual ::DBus::Int32 getDialpad(  ) = 0;
     virtual void setVolumeControls(  ) = 0;
+    virtual ::DBus::Int32 getVolumeControls(  ) = 0;
     virtual void startHidden(  ) = 0;
     virtual ::DBus::Int32 isStartHidden(  ) = 0;
-    virtual ::DBus::Int32 popupMode(  ) = 0;
     virtual void switchPopupMode(  ) = 0;
+    virtual ::DBus::Int32 popupMode(  ) = 0;
+    virtual ::DBus::Int32 getNotify(  ) = 0;
+    virtual void setNotify(  ) = 0;
+    virtual ::DBus::Int32 getMailNotify(  ) = 0;
+    virtual void setMailNotify(  ) = 0;
 
 public:
 
@@ -638,6 +638,16 @@ private:
 
     /* unmarshalers (to unpack the DBus message before calling the actual interface method)
      */
+    ::DBus::Message _getAccountList_stub( const ::DBus::CallMessage& call )
+    {
+        ::DBus::MessageIter ri = call.reader();
+
+        std::vector< ::DBus::String > argout1 = getAccountList();
+        ::DBus::ReturnMessage reply(call);
+        ::DBus::MessageIter wi = reply.writer();
+        wi << argout1;
+        return reply;
+    }
     ::DBus::Message _getAccountDetails_stub( const ::DBus::CallMessage& call )
     {
         ::DBus::MessageIter ri = call.reader();
@@ -675,16 +685,6 @@ private:
         ::DBus::String argin1; ri >> argin1;
         removeAccount(argin1);
         ::DBus::ReturnMessage reply(call);
-        return reply;
-    }
-    ::DBus::Message _getAccountList_stub( const ::DBus::CallMessage& call )
-    {
-        ::DBus::MessageIter ri = call.reader();
-
-        std::vector< ::DBus::String > argout1 = getAccountList();
-        ::DBus::ReturnMessage reply(call);
-        ::DBus::MessageIter wi = reply.writer();
-        wi << argout1;
         return reply;
     }
     ::DBus::Message _sendRegister_stub( const ::DBus::CallMessage& call )
@@ -1183,40 +1183,12 @@ private:
         wi << argout1;
         return reply;
     }
-    ::DBus::Message _setNotify_stub( const ::DBus::CallMessage& call )
+    ::DBus::Message _setDialpad_stub( const ::DBus::CallMessage& call )
     {
         ::DBus::MessageIter ri = call.reader();
 
-        setNotify();
+        setDialpad();
         ::DBus::ReturnMessage reply(call);
-        return reply;
-    }
-    ::DBus::Message _getNotify_stub( const ::DBus::CallMessage& call )
-    {
-        ::DBus::MessageIter ri = call.reader();
-
-        ::DBus::Int32 argout1 = getNotify();
-        ::DBus::ReturnMessage reply(call);
-        ::DBus::MessageIter wi = reply.writer();
-        wi << argout1;
-        return reply;
-    }
-    ::DBus::Message _setMailNotify_stub( const ::DBus::CallMessage& call )
-    {
-        ::DBus::MessageIter ri = call.reader();
-
-        setMailNotify();
-        ::DBus::ReturnMessage reply(call);
-        return reply;
-    }
-    ::DBus::Message _getMailNotify_stub( const ::DBus::CallMessage& call )
-    {
-        ::DBus::MessageIter ri = call.reader();
-
-        ::DBus::Int32 argout1 = getMailNotify();
-        ::DBus::ReturnMessage reply(call);
-        ::DBus::MessageIter wi = reply.writer();
-        wi << argout1;
         return reply;
     }
     ::DBus::Message _getDialpad_stub( const ::DBus::CallMessage& call )
@@ -1229,11 +1201,11 @@ private:
         wi << argout1;
         return reply;
     }
-    ::DBus::Message _setDialpad_stub( const ::DBus::CallMessage& call )
+    ::DBus::Message _setVolumeControls_stub( const ::DBus::CallMessage& call )
     {
         ::DBus::MessageIter ri = call.reader();
 
-        setDialpad();
+        setVolumeControls();
         ::DBus::ReturnMessage reply(call);
         return reply;
     }
@@ -1245,14 +1217,6 @@ private:
         ::DBus::ReturnMessage reply(call);
         ::DBus::MessageIter wi = reply.writer();
         wi << argout1;
-        return reply;
-    }
-    ::DBus::Message _setVolumeControls_stub( const ::DBus::CallMessage& call )
-    {
-        ::DBus::MessageIter ri = call.reader();
-
-        setVolumeControls();
-        ::DBus::ReturnMessage reply(call);
         return reply;
     }
     ::DBus::Message _startHidden_stub( const ::DBus::CallMessage& call )
@@ -1273,6 +1237,14 @@ private:
         wi << argout1;
         return reply;
     }
+    ::DBus::Message _switchPopupMode_stub( const ::DBus::CallMessage& call )
+    {
+        ::DBus::MessageIter ri = call.reader();
+
+        switchPopupMode();
+        ::DBus::ReturnMessage reply(call);
+        return reply;
+    }
     ::DBus::Message _popupMode_stub( const ::DBus::CallMessage& call )
     {
         ::DBus::MessageIter ri = call.reader();
@@ -1283,11 +1255,39 @@ private:
         wi << argout1;
         return reply;
     }
-    ::DBus::Message _switchPopupMode_stub( const ::DBus::CallMessage& call )
+    ::DBus::Message _getNotify_stub( const ::DBus::CallMessage& call )
     {
         ::DBus::MessageIter ri = call.reader();
 
-        switchPopupMode();
+        ::DBus::Int32 argout1 = getNotify();
+        ::DBus::ReturnMessage reply(call);
+        ::DBus::MessageIter wi = reply.writer();
+        wi << argout1;
+        return reply;
+    }
+    ::DBus::Message _setNotify_stub( const ::DBus::CallMessage& call )
+    {
+        ::DBus::MessageIter ri = call.reader();
+
+        setNotify();
+        ::DBus::ReturnMessage reply(call);
+        return reply;
+    }
+    ::DBus::Message _getMailNotify_stub( const ::DBus::CallMessage& call )
+    {
+        ::DBus::MessageIter ri = call.reader();
+
+        ::DBus::Int32 argout1 = getMailNotify();
+        ::DBus::ReturnMessage reply(call);
+        ::DBus::MessageIter wi = reply.writer();
+        wi << argout1;
+        return reply;
+    }
+    ::DBus::Message _setMailNotify_stub( const ::DBus::CallMessage& call )
+    {
+        ::DBus::MessageIter ri = call.reader();
+
+        setMailNotify();
         ::DBus::ReturnMessage reply(call);
         return reply;
     }
