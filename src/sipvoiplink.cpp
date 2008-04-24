@@ -1019,8 +1019,39 @@ SIPVoIPLink::subscribePresenceForContact(ContactEntry* contactEntry)
 void
 SIPVoIPLink::unsubscribePresenceForContact(ContactEntry* contactEntry)
 {
-	// TODO Find how exosip supports unsubscription
-	// A presence request of 0 does not seem to work
+	_debug("Unsubscribe %s\n", contactEntry->getText().data());
+	// TOSEE This is the good way to go for unsubscription but the
+	// exosip API frequently crashes  some seconds after sending
+	// the rquest so it is still unusable
+//	// TODO Find how exosip supports unsubscription
+//	// A presence request of 0 does not seem to work
+//	int i;
+//	osip_message_t* subscription;
+//	std::ostringstream to;
+//	std::ostringstream from;
+//	
+//	// Build URL of receiver and sender
+//	to << "sip:" << contactEntry->getEntryID() << "@" << getHostName().data();
+//	from << "sip:" << _userpart.data() << "@" << getHostName().data();
+//
+//	// Unsubscribe
+//	eXosip_lock();
+//	i = eXosip_subscribe_build_initial_request(&subscription,
+//			to.str().c_str(),
+//			from.str().c_str(),
+//			NULL,
+//			"presence", 0);
+//	if(i!=0) return;
+//	
+//	// We want to receive presence in the PIDF XML format in SIP messages
+//	osip_message_set_accept(subscription, "application/pidf+xml");
+//	
+//	// Send subscription
+//	i = eXosip_subscribe_send_initial_request(subscription);
+//	_debug("Success  for %s #%d\n", contactEntry->getText().data(), i);
+//	
+//	eXosip_unlock();
+//	_debug("Unsubscribed succes %d\n", i);
 }
 
 void
