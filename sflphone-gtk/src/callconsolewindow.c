@@ -117,8 +117,11 @@ call_console_window_closed(GtkDialog* dialog, GdkEvent* event, void* userData)
 	
 	// Clear model and set dialog to null
 	call_console_window_clear_contact_list();
-	gtk_widget_destroy(GTK_WIDGET(callConsoleDialog));
-	callConsoleDialog = NULL;
+	if(callConsoleDialog != NULL)
+	{
+		gtk_widget_destroy(GTK_WIDGET(callConsoleDialog));
+		callConsoleDialog = NULL;
+	}
 }
 
 /**
@@ -285,10 +288,13 @@ call_console_remove_contact(gchar* accountID, gchar* contactID)
 		if(strcmp(accountIDStored, accountID) == 0 &&
 				strcmp(contactIDStored, contactID) == 0)
 		{
+			// Get the path before removal
+			path = gtk_tree_model_get_path(model, &iter);
 			// Remove entry in model
 			gtk_list_store_remove(callConsoleListStore, &iter);
 			// Do not return since there can be many entries for a contact
-			// Removing the entry will get to the next iteration
+			// Removing the entry will skip an iteration so go back
+			gtk_tree_path_prev(path);
 		}
 		else
 		{
@@ -439,6 +445,9 @@ void
 call_console_change_entry_presence_status(const gchar* accountID, const gchar* contactID,
 		const gchar* entryID, const gchar* presence, const gchar* additionalInfo)
 {
+	// Only if the call console is shown
+	if(callConsoleDialog == NULL) return;
+	
 	// Verify that the entry is really subscribed
 	contact_entry_t* entry = contact_list_entry_get(contact_list_get(contact_hash_table_get_contact_list(accountID), contactID), entryID);
 	if(entry != NULL)
