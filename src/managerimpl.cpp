@@ -2211,10 +2211,13 @@ ManagerImpl::getContactEntryDetails(const std::string& accountID, const std::str
 				else entryDetails.push_back("FALSE");
 				if(entry->getSubscribedToPresence()) entryDetails.push_back("TRUE");
 				else entryDetails.push_back("FALSE");
-				
-				// Return status unsubscribed if isSubscribed is false
+
+				// Always push back a status and its information on conditions
+				// Status will depend if entry is subscribed, presence is
+				// supported and if presence information is already stored
 				if(!entry->getSubscribedToPresence())
 				{
+					// Return status unsubscribed if isSubscribed is false
 					entryDetails.push_back(PRESENCE_NOT_SUBSCRIBED);
 					entryDetails.push_back("");
 				}
@@ -2238,7 +2241,7 @@ ManagerImpl::getContactEntryDetails(const std::string& accountID, const std::str
 					}
 					else
 					{
-						// Return status
+						// Return current status stored in presence class
 						entryDetails.push_back(entry->getPresence()->getState());
 						entryDetails.push_back(entry->getPresence()->getAdditionalInfo());
 					}
@@ -2319,14 +2322,14 @@ ManagerImpl::setContactEntry(const std::string& accountID, const std::string& co
 	Account* account;
 	Contact* contact;
 	ContactEntry* entry;
-	bool subscribedChanged = false, subscribe;
+	bool subscribedChanged = false, isSubscribing;
+	bool shown, subscribed;
 	
 	account = getAccount(accountID);
 	contact = getContact(accountID, contactID);
 	if(contact != NULL)
 	{
 		// Change boolean strings to booleans
-		bool shown, subscribed;
 		if(strcmp(IsShown.data(), "TRUE") == 0) shown = true;
 		else shown = false;
 		if(strcmp(IsSubscribed.data(), "TRUE") == 0) subscribed = true;
@@ -2343,10 +2346,11 @@ ManagerImpl::setContactEntry(const std::string& accountID, const std::string& co
 			{
 				// Entry found and will be modified
 				// Set subscribe or unsubscribe if property changed
-				if(entry->getSubscribedToPresence() == false && subscribed == TRUE)
+				if(!entry->getSubscribedToPresence() && subscribed)
 				{
+					// Entry is changing from unsubscribed to subscribed
 					subscribedChanged = true;
-					subscribe = true;
+					isSubscribing = true;
 					if(account->getVoIPLink()->isContactPresenceSupported())
 						entry->setPresence(PRESENCE_NOT_INITIALIZED, "");
 					else
@@ -2356,10 +2360,11 @@ ManagerImpl::setContactEntry(const std::string& accountID, const std::string& co
 						contactEntryPresenceChanged(accountID, entryID, PRESENCE_NOT_SUPPORTED, "");
 					}
 				}
-				if(entry->getSubscribedToPresence() == true && subscribed == false)
+				else if(entry->getSubscribedToPresence() && !subscribed)
 				{
+					// Entry is changing from subscribed to unsubscribed
 					subscribedChanged = true;
-					subscribe = false;
+					isSubscribing = false;
 					entry->setPresence(PRESENCE_NOT_SUBSCRIBED, "");
 				}
 				// Edit entry and break
@@ -2378,7 +2383,7 @@ ManagerImpl::setContactEntry(const std::string& accountID, const std::string& co
 			entry = new ContactEntry(entryID, text, type, shown, subscribed);
 			contact->addEntry(entry);
 			subscribedChanged = true;
-			subscribe = true;
+			isSubscribing = true;
 		}
 		// Subscribe or unsubscribe presence to entry if supported
 		if(subscribedChanged)
@@ -2387,13 +2392,8 @@ ManagerImpl::setContactEntry(const std::string& accountID, const std::string& co
 			{
 				if(account->getVoIPLink()->isContactPresenceSupported())
 				{
-					if(subscribedChanged) account->getVoIPLink()->subscribePresenceForContact(entry);
+					if(isSubscribing) account->getVoIPLink()->subscribePresenceForContact(entry);
 					else account->getVoIPLink()->unsubscribePresenceForContact(entry);
-				}
-				else
-				{
-					// Send back information to GUI that presence is not supported for this account
-					contactEntryPresenceChanged(accountID, entryID, PRESENCE_NOT_SUPPORTED, "");
 				}
 			}
 		}
