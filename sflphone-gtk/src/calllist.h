@@ -51,6 +51,17 @@ typedef enum
    CALL_STATE_CONF
 } call_state_t;
 
+/**
+ * @enum history_state
+ * This enum have all the state a call can take in the history
+ */
+typedef enum
+{
+  NONE,
+  INCOMING,
+  OUTGOING,
+  MISSED
+} history_state_t;
 
 /** @struct call_t
   * @brief Call information.
@@ -61,13 +72,15 @@ typedef struct  {
   gchar * callID;
   /** The account used to place/receive the call */
   gchar * accountID;
-  /** The information about the calling person.  See call_get_name() and call_get_number()
+/** The information about the calling person.  See call_get_name() and call_get_number()
     * on how to get the name and number separately. */
   gchar * from;
   /** The number we are calling.  Only used when dialing out */
   gchar * to;
-  /* The current state of the call */
+  /** The current state of the call */
   call_state_t state;
+  /** The history state */
+  history_state_t history_state;
 } call_t;
 
 typedef struct {
@@ -87,7 +100,16 @@ calltab_t* history;
 void call_list_init (calltab_t* tab);
 
 /** This function empty and free the call list. */
-void call_list_clean (calltab_t* tab);
+void call_list_clean(calltab_t* tab);
+
+/** This function empty, free the call list and allocate a new one. */
+void call_list_reset (calltab_t* tab);
+
+/** Get the maximun number of calls in the history calltab */
+gdouble call_history_get_max_calls( void ); 
+
+/** Set the maximun number of calls in the history calltab */
+void call_history_set_max_calls( const gdouble number ); 
 
 /** This function append a call to list. 
   * @param c The call you want to add 
@@ -139,4 +161,6 @@ void call_select (calltab_t* tab, call_t * c );
 /** Return the selected call.
   * @return The number of the caller */
 call_t * call_get_selected (calltab_t* tab);
+
+void call_list_clean_history();
 #endif 

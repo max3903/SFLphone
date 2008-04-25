@@ -892,8 +892,6 @@ dbus_codec_details( int payload )
   return array;
 }
 
-
-
 gchar**
 dbus_get_active_codec_list()
 {
@@ -972,8 +970,6 @@ dbus_video_codec_list()
   }
   return array;
 }
-
-
 
 gchar**
 dbus_get_active_video_codec_list()
@@ -1423,13 +1419,43 @@ dbus_set_volume_controls(  )
 	org_sflphone_SFLphone_ConfigurationManager_set_volume_controls(
 			configurationManagerProxy,
 			&error);
-	g_print("After");
 	if(error)
 	{
 		g_error_free(error);
 	}
 	else
 		g_print("DBus called set_volume_controls on ConfigurationManager\n");
+}
+
+void
+dbus_set_max_calls( const guint calls  )
+{
+	GError* error = NULL;
+	org_sflphone_SFLphone_ConfigurationManager_set_max_calls(
+			configurationManagerProxy,
+			calls,
+			&error);
+	if(error)
+	{
+		g_error_free(error);
+	}
+}
+
+guint
+dbus_get_max_calls( void )
+{
+	GError* error = NULL;
+	guint calls;
+	org_sflphone_SFLphone_ConfigurationManager_get_max_calls(
+			configurationManagerProxy,
+			&calls,
+			&error);
+	if(error)
+	{
+		g_error_free(error);
+	}
+	g_print("GET MAX CALLS = %i\n" , calls);
+	return calls;
 }
 
 void
@@ -1444,6 +1470,7 @@ dbus_switch_popup_mode()
 	else
 	  g_print("DBus called switch_popup_mode on ConfigurationManager\n");
 }
+
 int
 dbus_popup_mode()
 {

@@ -5,6 +5,7 @@ sflphone_gtk_SOURCES = \
   errors.c \
   dbus.c \
   sflnotify.c \
+  druid.c \
   mainwindow.c \
   calllist.c \
   dialpad.c \
@@ -25,13 +26,14 @@ sflphone_gtk_SOURCES = \
   videocodeclist.c \
   glwidget.c \
   MemManager.c 
+  
+noinst_HEADERS =  actions.h dbus.h sflnotify.h mainwindow.h calllist.h dialpad.h codeclist.h druid.h \
+                  callmanager-glue.h errors.h sflphone_const.h configurationmanager-glue.h instance-glue.h menus.h calltab.h calltree.h configwindow.h \
+                  videocodeclist.h contactmanager-glue.h contactlist.h contactwindow.h callconsolewindow.h \
+                  accountlist.h accountwindow.h marshaller.h sliders.h statusicon.h
 
-noinst_HEADERS =  actions.h dbus.h  sflnotify.h mainwindow.h calllist.h dialpad.h codeclist.h videocodeclist.h \
-                  callmanager-glue.h configurationmanager-glue.h contactmanager-glue.h instance-glue.h \
-                  menus.h calltree.h configwindow.h contactlist.h contactwindow.h callconsolewindow.c \
-                  accountlist.h accountwindow.h marshaller.h sliders.h statusicon.h errors.h sflphone_const.h calltab.h 
+EXTRA_DIST   = marshaller.list  
 
-EXTRA_DIST   = marshaller.list
 sflphone_gtk_LDADD = $(DEPS_LIBS) -lnotify
 
 AM_CPPFLAGS = $(DEPS_CFLAGS) \

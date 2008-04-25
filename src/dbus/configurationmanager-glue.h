@@ -76,8 +76,10 @@ public:
         register_method(ConfigurationManager, isIax2Enabled, _isIax2Enabled_stub);
         register_method(ConfigurationManager, setDialpad, _setDialpad_stub);
         register_method(ConfigurationManager, getDialpad, _getDialpad_stub);
-        register_method(ConfigurationManager, setVolumeControls, _setVolumeControls_stub);
         register_method(ConfigurationManager, getVolumeControls, _getVolumeControls_stub);
+        register_method(ConfigurationManager, setVolumeControls, _setVolumeControls_stub);
+        register_method(ConfigurationManager, getMaxCalls, _getMaxCalls_stub);
+        register_method(ConfigurationManager, setMaxCalls, _setMaxCalls_stub);
         register_method(ConfigurationManager, startHidden, _startHidden_stub);
         register_method(ConfigurationManager, isStartHidden, _isStartHidden_stub);
         register_method(ConfigurationManager, switchPopupMode, _switchPopupMode_stub);
@@ -382,13 +384,23 @@ public:
             { "state", "i", false },
             { 0, 0, 0 }
         };
+        static ::DBus::IntrospectedArgument getVolumeControls_args[] = 
+        {
+            { "state", "i", false },
+            { 0, 0, 0 }
+        };
         static ::DBus::IntrospectedArgument setVolumeControls_args[] = 
         {
             { 0, 0, 0 }
         };
-        static ::DBus::IntrospectedArgument getVolumeControls_args[] = 
+        static ::DBus::IntrospectedArgument getMaxCalls_args[] = 
         {
-            { "state", "i", false },
+            { "calls", "i", false },
+            { 0, 0, 0 }
+        };
+        static ::DBus::IntrospectedArgument setMaxCalls_args[] = 
+        {
+            { "calls", "i", true },
             { 0, 0, 0 }
         };
         static ::DBus::IntrospectedArgument startHidden_args[] = 
@@ -499,8 +511,10 @@ public:
             { "isIax2Enabled", isIax2Enabled_args },
             { "setDialpad", setDialpad_args },
             { "getDialpad", getDialpad_args },
-            { "setVolumeControls", setVolumeControls_args },
             { "getVolumeControls", getVolumeControls_args },
+            { "setVolumeControls", setVolumeControls_args },
+            { "getMaxCalls", getMaxCalls_args },
+            { "setMaxCalls", setMaxCalls_args },
             { "startHidden", startHidden_args },
             { "isStartHidden", isStartHidden_args },
             { "switchPopupMode", switchPopupMode_args },
@@ -599,8 +613,10 @@ public:
     virtual ::DBus::Int32 isIax2Enabled(  ) = 0;
     virtual void setDialpad(  ) = 0;
     virtual ::DBus::Int32 getDialpad(  ) = 0;
-    virtual void setVolumeControls(  ) = 0;
     virtual ::DBus::Int32 getVolumeControls(  ) = 0;
+    virtual void setVolumeControls(  ) = 0;
+    virtual ::DBus::Int32 getMaxCalls(  ) = 0;
+    virtual void setMaxCalls( const ::DBus::Int32& calls ) = 0;
     virtual void startHidden(  ) = 0;
     virtual ::DBus::Int32 isStartHidden(  ) = 0;
     virtual void switchPopupMode(  ) = 0;
@@ -1201,14 +1217,6 @@ private:
         wi << argout1;
         return reply;
     }
-    ::DBus::Message _setVolumeControls_stub( const ::DBus::CallMessage& call )
-    {
-        ::DBus::MessageIter ri = call.reader();
-
-        setVolumeControls();
-        ::DBus::ReturnMessage reply(call);
-        return reply;
-    }
     ::DBus::Message _getVolumeControls_stub( const ::DBus::CallMessage& call )
     {
         ::DBus::MessageIter ri = call.reader();
@@ -1217,6 +1225,33 @@ private:
         ::DBus::ReturnMessage reply(call);
         ::DBus::MessageIter wi = reply.writer();
         wi << argout1;
+        return reply;
+    }
+    ::DBus::Message _setVolumeControls_stub( const ::DBus::CallMessage& call )
+    {
+        ::DBus::MessageIter ri = call.reader();
+
+        setVolumeControls();
+        ::DBus::ReturnMessage reply(call);
+        return reply;
+    }
+    ::DBus::Message _getMaxCalls_stub( const ::DBus::CallMessage& call )
+    {
+        ::DBus::MessageIter ri = call.reader();
+
+        ::DBus::Int32 argout1 = getMaxCalls();
+        ::DBus::ReturnMessage reply(call);
+        ::DBus::MessageIter wi = reply.writer();
+        wi << argout1;
+        return reply;
+    }
+    ::DBus::Message _setMaxCalls_stub( const ::DBus::CallMessage& call )
+    {
+        ::DBus::MessageIter ri = call.reader();
+
+        ::DBus::Int32 argin1; ri >> argin1;
+        setMaxCalls(argin1);
+        ::DBus::ReturnMessage reply(call);
         return reply;
     }
     ::DBus::Message _startHidden_stub( const ::DBus::CallMessage& call )

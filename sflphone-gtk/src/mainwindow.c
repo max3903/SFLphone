@@ -160,11 +160,6 @@ create_main_window ()
   
   gtk_box_pack_start (GTK_BOX (vbox), subvbox, FALSE /*expand*/, TRUE /*fill*/, 0 /*padding*/);
  
-  //widget = create_slider("speaker");
-  //gtk_box_pack_start (GTK_BOX (subvbox), widget, FALSE /*expand*/, TRUE /*fill*/, 0 /*padding*/);
-  //widget = create_slider("mic");
-  //gtk_box_pack_start (GTK_BOX (subvbox), widget, FALSE /*expand*/, TRUE /*fill*/, 0 /*padding*/);
-
   /* Status bar */
   statusBar = gtk_statusbar_new();
   gtk_box_pack_start (GTK_BOX (vbox), statusBar, FALSE /*expand*/, TRUE /*fill*/,  0 /*padding*/);
@@ -180,7 +175,7 @@ create_main_window ()
   // Welcome screen
   if (account_list_get_size() == 0)
   {
-    GtkWidget * dialog = gtk_message_dialog_new_with_markup (GTK_WINDOW(window),
+    /*GtkWidget * dialog = gtk_message_dialog_new_with_markup (GTK_WINDOW(window),
                                   GTK_DIALOG_DESTROY_WITH_PARENT,
                                   GTK_MESSAGE_INFO,
                                   GTK_BUTTONS_YES_NO,
@@ -193,9 +188,12 @@ create_main_window ()
     if (response == GTK_RESPONSE_YES)
     {
       show_accounts_window();
-    }
-   
+    }*/
+    build_wizard();
   }
+
+  
+
 }
 
 GtkAccelGroup * 

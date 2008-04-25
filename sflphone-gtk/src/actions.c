@@ -125,6 +125,7 @@ sflphone_hung_up( call_t * c)
   main_window_glWidget(FALSE);
   call_list_remove( current_calls, c->callID);
   update_call_tree_remove(current_calls, c);
+  c->state = CALL_STATE_DIALING;
   update_menus();
   status_tray_icon_blink( FALSE );
 }
@@ -244,14 +245,11 @@ sflphone_hang_up()
 			case CALL_STATE_CONF:
 				dbus_hang_up (selectedCall);
 				selectedCall->state = CALL_STATE_DIALING;
-				call_list_add(history, selectedCall);
-				update_call_tree_add(history, selectedCall);
 				break;
 			case CALL_STATE_INCOMING:  
 				dbus_refuse (selectedCall);
 				selectedCall->state = CALL_STATE_DIALING;
-				call_list_add(history, selectedCall);
-				update_call_tree_add(history, selectedCall);
+				stop_notification();
 				break;
 			case CALL_STATE_TRANSFERT:  
 				dbus_hang_up (selectedCall);
@@ -276,7 +274,10 @@ sflphone_pick_up()
 				sflphone_place_call (selectedCall);
 				break;
 			case CALL_STATE_INCOMING:
+				selectedCall->history_state = INCOMING;
+				update_call_tree( history , selectedCall );
 				dbus_accept (selectedCall);
+				stop_notification();
 				break;
 			case CALL_STATE_HOLD:
 				sflphone_new_call();
@@ -397,9 +398,11 @@ sflphone_unset_transfert()
 void
 sflphone_incoming_call (call_t * c) 
 {
-	call_list_add ( current_calls,c );
-	//status_icon_unminimize();
-	update_call_tree_add(current_calls,c);
+	c->history_state = MISSED;
+	call_list_add ( current_calls, c );
+	call_list_add( history, c );
+	update_call_tree_add( current_calls , c );
+	//update_call_tree_add( history , c );
 	update_menus();
 }
 
@@ -487,7 +490,6 @@ sflphone_new_call()
 
 	c->to = g_strdup("");
 
-
 	call_list_add(current_calls,c);
 	update_call_tree_add(current_calls,c);  
 	update_menus();
@@ -503,7 +505,6 @@ sflphone_keypad( guint keyval, gchar * key)
 	call_t * c = call_get_selected(current_calls);
 	if(c)
 	{
-
 		switch(c->state) 
 		{
 			case CALL_STATE_DIALING: // Currently dialing => edit number
@@ -536,11 +537,14 @@ sflphone_keypad( guint keyval, gchar * key)
 				{
 					case 65293: /* ENTER */
 					case 65421: /* ENTER numpad */
-						//status_bar_display_account(c);
+						c->history_state = INCOMING;
+						update_call_tree( history , c );
 						dbus_accept(c);
+						stop_notification();
 						break;
 					case 65307: /* ESCAPE */
 						dbus_refuse(c);
+						stop_notification();
 						break;
 				}
 				break;
@@ -607,7 +611,7 @@ sflphone_keypad( guint keyval, gchar * key)
  } 
 
 /*
- * Place a call with the default account.
+ * Place a call with the current account.
  * If there is no default account selected, place a call with the first 
  * registered account of the account list
  * Else, popup an error message
@@ -643,9 +647,9 @@ sflphone_place_call ( call_t * c )
 	}
 	else
 	{
-	  // No current accounts have been setup. 
+	  // Current account is not registered 
 	  // So we place a call with the first registered account
-	  // And we change the current account
+	  // And we switch the current account
 	  current = account_list_get_by_state( ACCOUNT_STATE_REGISTERED );
 	  c -> accountID = current -> accountID;
 	  dbus_place_call(c);
@@ -667,6 +671,10 @@ sflphone_place_call ( call_t * c )
 	account_list_set_current_id( c-> accountID );
       }
     }
+	// Update history
+	c->history_state = OUTGOING;
+	call_list_add(history, c);
+	//update_call_tree_add(history, c);
   }
 }
 

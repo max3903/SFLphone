@@ -593,6 +593,7 @@ toggle_history(GtkToggleToolButton *toggle_tool_button, gpointer user_data)
 	sel = gtk_tree_view_get_selection (GTK_TREE_VIEW (active_calltree->view));
 	g_signal_emit_by_name(sel, "changed");
 	toolbar_update_buttons();
+
 }
 
 static void
@@ -1018,6 +1019,8 @@ update_call_tree (calltab_t* tab, call_t * c)
 							call_get_number(c));
 				}
 
+				if( tab == current_calls )
+				{
 				switch(c->state)
 				{
 					case CALL_STATE_HOLD:
@@ -1044,6 +1047,28 @@ update_call_tree (calltab_t* tab, call_t * c)
 					default:
 						g_warning("Should not happen!");
 				}
+				}
+				else
+				{
+				switch(c->history_state)
+				{
+				  case OUTGOING:
+				    g_print("Outgoing state\n");
+				    pixbuf = gdk_pixbuf_new_from_file( ICONS_DIR "/outgoing.svg", NULL);
+				    break;
+				  case INCOMING:
+				    g_print("Incoming state\n");
+				    pixbuf = gdk_pixbuf_new_from_file( ICONS_DIR "/incoming.svg", NULL);
+				    break;
+				  case MISSED:
+				    g_print("Missed state\n");
+				    pixbuf = gdk_pixbuf_new_from_file( ICONS_DIR "/missed.svg", NULL);
+				    break;
+				  default:
+				    g_print("No history state\n");  
+				    break;
+				}
+				}
 				//Resize it
 				if(pixbuf)
 				{
@@ -1068,6 +1093,10 @@ update_call_tree (calltab_t* tab, call_t * c)
 void 
 update_call_tree_add (calltab_t* tab, call_t * c)
 {
+      g_print("ADD THE  FUCKING CALL call list size = %i - max calls = %i\n", call_list_get_size(tab) , dbus_get_max_calls());
+	if( tab == history && ( call_list_get_size( tab ) > dbus_get_max_calls() ) )
+	  return;
+
 	GdkPixbuf *pixbuf;
 	GtkTreeIter iter;
 	GtkTreeSelection* sel;
@@ -1083,6 +1112,8 @@ update_call_tree_add (calltab_t* tab, call_t * c)
 
 	gtk_list_store_prepend (tab->store, &iter);
 
+	if( tab == current_calls )
+	{
 	switch(c->state)
 	{
 		case CALL_STATE_INCOMING:
@@ -1097,7 +1128,24 @@ update_call_tree_add (calltab_t* tab, call_t * c)
 		default:
 			g_warning("Should not happen!");
 	}
-
+	}
+	else{
+	  switch(c->history_state)
+	  {
+	    case INCOMING:
+	      pixbuf = gdk_pixbuf_new_from_file(ICONS_DIR "/incoming.svg", NULL);
+	      break;
+	    case OUTGOING:
+	      pixbuf = gdk_pixbuf_new_from_file(ICONS_DIR "/outgoing.svg", NULL);
+	      break;
+	    case MISSED:
+	      pixbuf = gdk_pixbuf_new_from_file(ICONS_DIR "/missed.svg", NULL);
+	      break;
+	    default:
+	      g_warning("Should not happen!");
+	  }
+	}
+	  
 	//Resize it
 	if(pixbuf)
 	{

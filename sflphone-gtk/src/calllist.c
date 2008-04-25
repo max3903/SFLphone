@@ -70,11 +70,53 @@ call_list_clean (calltab_t* tab)
 }
 
 void 
-call_list_add (calltab_t* tab, call_t * c)
+call_list_reset (calltab_t* tab)
 {
-  g_queue_push_tail (tab->callQueue, (gpointer *) c);
+  g_queue_free (tab->callQueue);
+  tab->callQueue = g_queue_new();
 }
 
+void 
+call_list_add (calltab_t* tab, call_t * c)
+{
+  if( tab == history )	
+  {
+      g_print("ADD THE  FUCKING CALL call list size = %i - max calls = %i\n", call_list_get_size(tab) , dbus_get_max_calls());
+    // First case: can still add calls to the list
+    if( call_list_get_size(tab) < dbus_get_max_calls() )
+    {
+      g_print("ADD THE  FUCKING CALL\n");
+      g_queue_push_tail (tab->callQueue, (gpointer *) c);
+      update_call_tree_add( history , c );
+    }
+    // List full -> Remove the last call from history and preprend the new call to the list
+    else
+    {
+      update_call_tree_remove( history , (call_t*)g_queue_pop_head( tab -> callQueue ) );      
+      g_queue_push_tail (tab->callQueue, (gpointer *) c);
+      update_call_tree_add( history , c );
+    }
+  }
+  else
+    g_queue_push_tail (tab->callQueue, (gpointer *) c);
+}
+
+void
+call_list_clean_history( void )
+{
+  int i;
+  guint size = call_list_get_size( history );
+  g_print("history list size = %i\n", call_list_get_size( history ));
+  for( i = 0 ; i < size ; i++ )
+  {
+    g_print("Delete calls");
+    call_t* c = call_list_get_nth( history , i );
+    // Delete the call from the call tree
+    g_print("Delete calls");
+    update_call_tree_remove(history , c);
+  }
+  call_list_reset( history );
+}
 
 void 
 call_list_remove (calltab_t* tab, const gchar * callID)

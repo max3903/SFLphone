@@ -334,6 +334,18 @@ ConfigurationManager::setVolumeControls( void )
   Manager::instance().setVolumeControls( ); 
 }
 
+::DBus::Int32
+ConfigurationManager::getMaxCalls( void )
+{
+  return Manager::instance().getMaxCalls(  ); 
+}
+
+void
+ConfigurationManager::setMaxCalls( const ::DBus::Int32& calls )
+{
+  Manager::instance().setMaxCalls( calls ); 
+}
+
 void
 ConfigurationManager::startHidden( void )
 {

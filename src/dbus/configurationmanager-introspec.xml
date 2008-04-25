@@ -262,11 +262,19 @@
       <arg type="i" name="state" direction="out"/>
     </method>
 
+    <method name="getVolumeControls">
+      <arg type="i" name="state" direction="out"/>
+    </method>
+
     <method name="setVolumeControls">
     </method>
 
-    <method name="getVolumeControls">
-      <arg type="i" name="state" direction="out"/>
+    <method name="getMaxCalls">
+      <arg type="i" name="calls" direction="out"/>
+    </method>
+
+    <method name="setMaxCalls">
+      <arg type="i" name="calls" direction="in"/>
     </method>
 
     <method name="startHidden">
