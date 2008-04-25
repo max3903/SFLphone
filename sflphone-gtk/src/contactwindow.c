@@ -162,6 +162,21 @@ contact_window_clear_contact_list()
 }
 
 /**
+ * Signal triggered by closing window to clear model
+ */
+static void
+contact_window_closed(GtkDialog* dialog, GdkEvent* event, void* userData)
+{
+	// Clear model and set dialog to null
+	contact_window_clear_contact_list();
+	if(contactWindowDialog != NULL)
+	{
+		gtk_widget_destroy(GTK_WIDGET(contactWindowDialog));
+		contactWindowDialog = NULL;
+	}
+}
+
+/**
  * Modify the contact list so that changes are perpetuated everywhere
  * by editing the current show in call console boolean value of the
  * row depending on the type of the row (account, contact, entry)
@@ -225,19 +240,20 @@ show_in_call_console_toggled(GtkCellRendererToggle *renderer, gchar *path, gpoin
 	gtk_tree_path_free(treePath);
 }
 
+/**
+ * Popup the appropriate menu when a right click occured
+ */
 static gboolean
 button_press_event(GtkWidget* treeView, GdkEventButton* event, GtkWidget* nothing)
 {
-	GtkTreeSelection* selection;
 	GtkTreePath* path;
 	GtkTreeModel* model;
 	GtkTreeIter iter;
 	gint type;
 
-	if((event->button == 3) && (event->type == GDK_BUTTON_PRESS))
+	if(event->button == 3 && event->type == GDK_BUTTON_PRESS)
 	{
 		// Get the path of current selected
-		selection = gtk_tree_view_get_selection(GTK_TREE_VIEW(treeView));
 		model = gtk_tree_view_get_model(GTK_TREE_VIEW(treeView));
 		if(gtk_tree_view_get_path_at_pos(GTK_TREE_VIEW(treeView), event->x, event->y, &path, NULL, NULL, NULL))
 		{
@@ -268,6 +284,9 @@ button_press_event(GtkWidget* treeView, GdkEventButton* event, GtkWidget* nothin
 	return FALSE;
 }
 
+/**
+ * Show contact dialog to add a new contact in selected account
+ */
 static void
 new_contact_activated(GtkMenuItem* item, GtkTreeView* treeView)
 {
@@ -287,6 +306,9 @@ new_contact_activated(GtkMenuItem* item, GtkTreeView* treeView)
 	g_free(accountID);
 }
 
+/**
+ * Popup the dialog including selected contact to edit
+ */
 static void
 edit_contact_activated(GtkMenuItem* item, GtkTreeView* treeView)
 {
@@ -319,6 +341,9 @@ edit_contact_activated(GtkMenuItem* item, GtkTreeView* treeView)
 	g_free(accountID);
 }
 
+/**
+ * Ask to remove the contact selected
+ */
 static void
 remove_contact_activated(GtkMenuItem* item, GtkTreeView* treeView)
 {
@@ -373,6 +398,9 @@ remove_contact_activated(GtkMenuItem* item, GtkTreeView* treeView)
 	g_free(accountID);
 }
 
+/**
+ * Popup entry dialog to add a new entry for selected contact
+ */
 static void
 new_entry_activated(GtkMenuItem* item, GtkTreeView* treeView)
 {
@@ -405,6 +433,9 @@ new_entry_activated(GtkMenuItem* item, GtkTreeView* treeView)
 	g_free(accountID);
 }
 
+/**
+ * Popup entry dialog to edit selected entry
+ */
 static void
 edit_entry_activated(GtkMenuItem* item, GtkTreeView* treeView)
 {
@@ -450,6 +481,9 @@ edit_entry_activated(GtkMenuItem* item, GtkTreeView* treeView)
 	g_free(accountID);
 }
 
+/**
+ * Ask to remove selected entry corresponding to IDs fetched in the tree view
+ */
 static void
 remove_entry_activated(GtkMenuItem* item, GtkTreeView* treeView)
 {
@@ -518,7 +552,7 @@ remove_entry_activated(GtkMenuItem* item, GtkTreeView* treeView)
 }
 
 /**
- * 
+ * Create the popup menus used on account, contact and entry row
  */
 static void
 contact_window_create_popup_menus()
@@ -562,9 +596,6 @@ contact_window_create_popup_menus()
 	gtk_widget_show_all(entryMenu);
 }
 
-/**
- * Show contact window
- */
 void
 show_contact_window()
 {
@@ -576,9 +607,8 @@ show_contact_window()
 	contactWindowDialog = GTK_DIALOG(gtk_dialog_new_with_buttons (_("Contacts"),
 				GTK_WINDOW(get_main_window()),
 				GTK_DIALOG_DESTROY_WITH_PARENT,
-				GTK_STOCK_CLOSE,
-				GTK_RESPONSE_ACCEPT,
 				NULL));
+	gtk_window_set_modal(GTK_WINDOW(contactWindowDialog), FALSE);
 	gtk_dialog_set_has_separator(contactWindowDialog, FALSE);
 	gtk_window_set_default_size(GTK_WINDOW(contactWindowDialog), 500, 600);
 	gtk_container_set_border_width(GTK_CONTAINER(contactWindowDialog), 0);
@@ -643,12 +673,10 @@ show_contact_window()
 	gtk_container_set_border_width(GTK_CONTAINER(contactTreeView), 10);
 	gtk_widget_show(contactTreeView);
 	
-	gtk_dialog_run(contactWindowDialog);
+	// Catch delete signal on the call console dialog when closing window
+	g_signal_connect(G_OBJECT(contactWindowDialog), "delete-event", G_CALLBACK(contact_window_closed), NULL);
 	
-	// Close all when dialog stops running
-	contact_window_clear_contact_list();
-	gtk_widget_destroy(GTK_WIDGET(contactWindowDialog));
-	contactWindowDialog = NULL;
+	gtk_widget_show(GTK_WIDGET(contactWindowDialog));
 }
 
 void
