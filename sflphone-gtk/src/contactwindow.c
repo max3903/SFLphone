@@ -36,25 +36,25 @@
  * Defines the column of the tree model for each renderer of a row
  */
 enum {
-	CONTACT_WINDOW_TYPE,						// String to know the type of the current row (account, contact or entry)
-	CONTACT_WINDOW_ID,							// ID of the account, the contact or the entry
-	CONTACT_WINDOW_CALL_CONSOLE_ACTIVE,			// Toggle renderer active
-	CONTACT_WINDOW_CALL_CONSOLE_INCONSISTENT,	// Toggle renderer inconsistent
-	CONTACT_WINDOW_ICON,						// String of icon
-	CONTACT_WINDOW_TEXT,						// Text for account, contact or contact entry presentation
-	COUNT_CONTACT_WINDOW,						// Column count
+	CONTACT_WINDOW_TYPE,						/// String to know the type of the current row (account, contact or entry)
+	CONTACT_WINDOW_ID,							/// ID of the account, the contact or the entry
+	CONTACT_WINDOW_CALL_CONSOLE_ACTIVE,			/// Toggle renderer active
+	CONTACT_WINDOW_CALL_CONSOLE_INCONSISTENT,	/// Toggle renderer inconsistent
+	CONTACT_WINDOW_ICON,						/// String of icon
+	CONTACT_WINDOW_TEXT,						/// Text for account, contact or contact entry presentation
+	COUNT_CONTACT_WINDOW,						/// Column count
 };
 
 // Location of pixmaps icons to represent different row types
 // TMP Change pixmpas for each type
-#define CONTACT_WINDOW_ACCOUNT_ICON		ICONS_DIR "/dial.svg"
-#define CONTACT_WINDOW_CONTACT_ICON		ICONS_DIR "/ring.svg"
-#define CONTACT_WINDOW_ENTRY_ICON		ICONS_DIR "/current.svg"
+#define CONTACT_WINDOW_ACCOUNT_ICON		ICONS_DIR "/dial.svg"		/// File path of icon representing an account 
+#define CONTACT_WINDOW_CONTACT_ICON		ICONS_DIR "/ring.svg"		/// File path of icon representing a contact
+#define CONTACT_WINDOW_ENTRY_ICON		ICONS_DIR "/current.svg"	/// File path of icon representing an entry
 
 // Defined types that tell if a row is an account, a contact or an entry
-#define TYPE_ACCOUNT	0
-#define TYPE_CONTACT	1
-#define TYPE_ENTRY		2
+#define TYPE_ACCOUNT	0			/// Integer to tell that row type is an account
+#define TYPE_CONTACT	1			/// Integer to tell that row type is a contact
+#define TYPE_ENTRY		2			/// Integer to tell that row type is an entry
 
 // Main dialog
 GtkDialog* contactWindowDialog = NULL;
@@ -159,6 +159,70 @@ contact_window_clear_contact_list()
 {
 	gtk_tree_store_clear(contactTreeStore);
 	contactTreeStore = NULL;
+}
+
+/**
+ * Modify the contact list so that changes are perpetuated everywhere
+ * by editing the current show in call console boolean value of the
+ * row depending on the type of the row (account, contact, entry)
+ */
+static void
+show_in_call_console_toggled(GtkCellRendererToggle *renderer, gchar *path, gpointer data)
+{
+	GtkTreeIter iter;
+	GtkTreePath *treePath;
+	GtkTreeModel *model;
+	gint type;
+	gchar* id;
+	gboolean active;
+	
+	// Get path of clicked codec active toggle box
+	treePath = gtk_tree_path_new_from_string(path);
+	model = gtk_tree_view_get_model(GTK_TREE_VIEW(data));
+	gtk_tree_model_get_iter(model, &iter, treePath);
+
+	// Get active type, id and active value at iteration
+	gtk_tree_model_get(model, &iter,
+			CONTACT_WINDOW_TYPE, &type,
+			CONTACT_WINDOW_ID, &id,
+			CONTACT_WINDOW_CALL_CONSOLE_ACTIVE, &active,
+			-1);
+
+	// Toggle active value by calling directly the contact list functions
+	if(type == TYPE_ENTRY)
+	{
+		gchar* accountID;
+		gchar* contactID;
+		
+		// Get the contact and the account IDs
+		gtk_tree_path_up(treePath);
+		gtk_tree_model_get_iter(model, &iter, treePath);
+		gtk_tree_model_get(model, &iter,
+				CONTACT_WINDOW_ID, &contactID,
+				-1);
+		
+		gtk_tree_path_up(treePath);
+		gtk_tree_model_get_iter(model, &iter, treePath);
+		gtk_tree_model_get(model, &iter,
+				CONTACT_WINDOW_ID, &accountID,
+				-1);
+		
+		contact_entry_t* entry = contact_list_entry_get(contact_list_get(contact_hash_table_get_contact_list(accountID), contactID), id);
+		entry->_isShownInConsole = !active;
+		contact_list_entry_edit(accountID, contactID, entry);
+	}
+	else if(type == TYPE_CONTACT)
+	{
+		// TODO Change individually all entries by looking the path down
+		// or call a new function in contact list that would specially
+		// set the contact and all its entries to the new value
+	}
+	else if(type == TYPE_ACCOUNT)
+	{
+		// TODO Change all entries also by one of the two possibilities mentionned above
+	}
+	
+	gtk_tree_path_free(treePath);
 }
 
 static gboolean
@@ -548,6 +612,9 @@ show_contact_window()
 			"inconsistent", CONTACT_WINDOW_CALL_CONSOLE_INCONSISTENT,
 			"active", CONTACT_WINDOW_CALL_CONSOLE_ACTIVE,
 			NULL);
+	
+	// Toggle show in call console property on click
+	g_signal_connect(G_OBJECT(renderer), "toggled", G_CALLBACK(show_in_call_console_toggled), (gpointer)contactTreeView);
 	
 	// Icon renderer
 	renderer = gtk_cell_renderer_pixbuf_new();
