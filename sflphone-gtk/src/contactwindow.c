@@ -599,6 +599,8 @@ contact_window_create_popup_menus()
 void
 show_contact_window()
 {
+	if(contactWindowDialog != NULL) return;
+	
 	GtkWidget* scrolledWindow;
 	GtkCellRenderer* renderer;
 	GtkTreeViewColumn* treeViewColumn;
