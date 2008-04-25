@@ -1445,7 +1445,7 @@ guint
 dbus_get_max_calls( void )
 {
 	GError* error = NULL;
-	guint calls;
+	gint calls;
 	org_sflphone_SFLphone_ConfigurationManager_get_max_calls(
 			configurationManagerProxy,
 			&calls,

@@ -17,11 +17,12 @@
  *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
+#include <calltree.h>
 #include <sflnotify.h>
 
 static NotifyNotification *notification;
 
-  void
+void
 notify_incoming_call( call_t* c  )
 {
   if( dbus_get_notify()){ 
