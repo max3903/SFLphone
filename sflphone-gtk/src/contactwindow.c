@@ -665,6 +665,9 @@ show_contact_window()
 	// Fill tree model
 	contact_window_fill_contact_list();
 	
+	// Set sort tree model function on description column
+	gtk_tree_sortable_set_sort_column_id(GTK_TREE_SORTABLE(contactTreeStore), CONTACT_WINDOW_TEXT, GTK_SORT_ASCENDING);
+	
 	// Signal sent when button pressed over the tree view
 	g_signal_connect(G_OBJECT(contactTreeView), "button-press-event", G_CALLBACK(button_press_event), NULL);
 	

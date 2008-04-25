@@ -251,7 +251,10 @@ show_call_console_window(gboolean show)
 	
 	// Fill tree model
 	call_console_window_fill_contact_list();
-
+	
+	// Set sort tree model function on name column
+	gtk_tree_sortable_set_sort_column_id(GTK_TREE_SORTABLE(callConsoleListStore), CALL_CONSOLE_WINDOW_NAME, GTK_SORT_ASCENDING);
+	
 	// Place window side to side with main window
 	GtkWindow* mainWindow = GTK_WINDOW(get_main_window());
 	GdkScreen* screen = gtk_window_get_screen(mainWindow);
