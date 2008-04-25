@@ -178,7 +178,6 @@ class VoIPLink {
      */
     virtual bool sendMessage(const std::string& to, const std::string& body) = 0;
 
-    // NOW
     /**
      * Determine if link supports presence information
      */
@@ -186,16 +185,19 @@ class VoIPLink {
 
     /**
      * Register contacts for presence information if supported
+     * @param contactEntry Entry to subscribe to presence
      */
     virtual void subscribePresenceForContact(ContactEntry* contactEntry);
 
     /**
      * Unsubscribe contacts for presence information if supported
+     * @param contactEntry Entry to subscribe to presence
      */
     virtual void unsubscribePresenceForContact(ContactEntry* contactEntry);
 
     /**
      * Publish presence status to server
+     * @param status Defined presence status the user is setting its state at
      */
     virtual void publishPresenceStatus(std::string status);
 
