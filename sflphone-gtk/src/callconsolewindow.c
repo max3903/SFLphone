@@ -124,6 +124,55 @@ call_console_window_closed(GtkDialog* dialog, GdkEvent* event, void* userData)
 	}
 }
 
+static gboolean
+button_press_event(GtkWidget* treeView, GdkEventButton* event, GtkWidget* nothing)
+{
+	GtkTreePath* path;
+	GtkTreeModel* model;
+	GtkTreeIter iter;
+	gchar* accountID;
+	gchar* contactID;
+	gchar* entryID;
+
+	// Double clicked the row
+	if(event->button == 1 && event->type == GDK_2BUTTON_PRESS)
+	{
+		model = gtk_tree_view_get_model(GTK_TREE_VIEW(treeView));
+		if(gtk_tree_view_get_path_at_pos(GTK_TREE_VIEW(treeView), event->x, event->y, &path, NULL, NULL, NULL))
+		{
+			if(gtk_tree_model_get_iter(model, &iter, path))
+			{
+				gtk_tree_model_get(model, &iter,
+						CALL_CONSOLE_ACCOUNT_ID, &accountID,
+						CALL_CONSOLE_CONTACT_ID, &contactID,
+						CALL_CONSOLE_ENTRY_ID, &entryID,
+						-1);
+				// Get the entry defined by these IDs found
+				contact_entry_t* entry = contact_list_entry_get(contact_list_get(contact_hash_table_get_contact_list(accountID), contactID), entryID);
+				if(entry != NULL)
+				{
+					// Modify subscribed status of entry and update contact data
+					contact_entry_t* newEntry = g_new0(contact_entry_t, 1);
+					newEntry->_entryID = g_strdup(entry->_entryID);
+					newEntry->_text = g_strdup(entry->_text);
+					newEntry->_type = g_strdup(entry->_type);
+					newEntry->_isShownInConsole = entry->_isShownInConsole;
+					newEntry->_isSubscribed = !entry->_isSubscribed;
+					newEntry->_presenceStatus = g_strdup(entry->_presenceStatus);
+					newEntry->_presenceInfo = g_strdup(entry->_presenceInfo);
+					contact_list_entry_edit(accountID, contactID, newEntry);
+					g_free(newEntry);
+				}
+			}
+		}
+	}
+	if(event->button == 3 && event->type == GDK_BUTTON_PRESS)
+	{
+		// TODO Create popup menu to call or transfer a call to entry
+	}
+	return FALSE;
+}
+
 /**
  * Show contact window
  */
@@ -196,6 +245,9 @@ show_call_console_window(gboolean show)
 	gtk_container_add(GTK_CONTAINER(scrolledWindow), callConsoleTreeView);
 	gtk_container_set_border_width(GTK_CONTAINER(callConsoleTreeView), 10);
 	gtk_widget_show(callConsoleTreeView);
+	
+	// Signal sent when button pressed over the tree view
+	g_signal_connect(G_OBJECT(callConsoleTreeView), "button-press-event", G_CALLBACK(button_press_event), NULL);
 	
 	// Fill tree model
 	call_console_window_fill_contact_list();
