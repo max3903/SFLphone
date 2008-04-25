@@ -439,7 +439,29 @@ class ManagerImpl {
      * @param additionalInfo Optional information related to status
      */
     void setPresence(const std::string& accountID, const std::string& presence, const std::string& additionalInfo);
-
+    
+    /**
+     * Subscribe to presence all entries that are set for subscription, usually when account registers
+     * @param accountID ID of the account
+     */
+    void subscribePresenceForAccount(const std::string& accountID);
+    
+    /**
+     * Unsubscribe to presence all entries that were subscribed, usually when account unregisters
+     * @param accountID ID of the account
+     */
+    void unsubscribePresenceForAccount(const std::string& accountID);
+    
+    /**
+     * Function called when signal is received that a contact entry presence changed
+     * that saves data on the daemon and sends notification to client
+     * @param accountID ID of the account
+     * @param entryID ID of the entry
+     * @param presenceText Defined active or passive status received
+     * @param additionalInfo Optional information for the presence status
+     */
+    void contactEntryPresenceChanged(const AccountID& accountID, const std::string entryID,
+	const std::string presenceText, const std::string additionalInfo);
 
     /**
      * Get the list of codecs we supports, not ordered
@@ -767,17 +789,6 @@ class ManagerImpl {
      * Handle played sound when a failure occurs
      */
     void callFailure(const CallID& id);
-
-    /**
-     * Function called when signal is received that a contact entry presence changed
-     * that saves data on the daemon and sends notification to client
-     * @param accountID ID of the account
-     * @param entryID ID of the entry
-     * @param presenceText Defined active or passive status received
-     * @param additionalInfo Optional information for the presence status
-     */
-    void contactEntryPresenceChanged(const AccountID& accountID, const std::string entryID,
-	const std::string presenceText, const std::string additionalInfo);
 
     /** 
      * Retrieve the current telephone tone

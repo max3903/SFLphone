@@ -77,8 +77,6 @@ contact_hash_table_get_contact_list(const gchar* accountID)
 void
 contact_list_accounts_changed()
 {
-	// TODO Fetch all presence information needed from sflphoned
-	
 	// Update the call console with registered entries shown only
 	call_console_window_fill_contact_list();
 }

@@ -178,6 +178,8 @@ contact_entry_presence_changed(DBusGProxy* proxy,
 		const gchar* additionalInfo,
 		void* nothing)
 {
+	// DEBUG
+	//g_print("%s : %s is %s\n", accountID, entryID, presence);
 	contact_list_entry_change_presence_status(accountID, entryID, presence, additionalInfo);
 }
 

@@ -773,70 +773,37 @@ ManagerImpl::callFailure(const CallID& id)
 
 }
 
-void
-ManagerImpl::contactEntryPresenceChanged(
-		const AccountID& accountID, const std::string entryID,
-		const std::string presenceText, const std::string additionalInfo)
-{
-	// Save information
-	Account* account = getAccount(accountID);
-	if(account != NULL)
-	{
-		// Find entry by checking all entries in all contacts
-		std::vector<Contact*> contactList = account->getContacts();
-		std::vector<Contact*>::iterator contactIter = contactList.begin();
-		while(contactIter != contactList.end())
-		{
-			Contact* contact = (Contact*)*contactIter;
-			std::vector<ContactEntry*> entryList = contact->getEntries();
-			std::vector<ContactEntry*>::iterator entryIter = entryList.begin();
-			while(entryIter != entryList.end())
-			{
-				ContactEntry* entry = (ContactEntry*)*entryIter;
-				if(strcmp(entryID.data(), entry->getEntryID().data()) == 0)
-				{
-					// We found the entry, save the information
-					Presence* presence = new Presence(presenceText, additionalInfo);
-					entry->setPresence(presence);
-					
-					// Do not break as many contacts could have the same entry
-					// even if it is not recommended
-				}
-				entryIter++;
-			}
-			contactIter++;
-		}
-	}
-	
-	// Send information by dbus to client
-	if(_dbus) _dbus->getContactManager()->contactEntryPresenceChanged(
-			accountID, entryID,
-			presenceText, additionalInfo);
-}
-
 //THREAD=VoIP
-  void
+void
 ManagerImpl::startVoiceMessageNotification(const AccountID& accountId, const std::string& nb_msg)
 {
   if (_dbus) _dbus->getCallManager()->voiceMailNotify(accountId, atoi(nb_msg.c_str()) );
 }
 
 //THREAD=VoIP
-  void 
+void
 ManagerImpl::registrationSucceed(const AccountID& accountid)
 {
   Account* acc = getAccount(accountid);
   if ( acc ) { 
     _debug("REGISTRATION SUCCEED\n");
+    
+    // Subscribe all needed entries to presence for this account
+    subscribePresenceForAccount(accountid);
+    
     if (_dbus) _dbus->getConfigurationManager()->accountsChanged();
   }
 }
 
 //THREAD=VoIP
-  void 
+void
 ManagerImpl::unregistrationSucceed(const AccountID& accountid)
 {
   _debug("UNREGISTRATION SUCCEED\n");
+
+  // Unsubscribe all needed entries to presence for this account
+  unsubscribePresenceForAccount(accountid);
+
   if (_dbus) _dbus->getConfigurationManager()->accountsChanged();
 }
 
@@ -2433,6 +2400,95 @@ ManagerImpl::setPresence(const std::string& accountID, const std::string& presen
 	Account* account = getAccount(accountID);
 	if(account != NULL)
 		account->publishPresence(presence);
+}
+
+void 
+ManagerImpl::subscribePresenceForAccount(const std::string& accountID)
+{
+	Account* account = getAccount(accountID);
+	if(account == NULL) return;
+	
+	std::vector<Contact*>::iterator contactIter = account->getContacts().begin();
+	while(contactIter != account->getContacts().end())
+	{
+		Contact* contact = (Contact*)*contactIter;
+		std::vector<ContactEntry*>::iterator entryIter = contact->getEntries().begin();
+		while(entryIter != contact->getEntries().end())
+		{
+			ContactEntry* entry = (ContactEntry*)*entryIter;
+			if(entry->getSubscribedToPresence() && account->getVoIPLink()->isContactPresenceSupported())
+			{
+				account->getVoIPLink()->subscribePresenceForContact(entry);
+			}
+			entryIter++;
+		}
+		contactIter++;
+	}
+}
+
+void
+ManagerImpl::unsubscribePresenceForAccount(const std::string& accountID)
+{
+	Account* account = getAccount(accountID);
+	if(account == NULL) return;
+	
+	std::vector<Contact*>::iterator contactIter = account->getContacts().begin();
+	while(contactIter != account->getContacts().end())
+	{
+		Contact* contact = (Contact*)*contactIter;
+		std::vector<ContactEntry*>::iterator entryIter = contact->getEntries().begin();
+		while(entryIter != contact->getEntries().end())
+		{
+			ContactEntry* entry = (ContactEntry*)*entryIter;
+			if(entry->getSubscribedToPresence() && account->getVoIPLink()->isContactPresenceSupported())
+			{
+				account->getVoIPLink()->unsubscribePresenceForContact(entry);
+			}
+			entryIter++;
+		}
+		contactIter++;
+	}
+}
+
+void
+ManagerImpl::contactEntryPresenceChanged(
+		const AccountID& accountID, const std::string entryID,
+		const std::string presenceText, const std::string additionalInfo)
+{
+	// Save information
+	Account* account = getAccount(accountID);
+	if(account != NULL)
+	{
+		// Find entry by checking all entries in all contacts
+		std::vector<Contact*> contactList = account->getContacts();
+		std::vector<Contact*>::iterator contactIter = contactList.begin();
+		while(contactIter != contactList.end())
+		{
+			Contact* contact = (Contact*)*contactIter;
+			std::vector<ContactEntry*> entryList = contact->getEntries();
+			std::vector<ContactEntry*>::iterator entryIter = entryList.begin();
+			while(entryIter != entryList.end())
+			{
+				ContactEntry* entry = (ContactEntry*)*entryIter;
+				if(strcmp(entryID.data(), entry->getEntryID().data()) == 0)
+				{
+					// We found the entry, save the information
+					Presence* presence = new Presence(presenceText, additionalInfo);
+					entry->setPresence(presence);
+					
+					// Do not break as many contacts could have the same entry
+					// even if it is not recommended
+				}
+				entryIter++;
+			}
+			contactIter++;
+		}
+	}
+	
+	// Send information by dbus to client
+	if(_dbus) _dbus->getContactManager()->contactEntryPresenceChanged(
+			accountID, entryID,
+			presenceText, additionalInfo);
 }
 
 // ACCOUNT handling
