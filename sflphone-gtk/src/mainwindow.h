@@ -105,6 +105,5 @@ gboolean get_showGlWidget_status();
 
 void main_window_call_console_closed();
 
-void main_window_volume_controls(gboolean show);
 
 #endif 

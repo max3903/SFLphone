@@ -25,7 +25,6 @@
 #include <calltree.h>
 #include <configwindow.h>
 #include <dialpad.h>
-#include <druid.h>
 #include <mainwindow.h>
 #include <menus.h>
 #include <sliders.h>
@@ -263,6 +262,7 @@ main_window_call_console_closed()
 	menus_show_call_console_menu_item_set_active(FALSE);
 }
 
+void
 main_window_volume_controls( gboolean *state ){
   if( !SHOW_VOLUME )
   {
