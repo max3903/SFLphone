@@ -27,7 +27,7 @@
 #include "audio/audiolayer.h"
 
 #include <samplerate.h>
-#include <iax/iax-client.h>
+//#include <iax/iax-client.h>
 #include <math.h>
 #include <dlfcn.h>
 
@@ -166,6 +166,7 @@ IAXVoIPLink::terminate()
 void
 IAXVoIPLink::terminateIAXCall()
 {
+  std::string reason = "Dumped Call";
   ost::MutexLock m(_callMapMutex);
   CallMap::iterator iter = _callMap.begin();
   IAXCall *call;
@@ -173,7 +174,7 @@ IAXVoIPLink::terminateIAXCall()
     call = dynamic_cast<IAXCall*>(iter->second);
     if (call) {
       _mutexIAX.enterMutex();
-      iax_hangup(call->getSession(), "Dumped Call");
+      iax_hangup(call->getSession(), (char*)reason.c_str());
       _mutexIAX.leaveMutex();
       call->setSession(NULL);
       delete call; call = NULL;
@@ -362,7 +363,6 @@ bool
 IAXVoIPLink::sendRegister() 
 {
   bool result = false;
-
   if (_host.empty()) {
     return false;
   }
@@ -482,11 +482,11 @@ bool
 IAXVoIPLink::hangup(const CallID& id)
 {
   IAXCall* call = getIAXCall(id);
-
+  std::string reason = "Dumped Call";
   CHK_VALID_CALL;
 
   _mutexIAX.enterMutex();
-  iax_hangup(call->getSession(), "Dumped Call");
+  iax_hangup(call->getSession(), (char*) reason.c_str());
   _mutexIAX.leaveMutex();
   call->setSession(NULL);
   if (Manager::instance().isCurrentCall(id)) {
@@ -551,11 +551,12 @@ bool
 IAXVoIPLink::refuse(const CallID& id)
 {
   IAXCall* call = getIAXCall(id);
+  std::string reason = "Call rejected manually.";
 
   CHK_VALID_CALL;
 
   _mutexIAX.enterMutex();
-  iax_reject(call->getSession(), "Call rejected manually.");
+  iax_reject(call->getSession(), (char*) reason.c_str());
   _mutexIAX.leaveMutex();
   removeCall(id);
 }
@@ -851,6 +852,7 @@ IAXVoIPLink::iaxHandlePrecallEvent(iax_event* event)
 {
   IAXCall* call = NULL;
   CallID   id;
+  std::string reason = "Error ringing user.";
 
   switch(event->etype) {
   case IAX_EVENT_REGACK:
@@ -912,7 +914,7 @@ IAXVoIPLink::iaxHandlePrecallEvent(iax_event* event)
       addCall(call);
     } else {
       // reject call, unable to add it
-      iax_reject(event->session, "Error ringing user.");
+      iax_reject(event->session, (char*)reason.c_str());
 
       delete call; call = NULL;
     }

@@ -38,14 +38,10 @@
 #define ACCOUNT_ENABLED		   "Account.enable"
 /** Mail box number */
 #define ACCOUNT_MAILBOX		   "Account.mailbox"
-/** SIP parameter: full name */
-#define ACCOUNT_SIP_FULL_NAME      "SIP.fullName"
 /** SIP parameter: host name */
-#define ACCOUNT_SIP_HOST_PART      "SIP.hostPart"
-/** SIP parameter: user name */
-#define ACCOUNT_SIP_USER_PART      "SIP.userPart"
+#define ACCOUNT_SIP_HOST      "SIP.hostPart"
 /** SIP parameter: authentification name */
-#define ACCOUNT_SIP_AUTH_NAME      "SIP.username"
+#define ACCOUNT_SIP_USER      "SIP.username"
 /** SIP parameter: password */
 #define ACCOUNT_SIP_PASSWORD       "SIP.password"
 /** SIP parameter: proxy address */
@@ -54,14 +50,12 @@
 #define ACCOUNT_SIP_STUN_SERVER	   "STUN.server"
 /** SIP parameter: tells if stun is enabled or not */
 #define ACCOUNT_SIP_STUN_ENABLED   "STUN.enable"
-/** IAX2 parameter: full name */
-#define ACCOUNT_IAX_FULL_NAME      "IAX.fullName"
 /** IAX2 parameter: host name */
 #define ACCOUNT_IAX_HOST           "IAX.host"
 /** IAX2 parameter: user name */
 #define ACCOUNT_IAX_USER           "IAX.user"
 /** IAX2 parameter: password name */
-#define ACCOUNT_IAX_PASS           "IAX.pass"
+#define ACCOUNT_IAX_PASSWORD           "IAX.password"
 
 /** Error while opening capture device */
 #define ALSA_CAPTURE_DEVICE	      0x0001
@@ -76,6 +70,10 @@
 #define MINIMIZED	      TRUE
 /** Behaviour of the main window on incoming calls */
 #define __POPUP_WINDOW  ( dbus_popup_mode() )
+/** Show/Hide the dialpad */
+#define SHOW_DIALPAD	( dbus_get_dialpad() ) 
+/** Show/Hide the volume controls */
+#define SHOW_VOLUME	( dbus_get_volume_controls() ) 
 /** Notification levels */
 #define __NOTIF_LEVEL_MIN     0
 #define __NOTIF_LEVEL_MED     1

@@ -42,22 +42,20 @@ GtkWidget * dialpad   = NULL;
 GtkWidget * speaker_control = NULL;
 GtkWidget * mic_control = NULL;
 GtkWidget * statusBar = NULL;
-GtkWidget * infoScreen = NULL;
-gboolean showDialpad  = FALSE; // true if the dialpad have been shown
 gboolean showGlWidget= FALSE; // true if the glwidget have been been shown
-gboolean showControls  = FALSE; // true if the volume controls have been shown
 
 //! The glwidget it self
 GtkWidget* drawing_area;
 
 /**
- * Terminate the main loop.
+ * Minimize the main window.
  */
 static gboolean
 on_delete (GtkWidget * widget, gpointer data)
 {
-  /* Must return FALSE to have the window destroyed */
-  return !sflphone_quit();
+  gtk_widget_hide(GTK_WIDGET( get_main_window() ));
+  set_minimized( TRUE );
+  return TRUE;
 }
 
 /** Ask the user if he wants to hangup current calls */
@@ -133,6 +131,7 @@ create_main_window ()
   gtk_window_set_default_size (GTK_WINDOW (window), 180, 500);
   gtk_window_set_default_icon_from_file (ICON_DIR "/sflphone.png", 
                                           NULL);
+  gtk_window_set_position( GTK_WINDOW( window ) , GTK_WIN_POS_MOUSE);
 
   /* Connect the destroy event of the window with our on_destroy function
     * When the window is about to be destroyed we get a notificaiton and
@@ -159,8 +158,23 @@ create_main_window ()
   gtk_box_pack_start (GTK_BOX (vbox), current_calls->tree, TRUE /*expand*/, TRUE /*fill*/,  0 /*padding*/);
   gtk_box_pack_start (GTK_BOX (vbox), history->tree, TRUE /*expand*/, TRUE /*fill*/,  0 /*padding*/);
   
-  gtk_box_pack_start (GTK_BOX (vbox), subvbox, FALSE /*expand*/, TRUE /*fill*/, 0 /*padding*/);
- 
+  gtk_box_pack_start (GTK_BOX (vbox), subvbox, FALSE /*expand*/, FALSE /*fill*/, 0 /*padding*/);
+
+  if( SHOW_VOLUME ){ 
+    speaker_control = create_slider("speaker");
+    gtk_box_pack_start (GTK_BOX (subvbox), speaker_control, FALSE /*expand*/, TRUE /*fill*/, 0 /*padding*/);
+    gtk_widget_show_all (speaker_control);
+    mic_control = create_slider("mic");
+    gtk_box_pack_start (GTK_BOX (subvbox), mic_control, FALSE /*expand*/, TRUE /*fill*/, 0 /*padding*/);
+    gtk_widget_show_all (mic_control);
+  }
+  if( SHOW_DIALPAD ){ 
+    dialpad = create_dialpad();
+    gtk_box_pack_end (GTK_BOX (subvbox), dialpad, FALSE /*expand*/, TRUE /*fill*/, 0 /*padding*/);
+    gtk_box_reorder_child(GTK_BOX (subvbox), dialpad, 1);
+    gtk_widget_show_all (dialpad);
+  }
+
   /* Status bar */
   statusBar = gtk_statusbar_new();
   gtk_box_pack_start (GTK_BOX (vbox), statusBar, FALSE /*expand*/, TRUE /*fill*/,  0 /*padding*/);
@@ -173,28 +187,11 @@ create_main_window ()
   gtk_widget_hide(history->tree);
   //gtk_widget_show(current_calls->tree);
   
-  // Welcome screen
+  // Configuration wizard 
   if (account_list_get_size() == 0)
   {
-    /*GtkWidget * dialog = gtk_message_dialog_new_with_markup (GTK_WINDOW(window),
-                                  GTK_DIALOG_DESTROY_WITH_PARENT,
-                                  GTK_MESSAGE_INFO,
-                                  GTK_BUTTONS_YES_NO,
-                                  _("<b><big>Welcome to SFLphone!</big></b>\n\nThere is no VoIP account configured.\n Would you like to create one now?"));
-
-    int response = gtk_dialog_run (GTK_DIALOG(dialog));
-   
-    gtk_widget_destroy (GTK_WIDGET(dialog));
-
-    if (response == GTK_RESPONSE_YES)
-    {
-      show_accounts_window();
-    }*/
     build_wizard();
   }
-
-  
-
 }
 
 GtkAccelGroup * 
@@ -237,22 +234,24 @@ main_window_info_message(gchar * markup){
 }
 
 void
-main_window_dialpad(gboolean show){
-  if(show && !showDialpad)
+main_window_dialpad( gboolean *state ){
+  if( !SHOW_DIALPAD )
   {
     dialpad = create_dialpad();
     gtk_box_pack_end (GTK_BOX (subvbox), dialpad, TRUE /*expand*/, FALSE /*fill*/, 0 /*padding*/);
     gtk_box_reorder_child(GTK_BOX (subvbox), dialpad, 1);
     gtk_widget_show_all (dialpad);
+    *state = TRUE;
   }
-  else if (!show && showDialpad)
+  else
   {
     gtk_container_remove(GTK_CONTAINER (subvbox), dialpad);
+    *state = FALSE;
   }
-  showDialpad = show;
 }
 
 void
+
 main_window_show_call_console(gboolean show)
 {
 	show_call_console_window(show);
@@ -264,9 +263,8 @@ main_window_call_console_closed()
 	menus_show_call_console_menu_item_set_active(FALSE);
 }
 
-void
-main_window_volume_controls( gboolean show ){
-  if( show && !showControls)
+main_window_volume_controls( gboolean *state ){
+  if( !SHOW_VOLUME )
   {
     speaker_control = create_slider("speaker");
     gtk_box_pack_start (GTK_BOX (subvbox), speaker_control, FALSE /*expand*/, TRUE /*fill*/, 0 /*padding*/);
@@ -274,13 +272,14 @@ main_window_volume_controls( gboolean show ){
     mic_control = create_slider("mic");
     gtk_box_pack_start (GTK_BOX (subvbox), mic_control, FALSE /*expand*/, TRUE /*fill*/, 0 /*padding*/);
     gtk_widget_show_all (mic_control);
+    *state = TRUE;
   }
-  else if(!show && showControls)
+  else
   {
     gtk_container_remove( GTK_CONTAINER(subvbox) , speaker_control );
     gtk_container_remove( GTK_CONTAINER(subvbox) , mic_control );
+    *state = FALSE;
   }
-  showControls = show;
 }
 
 void 

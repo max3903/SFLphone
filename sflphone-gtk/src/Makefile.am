@@ -5,7 +5,7 @@ sflphone_gtk_SOURCES = \
   errors.c \
   dbus.c \
   sflnotify.c \
-  druid.c \
+  assistant.c \
   mainwindow.c \
   calllist.c \
   dialpad.c \
@@ -27,7 +27,7 @@ sflphone_gtk_SOURCES = \
   glwidget.c \
   MemManager.c 
   
-noinst_HEADERS =  actions.h dbus.h sflnotify.h mainwindow.h calllist.h dialpad.h codeclist.h druid.h \
+noinst_HEADERS =  actions.h dbus.h sflnotify.h mainwindow.h calllist.h dialpad.h codeclist.h assistant.h\
                   callmanager-glue.h errors.h sflphone_const.h configurationmanager-glue.h instance-glue.h menus.h calltab.h calltree.h configwindow.h \
                   videocodeclist.h contactmanager-glue.h contactlist.h contactwindow.h callconsolewindow.h \
                   accountlist.h accountwindow.h marshaller.h sliders.h statusicon.h
@@ -39,4 +39,11 @@ sflphone_gtk_LDADD = $(DEPS_LIBS) -lnotify
 AM_CPPFLAGS = $(DEPS_CFLAGS) \
               -DICONS_DIR=\""$(datadir)/sflphone"\" \
               -DICON_DIR=\""$(datadir)/pixmaps"\" \
-	      -DCODECS_DIR=\""$(libdir)/sflphone/codecs"\"
+	      -DCODECS_DIR=\""$(libdir)/sflphone/codecs"\" 
+
+# add symbolic link	     
+install-exec-local:
+	ln -sf $(bindir)/sflphone-gtk $(bindir)/sflphone 
+
+uninstall-local:
+	-test -h $(bindir)/sflphone && rm $(bindir)/sflphone

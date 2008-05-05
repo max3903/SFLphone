@@ -32,7 +32,7 @@ ALSAFLAG= -lasound
 
 EXPATFLAG= -lexpat
 
-SUBDIRS = audio config contact dbus memmanager video mixer $(ZEROCONFDIR)
+SUBDIRS = audio config dbus $(ZEROCONFDIR) contact memmanager video mixer
 
 sflphoned_SOURCES = eventthread.cpp 	main.cpp 	voiplink.cpp \
 		managerimpl.cpp	observer.cpp \

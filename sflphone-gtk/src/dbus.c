@@ -32,6 +32,7 @@
 #include <marshaller.h>
 #include <sliders.h>
 #include <statusicon.h>
+#include <assistant.h>
 
 #include <dbus.h>
 #include <actions.h>

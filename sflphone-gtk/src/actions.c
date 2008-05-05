@@ -1,10 +1,10 @@
 /*
- *  Copyright (C) 2007 Savoir-Faire Linux inc.
- *  Author: Pierre-Luc Beaudoin <pierre-luc.beaudoin@savoirfairelinux.com>
+ *  Copyright (C) 2007 - 2008 Savoir-Faire Linux inc.
  *  Author: Emmanuel Milou <emmanuel.milou@savoirfairelinux.com>
  *  Author: Jean-Francois Blanchard-Dionne <jean-francois.blanchard-dionne@polymtl.ca>
  *  Author: marilyne Mercier <marilyne.mercier@polymtl.ca> 
- *                                                                           
+ *  Author: Pierre-Luc Beaudoin <pierre-luc.beaudoin@savoirfairelinux.com>
+ *                                                                              
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation; either version 3 of the License, or
@@ -128,6 +128,7 @@ sflphone_hung_up( call_t * c)
   c->state = CALL_STATE_DIALING;
   update_menus();
   status_tray_icon_blink( FALSE );
+  stop_notification();
 }
 
 
@@ -731,10 +732,9 @@ sflphone_fill_codec_list()
     }
   }
   if( codec_list_get_size() == 0) {
-    gchar* markup = malloc(1000);
-    sprintf(markup , _("<b>Error: No audio codecs found.\n\n</b> SFL audio codecs have to be placed in <i>%s</i> or in the <b>.sflphone</b> directory in your home( <i>%s</i> )"), CODECS_DIR , g_get_home_dir());
+    
+    gchar* markup = g_markup_printf_escaped(_("<b>Error: No audio codecs found.\n\n</b> SFL audio codecs have to be placed in <i>%s</i> or in the <b>.sflphone</b> directory in your home( <i>%s</i> )") , CODECS_DIR , g_get_home_dir());
     main_window_error_message( markup );
-    g_free( markup );
     dbus_unregister(getpid());
     exit(0);
   }

@@ -22,7 +22,7 @@
 #define IAXVOIPLINK_H
 
 #include "voiplink.h"
-#include <iax/iax-client.h>
+#include <iax2/iax-client.h>
 #include "global.h"
 #include <samplerate.h>
 
@@ -268,9 +268,6 @@ class IAXVoIPLink : public VoIPLink
 
     /** IAX Password */
     std::string _pass;
-
-    /** IAX full name */
-    std::string _fullName;
 
     /** Timestamp of when we should refresh the registration up with
      * the registrar.  Values can be: EPOCH timestamp, 0 if we want no registration, 1
