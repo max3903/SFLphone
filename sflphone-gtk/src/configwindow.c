@@ -2276,12 +2276,6 @@ show_config_window (gint page_num)
 	gtk_container_set_border_width(GTK_CONTAINER(notebook), 10);
 	gtk_widget_show(notebook);
 
-	// Accounts tab
-	tabAccount = create_accounts_tab();
-	gtk_notebook_append_page(GTK_NOTEBOOK(notebook), tabAccount, gtk_label_new("Accounts"));
-	gtk_notebook_page_num(GTK_NOTEBOOK(notebook), tabAccount);
-	gtk_widget_show(tabAccount);
-
 	// General settings tab
 	tabGeneral = create_general_settings();
 	gtk_notebook_append_page(GTK_NOTEBOOK(notebook), tabGeneral, gtk_label_new(_("General Settings")));

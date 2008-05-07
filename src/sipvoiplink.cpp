@@ -1061,7 +1061,7 @@ SIPVoIPLink::publishPresenceStatus(std::string status)
 	// Build URL of sender
 	url << "sip:" << _authname.data() << "@" << getHostName().data();
 	
-	SIPPresenceManager::getInstance()->buildPublishPresenceStatus(_userpart.data(), url.str().c_str(), status);
+	SIPPresenceManager::getInstance()->buildPublishPresenceStatus(_authname.data(), url.str().c_str(), status);
 }
 
 void
