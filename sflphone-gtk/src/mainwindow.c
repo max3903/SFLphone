@@ -16,7 +16,7 @@
  *  along with this program; if not, write to the Free Software
  *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
- 
+
 #include <config.h>
 #include <actions.h>
 #include <callconsolewindow.h>
@@ -41,7 +41,6 @@ GtkWidget * dialpad   = NULL;
 GtkWidget * speaker_control = NULL;
 GtkWidget * mic_control = NULL;
 GtkWidget * statusBar = NULL;
-gboolean showGlWidget= FALSE; // true if the glwidget have been been shown
 
 //! The glwidget it self
 GtkWidget* drawing_area;
@@ -49,7 +48,7 @@ GtkWidget* drawing_area;
 /**
  * Minimize the main window.
  */
-static gboolean
+  static gboolean
 on_delete (GtkWidget * widget, gpointer data)
 {
   gtk_widget_hide(GTK_WIDGET( get_main_window() ));
@@ -64,7 +63,7 @@ main_window_ask_quit(){
   GtkWidget * dialog;
   guint response;
   gchar * question;
-  
+
   if(count == 1)
   {
     question = "<b>There is one call in progress.</b>\nDo you still want to quit?";
@@ -73,15 +72,15 @@ main_window_ask_quit(){
   {
     question = "<b>There are calls in progress.</b>\nDo you still want to quit?";
   }
-  
+
   dialog = gtk_message_dialog_new_with_markup (GTK_WINDOW(window) ,
-                                  GTK_DIALOG_MODAL,
-                                  GTK_MESSAGE_QUESTION,
-                                  GTK_BUTTONS_YES_NO,
-                                  question);
-  
+      GTK_DIALOG_MODAL,
+      GTK_MESSAGE_QUESTION,
+      GTK_BUTTONS_YES_NO,
+      question);
+
   response = gtk_dialog_run (GTK_DIALOG (dialog));
-  
+
   gtk_widget_destroy (dialog);
   if(response == GTK_RESPONSE_YES)
   { 
@@ -94,52 +93,52 @@ main_window_ask_quit(){
   return TRUE;
 }
 
-static gboolean
+  static gboolean
 on_key_released (GtkWidget   *widget,
-                GdkEventKey *event,
-                gpointer     user_data)  
+    GdkEventKey *event,
+    gpointer     user_data)  
 {
 #ifdef DEBUG
   g_print("KEY %s, %d\n", event->string, event->keyval);
 #endif 
   // If a modifier key is pressed, it's a shortcut, pass along
   if(event->state & GDK_CONTROL_MASK || 
-     event->state & GDK_MOD1_MASK    ||
-     event->keyval == 60             || // <
-     event->keyval == 62             || // >
-     event->keyval == 34             || // "
-     event->keyval == 65361          || // left arrow
-     event->keyval == 65363          || // right arrow
-     event->keyval >= 65470          || // F-keys
-     event->keyval == 32                // space
-     )
+      event->state & GDK_MOD1_MASK    ||
+      event->keyval == 60             || // <
+      event->keyval == 62             || // >
+      event->keyval == 34             || // "
+      event->keyval == 65361          || // left arrow
+      event->keyval == 65363          || // right arrow
+      event->keyval >= 65470          || // F-keys
+      event->keyval == 32                // space
+    )
     return FALSE;
   sflphone_keypad(event->keyval, event->string);
   return TRUE;
 }                
 
-void
+  void
 create_main_window ()
 {
   GtkWidget *widget;
   GtkWidget *vbox;
-  
+
   window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
   gtk_container_set_border_width (GTK_CONTAINER (window), 0);
   gtk_window_set_title (GTK_WINDOW (window), PACKAGE);
   gtk_window_set_default_size (GTK_WINDOW (window), 180, 500);
   gtk_window_set_default_icon_from_file (ICONS_DIR "/sflphone.png", 
-                                          NULL);
+      NULL);
   gtk_window_set_position( GTK_WINDOW( window ) , GTK_WIN_POS_MOUSE);
 
   /* Connect the destroy event of the window with our on_destroy function
-    * When the window is about to be destroyed we get a notificaiton and
-    * stop the main GTK loop
-    */
+   * When the window is about to be destroyed we get a notificaiton and
+   * stop the main GTK loop
+   */
   g_signal_connect (G_OBJECT (window), "delete-event",
-                    G_CALLBACK (on_delete), NULL);
+      G_CALLBACK (on_delete), NULL);
   g_signal_connect (G_OBJECT (window), "key-press-event",
-                    G_CALLBACK (on_key_released), NULL);
+      G_CALLBACK (on_key_released), NULL);
 
   /* Create an accel group for window's shortcuts */
   accelGroup = gtk_accel_group_new ();
@@ -148,15 +147,15 @@ create_main_window ()
   vbox = gtk_vbox_new ( FALSE /*homogeneous*/, 0 /*spacing*/);
   subvbox = gtk_vbox_new ( FALSE /*homogeneous*/, 5 /*spacing*/);
   gtk_container_set_border_width (GTK_CONTAINER(subvbox), 5);
-  
+
   widget = create_menus();
   gtk_box_pack_start (GTK_BOX (vbox), widget, FALSE /*expand*/, TRUE /*fill*/, 0 /*padding*/);
-  
+
   widget = create_toolbar();
   gtk_box_pack_start (GTK_BOX (vbox), widget, FALSE /*expand*/, TRUE /*fill*/, 0 /*padding*/);
   gtk_box_pack_start (GTK_BOX (vbox), current_calls->tree, TRUE /*expand*/, TRUE /*fill*/,  0 /*padding*/);
   gtk_box_pack_start (GTK_BOX (vbox), history->tree, TRUE /*expand*/, TRUE /*fill*/,  0 /*padding*/);
-  
+
   gtk_box_pack_start (GTK_BOX (vbox), subvbox, FALSE /*expand*/, FALSE /*fill*/, 0 /*padding*/);
 
   if( SHOW_VOLUME ){ 
@@ -185,7 +184,7 @@ create_main_window ()
   /* dont't show the history */
   gtk_widget_hide(history->tree);
   //gtk_widget_show(current_calls->tree);
-  
+
   // Configuration wizard 
   if (account_list_get_size() == 0)
   {
@@ -193,13 +192,13 @@ create_main_window ()
   }
 }
 
-GtkAccelGroup * 
+  GtkAccelGroup * 
 get_accel_group()
 {
   return accelGroup;
 }
 
-GtkWidget * 
+  GtkWidget * 
 get_main_window()
 {
   return window;
@@ -208,12 +207,12 @@ get_main_window()
 void
 main_window_message(GtkMessageType type, gchar * markup){
   GtkWidget * dialog = gtk_message_dialog_new_with_markup (GTK_WINDOW(get_main_window()),
-                                      GTK_DIALOG_MODAL | GTK_DIALOG_DESTROY_WITH_PARENT,
-                                      type,
-                                      GTK_BUTTONS_CLOSE,
-                                      markup);
+      GTK_DIALOG_MODAL | GTK_DIALOG_DESTROY_WITH_PARENT,
+      type,
+      GTK_BUTTONS_CLOSE,
+      markup);
   gtk_dialog_run (GTK_DIALOG(dialog));
-  
+
   gtk_widget_destroy (GTK_WIDGET(dialog));
 }
 
@@ -233,164 +232,86 @@ main_window_info_message(gchar * markup){
 }
 
 void
-main_window_dialpad( gboolean *state ){
-  if( !SHOW_DIALPAD )
-  {
-    dialpad = create_dialpad();
-    gtk_box_pack_end (GTK_BOX (subvbox), dialpad, TRUE /*expand*/, FALSE /*fill*/, 0 /*padding*/);
-    gtk_box_reorder_child(GTK_BOX (subvbox), dialpad, 1);
-    gtk_widget_show_all (dialpad);
-    *state = TRUE;
+  main_window_dialpad( gboolean *state ){
+    if( !SHOW_DIALPAD )
+    {
+      dialpad = create_dialpad();
+      gtk_box_pack_end (GTK_BOX (subvbox), dialpad, TRUE /*expand*/, FALSE /*fill*/, 0 /*padding*/);
+      gtk_box_reorder_child(GTK_BOX (subvbox), dialpad, 1);
+      gtk_widget_show_all (dialpad);
+      *state = TRUE;
+    }
+    else
+    {
+      gtk_container_remove(GTK_CONTAINER (subvbox), dialpad);
+      *state = FALSE;
+    }
   }
-  else
-  {
-    gtk_container_remove(GTK_CONTAINER (subvbox), dialpad);
-    *state = FALSE;
-  }
-}
 
 void
 
 main_window_show_call_console(gboolean show)
 {
-	show_call_console_window(show);
+  show_call_console_window(show);
 }
 
-void
+  void
 main_window_call_console_closed()
 {
-	menus_show_call_console_menu_item_set_active(FALSE);
+  menus_show_call_console_menu_item_set_active(FALSE);
 }
 
 void
-main_window_volume_controls( gboolean *state ){
-  if( !SHOW_VOLUME )
-  {
-    speaker_control = create_slider("speaker");
-    gtk_box_pack_start (GTK_BOX (subvbox), speaker_control, FALSE /*expand*/, TRUE /*fill*/, 0 /*padding*/);
-    gtk_widget_show_all (speaker_control);
-    mic_control = create_slider("mic");
-    gtk_box_pack_start (GTK_BOX (subvbox), mic_control, FALSE /*expand*/, TRUE /*fill*/, 0 /*padding*/);
-    gtk_widget_show_all (mic_control);
-    *state = TRUE;
+  main_window_volume_controls( gboolean *state ){
+    if( !SHOW_VOLUME )
+    {
+      speaker_control = create_slider("speaker");
+      gtk_box_pack_start (GTK_BOX (subvbox), speaker_control, FALSE /*expand*/, TRUE /*fill*/, 0 /*padding*/);
+      gtk_widget_show_all (speaker_control);
+      mic_control = create_slider("mic");
+      gtk_box_pack_start (GTK_BOX (subvbox), mic_control, FALSE /*expand*/, TRUE /*fill*/, 0 /*padding*/);
+      gtk_widget_show_all (mic_control);
+      *state = TRUE;
+    }
+    else
+    {
+      gtk_container_remove( GTK_CONTAINER(subvbox) , speaker_control );
+      gtk_container_remove( GTK_CONTAINER(subvbox) , mic_control );
+      *state = FALSE;
+    }
   }
-  else
-  {
-    gtk_container_remove( GTK_CONTAINER(subvbox) , speaker_control );
-    gtk_container_remove( GTK_CONTAINER(subvbox) , mic_control );
-    *state = FALSE;
-  }
-}
 
-void 
+  void 
 statusbar_push_message(const gchar * message, guint id)
 { 
   gtk_statusbar_push(GTK_STATUSBAR(statusBar), id, message);
 }
 
-void 
+  void 
 statusbar_pop_message(guint id)
 { 
   gtk_statusbar_pop(GTK_STATUSBAR(statusBar), id);
 }
 
-gboolean main_window_glWidget( gboolean show )
+  gboolean 
+main_window_glWidget( gboolean show )
 {
-	call_t * selectedCall = call_get_selected(current_calls);
-	
-	if (selectedCall)
-	{
-		switch(selectedCall->state)
-		{
-			case CALL_STATE_DIALING:
-			case CALL_STATE_FAILURE:
-			case CALL_STATE_INCOMING:
-				break;
-			// If selected call in any other state show config windows
-			
-			case CALL_STATE_HOLD:
-			case CALL_STATE_RINGING:
-			case CALL_STATE_BUSY:
-				g_print("No active call, showing config window\n");
-				// Keep button and menu in the same state as glwidget
-				main_window_update_WebcamStatus(showGlWidget);
-				//Show webcam configuration
-				show_config_window(4);
-				
-				return FALSE;
-				
-			// If current call active enable/disable webcam
-			case CALL_STATE_CURRENT:
-				{
-					 
-					  if(show && !showGlWidget)
-					  {
-					  	g_print("Enabling visualization pannel\n");
-					  	
-					    drawing_area = createGLWidget(FALSE);
-					    gtk_box_pack_start (GTK_BOX (subvbox), drawing_area, TRUE /*expand*/, TRUE /*fill*/, 0 /*padding*/);
-					    gtk_box_reorder_child(GTK_BOX (subvbox), drawing_area, 0);
-					    gtk_widget_show_all (drawing_area);
-					    showGlWidget = show;
-					    
-					    // Keep button and menu in the same state as glwidget
-					    main_window_update_WebcamStatus(showGlWidget);
-					    dbus_enable_local_video_pref();
-					    
-					    return TRUE;
-					  }
-					  else if (!show && showGlWidget)
-					  {
-					  	g_print("Disabling visualization pannel\n");
-					  	
-					    gtk_container_remove(GTK_CONTAINER (subvbox), drawing_area);
-					    showGlWidget = show;
-					    
-					    // Keep button and menu in the same state as glwidget
-					    main_window_update_WebcamStatus(showGlWidget);
-					    dbus_disable_local_video_pref();
-					    
-					    return FALSE;
-					  }
-				}
-			default:
-
-				gtk_container_remove(GTK_CONTAINER (subvbox), drawing_area);
-			    showGlWidget = show;
-					    
-			    // Keep button and menu in the same state as glwidget
-			    main_window_update_WebcamStatus(showGlWidget);
-			    dbus_disable_local_video_pref();
-				break; 
-		}
-	}else
-	{
-		g_print("No call selected, showing config window\n");
-		// Keep button and menu in the same state as glwidget
-		main_window_update_WebcamStatus(showGlWidget);
-		//Show webcam configuration
-		show_config_window(4);
-
-	}
-	
-	return FALSE;
-}
-
-void main_window_update_WebcamStatus( gboolean value )
-{
-	// Change button state
-	gtk_signal_handler_block(GTK_TOGGLE_TOOL_BUTTON(webCamButton),webCamButtonConnId);
-	gtk_toggle_tool_button_set_active(GTK_TOGGLE_TOOL_BUTTON (webCamButton), value);
-	gtk_signal_handler_unblock(GTK_TOGGLE_TOOL_BUTTON(webCamButton),webCamButtonConnId);
-	
-	//Change menu item state
-	gtk_signal_handler_block(GTK_CHECK_MENU_ITEM(webCamMenu),webCamConnId);
-	gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(webCamMenu), value);
-	gtk_signal_handler_unblock(GTK_CHECK_MENU_ITEM(webCamMenu),webCamConnId);
-}
-
-gboolean get_showGlWidget_status()
-{
-	return showGlWidget;	
+  if(show)
+  {
+    drawing_area = createGLWidget(FALSE);
+    gtk_box_pack_start (GTK_BOX (subvbox), drawing_area, TRUE /*expand*/, TRUE /*fill*/, 0 /*padding*/);
+    gtk_box_reorder_child(GTK_BOX (subvbox), drawing_area, 0);
+    gtk_widget_show_all (drawing_area);
+    // Keep button and menu in the same state as glwidget
+    dbus_enable_local_video_pref();
+    return TRUE;
+  }
+  else 
+  {
+    gtk_container_remove(GTK_CONTAINER (subvbox), drawing_area);
+    // Keep button and menu in the same state as glwidget
+    dbus_disable_local_video_pref();
+    return FALSE;
+  }
 }
 

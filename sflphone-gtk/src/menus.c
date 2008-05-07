@@ -52,7 +52,7 @@ void update_menus()
 { 
   //Block signals for holdMenu
   gtk_signal_handler_block(GTK_OBJECT(holdMenu), holdConnId);
-  gtk_signal_handler_block(GTK_OBJECT(webCamMenu), webCamConnId);
+  gtk_signal_handler_block(GTK_OBJECT(webcamMenu), webcamConnId);
 
   gtk_widget_set_sensitive( GTK_WIDGET(pickUpMenu), FALSE);
   gtk_widget_set_sensitive( GTK_WIDGET(hangUpMenu), FALSE);
@@ -60,7 +60,7 @@ void update_menus()
   gtk_widget_set_sensitive( GTK_WIDGET(holdMenu),   FALSE);
   gtk_widget_set_sensitive( GTK_WIDGET(copyMenu),   FALSE);
   gtk_widget_set_sensitive( GTK_WIDGET(inviteMenu),   FALSE);
-  gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(webCamMenu), FALSE);
+  gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(webcamMenu), FALSE);
 
   call_t * selectedCall = call_get_selected(active_calltree);
   if (selectedCall)
@@ -113,7 +113,7 @@ void update_menus()
     gtk_widget_set_sensitive( GTK_WIDGET(newCallMenu), TRUE);
   }
   gtk_signal_handler_unblock(holdMenu, holdConnId);
-  gtk_signal_handler_unblock(webCamMenu , webCamConnId);
+  gtk_signal_handler_unblock(webcamMenu , webcamConnId);
   
 }
 
@@ -238,10 +238,10 @@ call_wizard ( void * foo)
   build_wizard();
 }
 
-static void changeWebCamStatus ( void *foo )
+static void changewebcamStatus ( void *foo )
 {
 	g_print("Changing webcam status ...\n");
-	main_window_glWidget(gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM(webCamMenu)));
+	main_window_glWidget(gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM(webcamMenu)));
 }
 
 static void invitePerson(void* foo)
@@ -307,16 +307,16 @@ create_call_menu()
   menu_items = gtk_separator_menu_item_new ();
   gtk_menu_shell_append (GTK_MENU_SHELL (menu), menu_items);
   
-  webCamMenu = gtk_check_menu_item_new_with_mnemonic("Enable _Webcam");
-  gtk_menu_shell_append (GTK_MENU_SHELL (menu), webCamMenu);
-  gtk_widget_set_sensitive( GTK_WIDGET(webCamMenu), TRUE);
-  gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(webCamMenu), FALSE);
+  webcamMenu = gtk_check_menu_item_new_with_mnemonic("Enable _webcam");
+  gtk_menu_shell_append (GTK_MENU_SHELL (menu), webcamMenu);
+  gtk_widget_set_sensitive( GTK_WIDGET(webcamMenu), TRUE);
+  gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(webcamMenu), FALSE);
   //Here we connect only to activate
   //The toggled state is managed from update_menus()
-  webCamConnId= g_signal_connect (G_OBJECT (webCamMenu), "activate",
-                  G_CALLBACK (changeWebCamStatus), 
+  webcamConnId= g_signal_connect (G_OBJECT (webcamMenu), "activate",
+                  G_CALLBACK (changewebcamStatus), 
                   NULL);
-  gtk_widget_show (webCamMenu);
+  gtk_widget_show (webcamMenu);
   
   inviteMenu = gtk_image_menu_item_new_with_mnemonic("_Invite 3rd Person");
   gtk_menu_shell_append (GTK_MENU_SHELL (menu), inviteMenu);
@@ -326,7 +326,7 @@ create_call_menu()
   g_signal_connect_swapped (G_OBJECT (inviteMenu), "activate",
                   G_CALLBACK (invitePerson), 
                   NULL);
-  gtk_widget_show (webCamMenu);
+  gtk_widget_show (webcamMenu);
   
   // Separator
   menu_items = gtk_separator_menu_item_new ();

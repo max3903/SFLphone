@@ -23,8 +23,8 @@
 #include <gtk/gtk.h>
 
 // These declaration must be in the .h so that mainwindow.c will see the variables
-GtkWidget * webCamMenu;
-guint webCamConnId;     //The webcam_menu signal connection ID
+GtkWidget * webcamMenu;
+guint webcamConnId;     //The webcam_menu signal connection ID
 
 /** @file menus.h
   * @brief The menus of the main window.

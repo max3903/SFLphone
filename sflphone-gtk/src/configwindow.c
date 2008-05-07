@@ -2281,7 +2281,6 @@ show_config_window (gint page_num)
 	gtk_notebook_append_page(GTK_NOTEBOOK(notebook), tabGeneral, gtk_label_new(_("General Settings")));
 	gtk_notebook_page_num(GTK_NOTEBOOK(notebook), tabGeneral);
 
-	
 	// Audio tab
 	tabAudio = create_audio_tab();	
 	gtk_notebook_append_page(GTK_NOTEBOOK(notebook), tabAudio, gtk_label_new("Audio Settings"));
