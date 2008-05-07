@@ -200,7 +200,7 @@ void dbus_remove_account(gchar * accountID);
  *		 0 for unregistration request
  *		 1 for registration request
  */
-void dbus_send_register( gchar* accountID , int expire );
+void dbus_send_register( gchar* accountID , const guint expire );
 
 // Configuration manager - Various audio related methods
 

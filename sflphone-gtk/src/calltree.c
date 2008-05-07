@@ -621,7 +621,7 @@ toolbar_update_buttons ()
 	gtk_widget_set_sensitive( GTK_WIDGET(hangupButton),     FALSE);
 	gtk_widget_set_sensitive( GTK_WIDGET(holdButton),       FALSE);
 	gtk_widget_set_sensitive( GTK_WIDGET(transfertButton),  FALSE);
-	gtk_widget_set_sensitive( GTK_WIDGET(mailboxButton) , TRUE );
+	gtk_widget_set_sensitive( GTK_WIDGET(mailboxButton) ,   FALSE);
 	gtk_widget_set_sensitive( GTK_WIDGET(unholdButton),     FALSE);
 	gtk_widget_set_sensitive( GTK_WIDGET(webCamButton),     TRUE);
 	gtk_widget_set_sensitive( GTK_WIDGET(inviteButton),     FALSE);	
@@ -678,7 +678,7 @@ toolbar_update_buttons ()
 				gtk_widget_set_sensitive( GTK_WIDGET(callButton),     TRUE);
 				break;
 			case CALL_STATE_DIALING:
-				gtk_widget_set_sensitive( GTK_WIDGET(hangupButton),     TRUE);
+				if( active_calltree != history )  gtk_widget_set_sensitive( GTK_WIDGET(hangupButton),     TRUE);
 				gtk_widget_set_sensitive( GTK_WIDGET(pickupButton),       TRUE);
 				g_object_ref(callButton);
 				gtk_container_remove(GTK_CONTAINER(toolbar), GTK_WIDGET(callButton));
@@ -720,12 +720,12 @@ toolbar_update_buttons ()
 	{
 		if( account_list_get_size() > 0 )
 		{
-			gtk_widget_set_sensitive( GTK_WIDGET(callButton), TRUE);
+			gtk_widget_set_sensitive( GTK_WIDGET(callButton), TRUE );
+			gtk_widget_set_sensitive( GTK_WIDGET(mailboxButton), TRUE );
 		}
 		else
 		{
 			gtk_widget_set_sensitive( GTK_WIDGET(callButton), FALSE);
-			gtk_widget_set_sensitive( GTK_WIDGET(mailboxButton), FALSE);
 		}
 	}
 }
@@ -737,7 +737,6 @@ selected(GtkTreeSelection *sel, void* data)
 	GtkTreeIter  iter;
 	GValue val;
 	GtkTreeModel *model = (GtkTreeModel*)active_calltree->store;
-	printf("Select !\n");
 
 	if (! gtk_tree_selection_get_selected (sel, &model, &iter))
 		return;
@@ -822,6 +821,7 @@ create_toolbar()
 	gtk_widget_set_state( GTK_WIDGET(unholdButton), GTK_STATE_INSENSITIVE);
 	g_signal_connect (G_OBJECT (unholdButton), "clicked",
 			G_CALLBACK (unhold), NULL);
+	//gtk_toolbar_insert(GTK_TOOLBAR(ret), GTK_TOOL_ITEM(unholdButton), -1);
 	gtk_widget_show_all(GTK_WIDGET(unholdButton));
 
 	image = gtk_image_new_from_file( ICONS_DIR "/hold.svg");

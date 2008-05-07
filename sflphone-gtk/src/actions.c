@@ -128,7 +128,6 @@ sflphone_hung_up( call_t * c)
   c->state = CALL_STATE_DIALING;
   update_menus();
   status_tray_icon_blink( FALSE );
-  stop_notification();
 }
 
 
@@ -250,7 +249,7 @@ sflphone_hang_up()
 			case CALL_STATE_INCOMING:  
 				dbus_refuse (selectedCall);
 				selectedCall->state = CALL_STATE_DIALING;
-				stop_notification();
+				g_print("from sflphone_hang_up : "); stop_notification();
 				break;
 			case CALL_STATE_TRANSFERT:  
 				dbus_hang_up (selectedCall);
@@ -278,7 +277,7 @@ sflphone_pick_up()
 				selectedCall->history_state = INCOMING;
 				update_call_tree( history , selectedCall );
 				dbus_accept (selectedCall);
-				stop_notification();
+				g_print("from sflphone_pick_up : "); stop_notification();
 				break;
 			case CALL_STATE_HOLD:
 				sflphone_new_call();
@@ -541,11 +540,11 @@ sflphone_keypad( guint keyval, gchar * key)
 						c->history_state = INCOMING;
 						update_call_tree( history , c );
 						dbus_accept(c);
-						stop_notification();
+						g_print("from sflphone_keypad ( enter ) : "); stop_notification();
 						break;
 					case 65307: /* ESCAPE */
 						dbus_refuse(c);
-						stop_notification();
+						g_print("from sflphone_keypad ( escape ) : "); stop_notification();
 						break;
 				}
 				break;
@@ -625,14 +624,12 @@ sflphone_place_call ( call_t * c )
     if( account_list_get_size() == 0 )
     {
       notify_no_accounts();
-      call_list_remove(current_calls , c->callID);
-      update_call_tree_remove(current_calls, c);
+      sflphone_fail(c);
     }
     else if( account_list_get_by_state( ACCOUNT_STATE_REGISTERED ) == NULL )
     {
       notify_no_registered_accounts();
-      call_list_remove(current_calls , c->callID);
-      update_call_tree_remove(current_calls, c);
+      sflphone_fail(c);
     }
     else
     {
@@ -675,7 +672,6 @@ sflphone_place_call ( call_t * c )
 	// Update history
 	c->history_state = OUTGOING;
 	call_list_add(history, c);
-	//update_call_tree_add(history, c);
   }
 }
 

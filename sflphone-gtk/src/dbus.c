@@ -107,6 +107,7 @@ call_state_cb (DBusGProxy *proxy,
   {
     if ( strcmp(state, "HUNGUP") == 0 )
     {
+      g_print("from dbus: "); stop_notification();
       sflphone_hung_up (c);
     }
     else if ( strcmp(state, "UNHOLD") == 0 )
@@ -614,7 +615,7 @@ dbus_account_details(gchar * accountID)
 }
 
 void
-dbus_send_register ( gchar* accountID , int expire)
+dbus_send_register ( gchar* accountID , const guint expire)
 {
   GError *error = NULL;
   org_sflphone_SFLphone_ConfigurationManager_send_register ( configurationManagerProxy, accountID, expire ,&error);
