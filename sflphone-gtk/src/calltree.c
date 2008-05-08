@@ -843,8 +843,7 @@ create_toolbar()
   inviteButton =  gtk_tool_button_new (image, "Invite 3dr Person");
   gtk_widget_set_tooltip_text(GTK_WIDGET(inviteButton), "Invite 3rd Person");
   gtk_widget_set_state( GTK_WIDGET(inviteButton), GTK_STATE_INSENSITIVE);
-  g_signal_connect (G_OBJECT (inviteButton), "clicked",
-      G_CALLBACK (inviteUser), NULL);
+  //g_signal_connect (G_OBJECT (inviteButton), "clicked", G_CALLBACK (inviteUser), NULL);
   gtk_toolbar_insert(GTK_TOOLBAR(ret), GTK_TOOL_ITEM(inviteButton), -1);
 
   return ret;

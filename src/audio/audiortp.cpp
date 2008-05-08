@@ -178,6 +178,7 @@ AudioRtpRTX::initAudioRtpSession (void)
 {
   try {
     if(_ca == 0) return;
+    _debug("audio codec = %i\n" , _ca->getAudioCodec());
     _audiocodec = Manager::instance().getCodecDescriptorMap().getCodec( _ca->getAudioCodec() );
     if(_audiocodec == NULL)
     {
