@@ -58,8 +58,9 @@ incoming_call_cb (DBusGProxy *proxy,
   c->callID = g_strdup(callID);
   c->from = g_strdup(from);
   c->state = CALL_STATE_INCOMING;
-  
+ #if GTK_CHECK_VERSION(2,10,0) 
   status_tray_icon_blink( TRUE );
+ #endif
   notify_incoming_call( c );
   sflphone_incoming_call (c);
 }
@@ -107,6 +108,12 @@ call_state_cb (DBusGProxy *proxy,
   {
     if ( strcmp(state, "HUNGUP") == 0 )
     {
+      if(c->state==CALL_STATE_CURRENT)
+      {
+	// peer hung up, the conversation was established, so _start has been initialized with the current time value
+	(void) time(&c->_stop);
+	update_call_tree( history, c );
+      }
       g_print("from dbus: "); stop_notification();
       sflphone_hung_up (c);
     }
@@ -402,7 +409,9 @@ dbus_transfert (const call_t * c)
 void
 dbus_accept (const call_t * c)
 {
+#if GTK_CHECK_VERSION(2,10,0)
   status_tray_icon_blink( FALSE );
+#endif
   GError *error = NULL;
   org_sflphone_SFLphone_CallManager_accept ( callManagerProxy, c->callID, &error);
   if (error) 
@@ -420,7 +429,9 @@ dbus_accept (const call_t * c)
 void
 dbus_refuse (const call_t * c)
 {
+#if GTK_CHECK_VERSION(2,10,0)
   status_tray_icon_blink( FALSE );
+#endif
   GError *error = NULL;
   org_sflphone_SFLphone_CallManager_refuse ( callManagerProxy, c->callID, &error);
   if (error) 

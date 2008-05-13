@@ -19,6 +19,8 @@
 
 #include <assistant.h>
 
+#if GTK_CHECK_VERSION(2,10,0)
+
 struct _wizard *wiz;
 static int account_type;
 account_t* current;
@@ -382,3 +384,4 @@ create_vbox(GtkAssistantPageType type, const gchar *title, const gchar *section)
   return vbox;
 }
 
+#endif // GTK_CHECK_VERSION 

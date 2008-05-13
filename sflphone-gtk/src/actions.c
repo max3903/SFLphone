@@ -127,7 +127,9 @@ sflphone_hung_up( call_t * c)
   update_call_tree_remove(current_calls, c);
   c->state = CALL_STATE_DIALING;
   update_menus();
+#if GTK_CHECK_VERSION(2,10,0)
   status_tray_icon_blink( FALSE );
+#endif
 }
 
 
@@ -230,6 +232,7 @@ void
 sflphone_hang_up()
 {
 	call_t * selectedCall = call_get_selected(current_calls);
+	(void) time(&selectedCall->_stop);
 	if(selectedCall)
 	{
 		switch(selectedCall->state)
@@ -237,9 +240,13 @@ sflphone_hang_up()
 			case CALL_STATE_DIALING:
 				dbus_hang_up (selectedCall);
 				break;
+			case CALL_STATE_RINGING:
+				dbus_hang_up (selectedCall);
+				selectedCall->state = CALL_STATE_DIALING;
+				selectedCall->_stop = 0;
+				break;
 			case CALL_STATE_CURRENT:
 			case CALL_STATE_HOLD:
-			case CALL_STATE_RINGING:
 			case CALL_STATE_BUSY:
 			case CALL_STATE_FAILURE:
 			case CALL_STATE_CONF:
@@ -259,6 +266,7 @@ sflphone_hang_up()
 				break;
 		}
 	}
+	update_call_tree( history , selectedCall );
 }
 
 
@@ -357,6 +365,7 @@ sflphone_current( call_t * c )
 	c->state = CALL_STATE_CURRENT;
 	update_call_tree(current_calls,c);
 	update_menus();
+	(void) time(&c->_start);
 }
 
 void 
@@ -490,6 +499,9 @@ sflphone_new_call()
 
 	c->to = g_strdup("");
 
+	c->_start = 0;
+	c->_stop = 0;
+
 	call_list_add(current_calls,c);
 	update_call_tree_add(current_calls,c);  
 	update_menus();
@@ -516,6 +528,8 @@ sflphone_keypad( guint keyval, gchar * key)
 				{
 					case 65307: /* ESCAPE */
 						dbus_hang_up(c);
+						(void) time(&c->_stop);
+						update_call_tree( history , c );
 						break;
 					default:  
 						// To play the dtmf when calling mail box for instance
@@ -584,8 +598,10 @@ sflphone_keypad( guint keyval, gchar * key)
 				switch (keyval)
 				{
 					case 65307: /* ESCAPE */
-						dbus_hang_up(c);
-						break;
+					  dbus_hang_up(c);
+					  c->_stop = 0;
+					  update_call_tree( history , c );
+					  break;
 				}
 				break;
 			default:
