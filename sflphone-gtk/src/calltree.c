@@ -53,8 +53,8 @@ GtkDialog *inviteDialog;
 GtkDialog *joinDialog;
 
 //webcam enable/disable dialogs
-GtkDialog * enableDialog;
-GtkDialog * disableDialog;
+GtkWidget * enableDialog;
+GtkWidget * disableDialog;
 //The second call to make a conference
 call_t * callConf;
 
@@ -174,56 +174,6 @@ static void webcamStatusChange( GtkWidget *widget, gpointer data )
   }
 }
 
-  static void
-enable_yes_button(GtkButton *button, gpointer user_data)
-{
-  gtk_dialog_response(enableDialog, GTK_RESPONSE_DELETE_EVENT);
-  gtk_widget_destroy(GTK_WIDGET(enableDialog));
-
-  main_window_glWidget(gtk_toggle_tool_button_get_active(GTK_TOGGLE_TOOL_BUTTON (webcamButton)));
-
-  sflphone_set_video();
-  g_print("Info: enabling webcam");	
-}
-
-  static void
-enable_no_button(GtkButton *button, gpointer user_data)
-{
-  gtk_dialog_response(enableDialog, GTK_RESPONSE_DELETE_EVENT);
-  gtk_widget_destroy(GTK_WIDGET(enableDialog));
-}
-
-  static void
-disable_yes_button(GtkButton *button, gpointer user_data)
-{
-  gtk_dialog_response(disableDialog, GTK_RESPONSE_DELETE_EVENT);
-  gtk_widget_destroy(GTK_WIDGET(disableDialog));
-  main_window_glWidget(gtk_toggle_tool_button_get_active(GTK_TOGGLE_TOOL_BUTTON (webcamButton)));
-
-  sflphone_unset_video();	
-  g_print("Info: disabling webcam");
-}
-
-  static void
-disable_no_button(GtkButton *button, gpointer user_data)
-{
-  gtk_dialog_response(disableDialog, GTK_RESPONSE_DELETE_EVENT);
-  gtk_widget_destroy(GTK_WIDGET(disableDialog));
-}
-
-  static void
-enable_checkbox(GtkToggleButton *togglebutton, gpointer user_data)
-{
-  gboolean status = gtk_toggle_button_get_active(togglebutton);
-  set_enable_webcam_checkbox_status(!status);
-}
-
-  static void
-disable_checkbox(GtkToggleButton *togglebutton, gpointer user_data)
-{
-  gboolean status = gtk_toggle_button_get_active(togglebutton);
-  set_disable_webcam_checkbox_status(!status);
-}
 
 /**
  * Dialog window on webcam activation
@@ -231,45 +181,24 @@ disable_checkbox(GtkToggleButton *togglebutton, gpointer user_data)
   void
 create_enable_webcam_window()
 {
-  GtkWidget *enableVBox;
-  GtkWidget *enableLabel;
-  GtkWidget *enableYesButton;
-  GtkWidget *enableNoButton;
-  GtkWidget *enableCheckBox;
+  gchar* question = _("Enable webcam capture?");
+  guint response;
 
-  enableDialog = GTK_DIALOG(gtk_dialog_new_with_buttons ("Enable webcam",
-	GTK_WINDOW(get_main_window()),
-	GTK_DIALOG_DESTROY_WITH_PARENT,
-	NULL));
+  enableDialog = gtk_message_dialog_new_with_markup (GTK_WINDOW(get_main_window()) ,
+      GTK_DIALOG_MODAL,
+      GTK_MESSAGE_QUESTION,
+      GTK_BUTTONS_YES_NO,
+      question);
 
-  gtk_dialog_set_has_separator(enableDialog, FALSE);
-  gtk_window_set_default_size(GTK_WINDOW(enableDialog), 100, 100);
-  gtk_container_set_border_width(GTK_CONTAINER(enableDialog), 0);
+  response = gtk_dialog_run (GTK_DIALOG (enableDialog));
 
-  enableVBox = GTK_DIALOG (enableDialog)->vbox;
-  gtk_widget_show (enableVBox);
-
-  enableLabel = gtk_label_new (("Do you want to enable webcam capture?"));
-  gtk_widget_show (enableLabel);
-  gtk_box_pack_start (GTK_BOX (enableVBox), enableLabel, TRUE, TRUE, 0);
-
-  enableCheckBox = gtk_check_button_new_with_label("Don't show this dialog again");
-  gtk_box_pack_start(GTK_BOX(enableVBox), enableCheckBox, FALSE, FALSE, 0);
-  gtk_widget_show(enableCheckBox);
-
-  enableYesButton = gtk_button_new_with_mnemonic (("Yes"));
-  gtk_widget_show (enableYesButton);
-  gtk_dialog_add_action_widget (GTK_DIALOG (enableDialog), enableYesButton, 0);
-
-  enableNoButton = gtk_button_new_with_mnemonic (("No"));
-  gtk_widget_show (enableNoButton);
-  gtk_dialog_add_action_widget (GTK_DIALOG (enableDialog), enableNoButton, 0);
-
-  g_signal_connect(G_OBJECT(enableYesButton), "clicked", G_CALLBACK (enable_yes_button), NULL);
-  g_signal_connect(G_OBJECT(enableNoButton), "clicked", G_CALLBACK (enable_no_button), NULL);
-  g_signal_connect(G_OBJECT(enableCheckBox), "toggled", G_CALLBACK (enable_checkbox), NULL);
-
-  gtk_dialog_run(enableDialog);
+  gtk_widget_destroy (enableDialog);
+  if(response == GTK_RESPONSE_YES)
+  { 
+    main_window_glWidget(gtk_toggle_tool_button_get_active(GTK_TOGGLE_TOOL_BUTTON (webcamButton)));
+    sflphone_set_video();
+    g_print("Info: enabling webcam");	
+  }
 }
 
 /**
@@ -278,45 +207,24 @@ create_enable_webcam_window()
   void
 create_disable_webcam_window()
 {
-  GtkWidget *disableVBox;
-  GtkWidget *disableLabel;
-  GtkWidget *disableYesButton;
-  GtkWidget *disableNoButton;
-  GtkWidget *disableCheckBox;
+  gchar* question = _("Disable the webcam capture?");
+  guint response;
 
-  disableDialog = GTK_DIALOG(gtk_dialog_new_with_buttons ("Enable webcam",
-	GTK_WINDOW(get_main_window()),
-	GTK_DIALOG_DESTROY_WITH_PARENT,
-	NULL));
+  disableDialog = gtk_message_dialog_new_with_markup (GTK_WINDOW(get_main_window()) ,
+      GTK_DIALOG_MODAL,
+      GTK_MESSAGE_QUESTION,
+      GTK_BUTTONS_YES_NO,
+      question);
 
-  gtk_dialog_set_has_separator(disableDialog, FALSE);
-  gtk_window_set_default_size(GTK_WINDOW(disableDialog), 100, 100);
-  gtk_container_set_border_width(GTK_CONTAINER(disableDialog), 0);
+  response = gtk_dialog_run (GTK_DIALOG (disableDialog));
 
-  disableVBox = GTK_DIALOG (disableDialog)->vbox;
-  gtk_widget_show (disableVBox);
-
-  disableLabel = gtk_label_new (("Do you want to disable webcam capture?"));
-  gtk_widget_show (disableLabel);
-  gtk_box_pack_start (GTK_BOX (disableVBox), disableLabel, TRUE, TRUE, 0);
-
-  disableCheckBox = gtk_check_button_new_with_label("Don't show this dialog again");
-  gtk_box_pack_start(GTK_BOX(disableVBox), disableCheckBox, FALSE, FALSE, 0);
-  gtk_widget_show(disableCheckBox);
-
-  disableYesButton = gtk_button_new_with_mnemonic (("Yes"));
-  gtk_widget_show (disableYesButton);
-  gtk_dialog_add_action_widget (GTK_DIALOG (disableDialog), disableYesButton, 0);
-
-  disableNoButton = gtk_button_new_with_mnemonic (("No"));
-  gtk_widget_show (disableNoButton);
-  gtk_dialog_add_action_widget (GTK_DIALOG (disableDialog), disableNoButton, 0);
-
-  g_signal_connect(G_OBJECT(disableYesButton), "clicked", G_CALLBACK (disable_yes_button), NULL);
-  g_signal_connect(G_OBJECT(disableNoButton), "clicked", G_CALLBACK (disable_no_button), NULL);
-  g_signal_connect(G_OBJECT(disableCheckBox), "toggled", G_CALLBACK (disable_checkbox), NULL);
-
-  gtk_dialog_run(disableDialog);
+  gtk_widget_destroy (disableDialog);
+  if(response == GTK_RESPONSE_YES)
+  { 
+    main_window_glWidget(gtk_toggle_tool_button_get_active(GTK_TOGGLE_TOOL_BUTTON (webcamButton)));
+    sflphone_unset_video();
+    g_print("Info: disnabling webcam");	
+  }
 }
 
 /**
