@@ -51,8 +51,10 @@ GtkWidget* drawing_area;
   static gboolean
 on_delete (GtkWidget * widget, gpointer data)
 {
+#if GTK_CHECK_VERSION(2,10,0)
   gtk_widget_hide(GTK_WIDGET( get_main_window() ));
   set_minimized( TRUE );
+#endif
   return TRUE;
 }
 
@@ -126,9 +128,9 @@ create_main_window ()
   window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
   gtk_container_set_border_width (GTK_CONTAINER (window), 0);
   gtk_window_set_title (GTK_WINDOW (window), PACKAGE);
-  gtk_window_set_default_size (GTK_WINDOW (window), 180, 500);
+  gtk_window_set_default_size (GTK_WINDOW (window), 230, 320);
   gtk_window_set_default_icon_from_file (ICONS_DIR "/sflphone.png", 
-      NULL);
+                                          NULL);
   gtk_window_set_position( GTK_WINDOW( window ) , GTK_WIN_POS_MOUSE);
 
   /* Connect the destroy event of the window with our on_destroy function
@@ -188,7 +190,24 @@ create_main_window ()
   // Configuration wizard 
   if (account_list_get_size() == 0)
   {
+#if GTK_CHECK_VERSION(2,10,0)
     build_wizard();
+#else
+    GtkWidget * dialog = gtk_message_dialog_new_with_markup (GTK_WINDOW(window),
+                                  GTK_DIALOG_DESTROY_WITH_PARENT,
+                                  GTK_MESSAGE_INFO,
+                                  GTK_BUTTONS_YES_NO,
+                                  "<b><big>Welcome to SFLphone!</big></b>\n\nThere are no VoIP accounts configured, would you like to edit the preferences now?");
+
+    int response = gtk_dialog_run (GTK_DIALOG(dialog));
+
+    gtk_widget_destroy (GTK_WIDGET(dialog));
+
+    if (response == GTK_RESPONSE_YES)
+    {
+      show_config_window();
+    }
+#endif
   }
 }
 

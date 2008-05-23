@@ -45,7 +45,9 @@ notify_incoming_call( call_t* c  )
 	NULL);
     notify_notification_set_urgency( notification , NOTIFY_URGENCY_CRITICAL );
     notify_notification_set_icon_from_pixbuf (notification, pixbuf);
+#if GTK_CHECK_VERSION(2,10,0)
     notify_notification_attach_to_status_icon( notification , get_status_icon() );
+#endif
     notify_notification_set_timeout( notification , (( g_strcasecmp(__TIMEOUT_MODE, "default") == 0 )? __TIMEOUT_TIME : NOTIFY_EXPIRES_NEVER ));
     g_object_set_data( G_OBJECT( notification ) , "call" , c );
     notify_notification_add_action( notification , "accept" , _("Accept") , (NotifyActionCallback) answer_call_cb , NULL,  NULL );
@@ -64,8 +66,10 @@ answer_call_cb( NotifyNotification *notification, gpointer data  )
   c->history_state = INCOMING;
   update_call_tree( history , c );
   dbus_accept(c);
+#if GTK_CHECK_VERSION(2,10,0)
   if( __POPUP_WINDOW )
     status_icon_unminimize();
+#endif
   g_object_unref( notification );
 }
 
@@ -107,7 +111,9 @@ notify_voice_mails( guint count , account_t* acc )
 	NULL);
     notify_notification_set_urgency( notification , NOTIFY_URGENCY_LOW );
     notify_notification_set_icon_from_pixbuf (notification, pixbuf);
+#if GTK_CHECK_VERSION(2,10,0)
     notify_notification_attach_to_status_icon( notification , get_status_icon() );
+#endif
     notify_notification_set_timeout( notification , NOTIFY_EXPIRES_DEFAULT );
     notify_notification_add_action( notification , "ignore" , _("Ignore") , (NotifyActionCallback) ignore_call_cb , NULL , NULL );
 
@@ -142,7 +148,9 @@ notify_current_account( account_t* acc )
 	NULL);
     notify_notification_set_urgency( notification , NOTIFY_URGENCY_NORMAL );
     notify_notification_set_icon_from_pixbuf (notification, pixbuf);
+#if GTK_CHECK_VERSION(2,10,0)
     notify_notification_attach_to_status_icon( notification , get_status_icon() );
+#endif
     notify_notification_set_timeout( notification , NOTIFY_EXPIRES_DEFAULT );
     notify_notification_add_action( notification , "ignore" , _("Ignore") , (NotifyActionCallback) ignore_call_cb , NULL , NULL );
 
@@ -171,7 +179,9 @@ notify_no_accounts(  )
       NULL);
   notify_notification_set_urgency( notification , NOTIFY_URGENCY_CRITICAL );
   notify_notification_set_icon_from_pixbuf (notification, pixbuf);
+#if GTK_CHECK_VERSION(2,10,0)
   notify_notification_attach_to_status_icon( notification , get_status_icon() );
+#endif
   notify_notification_set_timeout( notification , NOTIFY_EXPIRES_DEFAULT );
   notify_notification_add_action( notification , "setup" , _("Setup Accounts") , (NotifyActionCallback) setup_accounts_cb , NULL , NULL );
 
@@ -208,7 +218,9 @@ notify_no_registered_accounts(  )
       NULL);
 
   notify_notification_set_icon_from_pixbuf (notification, pixbuf);
+#if GTK_CHECK_VERSION(2,10,0)
   notify_notification_attach_to_status_icon( notification , get_status_icon() );
+#endif
   notify_notification_set_timeout( notification , NOTIFY_EXPIRES_DEFAULT );
   notify_notification_add_action( notification , "setup" , _("Setup Accounts") , (NotifyActionCallback) setup_accounts_cb , NULL , NULL );
 
