@@ -43,7 +43,9 @@ gboolean history_shown;
   void
 switch_tab()
 {
-  (gtk_toggle_tool_button_get_active(GTK_TOGGLE_TOOL_BUTTON(historyButton)))? gtk_toggle_tool_button_set_active(GTK_TOGGLE_TOOL_BUTTON(historyButton), FALSE):gtk_toggle_tool_button_set_active(GTK_TOGGLE_TOOL_BUTTON(historyButton), TRUE);
+  (gtk_toggle_tool_button_get_active(GTK_TOGGLE_TOOL_BUTTON(historyButton)))? 
+    gtk_toggle_tool_button_set_active(GTK_TOGGLE_TOOL_BUTTON(historyButton), FALSE):
+    gtk_toggle_tool_button_set_active(GTK_TOGGLE_TOOL_BUTTON(historyButton), TRUE);
 }
 
 /**
@@ -173,21 +175,22 @@ unhold( GtkWidget *widget, gpointer   data )
 toggle_history(GtkToggleToolButton *toggle_tool_button,
     gpointer	user_data)
 {
-  GtkTreeSelection *sel;
-  if(history_shown){
-    active_calltree = current_calls;
-    gtk_widget_hide(history->tree);
-    gtk_widget_show(current_calls->tree);
-    history_shown = FALSE;
-  }else{
-    active_calltree = history;
-    gtk_widget_hide(current_calls->tree);
-    gtk_widget_show(history->tree);
-    history_shown = TRUE;
-  }
-  sel = gtk_tree_view_get_selection (GTK_TREE_VIEW (active_calltree->view));
-  g_signal_emit_by_name(sel, "changed");
-  toolbar_update_buttons();
+	GtkTreeSelection *sel;
+	if(history_shown){
+		active_calltree = current_calls;
+		gtk_widget_hide(history->tree);
+		gtk_widget_show(current_calls->tree);
+		history_shown = FALSE;
+	}else{
+		active_calltree = history;
+		gtk_widget_hide(current_calls->tree);
+		gtk_widget_show(history->tree);
+		history_shown = TRUE;
+	}
+	sel = gtk_tree_view_get_selection (GTK_TREE_VIEW (active_calltree->view));
+	g_signal_emit_by_name(sel, "changed");
+	toolbar_update_buttons();
+	gtk_tree_model_filter_refilter(GTK_TREE_MODEL_FILTER(histfilter));
 
 }
 
@@ -200,8 +203,7 @@ call_mailbox( GtkWidget* widget , gpointer data )
   call_t* mailboxCall = g_new0( call_t , 1);
   mailboxCall->state = CALL_STATE_DIALING;
   mailboxCall->to = g_strdup(g_hash_table_lookup(current->properties, ACCOUNT_MAILBOX));
-  //mailboxCall->from = g_strconcat("\"Voicemail Box\" <>", NULL);
-  mailboxCall->from = g_markup_printf_escaped("\"Voicemail\" <%s>",  mailboxCall->to);
+  mailboxCall->from = g_markup_printf_escaped(_("\"Voicemail\" <%s>"),  mailboxCall->to);
   mailboxCall->callID = g_new0(gchar, 30);
   g_sprintf(mailboxCall->callID, "%d", rand());
   mailboxCall->accountID = g_strdup(current->accountID);
@@ -473,11 +475,11 @@ create_toolbar ()
   active_calltree = current_calls;
 
   image = gtk_image_new_from_file( ICONS_DIR "/mailbox.svg");
-  mailboxButton = gtk_tool_button_new( image , _("Voicemail box"));
+  mailboxButton = gtk_tool_button_new( image , _("Voicemail"));
   gtk_tool_button_set_icon_widget(GTK_TOOL_BUTTON(mailboxButton), image);
   if( account_list_get_size() ==0 ) gtk_widget_set_state( GTK_WIDGET(mailboxButton), GTK_STATE_INSENSITIVE );
 #if GTK_CHECK_VERSION(2,12,0)
-  gtk_widget_set_tooltip_text(GTK_WIDGET(mailboxButton), _("Voicemail box"));
+  gtk_widget_set_tooltip_text(GTK_WIDGET(mailboxButton), _("Voicemail"));
 #endif
   g_signal_connect (G_OBJECT (mailboxButton), "clicked",
       G_CALLBACK (call_mailbox), NULL);
@@ -486,6 +488,27 @@ create_toolbar ()
   return ret;
 
 }  
+static gboolean
+on_key_released (GtkWidget   *widget,
+                GdkEventKey *event,
+                gpointer     user_data)  
+{
+  // If a modifier key is pressed, it's a shortcut, pass along
+  if(event->state & GDK_CONTROL_MASK || 
+     event->state & GDK_MOD1_MASK    ||
+     event->keyval == 60             || // <
+     event->keyval == 62             || // >
+     event->keyval == 34             || // "
+     event->keyval == 65361          || // left arrow
+     event->keyval == 65363          || // right arrow
+     event->keyval >= 65470          || // F-keys
+     event->keyval == 32                // space
+     )
+    return FALSE;
+  else
+    sflphone_keypad(event->keyval, event->string);
+  return TRUE;
+}
 
   void 
 create_call_tree (calltab_t* tab)
@@ -502,6 +525,7 @@ create_call_tree (calltab_t* tab)
   sw = gtk_scrolled_window_new( NULL, NULL);
   gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(sw), GTK_POLICY_NEVER, GTK_POLICY_AUTOMATIC);
   gtk_scrolled_window_set_shadow_type(GTK_SCROLLED_WINDOW(sw), GTK_SHADOW_IN);
+  g_signal_connect (G_OBJECT ( sw ), "key-press-event",G_CALLBACK (on_key_released), NULL);
 
   tab->store = gtk_list_store_new (3, 
       GDK_TYPE_PIXBUF,// Icon 
@@ -510,6 +534,7 @@ create_call_tree (calltab_t* tab)
       );
 
   tab->view = gtk_tree_view_new_with_model (GTK_TREE_MODEL(tab->store));
+  gtk_tree_view_set_enable_search( GTK_TREE_VIEW(tab->view), FALSE);
   gtk_tree_view_set_headers_visible (GTK_TREE_VIEW(tab->view), FALSE);
   g_signal_connect (G_OBJECT (tab->view), "row-activated",
       G_CALLBACK (row_activated),
@@ -522,6 +547,7 @@ create_call_tree (calltab_t* tab)
   g_signal_connect (G_OBJECT (tab->view), "button-press-event",
       G_CALLBACK (button_pressed), 
       NULL);
+
 
   rend = gtk_cell_renderer_pixbuf_new();
   col = gtk_tree_view_column_new_with_attributes ("Icon",

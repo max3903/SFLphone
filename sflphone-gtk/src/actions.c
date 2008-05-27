@@ -25,6 +25,7 @@
 #include <menus.h>
 #include <statusicon.h>
 #include <calltab.h>
+#include <historyfilter.h>
 
 #include <gtk/gtk.h>
 #include <string.h>
@@ -66,7 +67,7 @@ status_bar_display_account( call_t* c)
     account_t* acc;
     if(c->accountID != NULL){
       acc = account_list_get_by_id(c->accountID);
-      msg = g_markup_printf_escaped("%s account- %s" , 
+      msg = g_markup_printf_escaped(_("%s account- %s") , 
 				  (gchar*)g_hash_table_lookup( acc->properties , ACCOUNT_TYPE), 
 				  (gchar*)g_hash_table_lookup( acc->properties , ACCOUNT_ALIAS));
       statusbar_push_message( msg , __MSG_ACCOUNT_DEFAULT);
@@ -196,6 +197,7 @@ sflphone_init()
 	int i;
 	current_calls = calltab_init();
 	history = calltab_init();	
+	if(SHOW_SEARCHBAR)  histfilter = create_filter(GTK_TREE_MODEL(history->store));
 	account_list_init ();
         codec_list_init();
 	if(!dbus_connect ()){
@@ -445,10 +447,10 @@ process_dialing(call_t * c, guint keyval, gchar * key)
 			{ 
 				if(c->state != CALL_STATE_TRANSFERT)
 				  dbus_play_dtmf( key );
-				gchar * before = c->to;
-				c->to = g_strconcat(c->to, key, NULL);
-				g_free(before);
-				g_print("TO: %s\n", c->to);
+				  gchar * before = c->to;
+				  c->to = g_strconcat(c->to, key, NULL);
+				  g_free(before);
+				  g_print("TO: %s\n", c->to);
 
 				if(c->state == CALL_STATE_DIALING)
 				{
@@ -515,11 +517,11 @@ sflphone_keypad( guint keyval, gchar * key)
 						dbus_play_dtmf(key);
 						if (keyval < 255 || (keyval >65453 && keyval < 65466))
 						{ 
-							gchar * temp = g_strconcat(call_get_number(c), key, NULL);
-							gchar * before = c->from;
-							c->from = g_strconcat("\"",call_get_name(c) ,"\" <", temp, ">", NULL);
-							g_free(before);
-							g_free(temp);
+							//gchar * temp = g_strconcat(call_get_number(c), key, NULL);
+							//gchar * before = c->from;
+							//c->from = g_strconcat("\"",call_get_name(c) ,"\" <", temp, ">", NULL);
+							//g_free(before);
+							//g_free(temp);
 							//update_call_tree(current_calls,c);
 						}
 						break;

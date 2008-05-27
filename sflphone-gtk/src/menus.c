@@ -38,10 +38,13 @@ GtkWidget * newCallMenu;
 GtkWidget * holdMenu;
 GtkWidget * copyMenu;
 GtkWidget * pasteMenu;
+GtkWidget * clearhistoryMenu;
+
 guint holdConnId;     //The hold_menu signal connection ID
 
 GtkWidget * dialpadMenu;
 GtkWidget * volumeMenu;
+GtkWidget * searchbarMenu;
 
 
 void update_menus()
@@ -113,25 +116,27 @@ help_about ( void * foo)
     "Alexandre Bourget <alexandre.bourget@savoirfairelinux.com>",
     "Pierre-Luc Beaudoin <pierre-luc.beaudoin@savoirfairelinux.com>", 
     "Emmanuel Milou <emmanuel.milou@savoirfairelinux.com>"
-      "Jean-Philippe Barrette-LaPierre",
+    "Jean-Philippe Barrette-LaPierre",
     "Laurielle Lea",
     NULL};
   gchar *artists[] = {
     "Pierre-Luc Beaudoin <pierre-luc.beaudoin@savoirfairelinux.com>", 
+    "Emmanuel Milou <emmanuel.milou@savoirfairelinux.com>",
     NULL};
   gchar *translators[] = {
-    "<maxime.chambreuil@savoirfairelinux.com>",
+    "Maxime Chambreuil <maxime.chambreuil@savoirfairelinux.com>",
+    "Emmanuel Milou <emmanuel.milou@savoirfairelinux.com>",
     NULL};
 
   gtk_show_about_dialog( GTK_WINDOW(get_main_window()),
+      "artists", artists,
+      "authors", authors,
+      "comments", _("SFLphone is a VoIP client compatible with SIP and IAX2 protocols."),
+      "copyright", "Copyright © 2004-2008 Savoir-faire Linux Inc.",
       "name", PACKAGE,
       "title", _("About SFLphone"),
       "version", VERSION,
       "website", "http://www.sflphone.org",
-      "copyright", "Copyright © 2004-2008 Savoir-faire Linux Inc.",
-      "comments", _("SFLphone is a VoIP client compatible with SIP and IAX2 protocols."),
-      "artists", artists,
-      "authors", authors,
       NULL);
 }
 
@@ -485,10 +490,44 @@ edit_paste ( void * foo)
 
 }
 
+  static void
+clear_history( void* foo )
+{
+  gchar *markup;
+  GtkWidget *dialog;
+  int response;
+
+  if( call_list_get_size( history ) == 0 ){
+    markup = g_markup_printf_escaped(_("History empty"));
+    dialog = gtk_message_dialog_new_with_markup ( GTK_WINDOW(get_main_window()),
+							    GTK_DIALOG_DESTROY_WITH_PARENT,
+							    GTK_MESSAGE_INFO,
+							    GTK_BUTTONS_CLOSE,
+							    markup);
+    response = gtk_dialog_run (GTK_DIALOG(dialog));
+    gtk_widget_destroy (GTK_WIDGET(dialog));
+  }
+  else{  
+    markup = g_markup_printf_escaped(_("Clear the call history?"));
+    dialog = gtk_message_dialog_new_with_markup ( GTK_WINDOW(get_main_window()),
+							    GTK_DIALOG_DESTROY_WITH_PARENT,
+							    GTK_MESSAGE_INFO,
+							    GTK_BUTTONS_YES_NO,
+							    markup);
+    response = gtk_dialog_run (GTK_DIALOG(dialog));
+    gtk_widget_destroy (GTK_WIDGET(dialog));
+    if (response == GTK_RESPONSE_YES)
+    {
+      call_list_clean_history();
+    }
+  }
+}
+
   GtkWidget * 
 create_edit_menu()
 {
   GtkWidget * menu;
+  GtkWidget * image;
   GtkWidget * root_menu;
   GtkWidget * menu_items;
 
@@ -507,6 +546,18 @@ create_edit_menu()
       G_CALLBACK (edit_paste), 
       NULL);
   gtk_widget_show (pasteMenu);
+
+  menu_items = gtk_separator_menu_item_new ();
+  gtk_menu_shell_append (GTK_MENU_SHELL (menu), menu_items);
+
+  menu_items = gtk_image_menu_item_new_with_mnemonic(_("_Clear history"));
+  image = gtk_image_new_from_stock( GTK_STOCK_CLEAR , GTK_ICON_SIZE_MENU );
+  gtk_image_menu_item_set_image( GTK_IMAGE_MENU_ITEM ( menu_items ), image );
+  gtk_menu_shell_append (GTK_MENU_SHELL (menu), menu_items);
+  g_signal_connect_swapped (G_OBJECT (menu_items), "activate",
+      G_CALLBACK (clear_history), 
+      NULL);
+  gtk_widget_show (menu_items);  
 
   menu_items = gtk_separator_menu_item_new ();
   gtk_menu_shell_append (GTK_MENU_SHELL (menu), menu_items);
@@ -565,11 +616,19 @@ view_volume_controls  (GtkImageMenuItem *imagemenuitem,
 }
 
 
-
 static void 
 call_voicemail( GtkMenuItem *menuitem, gpointer data )
 {
 	show_voicemail_window();
+}
+
+  static void 
+view_searchbar  (GtkImageMenuItem *imagemenuitem,
+    void* foo)
+{
+  gboolean state;
+  main_window_searchbar( &state );
+  dbus_set_searchbar( state );
 }
 
   GtkWidget * 
@@ -605,7 +664,16 @@ create_view_menu()
       G_CALLBACK (view_volume_controls), 
       NULL);
   gtk_widget_show (volumeMenu);
-  
+
+  image = gtk_image_new_from_stock( GTK_STOCK_FIND , GTK_ICON_SIZE_MENU );
+  searchbarMenu = gtk_image_menu_item_new_with_mnemonic (_("_Search history"));
+  gtk_image_menu_item_set_image( GTK_IMAGE_MENU_ITEM ( searchbarMenu ), image );
+  gtk_menu_shell_append (GTK_MENU_SHELL (menu), searchbarMenu);
+  g_signal_connect(G_OBJECT (searchbarMenu), "activate",
+      G_CALLBACK (view_searchbar), 
+      NULL);
+  gtk_widget_show (searchbarMenu);
+
   root_menu = gtk_menu_item_new_with_mnemonic (_("_View"));
   gtk_menu_item_set_submenu (GTK_MENU_ITEM (root_menu), menu);
   
