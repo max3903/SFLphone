@@ -28,6 +28,7 @@
 #include <mainwindow.h>
 #include <calltab.h>
 #include <gtk/gtk.h>
+#include <voicemailwindow.h>
 
 #include <string.h> // for strlen
 
@@ -563,12 +564,21 @@ view_volume_controls  (GtkImageMenuItem *imagemenuitem,
   dbus_set_volume_controls( state );
 }
 
+
+
+static void 
+call_voicemail( GtkMenuItem *menuitem, gpointer data )
+{
+	show_voicemail_window();
+}
+
   GtkWidget * 
 create_view_menu()
 {
   GtkWidget * menu;
   GtkWidget * root_menu;
   GtkWidget * image;
+  GtkWidget * sub_menu;
 
   menu      = gtk_menu_new ();
 
@@ -595,9 +605,18 @@ create_view_menu()
       G_CALLBACK (view_volume_controls), 
       NULL);
   gtk_widget_show (volumeMenu);
-
+  
   root_menu = gtk_menu_item_new_with_mnemonic (_("_View"));
   gtk_menu_item_set_submenu (GTK_MENU_ITEM (root_menu), menu);
+  
+  // Separator
+  sub_menu = gtk_separator_menu_item_new ();
+  gtk_menu_shell_append (GTK_MENU_SHELL (menu), sub_menu);
+  // VoiceMail viewer
+  sub_menu = gtk_image_menu_item_new_with_mnemonic(_("_VoiceMail Viewer"));
+  gtk_menu_shell_append (GTK_MENU_SHELL (menu), sub_menu);
+  g_signal_connect( G_OBJECT( sub_menu ) , "activate" , G_CALLBACK( call_voicemail  ) , NULL );
+  gtk_widget_show (sub_menu);
 
   return root_menu;
 }
