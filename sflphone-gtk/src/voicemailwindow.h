@@ -23,12 +23,12 @@
 #include <sflphone_const.h>
 #include <gtk/gtk.h>
 
-
 GtkTreeIter getItemSelected( void );
 gboolean    isItemSelected( void );
 
 void show_voicemail_window(void);
 void create_voicemail_window(void);
 void create_tree(void);
+void update_tree(gchar * text);
 
 #endif

@@ -26,8 +26,8 @@
 
 #include <stdlib.h>
 #include <stdio.h>
-//#include <voicemailwindow.h>
-//#include <config.h>
+#include <voicemailwindow.h>
+#include <config.h>
 //#define ICONS_DIR "../pixmaps"
 #include <gtk/gtk.h>
 
@@ -165,6 +165,10 @@ on_play()
 			/** Updates voicemail currently playing */
 			currently_playing = atoi( gtk_tree_model_get_string_from_iter( model, &iter ) );
 		}
+		else
+		{
+			on_stop();
+		}
 	}
 }
 
@@ -272,28 +276,16 @@ create_tree( void )
 	GtkListStore      * store;
 	GtkTreeViewColumn * column;
 	GtkCellRenderer   * cellRenderer;
-	gchar             * text;
-	GdkPixbuf         * pixBuf;
-	gint i;
+//	gchar             * text;
+//	GdkPixbuf         * pixBuf;
+//	gint i;
 	
 	/** Model creation */
 	store = gtk_list_store_new( N_COLUMN, GDK_TYPE_PIXBUF, G_TYPE_STRING );
-	text = g_malloc( 14 );
-	pixBuf = gdk_pixbuf_new_from_file( ICONS_DIR "/play.svg", NULL);
+//	text = g_malloc( 14 );
+//	pixBuf = gdk_pixbuf_new_from_file( ICONS_DIR "/play.svg", NULL);
 
-	/** Adding elements - only for tests */
-	for( i = 1 ; i < 5 ; ++i )
-	{
-		GtkTreeIter iter;
-		GtkTreeIter iter2;
 
-		g_sprintf( text, "Mail #%d\0", i );
-		/* New ligne creation */
-		gtk_list_store_append( store, &iter/*, NULL*/ );
-		/* Data updates */
-		gtk_list_store_set( store, &iter, IMG_COLUMN, pixBuf, TEXT_COLUMN, text, -1 );
-	}
-	g_free( text );
 	/** View creation */
 	gtk_tree_view_set_model( GTK_TREE_VIEW( treeview ), GTK_TREE_MODEL( store ) );
 	/** First column creation */
@@ -306,10 +298,44 @@ create_tree( void )
 	column = gtk_tree_view_column_new_with_attributes( "Label", cellRenderer, "text", TEXT_COLUMN, NULL );
 	/** Adding column to view */
 	gtk_tree_view_append_column( GTK_TREE_VIEW( treeview ), column );
+
+	/** Adding elements - only for tests *
+	for( i = 1 ; i < 5 ; ++i )
+	{
+		GtkTreeIter iter;
+//		GtkTreeIter iter2;
+
+		//g_sprintf( text, "<b>Mail</b> #%d\0", i );
+		text = g_markup_printf_escaped( "<b>Mail</b> #%d\0", i );
+		/* New line creation *
+		gtk_list_store_append( store, &iter );
+		/* Data updates *
+		gtk_list_store_set( store, &iter, IMG_COLUMN, pixBuf, TEXT_COLUMN, text, -1 );
+	}
+	g_free( text );*/
 	
 	/** Adding signal for "popup" menu */
 	g_signal_connect( treeview, "button-press-event", G_CALLBACK( my_widget_button_press_event_handler ), NULL );
 	g_signal_connect( treeview, "popup-menu",         G_CALLBACK( my_widget_popup_menu_handler ),         NULL );
+}
+
+
+/**
+ * Updates treeview by adding a new element
+ */
+void
+update_tree( gchar * text )
+{
+	GtkTreeIter    iter;
+	GtkTreeModel * model;;
+	GdkPixbuf    * pixBuf;
+
+	pixBuf = gdk_pixbuf_new_from_file( ICONS_DIR "/play.svg", NULL);
+	model = gtk_tree_view_get_model( GTK_TREE_VIEW( treeview ) );
+	/* New line creation */
+	gtk_list_store_append( GTK_LIST_STORE( model ), &iter );
+	/* Data updates */
+	gtk_list_store_set( GTK_LIST_STORE( model ), &iter, IMG_COLUMN, pixBuf, TEXT_COLUMN, text, -1 );
 }
 
 
@@ -345,6 +371,7 @@ create_voicemail_window( void )
 	GtkTooltips *tooltips;
 	
 	tooltips = gtk_tooltips_new();
+	gint i;
 	
 	/** Window */
 	VMWindow = gtk_window_new( GTK_WINDOW_TOPLEVEL );
@@ -374,6 +401,10 @@ create_voicemail_window( void )
 	treeview = gtk_tree_view_new();
 	/** TODO : delete create_tree() */
 	create_tree();
+	for( i = 1 ; i < 6 ; i++ )
+	{
+		update_tree( g_markup_printf_escaped( "<b>Mail</b> <i>#%d</i>" , i ) );
+	}
 	/********************************/
 	gtk_widget_show( treeview );
 	gtk_container_add( GTK_CONTAINER( scrolledwindow ), treeview );
@@ -449,6 +480,7 @@ show_voicemail_window(void)
 		create_voicemail_window();
 	else
 	{
+		gtk_widget_show_all( VMWindow );
 		// TODO : sets focus !! doesn't work yet
 		gtk_widget_grab_focus( VMWindow );
 	}
