@@ -21,8 +21,6 @@
 #define VIDEODEVICEMANAGER_H
 
 #include <string>
-#include <dbus/dbus.h>
-#include <hal/libhal.h>
 
 #include "Command.h"
 #include "Colour.h"
@@ -32,11 +30,13 @@
 #include "Contrast.h"
 #include "VideoDevice.h"
 
+#include "../../devicemanager.h"
+
 class VideoDevice;
 
 //! VideoDeviceManager
 /*!
- * This class manages the video device, it make the link between the device and his properties objects (brightness, luminosity...). It also creates the DeviceManger object and it can change it too. Only one instance of the manager can exist at one time
+ * This class manages the video device, it make the link between the device and his properties objects (brightness, luminosity...). It also creates the DeviceManager object and it can change it too. Only one instance of the manager can exist at one time
  */
 class VideoDeviceManager {
 public:
