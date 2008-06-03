@@ -2,7 +2,7 @@ AC_INIT([SFLphone],[0.8],[sflphoneteam@savoirfairelinux.com],[sflphone])
 AM_CONFIG_HEADER(config.h)
 
 PACKAGE=SFLphone
-VERSION=0.8
+VERSION=0.9
 
 AM_INIT_AUTOMAKE($PACKAGE,$VERSION)
 
@@ -28,6 +28,7 @@ PKG_CHECK_MODULES(DEPS, \
     gtk+-2.0 >= 2.2     \
     glib-2.0 >= 2.2     \
     gtkglext-1.0 >= 1.0.0     \
+    libsexy >= 0.1    \
 )
 
 

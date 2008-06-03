@@ -74,8 +74,10 @@ public:
         register_method(ConfigurationManager, setEnableCheckboxStatus, _setEnableCheckboxStatus_stub);
         register_method(ConfigurationManager, setDisableCheckboxStatus, _setDisableCheckboxStatus_stub);
         register_method(ConfigurationManager, isIax2Enabled, _isIax2Enabled_stub);
-        register_method(ConfigurationManager, setDialpad, _setDialpad_stub);
         register_method(ConfigurationManager, getDialpad, _getDialpad_stub);
+        register_method(ConfigurationManager, setDialpad, _setDialpad_stub);
+        register_method(ConfigurationManager, getSearchbar, _getSearchbar_stub);
+        register_method(ConfigurationManager, setSearchbar, _setSearchbar_stub);
         register_method(ConfigurationManager, getVolumeControls, _getVolumeControls_stub);
         register_method(ConfigurationManager, setVolumeControls, _setVolumeControls_stub);
         register_method(ConfigurationManager, getMaxCalls, _getMaxCalls_stub);
@@ -375,13 +377,22 @@ public:
             { "res", "i", false },
             { 0, 0, 0 }
         };
+        static ::DBus::IntrospectedArgument getDialpad_args[] = 
+        {
+            { "state", "i", false },
+            { 0, 0, 0 }
+        };
         static ::DBus::IntrospectedArgument setDialpad_args[] = 
         {
             { 0, 0, 0 }
         };
-        static ::DBus::IntrospectedArgument getDialpad_args[] = 
+        static ::DBus::IntrospectedArgument getSearchbar_args[] = 
         {
             { "state", "i", false },
+            { 0, 0, 0 }
+        };
+        static ::DBus::IntrospectedArgument setSearchbar_args[] = 
+        {
             { 0, 0, 0 }
         };
         static ::DBus::IntrospectedArgument getVolumeControls_args[] = 
@@ -509,8 +520,10 @@ public:
             { "setEnableCheckboxStatus", setEnableCheckboxStatus_args },
             { "setDisableCheckboxStatus", setDisableCheckboxStatus_args },
             { "isIax2Enabled", isIax2Enabled_args },
-            { "setDialpad", setDialpad_args },
             { "getDialpad", getDialpad_args },
+            { "setDialpad", setDialpad_args },
+            { "getSearchbar", getSearchbar_args },
+            { "setSearchbar", setSearchbar_args },
             { "getVolumeControls", getVolumeControls_args },
             { "setVolumeControls", setVolumeControls_args },
             { "getMaxCalls", getMaxCalls_args },
@@ -611,8 +624,10 @@ public:
     virtual void setEnableCheckboxStatus( const ::DBus::Bool& status ) = 0;
     virtual void setDisableCheckboxStatus( const ::DBus::Bool& status ) = 0;
     virtual ::DBus::Int32 isIax2Enabled(  ) = 0;
-    virtual void setDialpad(  ) = 0;
     virtual ::DBus::Int32 getDialpad(  ) = 0;
+    virtual void setDialpad(  ) = 0;
+    virtual ::DBus::Int32 getSearchbar(  ) = 0;
+    virtual void setSearchbar(  ) = 0;
     virtual ::DBus::Int32 getVolumeControls(  ) = 0;
     virtual void setVolumeControls(  ) = 0;
     virtual ::DBus::Int32 getMaxCalls(  ) = 0;
@@ -1199,14 +1214,6 @@ private:
         wi << argout1;
         return reply;
     }
-    ::DBus::Message _setDialpad_stub( const ::DBus::CallMessage& call )
-    {
-        ::DBus::MessageIter ri = call.reader();
-
-        setDialpad();
-        ::DBus::ReturnMessage reply(call);
-        return reply;
-    }
     ::DBus::Message _getDialpad_stub( const ::DBus::CallMessage& call )
     {
         ::DBus::MessageIter ri = call.reader();
@@ -1215,6 +1222,32 @@ private:
         ::DBus::ReturnMessage reply(call);
         ::DBus::MessageIter wi = reply.writer();
         wi << argout1;
+        return reply;
+    }
+    ::DBus::Message _setDialpad_stub( const ::DBus::CallMessage& call )
+    {
+        ::DBus::MessageIter ri = call.reader();
+
+        setDialpad();
+        ::DBus::ReturnMessage reply(call);
+        return reply;
+    }
+    ::DBus::Message _getSearchbar_stub( const ::DBus::CallMessage& call )
+    {
+        ::DBus::MessageIter ri = call.reader();
+
+        ::DBus::Int32 argout1 = getSearchbar();
+        ::DBus::ReturnMessage reply(call);
+        ::DBus::MessageIter wi = reply.writer();
+        wi << argout1;
+        return reply;
+    }
+    ::DBus::Message _setSearchbar_stub( const ::DBus::CallMessage& call )
+    {
+        ::DBus::MessageIter ri = call.reader();
+
+        setSearchbar();
+        ::DBus::ReturnMessage reply(call);
         return reply;
     }
     ::DBus::Message _getVolumeControls_stub( const ::DBus::CallMessage& call )

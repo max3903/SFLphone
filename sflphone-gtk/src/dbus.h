@@ -493,6 +493,18 @@ void dbus_set_dialpad(  );
 int dbus_get_dialpad( void );
 
 /**
+ * ConfigurationManager - Set the searchbar visible or not
+ */
+void dbus_set_searchbar(  );
+
+/**
+ * ConfigurationManager - Tells if the user wants to display the search bar or not 
+ * @return int 1 if the search bar has to be displayed
+ *	       0 otherwise
+ */
+int dbus_get_searchbar( void );
+
+/**
  * ConfigurationManager - Set the volume controls visible or not
  */
 void dbus_set_volume_controls(  );
@@ -566,88 +578,6 @@ guint dbus_get_mail_notify( void );
 void dbus_set_mail_notify( void );
 
 // Configuration manager methods end
-
-// Contact manager methods begin
-// Contact manager - Contact end entry related methods
-
-/**
- * ContactManager - Get all contacts ID for an account
- * @param accountID ID of the account to get contacts
- * @return The null terminated string array of IDs
- */
-gchar** dbus_get_contacts(gchar* accountID);
-
-/**
- * ContactManager - Get details for a contact
- * @param accountID ID of the account
- * @param contactID ID of the contact to get details from
- * @return The null terminated string array of details (first name, last name, email)
- */
-gchar** dbus_get_contact_details(gchar* accountID, gchar* contactID);
-
-/**
- * ContactManager - Get entries of a contact
- * @param accountID ID of the account
- * @param contactID ID of the contact to get entries from
- * @return The IDs of the entries of the contact
- */
-gchar** dbus_get_contact_entries(gchar* accountID, gchar* contactID);
-
-/**
- * ContactManager - Get details of an entry
- * @param accountID ID of the account
- * @param contactID ID of the contact
- * @param entryID ID of the entry to get details from
- * @return The details of the entry (name, type, is shown, is subscribed)
- */
-gchar** dbus_get_contact_entry_details(gchar* accountID, gchar* contactID, gchar* entryID);
-
-/**
- * ContactManager - Edit or add a contact if not found
- * @param accountID Account ID
- * @param contactID Contact ID
- * @param firstName First name of contact
- * @param lastName Last name of contact
- * @param email Email of contact
- */
-void dbus_set_contact(gchar* accountID, gchar* contactID, gchar* firstName, gchar* lastName, gchar* email);
-
-/**
- * ContactManager - Remove a contact
- * @param accountID ID of the account of the contact
- * @param contactID ID of the contact to remove
- */
-void dbus_remove_contact(gchar* accountID, gchar* contactID);
-
-/**
- * ContactManager - Edit or add an entry if not found
- * @param accountID Account ID
- * @param contactID Contact ID
- * @param entryID ID of the entry
- * @param text Name of the entry
- * @param type Type of the entry (work, home...)
- * @param isShown Show in call console or not
- * @param isSubscribed Subscribe to presence or not
- */
-void dbus_set_contact_entry(gchar* accountID, gchar* contactID, gchar* entryID, gchar* text, gchar* type, gchar* isShown, gchar* isSubscribed);
-
-/**
- * ContactManager - Remove an entry
- * @param accountID ID of the account of the contact
- * @param contactID ID of the contact of the entry
- * @param entryID ID of the entry to remove
- */
-void dbus_remove_contact_entry(gchar* accountID, gchar* contactID, gchar* entryID);
-
-/**
- * ContactManager - Set our passive presence status, Unused for now but ready to be called
- * @param accountID The ID of the account to set the presence for
- * @param presenceStatus The defined passive presence status (busy, away, out to lunch...)
- * @param presenceInfo Optional additional info on the status
- */
-void dbus_set_presence(gchar* accountID, gchar* presenceStatus, gchar* presenceInfo);
-
-// Contact manager methods end
 
 /** 
  * Instance - Send registration request to dbus service.

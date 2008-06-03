@@ -27,7 +27,6 @@
 #include <string>
 #include "call.h"
 #include "ConfCall.h"
-#include "contact/contact.h"
 #include <map>
 #include <cc++/thread.h> // for mutex
 
@@ -178,30 +177,7 @@ class VoIPLink {
      */
     virtual bool sendMessage(const std::string& to, const std::string& body) = 0;
 
-    /**
-     * Determine if link supports presence information
-     */
-    virtual bool isContactPresenceSupported() = 0;
-
-    /**
-     * Register contacts for presence information if supported
-     * @param contactEntry Entry to subscribe to presence
-     */
-    virtual void subscribePresenceForContact(ContactEntry* contactEntry);
-
-    /**
-     * Unsubscribe contacts for presence information if supported
-     * @param contactEntry Entry to subscribe to presence
-     */
-    virtual void unsubscribePresenceForContact(ContactEntry* contactEntry);
-
-    /**
-     * Publish presence status to server
-     * @param status Defined presence status the user is setting its state at
-     */
-    virtual void publishPresenceStatus(std::string status);
-
-    /**
+   /**
      * Set the account full name
      * @param fullname	The full name
      */

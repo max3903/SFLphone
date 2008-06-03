@@ -28,6 +28,7 @@
 #include <statusicon.h>
 #include <MemManager.h>
 #include <calltab.h>
+#include <historyfilter.h>
 
 #include <gtk/gtk.h>
 #include <string.h>
@@ -69,7 +70,7 @@ status_bar_display_account( call_t* c)
     account_t* acc;
     if(c->accountID != NULL){
       acc = account_list_get_by_id(c->accountID);
-      msg = g_markup_printf_escaped("%s account- %s" , 
+      msg = g_markup_printf_escaped(_("%s account- %s") , 
 				  (gchar*)g_hash_table_lookup( acc->properties , ACCOUNT_TYPE), 
 				  (gchar*)g_hash_table_lookup( acc->properties , ACCOUNT_ALIAS));
       statusbar_push_message( msg , __MSG_ACCOUNT_DEFAULT);
@@ -96,7 +97,6 @@ sflphone_quit ()
 		dbus_clean ();
 		//call_list_clean(); TODO
 		//account_list_clean()
-		contact_hash_table_clear();
 		gtk_main_quit ();
 		DestroyMemSpaces();
 	}
@@ -205,9 +205,9 @@ sflphone_init()
 //	int i;	UNUSED
 	current_calls = calltab_init();
 	history = calltab_init();	
+	if(SHOW_SEARCHBAR)  histfilter = create_filter(GTK_TREE_MODEL(history->store));
 	account_list_init ();
 	codec_list_init();
-	contact_hash_table_init();
 	video_codec_list_init();
 	if(!dbus_connect ()){
 		main_window_error_message(_("Unable to connect to the SFLphone server.\nMake sure the daemon is running."));
@@ -218,7 +218,6 @@ sflphone_init()
 		dbus_register(getpid(), "Gtk+ Client");
 		sflphone_fill_account_list(FALSE);
 		sflphone_fill_codec_list();
-		sflphone_fill_contact_list();
 		sflphone_fill_video_codec_list();
 		InitMemSpaces( dbus_get_local_shared_memory_key(), dbus_get_remote_shared_memory_key());
 		video_settings_checkbox_init();
@@ -232,7 +231,6 @@ void
 sflphone_hang_up()
 {
 	call_t * selectedCall = call_get_selected(current_calls);
-	(void) time(&selectedCall->_stop);
 	if(selectedCall)
 	{
 		switch(selectedCall->state)
@@ -252,14 +250,17 @@ sflphone_hang_up()
 			case CALL_STATE_CONF:
 				dbus_hang_up (selectedCall);
 				selectedCall->state = CALL_STATE_DIALING;
+				(void) time(&selectedCall->_stop);
 				break;
 			case CALL_STATE_INCOMING:  
 				dbus_refuse (selectedCall);
 				selectedCall->state = CALL_STATE_DIALING;
+				selectedCall->_stop = 0;
 				g_print("from sflphone_hang_up : "); stop_notification();
 				break;
 			case CALL_STATE_TRANSFERT:  
 				dbus_hang_up (selectedCall);
+				(void) time(&selectedCall->_stop);
 				break;
 			default:
 				g_warning("Should not happen in sflphone_hang_up()!");
@@ -292,6 +293,7 @@ sflphone_pick_up()
 				break;
 			case CALL_STATE_TRANSFERT:
 				dbus_transfert (selectedCall);
+				(void) time(&selectedCall->_stop);
 				break;
 			case CALL_STATE_CURRENT:
 				sflphone_new_call();
@@ -362,10 +364,11 @@ sflphone_busy( call_t * c )
 void 
 sflphone_current( call_t * c )
 {
-	c->state = CALL_STATE_CURRENT;
-	update_call_tree(current_calls,c);
-	update_menus();
+  if( c->state != CALL_STATE_HOLD )
 	(void) time(&c->_start);
+  c->state = CALL_STATE_CURRENT;
+  update_call_tree(current_calls,c);
+  update_menus();
 }
 
 void 
@@ -411,8 +414,8 @@ sflphone_incoming_call (call_t * c)
 	call_list_add ( current_calls, c );
 	call_list_add( history, c );
 	update_call_tree_add( current_calls , c );
-	//update_call_tree_add( history , c );
 	update_menus();
+	if( active_calltree == history )  switch_tab();
 }
 
 void
@@ -465,10 +468,10 @@ process_dialing(call_t * c, guint keyval, gchar * key)
 			{ 
 				if(c->state != CALL_STATE_TRANSFERT)
 				  dbus_play_dtmf( key );
-				gchar * before = c->to;
-				c->to = g_strconcat(c->to, key, NULL);
-				g_free(before);
-				g_print("TO: %s\n", c->to);
+				  gchar * before = c->to;
+				  c->to = g_strconcat(c->to, key, NULL);
+				  g_free(before);
+				  g_print("TO: %s\n", c->to);
 
 				if(c->state == CALL_STATE_DIALING)
 				{
@@ -520,7 +523,6 @@ sflphone_keypad( guint keyval, gchar * key)
 		switch(c->state) 
 		{
 			case CALL_STATE_DIALING: // Currently dialing => edit number
-				//dbus_play_dtmf(key);
 				process_dialing(c, keyval, key);
 				break;
 			case CALL_STATE_CURRENT:
@@ -536,11 +538,11 @@ sflphone_keypad( guint keyval, gchar * key)
 						dbus_play_dtmf(key);
 						if (keyval < 255 || (keyval >65453 && keyval < 65466))
 						{ 
-							gchar * temp = g_strconcat(call_get_number(c), key, NULL);
-							gchar * before = c->from;
-							c->from = g_strconcat("\"",call_get_name(c) ,"\" <", temp, ">", NULL);
-							g_free(before);
-							g_free(temp);
+							//gchar * temp = g_strconcat(call_get_number(c), key, NULL);
+							//gchar * before = c->from;
+							//c->from = g_strconcat("\"",call_get_name(c) ,"\" <", temp, ">", NULL);
+							//g_free(before);
+							//g_free(temp);
 							//update_call_tree(current_calls,c);
 						}
 						break;
@@ -568,6 +570,7 @@ sflphone_keypad( guint keyval, gchar * key)
 					case 65293: /* ENTER */
 					case 65421: /* ENTER numpad */
 						dbus_transfert(c);
+						(void) time(&c->_stop);
 						break;
 					case 65307: /* ESCAPE */
 						sflphone_unset_transfert(c); 
@@ -618,6 +621,8 @@ sflphone_keypad( guint keyval, gchar * key)
 			case 65307: /* ESCAPE */
 				break;
 			default:
+				if( active_calltree == history )
+				  switch_tab();
 				process_dialing(sflphone_new_call(), keyval, key);
 				break;
 		}
@@ -750,49 +755,6 @@ sflphone_fill_codec_list()
     dbus_unregister(getpid());
     exit(0);
   }
-}
-
-void
-sflphone_fill_contact_list()
-{
-	// Get contacts for all accounts
-	int i;
-	for(i = 0; i < account_list_get_size(); i++)
-	{
-		account_t* account = account_list_get_nth(i);
-		// Get new queue to put all our contacts for this account
-		contact_hash_table_add_contact_list(account->accountID);
-		
-		// Get all contacts for this account
-		gchar** contactIDList = dbus_get_contacts(account->accountID);
-		gchar** contactID;
-		for(contactID = contactIDList; *contactID; contactID++)
-		{
-			// Get details on contact and add it to the list
-			gchar** contactDetails = dbus_get_contact_details(account->accountID, *contactID);
-			contact_t* contact = contact_list_new_contact_from_details(*contactID, contactDetails);
-			contact_list_add(account->accountID, contact, FALSE);
-
-			// Get all entries for this contact
-			gchar** contactEntryIDList = dbus_get_contact_entries(account->accountID, *contactID);
-			gchar** contactEntryID;
-			for(contactEntryID = contactEntryIDList; *contactEntryID; contactEntryID++)
-			{
-				// Get details on the entry and add it to the list
-				gchar** contactEntryDetails = dbus_get_contact_entry_details(account->accountID, *contactID, *contactEntryID);
-				contact_entry_t* contactEntry = contact_list_new_contact_entry_from_details(*contactEntryID, contactEntryDetails);
-				contact_list_entry_add(account->accountID, *contactID, contactEntry, FALSE);
-				g_strfreev(contactEntryDetails);
-				contactEntryDetails = NULL;
-			}
-			g_strfreev(contactEntryIDList);
-			contactEntryIDList = NULL;
-			g_strfreev(contactDetails);
-			contactDetails = NULL;
-		}
-		g_strfreev(contactIDList);
-		contactIDList = NULL;
-	}
 }
 
 /* Internal to action - get the codec list */

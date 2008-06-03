@@ -1,5 +1,8 @@
 bin_PROGRAMS = sflphone-gtk
 
+NOFIFY_LIBS=-lnotify
+SEXY_LIBS=-lsexy
+
 #if GTK_CHECK_VERSION(2,10,0)  
 STATUSICON_HEADER = statusicon.h
 STATUSICON_SOURCE = statusicon.c
@@ -20,13 +23,11 @@ sflphone_gtk_SOURCES = \
   menus.c \
   calltab.c \
   calltree.c \
+  historyfilter.c \
   actions.c \
   configwindow.c \
-  contactlist.c \
   accountlist.c \
   accountwindow.c \
-  contactwindow.c \
-  callconsolewindow.c \
   marshaller.c \
   sliders.c \
   $(STATUSICON_SOURCE) \
@@ -38,11 +39,10 @@ sflphone_gtk_SOURCES = \
 
 noinst_HEADERS =  actions.h dbus.h sflnotify.h mainwindow.h calllist.h dialpad.h codeclist.h assistant.h\
                   callmanager-glue.h errors.h sflphone_const.h configurationmanager-glue.h instance-glue.h menus.h calltab.h calltree.h configwindow.h \
-                  videocodeclist.h contactmanager-glue.h contactlist.h contactwindow.h callconsolewindow.h \
-                  accountlist.h accountwindow.h marshaller.h sliders.h $(STATUSICON_HEADER) timestamp.h
-EXTRA_DIST   = marshaller.list  
+                  videocodeclist.h accountlist.h accountwindow.h marshaller.h sliders.h $(STATUSICON_HEADER)  historyfilter.h timestamp.h
 
-sflphone_gtk_LDADD = $(DEPS_LIBS) -lnotify
+EXTRA_DIST   = marshaller.list  
+sflphone_gtk_LDADD = $(DEPS_LIBS) $(NOTIFY_LIBS) $(SEXY_LIBS)
 
 AM_CPPFLAGS = $(DEPS_CFLAGS) \
               -DICONS_DIR=\""$(datadir)/sflphone"\" \

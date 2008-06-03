@@ -30,7 +30,6 @@
 
 #include "manager.h"
 #include "user_cfg.h" // SIGNALISATION / PULSE #define
-#include "sippresencemanager.h"
 
 // for listener
 #define DEFAULT_SIP_PORT  5060
@@ -42,7 +41,7 @@
 #define EXOSIP_ERROR_BUILDING -2
 
 // for registration
-#define EXPIRES_VALUE 180
+//#define EXPIRES_VALUE 180
 
 // 1XX responses
 #define DIALOG_ESTABLISHED 101
@@ -417,9 +416,6 @@ SIPVoIPLink::getEvent()
 		if(event->request != NULL)
 		{
 			osip_message_get_body(event->request, 0, &body);
-			if (body != NULL && body->body != NULL) {
-				subscriptionNotificationReceived(event, body->body);
-			}
 		}
 		break;
 	case EXOSIP_SUBSCRIPTION_RELEASED:        /** 45 < call context is cleared.        */
@@ -446,6 +442,8 @@ SIPVoIPLink::getEvent()
 bool
 SIPVoIPLink::sendRegister()
 {
+  int expire_value = Manager::instance().getRegistrationExpireValue();
+  _debug("SIP Registration Expire Value = %i\n" , expire_value);
 
   if (_eXosipRegID != EXOSIP_ERROR_STD) {
     return false;
@@ -469,11 +467,11 @@ SIPVoIPLink::sendRegister()
   if (!_proxy.empty()) {
     _debug("* SIP Info: Register from: %s to %s\n", from.data(), proxy.data());
     _eXosipRegID = eXosip_register_build_initial_register(from.data(), 
-                  proxy.data(), NULL, EXPIRES_VALUE, &reg);
+                  proxy.data(), NULL, expire_value, &reg);
   } else {
     _debug("* SIP Info: Register from: %s to %s\n", from.data(), hostname.data());
     _eXosipRegID = eXosip_register_build_initial_register(from.data(), 
-                  hostname.data(), NULL, EXPIRES_VALUE, &reg);
+                  hostname.data(), NULL, expire_value, &reg);
   }
   eXosip_unlock();
   if (_eXosipRegID < EXOSIP_ERROR_NO ) {
@@ -979,101 +977,6 @@ SIPVoIPLink::sendMessage(const std::string& to, const std::string& body)
   return returnValue;
 }
 
-bool
-SIPVoIPLink::isContactPresenceSupported()
-{
-	return true;
-}
-
-void
-SIPVoIPLink::subscribePresenceForContact(ContactEntry* contactEntry)
-{
-	int i;
-	osip_message_t* subscription;
-	std::ostringstream to;
-	std::ostringstream from;
-	
-	// Build URL of receiver and sender
-	to << "sip:" << contactEntry->getEntryID() << "@" << getHostName().data();
-	from << "sip:" << _authname.data() << "@" << getHostName().data();
-
-	// Subscribe for changes on server but also polls at every 5000 interval (time unit unknown)
-	eXosip_lock();
-	i = eXosip_subscribe_build_initial_request(&subscription,
-			to.str().c_str(),
-			from.str().c_str(),
-			NULL,
-			"presence", 5000);
-	if(i!=0) return;
-	
-	// We want to receive presence in the PIDF XML format in SIP messages
-	osip_message_set_accept(subscription, "application/pidf+xml");
-	
-	// Send subscription
-	i = eXosip_subscribe_send_initial_request(subscription);
-	eXosip_unlock();
-}
-
-void
-SIPVoIPLink::unsubscribePresenceForContact(ContactEntry* contactEntry)
-{
-	_debug("Unsubscribe %s\n", contactEntry->getText().data());
-	// TOSEE This is the good way to go for unsubscription but the
-	// exosip API frequently crashes  some seconds after sending
-	// the rquest so it is still unusable
-//	// TODO Find how exosip supports unsubscription
-//	// A presence request of 0 does not seem to work
-//	int i;
-//	osip_message_t* subscription;
-//	std::ostringstream to;
-//	std::ostringstream from;
-//	
-//	// Build URL of receiver and sender
-//	to << "sip:" << contactEntry->getEntryID() << "@" << getHostName().data();
-//	from << "sip:" << _userpart.data() << "@" << getHostName().data();
-//
-//	// Unsubscribe
-//	eXosip_lock();
-//	i = eXosip_subscribe_build_initial_request(&subscription,
-//			to.str().c_str(),
-//			from.str().c_str(),
-//			NULL,
-//			"presence", 0);
-//	if(i!=0) return;
-//	
-//	// We want to receive presence in the PIDF XML format in SIP messages
-//	osip_message_set_accept(subscription, "application/pidf+xml");
-//	
-//	// Send subscription
-//	i = eXosip_subscribe_send_initial_request(subscription);
-//	_debug("Success  for %s #%d\n", contactEntry->getText().data(), i);
-//	
-//	eXosip_unlock();
-//	_debug("Unsubscribed succes %d\n", i);
-}
-
-void
-SIPVoIPLink::publishPresenceStatus(std::string status)
-{
-	_debug("Publishing presence status\n");	
-	std::ostringstream url;
-	
-	// Build URL of sender
-	url << "sip:" << _authname.data() << "@" << getHostName().data();
-	
-	SIPPresenceManager::getInstance()->buildPublishPresenceStatus(_authname.data(), url.str().c_str(), status);
-}
-
-void
-SIPVoIPLink::subscriptionNotificationReceived(eXosip_event_t* event, char* body)
-{
-	// Parse information on sender
-	osip_uri_t* from = osip_from_get_url(event->request->from);
-	std::string status = SIPPresenceManager::getInstance()->parseNotificationPresenceStatus(body);
-	
-	// Save entry information on the daemon side and send the new updated contact entry presence for this account
-	Manager::instance().contactEntryPresenceChanged(getAccountID(), from->username, status, "");
-}
 
 bool
 SIPVoIPLink::SIPOutgoingInvite(SIPCall* call) 

@@ -22,14 +22,12 @@
 
 #include "callmanager.h"
 #include "configurationmanager.h"
-#include "contactmanager.h"
 #include "instance.h"
 
 class DBusManagerImpl {
     public:
         CallManager * getCallManager(){ return _callManager; };
         ConfigurationManager * getConfigurationManager(){ return _configurationManager; };
-        ContactManager* getContactManager() { return _contactManager; };
         int exec();
         void exit();
         static const char* SERVER_NAME;
@@ -37,7 +35,6 @@ class DBusManagerImpl {
     private:
         CallManager*          _callManager;
         ConfigurationManager* _configurationManager;
-        ContactManager*       _contactManager;
         Instance*             _instanceManager;
         DBus::BusDispatcher   _dispatcher;
 };

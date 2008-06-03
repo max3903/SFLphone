@@ -240,5 +240,6 @@ stop_notification( void )
       g_object_unref( notification );
       notification = NULL;
     }
+    notification = NULL;
   }
 }

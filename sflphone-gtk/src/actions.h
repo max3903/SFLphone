@@ -27,7 +27,6 @@
 #include <calllist.h>
 #include <accountlist.h>
 #include <codeclist.h>
-#include <contactlist.h>
 #include <videocodeclist.h>
 #include <sflphone_const.h>
 #include <errors.h>

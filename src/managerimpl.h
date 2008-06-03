@@ -191,9 +191,6 @@ class ManagerImpl {
      */
     bool saveConfig (void);
 
-    /** Save contacts to corresponding file, one by account */
-    bool saveContacts();
-
     /**
      * Send registration to all enabled accounts
      * @return false if exosip or the network checking fails
@@ -360,108 +357,6 @@ class ManagerImpl {
      * @param accountID	The account unique ID
      */
     void removeAccount(const AccountID& accountID);
-
-    /** Contact related methods */
-
-    /** 
-     * Get contact list for a given account
-     * @param accountID ID of the account to get contacts
-     * @return A list of contactID
-     */
-    std::vector<std::string> getContacts(const AccountID& accountID);
-
-    /**
-     * Retrieve details about a given contact
-     * @param accountID ID of the account of the contact
-     * @param contactID ID of the contact to get details
-     * @return first name, last name, email
-     */
-    std::vector<std::string> getContactDetails(const std::string& accountID, const std::string& contactID);
-
-    /**
-     * Get contact entries for a given contact
-     * @param accountID ID of the account of the contact
-     * @param contactID ID of the contact to get entries
-     * @return A list of contact entries (phone number, extension, url..)
-     */
-    std::vector<std::string> getContactEntries(const std::string& accountID, const std::string& contactID);
-
-    /**
-     * Get contact entry details
-     * @param accountID ID of the account of the contact
-     * @param contactID ID of the contact of the entry
-     * @param contactEntryID ID of the entry to get details
-     * @return vector of strings, type of entry (home, work...), show entry in call console, subscribe to entry for presence
-     */
-    std::vector<std::string> getContactEntryDetails(const std::string& accountID, const std::string& contactID, const std::string& contactEntryID);
-
-    /**
-     * Edit the contact corresponding to contact ID or add a contact if not found
-     * @param accountID ID of the account of the contact
-     * @param contactID ID of the contact
-     * @param firstName First name of the contact
-     * @param lastName Last name of the contact
-     * @param email Email of the contact
-     */
-    void setContact(const std::string& accountID, const std::string& contactID, const std::string& firstName, const std::string& lastName, const std::string& email);
-
-    /**
-     * Remove the contact corresponding to contact ID or none if not found
-     * @param accountID ID of the account of the contact
-     * @param contactID ID of the contact
-     */
-    void removeContact(const std::string& accountID, const std::string& contactID);
-
-    /**
-     * Edit the entry corresponding to entry ID or add an entry if not found
-     * @param accountID ID of the account of the contact
-     * @param contactID ID of the contact of the entry
-     * @param entryID ID of the entry
-     * @param text Textual representation of the entry
-     * @param type Type of entry (home, mobile...)
-     * @param isShown Entry is set to be shown in call console if true
-     * @param isSubscribed Entry is set to be subscribed to presence if true
-     */
-    void setContactEntry(const std::string& accountID, const std::string& contactID, const std::string& entryID, const std::string& text, const std::string& type, const std::string& IsShown, const std::string& IsSubscribed);
-
-    /**
-     * Remove the entry corresponding to entry ID or none if not found
-     * @param accountID ID of the account of the contact
-     * @param contactID ID of the contact of the entry
-     * @param entryID ID of the entry
-     */
-    void removeContactEntry(const std::string& accountID, const std::string& contactID, const std::string& entryID);
-
-    /**
-     * Publish presence information defined by a passive status
-     * @param accountID The account to publish the status for
-     * @param presence The defined status to publish
-     * @param additionalInfo Optional information related to status
-     */
-    void setPresence(const std::string& accountID, const std::string& presence, const std::string& additionalInfo);
-    
-    /**
-     * Subscribe to presence all entries that are set for subscription, usually when account registers
-     * @param accountID ID of the account
-     */
-    void subscribePresenceForAccount(const std::string& accountID);
-    
-    /**
-     * Unsubscribe to presence all entries that were subscribed, usually when account unregisters
-     * @param accountID ID of the account
-     */
-    void unsubscribePresenceForAccount(const std::string& accountID);
-    
-    /**
-     * Function called when signal is received that a contact entry presence changed
-     * that saves data on the daemon and sends notification to client
-     * @param accountID ID of the account
-     * @param entryID ID of the entry
-     * @param presenceText Defined active or passive status received
-     * @param additionalInfo Optional information for the presence status
-     */
-    void contactEntryPresenceChanged(const AccountID& accountID, const std::string entryID,
-	const std::string presenceText, const std::string additionalInfo);
 
     /**
      * Get the list of codecs we supports, not ordered
@@ -653,7 +548,7 @@ class ManagerImpl {
     void startHidden( void );
 
     /**
-      Configure the popup behaviour
+     * Configure the popup behaviour
      * @return int	1 if it should popup on incoming calls
      *		0 if it should never popups  
      */
@@ -665,6 +560,16 @@ class ManagerImpl {
      * Never or only on incoming calls
      */
     void switchPopupMode( void );
+
+    /**
+     * Determine whether or not the search bar (history) should be displayed
+     */
+    int getSearchbar( void );
+
+    /**
+     * Configure the search bar behaviour
+     */
+    void setSearchbar( void );
 
     /**
      * Set the desktop notification level
@@ -687,6 +592,11 @@ class ManagerImpl {
      * @return int The mail notification level
      */
     ::DBus::Int32 getMailNotify( void );
+
+    /**
+     * Get the expire value for SIP registration, set in the user configuration file
+     */
+    int getRegistrationExpireValue( void );
 
     /**
      * Retrieve the formatted list of codecs payload in the user config file and
@@ -1207,14 +1117,6 @@ class ManagerImpl {
      * @return Account*	 The account pointer or 0
      */
     Account* getAccount(const AccountID& accountID);
-
-    /**
-     * Get a contact
-     * @param id of the account
-     * @param id of the contact
-     * @return Pointer on contact or null
-     */
-    Contact* getContact(const AccountID& accountID, const std::string& contactID);
 
     /**
      * Get the voip link from the account pointer

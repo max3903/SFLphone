@@ -189,26 +189,4 @@ VoIPLink::setRegistrationState(const enum RegistrationState state)
   setRegistrationState(state, NO_ERROR);
 }
 
-void
-VoIPLink::subscribePresenceForContact(ContactEntry* contactEntry)
-{
-	// Nothing to do if presence is not supported
-	// or the function will be overidden
-	_debug("Presence subscription not supported for account\n");
-}
 
-void
-VoIPLink::unsubscribePresenceForContact(ContactEntry* contactEntry)
-{
-	// Nothing to do if presence is not supported
-	// or the function will be overidden
-	_debug("Presence subscription not supported for account\n");
-}
-
-void
-VoIPLink::publishPresenceStatus(std::string status)
-{
-	// Nothing to do if presence is not supported
-	// or the function will be overidden
-	_debug("Presence publication not supported for account\n");
-}

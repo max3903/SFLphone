@@ -23,8 +23,6 @@
 #include <string>
 #include <vector>
 #include "config/config.h"
-#include "contact/contact.h"
-#include "contact/contactmanager.h"
 #include "voiplink.h"
 
 class VoIPLink;
@@ -119,39 +117,6 @@ class Account{
    */
   VoIPLink::RegistrationState getRegistrationState() { return _link->getRegistrationState(); }
 
-  /**
-   * Load contacts and their entries for this account
-   */
-  void loadContacts();
-  
-  /**
-   * Save contacts and their entries for this account
-   */
-  void saveContacts();
-  
-  /**
-   * Return contacts loaded for account
-   * @return Contact list attribute, a vector of contacts
-   */
-  std::vector<Contact*>& getContacts();
-  
-  /**
-   * Adds a contact
-   * @param contact Contact to be added in the contact list attribute
-   */
-  void addContact(Contact* contact);
-  
-  /**
-   * Suscribe presence information for selected contacts if supported
-   */
-  void subscribeContactsPresence();
-  
-  /**
-   * Publish our presence information to the server
-   * @param presenceStatus Passive status defined in presencestatus.h
-   */
-  void publishPresence(std::string presenceStatus);
-
 private:
 
 protected:
@@ -172,10 +137,6 @@ protected:
    */
   bool _enabled;
   
-  /**
-   * Contacts related to account that can have presence information
-   */
-  std::vector<Contact*> _contacts;
 };
 
 #endif

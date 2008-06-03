@@ -31,6 +31,8 @@
   * @brief The GtkTreeView that list calls in the main window.
   */
 
+GtkToolItem * historyButton;
+
 calltab_t* active_calltree;
 /**
  * Create a new widget calltree
@@ -51,7 +53,8 @@ void toolbar_update_buttons();
  * @param c The call to add
  */
 void update_call_tree_add (calltab_t* ct, call_t * c);
-/**
+
+/*
  * Update the call tree if the call state changes
  * @param c The call to update
  */ 
@@ -71,5 +74,7 @@ void create_join_window();
 void create_invite_window();
 void create_enable_webcam_window();
 void create_disable_webcam_window();
+
+void switch_tab( void );
 
 #endif 

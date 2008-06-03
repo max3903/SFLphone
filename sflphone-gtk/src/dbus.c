@@ -24,8 +24,6 @@
 #include <calltab.h>
 #include <callmanager-glue.h>
 #include <configurationmanager-glue.h>
-#include <contactlist.h>
-#include <contactmanager-glue.h>
 #include <instance-glue.h>
 #include <configwindow.h>
 #include <mainwindow.h>
@@ -42,7 +40,6 @@
 DBusGConnection * connection;
 DBusGProxy * callManagerProxy;
 DBusGProxy * configurationManagerProxy;
-DBusGProxy * contactManagerProxy;
 DBusGProxy * instanceProxy;
 
 static void
@@ -111,11 +108,13 @@ call_state_cb (DBusGProxy *proxy,
       if(c->state==CALL_STATE_CURRENT)
       {
 	// peer hung up, the conversation was established, so _start has been initialized with the current time value
+	g_print("call state current\n");
 	(void) time(&c->_stop);
 	update_call_tree( history, c );
       }
-      g_print("from dbus: "); stop_notification();
+      stop_notification();
       sflphone_hung_up (c);
+      update_call_tree( history, c );
     }
     else if ( strcmp(state, "UNHOLD") == 0 )
     {
@@ -176,20 +175,6 @@ accounts_changed_cb (DBusGProxy *proxy,
   g_print ("Accounts changed\n");
   sflphone_fill_account_list(TRUE);
   config_window_fill_account_list();
-  contact_list_accounts_changed();
-}
-
-static void
-contact_entry_presence_changed(DBusGProxy* proxy,
-		const gchar* accountID,
-		const gchar* entryID,
-		const gchar* presence,
-		const gchar* additionalInfo,
-		void* nothing)
-{
-	// DEBUG
-	//g_print("%s : %s is %s\n", accountID, entryID, presence);
-	contact_list_entry_change_presence_status(accountID, entryID, presence, additionalInfo);
 }
 
 static void
@@ -307,26 +292,7 @@ dbus_connect ()
   dbus_g_proxy_connect_signal (configurationManagerProxy,
     "errorAlert", G_CALLBACK(error_alert), NULL, NULL);
   
-  // Create the contact manager proxy
-  contactManagerProxy = dbus_g_proxy_new_for_name (connection,
-                                  "org.sflphone.SFLphone",
-                                  "/org/sflphone/SFLphone/ContactManager",
-                                  "org.sflphone.SFLphone.ContactManager");
-  if (!contactManagerProxy)
-  {
-    g_printerr("Failed to get proxy to ContactManager\n");
-    return FALSE;
-  }
-  g_print("DBus connected to ContactManager\n");
-  
-  /* Function contact entry presence changed and register a marshaller for 4 STRING */
-  dbus_g_object_register_marshaller(g_cclosure_user_marshal_VOID__STRING_STRING_STRING_STRING, 
-    G_TYPE_NONE, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_INVALID);
-  dbus_g_proxy_add_signal (contactManagerProxy,
-    "contactEntryPresenceChanged", G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_INVALID);
-  dbus_g_proxy_connect_signal (contactManagerProxy,
-    "contactEntryPresenceChanged", G_CALLBACK(contact_entry_presence_changed), NULL, NULL);
-  
+ 
   return TRUE;
 }
 
@@ -335,7 +301,6 @@ dbus_clean()
 {
     g_object_unref (callManagerProxy);
     g_object_unref (configurationManagerProxy);
-    g_object_unref (contactManagerProxy);
 }
 
 void
@@ -1407,6 +1372,41 @@ dbus_is_start_hidden()
 }
 
 int
+dbus_get_searchbar()
+{
+	int state;
+	GError* error = NULL;
+	org_sflphone_SFLphone_ConfigurationManager_get_searchbar(
+			configurationManagerProxy,
+			&state,
+			&error);
+	g_print("After");
+	if(error)
+	{
+		g_error_free(error);
+	}
+	else
+		g_print("DBus called get_searchbar on ConfigurationManager\n");
+	return state;
+}
+
+void
+dbus_set_searchbar(  )
+{
+	GError* error = NULL;
+	org_sflphone_SFLphone_ConfigurationManager_set_searchbar(
+			configurationManagerProxy,
+			&error);
+	g_print("After");
+	if(error)
+	{
+		g_error_free(error);
+	}
+	else
+		g_print("DBus called set_searchbar on ConfigurationManager\n");
+}
+
+int
 dbus_get_volume_controls()
 {
 	int state;
@@ -1527,192 +1527,6 @@ dbus_set_dialpad()
           g_error_free(error);
         else
           g_print("DBus called set_dialpad on ConfigurationManager\n");
-}
-
-
-gchar**
-dbus_get_contacts(gchar* accountID)
-{
-	gchar** array;
-	GError* error = NULL;
-	org_sflphone_SFLphone_ContactManager_get_contacts(
-			contactManagerProxy, 
-			accountID,
-			&array,
-			&error);
-	if(error)
-	{
-		g_printerr ("Failed to call get_contacts() on ContactManager: %s\n", error->message);
-		g_error_free (error);
-	}
-	else
-		g_print ("DBus called get_contacts() on ContactManager\n");
-	return array;
-}
-
-
-gchar**
-dbus_get_contact_details(gchar* accountID, gchar* contactID)
-{
-	gchar** array;
-	GError* error = NULL;
-	org_sflphone_SFLphone_ContactManager_get_contact_details(
-			contactManagerProxy,
-			accountID,
-			contactID,
-			&array,
-			&error);
-	if(error)
-	{
-		g_printerr ("Failed to call get_contact_details() on ContactManager: %s\n", error->message);
-		g_error_free (error);
-	}
-	else
-		g_print ("DBus called get_contact_details() on ContactManager\n");
-	return array;
-}
-
-gchar**
-dbus_get_contact_entries(gchar* accountID, gchar* contactID)
-{
-	gchar** array;
-	GError* error = NULL;
-	org_sflphone_SFLphone_ContactManager_get_contact_entries(
-			contactManagerProxy, 
-			accountID,
-			contactID,
-			&array,
-			&error);
-	if(error)
-	{
-		g_printerr ("Failed to call get_contact_entries() on ContactManager: %s\n", error->message);
-		g_error_free (error);
-	}
-	else
-		g_print ("DBus called get_contact_entries() on ContactManager\n");
-	return array;
-}
-
-gchar**
-dbus_get_contact_entry_details(gchar* accountID, gchar* contactID, gchar* entryID)
-{
-	gchar** array;
-	GError* error = NULL;
-	org_sflphone_SFLphone_ContactManager_get_contact_entry_details(
-			contactManagerProxy,
-			accountID,
-			contactID,
-			entryID,
-			&array,
-			&error);
-	if(error)
-	{
-		g_printerr ("Failed to call get_contact_entry_details on ContactManager: %s\n", error->message);
-		g_error_free (error);
-	}
-	else
-		g_print ("DBus called get_contact_entry_details on ContactManager\n");
-	return array;
-}
-
-void
-dbus_set_contact(gchar* accountID, gchar* contactID, gchar* firstName, gchar* lastName, gchar* email)
-{
-	GError* error = NULL;
-	org_sflphone_SFLphone_ContactManager_set_contact(
-			contactManagerProxy,
-			accountID,
-			contactID,
-			firstName,
-			lastName,
-			email,
-			&error);
-	if(error)
-	{
-		g_printerr ("Failed to call set_contact on ContactManager: %s\n", error->message);
-		g_error_free (error);
-	}
-	else
-		g_print ("DBus called set_contact on ContactManager\n");
-}
-
-void
-dbus_remove_contact(gchar* accountID, gchar* contactID)
-{
-	GError* error = NULL;
-	org_sflphone_SFLphone_ContactManager_remove_contact(
-			contactManagerProxy,
-			accountID,
-			contactID,
-			&error);
-	if(error)
-	{
-		g_printerr ("Failed to call remove_contact on ContactManager: %s\n", error->message);
-		g_error_free (error);
-	}
-	else
-		g_print ("DBus called remove_contact on ContactManager\n");
-}
-
-void
-dbus_set_contact_entry(gchar* accountID, gchar* contactID, gchar* entryID, gchar* text, gchar* type, gchar* isShown, gchar* isSubscribed)
-{
-	GError* error = NULL;
-	org_sflphone_SFLphone_ContactManager_set_contact_entry(
-			contactManagerProxy,
-			accountID,
-			contactID,
-			entryID,
-			text,
-			type,
-			isShown,
-			isSubscribed,
-			&error);
-	if(error)
-	{
-		g_printerr ("Failed to call set_contact_entry on ContactManager: %s\n", error->message);
-		g_error_free (error);
-	}
-	else
-		g_print ("DBus called set_contact_entry on ContactManager\n");
-}
-
-void
-dbus_remove_contact_entry(gchar* accountID, gchar* contactID, gchar* entryID)
-{
-	GError* error = NULL;
-	org_sflphone_SFLphone_ContactManager_remove_contact_entry(
-			contactManagerProxy,
-			accountID,
-			contactID,
-			entryID,
-			&error);
-	if(error)
-	{
-		g_printerr ("Failed to call remove_contact_entry on ContactManager: %s\n", error->message);
-		g_error_free (error);
-	}
-	else
-		g_print ("DBus called remove_contact_entry on ContactManager\n");
-}
-
-void
-dbus_set_presence(gchar* accountID, gchar* presenceStatus, gchar* presenceInfo)
-{
-	GError* error = NULL;
-	org_sflphone_SFLphone_ContactManager_set_presence(
-			contactManagerProxy,
-			accountID,
-			presenceStatus,
-			presenceInfo,
-			&error);
-	if(error)
-	{
-		g_printerr ("Failed to call set_presence on ContactManager: %s\n", error->message);
-		g_error_free (error);
-	}
-	else
-		g_print ("DBus called set_presence on ContactManager\n");
 }
 
 //Brightness of the video capture

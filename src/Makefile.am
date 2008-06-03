@@ -32,12 +32,12 @@ ALSAFLAG= -lasound
 
 EXPATFLAG= -lexpat
 
-SUBDIRS = audio config dbus $(ZEROCONFDIR) contact memmanager video mixer
+SUBDIRS = audio config dbus $(ZEROCONFDIR) memmanager video mixer
 
 sflphoned_SOURCES = eventthread.cpp 	main.cpp 	voiplink.cpp \
 		managerimpl.cpp	observer.cpp \
 		account.cpp sipaccount.cpp accountcreator.cpp \
-		sipvoiplink.cpp call.cpp sipcall.cpp sippresencemanager.cpp tracePrintSFL.cpp ConfCall.cpp \
+		sipvoiplink.cpp call.cpp sipcall.cpp tracePrintSFL.cpp ConfCall.cpp \
 		$(IAXSOURCES)
 
 sflphoned_CXXFLAGS = -DPREFIX=\"$(prefix)\" -DPROGSHAREDIR=\"${datadir}/sflphone\" $(ZEROCONFFLAGS) $(IAX_FLAGS) $(SFLPHONE_CFLAGS) $(SIP_CFLAGS)
@@ -56,7 +56,6 @@ libsflphone_la_LIBADD = \
 	./audio/libaudio.la \
 	./dbus/libdbus.la \
 	./config/libconfig.la \
-	./contact/libcontact.la \
 	./memmanager/libmemmanager.la \
 	./mixer/libmixer.la \
 	./video/libvideo.la \
@@ -70,6 +69,5 @@ noinst_LTLIBRARIES = libsflphone.la
 noinst_HEADERS = managerimpl.h manager.h global.h observer.h eventthread.h user_cfg.h \
 		voiplink.h \
 		account.h sipaccount.h accountcreator.h \
-		sipvoiplink.h  call.h  sipcall.h sippresencemanager.h \
+		sipvoiplink.h  call.h  sipcall.h \
 		$(IAXHEADERS)
-

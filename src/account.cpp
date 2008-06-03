@@ -32,17 +32,6 @@ Account::Account(const AccountID& accountID) : _accountID(accountID)
 
 Account::~Account()
 {
-	// Delete contacts
-	std::vector<Contact*>::iterator iter;
-	
-	iter = _contacts.begin();
-	while (iter != _contacts.end())
-	{
-		delete *iter;
-		*iter = NULL;
-		iter++;
-	}
-	_contacts.clear();
 }
 
 void
@@ -59,61 +48,4 @@ Account::loadConfig()
 #endif
 }
 
-void
-Account::loadContacts()
-{
-	// Load contact file containing all contacts and entries for account
-	ContactManager::getInstance()->readContacts(_accountID, _contacts);
-}
 
-void
-Account::saveContacts()
-{
-	// Save contacts in contact file
-	ContactManager::getInstance()->saveContacts(_accountID, _contacts);	
-}
-
-std::vector<Contact*>&
-Account::getContacts()
-{
-	return _contacts;
-}
-
-void
-Account::addContact(Contact* contact)
-{
-	_contacts.push_back(contact);
-}
-
-void
-Account::subscribeContactsPresence()
-{
-	// Only if account type supports presence via its VoIP link
-	if(_link->isContactPresenceSupported())
-	{
-		// Subscribe to presence for each contact entry that presence is enabled
-		std::vector<Contact*>::const_iterator contactIter;		
-		for(contactIter = _contacts.begin(); contactIter != _contacts.end(); contactIter++)
-		{
-			// Get entries for each contact
-			Contact* contact = (Contact*)*contactIter;
-			std::vector<ContactEntry*> entries = contact->getEntries();
-			std::vector<ContactEntry*>::const_iterator contactEntryIter;
-			for(contactEntryIter = entries.begin(); contactEntryIter != entries.end(); contactEntryIter++)
-			{
-				// If the entry is subscribed to presence, send subscription via VoIP link
-				ContactEntry* entry = (ContactEntry*)*contactEntryIter;
-				if(entry->getSubscribedToPresence())
-					_link->subscribePresenceForContact(entry);
-			}
-		}
-	}
-}
-
-void
-Account::publishPresence(std::string presenceStatus)
-{
-	// Publish passive status only if account type supports presence via its VoIP link
-	if(_link->isContactPresenceSupported())
-		_link->publishPresenceStatus(presenceStatus);
-}

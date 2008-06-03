@@ -255,11 +255,18 @@
       <arg type="i" name="res" direction="out"/>
     </method>
 
+    <method name="getDialpad">
+      <arg type="i" name="state" direction="out"/>
+    </method>
+
     <method name="setDialpad">
     </method>
 
-    <method name="getDialpad">
+    <method name="getSearchbar">
       <arg type="i" name="state" direction="out"/>
+    </method>
+
+    <method name="setSearchbar">
     </method>
 
     <method name="getVolumeControls">

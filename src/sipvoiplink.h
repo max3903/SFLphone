@@ -161,17 +161,6 @@ class SIPVoIPLink : public VoIPLink
 
     bool sendMessage(const std::string& to, const std::string& body);
 
-    bool isContactPresenceSupported();
-
-    void subscribePresenceForContact(ContactEntry* contact);
-    void unsubscribePresenceForContact(ContactEntry* contactEntry);
-
-    void publishPresenceStatus(std::string status);
-    void subscriptionNotificationReceived(eXosip_event_t* event, char* body);
-
-    // TODO Not used yet
-    void sendMessageToContact(const CallID& id, const std::string& message);
-
     /** 
      * If set to true, we check for a firewall
      * @param use true if we use STUN
