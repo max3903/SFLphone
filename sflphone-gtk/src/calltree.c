@@ -40,7 +40,6 @@ GtkToolItem * hangupButton;
 GtkToolItem * holdButton;
 GtkToolItem * transfertButton;
 GtkToolItem * unholdButton;
-GtkToolItem * inviteButton;
 GtkToolItem * historyButton;
 GtkToolItem * mailboxButton;
 GtkToolItem * webcamButton;
@@ -48,15 +47,9 @@ GtkToolItem * webcamButton;
 guint transfertButtonConnId; //The button toggled signal connection ID
 gboolean history_shown;
 
-//Conference dialogs
-GtkDialog *inviteDialog;
-GtkDialog *joinDialog;
-
 //webcam enable/disable dialogs
 GtkWidget * enableDialog;
 GtkWidget * disableDialog;
-//The second call to make a conference
-call_t * callConf;
 
   void
 switch_tab()
@@ -266,80 +259,6 @@ create_disable_webcam_window()
   }
 }
 
-/**
- * Invite 3rd person to make a conference call
- */
-  static void
-inviteUser( GtkWidget *widget, gpointer data )
-{
-  call_t * selectedCall = call_get_selected(current_calls);
-  if(selectedCall)
-  {
-    if(selectedCall->state == CALL_STATE_CURRENT)
-    {
-      dbus_hold(selectedCall);
-      create_invite_window();
-    }
-  }
-
-}
-
-  static void
-invite_call_button(GtkButton *button, gpointer user_data)
-{
-  char buf[20];
-  gboolean answer;
-
-  //Initialize call struct
-  callConf = g_new0 (call_t, 1);
-  strcpy(buf, gtk_entry_get_text(user_data));
-  printf("buffer: %s \n", buf);
-  callConf->state = CALL_STATE_DIALING;
-  callConf->from = g_strconcat("\"\" <>", NULL);
-  callConf->callID = g_new0(gchar, 30);
-  g_sprintf(callConf->callID, "%d", rand()); 
-  callConf->to = g_strdup(buf);
-
-  //TODO: Place a new call
-
-  gtk_dialog_response(inviteDialog, GTK_RESPONSE_DELETE_EVENT);
-  gtk_widget_destroy(GTK_WIDGET(inviteDialog));
-
-  //Wait for positive answer then show the join dialog
-
-  if(answer)
-  {
-    create_join_window();
-  }
-  else
-  {
-    //TODO: popup an error window
-    call_t * selectedCall = call_get_selected(current_calls);
-    if(selectedCall)
-    {
-      if(selectedCall->state == CALL_STATE_HOLD)
-      {
-	dbus_unhold(selectedCall);
-      }
-    }
-    printf("connexion not established \n");	
-  }
-}
-
-  static void
-invite_cancel_button(GtkButton *button, gpointer user_data)
-{
-  call_t * selectedCall = call_get_selected(current_calls);
-  if(selectedCall)
-  {
-    if(selectedCall->state == CALL_STATE_HOLD)
-    {
-      dbus_unhold(selectedCall);
-    }
-  }
-  gtk_dialog_response(inviteDialog, GTK_RESPONSE_DELETE_EVENT);
-  gtk_widget_destroy(GTK_WIDGET(inviteDialog));
-}
 
 /* Limits the entry to numbers only */
   void
@@ -368,155 +287,26 @@ insert_text_handler (GtkEntry *entry, const gchar *text, gint length,
   g_free (result);
 }
 
-  void
-create_invite_window()
-{
-  GtkWidget *dialogVBox;
-  GtkWidget *confVBox;
-  GtkWidget *phoneLabel;
-  GtkWidget *phoneEntry;
-  GtkWidget *inviteCallButton;
-  GtkWidget *inviteCancelButton;
-
-  inviteDialog = GTK_DIALOG(gtk_dialog_new_with_buttons ("Invite user",
-	GTK_WINDOW(get_main_window()),
-	GTK_DIALOG_DESTROY_WITH_PARENT,
-	NULL));
-
-  gtk_dialog_set_has_separator(inviteDialog, FALSE);
-  gtk_window_set_default_size(GTK_WINDOW(inviteDialog), 100, 100);
-  gtk_container_set_border_width(GTK_CONTAINER(inviteDialog), 0);
-
-  dialogVBox = GTK_DIALOG (inviteDialog)->vbox;
-  gtk_widget_show (dialogVBox);
-
-  confVBox = gtk_vbox_new (FALSE, 0);
-  gtk_box_pack_start (GTK_BOX (dialogVBox), confVBox, TRUE, TRUE, 0);
-  gtk_widget_show (confVBox);
-
-  phoneLabel = gtk_label_new (("Enter the phone number to call then press the Call button"));
-  gtk_widget_show (phoneLabel);
-  gtk_box_pack_start (GTK_BOX (confVBox), phoneLabel, TRUE, TRUE, 0);
-
-  phoneEntry = gtk_entry_new ();
-  gtk_widget_show (phoneEntry);
-  gtk_box_pack_start (GTK_BOX (confVBox), phoneEntry, TRUE, TRUE, 0);
-
-  inviteCallButton = gtk_button_new_with_mnemonic (("Call"));
-  gtk_widget_show (inviteCallButton);
-  gtk_dialog_add_action_widget (GTK_DIALOG (inviteDialog), inviteCallButton, 0);
-
-  inviteCancelButton = gtk_button_new_with_mnemonic (("Cancel"));
-  gtk_widget_show (inviteCancelButton);
-  gtk_dialog_add_action_widget (GTK_DIALOG (inviteDialog), inviteCancelButton, 0);
-
-  g_signal_connect(G_OBJECT(inviteCallButton), "clicked", G_CALLBACK (invite_call_button), phoneEntry);
-  g_signal_connect(G_OBJECT(inviteCancelButton), "clicked", G_CALLBACK (invite_cancel_button), NULL);
-  g_signal_connect(G_OBJECT(phoneEntry), "insert_text", G_CALLBACK(insert_text_handler), NULL);
-
-  gtk_dialog_run(inviteDialog);
-}
-
-  static void
-join_button(GtkButton *button, gpointer user_data)
-{
-  call_t * selectedCall = call_get_selected(current_calls);
-  if(selectedCall)
-  {
-    if(selectedCall->state == CALL_STATE_HOLD)
-    {
-      //Join calls
-      if(dbus_join_conference(selectedCall, callConf))
-      {
-	update_menus();
-	//TODO: update calltree icons
-      }
-    }
-    selectedCall->state = CALL_STATE_CONF;
-    callConf->state = CALL_STATE_CONF;
-  }
-
-  toolbar_update_buttons ();
-  gtk_dialog_response(joinDialog, GTK_RESPONSE_DELETE_EVENT);
-  gtk_widget_destroy(GTK_WIDGET(joinDialog));
-}
-
-  static void
-join_cancel_button(GtkButton *button, gpointer user_data)
-{
-  //TODO: hangup call with the callee
-  call_t * selectedCall = call_get_selected(current_calls);
-  if(selectedCall)
-  {
-    if(selectedCall->state == CALL_STATE_HOLD)
-    {
-      dbus_hang_up(callConf);
-      dbus_unhold(selectedCall);
-    }
-  }
-  gtk_dialog_response(joinDialog, GTK_RESPONSE_DELETE_EVENT);
-  gtk_widget_destroy(GTK_WIDGET(joinDialog));
-}
-
-  void
-create_join_window()
-{
-  GtkWidget *joinVBox;
-  GtkWidget *joinLabel;
-  GtkWidget *joinButton;
-  GtkWidget *joinCancelButton;
-
-
-  joinDialog = GTK_DIALOG(gtk_dialog_new_with_buttons ("Invite user",
-	GTK_WINDOW(get_main_window()),
-	GTK_DIALOG_DESTROY_WITH_PARENT,
-	NULL));
-
-  gtk_dialog_set_has_separator(joinDialog, FALSE);
-  gtk_window_set_default_size(GTK_WINDOW(joinDialog), 100, 100);
-  gtk_container_set_border_width(GTK_CONTAINER(joinDialog), 0);
-
-  joinVBox = GTK_DIALOG (joinDialog)->vbox;
-  gtk_widget_show (joinVBox);
-
-  joinLabel = gtk_label_new (("The connection has been established \n Press join to start the conference"));
-  gtk_widget_show (joinLabel);
-  gtk_box_pack_start (GTK_BOX (joinVBox), joinLabel, TRUE, TRUE, 0);
-
-  joinButton = gtk_button_new_with_mnemonic (("Join"));
-  gtk_widget_show (joinButton);
-  gtk_dialog_add_action_widget (GTK_DIALOG (joinDialog), joinButton, 0);
-
-  joinCancelButton = gtk_button_new_with_mnemonic (("Cancel"));
-  gtk_widget_show (joinCancelButton);
-  gtk_dialog_add_action_widget (GTK_DIALOG (joinDialog), joinCancelButton, 0);
-
-  g_signal_connect(G_OBJECT(joinButton), "clicked", G_CALLBACK (join_button), NULL);
-  g_signal_connect(G_OBJECT(joinCancelButton), "clicked", G_CALLBACK (join_cancel_button), NULL);
-
-  gtk_dialog_run(joinDialog);
-}
-
   static void
 toggle_history(GtkToggleToolButton *toggle_tool_button,
     gpointer	user_data)
 {
-	GtkTreeSelection *sel;
-	if(history_shown){
-		active_calltree = current_calls;
-		gtk_widget_hide(history->tree);
-		gtk_widget_show(current_calls->tree);
-		history_shown = FALSE;
-	}else{
-		active_calltree = history;
-		gtk_widget_hide(current_calls->tree);
-		gtk_widget_show(history->tree);
-		history_shown = TRUE;
-	}
-	sel = gtk_tree_view_get_selection (GTK_TREE_VIEW (active_calltree->view));
-	g_signal_emit_by_name(sel, "changed");
-	toolbar_update_buttons();
-	gtk_tree_model_filter_refilter(GTK_TREE_MODEL_FILTER(histfilter));
+  GtkTreeSelection *sel;
+  if(history_shown){
+    active_calltree = current_calls;
+    gtk_widget_hide(history->tree);
+    gtk_widget_show(current_calls->tree);
+    history_shown = FALSE;
+  }else{
+    active_calltree = history;
+    gtk_widget_hide(current_calls->tree);
+    gtk_widget_show(history->tree);
+    history_shown = TRUE;
+  }
+  sel = gtk_tree_view_get_selection (GTK_TREE_VIEW (active_calltree->view));
+  g_signal_emit_by_name(sel, "changed");
+  toolbar_update_buttons();
+  gtk_tree_model_filter_refilter(GTK_TREE_MODEL_FILTER(histfilter));
 
 }
 
@@ -553,7 +343,6 @@ toolbar_update_buttons ()
   gtk_widget_set_sensitive( GTK_WIDGET(mailboxButton) ,   FALSE);
   gtk_widget_set_sensitive( GTK_WIDGET(unholdButton),     FALSE);
   gtk_widget_set_sensitive( GTK_WIDGET(webcamButton),     FALSE);
-  gtk_widget_set_sensitive( GTK_WIDGET(inviteButton),     FALSE);	
   g_object_ref(holdButton);
   g_object_ref(unholdButton);
   if( is_inserted( GTK_WIDGET(holdButton) ) )   gtk_container_remove(GTK_CONTAINER(toolbar), GTK_WIDGET(holdButton));
@@ -564,10 +353,6 @@ toolbar_update_buttons ()
   if( is_inserted( GTK_WIDGET(callButton) ) )	gtk_container_remove(GTK_CONTAINER(toolbar), GTK_WIDGET(callButton));
   if( is_inserted( GTK_WIDGET(pickupButton) ) )	gtk_container_remove(GTK_CONTAINER(toolbar), GTK_WIDGET(pickupButton));
   gtk_toolbar_insert(GTK_TOOLBAR(toolbar), callButton, 0);
-
-  g_object_ref(inviteButton);
-  gtk_container_remove(GTK_CONTAINER(toolbar), GTK_WIDGET(inviteButton));
-  gtk_toolbar_insert(GTK_TOOLBAR(toolbar), inviteButton, -1);
 
   gtk_signal_handler_block(GTK_OBJECT(transfertButton),transfertButtonConnId);
   gtk_toggle_tool_button_set_active(GTK_TOGGLE_TOOL_BUTTON(transfertButton), FALSE);
@@ -610,7 +395,6 @@ toolbar_update_buttons ()
 	gtk_widget_set_sensitive( GTK_WIDGET(transfertButton),  TRUE);
 	gtk_widget_set_sensitive( GTK_WIDGET(callButton),       TRUE);
 	gtk_widget_set_sensitive( GTK_WIDGET(webcamButton),     TRUE);
-	gtk_widget_set_sensitive( GTK_WIDGET(inviteButton),     TRUE);
 	break;
       case CALL_STATE_BUSY:
       case CALL_STATE_FAILURE:
@@ -627,7 +411,6 @@ toolbar_update_buttons ()
 	break;
       case CALL_STATE_CONF:
 	gtk_widget_set_sensitive( GTK_WIDGET(callButton),       FALSE);
-	gtk_widget_set_sensitive( GTK_WIDGET(inviteButton),     FALSE);
 	gtk_widget_set_sensitive( GTK_WIDGET(transfertButton),  FALSE);
 	gtk_widget_set_sensitive( GTK_WIDGET(holdButton),       FALSE);
 	gtk_widget_set_sensitive( GTK_WIDGET(hangupButton),     TRUE);
@@ -826,25 +609,34 @@ create_toolbar ()
       G_CALLBACK (call_mailbox), NULL);
   gtk_toolbar_insert(GTK_TOOLBAR(ret), GTK_TOOL_ITEM(mailboxButton), -1);
 
+  image = gtk_image_new_from_file( ICONS_DIR "/webcam.svg" );
+  webcamButton = gtk_toggle_tool_button_new ();
+  gtk_tool_button_set_icon_widget(GTK_TOOL_BUTTON(webcamButton), image);
+  gtk_widget_set_tooltip_text(GTK_WIDGET(webcamButton), "Enable Webcam");
+  gtk_tool_button_set_label(GTK_TOOL_BUTTON(webcamButton), "Enable Webcam");
+  gtk_widget_set_state( GTK_WIDGET(webcamButton), GTK_STATE_INSENSITIVE);
+  g_signal_connect (G_OBJECT (webcamButton), "toggled", G_CALLBACK (webcamStatusChange), NULL);
+  gtk_toolbar_insert(GTK_TOOLBAR(ret), GTK_TOOL_ITEM(webcamButton), -1); 
+
   return ret;
 
 }  
-static gboolean
+  static gboolean
 on_key_released (GtkWidget   *widget,
-                GdkEventKey *event,
-                gpointer     user_data)  
+    GdkEventKey *event,
+    gpointer     user_data)  
 {
   // If a modifier key is pressed, it's a shortcut, pass along
   if(event->state & GDK_CONTROL_MASK || 
-     event->state & GDK_MOD1_MASK    ||
-     event->keyval == 60             || // <
-     event->keyval == 62             || // >
-     event->keyval == 34             || // "
-     event->keyval == 65361          || // left arrow
-     event->keyval == 65363          || // right arrow
-     event->keyval >= 65470          || // F-keys
-     event->keyval == 32                // space
-     )
+      event->state & GDK_MOD1_MASK    ||
+      event->keyval == 60             || // <
+      event->keyval == 62             || // >
+      event->keyval == 34             || // "
+      event->keyval == 65361          || // left arrow
+      event->keyval == 65363          || // right arrow
+      event->keyval >= 65470          || // F-keys
+      event->keyval == 32                // space
+    )
     return FALSE;
   else
     sflphone_keypad(event->keyval, event->string);

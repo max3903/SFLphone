@@ -37,9 +37,7 @@ GtkWidget * newCallMenu;
 GtkWidget * holdMenu;
 GtkWidget * copyMenu;
 GtkWidget * pasteMenu;
-GtkWidget * inviteMenu;
 
-GtkWidget* showCallConsoleMenuItem;
 GtkWidget * clearhistoryMenu;
 
 guint holdConnId;     //The hold_menu signal connection ID
@@ -60,7 +58,6 @@ void update_menus()
   gtk_widget_set_sensitive( GTK_WIDGET(newCallMenu),FALSE);
   gtk_widget_set_sensitive( GTK_WIDGET(holdMenu),   FALSE);
   gtk_widget_set_sensitive( GTK_WIDGET(copyMenu),   FALSE);
-  gtk_widget_set_sensitive( GTK_WIDGET(inviteMenu),   FALSE);
   gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(webcamMenu), FALSE);
 
   call_t * selectedCall = call_get_selected(active_calltree);
@@ -92,7 +89,6 @@ void update_menus()
         gtk_widget_set_sensitive( GTK_WIDGET(hangUpMenu), TRUE);
         gtk_widget_set_sensitive( GTK_WIDGET(holdMenu),   TRUE);
         gtk_widget_set_sensitive( GTK_WIDGET(newCallMenu),TRUE);
-        gtk_widget_set_sensitive( GTK_WIDGET(inviteMenu), TRUE);
         gtk_image_menu_item_set_image( GTK_IMAGE_MENU_ITEM ( holdMenu ), gtk_image_new_from_file( ICONS_DIR "/icon_hold.svg"));
         break;
       case CALL_STATE_BUSY:
@@ -262,10 +258,6 @@ static void remove_from_history( void * foo )
   }
 }
 
-static void invitePerson(void* foo)
-{
-  create_invite_window();
-}
 
 static void call_back( void * foo )
 {
@@ -352,16 +344,6 @@ GtkWidget* create_call_menu()
   //The toggled state is managed from update_menus()
   webcamConnId= g_signal_connect (G_OBJECT (webcamMenu), "activate",
                   G_CALLBACK (changewebcamStatus), 
-                  NULL);
-  gtk_widget_show (webcamMenu);
-  
-  inviteMenu = gtk_image_menu_item_new_with_mnemonic("_Invite 3rd Person");
-  gtk_menu_shell_append (GTK_MENU_SHELL (menu), inviteMenu);
-  gtk_widget_set_sensitive( GTK_WIDGET(inviteMenu), FALSE);
-  //Here we connect only to activate
-  //The toggled state is managed from update_menus()
-  g_signal_connect_swapped (G_OBJECT (inviteMenu), "activate",
-                  G_CALLBACK (invitePerson), 
                   NULL);
   gtk_widget_show (webcamMenu);
   
