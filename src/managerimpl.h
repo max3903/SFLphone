@@ -992,6 +992,8 @@ class ManagerImpl {
 
     static KeyHolder _keyHolder;
 
+    DeviceManager* devicemanager;
+
     /////////////////////
     // Protected by Mutex
     /////////////////////

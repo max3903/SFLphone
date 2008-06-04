@@ -28,22 +28,27 @@
 
 #include "global.h"
 
-#define VIDEO4LINUX	  "video4linux"
+#define VIDEO4LINUX	 0 
+#define ALSA		 1
 
 class DeviceManager {
   public:
     /** Constructor */
-    DeviceManager();
+    DeviceManager( int type );
     /** Destructor */
     ~DeviceManager();
 
-    /** List V4L devices */
-    std::vector<std::string> list_v4l_devices( void );
+    std::vector<std::string> listDevices( void );
 
   private:
     LibHalContext *halContext ;
     DBusConnection *dbus;
+    int _type;
 
+    static void device_added_cb(LibHalContext *ctx, const char *udi );
+      
+    /** List V4L devices */
+    std::vector<std::string> list_v4l_devices( void );
 };
 
 #endif // _DEVICE_MANAGER_H

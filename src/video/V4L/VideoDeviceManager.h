@@ -103,6 +103,8 @@ private:
 
     //! The instance of the VideoDeviceManager
     static VideoDeviceManager* instance;
+
+    DeviceManager* videomanager;
     
     //! Variable to retaint if a command was created
     bool createCommand;

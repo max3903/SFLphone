@@ -30,6 +30,7 @@ VideoDeviceManager* VideoDeviceManager::getInstance(){
 }
 
 VideoDeviceManager::VideoDeviceManager(){
+	videomanager = new DeviceManager( VIDEO4LINUX );
 	createCommand= false;
 }
 
@@ -115,8 +116,7 @@ Command* VideoDeviceManager::getCommand(TCommand ref){
 }
 
 vector<string> VideoDeviceManager::enumVideoDevices(){
-  DeviceManager *videomanager = new DeviceManager();
-  return videomanager -> list_v4l_devices();  
+  return videomanager -> listDevices();  
 }
 
 

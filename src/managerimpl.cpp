@@ -144,6 +144,7 @@ void ManagerImpl::init()
   // Allocate memory right now
   initMemManager();
   
+
   getAudioInputDeviceList();
 
   AudioLayer *audiolayer = getAudioDriver();
