@@ -368,6 +368,8 @@ create_voicemail_window( void )
 	GtkWidget * hseparator;
 	GtkWidget * hbox;
 	GtkWidget * hscale;
+	GtkWidget * expander;
+	GtkWidget * textView;
 	GtkTooltips *tooltips;
 	
 	tooltips = gtk_tooltips_new();
@@ -403,13 +405,24 @@ create_voicemail_window( void )
 	create_tree();
 	for( i = 1 ; i < 6 ; i++ )
 	{
-		update_tree( g_markup_printf_escaped( "<b>Mail</b> <i>#%d</i>" , i ) );
+		update_tree( g_markup_printf_escaped( "Mail #%d" , i ) );
 	}
 	/********************************/
 	gtk_widget_show( treeview );
 	gtk_container_add( GTK_CONTAINER( scrolledwindow ), treeview );
 	gtk_tree_view_set_headers_visible( GTK_TREE_VIEW( treeview ), FALSE );
 	g_signal_connect( GTK_TREE_VIEW( treeview ), "row-activated", G_CALLBACK( on_play ), NULL );
+	
+	
+	/** Expander */
+	expander = gtk_expander_new( "Details" );
+	gtk_box_pack_start( GTK_BOX( vbox ), expander, FALSE, FALSE, 0 );
+	
+	/** Text View */
+	textView = gtk_text_view_new();
+	gtk_text_view_set_editable( GTK_TEXT_VIEW( textView ), FALSE );
+	gtk_text_view_set_border_window_size( GTK_TEXT_VIEW( textView ), GTK_TEXT_WINDOW_RIGHT, 5 );
+	gtk_container_add( GTK_CONTAINER( expander ), textView );
 	
 	/** Separator */
 	hseparator = gtk_hseparator_new();
