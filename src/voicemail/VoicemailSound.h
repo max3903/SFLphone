@@ -28,6 +28,7 @@ class VoicemailSound {
 		std::string _format;
 		std::string _folder;
 		std::string _file;
+		std::string _datas;
 	
 	public :
 		VoicemailSound();
@@ -39,6 +40,7 @@ class VoicemailSound {
 		std::string getFolder();
 		void        setFile(std::string);
 		std::string getFile();
+		void        setDatas(std::string);
 		
 		void toString();
 

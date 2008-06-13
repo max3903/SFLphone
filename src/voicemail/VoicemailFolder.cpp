@@ -52,9 +52,11 @@ vector<Voicemail *> VoicemailFolder::getLstVM() {
 
 void VoicemailFolder::addVM(Voicemail *vm) {
 	_lst_vm.push_back( vm );
+//	_count++;
 }
 
 bool VoicemailFolder::removeVM(Voicemail *vm) {
+//	_count--;
 	return true;
 }
 
@@ -66,13 +68,16 @@ Voicemail * VoicemailFolder::getVMAt(int i) {
 	}
 }
 
+Voicemail * VoicemailFolder::getVMByName(string name) {
+	for( int i = 0 ; i < getCount() ; i++ ) {
+		if( getVMAt(i)->getName().compare( name ) == 0 ) {
+			return getVMAt(i);
+		}
+	}
+	return NULL;
+}
+
 void VoicemailFolder::toString() {
 	cout << "   '-" << getName() << " (" << getCount() << ")" << endl;
 }
 
-/*
-int main(int argc, char *argv[]) {
-	std::cout << " -- VoicemailFolderMain --" << std::endl;
-	return 0;
-}
-*/

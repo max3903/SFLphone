@@ -24,29 +24,28 @@
 #include <vector>
 #include "Voicemail.h"
 
-using namespace std;
-
 class VoicemailFolder {
 	
 	private :
-		vector<Voicemail *> _lst_vm;
-		string              _name;
-		int                 _count;
+		std::vector<Voicemail *> _lst_vm;
+		std::string              _name;
+		int                      _count;
 	
 	public :
 		VoicemailFolder();
 		~VoicemailFolder();
 		
-		void   setName(string);
-		string getName();
+		void        setName(std::string);
+		std::string getName();
 		
 		void setCount(int);
 		int  getCount();
 
-		vector<Voicemail *> getLstVM();
-		void                addVM(Voicemail *);
-		bool                removeVM(Voicemail *);
-		Voicemail *         getVMAt(int);
+		std::vector<Voicemail *> getLstVM();
+		void                     addVM(Voicemail *);
+		bool                     removeVM(Voicemail *);
+		Voicemail *              getVMAt(int);
+		Voicemail *              getVMByName(std::string);
 		
 		void toString();
 

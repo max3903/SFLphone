@@ -22,7 +22,9 @@
 
 #include <string>
 #include <vector>
+#include <expat.h>
 #include "VoicemailFolder.h"
+#include "VoicemailSound.h"
 
 using namespace std;
 
@@ -43,6 +45,7 @@ class VMViewerd {
 		string _file_store;
 		
 		vector<VoicemailFolder *> _lst_folders;
+		vector<VoicemailSound *>  _lst_sounds;
 	
 	public :
 		VMViewerd(int logVM, int pwdVM, string ctxt, string srvAddr, string srvPath, int srvPort):
@@ -76,16 +79,27 @@ class VMViewerd {
 		
 		string getFileStore();
 		
-		/** Maniplulation voicemail's folders */
+		
+		/** Maniplulation of voicemail's folders */
 		vector<VoicemailFolder *> getLstFolders();
 		VoicemailFolder *         getFolderAt(int);
+		VoicemailFolder *         getFolderByName(string);
 		void                      addVMF(VoicemailFolder *);
 //		bool                      removeVMF(VoicemailFolder *);
+		
+		/** Manipulation of voicemail's sounds */
+		vector<VoicemailSound *> getLstSounds();
+		VoicemailSound *         getSoundAt(int);
+		void                     addVMS(VoicemailSound *);
 		
 		void toString();
 		
 		/** */
 		int exec(string);
+		void parse();
+/*		void startElement(void *, const XML_Char *, const XML_Char **);
+		void endElement(void *, const XML_Char *);
+		void character(void *, const char *, int);*/
 		void extrat();
 		
 };

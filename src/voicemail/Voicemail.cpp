@@ -21,6 +21,7 @@
 #include <string>
 #include "Voicemail.h"
 
+using namespace std;
 
 Voicemail::Voicemail() {
 }
@@ -33,19 +34,19 @@ void Voicemail::setId(int id) {
 	_id = id;
 }
 
-void Voicemail::setCallerchan(std::string chan) {
-	
+void Voicemail::setCallerchan(string chan) {
+	_callerchan = chan;
 }
 
 void Voicemail::setCallerid(int cal) {
 	_callerid = cal;
 }
 
-void Voicemail::setCategory(std::string cat) {
+void Voicemail::setCategory(string cat) {
 	_category = cat;
 }
 
-void Voicemail::setContext(std::string cont) {
+void Voicemail::setContext(string cont) {
 	_context = cont;
 }
 
@@ -53,55 +54,69 @@ void Voicemail::setDuration(int dur) {
 	_duration = dur;
 }
 
-void Voicemail::setExten() {
+void Voicemail::setExten(string ext) {
+	_exten = ext;
 }
 
-void Voicemail::setMacrocontext(std::string mac) {
+void Voicemail::setMacrocontext(string mac) {
 	_macrocontext = mac;
 }
 
-void Voicemail::setName(std::string nam) {
+void Voicemail::setName(string nam) {
 	_name = nam;
 }
 
-std::string Voicemail::getName() {
+string Voicemail::getName() {
 	return _name;
 }
 
-void Voicemail::setOrigdate() {
+void Voicemail::setOrigdate(string dat) {
+	_origdate = dat;
 }
 
-void Voicemail::setOrigmailbox() {
+void Voicemail::setOrigmailbox(int m) {
+	_origmailbox = m;
 }
 
-void Voicemail::setOrigtime() {
+void Voicemail::setOrigtime(int t) {
+	_origtime = t;
 }
 
-void Voicemail::setPriority() {
+void Voicemail::setPriority(int p) {
+	_priority = p;
+}
+
+VoicemailSound * Voicemail::getVMSoundAt(int i) {
+	if( i < 0 || i >= _lst_sounds.size() ) {
+		return NULL;
+	} else {
+		return _lst_sounds[i];
+	}
+}
+
+VoicemailSound * Voicemail::getVMSoundByFormat(string ext) {
+	for( int i = 0 ; i < _lst_sounds.size() ; i++ ) {
+		if( getVMSoundAt(i)->getFormat().compare( ext ) == 0 ) {
+			return getVMSoundAt(i);
+		}
+	}
+	return NULL;
 }
 
 void Voicemail::toString() {
-	cout << "      [ VOICEMAIL ]" << endl;
-	cout << "        '-name         : " << _name << endl;
-	cout << "        '-id           : " << _id << endl;
-	cout << "        '-callerchan   : " << _callerchan << endl;
-	cout << "        '-callerid     : " << _callerid << endl;
-	cout << "        '-category     : " << _category << endl;
-	cout << "        '-context      : " << _context << endl;
-	cout << "        '-duration     : " << _duration << endl;
-	cout << "        '-exten        : " << _exten << endl;
-	cout << "        '-macrocontext : " << _macrocontext << endl;
-	cout << "        '-origdate     : " << _origdate << endl;
-	cout << "        '-origmailbox  : " << _origmailbox << endl;
-	cout << "        '-origtime     : " << _origtime << endl;
-	cout << "        '-priority     : " << _priority << endl;
+	cout << "       '-[ VOICEMAIL ]" << endl;
+	cout << "          '-name         : " << _name << endl;
+	cout << "          '-id           : " << _id << endl;
+	cout << "          '-callerchan   : " << _callerchan << endl;
+	cout << "          '-callerid     : " << _callerid << endl;
+	cout << "          '-category     : " << _category << endl;
+	cout << "          '-context      : " << _context << endl;
+	cout << "          '-duration     : " << _duration << endl;
+	cout << "          '-exten        : " << _exten << endl;
+	cout << "          '-macrocontext : " << _macrocontext << endl;
+	cout << "          '-origdate     : " << _origdate << endl;
+	cout << "          '-origmailbox  : " << _origmailbox << endl;
+	cout << "          '-origtime     : " << _origtime << endl;
+	cout << "          '-priority     : " << _priority << endl;
 }
 
-
-
-/*
-int main(int argc, char *argv[]) {
-	std::cout << " -- VoicemailMain --" << std::endl;
-	return 0;
-}
-*/

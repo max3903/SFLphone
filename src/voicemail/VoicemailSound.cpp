@@ -33,15 +33,28 @@ void VoicemailSound::setFormat(std::string form) {
 	_format = form;
 }
 
+void VoicemailSound::setFile(std::string fil) {
+	_file = fil;
+}
+
+void VoicemailSound::setFolder(std::string fol) {
+	_folder = fol;
+}
+
 std::string VoicemailSound::getFormat() {
 	return _format;
 }
 
+void VoicemailSound::setDatas( std::string dat ) {
+	_datas = dat;
+}
+
 
 void VoicemailSound::toString() {
-	std::cout << "        [ VOICEMAILSOUND ]" << std::endl;
-	std::cout << "          '-format : " << _format << std::endl;
-	std::cout << "          '-folder : " << _folder << std::endl;
-	std::cout << "          '-file   : " << _file << std::endl;
+	std::cout << "   [ VOICEMAILSOUND ]" << std::endl;
+	std::cout << "     '-format : " << _format << std::endl;
+	std::cout << "     '-folder : " << _folder << std::endl;
+	std::cout << "     '-file   : " << _file << std::endl;
+	std::cout << "     '-datas (length) : " << _datas.size() << std::endl;
 }
 

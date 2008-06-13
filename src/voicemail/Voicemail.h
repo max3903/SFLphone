@@ -21,45 +21,49 @@
 #define __Voicemail_H_
 
 #include <string>
-
-using namespace std;
+#include <vector>
+#include "VoicemailSound.h"
 
 class Voicemail {
 	
 	private :
-		int     _id;
-		string  _callerchan;
-		int     _callerid;
-		string  _category;
-		string  _context;
-		int     _duration;
-		string  _exten;
-		string  _macrocontext;
-		string  _name;
-		string  _origdate;
-		int     _origmailbox;
-		int     _origtime;
-		int     _priority;
+		int          _id;
+		std::string  _callerchan;
+		int          _callerid;
+		std::string  _category;
+		std::string  _context;
+		int          _duration;
+		std::string  _exten;
+		std::string  _macrocontext;
+		std::string  _name;
+		std::string  _origdate;
+		int          _origmailbox;
+		int          _origtime;
+		int          _priority;
+		
+		std::vector<VoicemailSound *> _lst_sounds;
 
 	public :
 		Voicemail();
 		~Voicemail();
 		
-		void   setId(int);
-		void   setCallerchan(string);
-		void   setCallerid(int);
-		void   setCategory(string);
-		void   setContext(string);
-		void   setDuration(int);
-		void   setExten();
-		void   setMacrocontext(string);
-		void   setName(string);
-		string getName();
-		void   setOrigdate();
-		void   setOrigmailbox();
-		void   setOrigtime();
-		void   setPriority();
+		void        setId(int);
+		void        setCallerchan(std::string);
+		void        setCallerid(int);
+		void        setCategory(std::string);
+		void        setContext(std::string);
+		void        setDuration(int);
+		void        setExten(std::string);
+		void        setMacrocontext(std::string);
+		void        setName(std::string);
+		std::string getName();
+		void        setOrigdate(std::string);
+		void        setOrigmailbox(int);
+		void        setOrigtime(int);
+		void        setPriority(int);
 		
+		VoicemailSound * getVMSoundAt(int);
+		VoicemailSound * getVMSoundByFormat(std::string);
 		
 		void toString();
 
