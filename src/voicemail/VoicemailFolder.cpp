@@ -1,0 +1,78 @@
+/*
+ *  Copyright (C) 2006-2007 Savoir-Faire Linux inc.
+ *  Author: Florian DESPORTES <florian.desportes@savoirfairelinux.com>
+ *                                                                              
+ *  This program is free software; you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation; either version 3 of the License, or
+ *  (at your option) any later version.
+ *                                                                                
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *                                                                              
+ *  You should have received a copy of the GNU General Public License
+ *  along with this program; if not, write to the Free Software
+ *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ */
+
+#include <iostream>
+#include "VoicemailFolder.h"
+
+using namespace std;
+
+VoicemailFolder::VoicemailFolder() {
+//	vector<Voicemail> _lst_vm;
+}
+
+VoicemailFolder::~VoicemailFolder() {
+//	cout << "~VoicemailFolder" << endl;
+}
+
+void VoicemailFolder::setName(string name) {
+	_name = name;
+}
+
+string VoicemailFolder::getName() {
+	return _name;
+}
+
+void VoicemailFolder::setCount(int count) {
+	_count = count;
+}
+
+int VoicemailFolder::getCount() {
+	return _count;
+}
+
+vector<Voicemail *> VoicemailFolder::getLstVM() {
+	return _lst_vm;
+}
+
+void VoicemailFolder::addVM(Voicemail *vm) {
+	_lst_vm.push_back( vm );
+}
+
+bool VoicemailFolder::removeVM(Voicemail *vm) {
+	return true;
+}
+
+Voicemail * VoicemailFolder::getVMAt(int i) {
+	if( i<0 || i>=getCount() ) {
+		return NULL;
+	} else {
+		return _lst_vm[i];
+	}
+}
+
+void VoicemailFolder::toString() {
+	cout << "   '-" << getName() << " (" << getCount() << ")" << endl;
+}
+
+/*
+int main(int argc, char *argv[]) {
+	std::cout << " -- VoicemailFolderMain --" << std::endl;
+	return 0;
+}
+*/
