@@ -25,10 +25,11 @@
 
 GtkTreeIter getItemSelected( void );
 gboolean    isItemSelected( void );
+gboolean    isAValidItem( void );
 
-void show_voicemail_window(void);
-void create_voicemail_window(void);
-void create_tree(void);
-void update_tree(gchar * text);
+void show_voicemail_window( void );
+void create_voicemail_window( void );
+void create_tree( void );
+void update_tree( gchar * );
 
 #endif

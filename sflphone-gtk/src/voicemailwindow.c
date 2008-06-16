@@ -26,17 +26,21 @@
 
 #include <stdlib.h>
 #include <stdio.h>
-#include <voicemailwindow.h>
-#include <config.h>
-//#define ICONS_DIR "../pixmaps"
+#include <string.h>
 #include <gtk/gtk.h>
+
+//#include "sflphone_const.h"
+//#include <voicemailwindow.h>
+#include <libintl.h>
+#define _(STRING)   gettext( STRING )
+#define ICONS_DIR "../pixmaps"
 
 
 /** Local variables */
-GtkWidget * VMWindow;
+GtkWidget *VMWindow;
 
-GtkWidget * treeview;
-gint currently_playing = -1;
+GtkWidget *treeview;
+gchar     *g_currently_playing = "";
 
 
 /** Enum for Treeview */
@@ -54,11 +58,10 @@ GtkTreeIter
 getItemSelected( void )
 {
 	GtkTreeSelection *selection;
-	GtkTreeModel     *model;
 	GtkTreeIter      iter;
 
 	selection = gtk_tree_view_get_selection( GTK_TREE_VIEW( treeview ) );
-	gtk_tree_selection_get_selected( selection, &model, &iter );
+	gtk_tree_selection_get_selected( selection, NULL, &iter );
 	return iter;
 }
 
@@ -73,10 +76,24 @@ isItemSelected( void )
 	GtkTreeModel     *model;
 
 	selection = gtk_tree_view_get_selection( GTK_TREE_VIEW( treeview ) );
-	if( gtk_tree_selection_get_selected( selection, &model, NULL ) )
-		return TRUE;
-	else
-		return FALSE;
+	return gtk_tree_selection_get_selected( selection, &model, NULL );
+}
+
+
+/**
+ * Checks whether the current selected item is a voicemail and not a folder
+ */
+gboolean
+isAValidItem( void )
+{
+	GtkTreeModel *model;
+	GtkTreeIter  iter;
+	gchar        *path;
+	
+	model = gtk_tree_view_get_model( GTK_TREE_VIEW( treeview ) );
+	iter = getItemSelected();
+	path = gtk_tree_model_get_string_from_iter( model, &iter );
+	return strstr( path , ":" ) == NULL ? FALSE : TRUE ;
 }
 
 
@@ -86,25 +103,25 @@ isItemSelected( void )
 static void
 on_stop()
 {
-	if( currently_playing != -1 )
+	if( strcmp( g_currently_playing , "" ) != 0 )
 	{
-		GtkTreeIter iter;
-		GtkTreeModel * model;
-		GdkPixbuf * pixbuf;
-		gchar * text;
+		GtkTreeIter  iter;
+		GtkTreeModel *model;
+		GdkPixbuf    *pixbuf;
+		gchar        *text;
 		
 		g_print( "Player -- Stop\n" );
 		model = gtk_tree_view_get_model( GTK_TREE_VIEW( treeview ) );
 		/** Gets nth row to stop */
-		gtk_tree_model_iter_nth_child( model, &iter, NULL, currently_playing );
+		gtk_tree_model_get_iter_from_string( model , &iter , g_currently_playing );
 		/** Gets text row */
-		gtk_tree_model_get( GTK_TREE_MODEL( model ), &iter, IMG_COLUMN, &pixbuf, TEXT_COLUMN, &text, -1 );
+		gtk_tree_model_get( model, &iter, IMG_COLUMN, &pixbuf, TEXT_COLUMN, &text, -1 );
 		/** Sets new image */
-		pixbuf = gdk_pixbuf_new_from_file( ICONS_DIR "/play.svg", NULL);
+		pixbuf = gdk_pixbuf_new_from_file_at_scale( ICONS_DIR "/play.svg", 20, -1, TRUE, NULL);
 		/** Updates selected row */
-		gtk_list_store_set( GTK_LIST_STORE( model ), &iter, IMG_COLUMN, pixbuf, TEXT_COLUMN, text, -1 );
+		gtk_tree_store_set( GTK_TREE_STORE( model ), &iter, IMG_COLUMN, pixbuf, TEXT_COLUMN, text, -1 );
 		/** Updates to none voicemail playing */
-		currently_playing = -1;
+		g_currently_playing = "";
 	}
 }
 
@@ -124,7 +141,7 @@ on_pause()
 		/** Sets new image */
 		//pixbuf = gdk_pixbuf_new_from_file( ICONS_DIR "/play.svg", NULL);
 		/** Updates selected row */
-		//gtk_list_store_set( GTK_LIST_STORE( model ), &iter, IMG_COLUMN, pixbuf, TEXT_COLUMN, text, -1 );*/
+		//gtk_tree_store_set( GTK_TREE_STORE( model ), &iter, IMG_COLUMN, pixbuf, TEXT_COLUMN, text, -1 );*/
 	}
 }
 
@@ -135,21 +152,20 @@ on_pause()
 static void
 on_play()
 {
-	if( isItemSelected() )
+	if( isItemSelected() && isAValidItem() )
 	{
-		GtkTreeIter iter;
-		GtkTreeModel * model;
-		GdkPixbuf * pixbuf;
-		gchar * text;
-		gboolean valid;
+		GtkTreeIter  iter;
+		GtkTreeModel *model;
+		GdkPixbuf    *pixbuf;
+		gchar        *text;
 		
 		model = gtk_tree_view_get_model( GTK_TREE_VIEW( treeview ) );
 		iter = getItemSelected();
 		/** If not the same voicemail to play */
-		if( currently_playing != atoi( gtk_tree_model_get_string_from_iter( model, &iter ) ) )
+		if( strcmp( g_currently_playing , gtk_tree_model_get_string_from_iter( model, &iter ) ) != 0 )
 		{
 			/** First, stop playing last voicemail */
-			if( currently_playing != -1 )
+			if( strcmp( g_currently_playing , "" ) != 0 )
 			{
 				on_stop();
 			}
@@ -159,11 +175,12 @@ on_play()
 			/** Gets text row */
 			gtk_tree_model_get( GTK_TREE_MODEL( model ), &iter, IMG_COLUMN, &pixbuf, TEXT_COLUMN, &text, -1 );
 			/** Sets new image */
-			pixbuf = gdk_pixbuf_new_from_file( ICONS_DIR "/pause.svg", NULL);
+//			pixbuf = gdk_pixbuf_new_from_file( ICONS_DIR "/pause.svg", NULL);
+			pixbuf = gdk_pixbuf_new_from_file_at_scale( ICONS_DIR "/pause.svg", 20, -1, TRUE, NULL);
 			/** Updates selected row */
-			gtk_list_store_set( GTK_LIST_STORE( model ), &iter, IMG_COLUMN, pixbuf, TEXT_COLUMN, text, -1 );
+			gtk_tree_store_set( GTK_TREE_STORE( model ), &iter, IMG_COLUMN, pixbuf, TEXT_COLUMN, text, -1 );
 			/** Updates voicemail currently playing */
-			currently_playing = atoi( gtk_tree_model_get_string_from_iter( model, &iter ) );
+			g_currently_playing = gtk_tree_model_get_string_from_iter( model, &iter );
 		}
 		else
 		{
@@ -179,11 +196,9 @@ on_play()
 static void
 on_delete()
 {
-	GtkTreeModel * model;
-	GtkTreeIter iter;
-	GtkWidget * dialog;
-	GtkWidget * label;
-	gboolean deleted;
+	GtkTreeModel *model;
+	GtkTreeIter  iter;
+	GtkWidget    *dialog;
 	
 	if( isItemSelected() )
 	{
@@ -193,7 +208,7 @@ on_delete()
 										 GTK_DIALOG_DESTROY_WITH_PARENT,
 										 GTK_MESSAGE_WARNING,
 										 GTK_BUTTONS_OK_CANCEL,
-										 "Do you really want to delete this message ?" );
+										 _("Do you really want to delete this message ?") );
 		gtk_widget_show_all( dialog );
 		/** Dialog box with question and user's answer */
 		if( gtk_dialog_run( GTK_DIALOG( dialog ) ) == GTK_RESPONSE_OK )
@@ -201,9 +216,8 @@ on_delete()
 			g_print(" on_delete - OK\n");
 			model = gtk_tree_view_get_model( GTK_TREE_VIEW( treeview ) );
 			iter = getItemSelected();
-			deleted = gtk_list_store_remove( GTK_LIST_STORE( model ), &iter );
-			g_print(" has been deleted ? %s\n", deleted==TRUE ? "TRUE" : "FALSE" );
-			currently_playing = -1;
+			gtk_tree_store_remove( GTK_TREE_STORE( model ), &iter );
+			g_currently_playing = "";
 		}
 		/** Dialog box destruction */
 		gtk_widget_destroy( dialog );
@@ -222,7 +236,14 @@ do_popup_menu( GtkWidget *widget, GdkEventButton *event )
 	menu = gtk_menu_new();
 	g_signal_connect( menu, "deactivate", G_CALLBACK( gtk_widget_destroy ), NULL );
 	
-	menu_item = gtk_image_menu_item_new_from_stock( "gtk-media-play", NULL );
+	if( strcmp( g_currently_playing , "" ) == 0 )
+	{
+		menu_item = gtk_image_menu_item_new_from_stock( "gtk-media-play", NULL );
+	}
+	else
+	{
+		menu_item = gtk_image_menu_item_new_from_stock( "gtk-media-stop", NULL );
+	}
 	g_signal_connect( GTK_MENU_ITEM( menu_item ), "button_press_event", G_CALLBACK( on_play ), NULL );
 	gtk_menu_shell_append( GTK_MENU_SHELL( menu ), menu_item );
 	menu_item = gtk_image_menu_item_new_from_stock( "gtk-delete", NULL );
@@ -257,6 +278,7 @@ my_widget_button_press_event_handler( GtkWidget *widget, GdkEventButton *event )
 	}
 	return FALSE;
 }
+
 static gboolean
 my_widget_popup_menu_handler( GtkWidget *widget )
 {
@@ -273,46 +295,26 @@ my_widget_popup_menu_handler( GtkWidget *widget )
 void
 create_tree( void )
 {
-	GtkListStore      * store;
+	GtkTreeStore      * store;
 	GtkTreeViewColumn * column;
 	GtkCellRenderer   * cellRenderer;
-//	gchar             * text;
-//	GdkPixbuf         * pixBuf;
-//	gint i;
 	
 	/** Model creation */
-	store = gtk_list_store_new( N_COLUMN, GDK_TYPE_PIXBUF, G_TYPE_STRING );
-//	text = g_malloc( 14 );
-//	pixBuf = gdk_pixbuf_new_from_file( ICONS_DIR "/play.svg", NULL);
-
-
+	store = gtk_tree_store_new( N_COLUMN, GDK_TYPE_PIXBUF, G_TYPE_STRING );
 	/** View creation */
 	gtk_tree_view_set_model( GTK_TREE_VIEW( treeview ), GTK_TREE_MODEL( store ) );
+
 	/** First column creation */
 	cellRenderer = gtk_cell_renderer_pixbuf_new();
-	column = gtk_tree_view_column_new_with_attributes( "Image", cellRenderer, "pixbuf", IMG_COLUMN, NULL );
+	column = gtk_tree_view_column_new_with_attributes( "I", cellRenderer, "pixbuf", IMG_COLUMN, NULL );
 	/** Adding column to view */
 	gtk_tree_view_append_column( GTK_TREE_VIEW( treeview ), column );
+
 	/** Second column creation */
 	cellRenderer = gtk_cell_renderer_text_new();
-	column = gtk_tree_view_column_new_with_attributes( "Label", cellRenderer, "text", TEXT_COLUMN, NULL );
+	column = gtk_tree_view_column_new_with_attributes( "L", cellRenderer, "text", TEXT_COLUMN, NULL );
 	/** Adding column to view */
 	gtk_tree_view_append_column( GTK_TREE_VIEW( treeview ), column );
-
-	/** Adding elements - only for tests *
-	for( i = 1 ; i < 5 ; ++i )
-	{
-		GtkTreeIter iter;
-//		GtkTreeIter iter2;
-
-		//g_sprintf( text, "<b>Mail</b> #%d\0", i );
-		text = g_markup_printf_escaped( "<b>Mail</b> #%d\0", i );
-		/* New line creation *
-		gtk_list_store_append( store, &iter );
-		/* Data updates *
-		gtk_list_store_set( store, &iter, IMG_COLUMN, pixBuf, TEXT_COLUMN, text, -1 );
-	}
-	g_free( text );*/
 	
 	/** Adding signal for "popup" menu */
 	g_signal_connect( treeview, "button-press-event", G_CALLBACK( my_widget_button_press_event_handler ), NULL );
@@ -327,15 +329,43 @@ void
 update_tree( gchar * text )
 {
 	GtkTreeIter    iter;
+	GtkTreeIter    iter2;
 	GtkTreeModel * model;;
 	GdkPixbuf    * pixBuf;
+	int            j;
+	gchar        * text2;
 
-	pixBuf = gdk_pixbuf_new_from_file( ICONS_DIR "/play.svg", NULL);
+//	pixBuf = gdk_pixbuf_new_from_file( ICONS_DIR "/play.svg", NULL);
+	pixBuf = gdk_pixbuf_new_from_file_at_scale( ICONS_DIR "/play.svg", 20 , -1 , TRUE , NULL );
 	model = gtk_tree_view_get_model( GTK_TREE_VIEW( treeview ) );
 	/* New line creation */
-	gtk_list_store_append( GTK_LIST_STORE( model ), &iter );
+	gtk_tree_store_append( GTK_TREE_STORE( model ), &iter , NULL );
+
+	text2 = g_malloc(11);
+	for( j = 1 ; j < 3 ; ++j ) {
+		g_sprintf( text2 , "Voicemail %d" , j );
+		/* Creation de la nouvelle ligne enfant */
+		gtk_tree_store_append( GTK_TREE_STORE( model ) , &iter2 , &iter );
+		/* Mise a jour des donnees */
+		gtk_tree_store_set( GTK_TREE_STORE( model ) , &iter2,
+							IMG_COLUMN  , pixBuf,
+							TEXT_COLUMN , text2,
+							-1);
+	}
+	g_free( text2 );
+
 	/* Data updates */
-	gtk_list_store_set( GTK_LIST_STORE( model ), &iter, IMG_COLUMN, pixBuf, TEXT_COLUMN, text, -1 );
+	
+	
+	/************************
+	*
+	*
+	* GTK_STOCK_DIRECTORY
+	*
+	*
+	************************/
+	
+	gtk_tree_store_set( GTK_TREE_STORE( model ), &iter, IMG_COLUMN, NULL, TEXT_COLUMN, text, -1 );
 }
 
 
@@ -377,7 +407,7 @@ create_voicemail_window( void )
 	
 	/** Window */
 	VMWindow = gtk_window_new( GTK_WINDOW_TOPLEVEL );
-	gtk_window_set_title( GTK_WINDOW( VMWindow ), "Voicemail viewer" );
+	gtk_window_set_title( GTK_WINDOW( VMWindow ), _("Voicemail viewer") );
 	gtk_window_set_position( GTK_WINDOW( VMWindow ), GTK_WIN_POS_CENTER );
 	gtk_window_set_default_size( GTK_WINDOW( VMWindow ), 500, 400 );
 	gtk_window_set_default_icon_from_file( ICONS_DIR "/sflphone.png", NULL );
@@ -409,13 +439,16 @@ create_voicemail_window( void )
 	}
 	/********************************/
 	gtk_widget_show( treeview );
+//	gtk_tree_view_set_expander_column( GTK_TREE_VIEW( treeview ) , gtk_tree_view_get_column( GTK_TREE_VIEW( treeview ) , TEXT_COLUMN ) );
+	gtk_tree_view_set_level_indentation( GTK_TREE_VIEW( treeview ) , -35 );
+	gtk_tree_view_set_rules_hint( GTK_TREE_VIEW( treeview ), TRUE );
 	gtk_container_add( GTK_CONTAINER( scrolledwindow ), treeview );
-	gtk_tree_view_set_headers_visible( GTK_TREE_VIEW( treeview ), FALSE );
+//	gtk_tree_view_set_headers_visible( GTK_TREE_VIEW( treeview ), FALSE );
 	g_signal_connect( GTK_TREE_VIEW( treeview ), "row-activated", G_CALLBACK( on_play ), NULL );
 	
 	
 	/** Expander */
-	expander = gtk_expander_new( "Details" );
+	expander = gtk_expander_new( _("Details") );
 	gtk_box_pack_start( GTK_BOX( vbox ), expander, FALSE, FALSE, 0 );
 	
 	/** Text View */
@@ -439,7 +472,7 @@ create_voicemail_window( void )
 	play_btn = gtk_button_new ();
 	gtk_widget_show( play_btn );
 	gtk_box_pack_start( GTK_BOX( hbox ), play_btn, FALSE, FALSE, 0 );
-	gtk_tooltips_set_tip( tooltips, play_btn, "Play selected voice mail", NULL );
+	gtk_tooltips_set_tip( tooltips, play_btn, _("Play selected voicemail"), NULL );
 	g_signal_connect( GTK_BUTTON( play_btn ), "clicked", G_CALLBACK( on_play ), NULL );
 	/** Play image button */
 	play_img = gtk_image_new_from_stock( "gtk-media-play", GTK_ICON_SIZE_BUTTON );
@@ -450,7 +483,7 @@ create_voicemail_window( void )
 	stop_btn = gtk_button_new();
 	gtk_widget_show( stop_btn );
 	gtk_box_pack_start( GTK_BOX( hbox ), stop_btn, FALSE, FALSE, 0 );
-	gtk_tooltips_set_tip( tooltips, stop_btn, "Stop selected voice mail", NULL );
+	gtk_tooltips_set_tip( tooltips, stop_btn, _("Stop selected voicemail"), NULL );
 	g_signal_connect( GTK_BUTTON( stop_btn ), "clicked", G_CALLBACK( on_stop ), NULL );
 	/** Stop image button */
 	stop_img = gtk_image_new_from_stock( "gtk-media-stop", GTK_ICON_SIZE_BUTTON );
@@ -469,7 +502,7 @@ create_voicemail_window( void )
 	del_btn = gtk_button_new();
 	gtk_widget_show( del_btn );
 	gtk_box_pack_start( GTK_BOX( hbox ), del_btn, FALSE, FALSE, 0 );
-	gtk_tooltips_set_tip( tooltips, del_btn, "Delete selected voice mail", NULL );
+	gtk_tooltips_set_tip( tooltips, del_btn, _("Delete selected voicemail"), NULL );
 	g_signal_connect( GTK_BUTTON( del_btn ), "clicked", G_CALLBACK( on_delete ), NULL );
 	/** Delete image button */
 	del_img = gtk_image_new_from_stock( "gtk-delete", GTK_ICON_SIZE_BUTTON );
@@ -499,7 +532,7 @@ show_voicemail_window(void)
 	}
 }
 
-/*
+
 int
 main( int argc, char * argv[])
 {
@@ -509,4 +542,4 @@ main( int argc, char * argv[])
 	// Demarrage de la boucle evenementielle
 	gtk_main();
 }
-*/
+
