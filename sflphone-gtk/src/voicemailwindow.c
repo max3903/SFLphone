@@ -29,11 +29,11 @@
 #include <string.h>
 #include <gtk/gtk.h>
 
-//#include "sflphone_const.h"
-//#include <voicemailwindow.h>
+#include "sflphone_const.h"
+#include <voicemailwindow.h>
 #include <libintl.h>
-#define _(STRING)   gettext( STRING )
-#define ICONS_DIR "../pixmaps"
+//#define _(STRING)   gettext( STRING )
+//#define ICONS_DIR "../pixmaps"
 
 
 /** Local variables */
@@ -439,11 +439,9 @@ create_voicemail_window( void )
 	}
 	/********************************/
 	gtk_widget_show( treeview );
-//	gtk_tree_view_set_expander_column( GTK_TREE_VIEW( treeview ) , gtk_tree_view_get_column( GTK_TREE_VIEW( treeview ) , TEXT_COLUMN ) );
 	gtk_tree_view_set_level_indentation( GTK_TREE_VIEW( treeview ) , -35 );
 	gtk_tree_view_set_rules_hint( GTK_TREE_VIEW( treeview ), TRUE );
 	gtk_container_add( GTK_CONTAINER( scrolledwindow ), treeview );
-//	gtk_tree_view_set_headers_visible( GTK_TREE_VIEW( treeview ), FALSE );
 	g_signal_connect( GTK_TREE_VIEW( treeview ), "row-activated", G_CALLBACK( on_play ), NULL );
 	
 	
@@ -532,7 +530,7 @@ show_voicemail_window(void)
 	}
 }
 
-
+/*
 int
 main( int argc, char * argv[])
 {
@@ -542,4 +540,4 @@ main( int argc, char * argv[])
 	// Demarrage de la boucle evenementielle
 	gtk_main();
 }
-
+*/
