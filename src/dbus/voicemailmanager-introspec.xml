@@ -1,0 +1,11 @@
+<?xml version="1.0" ?>
+<node name="/org/sflphone/SFLphone">
+  <interface name="org.sflphone.SFLphone.VoicemailManager">
+  
+    <method name="listMails">
+      <arg type="as" name="list" direction="out"/>
+    </method>
+   
+  </interface>
+</node>
+ 

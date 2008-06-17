@@ -399,4 +399,9 @@ void dbus_register( int pid, gchar * name);
  */
 void dbus_unregister(int pid);
 
+/**
+ * Voicemail - list voicemails
+ */
+gchar** dbus_list_mails( void );
+
 #endif

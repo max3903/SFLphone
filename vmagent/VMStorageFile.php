@@ -66,7 +66,7 @@ class VMStorageFile extends VMStorage {
 	*/
 	public function load() {
 		if( ( $dir = @opendir( $this->pathFolder ) ) == FALSE ) {
-			echo "  <error>Can't open ". $this->pathFolder ."</error>\n";
+			echo "  <error>Can't open '". $this->pathFolder ."'</error>\n";
 			return;
 		}
 
@@ -77,7 +77,7 @@ class VMStorageFile extends VMStorage {
 			if( is_dir( $this->pathFolder."/".$folder ) && $folder != "." && $folder != ".." ) {
 				$foldArr = new VoicemailFolder( $folder );
 				if( ( $vmFolder = @opendir( $this->pathFolder ."/". $folder ) ) == FALSE ) {
-					echo "  <error>Can't open ". $this->pathFolder ."/". $folder ."</error>\n";
+					echo "  <error>Can't open \"". $this->pathFolder ."/". $folder ."\"</error>\n";
 					continue;
 				}
 

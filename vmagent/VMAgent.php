@@ -39,6 +39,7 @@ class VMAgent {
 	private $vmAPI;     // ApiMan
 	private $vmAuth;    // Auth (abstract)
 	private $vmStorage; // VMSotrage (abstract)
+	private $vmList;	// Voicemail's Folders list
 	
 	/**
 	 * VMAgent -- Constuctor
@@ -74,6 +75,21 @@ class VMAgent {
 	public function getVMList() {
 		return $this->vmStorage->getLstFolders();
 	}
+	
+	
+	public function getVMFByName( $name ) {
+		foreach( $this->vmStorage->getLstFolders() as $vmf ) {
+			if( strcmp( $vmf->getName() , $name ) == 0 ) {
+				return $vmf;
+			}
+		}
+	}
+	
+	
+	public function getVMByName( $fol , $name ) {
+		return $this->getVMFByName($fol)->getVMByName($name);
+	}
+	
 	
 	/**
 	 * getVMAt(num)
@@ -119,7 +135,7 @@ class VMAgent {
 	 * load()
 	 */
 	public function load() {
-		$this->vmList = $this->vmStorage->load();
+		$this->vmStorage->load();
 	}
 	
 	/**

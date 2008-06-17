@@ -25,8 +25,11 @@
 // http://default-6666:735@127.0.0.1/uml/index/sound?f=INBOX&v=msg0000
 //
 
-$folder    = $_GET['f'];
-$voicemail = $_GET['v'];
+$arr = explode( "/" , substr( $_SERVER['PATH_INFO'] , 1 ) );
+$folder    = $arr[0];
+$voicemail = $arr[1];
+echo "folder : $folder<br/>";
+echo "voicemail : $voicemail<br/>";
 
 $arr = $agent->getSound( $folder , $voicemail );
 

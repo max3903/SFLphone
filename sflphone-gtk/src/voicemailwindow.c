@@ -10,7 +10,7 @@
  *  This program is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
+ *  GNU General Public License for more details.sfl	
  *                                                                              
  *  You should have received a copy of the GNU General Public License
  *  along with this program; if not, write to the Free Software
@@ -28,12 +28,12 @@
 #include <stdio.h>
 #include <string.h>
 #include <gtk/gtk.h>
-
-#include "sflphone_const.h"
-#include <voicemailwindow.h>
 #include <libintl.h>
-//#define _(STRING)   gettext( STRING )
-//#define ICONS_DIR "../pixmaps"
+
+#include "sflphone_const.h"   // MUST BE UNCOMMENTED
+#include <voicemailwindow.h>  // MUST BE UNCOMMENTED
+//#define _(STRING)   gettext( STRING ) // MUST BE COMMENTED
+//#define ICONS_DIR "../pixmaps"        // MUST BE COMMENTED
 
 
 /** Local variables */
@@ -175,7 +175,6 @@ on_play()
 			/** Gets text row */
 			gtk_tree_model_get( GTK_TREE_MODEL( model ), &iter, IMG_COLUMN, &pixbuf, TEXT_COLUMN, &text, -1 );
 			/** Sets new image */
-//			pixbuf = gdk_pixbuf_new_from_file( ICONS_DIR "/pause.svg", NULL);
 			pixbuf = gdk_pixbuf_new_from_file_at_scale( ICONS_DIR "/pause.svg", 20, -1, TRUE, NULL);
 			/** Updates selected row */
 			gtk_tree_store_set( GTK_TREE_STORE( model ), &iter, IMG_COLUMN, pixbuf, TEXT_COLUMN, text, -1 );
@@ -199,16 +198,22 @@ on_delete()
 	GtkTreeModel *model;
 	GtkTreeIter  iter;
 	GtkWidget    *dialog;
+	gchar        *message;
 	
 	if( isItemSelected() )
 	{
 		g_print("Player -- Delete\n");
+		/** It's a voicemail */
+		if( isAValidItem() )
+			message = "Do you really want to delete this voicemail ?";
+		else /** It's a folder */
+			message = "Do you really want to delete this folder ?\nAll voicemails will be definitely erased";
 		/** Dialog box opening */
 		dialog = gtk_message_dialog_new( GTK_WINDOW( VMWindow ),
 										 GTK_DIALOG_DESTROY_WITH_PARENT,
 										 GTK_MESSAGE_WARNING,
 										 GTK_BUTTONS_OK_CANCEL,
-										 _("Do you really want to delete this message ?") );
+										 _(message) );
 		gtk_widget_show_all( dialog );
 		/** Dialog box with question and user's answer */
 		if( gtk_dialog_run( GTK_DIALOG( dialog ) ) == GTK_RESPONSE_OK )
@@ -328,15 +333,16 @@ create_tree( void )
 void
 update_tree( gchar * text )
 {
-	GtkTreeIter    iter;
-	GtkTreeIter    iter2;
-	GtkTreeModel * model;;
-	GdkPixbuf    * pixBuf;
-	int            j;
-	gchar        * text2;
+	GtkTreeIter  iter;
+	GtkTreeIter  iter2;
+	GtkTreeModel *model;;
+	GdkPixbuf    *pixBufFolder;
+	GdkPixbuf    *pixBuf;
+	int          j;
+	gchar        *text2;
 
-//	pixBuf = gdk_pixbuf_new_from_file( ICONS_DIR "/play.svg", NULL);
-	pixBuf = gdk_pixbuf_new_from_file_at_scale( ICONS_DIR "/play.svg", 20 , -1 , TRUE , NULL );
+	pixBufFolder = gdk_pixbuf_new_from_file_at_scale( ICONS_DIR "/folder.svg", 20/*width*/, -1/*height*/, TRUE/*preserve_ratio*/, NULL/*error*/ );
+	pixBuf       = gdk_pixbuf_new_from_file_at_scale( ICONS_DIR "/play.svg"  , 20/*width*/, -1/*height*/, TRUE/*preserve_ratio*/, NULL/*error*/ );
 	model = gtk_tree_view_get_model( GTK_TREE_VIEW( treeview ) );
 	/* New line creation */
 	gtk_tree_store_append( GTK_TREE_STORE( model ), &iter , NULL );
@@ -355,17 +361,7 @@ update_tree( gchar * text )
 	g_free( text2 );
 
 	/* Data updates */
-	
-	
-	/************************
-	*
-	*
-	* GTK_STOCK_DIRECTORY
-	*
-	*
-	************************/
-	
-	gtk_tree_store_set( GTK_TREE_STORE( model ), &iter, IMG_COLUMN, NULL, TEXT_COLUMN, text, -1 );
+ 	gtk_tree_store_set( GTK_TREE_STORE( model ), &iter, IMG_COLUMN, pixBufFolder, TEXT_COLUMN, text, -1 );
 }
 
 
@@ -439,7 +435,8 @@ create_voicemail_window( void )
 	}
 	/********************************/
 	gtk_widget_show( treeview );
-	gtk_tree_view_set_level_indentation( GTK_TREE_VIEW( treeview ) , -35 );
+	gtk_tree_view_set_level_indentation( GTK_TREE_VIEW( treeview ) , -25 );
+	gtk_tree_view_set_headers_visible( GTK_TREE_VIEW( treeview ) , FALSE );
 	gtk_tree_view_set_rules_hint( GTK_TREE_VIEW( treeview ), TRUE );
 	gtk_container_add( GTK_CONTAINER( scrolledwindow ), treeview );
 	g_signal_connect( GTK_TREE_VIEW( treeview ), "row-activated", G_CALLBACK( on_play ), NULL );

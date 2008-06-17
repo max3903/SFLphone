@@ -22,13 +22,14 @@
 // DELETE A VOICEMAIL (TXT + SOUNDS)
 //
 // Exemple of use :
-// http://default-6666:735@127.0.0.1/uml/index/del?f=INBOX&v=msg0000
+// http://default-6666:735@127.0.0.1/uml/index/INBOX/msg0000/del
 //
 
-$folder    = $_GET['f'];
-$voicemail = $_GET['v'];
+$arr = explode( "/" , substr( $_SERVER['PATH_INFO'] , 1 ) );
+$folder    = $arr[0];
+$voicemail = $arr[1];
 
-echo "  <deleted>";
+echo "<deleted>";
 $agent->delete( $folder , $voicemail );
 echo "</deleted>\n";
 

@@ -1,7 +1,6 @@
-<?php
 /*
- *  Copyright (C) 2006-2007 Savoir-Faire Linux inc.
- *  Author: Florian DESPORTES <florian.desportes@savoirfairelinux.com>
+ *  Copyright (C) 2007 Savoir-Faire Linux inc.
+ *  Author: Florian Desportes <florian.desportes@savoirfairelinux.com>
  *                                                                              
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -17,25 +16,28 @@
  *  along with this program; if not, write to the Free Software
  *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
+ 
+#ifndef VOICEMAILMANAGER_H
+#define VOICEMAILMANAGER_H
 
-//
-// RENAME A VOICEMAIL
-//
-// Exemple of use :
-// http://default-6666:735@127.0.0.1/uml/index/INBOX/msg0000/rename?n=msg1234
-//
+#include "voicemailmanager-glue.h"
+#include <dbus-c++/dbus.h>
 
-// Gets folder, current name and new name of the voicemail to rename
-$arr = explode( "/" , substr( $_SERVER['PATH_INFO'] , 1 ) );
-$folder   = $arr[0];
-$old_name = $arr[1];
-$new_name = $_GET['n'];
-//echo "folder : $folder<br/>";
-//echo "old_name : $old_name<br/>";
-//echo "new_name : $new_name<br/>";
+class VoicemailManager : 
+	public org::sflphone::SFLphone::VoicemailManager,
+	public DBus::IntrospectableAdaptor,
+	public DBus::ObjectAdaptor
+{
 
-echo "<renamed>";
-$agent->rename( $folder , $old_name , $new_name );
-echo "</renamed>\n";
+	public:
 
-?>
+		VoicemailManager(DBus::Connection& connection);
+		static const char* SERVER_PATH;
+
+	public:
+		::DBus::vector<::DBus::String> listMails( void );
+
+
+};
+
+#endif

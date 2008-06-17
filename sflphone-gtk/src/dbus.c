@@ -25,6 +25,7 @@
 #include <callmanager-glue.h>
 #include <configurationmanager-glue.h>
 #include <instance-glue.h>
+#include <voicemailmanager-glue.h>
 #include <configwindow.h>
 #include <mainwindow.h>
 #include <marshaller.h>
@@ -41,6 +42,7 @@ DBusGConnection * connection;
 DBusGProxy * callManagerProxy;
 DBusGProxy * configurationManagerProxy;
 DBusGProxy * instanceProxy;
+DBusGProxy * voicemailManagerProxy;
 
 static void  
 incoming_call_cb (DBusGProxy *proxy,
@@ -274,6 +276,19 @@ dbus_connect ()
     "errorAlert", G_TYPE_INT , G_TYPE_INVALID);
   dbus_g_proxy_connect_signal (configurationManagerProxy,
     "errorAlert", G_CALLBACK(error_alert), NULL, NULL);
+
+  voicemailManagerProxy = dbus_g_proxy_new_for_name (connection,
+                                  "org.sflphone.SFLphone",
+                                  "/org/sflphone/SFLphone/VoicemailManager",
+                                  "org.sflphone.SFLphone.VoicemailManager");
+  if (!voicemailManagerProxy) 
+  {
+    g_printerr ("Failed to get proxy to VoicemailManager\n");
+    return FALSE;
+  }
+  g_print ("DBus connected to VoicemailManager\n");
+
+
   return TRUE;
 }
 
@@ -282,6 +297,7 @@ dbus_clean ()
 {
     g_object_unref (callManagerProxy);
     g_object_unref (configurationManagerProxy);
+    g_object_unref (voicemailManagerProxy);
 }
 
 
@@ -1419,3 +1435,23 @@ dbus_get_mail_notify( void )
 	
 	return level;
 }
+
+gchar**
+dbus_list_mails( void )
+{
+	GError* error = NULL;
+	gchar** list;
+	org_sflphone_SFLphone_VoicemailManager_list_mails(
+			voicemailManagerProxy,
+			&list,
+			&error);
+	if(error)
+	{
+		g_error_free(error);
+	}
+	else
+	  g_print("Called dbus_list_mails\n");
+	return list;
+}
+
+

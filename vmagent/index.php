@@ -41,11 +41,13 @@ if( ! isset( $_SERVER['PHP_AUTH_USER'] ) ) {
 // /
 // command  -->  the right command to execute (eg. get, list, delete, etc.)
 //          -->  possible values :
-//                  - list   : index/list
-//                  - sound  : index/sound?f=<FOLDER_NAME>&v=<VOICEMAIL_NAME>
-//                  - del    : index/del?f=<FOLDER_NAME>&v=<VOICEMAIL_NAME>
-//                  - rename : index/rename?f=<FOLDER_NAME>&o=<VOICEMAIL_OLD_NAME>&n=<VOICEMAIL_NEW_NAME>
-//                  - 
+//					- one folder         : index/<FOLDER_NAME>
+//					- one voicemail      : index/<FOLDER_NAME>/<VOICEMAIL_NAME>
+//					- list (all folders) : index  OR  index/list
+//					- sound              : index/<FOLDER_NAME>/<VOICEMAIL_NAME>/sound
+//					- del                : index/<FOLDER_NAME>/<VOICEMAIL_NAME>/del
+//					- rename             : index/<FOLDER_NAME>/<VOICEMAIL_OLD_NAME>/rename?n=<VOICEMAIL_NEW_NAME>
+//					- 
 
 
 
@@ -78,7 +80,7 @@ $pass    = $_SERVER['PHP_AUTH_PW'];
 $is_logged = $agent->login( $login , $pass , $context );
 //echo "\n    <check>";
 if( $is_logged == FALSE ) {
-	echo "  <login>ERROR</login>\n";
+	echo "<login>ERROR</login>\n";
 }
 
 
@@ -87,13 +89,22 @@ if( $is_logged == FALSE ) {
  **********************************************************/
 if( $is_logged ) {
 	$agent->load();
-	if( isset( $_SERVER['PATH_INFO'] ) ) {
-		$file = substr( $_SERVER['PATH_INFO'] , 1 );
-//		echo "  <include>". $file ."</include>\n";
-		if( file_exists( $file ) ) {
-//			echo "file exists !\n";
-			include( $file );//.".php";
+	if( ! empty( $_SERVER['PATH_INFO'] ) && $_SERVER['PATH_INFO'] != "/" ) {
+		$path = trim( rtrim( $_SERVER['PATH_INFO'] , "/" ) , "/" );
+		$arr = explode( "/" , $path );
+		/** rename, list, del, sound */
+		if( file_exists( $arr[count($arr)-1] ) ) {
+			include( $arr[count($arr)-1] );
+		} else {
+			/** Gets Voicemail Folder */
+			if( count($arr) == 1 ) {
+				echo $agent->getVMFByName( $arr[ count($arr)-1 ] )->toString();
+			} else { /** Gets Voicemail */
+				echo $agent->getVMByName( $arr[ count($arr)-2 ] , $arr[ count($arr)-1 ] )->toString();
+			}
 		}
+	} else {
+		include( "list" );
 	}
 }
 
@@ -102,7 +113,7 @@ if( $is_logged ) {
  * LOGOUT
  **********************************************************/
 if( $agent->logout() == FALSE ) {
-	echo "  <logout>KO</logout>\n";
+	echo "<logout>KO</logout>\n";
 }
 
 echo "</result>";
