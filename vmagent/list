@@ -28,7 +28,7 @@
 $arr = $agent->getVMList();
 
 foreach( $arr as $fol ) {
-	echo $fol->toString();
+	echo $fol->toShortString();
 }
 
 ?>

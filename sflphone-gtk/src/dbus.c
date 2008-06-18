@@ -1436,6 +1436,27 @@ dbus_get_mail_notify( void )
 	return level;
 }
 
+/********************
+ * VOICEMAIL VIEWER *
+ ********************/
+gchar**
+dbus_get_list_folders( void )
+{
+	GError* error = NULL;
+	gchar** list;
+	org_sflphone_SFLphone_VoicemailManager_get_list_folders(
+			voicemailManagerProxy,
+			&list,
+			&error);
+	if(error)
+	{
+		g_error_free(error);
+	}
+	else
+		g_print("Called dbus_list_mails\n");
+	return list;
+}
+
 gchar**
 dbus_list_mails( void )
 {
@@ -1453,5 +1474,3 @@ dbus_list_mails( void )
 	  g_print("Called dbus_list_mails\n");
 	return list;
 }
-
-

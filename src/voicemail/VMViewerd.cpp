@@ -18,8 +18,7 @@
  */
 
 #include <iostream>
-#include <fstream>
-#include <sstream>
+#include <fstream>  // To read xml file
 #include "VMViewerd.h"
 
 using namespace std;
@@ -248,13 +247,13 @@ int VMViewerd::exec(string cmd) {
 	s += " \"http://";
 	s += _context; // user's asterisk context
 	s += "-";
-	s += getLogVMailString(); // user's login/voicemail #
+	s += getLogVMail(); // user's login/voicemail #
 	s += ":";
-	s += getPwdVMailString(); // user's passcode to voicemail system
+	s += getPwdVMail(); // user's passcode to voicemail system
 	s += "@";
 	s += _srvAddr; // asterisk's ip address
 	s += ":";
-	s += getSrvPortString(); // asterisk's ip port
+	s += getSrvPort(); // asterisk's ip port
 	s += "/";
 	s += _srvPath; // asterisk's path to webservice
 	s += "/";
@@ -264,26 +263,16 @@ int VMViewerd::exec(string cmd) {
 	return system( s.c_str() );
 }
 
-int VMViewerd::getLogVMail() {
+string VMViewerd::getLogVMail() {
 	return _logVMail;
 }
 
-string VMViewerd::getLogVMailString() {
-	ostringstream oss;
-	oss << _logVMail;
-	return oss.str();
+string VMViewerd::getPwdVMail() {
+	return _pwdVMail;
 }
 
-string VMViewerd::getPwdVMailString() {
-	ostringstream oss;
-	oss << _pwdVMail;
-	return oss.str();
-}
-
-string VMViewerd::getSrvPortString() {
-	ostringstream oss;
-	oss << _srvPort;
-	return oss.str();
+string VMViewerd::getSrvPort() {
+	return _srvPort;
 }
 
 string VMViewerd::getFileStore() {
@@ -336,6 +325,18 @@ void VMViewerd::addVMS(VoicemailSound * vms) {
 }
 
 
+vector< string > VMViewerd::toArrayString() {
+	int i,j;
+	vector< string  > vec;
+	if( getLstFolders().size() != 0 ) {
+		for( i=0 ; i<=getLstFolders().size()-1 ; i++ ) {
+			vec.push_back( getFolderAt(i)->toString() );
+		}
+	}
+	return vec;
+}
+
+
 void VMViewerd::toString() {
 	int i,j;
 	cout << "VMVIEWERD" << endl;
@@ -346,7 +347,7 @@ void VMViewerd::toString() {
 			getFolderAt(i)->toString();
 			for( j=0 ; j<=getFolderAt(i)->getCount()-1 ; j++ ) {
 				//cout << " |     '-" << getFolderAt(i)->getVMAt(j)->getName() << endl;
-				getFolderAt(i)->getVMAt(j)->toString();
+				getFolderAt(i)->getVMAt(j)->toShortString();
 			}
 		}
 	}

@@ -18,6 +18,8 @@
  */
 
 #include <iostream>
+#include <sstream>
+#include <string>
 #include "VoicemailFolder.h"
 
 using namespace std;
@@ -46,6 +48,11 @@ int VoicemailFolder::getCount() {
 	return _count;
 }
 
+string VoicemailFolder::getCountString() {
+	ostringstream oss;
+	oss << getCount();
+	return oss.str();
+}
 vector<Voicemail *> VoicemailFolder::getLstVM() {
 	return _lst_vm;
 }
@@ -77,7 +84,14 @@ Voicemail * VoicemailFolder::getVMByName(string name) {
 	return NULL;
 }
 
-void VoicemailFolder::toString() {
-	cout << "   '-" << getName() << " (" << getCount() << ")" << endl;
+string VoicemailFolder::toString() {
+//	string res("   '-");
+	string res("");
+	res.append( getName() );
+	res.append(" (");
+	res.append( getCountString() );
+	res.append(")");
+	cout << res << endl;
+	return res;
 }
 

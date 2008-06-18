@@ -404,4 +404,10 @@ void dbus_unregister(int pid);
  */
 gchar** dbus_list_mails( void );
 
+/**
+ * Voicemail - list folders
+ */
+gchar** dbus_get_list_folders( void );
+
+
 #endif

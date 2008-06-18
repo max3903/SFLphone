@@ -792,6 +792,12 @@ class ManagerImpl {
      */
     bool isCurrentCall(const CallID& callId);
 
+
+	std::vector< ::DBus::String > getListFolders( void );
+
+	std::vector< ::DBus::String > listMails( void );	
+
+
   private:
     /**
      * Create .PROGNAME directory in home user and create 

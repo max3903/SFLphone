@@ -16,10 +16,28 @@
  *  along with this program; if not, write to the Free Software
  *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
- 
-#include "voicemailmanager.h"
 
-::DBus::vector<::DBus::String>
+#include "voicemailmanager.h"
+//#include <iostream>
+#include "../manager.h"
+
+const char* VoicemailManager::SERVER_PATH = "/org/sflphone/SFLphone/VoicemailManager";
+
+VoicemailManager::VoicemailManager( DBus::Connection& connection )
+		: DBus::ObjectAdaptor( connection, SERVER_PATH ) {
+}
+
+VoicemailManager::~VoicemailManager() {
+}
+
+
+std::vector< ::DBus::String >
+VoicemailManager::getListFolders( void ) {
+	return Manager::instance().getListFolders();
+}
+
+
+std::vector< ::DBus::String >
 VoicemailManager::listMails( void ) {
 	return Manager::instance().listMails();
 }

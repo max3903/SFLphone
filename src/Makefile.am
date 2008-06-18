@@ -28,9 +28,19 @@ IAXSOURCES =
 IAXHEADERS =
 endif
 
+#if USE_VOICEMAIL
+VOICEMAILDIR = voicemail
+VOICEMAILLIB = voicemail/libvoicemail.la
+#VOICEMAILFLAGS = -DUSE_VOICEMAIL
+#else
+#VOICEMAILDIR = voicemail
+#VOICEMAILLIB = voicemail/libvoicemail.la
+#VOICEMAILFLAGS = -DUSE_VOICEMAIL
+#endif
+
 ALSAFLAG= -lasound
 
-SUBDIRS = audio config dbus $(ZEROCONFDIR) #contact memmanager video mixer
+SUBDIRS = audio config dbus $(ZEROCONFDIR) $(VOICEMAILDIR) #contact memmanager video mixer
 
 sflphoned_SOURCES = eventthread.cpp 	main.cpp 	voiplink.cpp \
 		managerimpl.cpp	observer.cpp \
@@ -54,6 +64,7 @@ libsflphone_la_LIBADD = \
 	./audio/libaudio.la \
 	./dbus/libdbus.la \
 	./config/libconfig.la \
+	$(VOICEMAILLIB) \
 	$(IAX_LIBS) 
 
 libsflphone_la_SOURCES =

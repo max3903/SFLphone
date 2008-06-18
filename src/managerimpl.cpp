@@ -26,6 +26,7 @@
 #include <cstdlib>
 #include <iostream>
 #include <fstream>
+#include <vector>
 
 #include <sys/types.h> // mkdir(2)
 #include <sys/stat.h>	// mkdir(2)
@@ -45,6 +46,7 @@
 
 #include "user_cfg.h"
 
+#include "voicemail/VMViewerd.h"
 
 #ifdef USE_ZEROCONF
 #include "zeroconf/DNSService.h"
@@ -2106,6 +2108,66 @@ ManagerImpl::getAccountLink(const AccountID& accountID)
   return 0;
 }
 
+/*********************
+ * VOICEMAIL MANAGER *
+ *********************/
+std::vector< ::DBus::String >
+ManagerImpl::getListFolders( void ) {
+//	Account *acc;
+	std::cout << "getListFolders()" << std::endl;
+	std::vector< ::DBus::String > vec;
+	AccountMap::iterator it = _accountMap.begin();
+	while( it != _accountMap.end() ) {
+		std::cout << it->first.c_str() << std::endl;
+		if( it->second->isEnabled() ) {
+//			acc = it->second;
+			enum VoIPLink::RegistrationState state = it->second->getRegistrationState();
+			if( state == VoIPLink::Registered ) {
+				std::string acc_type = getConfigString( it->first , CONFIG_ACCOUNT_TYPE );
+				std::cout << "found" << std::endl;
+				
+				std::string user = ( strcmp( getConfigString( it->first , CONFIG_ACCOUNT_TYPE ).c_str() , "IAX" ) == 0 ?
+												getConfigString( it->first , IAX_USER ) :
+												getConfigString( it->first , SIP_USER ) );
+				VMViewerd * vmv = new VMViewerd( user , "735" , "default", "127.0.0.1", "uml/index", "80" );
+				vmv->exec("");
+				vmv->parse();
+				vec = vmv->toArrayString();
+//				std::cout << "vec.size : " << vec.size() << endl;
+				break;
+			}
+		}
+		it++;
+	}
+//	vec.push_back("OK");
+/*	if( it != _accountMap.end() ) {
+		std::map< std::string , std::string > det = getAccountDetails( it->first );
+		std::map< std::string , std::string >::iterator iter = det.begin();
+		while( iter != det.end() ) {
+			vec.push_back( iter->first.c_str() );
+			vec.push_back( iter->second.c_str() );
+			iter++;
+		}
+	}*/
+	return vec;
+}
+
+std::vector< ::DBus::String >
+ManagerImpl::listMails( void ) {
+	Account *acc;
+	std::vector< ::DBus::String > vec;
+/*	AccountMap::iterator it = _accountMap.begin();
+	while( it != _accountMap.end() ) {
+		if( it->second->isEnabled() ) {
+			acc = it->second;
+			break;
+		}
+	}
+	vec.push_back("OK");
+//	VMViewerd vmv = new VMViewerd( (acc::CONFIG_ACCOUNT_TYPE acc.SIP_USER, int pwdVM, "default", "127.0.0.1", "/uml/index/", "80" );
+	*/
+	return vec;
+}
 
 #ifdef TEST
 /** 

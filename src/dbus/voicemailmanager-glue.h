@@ -20,18 +20,25 @@ public:
     VoicemailManager()
     : ::DBus::InterfaceAdaptor("org.sflphone.SFLphone.VoicemailManager")
     {
+        register_method(VoicemailManager, getListFolders, _getListFolders_stub);
         register_method(VoicemailManager, listMails, _listMails_stub);
     }
 
     ::DBus::IntrospectedInterface* const introspect() const 
     {
+        static ::DBus::IntrospectedArgument getListFolders_args[] = 
+        {
+            { "list", "as", false },
+            { 0, 0, 0 }
+        };
         static ::DBus::IntrospectedArgument listMails_args[] = 
         {
-            { "list", "a{s}", false },
+            { "list", "as", false },
             { 0, 0, 0 }
         };
         static ::DBus::IntrospectedMethod VoicemailManager_methods[] = 
         {
+            { "getListFolders", getListFolders_args },
             { "listMails", listMails_args },
             { 0, 0 }
         };
@@ -64,7 +71,8 @@ public:
     /* methods exported by this interface,
      * you will have to implement them in your ObjectAdaptor
      */
-    virtual std::map< ::DBus::String,  > listMails(  ) = 0;
+    virtual std::vector< ::DBus::String > getListFolders(  ) = 0;
+    virtual std::vector< ::DBus::String > listMails(  ) = 0;
 
 public:
 
@@ -75,11 +83,21 @@ private:
 
     /* unmarshalers (to unpack the DBus message before calling the actual interface method)
      */
+    ::DBus::Message _getListFolders_stub( const ::DBus::CallMessage& call )
+    {
+        ::DBus::MessageIter ri = call.reader();
+
+        std::vector< ::DBus::String > argout1 = getListFolders();
+        ::DBus::ReturnMessage reply(call);
+        ::DBus::MessageIter wi = reply.writer();
+        wi << argout1;
+        return reply;
+    }
     ::DBus::Message _listMails_stub( const ::DBus::CallMessage& call )
     {
         ::DBus::MessageIter ri = call.reader();
 
-        std::map< ::DBus::String,  > argout1 = listMails();
+        std::vector< ::DBus::String > argout1 = listMails();
         ::DBus::ReturnMessage reply(call);
         ::DBus::MessageIter wi = reply.writer();
         wi << argout1;

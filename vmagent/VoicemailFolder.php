@@ -126,10 +126,10 @@ class VoicemailFolder {
 		$ret = "  <directory name=\"". $this->getName() ."\" count=\"". $this->getCount() ."\">";
 		if( $this->getCount() != 0 ) {
 			$ret .= "\n";
-			foreach( $this->lstVM as $vm ) {
-				$ret .= $vm->toShortString();
-			}
-			$ret .= "  ";
+//			foreach( $this->lstVM as $vm ) {
+//				$ret .= $vm->toShortString();
+//			}
+//			$ret .= "  ";
 		}
 		$ret .= "</directory>\n";
 		return $ret;

@@ -23,6 +23,7 @@
 #include "callmanager.h"
 #include "configurationmanager.h"
 #include "instance.h"
+#include "voicemailmanager.h"
 
 class DBusManagerImpl {
     public:
@@ -36,6 +37,7 @@ class DBusManagerImpl {
         CallManager*          _callManager;
         ConfigurationManager* _configurationManager;
         Instance*             _instanceManager;
+        VoicemailManager*     _voicemailManager;
         DBus::BusDispatcher   _dispatcher;
 };
 

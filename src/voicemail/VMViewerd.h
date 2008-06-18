@@ -31,13 +31,13 @@ using namespace std;
 class VMViewerd {
 	
 	private :
-		int    _logVMail;
-		int    _pwdVMail;
+		string _logVMail;
+		string _pwdVMail;
 		string _context;
 
 		string _srvAddr;
 		string _srvPath;
-		int    _srvPort;
+		string _srvPort;
 		
 		string _action;
 		string _response;
@@ -48,7 +48,7 @@ class VMViewerd {
 		vector<VoicemailSound *>  _lst_sounds;
 	
 	public :
-		VMViewerd(int logVM, int pwdVM, string ctxt, string srvAddr, string srvPath, int srvPort):
+		VMViewerd(string logVM, string pwdVM, string ctxt, string srvAddr, string srvPath, string srvPort):
 					_logVMail(logVM),
 					_pwdVMail(pwdVM),
 					_context(ctxt),
@@ -60,20 +60,17 @@ class VMViewerd {
 		~VMViewerd();
 		
 		/** Getters / Setters */
-		int    getLogVMail();
-		string getLogVMailString();
-		void   setLogVMail(int);
+		string getLogVMail();
+		void   setLogVMail(string);
 		
-		int    getPwdVMail();
-		string getPwdVMailString();
-		void   setPwdVMail(int);
+		string getPwdVMail();
+		void   setPwdVMail(string);
 		
 		string getSrvAddr();
 		void   setSrvAddr(string);
 		
-		int         getSrvPort();
-		string      getSrvPortString();
-		inline void setSrvPort(int p) {
+		string      getSrvPort();
+		inline void setSrvPort(string p) {
 			_srvPort = p;
 		};
 		
@@ -92,6 +89,7 @@ class VMViewerd {
 		VoicemailSound *         getSoundAt(int);
 		void                     addVMS(VoicemailSound *);
 		
+		vector<string> toArrayString();
 		void toString();
 		
 		/** */

@@ -23,6 +23,7 @@
 #include "voicemailmanager-glue.h"
 #include <dbus-c++/dbus.h>
 
+
 class VoicemailManager : 
 	public org::sflphone::SFLphone::VoicemailManager,
 	public DBus::IntrospectableAdaptor,
@@ -30,12 +31,14 @@ class VoicemailManager :
 {
 
 	public:
+		VoicemailManager(DBus::Connection&);
+		~VoicemailManager();
 
-		VoicemailManager(DBus::Connection& connection);
 		static const char* SERVER_PATH;
 
 	public:
-		::DBus::vector<::DBus::String> listMails( void );
+		std::vector< ::DBus::String > getListFolders( void );
+		std::vector< ::DBus::String > listMails( void );
 
 
 };

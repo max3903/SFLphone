@@ -18,6 +18,7 @@
  */
 
 #include <iostream>
+#include <sstream>
 #include <string>
 #include "Voicemail.h"
 
@@ -28,6 +29,12 @@ Voicemail::Voicemail() {
 
 Voicemail::~Voicemail() {
 //	std::cout << "~Voicemail" << std::endl;
+}
+
+string Voicemail::getIdString() {
+	ostringstream oss;
+	oss << _id;
+	return oss.str();
 }
 
 void Voicemail::setId(int id) {
@@ -48,6 +55,12 @@ void Voicemail::setCategory(string cat) {
 
 void Voicemail::setContext(string cont) {
 	_context = cont;
+}
+
+string Voicemail::getDurationString() {
+	ostringstream oss;
+	oss << _duration;
+	return oss.str();
 }
 
 void Voicemail::setDuration(int dur) {
@@ -101,6 +114,16 @@ VoicemailSound * Voicemail::getVMSoundByFormat(string ext) {
 		}
 	}
 	return NULL;
+}
+
+string Voicemail::toShortString() {
+	string res( _name );
+	res.append( " - " );
+	res.append( getIdString() );
+	res.append( " - " );
+	res.append( getDurationString() );
+	cout << res << endl;
+	return res;
 }
 
 void Voicemail::toString() {

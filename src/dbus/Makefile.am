@@ -9,7 +9,8 @@ libdbus_la_SOURCES = \
 	configurationmanager.cpp  \
 	contactmanager.cpp \
 	instance.cpp  \
-	dbusmanagerimpl.cpp
+	dbusmanagerimpl.cpp \
+	voicemailmanager.cpp
 
 libdbus_la_CXXFLAGS = -DPREFIX=\"$(prefix)\" -DPROGSHAREDIR=\"${datadir}/sflphone\"
 libdbus_la_CPPFLAGS = -I$(top_srcdir)/libs -I$(top_srcdir)/src $(libccext2_CFLAGS) $(libdbuscpp_CFLAGS)
@@ -25,7 +26,8 @@ noinst_HEADERS = \
 	instance.h  \
 	instance-glue.h \
 	dbusmanager.h \
-	dbusmanagerimpl.h
+	dbusmanagerimpl.h \
+	voicemailmanager.h
 	
 # Dbus service file
 servicedir = $(DBUS_SERVICES_DIR)

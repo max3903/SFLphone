@@ -22,6 +22,7 @@
 
 #include <string>
 #include <vector>
+#include <string>
 #include "VoicemailSound.h"
 
 class Voicemail {
@@ -47,11 +48,13 @@ class Voicemail {
 		Voicemail();
 		~Voicemail();
 		
+		std::string getIdString();
 		void        setId(int);
 		void        setCallerchan(std::string);
 		void        setCallerid(int);
 		void        setCategory(std::string);
 		void        setContext(std::string);
+		std::string getDurationString();
 		void        setDuration(int);
 		void        setExten(std::string);
 		void        setMacrocontext(std::string);
@@ -65,6 +68,7 @@ class Voicemail {
 		VoicemailSound * getVMSoundAt(int);
 		VoicemailSound * getVMSoundByFormat(std::string);
 		
+		std::string toShortString();
 		void toString();
 
 };

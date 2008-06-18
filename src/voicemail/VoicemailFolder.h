@@ -38,8 +38,9 @@ class VoicemailFolder {
 		void        setName(std::string);
 		std::string getName();
 		
-		void setCount(int);
-		int  getCount();
+		void        setCount(int);
+		int         getCount();
+		std::string getCountString();
 
 		std::vector<Voicemail *> getLstVM();
 		void                     addVM(Voicemail *);
@@ -47,7 +48,7 @@ class VoicemailFolder {
 		Voicemail *              getVMAt(int);
 		Voicemail *              getVMByName(std::string);
 		
-		void toString();
+		std::string toString();
 
 };
 
