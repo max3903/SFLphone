@@ -32,10 +32,10 @@ using namespace std;
 int
 main( int argc, char **argv ) {
 
-	VMViewerd *vmv = new VMViewerd(6666, 735, "default", "127.0.0.1", "uml/index", 80);
+	VMViewerd *vmv = new VMViewerd("6666", "735", "default", "127.0.0.1", "uml/index", "80");
 	//cout << system("wget -q -O - http://default-6666:735@127.0.0.1/uml/index") << endl;
 
-	if( argc != 2 ) {
+/*	if( argc != 2 ) {
 		cout << "Usage : ./vmv <CMD>" << endl
 			 << "With command like :" << endl
 			 << "   list" << endl
@@ -48,8 +48,8 @@ main( int argc, char **argv ) {
 	if( strcmp( argv[1] , "list" ) != 0 ) {
 		vmv->exec( "list" );
 		vmv->parse();
-	}
-	string req = (argc == 2 ? argv[1] : "list" );
+	}*/
+	string req = (argc == 2 ? argv[1] : "" );
 	int res = vmv->exec( req );
 	
 	vmv->parse();

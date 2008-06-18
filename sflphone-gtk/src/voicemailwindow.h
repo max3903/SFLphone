@@ -31,5 +31,6 @@ void show_voicemail_window( void );
 void create_voicemail_window( void );
 void create_tree( void );
 void update_tree( gchar * );
+void update_tree_complete( gchar ** );
 
 #endif

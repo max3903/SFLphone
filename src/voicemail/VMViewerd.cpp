@@ -325,9 +325,10 @@ void VMViewerd::addVMS(VoicemailSound * vms) {
 }
 
 
-vector< string > VMViewerd::toArrayString() {
+vector< string >
+VMViewerd::toArrayString() {
 	int i,j;
-	vector< string  > vec;
+	vector<string> vec;
 	if( getLstFolders().size() != 0 ) {
 		for( i=0 ; i<=getLstFolders().size()-1 ; i++ ) {
 			vec.push_back( getFolderAt(i)->toString() );
