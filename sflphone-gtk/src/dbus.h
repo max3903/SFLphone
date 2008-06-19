@@ -400,14 +400,19 @@ void dbus_register( int pid, gchar * name);
 void dbus_unregister(int pid);
 
 /**
- * Voicemail - list voicemails
- */
-gchar** dbus_list_mails( void );
-
-/**
  * Voicemail - list folders
  */
 gchar** dbus_get_list_folders( void );
+
+/**
+ * Voicemail - list voicemails
+ */
+gchar** dbus_get_list_voicemails( gchar * );
+
+/**
+ * Voicemail - get number of voicemail included in a folder
+ */
+gint * dbus_get_count( gchar * );
 
 
 #endif

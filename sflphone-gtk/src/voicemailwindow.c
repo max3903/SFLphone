@@ -348,8 +348,6 @@ update_tree( gchar * text )
 	GtkTreeModel *model;;
 	GdkPixbuf    *pixBufFolder;
 
-	g_print("upadte : %s\n",text);
-
 	pixBufFolder = gdk_pixbuf_new_from_file_at_scale( ICONS_DIR "/folder.svg", 20/*width*/, -1/*height*/, TRUE/*preserve_ratio*/, NULL/*error*/ );
 	model        = gtk_tree_view_get_model( GTK_TREE_VIEW( treeview ) );
 	/* New line creation */
@@ -363,34 +361,33 @@ update_tree( gchar * text )
  * Updates treeview by adding a new element
  */
 void
-update_tree_complete( gchar ** voicemails )
+update_tree_complete( gchar ** voicemails , int numline )
 {
 	GtkTreeIter  iter;
 	GtkTreeIter  iter2;
 	GtkTreeModel *model;;
-	GdkPixbuf    *pixBufFolder;
 	GdkPixbuf    *pixBuf;
-	int          j;
-	gchar        **list;
-
-	pixBufFolder = gdk_pixbuf_new_from_file_at_scale( ICONS_DIR "/folder.svg", 20/*width*/, -1/*height*/, TRUE/*preserve_ratio*/, NULL/*error*/ );
-	pixBuf       = gdk_pixbuf_new_from_file_at_scale( ICONS_DIR "/play.svg"  , 20/*width*/, -1/*height*/, TRUE/*preserve_ratio*/, NULL/*error*/ );
-	model        = gtk_tree_view_get_model( GTK_TREE_VIEW( treeview ) );
-	/* New line creation */
-	gtk_tree_store_append( GTK_TREE_STORE( model ), &iter , NULL );
+	int          i;
+	gchar        *line;
 	
-	list = voicemails;
-	for( list[1] ; *list ; list++ ) {
+	sprintf( line , "%i\0" , numline );
+	pixBuf = gdk_pixbuf_new_from_file_at_scale( ICONS_DIR "/play.svg"  , 20/*width*/, -1/*height*/, TRUE/*preserve_ratio*/, NULL/*error*/ );
+	model  = gtk_tree_view_get_model( GTK_TREE_VIEW( treeview ) );
+
+	/** Gets the nth line to append voicemails */
+	gtk_tree_model_get_iter_from_string( model , &iter , line );
+	
+	gchar **vm;
+	for( vm = voicemails ; *vm ; vm++ ) {
+		g_print("append(%s)\n", *vm);
 		/* Creation de la nouvelle ligne enfant */
 		gtk_tree_store_append( GTK_TREE_STORE( model ) , &iter2 , &iter );
 		/* Mise a jour des donnees */
 		gtk_tree_store_set( GTK_TREE_STORE( model ) , &iter2,
 							IMG_COLUMN  , pixBuf,
-							TEXT_COLUMN , *list,
+							TEXT_COLUMN , *vm,
 							-1);
 	}
-	/* Data updates */
- 	gtk_tree_store_set( GTK_TREE_STORE( model ), &iter, IMG_COLUMN, pixBufFolder, TEXT_COLUMN, list[0], -1 );
 }
 
 
@@ -549,11 +546,24 @@ show_voicemail_window(void)
 	if( VMWindow == NULL )
 	{
 		create_voicemail_window();
-		gchar*** list = dbus_get_list_folders();
-		g_print("- gets list folders\n");
-		for( list ; *list ; list++ ) {
-	//		g_print("    - %s\n", *list);
-			update_tree( *list );
+		gint i = 0;
+		gchar **list = dbus_get_list_folders();
+//		for( list ; *list ; list++ ) {
+		for( ; list[i] ; ) {
+//			g_print("<<'%s'>>\n", *list);
+			g_print("<<'%s'>>\n", list[i]);
+//			update_tree( *list );
+			update_tree( list[i] );
+			g_print("get_list_mails\n");
+//			gint count = dbus_get_folder_count( *list );
+			gint count = dbus_get_folder_count( list[i] );
+			if( count != 0 )
+			{
+//				gchar **voicemails = dbus_get_list_mails( *list );
+				gchar **voicemails = dbus_get_list_mails( list[i] );
+				update_tree_complete( voicemails , i );
+			}
+			i++;
 		}
 	}
 	else

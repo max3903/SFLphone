@@ -1453,17 +1453,38 @@ dbus_get_list_folders( void )
 		g_error_free(error);
 	}
 	else
-		g_print("Called dbus_list_mails\n");
+		g_print("Called dbus_get_list_folders\n");
 	return list;
 }
 
+gint
+dbus_get_folder_count( gchar * folder )
+{
+	GError* error = NULL;
+	gint count = 0;
+	org_sflphone_SFLphone_VoicemailManager_get_folder_count(
+			voicemailManagerProxy,
+			folder,
+			&count,
+			&error);
+	if(error)
+	{
+		g_error_free(error);
+	}
+	else
+		g_print("Called dbus_get_count\n");
+	return count;
+}
+
+
 gchar**
-dbus_list_mails( void )
+dbus_get_list_mails( gchar * folder )
 {
 	GError* error = NULL;
 	gchar** list;
-	org_sflphone_SFLphone_VoicemailManager_list_mails(
+	org_sflphone_SFLphone_VoicemailManager_get_list_mails(
 			voicemailManagerProxy,
+			folder,
 			&list,
 			&error);
 	if(error)
@@ -1471,6 +1492,6 @@ dbus_list_mails( void )
 		g_error_free(error);
 	}
 	else
-	  g_print("Called dbus_list_mails\n");
+	  g_print("Called dbus_get_list_mails\n");
 	return list;
 }

@@ -81,6 +81,7 @@ class VMViewerd {
 		vector<VoicemailFolder *> getLstFolders();
 		VoicemailFolder *         getFolderAt(int);
 		VoicemailFolder *         getFolderByName(string);
+		int                       getFolderCount(string);
 		void                      addVMF(VoicemailFolder *);
 //		bool                      removeVMF(VoicemailFolder *);
 		
@@ -90,6 +91,7 @@ class VMViewerd {
 		void                     addVMS(VoicemailSound *);
 		
 		vector<string> toArrayString();
+		vector<string> toFolderArrayString(string);
 		void toString();
 		
 		/** */

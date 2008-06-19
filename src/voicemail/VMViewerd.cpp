@@ -324,14 +324,35 @@ void VMViewerd::addVMS(VoicemailSound * vms) {
 	_lst_sounds.push_back( vms );
 }
 
+int VMViewerd::getFolderCount(string folder) {
+	VoicemailFolder * vmf;
+	if( (vmf = getFolderByName(folder)) != NULL ) {
+		return vmf->getCount();
+	} else {
+		return 0;
+	}
+}
 
-vector< string >
-VMViewerd::toArrayString() {
+
+vector< string > VMViewerd::toArrayString() {
 	int i,j;
 	vector<string> vec;
 	if( getLstFolders().size() != 0 ) {
 		for( i=0 ; i<=getLstFolders().size()-1 ; i++ ) {
 			vec.push_back( getFolderAt(i)->toString() );
+		}
+	}
+	return vec;
+}
+
+
+vector< string > VMViewerd::toFolderArrayString(string folder) {
+	int i,j;
+	vector<string> vec;
+	VoicemailFolder * vmf;
+	if( (vmf = getFolderByName(folder) ) != NULL ) {
+		for( i=0 ; i<=vmf->getCount()-1 ; i++ ) {
+			vec.push_back( vmf->getVMAt(i)->toShortString() );
 		}
 	}
 	return vec;

@@ -88,9 +88,9 @@ string VoicemailFolder::toString() {
 //	string res("   '-");
 	string res("");
 	res.append( getName() );
-	res.append(" (");
-	res.append( getCountString() );
-	res.append(")");
+//	res.append(" (");
+//	res.append( getCountString() );
+//	res.append(")");
 	cout << res << endl;
 	return res;
 }

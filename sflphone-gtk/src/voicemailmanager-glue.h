@@ -52,22 +52,22 @@ static
 inline
 #endif
 gboolean
-org_sflphone_SFLphone_VoicemailManager_list_mails (DBusGProxy *proxy, char *** OUT_list, GError **error)
+org_sflphone_SFLphone_VoicemailManager_get_folder_count (DBusGProxy *proxy, const char * IN_folder, gint* OUT_count, GError **error)
 
 {
-  return dbus_g_proxy_call (proxy, "listMails", error, G_TYPE_INVALID, G_TYPE_STRV, OUT_list, G_TYPE_INVALID);
+  return dbus_g_proxy_call (proxy, "getFolderCount", error, G_TYPE_STRING, IN_folder, G_TYPE_INVALID, G_TYPE_INT, OUT_count, G_TYPE_INVALID);
 }
 
-typedef void (*org_sflphone_SFLphone_VoicemailManager_list_mails_reply) (DBusGProxy *proxy, char * *OUT_list, GError *error, gpointer userdata);
+typedef void (*org_sflphone_SFLphone_VoicemailManager_get_folder_count_reply) (DBusGProxy *proxy, gint OUT_count, GError *error, gpointer userdata);
 
 static void
-org_sflphone_SFLphone_VoicemailManager_list_mails_async_callback (DBusGProxy *proxy, DBusGProxyCall *call, void *user_data)
+org_sflphone_SFLphone_VoicemailManager_get_folder_count_async_callback (DBusGProxy *proxy, DBusGProxyCall *call, void *user_data)
 {
   DBusGAsyncData *data = (DBusGAsyncData*) user_data;
   GError *error = NULL;
-  char ** OUT_list;
-  dbus_g_proxy_end_call (proxy, call, &error, G_TYPE_STRV, &OUT_list, G_TYPE_INVALID);
-  (*(org_sflphone_SFLphone_VoicemailManager_list_mails_reply)data->cb) (proxy, OUT_list, error, data->userdata);
+  gint OUT_count;
+  dbus_g_proxy_end_call (proxy, call, &error, G_TYPE_INT, &OUT_count, G_TYPE_INVALID);
+  (*(org_sflphone_SFLphone_VoicemailManager_get_folder_count_reply)data->cb) (proxy, OUT_count, error, data->userdata);
   return;
 }
 
@@ -76,14 +76,52 @@ static
 inline
 #endif
 DBusGProxyCall*
-org_sflphone_SFLphone_VoicemailManager_list_mails_async (DBusGProxy *proxy, org_sflphone_SFLphone_VoicemailManager_list_mails_reply callback, gpointer userdata)
+org_sflphone_SFLphone_VoicemailManager_get_folder_count_async (DBusGProxy *proxy, const char * IN_folder, org_sflphone_SFLphone_VoicemailManager_get_folder_count_reply callback, gpointer userdata)
 
 {
   DBusGAsyncData *stuff;
   stuff = g_new (DBusGAsyncData, 1);
   stuff->cb = G_CALLBACK (callback);
   stuff->userdata = userdata;
-  return dbus_g_proxy_begin_call (proxy, "listMails", org_sflphone_SFLphone_VoicemailManager_list_mails_async_callback, stuff, g_free, G_TYPE_INVALID);
+  return dbus_g_proxy_begin_call (proxy, "getFolderCount", org_sflphone_SFLphone_VoicemailManager_get_folder_count_async_callback, stuff, g_free, G_TYPE_STRING, IN_folder, G_TYPE_INVALID);
+}
+static
+#ifdef G_HAVE_INLINE
+inline
+#endif
+gboolean
+org_sflphone_SFLphone_VoicemailManager_get_list_mails (DBusGProxy *proxy, const char * IN_folder, char *** OUT_list, GError **error)
+
+{
+  return dbus_g_proxy_call (proxy, "getListMails", error, G_TYPE_STRING, IN_folder, G_TYPE_INVALID, G_TYPE_STRV, OUT_list, G_TYPE_INVALID);
+}
+
+typedef void (*org_sflphone_SFLphone_VoicemailManager_get_list_mails_reply) (DBusGProxy *proxy, char * *OUT_list, GError *error, gpointer userdata);
+
+static void
+org_sflphone_SFLphone_VoicemailManager_get_list_mails_async_callback (DBusGProxy *proxy, DBusGProxyCall *call, void *user_data)
+{
+  DBusGAsyncData *data = (DBusGAsyncData*) user_data;
+  GError *error = NULL;
+  char ** OUT_list;
+  dbus_g_proxy_end_call (proxy, call, &error, G_TYPE_STRV, &OUT_list, G_TYPE_INVALID);
+  (*(org_sflphone_SFLphone_VoicemailManager_get_list_mails_reply)data->cb) (proxy, OUT_list, error, data->userdata);
+  return;
+}
+
+static
+#ifdef G_HAVE_INLINE
+inline
+#endif
+DBusGProxyCall*
+org_sflphone_SFLphone_VoicemailManager_get_list_mails_async (DBusGProxy *proxy, const char * IN_folder, org_sflphone_SFLphone_VoicemailManager_get_list_mails_reply callback, gpointer userdata)
+
+{
+  DBusGAsyncData *stuff;
+  stuff = g_new (DBusGAsyncData, 1);
+  stuff->cb = G_CALLBACK (callback);
+  stuff->userdata = userdata;
+  return dbus_g_proxy_begin_call (proxy, "getListMails", org_sflphone_SFLphone_VoicemailManager_get_list_mails_async_callback, stuff, g_free, G_TYPE_STRING, IN_folder, G_TYPE_INVALID);
 }
 #endif /* defined DBUS_GLIB_CLIENT_WRAPPERS_org_sflphone_SFLphone_VoicemailManager */
 

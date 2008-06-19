@@ -36,9 +36,15 @@ VoicemailManager::getListFolders( void ) {
 	return Manager::instance().getListFolders();
 }
 
+int
+VoicemailManager::getFolderCount( const ::DBus::String& folder ) {
+	return Manager::instance().getFolderCount( folder );
+}
+
+
 
 std::vector< ::DBus::String >
-VoicemailManager::listMails( void ) {
-	return Manager::instance().listMails();
+VoicemailManager::getListMails( const ::DBus::String& folder ) {
+	return Manager::instance().getListMails( folder );
 }
 

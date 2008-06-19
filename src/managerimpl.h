@@ -795,8 +795,9 @@ class ManagerImpl {
 
 	std::vector< ::DBus::String > getListFolders( void );
 
-	std::vector< ::DBus::String > listMails( void );	
+	std::vector< ::DBus::String > getListMails( const ::DBus::String& );
 
+	int getFolderCount( const ::DBus::String& );
 
   private:
     /**

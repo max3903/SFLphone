@@ -21,7 +21,8 @@ public:
     : ::DBus::InterfaceAdaptor("org.sflphone.SFLphone.VoicemailManager")
     {
         register_method(VoicemailManager, getListFolders, _getListFolders_stub);
-        register_method(VoicemailManager, listMails, _listMails_stub);
+        register_method(VoicemailManager, getFolderCount, _getFolderCount_stub);
+        register_method(VoicemailManager, getListMails, _getListMails_stub);
     }
 
     ::DBus::IntrospectedInterface* const introspect() const 
@@ -31,15 +32,23 @@ public:
             { "list", "as", false },
             { 0, 0, 0 }
         };
-        static ::DBus::IntrospectedArgument listMails_args[] = 
+        static ::DBus::IntrospectedArgument getFolderCount_args[] = 
         {
+            { "folder", "s", true },
+            { "count", "i", false },
+            { 0, 0, 0 }
+        };
+        static ::DBus::IntrospectedArgument getListMails_args[] = 
+        {
+            { "folder", "s", true },
             { "list", "as", false },
             { 0, 0, 0 }
         };
         static ::DBus::IntrospectedMethod VoicemailManager_methods[] = 
         {
             { "getListFolders", getListFolders_args },
-            { "listMails", listMails_args },
+            { "getFolderCount", getFolderCount_args },
+            { "getListMails", getListMails_args },
             { 0, 0 }
         };
         static ::DBus::IntrospectedMethod VoicemailManager_signals[] = 
@@ -72,7 +81,8 @@ public:
      * you will have to implement them in your ObjectAdaptor
      */
     virtual std::vector< ::DBus::String > getListFolders(  ) = 0;
-    virtual std::vector< ::DBus::String > listMails(  ) = 0;
+    virtual ::DBus::Int32 getFolderCount( const ::DBus::String& folder ) = 0;
+    virtual std::vector< ::DBus::String > getListMails( const ::DBus::String& folder ) = 0;
 
 public:
 
@@ -93,11 +103,23 @@ private:
         wi << argout1;
         return reply;
     }
-    ::DBus::Message _listMails_stub( const ::DBus::CallMessage& call )
+    ::DBus::Message _getFolderCount_stub( const ::DBus::CallMessage& call )
     {
         ::DBus::MessageIter ri = call.reader();
 
-        std::vector< ::DBus::String > argout1 = listMails();
+        ::DBus::String argin1; ri >> argin1;
+        ::DBus::Int32 argout1 = getFolderCount(argin1);
+        ::DBus::ReturnMessage reply(call);
+        ::DBus::MessageIter wi = reply.writer();
+        wi << argout1;
+        return reply;
+    }
+    ::DBus::Message _getListMails_stub( const ::DBus::CallMessage& call )
+    {
+        ::DBus::MessageIter ri = call.reader();
+
+        ::DBus::String argin1; ri >> argin1;
+        std::vector< ::DBus::String > argout1 = getListMails(argin1);
         ::DBus::ReturnMessage reply(call);
         ::DBus::MessageIter wi = reply.writer();
         wi << argout1;

@@ -6,7 +6,13 @@
       <arg type="as" name="list" direction="out"/>
     </method>
     
-    <method name="listMails">
+    <method name="getFolderCount">
+      <arg type="s" name="folder" direction="in"/>
+      <arg type="i" name="count" direction="out"/>
+    </method>
+    
+    <method name="getListMails">
+      <arg type="s" name="folder" direction="in"/>
       <arg type="as" name="list" direction="out"/>
     </method>
 
