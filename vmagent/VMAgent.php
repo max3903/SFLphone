@@ -99,7 +99,6 @@ class VMAgent {
 	 * @param string context
 	 */
 	private function checkStorage( $login, $pass, $context ) {
-		echo "<chkStor>";
 		$fd = fopen( "/etc/asterisk/voicemail.conf" , "r" );
 		if( !$fd ) {
 			echo "<error>";
