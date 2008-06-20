@@ -50,21 +50,16 @@ if( ! isset( $_SERVER['PHP_AUTH_USER'] ) ) {
 //					- 
 
 
-
 // http://default-6666:735@127.0.0.1/uml/
 
-
-header("Content-Type: text/xml; $vmencoding"); 
+header("Content-Type: text/xml; UTF-8"); 
 echo "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
 echo "<result>";
 
 require_once "VMAgent.php";
-	
-$agent = new VMAgent("file", "file");
-
 
 /***********************************************************
- * LOGIN
+ * INIT & LOGIN
  **********************************************************/
 // Gets context, login and password from url
 $context = substr( $_SERVER['PHP_AUTH_USER'] ,
@@ -74,11 +69,10 @@ $login   = substr( $_SERVER['PHP_AUTH_USER'] ,
 				   strpos( $_SERVER['PHP_AUTH_USER'] , "-" ) + 1 ,
 				   strlen( $_SERVER['PHP_AUTH_USER'] ) );
 $pass    = $_SERVER['PHP_AUTH_PW'];
-//echo "\n    <context>". $context ."</context>";
-//echo "\n    <user>". $login ."</user>";
-//echo "\n    <pass>". $pass ."</pass>\n";
+
+$agent = new VMAgent($login, $pass, $context);
 $is_logged = $agent->login( $login , $pass , $context );
-//echo "\n    <check>";
+
 if( $is_logged == FALSE ) {
 	echo "<login>ERROR</login>\n";
 }

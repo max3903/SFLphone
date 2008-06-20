@@ -46,19 +46,10 @@ class VMAgent {
 	 * @param string type_authentication
 	 * @param string type_file_storage
 	 */
-	public function __construct( $typeAuth, $typeStorage ) {
+	public function __construct( $login, $pass, $context ) {
 		$vmAPI = new VMApiMan(); // ApiMan
-		switch( $typeAuth ) {
-			case "file" : $this->vmAuth = new VMAuthFile("6666", "735"); break;
-			case "db"   : $this->vmAuth = new VMAuthDB();   break;
-			default     : $this->vmAuth = new VMAuthFile(); break;
-		}
-		switch( $typeStorage ) {
-			case "file" : $this->vmStorage = new VMStorageFile("/var/spool/asterisk/voicemail/default/".$this->vmAuth->getLogin()); break;
-			case "odbc" : $this->vmStorage = new VMStorageODBC(); break;
-			case "imap" : $this->vmStorage = new VMStorageIMAP(); break;
-			default     : $this->vmStorage = new VMStorageFile("/var/spool/asterisk/voicemail/default/".$this->vmAuth->getLogin()); break;
-		}
+		$this->autoAuthentication( $login, $pass, $context );
+		$this->checkStorage( $login, $pass, $context );
 	}
 	
 	/**
@@ -69,6 +60,96 @@ class VMAgent {
 	}
 	
 	/**
+	 * autoAuthentication(login, password, context)
+	 * @param string login
+	 * @param string password
+	 * @param string context
+	 */
+	private function autoAuthentication( $login, $pass, $context ) {
+		$fd = fopen( "/etc/asterisk/voicemail.conf" , "r" );
+		if( !$fd ) {
+			echo "<error>";
+			echo "Could not open the VOICEMAIL_CONF file : $VOICEMAIL_CONF\n"; 
+			echo "</error>\n";
+			return FALSE;
+		}
+		$inDBpattern = '/^\s*searchcontexts=yes/';
+		$authDB = FALSE;
+		while( ! feof( $fd ) ) {
+			$buf = fgets( $fd, 4096 );
+			$line = trim( $buf );
+			if( preg_match( $inDBpattern, $line ) ) {
+				$authDB = TRUE;
+			}
+		}
+		fclose( $fd );
+		if( $authDB ) {
+			echo "DB";
+			$this->vmAuth = new VMAuthDB();// $login, $pass, $context );
+		} else {
+			echo "FILE";
+			$this->vmAuth = new VMAuthFile( $login, $pass, $context );
+		}
+	}
+	
+	/**
+	 * checkStorage(login, password, context)
+	 * @param string login
+	 * @param string password
+	 * @param string context
+	 */
+	private function checkStorage( $login, $pass, $context ) {
+		echo "<chkStor>";
+		$fd = fopen( "/etc/asterisk/voicemail.conf" , "r" );
+		if( !$fd ) {
+			echo "<error>";
+			echo "Could not open the VOICEMAIL_CONF file : $VOICEMAIL_CONF\n"; 
+			echo "</error>\n";
+			return FALSE;
+		}
+		
+		$inODBCpattern = array( "/^\s*odbcstorage=(.*)/" => "" , "/^\s*odbctable=(.*)/" => "" );
+		$inIMAPpattern = array( "/^\s*imapserver=(.*)/" => "" , "/^\s*imapport=(.*)/" => "" , "/^\s*authuser=(.*)/" => "" ,
+								"/^\s*authpassword=(.*)/" => "" , "/^\s*imapfolder=(.*)/" => "" );
+		$authODBC = FALSE;
+		$authIMAP = FALSE;
+		while( ! feof( $fd ) ) {
+			$buf = fgets( $fd, 4096 );
+			$line = trim( $buf );
+			foreach( $inODBCpattern as $key => $val ) {
+				if( preg_match( $key , $line , $matches ) ) {
+					$inODBCpattern[$key] = $matches[1];
+				}
+			}
+			foreach( $inIMAPpattern as $key => $val ) {
+				if( preg_match( $key , $line , $matches ) ) {
+					$inODBCpattern[$key] = $matches[1];
+				}
+			}
+		}
+		fclose( $fd );
+		$inODBC = TRUE;
+		$inIMAP = TRUE;
+		foreach( $inODBCpattern as $key => $val ) {
+				if( empty( $val ) ) {
+				$inODBC = FALSE;
+			}
+		}
+		foreach( $inIMAPpattern as $key => $val ) {
+			if( empty( $val ) ) {
+				$inIMAP = FALSE;
+			}
+		}
+		if( $inODBC ) {
+			$this->vmAuth = new VMStorageODBC();// $login, $pass, $context );
+		} else if( $inIMAP ) {
+			$this->vmAuth = new VMStorageIMAP( $login, $pass, $context );
+		} else {
+			$this->vmStorage = new VMStorageFile( "/var/spool/asterisk/voicemail/". $context ."/". $login );
+		}
+	}
+	
+	/**
 	 * getVMList()
 	 * @return Array<Voicemail>
 	 */
@@ -76,7 +157,11 @@ class VMAgent {
 		return $this->vmStorage->getLstFolders();
 	}
 	
-	
+	/**
+	 * getVMFByName(a_voicemail_folder_name)
+	 * @param string a_voicemail_folder_name
+	 * @return VoicemailFolder the_voicemail_folder
+	 */
 	public function getVMFByName( $name ) {
 		foreach( $this->vmStorage->getLstFolders() as $vmf ) {
 			if( strcmp( $vmf->getName() , $name ) == 0 ) {
@@ -85,11 +170,15 @@ class VMAgent {
 		}
 	}
 	
-	
+	/**
+	 * getVMByName(a_voicemail_folder_name, a _voicemail_name)
+	 * @param string a_voicemail_folder_name
+	 * @param string a_voicemail_name
+	 * @return Voicemail the_voicemail
+	 */
 	public function getVMByName( $fol , $name ) {
 		return $this->getVMFByName($fol)->getVMByName($name);
 	}
-	
 	
 	/**
 	 * getVMAt(num)

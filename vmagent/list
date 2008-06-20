@@ -22,6 +22,10 @@
 // LIST VOICEMAIL FOLDERS AND INCLUDED VOICEMAIL
 //
 // Exemple of use :
+// http://default-6666:735@127.0.0.1/uml/
+// OR
+// http://default-6666:735@127.0.0.1/uml/index/
+// OR
 // http://default-6666:735@127.0.0.1/uml/index/list
 //
 
