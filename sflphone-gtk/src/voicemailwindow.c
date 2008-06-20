@@ -154,7 +154,7 @@ static void
 on_play()
 {
 	g_print("on_play()\n");
-	if( isItemSelected() && isAValidItem() )
+	if( isItemSelected() )
 	{
 		/** Voicemail selected */
 		if( isAValidItem() )
@@ -194,7 +194,25 @@ on_play()
 		/** Folder selected */
 		else
 		{
+			GtkTreeIter  iter;
+			GtkTreeModel *model;
 			
+			model = gtk_tree_view_get_model( GTK_TREE_VIEW( treeview ) );
+			iter = getItemSelected();
+			if( gtk_tree_model_iter_has_child( model , &iter ) )
+			{
+				g_print("has Children\n");
+				if( ! gtk_tree_view_row_expanded( GTK_TREE_VIEW( treeview ) , gtk_tree_model_get_path( model, &iter ) ) )
+				{
+					g_print("collapsed, so... expand it !\n");
+					gtk_tree_view_expand_row( GTK_TREE_VIEW( treeview ) , gtk_tree_model_get_path( model, &iter ) , TRUE );
+				}
+				else
+				{
+					g_print("expanded, so... collapse it !\n");
+					gtk_tree_view_collapse_row( GTK_TREE_VIEW( treeview ) , gtk_tree_model_get_path( model, &iter ) );
+				}
+			}
 		}
 	}
 }
@@ -332,7 +350,7 @@ create_tree( void )
 	/** Adding column to view */
 	gtk_tree_view_append_column( GTK_TREE_VIEW( treeview ), column );
 	
-	/** Adding signal for "popup" menu */
+	/** Adding right-click signal for "popup" menu */
 	g_signal_connect( treeview, "button-press-event", G_CALLBACK( my_widget_button_press_event_handler ), NULL );
 	g_signal_connect( treeview, "popup-menu",         G_CALLBACK( my_widget_popup_menu_handler ),         NULL );
 }
@@ -363,29 +381,27 @@ update_tree( gchar * text )
 void
 update_tree_complete( gchar ** voicemails , int numline )
 {
-	GtkTreeIter  iter;
-	GtkTreeIter  iter2;
+	GtkTreeIter  iterParent;
+	GtkTreeIter  iterChild;
 	GtkTreeModel *model;;
 	GdkPixbuf    *pixBuf;
-	int          i;
 	gchar        *line;
+	gint         i;
 	
 	sprintf( line , "%i\0" , numline );
-	pixBuf = gdk_pixbuf_new_from_file_at_scale( ICONS_DIR "/play.svg"  , 20/*width*/, -1/*height*/, TRUE/*preserve_ratio*/, NULL/*error*/ );
+	pixBuf = gdk_pixbuf_new_from_file_at_scale( ICONS_DIR "/play.svg" , 20/*width*/, -1/*height*/, TRUE/*preserve_ratio*/, NULL/*error*/ );
 	model  = gtk_tree_view_get_model( GTK_TREE_VIEW( treeview ) );
 
 	/** Gets the nth line to append voicemails */
-	gtk_tree_model_get_iter_from_string( model , &iter , line );
+	gtk_tree_model_get_iter_from_string( model , &iterParent , line );
 	
-	gchar **vm;
-	for( vm = voicemails ; *vm ; vm++ ) {
-		g_print("append(%s)\n", *vm);
-		/* Creation de la nouvelle ligne enfant */
-		gtk_tree_store_append( GTK_TREE_STORE( model ) , &iter2 , &iter );
-		/* Mise a jour des donnees */
-		gtk_tree_store_set( GTK_TREE_STORE( model ) , &iter2,
+	for( i=0 ; voicemails[i] ; i++ ) {
+		/* New child line creation */
+		gtk_tree_store_append( GTK_TREE_STORE( model ) , &iterChild , &iterParent );
+		/* Updating datas */
+		gtk_tree_store_set( GTK_TREE_STORE( model ) , &iterChild,
 							IMG_COLUMN  , pixBuf,
-							TEXT_COLUMN , *vm,
+							TEXT_COLUMN , voicemails[i],
 							-1);
 	}
 }
@@ -397,7 +413,8 @@ update_tree_complete( gchar ** voicemails , int numline )
 static void
 on_window_delete(GtkWidget *pWidget, gpointer pData)
 {
-	gtk_widget_hide( VMWindow );
+//	g_free( VMWindow );
+	VMWindow = NULL;
 }
 
 /*********************************************************************************************************/
@@ -452,19 +469,16 @@ create_voicemail_window( void )
 	gtk_scrolled_window_set_policy( GTK_SCROLLED_WINDOW( scrolledwindow ), GTK_POLICY_NEVER, GTK_POLICY_ALWAYS );
 	gtk_scrolled_window_set_shadow_type( GTK_SCROLLED_WINDOW( scrolledwindow ), GTK_SHADOW_IN );
 	
+	/** Treeview */
 	treeview = gtk_tree_view_new();
-	/** TODO : delete create_tree() */
 	create_tree();
-/*	for( i = 1 ; i < 6 ; i++ )
-	{
-		update_tree( g_markup_printf_escaped( "Mail #%d" , i ) );
-	}
-	/********************************/
 	gtk_widget_show( treeview );
-	gtk_tree_view_set_level_indentation( GTK_TREE_VIEW( treeview ) , -25 );
+	gtk_tree_view_set_level_indentation( GTK_TREE_VIEW( treeview ) , -20 );
+	// Don't show headers
 	gtk_tree_view_set_headers_visible( GTK_TREE_VIEW( treeview ) , FALSE );
-	gtk_tree_view_set_rules_hint( GTK_TREE_VIEW( treeview ), TRUE );
+//	gtk_tree_view_set_rules_hint( GTK_TREE_VIEW( treeview ), TRUE );
 	gtk_container_add( GTK_CONTAINER( scrolledwindow ), treeview );
+	// Adds double-click signal
 	g_signal_connect( GTK_TREE_VIEW( treeview ), "row-activated", G_CALLBACK( on_play ), NULL );
 	
 	
@@ -531,7 +545,7 @@ create_voicemail_window( void )
 	gtk_container_add( GTK_CONTAINER( del_btn), del_img );
 	
 	/** Adding destroy signal to voice mail window */
-	g_signal_connect( G_OBJECT( VMWindow ), "delete-event", G_CALLBACK( on_window_delete ), NULL);
+//	g_signal_connect_after( G_OBJECT( VMWindow ), "delete-event", G_CALLBACK( on_window_delete ), NULL);
 	
 	gtk_widget_show_all( VMWindow );
 }
@@ -543,34 +557,19 @@ create_voicemail_window( void )
 void
 show_voicemail_window(void)
 {
-	if( VMWindow == NULL )
-	{
-		create_voicemail_window();
-		gint i = 0;
-		gchar **list = dbus_get_list_folders();
-//		for( list ; *list ; list++ ) {
-		for( ; list[i] ; ) {
-//			g_print("<<'%s'>>\n", *list);
-			g_print("<<'%s'>>\n", list[i]);
-//			update_tree( *list );
-			update_tree( list[i] );
-			g_print("get_list_mails\n");
-//			gint count = dbus_get_folder_count( *list );
-			gint count = dbus_get_folder_count( list[i] );
-			if( count != 0 )
-			{
-//				gchar **voicemails = dbus_get_list_mails( *list );
-				gchar **voicemails = dbus_get_list_mails( list[i] );
-				update_tree_complete( voicemails , i );
-			}
-			i++;
+	create_voicemail_window();
+	gint i;
+	gchar **list = (gchar**)dbus_get_list_folders();
+	for( i=0 ; list[i] ; i++ ) {
+		gchar * folder = list[i];
+		update_tree( folder );
+		gint count = dbus_get_folder_count( folder );
+		if( count != 0 )
+		{
+			gchar ** voicemails = ( gchar ** )dbus_get_list_mails( folder );
+			update_tree_complete( voicemails , i );
 		}
-	}
-	else
-	{
-		gtk_widget_show_all( VMWindow );
-		// TODO : sets focus !! doesn't work yet
-		gtk_widget_grab_focus( VMWindow );
+		g_free( folder );
 	}
 }
 
