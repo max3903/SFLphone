@@ -17,13 +17,6 @@
  *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
-
-/*
- * HOW TO COMPILE ALONE
- * gcc `pkg-config --libs --cflags gtk+-2.0` voicemailwindow.c -o voice
- * ./voice
- */
-
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -31,16 +24,15 @@
 #include <libintl.h>
 
 #include "dbus.h"
-#include "sflphone_const.h"   // MUST BE UNCOMMENTED
-#include "voicemailwindow.h"  // MUST BE UNCOMMENTED
-//#define _(STRING)   gettext( STRING ) // MUST BE COMMENTED
-//#define ICONS_DIR "../pixmaps"        // MUST BE COMMENTED
+#include "sflphone_const.h"
+#include "voicemailwindow.h"
 
 
 /** Local variables */
 GtkWidget *VMWindow;
 
 GtkWidget *treeview;
+GtkWidget *textview;
 gchar     *g_currently_playing = "";
 
 
@@ -153,7 +145,6 @@ on_pause()
 static void
 on_play()
 {
-	g_print("on_play()\n");
 	if( isItemSelected() )
 	{
 		/** Voicemail selected */
@@ -174,7 +165,6 @@ on_play()
 				{
 					on_stop();
 				}
-				g_print( "Player -- Play\n" );
 				/** Second, play selected voicemail */
 				iter = getItemSelected();
 				/** Gets text row */
@@ -201,15 +191,12 @@ on_play()
 			iter = getItemSelected();
 			if( gtk_tree_model_iter_has_child( model , &iter ) )
 			{
-				g_print("has Children\n");
 				if( ! gtk_tree_view_row_expanded( GTK_TREE_VIEW( treeview ) , gtk_tree_model_get_path( model, &iter ) ) )
 				{
-					g_print("collapsed, so... expand it !\n");
 					gtk_tree_view_expand_row( GTK_TREE_VIEW( treeview ) , gtk_tree_model_get_path( model, &iter ) , TRUE );
 				}
 				else
 				{
-					g_print("expanded, so... collapse it !\n");
 					gtk_tree_view_collapse_row( GTK_TREE_VIEW( treeview ) , gtk_tree_model_get_path( model, &iter ) );
 				}
 			}
@@ -231,7 +218,6 @@ on_delete()
 	
 	if( isItemSelected() )
 	{
-		g_print("Player -- Delete\n");
 		/** It's a voicemail */
 		if( isAValidItem() )
 			message = "Do you really want to delete this voicemail ?";
@@ -247,7 +233,6 @@ on_delete()
 		/** Dialog box with question and user's answer */
 		if( gtk_dialog_run( GTK_DIALOG( dialog ) ) == GTK_RESPONSE_OK )
 		{
-			g_print(" on_delete - OK\n");
 			model = gtk_tree_view_get_model( GTK_TREE_VIEW( treeview ) );
 			iter = getItemSelected();
 			gtk_tree_store_remove( GTK_TREE_STORE( model ), &iter );
@@ -258,6 +243,44 @@ on_delete()
 	}
 }
 
+/**
+ * Gets a voicemail's informations to fill details textfield
+ */
+static void
+on_cursor_changed()
+{
+	GtkTextBuffer *buf;
+	
+	g_print("on_cursor_changed\n");
+	buf = gtk_text_view_get_buffer( GTK_TEXT_VIEW( textview ) );
+	gtk_text_buffer_set_text( buf , "" , 0 );
+	/** It's a voicemail */
+	if( isAValidItem() )
+	{
+		gchar        *infos;
+		gchar        *tmp;
+		gchar        *folder;
+		gchar        name[8];
+		gint         i;
+		GtkTreeModel *model;
+		GtkTreeIter  iter;
+		GtkTreeIter  parent;
+
+		model = gtk_tree_view_get_model( GTK_TREE_VIEW( treeview ) );
+		iter  = getItemSelected();
+		/** Gets the selected voicemail's name */
+		gtk_tree_model_get( model , &iter, TEXT_COLUMN , &tmp , -1 );
+		/** Gets only the name of the file, not the other informations */
+		strncpy( name , tmp , 7 );
+		name[7] = '\0';
+		/** Gets the selected voicemail's parent name */
+		g_print("have parent ??? %s\n" , (gtk_tree_model_iter_parent( model , &parent , &iter ) ? "TRUE" : "FALSE" ) );
+		gtk_tree_model_get( model , &parent , TEXT_COLUMN , &folder , -1 );
+		
+		infos = (gchar *)dbus_get_voicemail_info( folder , name );
+		gtk_text_buffer_insert_at_cursor( buf , infos , strlen(infos) );
+	}
+}
 
 /*********************************************************************************************************/
 
@@ -376,10 +399,10 @@ update_tree( gchar * text )
 
 
 /**
- * Updates treeview by adding a new element
+ * Updates treeview by adding childs (voicemails) to folders
  */
 void
-update_tree_complete( gchar ** voicemails , int numline )
+update_tree_complete( gchar **voicemails , int numline )
 {
 	GtkTreeIter  iterParent;
 	GtkTreeIter  iterChild;
@@ -388,7 +411,7 @@ update_tree_complete( gchar ** voicemails , int numline )
 	gchar        *line;
 	gint         i;
 	
-	sprintf( line , "%i\0" , numline );
+	g_sprintf( line , "%i\0" , numline );
 	pixBuf = gdk_pixbuf_new_from_file_at_scale( ICONS_DIR "/play.svg" , 20/*width*/, -1/*height*/, TRUE/*preserve_ratio*/, NULL/*error*/ );
 	model  = gtk_tree_view_get_model( GTK_TREE_VIEW( treeview ) );
 
@@ -396,6 +419,7 @@ update_tree_complete( gchar ** voicemails , int numline )
 	gtk_tree_model_get_iter_from_string( model , &iterParent , line );
 	
 	for( i=0 ; voicemails[i] ; i++ ) {
+		g_print("  == update_tree_complete -> %s\n", voicemails[i]);
 		/* New child line creation */
 		gtk_tree_store_append( GTK_TREE_STORE( model ) , &iterChild , &iterParent );
 		/* Updating datas */
@@ -406,16 +430,6 @@ update_tree_complete( gchar ** voicemails , int numline )
 	}
 }
 
-
-/**
- * Signal - Doesn't delete voicemail window, simply hide it
- */
-static void
-on_window_delete(GtkWidget *pWidget, gpointer pData)
-{
-//	g_free( VMWindow );
-	VMWindow = NULL;
-}
 
 /*********************************************************************************************************/
 
@@ -438,7 +452,6 @@ create_voicemail_window( void )
 	GtkWidget * hbox;
 	GtkWidget * hscale;
 	GtkWidget * expander;
-	GtkWidget * textView;
 	GtkTooltips *tooltips;
 	
 	tooltips = gtk_tooltips_new();
@@ -447,7 +460,7 @@ create_voicemail_window( void )
 	/** Window */
 	VMWindow = gtk_window_new( GTK_WINDOW_TOPLEVEL );
 	gtk_window_set_title( GTK_WINDOW( VMWindow ), _("Voicemail viewer") );
-	gtk_window_set_position( GTK_WINDOW( VMWindow ), GTK_WIN_POS_CENTER );
+	gtk_window_set_position( GTK_WINDOW( VMWindow ) , GTK_WIN_POS_CENTER_ON_PARENT );
 	gtk_window_set_default_size( GTK_WINDOW( VMWindow ), 500, 400 );
 	gtk_window_set_default_icon_from_file( ICONS_DIR "/sflphone.png", NULL );
 	GTK_WIDGET_SET_FLAGS( VMWindow, GTK_CAN_FOCUS );
@@ -476,10 +489,12 @@ create_voicemail_window( void )
 	gtk_tree_view_set_level_indentation( GTK_TREE_VIEW( treeview ) , -20 );
 	// Don't show headers
 	gtk_tree_view_set_headers_visible( GTK_TREE_VIEW( treeview ) , FALSE );
-//	gtk_tree_view_set_rules_hint( GTK_TREE_VIEW( treeview ), TRUE );
+	// Adds a color to lines
+	gtk_tree_view_set_rules_hint( GTK_TREE_VIEW( treeview ), TRUE );
 	gtk_container_add( GTK_CONTAINER( scrolledwindow ), treeview );
 	// Adds double-click signal
 	g_signal_connect( GTK_TREE_VIEW( treeview ), "row-activated", G_CALLBACK( on_play ), NULL );
+	g_signal_connect( GTK_TREE_VIEW( treeview ), "cursor-changed", G_CALLBACK( on_cursor_changed ), NULL );
 	
 	
 	/** Expander */
@@ -487,10 +502,10 @@ create_voicemail_window( void )
 	gtk_box_pack_start( GTK_BOX( vbox ), expander, FALSE, FALSE, 0 );
 	
 	/** Text View */
-	textView = gtk_text_view_new();
-	gtk_text_view_set_editable( GTK_TEXT_VIEW( textView ), FALSE );
-	gtk_text_view_set_border_window_size( GTK_TEXT_VIEW( textView ), GTK_TEXT_WINDOW_RIGHT, 5 );
-	gtk_container_add( GTK_CONTAINER( expander ), textView );
+	textview = gtk_text_view_new();
+	gtk_text_view_set_editable( GTK_TEXT_VIEW( textview ), FALSE );
+	gtk_text_view_set_border_window_size( GTK_TEXT_VIEW( textview ), GTK_TEXT_WINDOW_RIGHT, 5 );
+	gtk_container_add( GTK_CONTAINER( expander ), textview );
 	
 	/** Separator */
 	hseparator = gtk_hseparator_new();
@@ -543,22 +558,33 @@ create_voicemail_window( void )
 	del_img = gtk_image_new_from_stock( "gtk-delete", GTK_ICON_SIZE_BUTTON );
 	gtk_widget_show( del_img );
 	gtk_container_add( GTK_CONTAINER( del_btn), del_img );
-	
-	/** Adding destroy signal to voice mail window */
-//	g_signal_connect_after( G_OBJECT( VMWindow ), "delete-event", G_CALLBACK( on_window_delete ), NULL);
-	
+
 	gtk_widget_show_all( VMWindow );
 }
 
 
 /**
- * Shows Voice Mail Window or sets focus on it if already launched
+ * Shows Voice Mail Window
  */
 void
 show_voicemail_window(void)
 {
-	create_voicemail_window();
 	gint i;
+	GtkWidget *dialog;
+
+	create_voicemail_window();
+	gchar **errors = (gchar **)dbus_get_list_errors();
+
+	for( i=0 ; errors[i] ; i++ ) {
+//		g_print("# error : %i\n", i);
+//		g_print("# error : %s\n", errors[i]);
+		dialog = gtk_message_dialog_new( GTK_WINDOW( VMWindow ),
+										 GTK_DIALOG_MODAL,
+										 GTK_MESSAGE_WARNING,
+										 GTK_BUTTONS_OK,
+										 errors[i] );
+		gtk_widget_show_all( dialog );
+	}
 	gchar **list = (gchar**)dbus_get_list_folders();
 	for( i=0 ; list[i] ; i++ ) {
 		gchar * folder = list[i];
@@ -573,14 +599,3 @@ show_voicemail_window(void)
 	}
 }
 
-/*
-int
-main( int argc, char * argv[])
-{
-	gtk_init(&argc,&argv);
-	// Connexion du signal "destroy"
-	show_voicemail_window();
-	// Demarrage de la boucle evenementielle
-	gtk_main();
-}
-*/
