@@ -23,6 +23,8 @@ public:
         register_method(VoicemailManager, getListFolders, _getListFolders_stub);
         register_method(VoicemailManager, getFolderCount, _getFolderCount_stub);
         register_method(VoicemailManager, getListMails, _getListMails_stub);
+        register_method(VoicemailManager, getVoicemailInfo, _getVoicemailInfo_stub);
+        register_method(VoicemailManager, getListErrors, _getListErrors_stub);
     }
 
     ::DBus::IntrospectedInterface* const introspect() const 
@@ -44,11 +46,25 @@ public:
             { "list", "as", false },
             { 0, 0, 0 }
         };
+        static ::DBus::IntrospectedArgument getVoicemailInfo_args[] = 
+        {
+            { "folder", "s", true },
+            { "name", "s", true },
+            { "list", "s", false },
+            { 0, 0, 0 }
+        };
+        static ::DBus::IntrospectedArgument getListErrors_args[] = 
+        {
+            { "list", "as", false },
+            { 0, 0, 0 }
+        };
         static ::DBus::IntrospectedMethod VoicemailManager_methods[] = 
         {
             { "getListFolders", getListFolders_args },
             { "getFolderCount", getFolderCount_args },
             { "getListMails", getListMails_args },
+            { "getVoicemailInfo", getVoicemailInfo_args },
+            { "getListErrors", getListErrors_args },
             { 0, 0 }
         };
         static ::DBus::IntrospectedMethod VoicemailManager_signals[] = 
@@ -83,6 +99,8 @@ public:
     virtual std::vector< ::DBus::String > getListFolders(  ) = 0;
     virtual ::DBus::Int32 getFolderCount( const ::DBus::String& folder ) = 0;
     virtual std::vector< ::DBus::String > getListMails( const ::DBus::String& folder ) = 0;
+    virtual ::DBus::String getVoicemailInfo( const ::DBus::String& folder, const ::DBus::String& name ) = 0;
+    virtual std::vector< ::DBus::String > getListErrors(  ) = 0;
 
 public:
 
@@ -120,6 +138,28 @@ private:
 
         ::DBus::String argin1; ri >> argin1;
         std::vector< ::DBus::String > argout1 = getListMails(argin1);
+        ::DBus::ReturnMessage reply(call);
+        ::DBus::MessageIter wi = reply.writer();
+        wi << argout1;
+        return reply;
+    }
+    ::DBus::Message _getVoicemailInfo_stub( const ::DBus::CallMessage& call )
+    {
+        ::DBus::MessageIter ri = call.reader();
+
+        ::DBus::String argin1; ri >> argin1;
+        ::DBus::String argin2; ri >> argin2;
+        ::DBus::String argout1 = getVoicemailInfo(argin1, argin2);
+        ::DBus::ReturnMessage reply(call);
+        ::DBus::MessageIter wi = reply.writer();
+        wi << argout1;
+        return reply;
+    }
+    ::DBus::Message _getListErrors_stub( const ::DBus::CallMessage& call )
+    {
+        ::DBus::MessageIter ri = call.reader();
+
+        std::vector< ::DBus::String > argout1 = getListErrors();
         ::DBus::ReturnMessage reply(call);
         ::DBus::MessageIter wi = reply.writer();
         wi << argout1;

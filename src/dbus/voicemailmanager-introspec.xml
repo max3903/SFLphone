@@ -15,6 +15,16 @@
       <arg type="s" name="folder" direction="in"/>
       <arg type="as" name="list" direction="out"/>
     </method>
+    
+    <method name="getVoicemailInfo">
+      <arg type="s" name="folder" direction="in"/>
+      <arg type="s" name="name" direction="in"/>
+      <arg type="s" name="list" direction="out"/>
+    </method>
+    
+    <method name="getListErrors">
+      <arg type="as" name="list" direction="out"/>
+    </method>
 
   </interface>
 </node>

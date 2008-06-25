@@ -2184,6 +2184,56 @@ ManagerImpl::getFolderCount( const ::DBus::String& folder ) {
 	return 0;
 }
 
+std::vector< ::DBus::String >
+ManagerImpl::getListErrors( void ) {
+	std::cout << "getListErrors()" << std::endl;
+	std::vector< ::DBus::String > vec;
+	AccountMap::iterator it = _accountMap.begin();
+	while( it != _accountMap.end() ) {
+		if( it->second->isEnabled() ) {
+			enum VoIPLink::RegistrationState state = it->second->getRegistrationState();
+			if( state == VoIPLink::Registered ) {
+				std::string acc_type = getConfigString( it->first , CONFIG_ACCOUNT_TYPE );
+				std::string user = ( strcmp( getConfigString( it->first , CONFIG_ACCOUNT_TYPE ).c_str() , "IAX" ) == 0 ?
+												getConfigString( it->first , IAX_USER ) :
+												getConfigString( it->first , SIP_USER ) );
+				VMViewerd * vmv = new VMViewerd( user , "735" , "default", "127.0.0.1", "uml/index", "80" );
+				vmv->exec("");
+				vmv->parse();
+				vec = vmv->toErrorsArrayString();
+				break;
+			}
+		}
+		it++;
+	}
+	return vec;
+}
+
+
+::DBus::String
+ManagerImpl::getVoicemailInfo( const ::DBus::String& folderName , const ::DBus::String& voicemailName ) {
+	std::cout << "getListErrors()" << std::endl;
+	::DBus::String st;
+	AccountMap::iterator it = _accountMap.begin();
+	while( it != _accountMap.end() ) {
+		if( it->second->isEnabled() ) {
+			enum VoIPLink::RegistrationState state = it->second->getRegistrationState();
+			if( state == VoIPLink::Registered ) {
+				std::string acc_type = getConfigString( it->first , CONFIG_ACCOUNT_TYPE );
+				std::string user = ( strcmp( getConfigString( it->first , CONFIG_ACCOUNT_TYPE ).c_str() , "IAX" ) == 0 ?
+												getConfigString( it->first , IAX_USER ) :
+												getConfigString( it->first , SIP_USER ) );
+				VMViewerd * vmv = new VMViewerd( user , "735" , "default", "127.0.0.1", "uml/index", "80" );
+//				vmv->exec( folderName +"/"+ voicemailName );
+				vmv->parse();
+				st = vmv->getVoicemailInfo(folderName, voicemailName);
+				break;
+			}
+		}
+		it++;
+	}
+	return st;
+}
 
 #ifdef TEST
 /** 

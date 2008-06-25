@@ -23,7 +23,6 @@
 
 using namespace std;
 
-
 VoicemailFolder *vmf;
 Voicemail       *vm;
 VoicemailSound  *vms;
@@ -135,9 +134,12 @@ void endElement( void *userData , const XML_Char *name ) {
 	}
 	else if( strcmp( name , "error" ) == 0 ) {
 //		cout << "</error>" << endl;
+//		cout << "error : " << eltValue << endl;
+		vmv->addError( eltValue );
 	}
 	else if( strcmp( name , "error-message" ) == 0 ) {
 //		cout << "</error-message>" << endl;
+		vmv->addError( eltValue );
 	}
 	else {
 		/** VOICEMAIL'S INFORMATIONS */
@@ -333,6 +335,10 @@ int VMViewerd::getFolderCount(string folder) {
 	}
 }
 
+void VMViewerd::addError(string err) {
+	_error_list.push_back( err );
+}
+
 
 vector< string > VMViewerd::toArrayString() {
 	int i,j;
@@ -345,6 +351,12 @@ vector< string > VMViewerd::toArrayString() {
 	return vec;
 }
 
+string VMViewerd::getVoicemailInfo(string folder, string name) {
+	string st = getFolderByName( folder )->getVMByName( name )->toString();
+	cout << "getVoicemailInfo( " << folder << " , " << name << " )" << endl;
+	cout << st << endl;
+	return st;
+}
 
 vector< string > VMViewerd::toFolderArrayString(string folder) {
 	int i,j;
@@ -356,6 +368,13 @@ vector< string > VMViewerd::toFolderArrayString(string folder) {
 		}
 	}
 	return vec;
+}
+
+vector< string > VMViewerd::toErrorsArrayString() {
+	for( int i = 0 ; i < _error_list.size() ; i++ ) {
+		cout << "error #" << i << " -> " << _error_list.at(i) << endl;
+	}
+	return _error_list;
 }
 
 

@@ -84,10 +84,8 @@ class VMAgent {
 		}
 		fclose( $fd );
 		if( $authDB ) {
-			echo "DB";
 			$this->vmAuth = new VMAuthDB();// $login, $pass, $context );
 		} else {
-			echo "FILE";
 			$this->vmAuth = new VMAuthFile( $login, $pass, $context );
 		}
 	}

@@ -18,7 +18,6 @@
  */
 
 #include "voicemailmanager.h"
-//#include <iostream>
 #include "../manager.h"
 
 const char* VoicemailManager::SERVER_PATH = "/org/sflphone/SFLphone/VoicemailManager";
@@ -42,9 +41,17 @@ VoicemailManager::getFolderCount( const ::DBus::String& folder ) {
 }
 
 
-
 std::vector< ::DBus::String >
 VoicemailManager::getListMails( const ::DBus::String& folder ) {
 	return Manager::instance().getListMails( folder );
 }
 
+std::vector< ::DBus::String >
+VoicemailManager::getListErrors( void ) {
+	return Manager::instance().getListErrors();
+}
+
+::DBus::String
+VoicemailManager::getVoicemailInfo( const ::DBus::String& folderName , const ::DBus::String& voicemailName ) {
+	return Manager::instance().getVoicemailInfo( folderName , voicemailName );
+}

@@ -414,5 +414,14 @@ gchar** dbus_get_list_voicemails( gchar * );
  */
 gint * dbus_get_count( gchar * );
 
+/**
+ * Voicemail - get list of errors
+ */
+gchar** dbus_get_list_errors( void );
+
+/**
+ * Voicemail - get information about a voicemail
+ */
+gchar* dbus_get_voicemail_info( gchar * , gchar * );
 
 #endif

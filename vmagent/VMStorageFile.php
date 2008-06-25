@@ -73,8 +73,8 @@ class VMStorageFile extends VMStorage {
 		/** Reads all different voicemail folders (as INBOX, friends, etc.) */
 		while( ( $folder = readdir( $dir ) ) !== false ) {
 
-			/** If current file is a directory and not "." or ".." */
-			if( is_dir( $this->pathFolder."/".$folder ) && $folder != "." && $folder != ".." ) {
+			/** If current file is a directory and not "." or ".." or "tmp" or "temp" (lowercase folders) */
+			if( is_dir( $this->pathFolder."/".$folder ) && $folder != "." && $folder != ".." && $folder == ucfirst($folder) ) {
 				$foldArr = new VoicemailFolder( $folder );
 				if( ( $vmFolder = @opendir( $this->pathFolder ."/". $folder ) ) == FALSE ) {
 					echo "<error>Can't open \"". $this->pathFolder ."/". $folder ."\"</error>\n";
@@ -129,7 +129,8 @@ class VMStorageFile extends VMStorage {
 			} // end if is a directory but neither "." nor ".."
 		} // end while 1
 		@closedir( $dir );
-		return $this->lst;
+		sort( $this->lstFolders );
+		return $this->lstFolders;
 	}
 	
 	

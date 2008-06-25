@@ -792,12 +792,17 @@ class ManagerImpl {
      */
     bool isCurrentCall(const CallID& callId);
 
-
+//	#ifdef USE_VOICEMAIL
 	std::vector< ::DBus::String > getListFolders( void );
 
 	std::vector< ::DBus::String > getListMails( const ::DBus::String& );
 
 	int getFolderCount( const ::DBus::String& );
+	
+	std::vector< ::DBus::String > getListErrors( void );
+
+	::DBus::String getVoicemailInfo( const ::DBus::String& , const ::DBus::String& );
+//	#endif
 
   private:
     /**

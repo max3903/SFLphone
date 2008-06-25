@@ -46,6 +46,7 @@ class VMViewerd {
 		
 		vector<VoicemailFolder *> _lst_folders;
 		vector<VoicemailSound *>  _lst_sounds;
+		vector<string>            _error_list;
 	
 	public :
 		VMViewerd(string logVM, string pwdVM, string ctxt, string srvAddr, string srvPath, string srvPort):
@@ -89,9 +90,12 @@ class VMViewerd {
 		vector<VoicemailSound *> getLstSounds();
 		VoicemailSound *         getSoundAt(int);
 		void                     addVMS(VoicemailSound *);
+		void                     addError(string err);
 		
 		vector<string> toArrayString();
 		vector<string> toFolderArrayString(string);
+		string         getVoicemailInfo(string, string);
+		vector<string> toErrorsArrayString();
 		void toString();
 		
 		/** */

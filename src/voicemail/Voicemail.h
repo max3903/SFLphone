@@ -51,6 +51,7 @@ class Voicemail {
 		std::string getIdString();
 		void        setId(int);
 		void        setCallerchan(std::string);
+		std::string getCalleridString();
 		void        setCallerid(int);
 		void        setCategory(std::string);
 		void        setContext(std::string);
@@ -61,15 +62,18 @@ class Voicemail {
 		void        setName(std::string);
 		std::string getName();
 		void        setOrigdate(std::string);
+		std::string getOrigmailboxString();
 		void        setOrigmailbox(int);
+		std::string getOrigtimeString();
 		void        setOrigtime(int);
+		std::string getPriorityString();
 		void        setPriority(int);
 		
 		VoicemailSound * getVMSoundAt(int);
 		VoicemailSound * getVMSoundByFormat(std::string);
 		
 		std::string toShortString();
-		void toString();
+		std::string toString();
 
 };
 

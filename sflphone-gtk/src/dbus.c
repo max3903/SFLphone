@@ -1495,3 +1495,43 @@ dbus_get_list_mails( gchar * folder )
 	  g_print("Called dbus_get_list_mails\n");
 	return list;
 }
+
+
+gchar**
+dbus_get_list_errors( void )
+{
+	GError* error = NULL;
+	gchar** list;
+	org_sflphone_SFLphone_VoicemailManager_get_list_errors(
+			voicemailManagerProxy,
+			&list,
+			&error);
+	if(error)
+	{
+		g_error_free(error);
+	}
+	else
+	  g_print("Called dbus_get_list_errors\n");
+	return list;
+}
+
+gchar*
+dbus_get_voicemail_info( gchar *folder , gchar *name )
+{
+	GError* error = NULL;
+	gchar* list;
+	org_sflphone_SFLphone_VoicemailManager_get_voicemail_info(
+			voicemailManagerProxy,
+			folder,
+			name,
+			&list,
+			&error);
+	if(error)
+	{
+		g_error_free(error);
+	}
+	else
+	  g_print("Called dbus_get_voicemail_info\n");
+	return list;
+}
+
