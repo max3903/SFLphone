@@ -1520,6 +1520,7 @@ dbus_get_voicemail_info( gchar *folder , gchar *name )
 {
 	GError* error = NULL;
 	gchar* list;
+	g_print("dbus_get_voicemail_info('%s','%s')\n", folder, name);
 	org_sflphone_SFLphone_VoicemailManager_get_voicemail_info(
 			voicemailManagerProxy,
 			folder,
@@ -1533,5 +1534,37 @@ dbus_get_voicemail_info( gchar *folder , gchar *name )
 	else
 	  g_print("Called dbus_get_voicemail_info\n");
 	return list;
+}
+
+void
+dbus_play_voicemail( gchar *folderName , gchar *voicemailName )
+{
+	GError* error = NULL;
+	org_sflphone_SFLphone_VoicemailManager_play_voicemail(
+			voicemailManagerProxy,
+			folderName,
+			voicemailName,
+			&error);
+	if(error)
+	{
+		g_error_free(error);
+	}
+	else
+	  g_print("Called dbus_play_voicemail\n");
+}
+
+void
+dbus_stop_voicemail()
+{
+	GError* error = NULL;
+	org_sflphone_SFLphone_VoicemailManager_stop_voicemail(
+			voicemailManagerProxy,
+			&error);
+	if(error)
+	{
+		g_error_free(error);
+	}
+	else
+	  g_print("Called dbus_stop_voicemail\n");
 }
 

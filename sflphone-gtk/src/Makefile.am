@@ -12,8 +12,8 @@ STATUSICON_SOURCE = statusicon.c
 #endif
 
 #if USE_VOICEMAIL
-VOICEMAIL_HEADER = voicemailwindow.h voicemailconfigwindow.h
-VOICEMAIL_SOURCE = voicemailwindow.c voicemailconfigwindow.c
+VOICEMAIL_HEADER = voicemailwindow.h
+VOICEMAIL_SOURCE = voicemailwindow.c
 #else
 #VOICEMAIL_HEADER = 
 #VOICEMAIL_SOURCE = 

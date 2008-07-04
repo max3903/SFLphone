@@ -424,4 +424,16 @@ gchar** dbus_get_list_errors( void );
  */
 gchar* dbus_get_voicemail_info( gchar * , gchar * );
 
+/**
+ * Voicemail - play a voicemail
+ * @param folder the name of the folder where voicemail is stored
+ * @param name the name of the chosen voicemail
+ */
+void dbus_play_voicemail( gchar * folder , gchar * name );
+
+/**
+ * Voicemail - stop a playing voicemail
+ */
+void dbus_stop_voicemail();
+
 #endif

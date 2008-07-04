@@ -29,10 +29,8 @@
 #include <calltab.h>
 #include <gtk/gtk.h>
 
-#ifndef USE_VOICEMAIL
-#define USE_VOICEMAIL
+#ifdef USE_VOICEMAIL
 #include <voicemailwindow.h>
-#include <voicemailconfigwindow.h>
 #endif
 
 #include <string.h> // for strlen
@@ -376,13 +374,6 @@ edit_accounts ( void * foo)
   show_accounts_window();
 }
 
-#ifdef USE_VOICEMAIL
-  static void
-edit_voicemail( void * foo )
-{
-  show_voicemail_config_window();
-}
-#endif
 
 // The menu Edit/Copy should copy the current selected call's number
   static void 
@@ -582,15 +573,6 @@ create_edit_menu()
       NULL);
   gtk_widget_show (menu_items);  
 
-  #ifdef USE_VOICEMAIL
-  menu_items = gtk_menu_item_new_with_mnemonic( _("_Voice mails") );
-  gtk_menu_shell_append (GTK_MENU_SHELL (menu), menu_items);
-  g_signal_connect_swapped (G_OBJECT (menu_items), "activate",
-      G_CALLBACK (edit_voicemail), 
-      NULL);
-  gtk_widget_show (menu_items);
-  #endif
-
   menu_items = gtk_image_menu_item_new_from_stock( GTK_STOCK_PREFERENCES, get_accel_group());
   gtk_menu_shell_append (GTK_MENU_SHELL (menu), menu_items);
   g_signal_connect_swapped (G_OBJECT (menu_items), "activate",
@@ -637,12 +619,13 @@ view_volume_controls  (GtkImageMenuItem *imagemenuitem,
   dbus_set_volume_controls( state );
 }
 
-
+#ifdef USE_VOICEMAIL
 static void 
 call_voicemail( GtkMenuItem *menuitem, gpointer data )
 {
 	show_voicemail_window();
 }
+#endif
 
   static void 
 view_searchbar  (GtkImageMenuItem *imagemenuitem,
@@ -699,7 +682,8 @@ create_view_menu()
   root_menu = gtk_menu_item_new_with_mnemonic (_("_View"));
   gtk_menu_item_set_submenu (GTK_MENU_ITEM (root_menu), menu);
   
-  #ifdef USE_VOICEMAIL
+#ifdef USE_VOICEMAIL
+  g_print("MENU - DEFINED !");
   sub_menu = gtk_separator_menu_item_new ();
   gtk_menu_shell_append (GTK_MENU_SHELL (menu), sub_menu);
   
@@ -707,7 +691,9 @@ create_view_menu()
   gtk_menu_shell_append (GTK_MENU_SHELL (menu), sub_menu);
   g_signal_connect( G_OBJECT( sub_menu ) , "activate" , G_CALLBACK( call_voicemail  ) , NULL );
   gtk_widget_show (sub_menu);
-  #endif
+#else
+  g_print("MENU - NOT DEFINED !!!!!");
+#endif
 
   return root_menu;
 }

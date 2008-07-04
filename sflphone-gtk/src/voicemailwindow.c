@@ -48,14 +48,57 @@ enum {
  * Gets the selected row from the treeview
  */
 GtkTreeIter
-getItemSelected( void )
+getSelectedItem( void )
 {
 	GtkTreeSelection *selection;
 	GtkTreeIter      iter;
 
 	selection = gtk_tree_view_get_selection( GTK_TREE_VIEW( treeview ) );
 	gtk_tree_selection_get_selected( selection, NULL, &iter );
+	//g_free( selection );
 	return iter;
+}
+
+
+/**
+ * Gets the name of the selected item
+ * @param iter the selected treeview item
+ */
+gchar *
+getSelectedItemName( GtkTreeIter iter )
+{
+	GtkTreeModel *model;
+	gchar        *tmp;
+	gchar        *name;
+
+	model = gtk_tree_view_get_model( GTK_TREE_VIEW( treeview ) );
+	gtk_tree_model_get( model , &iter, TEXT_COLUMN , &tmp , -1 );
+	/** Gets only the name of the file, not the other informations */
+	strncpy( name , tmp , 7 );
+	name[7] = '\0';
+//	g_free( model );
+//	g_free( tmp );
+	return name;
+}
+
+
+/**
+ * Gets the name of the parent of the selected item
+ * @param iter the selected treeview item
+ */
+gchar *
+getSelectedItemParentsName( GtkTreeIter iter )
+{
+	gchar        *folder;
+	GtkTreeModel *model;
+	GtkTreeIter  parent;
+	
+	model = gtk_tree_view_get_model( GTK_TREE_VIEW( treeview ) );
+	/** Gets the selected voicemail's parent name */
+	gtk_tree_model_iter_parent( model , &parent , &iter );
+	gtk_tree_model_get( model , &parent , TEXT_COLUMN , &folder , -1 );
+	//g_free( model );
+	return folder;
 }
 
 
@@ -84,8 +127,9 @@ isAValidItem( void )
 	gchar        *path;
 	
 	model = gtk_tree_view_get_model( GTK_TREE_VIEW( treeview ) );
-	iter = getItemSelected();
+	iter = getSelectedItem();
 	path = gtk_tree_model_get_string_from_iter( model, &iter );
+	//g_free( model );
 	return strstr( path , ":" ) == NULL ? FALSE : TRUE ;
 }
 
@@ -115,6 +159,12 @@ on_stop()
 		gtk_tree_store_set( GTK_TREE_STORE( model ), &iter, IMG_COLUMN, pixbuf, TEXT_COLUMN, text, -1 );
 		/** Updates to none voicemail playing */
 		g_currently_playing = "";
+		/** Stops the current voicemail */
+		dbus_stop_voicemail();
+		
+		//g_free( model );
+		//g_free( pixbuf );
+		///g_free( text );
 	}
 }
 
@@ -124,10 +174,10 @@ on_pause()
 {
 	if( isItemSelected() )
 	{
-		GtkTreeIter iter = getItemSelected();
+		GtkTreeIter iter = getSelectedItem();
 		g_print("Player -- Pause\n");
 		
-		//iter = getItemSelected();
+		//iter = getSelectedItem();
 		//model = gtk_tree_view_get_model( GTK_TREE_VIEW( treeview ) );
 		/** Gets text row */
 		//gtk_tree_model_get( GTK_TREE_MODEL( model ), &iter, IMG_COLUMN, &pixbuf, TEXT_COLUMN, &text, -1 );
@@ -151,12 +201,14 @@ on_play()
 		if( isAValidItem() )
 		{
 			GtkTreeIter  iter;
+			GtkTreeIter  parent;
 			GtkTreeModel *model;
 			GdkPixbuf    *pixbuf;
 			gchar        *text;
-		
+			gchar        *folder;
+			
 			model = gtk_tree_view_get_model( GTK_TREE_VIEW( treeview ) );
-			iter = getItemSelected();
+			iter = getSelectedItem();
 			/** If not the same voicemail to play */
 			if( strcmp( g_currently_playing , gtk_tree_model_get_string_from_iter( model, &iter ) ) != 0 )
 			{
@@ -166,7 +218,7 @@ on_play()
 					on_stop();
 				}
 				/** Second, play selected voicemail */
-				iter = getItemSelected();
+				iter = getSelectedItem();
 				/** Gets text row */
 				gtk_tree_model_get( GTK_TREE_MODEL( model ), &iter, IMG_COLUMN, &pixbuf, TEXT_COLUMN, &text, -1 );
 				/** Sets new image */
@@ -175,6 +227,11 @@ on_play()
 				gtk_tree_store_set( GTK_TREE_STORE( model ), &iter, IMG_COLUMN, pixbuf, TEXT_COLUMN, text, -1 );
 				/** Updates voicemail currently playing */
 				g_currently_playing = gtk_tree_model_get_string_from_iter( model, &iter );
+				/** Gets the selected voicemail's parent name */
+				gtk_tree_model_iter_parent( model , &parent , &iter );
+				gtk_tree_model_get( model , &parent , TEXT_COLUMN , &folder , -1 );
+				/** Really plays the voicemail */
+				dbus_play_voicemail( getSelectedItemParentsName( iter ) , getSelectedItemName( iter ) );
 			}
 			else
 			{
@@ -188,14 +245,16 @@ on_play()
 			GtkTreeModel *model;
 			
 			model = gtk_tree_view_get_model( GTK_TREE_VIEW( treeview ) );
-			iter = getItemSelected();
+			iter = getSelectedItem();
+			/** If folder has child(ren) */
 			if( gtk_tree_model_iter_has_child( model , &iter ) )
 			{
+				/** If collapsed, expand */
 				if( ! gtk_tree_view_row_expanded( GTK_TREE_VIEW( treeview ) , gtk_tree_model_get_path( model, &iter ) ) )
 				{
 					gtk_tree_view_expand_row( GTK_TREE_VIEW( treeview ) , gtk_tree_model_get_path( model, &iter ) , TRUE );
 				}
-				else
+				else /** Collapse */
 				{
 					gtk_tree_view_collapse_row( GTK_TREE_VIEW( treeview ) , gtk_tree_model_get_path( model, &iter ) );
 				}
@@ -234,7 +293,7 @@ on_delete()
 		if( gtk_dialog_run( GTK_DIALOG( dialog ) ) == GTK_RESPONSE_OK )
 		{
 			model = gtk_tree_view_get_model( GTK_TREE_VIEW( treeview ) );
-			iter = getItemSelected();
+			iter = getSelectedItem();
 			gtk_tree_store_remove( GTK_TREE_STORE( model ), &iter );
 			g_currently_playing = "";
 		}
@@ -257,27 +316,11 @@ on_cursor_changed()
 	/** It's a voicemail */
 	if( isAValidItem() )
 	{
-		gchar        *infos;
-		gchar        *tmp;
-		gchar        *folder;
-		gchar        name[8];
-		gint         i;
-		GtkTreeModel *model;
-		GtkTreeIter  iter;
-		GtkTreeIter  parent;
-
-		model = gtk_tree_view_get_model( GTK_TREE_VIEW( treeview ) );
-		iter  = getItemSelected();
-		/** Gets the selected voicemail's name */
-		gtk_tree_model_get( model , &iter, TEXT_COLUMN , &tmp , -1 );
-		/** Gets only the name of the file, not the other informations */
-		strncpy( name , tmp , 7 );
-		name[7] = '\0';
-		/** Gets the selected voicemail's parent name */
-		g_print("have parent ??? %s\n" , (gtk_tree_model_iter_parent( model , &parent , &iter ) ? "TRUE" : "FALSE" ) );
-		gtk_tree_model_get( model , &parent , TEXT_COLUMN , &folder , -1 );
+		GtkTreeIter iter;
+		gchar *infos;
 		
-		infos = (gchar *)dbus_get_voicemail_info( folder , name );
+		iter   = getSelectedItem();
+		infos = (gchar *)dbus_get_voicemail_info( getSelectedItemParentsName( iter ) , getSelectedItemName( iter ) );
 		gtk_text_buffer_insert_at_cursor( buf , infos , strlen(infos) );
 	}
 }

@@ -1222,6 +1222,132 @@ create_audio_tab ()
 	return ret;
 }
 
+#ifdef USE_VOICEMAIL
+/**
+ * Voicemail panel - Sets all config (except encryption mode)
+ */
+static void
+set_voicemail_config( void * datas )
+{
+	
+}
+
+/**
+ * Voicemail panel - Sets the encryption mode
+ */
+static void
+set_voicemail_encryption_mode( GtkCheckMenuItem *checkmenuitem )
+{
+	g_print("set_voicemail_encryption_mode => \n");
+}
+
+
+/**
+ * Voicemail settings tab
+ */
+GtkWidget*
+create_voicemail_tab ()
+{
+	GtkWidget *ret;
+
+	GtkWidget *frame;
+	GtkWidget *table;
+	GtkWidget *entry;
+	GtkWidget *label;
+	GtkWidget *spinbutton;
+	GtkObject *spinbuttonAdj;
+	GtkWidget *checkbuttonYes;
+	GtkWidget *checkbuttonNo;
+	GtkWidget *button;
+
+	/** Main voicemail widget */
+	ret = gtk_vbox_new( FALSE , 10 );
+	gtk_container_set_border_width( GTK_CONTAINER( ret ), 10 );
+	gtk_widget_show( ret );
+
+	/** Frame */
+	frame = gtk_frame_new( NULL );
+	gtk_widget_show( frame );
+	gtk_box_pack_start( GTK_BOX( ret ) , frame , TRUE , TRUE , 0 );
+	gtk_frame_set_shadow_type( GTK_FRAME( frame ) , GTK_SHADOW_IN );
+
+	/** Label for frame */
+	label = gtk_label_new( _("Voicemail Server") );
+	gtk_widget_show( label );
+	gtk_frame_set_label_widget( GTK_FRAME( frame ) , label );
+	gtk_label_set_use_markup( GTK_LABEL( label ) , TRUE );
+
+	/** Table */
+	table = gtk_table_new( 5 , 3 , FALSE/* homogeneous */ );
+	gtk_table_set_row_spacings( GTK_TABLE( table ) , 10 );
+	gtk_table_set_col_spacings( GTK_TABLE( table ) , 10 );
+	gtk_container_add( GTK_CONTAINER( frame ) , table );
+	gtk_widget_show( table );
+
+	/** Labels */
+	label = gtk_label_new( _("Server address") );
+	gtk_table_attach( GTK_TABLE( table ) , label , 0 , 1 , 0 , 1 , GTK_EXPAND | GTK_FILL , GTK_EXPAND | GTK_FILL , 0 , 0 );
+	gtk_misc_set_alignment( GTK_MISC( label ) , 0 , 0.5 );
+	gtk_widget_show( label );
+
+	label = gtk_label_new( _("Server path") );
+	gtk_table_attach( GTK_TABLE( table ) , label , 0 , 1 , 1 , 2 , GTK_EXPAND | GTK_FILL , GTK_EXPAND | GTK_FILL , 0 , 0 );
+	gtk_misc_set_alignment( GTK_MISC( label ) , 0 , 0.5 );
+	gtk_widget_show( label );
+
+	label = gtk_label_new( _("Server port") );
+	gtk_table_attach( GTK_TABLE( table ) , label , 0 , 1 , 2 , 3 , GTK_EXPAND | GTK_FILL , GTK_EXPAND | GTK_FILL , 0 , 0 );
+	gtk_misc_set_alignment( GTK_MISC( label ) , 0 , 0.5 );
+	gtk_widget_show( label );
+
+	label = gtk_label_new( _("Use HTTPS ?") );
+	gtk_table_attach( GTK_TABLE( table ) , label , 0 , 1 , 3 , 4 , GTK_EXPAND | GTK_FILL , GTK_EXPAND | GTK_FILL , 0 , 0 );
+	gtk_misc_set_alignment( GTK_MISC( label ) , 0 , 0.5 );
+	gtk_widget_show( label );
+
+	/** Entries */
+	entry = gtk_entry_new();
+	gtk_table_attach( GTK_TABLE( table ) , entry , 1 , 3 , 0 , 1 , GTK_EXPAND | GTK_FILL , GTK_EXPAND | GTK_FILL , 0 , 0 );
+	gtk_entry_set_invisible_char( GTK_ENTRY( entry ) , 9679 );
+	gtk_widget_show( entry );
+
+	entry = gtk_entry_new();
+	gtk_table_attach( GTK_TABLE( table ) , entry , 1 , 3 , 1 , 2 , GTK_EXPAND | GTK_FILL , GTK_EXPAND | GTK_FILL , 0 , 0 );
+	gtk_entry_set_invisible_char( GTK_ENTRY( entry ) , 9679 );
+	gtk_widget_show( entry );
+
+	/** Spin button */
+	spinbuttonAdj = gtk_adjustment_new( 80 , 0 , 65565 , 1 , 10 , 10 );
+	spinbutton = gtk_spin_button_new( GTK_ADJUSTMENT( spinbuttonAdj ) , 1 , 0 );
+	gtk_table_attach( GTK_TABLE( table ) , spinbutton , 1 , 3 , 2 , 3 , GTK_EXPAND | GTK_FILL , GTK_EXPAND | GTK_FILL , 0 , 0 );
+	gtk_widget_show( spinbutton );
+
+	/** Check button YES */
+	checkbuttonYes = gtk_radio_button_new_with_label_from_widget( NULL , "gtk-yes" );
+	gtk_button_set_use_stock( GTK_BUTTON( checkbuttonYes ) , TRUE );
+	gtk_toggle_button_set_active( GTK_TOGGLE_BUTTON( checkbuttonYes ) , FALSE );
+	gtk_table_attach( GTK_TABLE( table ) , checkbuttonYes , 1 , 2 , 3 , 4 , GTK_EXPAND | GTK_FILL , GTK_EXPAND | GTK_FILL , 0 , 0 );
+	g_signal_connect( G_OBJECT( checkbuttonYes ) , "clicked" , G_CALLBACK( set_voicemail_encryption_mode ) , NULL );
+	gtk_widget_show( checkbuttonYes );
+
+	/** Check button NO */
+	checkbuttonNo = gtk_radio_button_new_with_label_from_widget( GTK_RADIO_BUTTON( checkbuttonYes ) , "gtk-no" );
+	gtk_button_set_use_stock( GTK_BUTTON( checkbuttonNo ) , TRUE );
+	gtk_toggle_button_set_active( GTK_TOGGLE_BUTTON( checkbuttonNo ) , TRUE );
+	gtk_table_attach( GTK_TABLE( table ) , checkbuttonNo , 2 , 3 , 3 , 4 , GTK_EXPAND | GTK_FILL , GTK_EXPAND | GTK_FILL , 0 , 0 );
+	gtk_widget_show( checkbuttonNo );
+
+	/** Button */
+	button = gtk_button_new_from_stock( GTK_STOCK_APPLY );
+	gtk_table_attach( GTK_TABLE( table ) , button , 2 , 3 , 4 , 5 , GTK_SHRINK , GTK_SHRINK , 0 , 0 );
+	g_signal_connect( G_OBJECT( checkbuttonYes ) , "clicked" , G_CALLBACK( set_voicemail_config ) , NULL );
+	gtk_widget_show( button );
+
+	return ret;
+}
+#endif
+
+
 GtkWidget*
 create_general_settings ()
 {
@@ -1353,9 +1479,16 @@ show_config_window ()
 	gtk_notebook_page_num(GTK_NOTEBOOK(notebook), tab);
 	
 	// Audio tab
-	tab = create_audio_tab();	
+	tab = create_audio_tab();
 	gtk_notebook_append_page(GTK_NOTEBOOK(notebook), tab, gtk_label_new(_("Audio Settings")));
 	gtk_notebook_page_num(GTK_NOTEBOOK(notebook), tab);
+	
+#ifdef USE_VOICEMAIL
+	g_print("DEFINED !!");
+	tab = create_voicemail_tab();
+	gtk_notebook_append_page(GTK_NOTEBOOK(notebook), tab, gtk_label_new(_("Voicemail Settings")));
+//	gtk_notebook_page_num(GTK_NOTEBOOK(notebook), tab);
+#endif
 
 	gtk_notebook_set_current_page( GTK_NOTEBOOK( notebook) ,  1);
 

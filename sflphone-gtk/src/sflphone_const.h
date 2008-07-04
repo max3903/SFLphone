@@ -57,6 +57,15 @@
 /** IAX2 parameter: password name */
 #define ACCOUNT_IAX_PASSWORD           "IAX.password"
 
+/** TODO : Delete if«N»def */
+#ifndef USE_VOICEMAIL
+#define USE_VOICEMAIL
+/** Account parameter : password for voicemail access */
+#define ACCOUNT_PASSCODE  "Account.passcode"
+/** Account parameter : context of a user, defined in asterisk config files */
+#define ACCOUNT_CONTEXT   "Account.context"
+#endif
+
 /** Error while opening capture device */
 #define ALSA_CAPTURE_DEVICE	      0x0001
 /** Error while opening playback device */
