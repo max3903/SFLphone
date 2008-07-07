@@ -51,12 +51,20 @@ struct _wizard
   GtkWidget *test;
   GtkWidget *state;
   GtkWidget *mailbox;
+#ifdef USE_VOICEMAIL
+  GtkWidget *sip_voicemail_passcode;
+  GtkWidget *sip_voicemail_context;
+#endif
   /** Page 3 - IAX account creation */
   GtkWidget *iax_account;
   GtkWidget *iax_alias;
   GtkWidget *iax_server;
   GtkWidget *iax_username;
   GtkWidget *iax_password;
+#ifdef USE_VOICEMAIL
+  GtkWidget *iax_voicemail_passcode;
+  GtkWidget *iax_voicemail_context;
+#endif
   /** Page 4 - Nat detection */
   GtkWidget *nat;
   GtkWidget *enable;
@@ -110,6 +118,7 @@ GtkWidget* build_nat_settings( void );
 GtkWidget* build_iax_account_configuration( void );
 GtkWidget* build_summary( void );
 GtkWidget* build_registration_error( void );
+
 
 /**
  * Forward function

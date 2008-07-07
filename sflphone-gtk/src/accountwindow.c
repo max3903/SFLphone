@@ -130,8 +130,6 @@ show_account_window (account_t * a)
 #ifdef USE_VOICEMAIL
     curVoicemailPass = g_hash_table_lookup(currentAccount->properties, ACCOUNT_PASSCODE);
     curVoicemailContext = g_hash_table_lookup(currentAccount->properties, ACCOUNT_CONTEXT);
-//    gtk_combo_box_append_text( GTK_COMBO_BOX( curMailbox ) , g_hash_table_lookup(currentAccount->properties, ACCOUNT_MAILBOX ) );
-    g_print("curVoicemailContext : %s\n", curVoicemailContext);
 #endif
 
     if (strcmp(curAccountType, "IAX") == 0) {
@@ -346,56 +344,69 @@ show_account_window (account_t * a)
   response = gtk_dialog_run (GTK_DIALOG (dialog));
   if(response == GTK_RESPONSE_ACCEPT)
   {
-    gchar* proto = (gchar *)gtk_combo_box_get_active_text(GTK_COMBO_BOX(entryProtocol));
+	gchar* proto = (gchar *)gtk_combo_box_get_active_text(GTK_COMBO_BOX(entryProtocol));
 
-    g_hash_table_replace(currentAccount->properties, 
-    	g_strdup(ACCOUNT_ENABLED), 
-    	 g_strdup(gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(entryEnabled)) ? "TRUE": "FALSE"));
-    g_hash_table_replace(currentAccount->properties, 
-	g_strdup(ACCOUNT_ALIAS), 
-	g_strdup((gchar *)gtk_entry_get_text(GTK_ENTRY(entryAlias))));
-    g_hash_table_replace(currentAccount->properties, 
-	g_strdup(ACCOUNT_TYPE), 
-	g_strdup(proto));
+	g_hash_table_replace( currentAccount->properties, 
+						  g_strdup(ACCOUNT_ENABLED), 
+						  g_strdup(gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(entryEnabled)) ? "TRUE": "FALSE") );
+	g_hash_table_replace( currentAccount->properties, 
+						  g_strdup(ACCOUNT_ALIAS), 
+						  g_strdup((gchar *)gtk_entry_get_text(GTK_ENTRY(entryAlias))) );
+	g_hash_table_replace( currentAccount->properties, 
+						  g_strdup(ACCOUNT_TYPE), 
+						  g_strdup(proto) );
+
+#ifdef USE_VOICEMAIL
+	g_hash_table_replace( currentAccount->properties, 
+						  g_strdup(ACCOUNT_PASSCODE), 
+						  g_strdup((gchar *)gtk_entry_get_text(GTK_ENTRY(entryVoicemailPass))) );
+	gchar * context = g_strdup((gchar *)gtk_combo_box_get_active_text( GTK_COMBO_BOX( entryVoicemailContext ) ) );
+	if( strcmp( context , "" ) == 0 || context == NULL ) {
+		context = "default";
+	}
+	g_hash_table_replace( currentAccount->properties, 
+						  g_strdup(ACCOUNT_CONTEXT), 
+						  context );
+#endif
 
 
-    if (strcmp(proto, "SIP") == 0) { 
-      g_hash_table_replace(currentAccount->properties, 
-	  g_strdup(ACCOUNT_SIP_HOST), 
-	  g_strdup((gchar *)gtk_entry_get_text(GTK_ENTRY(entryHostname))));
-      g_hash_table_replace(currentAccount->properties, 
-	  g_strdup(ACCOUNT_SIP_USER), 
-	  g_strdup((gchar *)gtk_entry_get_text(GTK_ENTRY(entryUsername))));
-      g_hash_table_replace(currentAccount->properties, 
-	  g_strdup(ACCOUNT_SIP_PASSWORD), 
-	  g_strdup((gchar *)gtk_entry_get_text(GTK_ENTRY(entryPassword))));
-      g_hash_table_replace(currentAccount->properties, 
-	  g_strdup(ACCOUNT_SIP_STUN_SERVER), 
-	  g_strdup((gchar *)gtk_entry_get_text(GTK_ENTRY(stunServer))));
-      g_hash_table_replace(currentAccount->properties, 
-	g_strdup(ACCOUNT_SIP_STUN_ENABLED), 
-	g_strdup(gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(stunEnable)) ? "TRUE": "FALSE"));
-      g_hash_table_replace(currentAccount->properties, 
-	g_strdup(ACCOUNT_MAILBOX), 
-	g_strdup((gchar *)gtk_entry_get_text(GTK_ENTRY(entryMailbox))));
+	if (strcmp(proto, "SIP") == 0) { 
+	  g_hash_table_replace( currentAccount->properties, 
+							g_strdup(ACCOUNT_SIP_HOST), 
+							g_strdup((gchar *)gtk_entry_get_text(GTK_ENTRY(entryHostname))) );
+	  g_hash_table_replace( currentAccount->properties, 
+							g_strdup(ACCOUNT_SIP_USER), 
+							g_strdup((gchar *)gtk_entry_get_text(GTK_ENTRY(entryUsername))) );
+	  g_hash_table_replace( currentAccount->properties, 
+							g_strdup(ACCOUNT_SIP_PASSWORD), 
+							g_strdup((gchar *)gtk_entry_get_text(GTK_ENTRY(entryPassword))) );
+	  g_hash_table_replace( currentAccount->properties, 
+							g_strdup(ACCOUNT_SIP_STUN_SERVER), 
+							g_strdup((gchar *)gtk_entry_get_text(GTK_ENTRY(stunServer))) );
+	  g_hash_table_replace( currentAccount->properties, 
+							g_strdup(ACCOUNT_SIP_STUN_ENABLED), 
+							g_strdup(gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(stunEnable)) ? "TRUE": "FALSE") );
+	  g_hash_table_replace( currentAccount->properties, 
+							g_strdup(ACCOUNT_MAILBOX), 
+							g_strdup((gchar *)gtk_entry_get_text(GTK_ENTRY(entryMailbox))) );
     }
-    else if (strcmp(proto, "IAX") == 0) { 
-      g_hash_table_replace(currentAccount->properties, 
-	  g_strdup(ACCOUNT_IAX_HOST), 
-	  g_strdup((gchar *)gtk_entry_get_text(GTK_ENTRY(entryHostname))));
-      g_hash_table_replace(currentAccount->properties, 
-	  g_strdup(ACCOUNT_IAX_USER), 
-	  g_strdup((gchar *)gtk_entry_get_text(GTK_ENTRY(entryUsername))));
-      g_hash_table_replace(currentAccount->properties, 
-	  g_strdup(ACCOUNT_IAX_PASSWORD), 
-	  g_strdup((gchar *)gtk_entry_get_text(GTK_ENTRY(entryPassword))));
-      g_hash_table_replace(currentAccount->properties, 
-	g_strdup(ACCOUNT_MAILBOX), 
-	g_strdup((gchar *)gtk_entry_get_text(GTK_ENTRY(entryMailbox))));
-    }
-    else {
+	else if (strcmp(proto, "IAX") == 0) { 
+	  g_hash_table_replace( currentAccount->properties, 
+							g_strdup(ACCOUNT_IAX_HOST), 
+							g_strdup((gchar *)gtk_entry_get_text(GTK_ENTRY(entryHostname))) );
+	  g_hash_table_replace( currentAccount->properties, 
+							g_strdup(ACCOUNT_IAX_USER), 
+							g_strdup((gchar *)gtk_entry_get_text(GTK_ENTRY(entryUsername))) );
+	  g_hash_table_replace( currentAccount->properties, 
+							g_strdup(ACCOUNT_IAX_PASSWORD), 
+							g_strdup((gchar *)gtk_entry_get_text(GTK_ENTRY(entryPassword))) );
+	  g_hash_table_replace( currentAccount->properties, 
+							g_strdup(ACCOUNT_MAILBOX), 
+							g_strdup((gchar *)gtk_entry_get_text(GTK_ENTRY(entryMailbox))) );
+	}
+	else {
 
-    }
+	}
 
     /** @todo Verify if it's the best condition to check */
     if (currentAccount->accountID == NULL) {

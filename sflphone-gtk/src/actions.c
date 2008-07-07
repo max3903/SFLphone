@@ -196,7 +196,7 @@ sflphone_init()
 {
 	int i;
 	current_calls = calltab_init();
-	history = calltab_init();	
+	history = calltab_init();
 	if(SHOW_SEARCHBAR)  histfilter = create_filter(GTK_TREE_MODEL(history->store));
 	account_list_init ();
         codec_list_init();

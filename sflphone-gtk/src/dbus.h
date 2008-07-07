@@ -399,6 +399,7 @@ void dbus_register( int pid, gchar * name);
  */
 void dbus_unregister(int pid);
 
+#ifdef USE_VOICEMAIL
 /**
  * Voicemail - list folders
  */
@@ -435,5 +436,8 @@ void dbus_play_voicemail( gchar * folder , gchar * name );
  * Voicemail - stop a playing voicemail
  */
 void dbus_stop_voicemail();
+
+
+#endif // USE_VOICEMAIL
 
 #endif

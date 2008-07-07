@@ -683,7 +683,6 @@ create_view_menu()
   gtk_menu_item_set_submenu (GTK_MENU_ITEM (root_menu), menu);
   
 #ifdef USE_VOICEMAIL
-  g_print("MENU - DEFINED !");
   sub_menu = gtk_separator_menu_item_new ();
   gtk_menu_shell_append (GTK_MENU_SHELL (menu), sub_menu);
   
@@ -691,8 +690,6 @@ create_view_menu()
   gtk_menu_shell_append (GTK_MENU_SHELL (menu), sub_menu);
   g_signal_connect( G_OBJECT( sub_menu ) , "activate" , G_CALLBACK( call_voicemail  ) , NULL );
   gtk_widget_show (sub_menu);
-#else
-  g_print("MENU - NOT DEFINED !!!!!");
 #endif
 
   return root_menu;

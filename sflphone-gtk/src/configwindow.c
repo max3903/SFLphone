@@ -1484,7 +1484,6 @@ show_config_window ()
 	gtk_notebook_page_num(GTK_NOTEBOOK(notebook), tab);
 	
 #ifdef USE_VOICEMAIL
-	g_print("DEFINED !!");
 	tab = create_voicemail_tab();
 	gtk_notebook_append_page(GTK_NOTEBOOK(notebook), tab, gtk_label_new(_("Voicemail Settings")));
 //	gtk_notebook_page_num(GTK_NOTEBOOK(notebook), tab);

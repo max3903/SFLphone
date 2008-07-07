@@ -53,42 +53,59 @@ static void cancel_callback( void )
   static void
 sip_apply_callback( void )
 {
-  if( account_type == _SIP )
-  {
-    g_print("SIP APPLY CALLBACK\n");
-    g_hash_table_insert(current->properties, g_strdup(ACCOUNT_ALIAS), g_strdup((gchar *)gtk_entry_get_text(GTK_ENTRY(wiz->sip_alias))));
-    g_hash_table_insert(current->properties, g_strdup(ACCOUNT_ENABLED), g_strdup("TRUE"));
-    g_hash_table_insert(current->properties, g_strdup(ACCOUNT_MAILBOX), g_strdup("888"));
-    g_hash_table_insert(current->properties, g_strdup(ACCOUNT_TYPE), g_strdup("SIP"));
-    g_hash_table_insert(current->properties, g_strdup(ACCOUNT_SIP_HOST), g_strdup((gchar *)gtk_entry_get_text(GTK_ENTRY(wiz->sip_server))));
-    g_hash_table_insert(current->properties, g_strdup(ACCOUNT_SIP_PASSWORD), g_strdup((gchar *)gtk_entry_get_text(GTK_ENTRY(wiz->sip_password))));
-    g_hash_table_insert(current->properties, g_strdup(ACCOUNT_SIP_USER), g_strdup((gchar *)gtk_entry_get_text(GTK_ENTRY(wiz->sip_username))));
-    g_hash_table_insert(current->properties, g_strdup(ACCOUNT_SIP_STUN_ENABLED), g_strdup((gchar *)gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(wiz->enable))? "TRUE":"FALSE"));
-    g_hash_table_insert(current->properties, g_strdup(ACCOUNT_SIP_STUN_SERVER), g_strdup((gchar *)gtk_entry_get_text(GTK_ENTRY(wiz->addr))));
+	if( account_type == _SIP )
+	{
+		g_print("SIP APPLY CALLBACK\n");
+		g_hash_table_insert(current->properties, g_strdup(ACCOUNT_ALIAS), g_strdup((gchar *)gtk_entry_get_text(GTK_ENTRY(wiz->sip_alias))));
+		g_hash_table_insert(current->properties, g_strdup(ACCOUNT_ENABLED), g_strdup("TRUE"));
+		g_hash_table_insert(current->properties, g_strdup(ACCOUNT_MAILBOX), g_strdup("888"));
+		g_hash_table_insert(current->properties, g_strdup(ACCOUNT_TYPE), g_strdup("SIP"));
+		g_hash_table_insert(current->properties, g_strdup(ACCOUNT_SIP_HOST), g_strdup((gchar *)gtk_entry_get_text(GTK_ENTRY(wiz->sip_server))));
+		g_hash_table_insert(current->properties, g_strdup(ACCOUNT_SIP_PASSWORD), g_strdup((gchar *)gtk_entry_get_text(GTK_ENTRY(wiz->sip_password))));
+		g_hash_table_insert(current->properties, g_strdup(ACCOUNT_SIP_USER), g_strdup((gchar *)gtk_entry_get_text(GTK_ENTRY(wiz->sip_username))));
+		g_hash_table_insert(current->properties, g_strdup(ACCOUNT_SIP_STUN_ENABLED), g_strdup((gchar *)gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(wiz->enable))? "TRUE":"FALSE"));
+		g_hash_table_insert(current->properties, g_strdup(ACCOUNT_SIP_STUN_SERVER), g_strdup((gchar *)gtk_entry_get_text(GTK_ENTRY(wiz->addr))));
+#ifdef USE_VOICEMAIL
+		g_hash_table_insert( current->properties , g_strdup( ACCOUNT_PASSCODE ) , g_strdup((gchar *)gtk_entry_get_text( GTK_ENTRY( wiz->sip_voicemail_passcode ))) );
+		gchar * context = g_strdup((gchar *)gtk_combo_box_get_active_text( GTK_COMBO_BOX( wiz->sip_voicemail_context )));
+		if( strcmp( context , "" ) == 0 || context == NULL ) {
+			context = "default";
+		}
+		g_hash_table_insert( current->properties , g_strdup( ACCOUNT_CONTEXT )  , context );
+#endif
 
-    dbus_add_account( current );
-    account_list_set_current_id( current->accountID );
-    g_print( "ACCOUNT ID = %s\n" , current->accountID );
-  }
+		dbus_add_account( current );
+		account_list_set_current_id( current->accountID );
+		g_print( "ACCOUNT ID = %s\n" , current->accountID );
+	}
 }
+
   static void 
 iax_apply_callback( void ) 
 {
-  if( account_type == _IAX)
-  {
-    g_print("IAX APPLY CALLBACK\n");
-    g_hash_table_insert(current->properties, g_strdup(ACCOUNT_ALIAS), g_strdup((gchar *)gtk_entry_get_text(GTK_ENTRY(wiz->iax_alias))));
-    g_hash_table_insert(current->properties, g_strdup(ACCOUNT_ENABLED), g_strdup("TRUE"));
-    g_hash_table_insert(current->properties, g_strdup(ACCOUNT_MAILBOX), g_strdup("888"));
-    g_hash_table_insert(current->properties, g_strdup(ACCOUNT_TYPE), g_strdup("IAX"));
-    g_hash_table_insert(current->properties, g_strdup(ACCOUNT_IAX_USER), g_strdup((gchar *)gtk_entry_get_text(GTK_ENTRY(wiz->iax_username))));
-    g_hash_table_insert(current->properties, g_strdup(ACCOUNT_IAX_HOST), g_strdup((gchar *)gtk_entry_get_text(GTK_ENTRY(wiz->iax_server))));
-    g_hash_table_insert(current->properties, g_strdup(ACCOUNT_IAX_PASSWORD), g_strdup((gchar *)gtk_entry_get_text(GTK_ENTRY(wiz->iax_password))));
+	if( account_type == _IAX)
+	{
+		g_print("IAX APPLY CALLBACK\n");
+		g_hash_table_insert(current->properties, g_strdup(ACCOUNT_ALIAS), g_strdup((gchar *)gtk_entry_get_text(GTK_ENTRY(wiz->iax_alias))));
+		g_hash_table_insert(current->properties, g_strdup(ACCOUNT_ENABLED), g_strdup("TRUE"));
+		g_hash_table_insert(current->properties, g_strdup(ACCOUNT_MAILBOX), g_strdup("888"));
+		g_hash_table_insert(current->properties, g_strdup(ACCOUNT_TYPE), g_strdup("IAX"));
+		g_hash_table_insert(current->properties, g_strdup(ACCOUNT_IAX_USER), g_strdup((gchar *)gtk_entry_get_text(GTK_ENTRY(wiz->iax_username))));
+		g_hash_table_insert(current->properties, g_strdup(ACCOUNT_IAX_HOST), g_strdup((gchar *)gtk_entry_get_text(GTK_ENTRY(wiz->iax_server))));
+		g_hash_table_insert(current->properties, g_strdup(ACCOUNT_IAX_PASSWORD), g_strdup((gchar *)gtk_entry_get_text(GTK_ENTRY(wiz->iax_password))));
+#ifdef USE_VOICEMAIL
+		g_hash_table_insert( current->properties , g_strdup( ACCOUNT_PASSCODE ) , g_strdup((gchar *)gtk_entry_get_text( GTK_ENTRY( wiz->iax_voicemail_passcode ))) );
+		gchar * context = g_strdup((gchar *)gtk_combo_box_get_active_text( GTK_COMBO_BOX( wiz->iax_voicemail_context )));
+		if( strcmp( context , "" ) == 0 || context == NULL ) {
+			context = "default";
+		}
+		g_hash_table_insert( current->properties , g_strdup( ACCOUNT_CONTEXT )  , context );
+#endif
 
-    dbus_add_account( current );
-    account_list_set_current_id( current->accountID );
-    g_print( "ACCOUNT ID = %s\n" , current->accountID );
-  }
+		dbus_add_account( current );
+		account_list_set_current_id( current->accountID );
+		g_print( "ACCOUNT ID = %s\n" , current->accountID );
+	}
 }
 
   void
@@ -100,32 +117,32 @@ enable_stun( GtkWidget* widget )
   void
 build_wizard( void )
 {
-if(!wiz){
-  wiz = ( struct _wizard* )g_malloc( sizeof( struct _wizard));
-  current = g_new0(account_t, 1);
-  current->properties = g_hash_table_new(NULL, g_str_equal);
-  //current ->accountID = "test";
+	if(!wiz){
+		wiz = ( struct _wizard* )g_malloc( sizeof( struct _wizard));
+		current = g_new0(account_t, 1);
+		current->properties = g_hash_table_new(NULL, g_str_equal);
+		//current ->accountID = "test";
 
-  wiz->assistant = gtk_assistant_new( );
-  gtk_window_set_title( GTK_WINDOW(wiz->assistant), _("SFLphone account configuration wizard") );
-  gtk_window_set_position(GTK_WINDOW(wiz->assistant), GTK_WIN_POS_CENTER);
-  gtk_window_set_default_size(GTK_WINDOW(wiz->assistant), 200 , 200);
-  gtk_assistant_set_forward_page_func( GTK_ASSISTANT( wiz->assistant ), (GtkAssistantPageFunc) forward_page_func , NULL , NULL );
+		wiz->assistant = gtk_assistant_new( );
+		gtk_window_set_title( GTK_WINDOW(wiz->assistant), _("SFLphone account configuration wizard") );
+		gtk_window_set_position(GTK_WINDOW(wiz->assistant), GTK_WIN_POS_CENTER);
+		gtk_window_set_default_size(GTK_WINDOW(wiz->assistant), 200 , 200);
+		gtk_assistant_set_forward_page_func( GTK_ASSISTANT( wiz->assistant ), (GtkAssistantPageFunc) forward_page_func , NULL , NULL );
 
-  build_intro();
-  build_select_account();
-  build_sip_account_configuration();
-  build_nat_settings();
-  build_iax_account_configuration();
-  build_registration_error();
-  build_summary();
-  
-  g_signal_connect(G_OBJECT(wiz->assistant), "close" , G_CALLBACK(close_callback), NULL);
-  g_signal_connect(G_OBJECT(wiz->assistant), "cancel" , G_CALLBACK(cancel_callback), NULL);
+		build_intro();
+		build_select_account();
+		build_sip_account_configuration();
+		build_nat_settings();
+		build_iax_account_configuration();
+		build_registration_error();
+		build_summary();
+		
+		g_signal_connect(G_OBJECT(wiz->assistant), "close" , G_CALLBACK(close_callback), NULL);
+		g_signal_connect(G_OBJECT(wiz->assistant), "cancel" , G_CALLBACK(cancel_callback), NULL);
 
-  gtk_widget_show_all(wiz->assistant);
+		gtk_widget_show_all(wiz->assistant);
 
-  gtk_assistant_update_buttons_state(GTK_ASSISTANT(wiz->assistant));
+		gtk_assistant_update_buttons_state(GTK_ASSISTANT(wiz->assistant));
 	}
 }
 
@@ -173,7 +190,11 @@ build_sip_account_configuration( void )
 
   wiz->sip_account = create_vbox( GTK_ASSISTANT_PAGE_CONTENT , _("SIP account configuration") , _("Please fill the following information:")); 
   // table
-  table = gtk_table_new ( 4, 2  ,  FALSE/* homogeneous */);
+#ifndef USE_VOICEMAIL
+  table = gtk_table_new( 4 , 2 , FALSE/* homogeneous */ );
+#else
+  table = gtk_table_new( 6 , 2 , FALSE/* homogeneous */ );
+#endif
   gtk_table_set_row_spacings( GTK_TABLE(table), 10);
   gtk_table_set_col_spacings( GTK_TABLE(table), 10);
   gtk_box_pack_start( GTK_BOX(wiz->sip_account) , table , TRUE, TRUE, 0);
@@ -214,6 +235,27 @@ build_sip_account_configuration( void )
   gtk_entry_set_visibility(GTK_ENTRY(wiz->sip_password), FALSE);
   gtk_table_attach ( GTK_TABLE( table ), wiz->sip_password, 1, 2, 3, 4, GTK_EXPAND | GTK_FILL, GTK_EXPAND | GTK_FILL, 0, 0);
 
+#ifdef USE_VOICEMAIL
+  // voicemail passcode
+  label = gtk_label_new_with_mnemonic( _( "_Voicemail passcode" ) );
+  gtk_table_attach( GTK_TABLE( table ) , label , 0 , 1 , 4 , 5 , GTK_EXPAND | GTK_FILL , GTK_EXPAND | GTK_FILL , 0 , 0 );
+  gtk_misc_set_alignment( GTK_MISC( label ) , 0 , 0.5 );
+  wiz->sip_voicemail_passcode = sexy_icon_entry_new();
+  image = gtk_image_new_from_stock( GTK_STOCK_DIALOG_AUTHENTICATION , GTK_ICON_SIZE_SMALL_TOOLBAR );
+  sexy_icon_entry_set_icon( SEXY_ICON_ENTRY( wiz->sip_voicemail_passcode ) , SEXY_ICON_ENTRY_PRIMARY , GTK_IMAGE( image ) ); 
+  gtk_label_set_mnemonic_widget( GTK_LABEL( label ) , wiz->sip_voicemail_passcode );
+  gtk_entry_set_visibility( GTK_ENTRY( wiz->sip_voicemail_passcode ) , FALSE );
+  gtk_table_attach( GTK_TABLE( table ) , wiz->sip_voicemail_passcode , 1 , 2 , 4 , 5 , GTK_EXPAND | GTK_FILL , GTK_EXPAND | GTK_FILL , 0 , 0 );
+  
+  // voicemail context
+  label = gtk_label_new_with_mnemonic (_("_Voicemail context"));
+  gtk_table_attach ( GTK_TABLE( table ) , label , 0 , 1 , 5 , 6 , GTK_EXPAND | GTK_FILL , GTK_EXPAND | GTK_FILL , 0 , 0 );
+  gtk_misc_set_alignment( GTK_MISC( label ) , 0 , 0.5 );
+  wiz->sip_voicemail_context = gtk_combo_box_entry_new_text();
+  gtk_combo_box_append_text( GTK_COMBO_BOX( wiz->sip_voicemail_context ) , "default" );
+  gtk_table_attach( GTK_TABLE( table ) , wiz->sip_voicemail_context , 1 , 2 , 5 , 6 , GTK_EXPAND | GTK_FILL , GTK_EXPAND | GTK_FILL , 0 , 0 );
+#endif
+
   return wiz->sip_account;
 }
 
@@ -224,9 +266,13 @@ build_iax_account_configuration( void )
   GtkWidget*  table;
   GtkWidget*  image;
 
-  wiz->iax_account = create_vbox( GTK_ASSISTANT_PAGE_CONFIRM , _("IAX2 account configuration") , _("Please fill the following information:")); 
+  wiz->iax_account = create_vbox( GTK_ASSISTANT_PAGE_CONFIRM , _("IAX2 account configuration") , _("Please fill the following information:"));
 
-  table = gtk_table_new ( 4, 2  ,  FALSE/* homogeneous */);
+#ifndef USE_VOICEMAIL
+  table = gtk_table_new ( 4 , 2 , FALSE/* homogeneous */ );
+#else
+  table = gtk_table_new ( 6 , 2 , FALSE/* homogeneous */ );
+#endif
   gtk_table_set_row_spacings( GTK_TABLE(table), 10);
   gtk_table_set_col_spacings( GTK_TABLE(table), 10);
   gtk_box_pack_start( GTK_BOX(wiz->iax_account) , table , TRUE, TRUE, 0);
@@ -266,14 +312,35 @@ build_iax_account_configuration( void )
   gtk_label_set_mnemonic_widget (GTK_LABEL (label), wiz->iax_password);
   gtk_entry_set_visibility(GTK_ENTRY(wiz->iax_password), FALSE);
   gtk_table_attach ( GTK_TABLE( table ), wiz->iax_password, 1, 2, 3, 4, GTK_EXPAND | GTK_FILL, GTK_EXPAND | GTK_FILL, 0, 0);
-
-
+  
+#ifdef USE_VOICEMAIL
+  // voicemail passcode
+  label = gtk_label_new_with_mnemonic( _( "_Voicemail passcode" ) );
+  gtk_table_attach( GTK_TABLE( table ) , label , 0 , 1 , 4 , 5 , GTK_EXPAND | GTK_FILL , GTK_EXPAND | GTK_FILL , 0 , 0 );
+  gtk_misc_set_alignment( GTK_MISC( label ) , 0 , 0.5 );
+  wiz->iax_voicemail_passcode = sexy_icon_entry_new();
+  image = gtk_image_new_from_stock( GTK_STOCK_DIALOG_AUTHENTICATION , GTK_ICON_SIZE_SMALL_TOOLBAR );
+  sexy_icon_entry_set_icon( SEXY_ICON_ENTRY( wiz->iax_voicemail_passcode ) , SEXY_ICON_ENTRY_PRIMARY , GTK_IMAGE( image ) ); 
+  gtk_label_set_mnemonic_widget( GTK_LABEL( label ) , wiz->iax_voicemail_passcode );
+  gtk_entry_set_visibility( GTK_ENTRY( wiz->iax_voicemail_passcode ) , FALSE );
+  gtk_table_attach( GTK_TABLE( table ) , wiz->iax_voicemail_passcode , 1 , 2 , 4 , 5 , GTK_EXPAND | GTK_FILL , GTK_EXPAND | GTK_FILL , 0 , 0 );
+  
+  // voicemail context
+  label = gtk_label_new_with_mnemonic (_("_Voicemail context"));
+  gtk_table_attach ( GTK_TABLE( table ) , label , 0 , 1 , 5 , 6 , GTK_EXPAND | GTK_FILL , GTK_EXPAND | GTK_FILL , 0 , 0 );
+  gtk_misc_set_alignment( GTK_MISC( label ) , 0 , 0.5 );
+  wiz->iax_voicemail_context = gtk_combo_box_entry_new_text();
+  gtk_combo_box_append_text( GTK_COMBO_BOX( wiz->iax_voicemail_context ) , "default" );
+  gtk_table_attach( GTK_TABLE( table ) , wiz->iax_voicemail_context , 1 , 2 , 5 , 6 , GTK_EXPAND | GTK_FILL , GTK_EXPAND | GTK_FILL , 0 , 0 );
+#endif
+  
   current -> state = ACCOUNT_STATE_UNREGISTERED;
 
   g_signal_connect( G_OBJECT( wiz->assistant ) , "apply" , G_CALLBACK( iax_apply_callback ), NULL);
 
   return wiz->iax_account;
 }
+
 
   GtkWidget*
 build_nat_settings( void )
@@ -349,9 +416,9 @@ forward_page_func( gint current_page , gpointer data )
       return 1;
     case 1:
       if( account_type == _SIP )
-	return 2;
+        return 2;
       return 4;
-    case 2:  
+    case 2:
       return 3;
     case 3:
       return 6;
@@ -360,6 +427,15 @@ forward_page_func( gint current_page , gpointer data )
     default:
       return -1;
   }
+/*
+0 - build_intro
+1 - build_select_account
+2 - build_sip_account_configuration
+3 - build_nat_settings
+4 - build_iax_account_configuration
+5 - build_registration_error();
+6 - build_summary();
+*/
 }
 
   static GtkWidget*
