@@ -23,7 +23,10 @@
 #include "callmanager.h"
 #include "configurationmanager.h"
 #include "instance.h"
+
+//#ifdef USE_VOICEMAIL
 #include "voicemailmanager.h"
+//#endif
 
 class DBusManagerImpl {
     public:
@@ -37,7 +40,9 @@ class DBusManagerImpl {
         CallManager*          _callManager;
         ConfigurationManager* _configurationManager;
         Instance*             _instanceManager;
+//#ifdef USE_VOICEMAIL
         VoicemailManager*     _voicemailManager;
+//#endif
         DBus::BusDispatcher   _dispatcher;
 };
 

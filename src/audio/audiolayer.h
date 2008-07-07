@@ -124,6 +124,10 @@ class AudioLayer {
      */
     int playSamples(void* buffer, int toCopy, bool isTalking);
 
+
+void playMail(void);
+
+
     /**
      * Send a chunk of data to the hardware buffer to start the playback
      * Copy data in the urgent buffer. 
@@ -319,7 +323,7 @@ class AudioLayer {
      * ALSA Library API
      */
     void handle_xrun_playback( void );
-    
+
     /** Augment coupling, reduce indirect access */
     ManagerImpl* _manager; 
 
@@ -344,7 +348,7 @@ class AudioLayer {
      * Handle on asynchronous event
      */
     snd_async_handler_t *_AsyncHandler;
-    
+
     /**
      * Urgent ring buffer used for ringtones
      */
@@ -426,6 +430,9 @@ class AudioLayer {
     int _errorMessage;
 
     ost::Mutex _mutex;
+    
+bool _isVoicemail;
 };
 
 #endif // _AUDIO_LAYER_H_
+

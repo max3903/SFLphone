@@ -50,7 +50,7 @@ public:
    * @param volume  The volume
    * @return the number of int16 sent (nb*2)
    */
-  int getNext(SFLDataFormat* output, int nb, short volume=100);
+  int getNext(SFLDataFormat* output, int nb, short volume=100, bool loop=false);
   
   /**
    * Reset the pointer position

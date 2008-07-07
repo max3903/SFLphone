@@ -792,7 +792,9 @@ class ManagerImpl {
      */
     bool isCurrentCall(const CallID& callId);
 
-//	#ifdef USE_VOICEMAIL
+//#ifdef USE_VOICEMAIL
+	AccountID getCurrentAccountID();
+
 	std::vector< ::DBus::String > getListFolders( void );
 
 	std::vector< ::DBus::String > getListMails( const ::DBus::String& );
@@ -802,7 +804,19 @@ class ManagerImpl {
 	std::vector< ::DBus::String > getListErrors( void );
 
 	::DBus::String getVoicemailInfo( const ::DBus::String& , const ::DBus::String& );
-//	#endif
+	
+	void playVoicemail( const ::DBus::String& , const ::DBus::String& );
+	
+	void stopVoicemail();
+	
+	::DBus::String getVoicemailConfigAddress();
+	
+	::DBus::String getVoicemailConfigPath();
+	
+	int getVoicemailConfigPort();
+	
+	bool isVoicemailConfigHttpsEnabled();
+//#endif
 
   private:
     /**

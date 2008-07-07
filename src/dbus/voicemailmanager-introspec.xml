@@ -25,6 +25,30 @@
     <method name="getListErrors">
       <arg type="as" name="list" direction="out"/>
     </method>
+    
+    <method name="playVoicemail">
+      <arg type="s" name="folderName" direction="in"/>
+      <arg type="s" name="voicemailName" direction="in"/>
+    </method>
+    
+    <method name="stopVoicemail"/>
+    
+    <!-- VOICEMAIL CONFIGURATION -->
+    <method name="getVoicemailConfigAddress">
+      <arg type="s" name="address" direction="out"/>
+    </method>
+    
+    <method name="getVoicemailConfigPath">
+      <arg type="s" name="path" direction="out"/>
+    </method>
+    
+    <method name="getVoicemailConfigPort">
+      <arg type="i" name="port" direction="out"/>
+    </method>
+    
+    <method name="isVoicemailConfigHttpsEnabled">
+      <arg type="b" name="https" direction="out"/>
+    </method>
 
   </interface>
 </node>

@@ -17,6 +17,8 @@
  *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
+//#ifdef USE_VOICEMAIL
+
 #include "voicemailmanager.h"
 #include "../manager.h"
 
@@ -55,3 +57,39 @@ VoicemailManager::getListErrors( void ) {
 VoicemailManager::getVoicemailInfo( const ::DBus::String& folderName , const ::DBus::String& voicemailName ) {
 	return Manager::instance().getVoicemailInfo( folderName , voicemailName );
 }
+
+void
+VoicemailManager::playVoicemail( const ::DBus::String& folderName , const ::DBus::String& voicemailName ) {
+	Manager::instance().playVoicemail( folderName , voicemailName );
+}
+
+void
+VoicemailManager::stopVoicemail() {
+	Manager::instance().stopVoicemail();
+}
+
+/***************************************************/
+// VOICEMAIL CONFIGURATION 
+/***************************************************/
+
+::DBus::String
+VoicemailManager::getVoicemailConfigAddress() {
+	return Manager::instance().getVoicemailConfigAddress();
+}
+
+::DBus::String
+VoicemailManager::getVoicemailConfigPath() {
+	return Manager::instance().getVoicemailConfigPath();
+}
+
+int
+VoicemailManager::getVoicemailConfigPort() {
+	return Manager::instance().getVoicemailConfigPort();
+}
+
+bool
+VoicemailManager::isVoicemailConfigHttpsEnabled() {
+	return Manager::instance().isVoicemailConfigHttpsEnabled();
+}
+
+//#endif

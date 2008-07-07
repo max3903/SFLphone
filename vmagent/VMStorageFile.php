@@ -98,26 +98,32 @@ class VMStorageFile extends VMStorage {
 						$arr = explode( ".", $file );
 						if( $arr[count($arr)-1] == "txt" ) {
 							/** Reads informations in this file to create a new Voicemail */
-							$fd = fopen( $this->pathFolder."/".$folder."/".$file , "r" );
-							$vm = new Voicemail( substr( $file , 0 , strrpos( $file , "." ) ) );
-							$vm->setValue( "id" , substr( $fi , 3 , 4 ) );
-							while( ! feof( $fd ) ) {
-								$buf = fgets( $fd, 4096 );
-								$line = trim( $buf );
-								$pattern  = '/^(.+)=(.*)$/';
-								if( preg_match( $pattern, $line, $matches ) ) {
-									$vm->setValue( $matches[1] , $matches[2] );
+							$fd = @fopen( $this->pathFolder."/".$folder."/".$file , "r" );
+							
+							if( $fd ) {
+								$vm = new Voicemail( substr( $file , 0 , strrpos( $file , "." ) ) );
+								$vm->setValue( "id" , substr( $fi , 3 , 4 ) );
+								while( ! feof( $fd ) ) {
+									$buf = fgets( $fd, 4096 );
+									$line = trim( $buf );
+									$pattern  = '/^(.+)=(.*)$/';
+									if( preg_match( $pattern, $line, $matches ) ) {
+										$vm->setValue( $matches[1] , $matches[2] );
+									}
 								}
-							}
-							/** Adds the new Voicemail to the VoicemailFolder */
-							$foldArr->addVMail( $vm );
-							fclose( $fd );
-							$tmp = $files;
-							/** Adds sound files to the Voicemail */
-							foreach( $tmp as $fi ) {
-								if( strcmp( substr( $fi , 3 , 4 ) , substr( $file , 3 , 4 ) ) == 0 && strcmp( substr( $fi , -3 , 3) , "txt" ) != 0 ) {
-									$vm->addFormat( $fi );
+								/** Adds the new Voicemail to the VoicemailFolder */
+								$foldArr->addVMail( $vm );
+								fclose( $fd );
+								$tmp = $files;
+								/** Adds sound files to the Voicemail */
+								foreach( $tmp as $fi ) {
+									if( strcmp( substr( $fi , 3 , 4 ) , substr( $file , 3 , 4 ) ) == 0 && strcmp( substr( $fi , -3 , 3) , "txt" ) != 0 ) {
+										$vm->addFormat( $fi );
+									}
 								}
+							} // end if opened
+							else {
+								echo "<error>Can't open ". $this->pathFolder."/".$folder."/".$file ."</error>";
 							}
 						} // end if text message
 

@@ -294,8 +294,11 @@ VoicemailFolder * VMViewerd::getFolderAt(int i) {
 }
 
 VoicemailFolder * VMViewerd::getFolderByName(string name) {
+	cout << "getFolderByName(" << name << ")" << endl;
 	for( int i = 0 ; i < getLstFolders().size() ; i++ ) {
+		cout << "folder[" << i << "] = " << getFolderAt(i)->getName() << endl;
 		if( getFolderAt(i)->getName().compare( name ) == 0 ) {
+			cout << "compare..." << endl;
 			return getFolderAt(i);
 		}
 	}
@@ -303,6 +306,7 @@ VoicemailFolder * VMViewerd::getFolderByName(string name) {
 }
 
 void VMViewerd::addVMF(VoicemailFolder *vmf) {
+	cout << "addVMF(" << vmf->getName() << ")" << endl;
 	_lst_folders.push_back( vmf );
 }
 
@@ -318,9 +322,21 @@ VoicemailSound * VMViewerd::getSoundAt(int i) {
 	if( i < 0 || i >= getLstSounds().size() ) {
 		return NULL;
 	} else {
+		cout << "sound format : " << _lst_sounds[i]->getFormat() << endl;
 		return _lst_sounds[i];
 	}
 }
+
+VoicemailSound * VMViewerd::getSoundByExt(const string& extension) {
+	for(int i = 0 ; i < _lst_sounds.size() ; i++ ) {
+		if( _lst_sounds[i]->getFormat().compare( extension ) == 0 ) {
+			cout << "##### found wav" << endl;
+			return _lst_sounds[i];
+		}
+	}
+	return NULL;
+}
+
 
 void VMViewerd::addVMS(VoicemailSound * vms) {
 	_lst_sounds.push_back( vms );
@@ -352,9 +368,14 @@ vector< string > VMViewerd::toArrayString() {
 }
 
 string VMViewerd::getVoicemailInfo(string folder, string name) {
-	string st = getFolderByName( folder )->getVMByName( name )->toString();
 	cout << "getVoicemailInfo( " << folder << " , " << name << " )" << endl;
-	cout << st << endl;
+	string st("");
+	VoicemailFolder * vmf = getFolderByName( folder );
+	if( vmf != NULL ) {
+		cout << "vmf != NULL" << endl;
+		st = vmf->getVMByName( name )->toString();
+	}
+//	cout << st << endl;
 	return st;
 }
 

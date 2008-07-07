@@ -89,6 +89,7 @@ class VMViewerd {
 		/** Manipulation of voicemail's sounds */
 		vector<VoicemailSound *> getLstSounds();
 		VoicemailSound *         getSoundAt(int);
+		VoicemailSound *         getSoundByExt(const string&);
 		void                     addVMS(VoicemailSound *);
 		void                     addError(string err);
 		

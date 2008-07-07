@@ -16,6 +16,8 @@
  *  along with this program; if not, write to the Free Software
  *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
+
+//#ifdef USE_VOICEMAIL
  
 #ifndef VOICEMAILMANAGER_H
 #define VOICEMAILMANAGER_H
@@ -42,7 +44,16 @@ class VoicemailManager :
 		std::vector< ::DBus::String > getListMails( const ::DBus::String& );
 		std::vector< ::DBus::String > getListErrors( void );
 		::DBus::String                getVoicemailInfo( const ::DBus::String& , const ::DBus::String& );
+		void                          playVoicemail( const ::DBus::String& , const ::DBus::String& );
+		void                          stopVoicemail();
+		
+		::DBus::String getVoicemailConfigAddress();
+		::DBus::String getVoicemailConfigPath();
+		int            getVoicemailConfigPort();
+		bool           isVoicemailConfigHttpsEnabled();
 
 };
 
-#endif
+#endif // VOICEMAILMANAGER_H
+
+//#endif // USE_VOICEMAIL

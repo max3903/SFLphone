@@ -19,8 +19,17 @@
  *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
+
+//#ifndef USE_VOICEMAIL
+#define USE_VOICEMAIL
+//#endif
+
+
 #include <cstdio>
 #include <cstdlib>
+
+#include <iostream>
+#include <fstream>
 
 #include "audiolayer.h"
 #include "../global.h"
@@ -46,7 +55,7 @@
   _inChannel  = 1; // don't put in stereo
   _outChannel = 1; // don't put in stereo
   _echoTesting = false;
-
+  _isVoicemail = false;
 }
 
 // Destructor
@@ -129,8 +138,10 @@ AudioLayer::stopStream(void)
 
 void AudioLayer::AlsaCallBack( snd_async_handler_t* pcm_callback )
 { 
+  std::cout << "AlsaCallBack" << std::endl;
   ( ( AudioLayer *)snd_async_handler_get_callback_private( pcm_callback )) -> playTones();
 }
+
 
   void 
 AudioLayer::fillHWBuffer( void)
@@ -143,6 +154,7 @@ AudioLayer::fillHWBuffer( void)
   _debug("frames  = %d\n");
 
   data = (unsigned char*)malloc(periodSize);
+ 
   for(l1 = 0; l1 < 100; l1++) {
     for(l2 = 0; l2 < frames; l2++) {
       s1 = 0;
@@ -158,6 +170,7 @@ AudioLayer::fillHWBuffer( void)
     }
   }
 }
+
 
   bool
 AudioLayer::isStreamActive (void) 
@@ -178,6 +191,7 @@ AudioLayer::playSamples(void* buffer, int toCopy, bool isTalking)
   }
   return 0;
 }
+
 
   int
 AudioLayer::putUrgent(void* buffer, int toCopy)
@@ -249,6 +263,7 @@ AudioLayer::playTones( void )
   int frames = _periodSize ; 
   int maxBytes = frames * sizeof(SFLDataFormat) ;
   SFLDataFormat* out = (SFLDataFormat*)malloc(maxBytes * sizeof(SFLDataFormat));
+  std::cout << "playTones" << std::endl;
   if( _talk ) {}
   else {
     AudioLoop *tone = _manager -> getTelephoneTone();
@@ -258,13 +273,57 @@ AudioLayer::playTones( void )
       write( out , maxBytes );
     } 
     else if( ( tone=_manager->getTelephoneFile() ) != 0 ){
-      tone ->getNext( out , frames , spkrVol );
-      write( out , maxBytes );
+      std::cout << "getNext(out,"<< frames <<","<< spkrVol <<")" << std::endl;
+      int nbCopied = tone ->getNext( out , frames , spkrVol , _isVoicemail );
+      std::cout << "nbCopied : " << nbCopied << std::endl;
+//#ifdef USE_VOICEMAIL
+      if( nbCopied !=  0 ) {
+        write( out , maxBytes );
+      } else {
+        _isVoicemail = false;
+        _manager->stopVoicemail();
+      }
+//#else
+//      write( out , maxBytes );
+//#endif
     }
   }
   // free the temporary data buffer 
   free( out ); out = 0;
 }
+
+  void
+AudioLayer::playMail( void )
+{
+  std::cout << "playMail" << std::endl;
+  _isVoicemail = true;
+  playTones();
+/*  int frames = _periodSize ; 
+  int maxBytes = frames * sizeof(SFLDataFormat) ;
+  SFLDataFormat* out = (SFLDataFormat*)malloc(maxBytes * sizeof(SFLDataFormat));
+  if( _talk ) {}
+  else {
+    AudioLoop *file = _manager->getTelephoneFile();
+    _isVoicemail = true;
+    int spkrVol = _manager->getSpkrVolume();
+    std::cout << "getNext(out,"<< frames <<","<< spkrVol <<")" << std::endl;
+    int nbCopied = file->getNext( out , frames , spkrVol , true );
+    std::cout << "nbCopied : " << nbCopied << std::endl;
+    _urgentBuffer.debug();
+    if( _isVoicemail ) {
+      write( out , maxBytes );
+      _isVoicemail = false;
+    }
+//    if( _isVoicemail ) {
+//    	_isVoicemail = false;
+//      _urgentBuffer.debug();	
+//    	stopStream();
+//    }
+  }
+  // free the temporary data buffer 
+  free( out ); out = 0;*/
+}
+
 
 bool
 AudioLayer::isPlaybackActive(void) {

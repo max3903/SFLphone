@@ -18,8 +18,10 @@
  */
 
 #include <iostream>
+#include <fstream>
 #include <string>
 #include "VoicemailSound.h"
+#include "base64.h"
 
 
 VoicemailSound::VoicemailSound() {
@@ -50,11 +52,31 @@ void VoicemailSound::setDatas( std::string dat ) {
 }
 
 
-void VoicemailSound::toString() {
-	std::cout << "   [ VOICEMAILSOUND ]" << std::endl;
-	std::cout << "     '-format : " << _format << std::endl;
-	std::cout << "     '-folder : " << _folder << std::endl;
-	std::cout << "     '-file   : " << _file << std::endl;
-	std::cout << "     '-datas (length) : " << _datas.size() << std::endl;
+std::string VoicemailSound::toDecodeString() {
+	std::string decoded = Base64::decode( _datas );
+	std::ofstream file;
+
+	std::string filename = "/tmp/"+ _file +"."+ _format;
+	cout << "created : " << filename << endl;
+	file.open( filename.c_str() , fstream::out );
+	file << decoded;
+	file.close();
+
+	return decoded;
+}
+
+
+std::string VoicemailSound::toString() {
+	std::string res("   [ VOICEMAILSOUND ]");
+	res.append("\n'-format : ");
+	res.append( _format );
+	res.append("\n'-folder : ");
+	res.append( _folder );
+	res.append("\n'-file   : ");
+	res.append( _file );
+//	res.append("\n'-datas (length) : ");
+//	res.append( _datas.size() );
+	std::cout << res << std::endl;
+	return res;
 }
 

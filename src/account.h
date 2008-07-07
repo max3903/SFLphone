@@ -65,6 +65,11 @@ typedef std::string AccountID;
 /** SIP parameter : stun port */
 #define SIP_STUN_PORT         "STUN.port"
 
+//#ifdef USE_VOICEMAIL
+#define CONFIG_ACCOUNT_PASSCODE  "Account.passcode"
+#define CONFIG_ACCOUNT_CONTEXT   "Account.context"
+//#endif
+
 class Account{
  public:
   Account(const AccountID& accountID);

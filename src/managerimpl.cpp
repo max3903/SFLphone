@@ -46,7 +46,9 @@
 
 #include "user_cfg.h"
 
+//#ifdef USE_VOICEMAIL
 #include "voicemail/VMViewerd.h"
+//#endif
 
 #ifdef USE_ZEROCONF
 #include "zeroconf/DNSService.h"
@@ -1776,6 +1778,23 @@ ManagerImpl::getAccountDetails(const AccountID& accountID)
 	)
       );
 
+//#ifdef USE_VOICEMAIL
+  a.insert(
+    std::pair<std::string, std::string>(
+      CONFIG_ACCOUNT_PASSCODE,
+      getConfigString( accountID , CONFIG_ACCOUNT_PASSCODE )
+    )
+  );
+  
+  a.insert(
+    std::pair<std::string, std::string>(
+      CONFIG_ACCOUNT_CONTEXT,
+      getConfigString( accountID , CONFIG_ACCOUNT_CONTEXT )
+    )
+  );
+//#endif
+
+
   if( accountType == "SIP")
   {
     a.insert(
@@ -1865,6 +1884,11 @@ ManagerImpl::setAccountDetails( const ::DBus::String& accountID,
   setConfig(accountID, CONFIG_ACCOUNT_ALIAS, (*details.find(CONFIG_ACCOUNT_ALIAS)).second);
   setConfig(accountID, CONFIG_ACCOUNT_ENABLE, (*details.find(CONFIG_ACCOUNT_ENABLE)).second == "TRUE" ? "1": "0" );
   setConfig(accountID, CONFIG_ACCOUNT_TYPE, accountType);
+  
+//#ifdef USE_VOICEMAIL
+  setConfig( accountID , CONFIG_ACCOUNT_PASSCODE , ( *details.find( CONFIG_ACCOUNT_PASSCODE ) ).second );
+  setConfig( accountID , CONFIG_ACCOUNT_CONTEXT  , ( *details.find( CONFIG_ACCOUNT_CONTEXT  ) ).second );
+//#endif
   
   if (accountType == "SIP") {
     setConfig(accountID, SIP_USER, (*details.find(SIP_USER)).second);
@@ -2108,132 +2132,210 @@ ManagerImpl::getAccountLink(const AccountID& accountID)
   return 0;
 }
 
+
+//#ifdef USE_VOICEMAIL
 /*********************
  * VOICEMAIL MANAGER *
  *********************/
-std::vector< ::DBus::String >
-ManagerImpl::getListFolders( void ) {
-	std::cout << "getListFolders()" << std::endl;
-	std::vector< ::DBus::String > vec;
+AccountID
+ManagerImpl::getCurrentAccountID() {
+	std::cout << "getCurrentAccount()" << std::endl;
+	AccountID acc;
 	AccountMap::iterator it = _accountMap.begin();
 	while( it != _accountMap.end() ) {
 		if( it->second->isEnabled() ) {
 			enum VoIPLink::RegistrationState state = it->second->getRegistrationState();
 			if( state == VoIPLink::Registered ) {
-				std::string acc_type = getConfigString( it->first , CONFIG_ACCOUNT_TYPE );
-				std::string user = ( strcmp( getConfigString( it->first , CONFIG_ACCOUNT_TYPE ).c_str() , "IAX" ) == 0 ?
-												getConfigString( it->first , IAX_USER ) :
-												getConfigString( it->first , SIP_USER ) );
-				VMViewerd * vmv = new VMViewerd( user , "735" , "default", "127.0.0.1", "uml/index", "80" );
-				vmv->exec("");
-				vmv->parse();
-				vec = vmv->toArrayString();
+				acc = it->first;
 				break;
 			}
 		}
 		it++;
 	}
+	return acc;
+}
+
+std::vector< ::DBus::String >
+ManagerImpl::getListFolders( void ) {
+	std::cout << "getListFolders()" << std::endl;
+	AccountID acc = getCurrentAccountID();
+	std::vector< ::DBus::String > vec;
+//	if( acc ) {
+		std::string acc_type = getConfigString( acc , CONFIG_ACCOUNT_TYPE );
+		std::string user = ( strcmp( getConfigString( acc , CONFIG_ACCOUNT_TYPE ).c_str() , "IAX" ) == 0 ?
+									 getConfigString( acc , IAX_USER ) :
+									 getConfigString( acc , SIP_USER ) );
+		VMViewerd * vmv = new VMViewerd( user , "735" , "default", "127.0.0.1", "uml/index", "80" );
+		vmv->exec("");
+		vmv->parse();
+		vec = vmv->toArrayString();
+//	}
 	return vec;
 }
 
 std::vector< ::DBus::String >
 ManagerImpl::getListMails( const ::DBus::String& folder ) {
 	std::cout << "getListMails()" << std::endl;
+	AccountID acc = getCurrentAccountID();
 	std::vector< ::DBus::String > vec;
-	AccountMap::iterator it = _accountMap.begin();
-	while( it != _accountMap.end() ) {
-		if( it->second->isEnabled() ) {
-			enum VoIPLink::RegistrationState state = it->second->getRegistrationState();
-			if( state == VoIPLink::Registered ) {
-				std::string acc_type = getConfigString( it->first , CONFIG_ACCOUNT_TYPE );
-				std::string user = ( strcmp( getConfigString( it->first , CONFIG_ACCOUNT_TYPE ).c_str() , "IAX" ) == 0 ?
-												getConfigString( it->first , IAX_USER ) :
-												getConfigString( it->first , SIP_USER ) );
-				VMViewerd * vmv = new VMViewerd( user , "735" , "default", "127.0.0.1", "uml/index", "80" );
-				vmv->exec( folder );
-				vmv->parse();
-				vec = vmv->toFolderArrayString(folder);
-				break;
-			}
-		}
-		it++;
-	}
+//	if( acc != 0 ) {
+		std::string acc_type = getConfigString( acc , CONFIG_ACCOUNT_TYPE );
+		std::string user = ( strcmp( getConfigString( acc , CONFIG_ACCOUNT_TYPE ).c_str() , "IAX" ) == 0 ?
+									 getConfigString( acc , IAX_USER ) :
+									 getConfigString( acc , SIP_USER ) );
+		VMViewerd * vmv = new VMViewerd( user , "735" , "default", "127.0.0.1", "uml/index", "80" );
+		vmv->exec( folder );
+		vmv->parse();
+		vec = vmv->toFolderArrayString(folder);
+//	}
 	return vec;
 }
 
 int
 ManagerImpl::getFolderCount( const ::DBus::String& folder ) {
 	std::cout << "getListMails()" << std::endl;
-	AccountMap::iterator it = _accountMap.begin();
-	while( it != _accountMap.end() ) {
-		if( it->second->isEnabled() ) {
-			enum VoIPLink::RegistrationState state = it->second->getRegistrationState();
-			if( state == VoIPLink::Registered ) {
-				std::string acc_type = getConfigString( it->first , CONFIG_ACCOUNT_TYPE );
-				std::string user = ( strcmp( getConfigString( it->first , CONFIG_ACCOUNT_TYPE ).c_str() , "IAX" ) == 0 ?
-												getConfigString( it->first , IAX_USER ) :
-												getConfigString( it->first , SIP_USER ) );
-				VMViewerd * vmv = new VMViewerd( user , "735" , "default", "127.0.0.1", "uml/index", "80" );
-				vmv->exec( folder );
-				vmv->parse();
-				return vmv->getFolderCount(folder);
-			}
-		}
-		it++;
-	}
+	AccountID acc = getCurrentAccountID();
+	std::vector< ::DBus::String > vec;
+//	if( acc != 0 ) {
+		std::string acc_type = getConfigString( acc , CONFIG_ACCOUNT_TYPE );
+		std::string user = ( strcmp( getConfigString( acc , CONFIG_ACCOUNT_TYPE ).c_str() , "IAX" ) == 0 ?
+									 getConfigString( acc , IAX_USER ) :
+									 getConfigString( acc , SIP_USER ) );
+		VMViewerd * vmv = new VMViewerd( user , "735" , "default", "127.0.0.1", "uml/index", "80" );
+		vmv->exec( folder );
+		vmv->parse();
+		return vmv->getFolderCount(folder);
+//	}
 	return 0;
 }
 
 std::vector< ::DBus::String >
 ManagerImpl::getListErrors( void ) {
 	std::cout << "getListErrors()" << std::endl;
+	AccountID acc = getCurrentAccountID();
 	std::vector< ::DBus::String > vec;
-	AccountMap::iterator it = _accountMap.begin();
-	while( it != _accountMap.end() ) {
-		if( it->second->isEnabled() ) {
-			enum VoIPLink::RegistrationState state = it->second->getRegistrationState();
-			if( state == VoIPLink::Registered ) {
-				std::string acc_type = getConfigString( it->first , CONFIG_ACCOUNT_TYPE );
-				std::string user = ( strcmp( getConfigString( it->first , CONFIG_ACCOUNT_TYPE ).c_str() , "IAX" ) == 0 ?
-												getConfigString( it->first , IAX_USER ) :
-												getConfigString( it->first , SIP_USER ) );
-				VMViewerd * vmv = new VMViewerd( user , "735" , "default", "127.0.0.1", "uml/index", "80" );
-				vmv->exec("");
-				vmv->parse();
-				vec = vmv->toErrorsArrayString();
-				break;
-			}
-		}
-		it++;
-	}
+//	if( acc != 0 ) {
+		std::string acc_type = getConfigString( acc , CONFIG_ACCOUNT_TYPE );
+		std::string user = ( strcmp( getConfigString( acc , CONFIG_ACCOUNT_TYPE ).c_str() , "IAX" ) == 0 ?
+									 getConfigString( acc , IAX_USER ) :
+									 getConfigString( acc , SIP_USER ) );
+		VMViewerd * vmv = new VMViewerd( user , "735" , "default", "127.0.0.1", "uml/index", "80" );
+		vmv->exec("");
+		vmv->parse();
+		vec = vmv->toErrorsArrayString();
+//	}
 	return vec;
 }
 
 
 ::DBus::String
 ManagerImpl::getVoicemailInfo( const ::DBus::String& folderName , const ::DBus::String& voicemailName ) {
-	std::cout << "getListErrors()" << std::endl;
+	std::cout << "getVoicemailInfo( " << folderName << " , " << voicemailName << " )" << std::endl;
 	::DBus::String st;
-	AccountMap::iterator it = _accountMap.begin();
-	while( it != _accountMap.end() ) {
-		if( it->second->isEnabled() ) {
-			enum VoIPLink::RegistrationState state = it->second->getRegistrationState();
-			if( state == VoIPLink::Registered ) {
-				std::string acc_type = getConfigString( it->first , CONFIG_ACCOUNT_TYPE );
-				std::string user = ( strcmp( getConfigString( it->first , CONFIG_ACCOUNT_TYPE ).c_str() , "IAX" ) == 0 ?
-												getConfigString( it->first , IAX_USER ) :
-												getConfigString( it->first , SIP_USER ) );
-				VMViewerd * vmv = new VMViewerd( user , "735" , "default", "127.0.0.1", "uml/index", "80" );
-//				vmv->exec( folderName +"/"+ voicemailName );
-				vmv->parse();
-				st = vmv->getVoicemailInfo(folderName, voicemailName);
-				break;
-			}
-		}
-		it++;
-	}
+	AccountID acc = getCurrentAccountID();
+	std::cout << acc << std::endl;
+//	std::vector< ::DBus::String > vec;
+//	if( acc != 0 ) {
+		std::string acc_type = getConfigString( acc , CONFIG_ACCOUNT_TYPE );
+		std::string user = ( strcmp( getConfigString( acc , CONFIG_ACCOUNT_TYPE ).c_str() , "IAX" ) == 0 ?
+									 getConfigString( acc , IAX_USER ) :
+									 getConfigString( acc , SIP_USER ) );
+		VMViewerd * vmv = new VMViewerd( user , "735" , "default", "127.0.0.1", "uml/index", "80" );
+//		vmv->exec( folderName +"/"+ voicemailName );
+		vmv->parse();
+		st = vmv->getVoicemailInfo(folderName, voicemailName);
+		std::cout << "st = " << st << std::endl;
+//	}
 	return st;
 }
+
+
+void
+ManagerImpl::playVoicemail( const ::DBus::String& folderName , const ::DBus::String& voicemailName ) {
+	std::cout << "playVoicemail()" << std::endl;
+	AccountID acc = getCurrentAccountID();
+	std::vector< ::DBus::String > vec;
+//	if( acc != 0 ) {
+		std::string acc_type = getConfigString( acc , CONFIG_ACCOUNT_TYPE );
+		std::string user = ( strcmp( getConfigString( acc , CONFIG_ACCOUNT_TYPE ).c_str() , "IAX" ) == 0 ?
+									 getConfigString( acc , IAX_USER ) :
+									 getConfigString( acc , SIP_USER ) );
+		VMViewerd * vmv = new VMViewerd( user , "735" , "default", "127.0.0.1", "uml/index", "80" );
+		vmv->exec( folderName +"/"+ voicemailName +"/sound" );
+		vmv->parse();
+		
+//		VoicemailSound * vms = vmv->getSoundAt(2);
+		VoicemailSound * vms = vmv->getSoundByExt("ul");
+		if( vms ) {
+			::DBus::String st = vms->toDecodeString();
+		
+	//		ringback();
+	//		playTone();
+
+
+			AudioLayer* audiolayer = getAudioDriver();
+			if( audiolayer==0 ) { return; }
+			AudioCodec* codec = _codecDescriptorMap.getFirstCodecAvailable();
+
+			_toneMutex.enterMutex();
+			bool loadFile = _audiofile.loadFile( "/tmp/"+ voicemailName +"."+ vms->getFormat() , codec , 44100 );
+			_toneMutex.leaveMutex(); 
+			if( loadFile == true ) {
+				std::cout << "##### audiofile : '" << _audiofile.isStarted() << "'" << std::endl;
+				_toneMutex.enterMutex(); 
+				_audiofile.start();
+				_toneMutex.leaveMutex(); 
+				int size = _audiofile.getSize();
+				std::cout << "size : " << size << std::endl;
+				SFLDataFormat output[ size ];
+				_audiofile.getNext( output , size , 100 , true );
+				audiolayer->putUrgent( output , size );
+//				audiolayer->playSamples( output , sizeof(SFLDataFormat)*size , false );
+				audiolayer->playMail();// output , sizeof(SFLDataFormat)*size  );
+			}
+		} else {
+			// TODO : send a message
+		}
+
+//	}
+}
+
+
+void
+ManagerImpl::stopVoicemail() {
+	AudioLayer *audiolayer = getAudioDriver();
+//	stopTone(true);
+//	_audiofile.stop();
+	audiolayer->stopStream();
+}
+
+//---------------------------
+// VOICEMAIL CONFIGURATION
+//---------------------------
+::DBus::String
+ManagerImpl::getVoicemailConfigAddress() {
+	::DBus::String res("");
+	return res;
+}
+
+::DBus::String
+ManagerImpl::getVoicemailConfigPath() {
+	::DBus::String res("");
+	return res;
+}
+
+int
+ManagerImpl::getVoicemailConfigPort() {
+	int res = 80;
+	return res;
+}
+
+bool
+ManagerImpl::isVoicemailConfigHttpsEnabled() {
+	return true;
+}
+//#endif
+
 
 #ifdef TEST
 /** 

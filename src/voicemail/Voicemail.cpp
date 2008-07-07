@@ -178,7 +178,7 @@ string Voicemail::toString() {
 	res.append("\n'-priority     : " );
 	res.append( getPriorityString() );
 //	cout << "'-[ VOICEMAIL ]" << endl;
-	cout << res << endl;
+//	cout << res << endl;
 	return res;
 }
 

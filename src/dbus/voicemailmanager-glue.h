@@ -25,6 +25,12 @@ public:
         register_method(VoicemailManager, getListMails, _getListMails_stub);
         register_method(VoicemailManager, getVoicemailInfo, _getVoicemailInfo_stub);
         register_method(VoicemailManager, getListErrors, _getListErrors_stub);
+        register_method(VoicemailManager, playVoicemail, _playVoicemail_stub);
+        register_method(VoicemailManager, stopVoicemail, _stopVoicemail_stub);
+        register_method(VoicemailManager, getVoicemailConfigAddress, _getVoicemailConfigAddress_stub);
+        register_method(VoicemailManager, getVoicemailConfigPath, _getVoicemailConfigPath_stub);
+        register_method(VoicemailManager, getVoicemailConfigPort, _getVoicemailConfigPort_stub);
+        register_method(VoicemailManager, isVoicemailConfigHttpsEnabled, _isVoicemailConfigHttpsEnabled_stub);
     }
 
     ::DBus::IntrospectedInterface* const introspect() const 
@@ -58,6 +64,36 @@ public:
             { "list", "as", false },
             { 0, 0, 0 }
         };
+        static ::DBus::IntrospectedArgument playVoicemail_args[] = 
+        {
+            { "folderName", "s", true },
+            { "voicemailName", "s", true },
+            { 0, 0, 0 }
+        };
+        static ::DBus::IntrospectedArgument stopVoicemail_args[] = 
+        {
+            { 0, 0, 0 }
+        };
+        static ::DBus::IntrospectedArgument getVoicemailConfigAddress_args[] = 
+        {
+            { "address", "s", false },
+            { 0, 0, 0 }
+        };
+        static ::DBus::IntrospectedArgument getVoicemailConfigPath_args[] = 
+        {
+            { "path", "s", false },
+            { 0, 0, 0 }
+        };
+        static ::DBus::IntrospectedArgument getVoicemailConfigPort_args[] = 
+        {
+            { "port", "i", false },
+            { 0, 0, 0 }
+        };
+        static ::DBus::IntrospectedArgument isVoicemailConfigHttpsEnabled_args[] = 
+        {
+            { "https", "b", false },
+            { 0, 0, 0 }
+        };
         static ::DBus::IntrospectedMethod VoicemailManager_methods[] = 
         {
             { "getListFolders", getListFolders_args },
@@ -65,6 +101,12 @@ public:
             { "getListMails", getListMails_args },
             { "getVoicemailInfo", getVoicemailInfo_args },
             { "getListErrors", getListErrors_args },
+            { "playVoicemail", playVoicemail_args },
+            { "stopVoicemail", stopVoicemail_args },
+            { "getVoicemailConfigAddress", getVoicemailConfigAddress_args },
+            { "getVoicemailConfigPath", getVoicemailConfigPath_args },
+            { "getVoicemailConfigPort", getVoicemailConfigPort_args },
+            { "isVoicemailConfigHttpsEnabled", isVoicemailConfigHttpsEnabled_args },
             { 0, 0 }
         };
         static ::DBus::IntrospectedMethod VoicemailManager_signals[] = 
@@ -101,6 +143,12 @@ public:
     virtual std::vector< ::DBus::String > getListMails( const ::DBus::String& folder ) = 0;
     virtual ::DBus::String getVoicemailInfo( const ::DBus::String& folder, const ::DBus::String& name ) = 0;
     virtual std::vector< ::DBus::String > getListErrors(  ) = 0;
+    virtual void playVoicemail( const ::DBus::String& folderName, const ::DBus::String& voicemailName ) = 0;
+    virtual void stopVoicemail(  ) = 0;
+    virtual ::DBus::String getVoicemailConfigAddress(  ) = 0;
+    virtual ::DBus::String getVoicemailConfigPath(  ) = 0;
+    virtual ::DBus::Int32 getVoicemailConfigPort(  ) = 0;
+    virtual ::DBus::Bool isVoicemailConfigHttpsEnabled(  ) = 0;
 
 public:
 
@@ -160,6 +208,64 @@ private:
         ::DBus::MessageIter ri = call.reader();
 
         std::vector< ::DBus::String > argout1 = getListErrors();
+        ::DBus::ReturnMessage reply(call);
+        ::DBus::MessageIter wi = reply.writer();
+        wi << argout1;
+        return reply;
+    }
+    ::DBus::Message _playVoicemail_stub( const ::DBus::CallMessage& call )
+    {
+        ::DBus::MessageIter ri = call.reader();
+
+        ::DBus::String argin1; ri >> argin1;
+        ::DBus::String argin2; ri >> argin2;
+        playVoicemail(argin1, argin2);
+        ::DBus::ReturnMessage reply(call);
+        return reply;
+    }
+    ::DBus::Message _stopVoicemail_stub( const ::DBus::CallMessage& call )
+    {
+        ::DBus::MessageIter ri = call.reader();
+
+        stopVoicemail();
+        ::DBus::ReturnMessage reply(call);
+        return reply;
+    }
+    ::DBus::Message _getVoicemailConfigAddress_stub( const ::DBus::CallMessage& call )
+    {
+        ::DBus::MessageIter ri = call.reader();
+
+        ::DBus::String argout1 = getVoicemailConfigAddress();
+        ::DBus::ReturnMessage reply(call);
+        ::DBus::MessageIter wi = reply.writer();
+        wi << argout1;
+        return reply;
+    }
+    ::DBus::Message _getVoicemailConfigPath_stub( const ::DBus::CallMessage& call )
+    {
+        ::DBus::MessageIter ri = call.reader();
+
+        ::DBus::String argout1 = getVoicemailConfigPath();
+        ::DBus::ReturnMessage reply(call);
+        ::DBus::MessageIter wi = reply.writer();
+        wi << argout1;
+        return reply;
+    }
+    ::DBus::Message _getVoicemailConfigPort_stub( const ::DBus::CallMessage& call )
+    {
+        ::DBus::MessageIter ri = call.reader();
+
+        ::DBus::Int32 argout1 = getVoicemailConfigPort();
+        ::DBus::ReturnMessage reply(call);
+        ::DBus::MessageIter wi = reply.writer();
+        wi << argout1;
+        return reply;
+    }
+    ::DBus::Message _isVoicemailConfigHttpsEnabled_stub( const ::DBus::CallMessage& call )
+    {
+        ::DBus::MessageIter ri = call.reader();
+
+        ::DBus::Bool argout1 = isVoicemailConfigHttpsEnabled();
         ::DBus::ReturnMessage reply(call);
         ::DBus::MessageIter wi = reply.writer();
         wi << argout1;

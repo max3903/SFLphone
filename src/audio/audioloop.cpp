@@ -23,6 +23,9 @@
 #include "audioloop.h"
 #include <math.h>
 
+
+#include <iostream>
+
 AudioLoop::AudioLoop() 
 {
   _buffer = 0;
@@ -37,7 +40,7 @@ AudioLoop::~AudioLoop()
 }
 
 int
-AudioLoop::getNext(SFLDataFormat* output, int nb, short volume)
+AudioLoop::getNext(SFLDataFormat* output, int nb, short volume, bool loop)
 {
   int copied = 0;
   int block;
@@ -57,8 +60,16 @@ AudioLoop::getNext(SFLDataFormat* output, int nb, short volume)
     } else {
       output += block; // this is the destination...
     }
-    // should adjust sound here, in output???
-    pos = (pos + block ) % _size;
+//    if( _pos == 0 && loop )
+//    {
+      // should adjust sound here, in output???
+      pos = (pos + block ) % _size;
+      std::cout << "<<<<<<  pos : " << pos << "/" << _size << std::endl;
+      if( pos == 0 && loop ) {
+        return 0;
+//    } else {
+//      pos = (pos + block ) % _size;
+    }
     nb -= block;
     copied += block;
   }

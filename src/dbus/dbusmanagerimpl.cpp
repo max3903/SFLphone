@@ -33,7 +33,9 @@ DBusManagerImpl::exec(){
     _callManager = new CallManager(conn);
     _configurationManager = new ConfigurationManager(conn);
     _instanceManager = new Instance(conn);
+//#ifdef USE_VOICEMAIL
     _voicemailManager = new VoicemailManager(conn);
+//#endif
 
     // Register accounts
     Manager::instance().initRegisterAccounts(); //getEvents();

@@ -21,6 +21,7 @@
 #define __VoicemailSound_H_
 
 #include <string>
+//#include "base64.h"
 
 class VoicemailSound {
 	
@@ -42,7 +43,8 @@ class VoicemailSound {
 		std::string getFile();
 		void        setDatas(std::string);
 		
-		void toString();
+		std::string toDecodeString();
+		std::string toString();
 
 };
 
