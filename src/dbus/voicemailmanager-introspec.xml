@@ -34,22 +34,44 @@
     <method name="stopVoicemail"/>
     
     <!-- VOICEMAIL CONFIGURATION -->
+    <method name="isVoicemailServerEnabled">
+      <arg type="b" name="enabled" direction="out"/>
+    </method>
+    
+	<method name="voicemailServerEnable"/>
+    
     <method name="getVoicemailConfigAddress">
       <arg type="s" name="address" direction="out"/>
+    </method>
+
+    <method name="setVoicemailConfigAddress">
+      <arg type="s" name="address" direction="in"/>
     </method>
     
     <method name="getVoicemailConfigPath">
       <arg type="s" name="path" direction="out"/>
     </method>
+
+    <method name="setVoicemailConfigPath">
+      <arg type="s" name="path" direction="in"/>
+    </method>
     
     <method name="getVoicemailConfigPort">
       <arg type="i" name="port" direction="out"/>
     </method>
-    
+
+    <method name="setVoicemailConfigPort">
+      <arg type="i" name="port" direction="in"/>
+    </method>
+    	
     <method name="isVoicemailConfigHttpsEnabled">
-      <arg type="b" name="https" direction="out"/>
+      <arg type="b" name="enabled" direction="out"/>
     </method>
 
+    <method name="voicemailConfigHttpsEnable">
+      <arg type="b" name="enabled" direction="in"/>
+    </method>
+    
   </interface>
 </node>
  

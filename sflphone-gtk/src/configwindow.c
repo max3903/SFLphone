@@ -83,6 +83,13 @@ enum {
 	CODEC_COLUMN_COUNT
 };
 
+#ifdef USE_VOICEMAIL
+GtkWidget *voicemailAddressEntry;
+GtkWidget *voicemailPathEntry;
+GtkWidget *voicemailSpinButton;
+GtkWidget *voicemailApplyButton;
+#endif
+
 /**
  * Fills the treelist with accounts
  */
@@ -1224,23 +1231,52 @@ create_audio_tab ()
 
 #ifdef USE_VOICEMAIL
 /**
- * Voicemail panel - Sets all config (except encryption mode)
+ * Voicemail panel signal - Sets all config (except encryption mode)
  */
 static void
 set_voicemail_config( void * datas )
 {
-	
+	dbus_set_voicemail_config_address( gtk_entry_get_text( GTK_ENTRY( voicemailAddressEntry ) ) );
+	dbus_set_voicemail_config_path( gtk_entry_get_text( GTK_ENTRY( voicemailPathEntry ) ) );
+	dbus_set_voicemail_config_port( gtk_spin_button_get_value_as_int( GTK_SPIN_BUTTON( voicemailSpinButton ) ) );
+	gtk_widget_set_sensitive( GTK_WIDGET( voicemailApplyButton ) , FALSE );
 }
 
 /**
- * Voicemail panel - Sets the encryption mode
+ * Voicemail panel signal - Sets the encryption mode
  */
 static void
-set_voicemail_encryption_mode( GtkCheckMenuItem *checkmenuitem )
+set_voicemail_encryption_mode( GtkButton *button )
 {
-	g_print("set_voicemail_encryption_mode => \n");
+	dbus_voicemail_config_https_enable( gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON( button ) ) );
 }
 
+/**
+ * Voicemail panel signal - Sets the "apply button" active on modifying one of the entry or the port number
+ */
+static void
+changed()
+{
+	gtk_widget_set_sensitive( GTK_WIDGET( voicemailApplyButton ) , TRUE );
+}
+
+static void
+switchVoicemailVisible( enabled )
+{
+	gtk_widget_set_sensitive( GTK_WIDGET( voicemailAddressEntry ) , enabled );
+	gtk_widget_set_sensitive( GTK_WIDGET( voicemailPathEntry ) , enabled );
+	gtk_widget_set_sensitive( GTK_WIDGET( voicemailSpinButton ) , enabled );
+}
+
+/**
+ * Voicemail panel signal - (des)activate voicemail configuration
+ */
+static void
+voicemail_enabled( GtkToggleButton *button )
+{
+	dbus_voicemail_server_enable();
+	switchVoicemailVisible( gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON( button ) ) );
+}
 
 /**
  * Voicemail settings tab
@@ -1252,13 +1288,15 @@ create_voicemail_tab ()
 
 	GtkWidget *frame;
 	GtkWidget *table;
-	GtkWidget *entry;
 	GtkWidget *label;
-	GtkWidget *spinbutton;
-	GtkObject *spinbuttonAdj;
 	GtkWidget *checkbuttonYes;
 	GtkWidget *checkbuttonNo;
-	GtkWidget *button;
+	GtkObject *spinbuttonAdj;
+	GtkWidget *enableVoicemail;
+
+	gboolean isVoicemailEnabled = dbus_is_voicemail_server_enabled();
+	gchar    *address = (gchar *)dbus_get_voicemail_config_address();
+	gchar    *path = (gchar *)dbus_get_voicemail_config_path();
 
 	/** Main voicemail widget */
 	ret = gtk_vbox_new( FALSE , 10 );
@@ -1278,74 +1316,89 @@ create_voicemail_tab ()
 	gtk_label_set_use_markup( GTK_LABEL( label ) , TRUE );
 
 	/** Table */
-	table = gtk_table_new( 5 , 3 , FALSE/* homogeneous */ );
+	table = gtk_table_new( 6 , 3 , FALSE/* homogeneous */ );
 	gtk_table_set_row_spacings( GTK_TABLE( table ) , 10 );
 	gtk_table_set_col_spacings( GTK_TABLE( table ) , 10 );
 	gtk_container_add( GTK_CONTAINER( frame ) , table );
 	gtk_widget_show( table );
 
+	/** Voicemail server service activation */
+	enableVoicemail = gtk_check_button_new_with_mnemonic( _("_Enable server") );
+	gtk_toggle_button_set_active( GTK_TOGGLE_BUTTON( enableVoicemail ) , dbus_is_voicemail_server_enabled() );
+	gtk_table_attach( GTK_TABLE( table ) , enableVoicemail , 0 , 1 , 0 , 1 , GTK_EXPAND | GTK_FILL , GTK_EXPAND | GTK_FILL , 0 , 0 );
+	gtk_widget_show( enableVoicemail );
+	g_signal_connect( G_OBJECT( enableVoicemail ) , "clicked" , G_CALLBACK( voicemail_enabled ) , NULL);
+	
 	/** Labels */
 	label = gtk_label_new( _("Server address") );
-	gtk_table_attach( GTK_TABLE( table ) , label , 0 , 1 , 0 , 1 , GTK_EXPAND | GTK_FILL , GTK_EXPAND | GTK_FILL , 0 , 0 );
-	gtk_misc_set_alignment( GTK_MISC( label ) , 0 , 0.5 );
-	gtk_widget_show( label );
-
-	label = gtk_label_new( _("Server path") );
 	gtk_table_attach( GTK_TABLE( table ) , label , 0 , 1 , 1 , 2 , GTK_EXPAND | GTK_FILL , GTK_EXPAND | GTK_FILL , 0 , 0 );
 	gtk_misc_set_alignment( GTK_MISC( label ) , 0 , 0.5 );
 	gtk_widget_show( label );
 
-	label = gtk_label_new( _("Server port") );
+	label = gtk_label_new( _("Server path") );
 	gtk_table_attach( GTK_TABLE( table ) , label , 0 , 1 , 2 , 3 , GTK_EXPAND | GTK_FILL , GTK_EXPAND | GTK_FILL , 0 , 0 );
 	gtk_misc_set_alignment( GTK_MISC( label ) , 0 , 0.5 );
 	gtk_widget_show( label );
 
-	label = gtk_label_new( _("Use HTTPS ?") );
+	label = gtk_label_new( _("Server port") );
 	gtk_table_attach( GTK_TABLE( table ) , label , 0 , 1 , 3 , 4 , GTK_EXPAND | GTK_FILL , GTK_EXPAND | GTK_FILL , 0 , 0 );
 	gtk_misc_set_alignment( GTK_MISC( label ) , 0 , 0.5 );
 	gtk_widget_show( label );
 
-	/** Entries */
-	entry = gtk_entry_new();
-	gtk_table_attach( GTK_TABLE( table ) , entry , 1 , 3 , 0 , 1 , GTK_EXPAND | GTK_FILL , GTK_EXPAND | GTK_FILL , 0 , 0 );
-	gtk_entry_set_invisible_char( GTK_ENTRY( entry ) , 9679 );
-	gtk_widget_show( entry );
+	label = gtk_label_new( _("Use HTTPS ?") );
+	gtk_table_attach( GTK_TABLE( table ) , label , 0 , 1 , 4 , 5 , GTK_EXPAND | GTK_FILL , GTK_EXPAND | GTK_FILL , 0 , 0 );
+	gtk_misc_set_alignment( GTK_MISC( label ) , 0 , 0.5 );
+	gtk_widget_show( label );
 
-	entry = gtk_entry_new();
-	gtk_table_attach( GTK_TABLE( table ) , entry , 1 , 3 , 1 , 2 , GTK_EXPAND | GTK_FILL , GTK_EXPAND | GTK_FILL , 0 , 0 );
-	gtk_entry_set_invisible_char( GTK_ENTRY( entry ) , 9679 );
-	gtk_widget_show( entry );
+	/** Entries */
+	voicemailAddressEntry = gtk_entry_new();
+	gtk_table_attach( GTK_TABLE( table ) , voicemailAddressEntry , 1 , 3 , 1 , 2 , GTK_EXPAND | GTK_FILL , GTK_EXPAND | GTK_FILL , 0 , 0 );
+	gtk_entry_set_text( GTK_ENTRY( voicemailAddressEntry ) , address );
+	gtk_entry_set_invisible_char( GTK_ENTRY( voicemailAddressEntry ) , 9679 );
+	g_signal_connect( G_OBJECT( voicemailAddressEntry ) , "changed" , G_CALLBACK( changed ) , NULL );
+	gtk_widget_show( voicemailAddressEntry );
+
+	voicemailPathEntry = gtk_entry_new();
+	gtk_table_attach( GTK_TABLE( table ) , voicemailPathEntry , 1 , 3 , 2 , 3 , GTK_EXPAND | GTK_FILL , GTK_EXPAND | GTK_FILL , 0 , 0 );
+	gtk_entry_set_text( GTK_ENTRY( voicemailPathEntry ) , path );
+	gtk_entry_set_invisible_char( GTK_ENTRY( voicemailPathEntry ) , 9679 );
+	g_signal_connect( G_OBJECT( voicemailPathEntry ) , "changed" , G_CALLBACK( changed ) , NULL );
+	gtk_widget_show( voicemailPathEntry );
 
 	/** Spin button */
-	spinbuttonAdj = gtk_adjustment_new( 80 , 0 , 65565 , 1 , 10 , 10 );
-	spinbutton = gtk_spin_button_new( GTK_ADJUSTMENT( spinbuttonAdj ) , 1 , 0 );
-	gtk_table_attach( GTK_TABLE( table ) , spinbutton , 1 , 3 , 2 , 3 , GTK_EXPAND | GTK_FILL , GTK_EXPAND | GTK_FILL , 0 , 0 );
-	gtk_widget_show( spinbutton );
+	spinbuttonAdj = gtk_adjustment_new( dbus_get_voicemail_config_port() , 0 , 65565 , 1 , 10 , 10 );
+	voicemailSpinButton = gtk_spin_button_new( GTK_ADJUSTMENT( spinbuttonAdj ) , 1 , 0 );
+	gtk_table_attach( GTK_TABLE( table ) , voicemailSpinButton , 1 , 3 , 3 , 4 , GTK_EXPAND | GTK_FILL , GTK_EXPAND | GTK_FILL , 0 , 0 );
+	g_signal_connect( G_OBJECT( voicemailSpinButton ) , "changed" , G_CALLBACK( changed ) , NULL );
+	gtk_widget_show( voicemailSpinButton );
 
 	/** Check button YES */
 	checkbuttonYes = gtk_radio_button_new_with_label_from_widget( NULL , "gtk-yes" );
 	gtk_button_set_use_stock( GTK_BUTTON( checkbuttonYes ) , TRUE );
-	gtk_toggle_button_set_active( GTK_TOGGLE_BUTTON( checkbuttonYes ) , FALSE );
-	gtk_table_attach( GTK_TABLE( table ) , checkbuttonYes , 1 , 2 , 3 , 4 , GTK_EXPAND | GTK_FILL , GTK_EXPAND | GTK_FILL , 0 , 0 );
+	gtk_toggle_button_set_active( GTK_TOGGLE_BUTTON( checkbuttonYes ) , dbus_is_voicemail_config_https_enabled() );
+	gtk_table_attach( GTK_TABLE( table ) , checkbuttonYes , 1 , 2 , 4 , 5 , GTK_EXPAND | GTK_FILL , GTK_EXPAND | GTK_FILL , 0 , 0 );
 	g_signal_connect( G_OBJECT( checkbuttonYes ) , "clicked" , G_CALLBACK( set_voicemail_encryption_mode ) , NULL );
 	gtk_widget_show( checkbuttonYes );
 
 	/** Check button NO */
 	checkbuttonNo = gtk_radio_button_new_with_label_from_widget( GTK_RADIO_BUTTON( checkbuttonYes ) , "gtk-no" );
 	gtk_button_set_use_stock( GTK_BUTTON( checkbuttonNo ) , TRUE );
-	gtk_toggle_button_set_active( GTK_TOGGLE_BUTTON( checkbuttonNo ) , TRUE );
-	gtk_table_attach( GTK_TABLE( table ) , checkbuttonNo , 2 , 3 , 3 , 4 , GTK_EXPAND | GTK_FILL , GTK_EXPAND | GTK_FILL , 0 , 0 );
+	gtk_toggle_button_set_active( GTK_TOGGLE_BUTTON( checkbuttonNo ) , !dbus_is_voicemail_config_https_enabled() );
+	gtk_table_attach( GTK_TABLE( table ) , checkbuttonNo , 2 , 3 , 4 , 5 , GTK_EXPAND | GTK_FILL , GTK_EXPAND | GTK_FILL , 0 , 0 );
 	gtk_widget_show( checkbuttonNo );
 
 	/** Button */
-	button = gtk_button_new_from_stock( GTK_STOCK_APPLY );
-	gtk_table_attach( GTK_TABLE( table ) , button , 2 , 3 , 4 , 5 , GTK_SHRINK , GTK_SHRINK , 0 , 0 );
-	g_signal_connect( G_OBJECT( checkbuttonYes ) , "clicked" , G_CALLBACK( set_voicemail_config ) , NULL );
-	gtk_widget_show( button );
-
+	voicemailApplyButton = gtk_button_new_from_stock( GTK_STOCK_APPLY );
+	gtk_table_attach( GTK_TABLE( table ) , voicemailApplyButton , 1 , 3 , 5 , 6 , GTK_SHRINK , GTK_SHRINK , 0 , 0 );
+	gtk_widget_set_sensitive( GTK_WIDGET( voicemailApplyButton ) , FALSE );
+	g_signal_connect( G_OBJECT( voicemailApplyButton ) , "clicked" , G_CALLBACK( set_voicemail_config ) , NULL );
+	gtk_widget_show( voicemailApplyButton );
+	
+	switchVoicemailVisible( isVoicemailEnabled );
+	
 	return ret;
 }
-#endif
+#endif // USE_VOICEMAIL
 
 
 GtkWidget*

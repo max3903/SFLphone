@@ -27,10 +27,16 @@ public:
         register_method(VoicemailManager, getListErrors, _getListErrors_stub);
         register_method(VoicemailManager, playVoicemail, _playVoicemail_stub);
         register_method(VoicemailManager, stopVoicemail, _stopVoicemail_stub);
+        register_method(VoicemailManager, isVoicemailServerEnabled, _isVoicemailServerEnabled_stub);
+        register_method(VoicemailManager, voicemailServerEnable, _voicemailServerEnable_stub);
         register_method(VoicemailManager, getVoicemailConfigAddress, _getVoicemailConfigAddress_stub);
+        register_method(VoicemailManager, setVoicemailConfigAddress, _setVoicemailConfigAddress_stub);
         register_method(VoicemailManager, getVoicemailConfigPath, _getVoicemailConfigPath_stub);
+        register_method(VoicemailManager, setVoicemailConfigPath, _setVoicemailConfigPath_stub);
         register_method(VoicemailManager, getVoicemailConfigPort, _getVoicemailConfigPort_stub);
+        register_method(VoicemailManager, setVoicemailConfigPort, _setVoicemailConfigPort_stub);
         register_method(VoicemailManager, isVoicemailConfigHttpsEnabled, _isVoicemailConfigHttpsEnabled_stub);
+        register_method(VoicemailManager, voicemailConfigHttpsEnable, _voicemailConfigHttpsEnable_stub);
     }
 
     ::DBus::IntrospectedInterface* const introspect() const 
@@ -74,9 +80,23 @@ public:
         {
             { 0, 0, 0 }
         };
+        static ::DBus::IntrospectedArgument isVoicemailServerEnabled_args[] = 
+        {
+            { "enabled", "b", false },
+            { 0, 0, 0 }
+        };
+        static ::DBus::IntrospectedArgument voicemailServerEnable_args[] = 
+        {
+            { 0, 0, 0 }
+        };
         static ::DBus::IntrospectedArgument getVoicemailConfigAddress_args[] = 
         {
             { "address", "s", false },
+            { 0, 0, 0 }
+        };
+        static ::DBus::IntrospectedArgument setVoicemailConfigAddress_args[] = 
+        {
+            { "address", "s", true },
             { 0, 0, 0 }
         };
         static ::DBus::IntrospectedArgument getVoicemailConfigPath_args[] = 
@@ -84,14 +104,29 @@ public:
             { "path", "s", false },
             { 0, 0, 0 }
         };
+        static ::DBus::IntrospectedArgument setVoicemailConfigPath_args[] = 
+        {
+            { "path", "s", true },
+            { 0, 0, 0 }
+        };
         static ::DBus::IntrospectedArgument getVoicemailConfigPort_args[] = 
         {
             { "port", "i", false },
             { 0, 0, 0 }
         };
+        static ::DBus::IntrospectedArgument setVoicemailConfigPort_args[] = 
+        {
+            { "port", "i", true },
+            { 0, 0, 0 }
+        };
         static ::DBus::IntrospectedArgument isVoicemailConfigHttpsEnabled_args[] = 
         {
-            { "https", "b", false },
+            { "enabled", "b", false },
+            { 0, 0, 0 }
+        };
+        static ::DBus::IntrospectedArgument voicemailConfigHttpsEnable_args[] = 
+        {
+            { "enabled", "b", true },
             { 0, 0, 0 }
         };
         static ::DBus::IntrospectedMethod VoicemailManager_methods[] = 
@@ -103,10 +138,16 @@ public:
             { "getListErrors", getListErrors_args },
             { "playVoicemail", playVoicemail_args },
             { "stopVoicemail", stopVoicemail_args },
+            { "isVoicemailServerEnabled", isVoicemailServerEnabled_args },
+            { "voicemailServerEnable", voicemailServerEnable_args },
             { "getVoicemailConfigAddress", getVoicemailConfigAddress_args },
+            { "setVoicemailConfigAddress", setVoicemailConfigAddress_args },
             { "getVoicemailConfigPath", getVoicemailConfigPath_args },
+            { "setVoicemailConfigPath", setVoicemailConfigPath_args },
             { "getVoicemailConfigPort", getVoicemailConfigPort_args },
+            { "setVoicemailConfigPort", setVoicemailConfigPort_args },
             { "isVoicemailConfigHttpsEnabled", isVoicemailConfigHttpsEnabled_args },
+            { "voicemailConfigHttpsEnable", voicemailConfigHttpsEnable_args },
             { 0, 0 }
         };
         static ::DBus::IntrospectedMethod VoicemailManager_signals[] = 
@@ -145,10 +186,16 @@ public:
     virtual std::vector< ::DBus::String > getListErrors(  ) = 0;
     virtual void playVoicemail( const ::DBus::String& folderName, const ::DBus::String& voicemailName ) = 0;
     virtual void stopVoicemail(  ) = 0;
+    virtual ::DBus::Bool isVoicemailServerEnabled(  ) = 0;
+    virtual void voicemailServerEnable(  ) = 0;
     virtual ::DBus::String getVoicemailConfigAddress(  ) = 0;
+    virtual void setVoicemailConfigAddress( const ::DBus::String& address ) = 0;
     virtual ::DBus::String getVoicemailConfigPath(  ) = 0;
+    virtual void setVoicemailConfigPath( const ::DBus::String& path ) = 0;
     virtual ::DBus::Int32 getVoicemailConfigPort(  ) = 0;
+    virtual void setVoicemailConfigPort( const ::DBus::Int32& port ) = 0;
     virtual ::DBus::Bool isVoicemailConfigHttpsEnabled(  ) = 0;
+    virtual void voicemailConfigHttpsEnable( const ::DBus::Bool& enabled ) = 0;
 
 public:
 
@@ -231,6 +278,24 @@ private:
         ::DBus::ReturnMessage reply(call);
         return reply;
     }
+    ::DBus::Message _isVoicemailServerEnabled_stub( const ::DBus::CallMessage& call )
+    {
+        ::DBus::MessageIter ri = call.reader();
+
+        ::DBus::Bool argout1 = isVoicemailServerEnabled();
+        ::DBus::ReturnMessage reply(call);
+        ::DBus::MessageIter wi = reply.writer();
+        wi << argout1;
+        return reply;
+    }
+    ::DBus::Message _voicemailServerEnable_stub( const ::DBus::CallMessage& call )
+    {
+        ::DBus::MessageIter ri = call.reader();
+
+        voicemailServerEnable();
+        ::DBus::ReturnMessage reply(call);
+        return reply;
+    }
     ::DBus::Message _getVoicemailConfigAddress_stub( const ::DBus::CallMessage& call )
     {
         ::DBus::MessageIter ri = call.reader();
@@ -239,6 +304,15 @@ private:
         ::DBus::ReturnMessage reply(call);
         ::DBus::MessageIter wi = reply.writer();
         wi << argout1;
+        return reply;
+    }
+    ::DBus::Message _setVoicemailConfigAddress_stub( const ::DBus::CallMessage& call )
+    {
+        ::DBus::MessageIter ri = call.reader();
+
+        ::DBus::String argin1; ri >> argin1;
+        setVoicemailConfigAddress(argin1);
+        ::DBus::ReturnMessage reply(call);
         return reply;
     }
     ::DBus::Message _getVoicemailConfigPath_stub( const ::DBus::CallMessage& call )
@@ -251,6 +325,15 @@ private:
         wi << argout1;
         return reply;
     }
+    ::DBus::Message _setVoicemailConfigPath_stub( const ::DBus::CallMessage& call )
+    {
+        ::DBus::MessageIter ri = call.reader();
+
+        ::DBus::String argin1; ri >> argin1;
+        setVoicemailConfigPath(argin1);
+        ::DBus::ReturnMessage reply(call);
+        return reply;
+    }
     ::DBus::Message _getVoicemailConfigPort_stub( const ::DBus::CallMessage& call )
     {
         ::DBus::MessageIter ri = call.reader();
@@ -261,6 +344,15 @@ private:
         wi << argout1;
         return reply;
     }
+    ::DBus::Message _setVoicemailConfigPort_stub( const ::DBus::CallMessage& call )
+    {
+        ::DBus::MessageIter ri = call.reader();
+
+        ::DBus::Int32 argin1; ri >> argin1;
+        setVoicemailConfigPort(argin1);
+        ::DBus::ReturnMessage reply(call);
+        return reply;
+    }
     ::DBus::Message _isVoicemailConfigHttpsEnabled_stub( const ::DBus::CallMessage& call )
     {
         ::DBus::MessageIter ri = call.reader();
@@ -269,6 +361,15 @@ private:
         ::DBus::ReturnMessage reply(call);
         ::DBus::MessageIter wi = reply.writer();
         wi << argout1;
+        return reply;
+    }
+    ::DBus::Message _voicemailConfigHttpsEnable_stub( const ::DBus::CallMessage& call )
+    {
+        ::DBus::MessageIter ri = call.reader();
+
+        ::DBus::Bool argin1; ri >> argin1;
+        voicemailConfigHttpsEnable(argin1);
+        ::DBus::ReturnMessage reply(call);
         return reply;
     }
 };

@@ -278,6 +278,81 @@ static
 inline
 #endif
 gboolean
+org_sflphone_SFLphone_VoicemailManager_is_voicemail_server_enabled (DBusGProxy *proxy, gboolean* OUT_enabled, GError **error)
+
+{
+  return dbus_g_proxy_call (proxy, "isVoicemailServerEnabled", error, G_TYPE_INVALID, G_TYPE_BOOLEAN, OUT_enabled, G_TYPE_INVALID);
+}
+
+typedef void (*org_sflphone_SFLphone_VoicemailManager_is_voicemail_server_enabled_reply) (DBusGProxy *proxy, gboolean OUT_enabled, GError *error, gpointer userdata);
+
+static void
+org_sflphone_SFLphone_VoicemailManager_is_voicemail_server_enabled_async_callback (DBusGProxy *proxy, DBusGProxyCall *call, void *user_data)
+{
+  DBusGAsyncData *data = (DBusGAsyncData*) user_data;
+  GError *error = NULL;
+  gboolean OUT_enabled;
+  dbus_g_proxy_end_call (proxy, call, &error, G_TYPE_BOOLEAN, &OUT_enabled, G_TYPE_INVALID);
+  (*(org_sflphone_SFLphone_VoicemailManager_is_voicemail_server_enabled_reply)data->cb) (proxy, OUT_enabled, error, data->userdata);
+  return;
+}
+
+static
+#ifdef G_HAVE_INLINE
+inline
+#endif
+DBusGProxyCall*
+org_sflphone_SFLphone_VoicemailManager_is_voicemail_server_enabled_async (DBusGProxy *proxy, org_sflphone_SFLphone_VoicemailManager_is_voicemail_server_enabled_reply callback, gpointer userdata)
+
+{
+  DBusGAsyncData *stuff;
+  stuff = g_new (DBusGAsyncData, 1);
+  stuff->cb = G_CALLBACK (callback);
+  stuff->userdata = userdata;
+  return dbus_g_proxy_begin_call (proxy, "isVoicemailServerEnabled", org_sflphone_SFLphone_VoicemailManager_is_voicemail_server_enabled_async_callback, stuff, g_free, G_TYPE_INVALID);
+}
+static
+#ifdef G_HAVE_INLINE
+inline
+#endif
+gboolean
+org_sflphone_SFLphone_VoicemailManager_voicemail_server_enable (DBusGProxy *proxy, GError **error)
+
+{
+  return dbus_g_proxy_call (proxy, "voicemailServerEnable", error, G_TYPE_INVALID, G_TYPE_INVALID);
+}
+
+typedef void (*org_sflphone_SFLphone_VoicemailManager_voicemail_server_enable_reply) (DBusGProxy *proxy, GError *error, gpointer userdata);
+
+static void
+org_sflphone_SFLphone_VoicemailManager_voicemail_server_enable_async_callback (DBusGProxy *proxy, DBusGProxyCall *call, void *user_data)
+{
+  DBusGAsyncData *data = (DBusGAsyncData*) user_data;
+  GError *error = NULL;
+  dbus_g_proxy_end_call (proxy, call, &error, G_TYPE_INVALID);
+  (*(org_sflphone_SFLphone_VoicemailManager_voicemail_server_enable_reply)data->cb) (proxy, error, data->userdata);
+  return;
+}
+
+static
+#ifdef G_HAVE_INLINE
+inline
+#endif
+DBusGProxyCall*
+org_sflphone_SFLphone_VoicemailManager_voicemail_server_enable_async (DBusGProxy *proxy, org_sflphone_SFLphone_VoicemailManager_voicemail_server_enable_reply callback, gpointer userdata)
+
+{
+  DBusGAsyncData *stuff;
+  stuff = g_new (DBusGAsyncData, 1);
+  stuff->cb = G_CALLBACK (callback);
+  stuff->userdata = userdata;
+  return dbus_g_proxy_begin_call (proxy, "voicemailServerEnable", org_sflphone_SFLphone_VoicemailManager_voicemail_server_enable_async_callback, stuff, g_free, G_TYPE_INVALID);
+}
+static
+#ifdef G_HAVE_INLINE
+inline
+#endif
+gboolean
 org_sflphone_SFLphone_VoicemailManager_get_voicemail_config_address (DBusGProxy *proxy, char ** OUT_address, GError **error)
 
 {
@@ -310,6 +385,43 @@ org_sflphone_SFLphone_VoicemailManager_get_voicemail_config_address_async (DBusG
   stuff->cb = G_CALLBACK (callback);
   stuff->userdata = userdata;
   return dbus_g_proxy_begin_call (proxy, "getVoicemailConfigAddress", org_sflphone_SFLphone_VoicemailManager_get_voicemail_config_address_async_callback, stuff, g_free, G_TYPE_INVALID);
+}
+static
+#ifdef G_HAVE_INLINE
+inline
+#endif
+gboolean
+org_sflphone_SFLphone_VoicemailManager_set_voicemail_config_address (DBusGProxy *proxy, const char * IN_address, GError **error)
+
+{
+  return dbus_g_proxy_call (proxy, "setVoicemailConfigAddress", error, G_TYPE_STRING, IN_address, G_TYPE_INVALID, G_TYPE_INVALID);
+}
+
+typedef void (*org_sflphone_SFLphone_VoicemailManager_set_voicemail_config_address_reply) (DBusGProxy *proxy, GError *error, gpointer userdata);
+
+static void
+org_sflphone_SFLphone_VoicemailManager_set_voicemail_config_address_async_callback (DBusGProxy *proxy, DBusGProxyCall *call, void *user_data)
+{
+  DBusGAsyncData *data = (DBusGAsyncData*) user_data;
+  GError *error = NULL;
+  dbus_g_proxy_end_call (proxy, call, &error, G_TYPE_INVALID);
+  (*(org_sflphone_SFLphone_VoicemailManager_set_voicemail_config_address_reply)data->cb) (proxy, error, data->userdata);
+  return;
+}
+
+static
+#ifdef G_HAVE_INLINE
+inline
+#endif
+DBusGProxyCall*
+org_sflphone_SFLphone_VoicemailManager_set_voicemail_config_address_async (DBusGProxy *proxy, const char * IN_address, org_sflphone_SFLphone_VoicemailManager_set_voicemail_config_address_reply callback, gpointer userdata)
+
+{
+  DBusGAsyncData *stuff;
+  stuff = g_new (DBusGAsyncData, 1);
+  stuff->cb = G_CALLBACK (callback);
+  stuff->userdata = userdata;
+  return dbus_g_proxy_begin_call (proxy, "setVoicemailConfigAddress", org_sflphone_SFLphone_VoicemailManager_set_voicemail_config_address_async_callback, stuff, g_free, G_TYPE_STRING, IN_address, G_TYPE_INVALID);
 }
 static
 #ifdef G_HAVE_INLINE
@@ -354,6 +466,43 @@ static
 inline
 #endif
 gboolean
+org_sflphone_SFLphone_VoicemailManager_set_voicemail_config_path (DBusGProxy *proxy, const char * IN_path, GError **error)
+
+{
+  return dbus_g_proxy_call (proxy, "setVoicemailConfigPath", error, G_TYPE_STRING, IN_path, G_TYPE_INVALID, G_TYPE_INVALID);
+}
+
+typedef void (*org_sflphone_SFLphone_VoicemailManager_set_voicemail_config_path_reply) (DBusGProxy *proxy, GError *error, gpointer userdata);
+
+static void
+org_sflphone_SFLphone_VoicemailManager_set_voicemail_config_path_async_callback (DBusGProxy *proxy, DBusGProxyCall *call, void *user_data)
+{
+  DBusGAsyncData *data = (DBusGAsyncData*) user_data;
+  GError *error = NULL;
+  dbus_g_proxy_end_call (proxy, call, &error, G_TYPE_INVALID);
+  (*(org_sflphone_SFLphone_VoicemailManager_set_voicemail_config_path_reply)data->cb) (proxy, error, data->userdata);
+  return;
+}
+
+static
+#ifdef G_HAVE_INLINE
+inline
+#endif
+DBusGProxyCall*
+org_sflphone_SFLphone_VoicemailManager_set_voicemail_config_path_async (DBusGProxy *proxy, const char * IN_path, org_sflphone_SFLphone_VoicemailManager_set_voicemail_config_path_reply callback, gpointer userdata)
+
+{
+  DBusGAsyncData *stuff;
+  stuff = g_new (DBusGAsyncData, 1);
+  stuff->cb = G_CALLBACK (callback);
+  stuff->userdata = userdata;
+  return dbus_g_proxy_begin_call (proxy, "setVoicemailConfigPath", org_sflphone_SFLphone_VoicemailManager_set_voicemail_config_path_async_callback, stuff, g_free, G_TYPE_STRING, IN_path, G_TYPE_INVALID);
+}
+static
+#ifdef G_HAVE_INLINE
+inline
+#endif
+gboolean
 org_sflphone_SFLphone_VoicemailManager_get_voicemail_config_port (DBusGProxy *proxy, gint* OUT_port, GError **error)
 
 {
@@ -392,22 +541,59 @@ static
 inline
 #endif
 gboolean
-org_sflphone_SFLphone_VoicemailManager_is_voicemail_config_https_enabled (DBusGProxy *proxy, gboolean* OUT_https, GError **error)
+org_sflphone_SFLphone_VoicemailManager_set_voicemail_config_port (DBusGProxy *proxy, const gint IN_port, GError **error)
 
 {
-  return dbus_g_proxy_call (proxy, "isVoicemailConfigHttpsEnabled", error, G_TYPE_INVALID, G_TYPE_BOOLEAN, OUT_https, G_TYPE_INVALID);
+  return dbus_g_proxy_call (proxy, "setVoicemailConfigPort", error, G_TYPE_INT, IN_port, G_TYPE_INVALID, G_TYPE_INVALID);
 }
 
-typedef void (*org_sflphone_SFLphone_VoicemailManager_is_voicemail_config_https_enabled_reply) (DBusGProxy *proxy, gboolean OUT_https, GError *error, gpointer userdata);
+typedef void (*org_sflphone_SFLphone_VoicemailManager_set_voicemail_config_port_reply) (DBusGProxy *proxy, GError *error, gpointer userdata);
+
+static void
+org_sflphone_SFLphone_VoicemailManager_set_voicemail_config_port_async_callback (DBusGProxy *proxy, DBusGProxyCall *call, void *user_data)
+{
+  DBusGAsyncData *data = (DBusGAsyncData*) user_data;
+  GError *error = NULL;
+  dbus_g_proxy_end_call (proxy, call, &error, G_TYPE_INVALID);
+  (*(org_sflphone_SFLphone_VoicemailManager_set_voicemail_config_port_reply)data->cb) (proxy, error, data->userdata);
+  return;
+}
+
+static
+#ifdef G_HAVE_INLINE
+inline
+#endif
+DBusGProxyCall*
+org_sflphone_SFLphone_VoicemailManager_set_voicemail_config_port_async (DBusGProxy *proxy, const gint IN_port, org_sflphone_SFLphone_VoicemailManager_set_voicemail_config_port_reply callback, gpointer userdata)
+
+{
+  DBusGAsyncData *stuff;
+  stuff = g_new (DBusGAsyncData, 1);
+  stuff->cb = G_CALLBACK (callback);
+  stuff->userdata = userdata;
+  return dbus_g_proxy_begin_call (proxy, "setVoicemailConfigPort", org_sflphone_SFLphone_VoicemailManager_set_voicemail_config_port_async_callback, stuff, g_free, G_TYPE_INT, IN_port, G_TYPE_INVALID);
+}
+static
+#ifdef G_HAVE_INLINE
+inline
+#endif
+gboolean
+org_sflphone_SFLphone_VoicemailManager_is_voicemail_config_https_enabled (DBusGProxy *proxy, gboolean* OUT_enabled, GError **error)
+
+{
+  return dbus_g_proxy_call (proxy, "isVoicemailConfigHttpsEnabled", error, G_TYPE_INVALID, G_TYPE_BOOLEAN, OUT_enabled, G_TYPE_INVALID);
+}
+
+typedef void (*org_sflphone_SFLphone_VoicemailManager_is_voicemail_config_https_enabled_reply) (DBusGProxy *proxy, gboolean OUT_enabled, GError *error, gpointer userdata);
 
 static void
 org_sflphone_SFLphone_VoicemailManager_is_voicemail_config_https_enabled_async_callback (DBusGProxy *proxy, DBusGProxyCall *call, void *user_data)
 {
   DBusGAsyncData *data = (DBusGAsyncData*) user_data;
   GError *error = NULL;
-  gboolean OUT_https;
-  dbus_g_proxy_end_call (proxy, call, &error, G_TYPE_BOOLEAN, &OUT_https, G_TYPE_INVALID);
-  (*(org_sflphone_SFLphone_VoicemailManager_is_voicemail_config_https_enabled_reply)data->cb) (proxy, OUT_https, error, data->userdata);
+  gboolean OUT_enabled;
+  dbus_g_proxy_end_call (proxy, call, &error, G_TYPE_BOOLEAN, &OUT_enabled, G_TYPE_INVALID);
+  (*(org_sflphone_SFLphone_VoicemailManager_is_voicemail_config_https_enabled_reply)data->cb) (proxy, OUT_enabled, error, data->userdata);
   return;
 }
 
@@ -424,6 +610,43 @@ org_sflphone_SFLphone_VoicemailManager_is_voicemail_config_https_enabled_async (
   stuff->cb = G_CALLBACK (callback);
   stuff->userdata = userdata;
   return dbus_g_proxy_begin_call (proxy, "isVoicemailConfigHttpsEnabled", org_sflphone_SFLphone_VoicemailManager_is_voicemail_config_https_enabled_async_callback, stuff, g_free, G_TYPE_INVALID);
+}
+static
+#ifdef G_HAVE_INLINE
+inline
+#endif
+gboolean
+org_sflphone_SFLphone_VoicemailManager_voicemail_config_https_enable (DBusGProxy *proxy, const gboolean IN_enabled, GError **error)
+
+{
+  return dbus_g_proxy_call (proxy, "voicemailConfigHttpsEnable", error, G_TYPE_BOOLEAN, IN_enabled, G_TYPE_INVALID, G_TYPE_INVALID);
+}
+
+typedef void (*org_sflphone_SFLphone_VoicemailManager_voicemail_config_https_enable_reply) (DBusGProxy *proxy, GError *error, gpointer userdata);
+
+static void
+org_sflphone_SFLphone_VoicemailManager_voicemail_config_https_enable_async_callback (DBusGProxy *proxy, DBusGProxyCall *call, void *user_data)
+{
+  DBusGAsyncData *data = (DBusGAsyncData*) user_data;
+  GError *error = NULL;
+  dbus_g_proxy_end_call (proxy, call, &error, G_TYPE_INVALID);
+  (*(org_sflphone_SFLphone_VoicemailManager_voicemail_config_https_enable_reply)data->cb) (proxy, error, data->userdata);
+  return;
+}
+
+static
+#ifdef G_HAVE_INLINE
+inline
+#endif
+DBusGProxyCall*
+org_sflphone_SFLphone_VoicemailManager_voicemail_config_https_enable_async (DBusGProxy *proxy, const gboolean IN_enabled, org_sflphone_SFLphone_VoicemailManager_voicemail_config_https_enable_reply callback, gpointer userdata)
+
+{
+  DBusGAsyncData *stuff;
+  stuff = g_new (DBusGAsyncData, 1);
+  stuff->cb = G_CALLBACK (callback);
+  stuff->userdata = userdata;
+  return dbus_g_proxy_begin_call (proxy, "voicemailConfigHttpsEnable", org_sflphone_SFLphone_VoicemailManager_voicemail_config_https_enable_async_callback, stuff, g_free, G_TYPE_BOOLEAN, IN_enabled, G_TYPE_INVALID);
 }
 #endif /* defined DBUS_GLIB_CLIENT_WRAPPERS_org_sflphone_SFLphone_VoicemailManager */
 

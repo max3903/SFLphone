@@ -809,13 +809,21 @@ class ManagerImpl {
 	
 	void stopVoicemail();
 	
+	// VOICEMAIL CONFIGURATION
+	::DBus::Bool   isVoicemailServerEnabled();
+	void           voicemailServerEnable();
+
 	::DBus::String getVoicemailConfigAddress();
+	void           setVoicemailConfigAddress( const ::DBus::String& );
 	
 	::DBus::String getVoicemailConfigPath();
+	void           setVoicemailConfigPath( const ::DBus::String& );
 	
-	int getVoicemailConfigPort();
+	::DBus::Int32  getVoicemailConfigPort();
+	void           setVoicemailConfigPort( const ::DBus::Int32& );
 	
-	bool isVoicemailConfigHttpsEnabled();
+	::DBus::Bool   isVoicemailConfigHttpsEnabled();
+	void           voicemailConfigHttpsEnable( const ::DBus::Bool& );
 //#endif
 
   private:

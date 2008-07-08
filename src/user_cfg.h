@@ -91,4 +91,13 @@
 #define CONFIG_ZEROCONF_DEFAULT_STR "0"			/** Default Zero configuration networking module value */
 #endif
 
+//#ifdef USE_VOICEMAIL
+#define VOICEMAIL_CONFIG      "Voicemail"
+#define VOICEMAIL_ENABLED     "Voicemail.enable"
+#define VOICEMAIL_ADDRESS     "Voicemail.address"
+#define VOICEMAIL_PATH        "Voicemail.path"
+#define VOICEMAIL_PORT        "Voicemail.port"
+#define VOICEMAIL_USES_HTTPS  "Voicemail.usesHttps"
+//#endif
+
 #endif // __USER_CFG_H__

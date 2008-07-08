@@ -437,7 +437,39 @@ void dbus_play_voicemail( gchar * folder , gchar * name );
  */
 void dbus_stop_voicemail();
 
+//-------------------------
+// VOICEMAIL CONFIGURATION
+//-------------------------
 
+/**
+ * Voicemail - (des)activate communication with voicemail Agent
+ */
+gboolean dbus_is_voicemail_server_enabled();
+void     dbus_voicemail_server_enable();
+
+/**
+ * Voicemail - get & set the voicemail server address
+ */
+gchar * dbus_get_voicemail_config_address();
+void    dbus_set_voicemail_config_address( gchar * );
+
+/**
+ * Voicemail - get & set the voicemail server path to the index.php file
+ */
+gchar * dbus_get_voicemail_config_path();
+void    dbus_set_voicemail_config_path( gchar * );
+
+/**
+ * Voicemail - get & set the voicemail server port (HTTP = 80, HTTPS = 443)
+ */
+gint dbus_get_voicemail_config_port();
+void dbus_set_voicemail_config_port( gint );
+
+/**
+ * Voicemail - get & set the use of HTTPS protocol
+ */
+gboolean dbus_is_voicemail_config_https_enabled();
+void     dbus_voicemail_config_https_enable( gboolean );
 #endif // USE_VOICEMAIL
 
 #endif

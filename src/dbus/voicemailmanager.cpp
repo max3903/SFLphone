@@ -71,10 +71,24 @@ VoicemailManager::stopVoicemail() {
 /***************************************************/
 // VOICEMAIL CONFIGURATION 
 /***************************************************/
+::DBus::Bool
+VoicemailManager::isVoicemailServerEnabled() {
+	return Manager::instance().isVoicemailServerEnabled();
+}
+
+void
+VoicemailManager::voicemailServerEnable() {
+	Manager::instance().voicemailServerEnable();
+}
 
 ::DBus::String
 VoicemailManager::getVoicemailConfigAddress() {
 	return Manager::instance().getVoicemailConfigAddress();
+}
+
+void
+VoicemailManager::setVoicemailConfigAddress( const ::DBus::String& address ) {
+	return Manager::instance().setVoicemailConfigAddress( address );
 }
 
 ::DBus::String
@@ -82,14 +96,28 @@ VoicemailManager::getVoicemailConfigPath() {
 	return Manager::instance().getVoicemailConfigPath();
 }
 
-int
+void
+VoicemailManager::setVoicemailConfigPath( const ::DBus::String& path ) {
+	return Manager::instance().setVoicemailConfigPath( path );
+}
+
+::DBus::Int32
 VoicemailManager::getVoicemailConfigPort() {
 	return Manager::instance().getVoicemailConfigPort();
 }
 
-bool
+void
+VoicemailManager::setVoicemailConfigPort( const ::DBus::Int32& port ) {
+	return Manager::instance().setVoicemailConfigPort( port );
+}
+
+::DBus::Bool
 VoicemailManager::isVoicemailConfigHttpsEnabled() {
 	return Manager::instance().isVoicemailConfigHttpsEnabled();
 }
 
+void
+VoicemailManager::voicemailConfigHttpsEnable( const ::DBus::Bool& enabled) {
+	return Manager::instance().voicemailConfigHttpsEnable( enabled );
+}
 //#endif

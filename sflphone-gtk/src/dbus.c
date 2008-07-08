@@ -1569,6 +1569,42 @@ dbus_stop_voicemail()
 		g_print("Called dbus_stop_voicemail\n");
 }
 
+/********************
+ * VOICEMAIL CONFIG *
+ ********************/
+gboolean
+dbus_is_voicemail_server_enabled()
+{
+	GError* error = NULL;
+	gboolean enabled;
+	org_sflphone_SFLphone_VoicemailManager_is_voicemail_server_enabled(
+			voicemailManagerProxy,
+			&enabled,
+			&error);
+	if(error)
+	{
+		g_error_free(error);
+	}
+	else
+		g_print("Called dbus_is_voicemail_server_enabled\n");
+	return enabled;
+}
+
+void
+dbus_voicemail_server_enable()
+{
+	GError* error = NULL;
+	org_sflphone_SFLphone_VoicemailManager_voicemail_server_enable(
+			voicemailManagerProxy,
+			&error);
+	if(error)
+	{
+		g_error_free(error);
+	}
+	else
+		g_print("Called dbus_voicemail_server_enable\n");
+}
+
 gchar *
 dbus_get_voicemail_config_address()
 {
@@ -1585,6 +1621,22 @@ dbus_get_voicemail_config_address()
 	else
 		g_print("Called dbus_get_voicemail_config_address\n");
 	return address;
+}
+
+void
+dbus_set_voicemail_config_address( gchar * address )
+{
+	GError* error = NULL;
+	org_sflphone_SFLphone_VoicemailManager_set_voicemail_config_address(
+			voicemailManagerProxy,
+			address,
+			&error);
+	if(error)
+	{
+		g_error_free(error);
+	}
+	else
+		g_print("Called dbus_set_voicemail_config_address\n");
 }
 
 gchar *
@@ -1605,6 +1657,22 @@ dbus_get_voicemail_config_path()
 	return path;
 }
 
+void
+dbus_set_voicemail_config_path( gchar * path)
+{
+	GError* error = NULL;
+	org_sflphone_SFLphone_VoicemailManager_set_voicemail_config_path(
+			voicemailManagerProxy,
+			path,
+			&error);
+	if(error)
+	{
+		g_error_free(error);
+	}
+	else
+		g_print("Called dbus_get_voicemail_config_path\n");
+}
+
 gint
 dbus_get_voicemail_config_port()
 {
@@ -1623,14 +1691,30 @@ dbus_get_voicemail_config_port()
 	return port;
 }
 
-/*gbool
+void
+dbus_set_voicemail_config_port( gint port )
+{
+	GError* error = NULL;
+	org_sflphone_SFLphone_VoicemailManager_set_voicemail_config_port(
+			voicemailManagerProxy,
+			port,
+			&error);
+	if(error)
+	{
+		g_error_free(error);
+	}
+	else
+		g_print("Called dbus_set_voicemail_config_port\n");
+}
+
+gboolean
 dbus_is_voicemail_config_https_enabled()
 {
 	GError* error = NULL;
-	bool https = false;
+	gboolean enabled = FALSE;
 	org_sflphone_SFLphone_VoicemailManager_is_voicemail_config_https_enabled(
 			voicemailManagerProxy,
-			&https,
+			&enabled,
 			&error);
 	if(error)
 	{
@@ -1638,6 +1722,22 @@ dbus_is_voicemail_config_https_enabled()
 	}
 	else
 		g_print("Called dbus_is_voicemail_config_https_enabled\n");
-	return https;
-}*/
+	return enabled;
+}
+
+void
+dbus_voicemail_config_https_enable( gboolean enabled )
+{
+	GError* error = NULL;
+	org_sflphone_SFLphone_VoicemailManager_voicemail_config_https_enable(
+			voicemailManagerProxy,
+			enabled,
+			&error);
+	if(error)
+	{
+		g_error_free(error);
+	}
+	else
+		g_print("Called dbus_voicemail_config_https_enable\n");
+}
 #endif

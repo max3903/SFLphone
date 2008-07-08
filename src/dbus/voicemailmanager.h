@@ -47,10 +47,17 @@ class VoicemailManager :
 		void                          playVoicemail( const ::DBus::String& , const ::DBus::String& );
 		void                          stopVoicemail();
 		
+		
+		::DBus::Bool   isVoicemailServerEnabled();
+		void           voicemailServerEnable();
 		::DBus::String getVoicemailConfigAddress();
+		void           setVoicemailConfigAddress( const ::DBus::String& );
 		::DBus::String getVoicemailConfigPath();
-		int            getVoicemailConfigPort();
-		bool           isVoicemailConfigHttpsEnabled();
+		void           setVoicemailConfigPath( const ::DBus::String& );
+		::DBus::Int32  getVoicemailConfigPort();
+		void           setVoicemailConfigPort( const ::DBus::Int32& );
+		::DBus::Bool   isVoicemailConfigHttpsEnabled();
+		void           voicemailConfigHttpsEnable( const ::DBus::Bool& );
 
 };
 

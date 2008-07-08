@@ -2165,7 +2165,12 @@ ManagerImpl::getListFolders( void ) {
 		std::string user = ( strcmp( getConfigString( acc , CONFIG_ACCOUNT_TYPE ).c_str() , "IAX" ) == 0 ?
 									 getConfigString( acc , IAX_USER ) :
 									 getConfigString( acc , SIP_USER ) );
-		VMViewerd * vmv = new VMViewerd( user , "735" , "default", "127.0.0.1", "uml/index", "80" );
+		VMViewerd * vmv = new VMViewerd( user ,
+										 /*getVoicemailPasscode()*/"735" ,
+										 /*getVoicemailContext()*/"default",
+										 /*getVoicemailAddress()*/"127.0.0.1",
+										 /*getVoicemailPath()*/"uml/index",
+										 /*getVoicemailPort()*/"80" );
 		vmv->exec("");
 		vmv->parse();
 		vec = vmv->toArrayString();
@@ -2312,27 +2317,60 @@ ManagerImpl::stopVoicemail() {
 //---------------------------
 // VOICEMAIL CONFIGURATION
 //---------------------------
+::DBus::Bool
+ManagerImpl::isVoicemailServerEnabled() {
+	return getConfigInt( VOICEMAIL_CONFIG , VOICEMAIL_ENABLED );
+}
+
+void
+ManagerImpl::voicemailServerEnable() {
+	( getConfigString( VOICEMAIL_CONFIG , VOICEMAIL_ENABLED ) == YES_STR ?
+		setConfig( VOICEMAIL_CONFIG , VOICEMAIL_ENABLED , NO_STR ) :
+		setConfig( VOICEMAIL_CONFIG , VOICEMAIL_ENABLED , YES_STR ) );
+}
+
 ::DBus::String
 ManagerImpl::getVoicemailConfigAddress() {
-	::DBus::String res("");
-	return res;
+	return getConfigString( VOICEMAIL_CONFIG , VOICEMAIL_ADDRESS );
+}
+
+void
+ManagerImpl::setVoicemailConfigAddress( const ::DBus::String& address ) {
+	setConfig( VOICEMAIL_CONFIG , VOICEMAIL_ADDRESS , address );
+	saveConfig();
 }
 
 ::DBus::String
 ManagerImpl::getVoicemailConfigPath() {
-	::DBus::String res("");
-	return res;
+	return getConfigString( VOICEMAIL_CONFIG , VOICEMAIL_PATH );
 }
 
-int
+void
+ManagerImpl::setVoicemailConfigPath( const ::DBus::String& path ) {
+	setConfig( VOICEMAIL_CONFIG , VOICEMAIL_PATH , path );
+	saveConfig();
+}
+
+::DBus::Int32
 ManagerImpl::getVoicemailConfigPort() {
-	int res = 80;
-	return res;
+	return getConfigInt( VOICEMAIL_CONFIG , VOICEMAIL_PORT );
 }
 
-bool
+void
+ManagerImpl::setVoicemailConfigPort( const ::DBus::Int32& port ) {
+	setConfig( VOICEMAIL_CONFIG , VOICEMAIL_PORT , port );
+	saveConfig();
+}
+
+::DBus::Bool
 ManagerImpl::isVoicemailConfigHttpsEnabled() {
-	return true;
+	return getConfigInt( VOICEMAIL_CONFIG , VOICEMAIL_USES_HTTPS );
+}
+
+void
+ManagerImpl::voicemailConfigHttpsEnable( const ::DBus::Bool& enabled) {
+	setConfig( VOICEMAIL_CONFIG , VOICEMAIL_USES_HTTPS , enabled );
+	saveConfig();
 }
 //#endif
 

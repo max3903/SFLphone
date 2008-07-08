@@ -554,7 +554,7 @@ create_voicemail_window( void )
 	hseparator = gtk_hseparator_new();
 	gtk_widget_show( hseparator );
 	gtk_box_pack_start( GTK_BOX( vbox ), hseparator, FALSE, FALSE, 10 );
-	gtk_widget_set_sensitive( hseparator, FALSE );
+	gtk_widget_set_sensitive( GTK_WIDGET( hseparator ) , FALSE );
 	
 	/** Hbox */
 	hbox = gtk_hbox_new( FALSE, 0 );
