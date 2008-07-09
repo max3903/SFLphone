@@ -623,7 +623,10 @@ view_volume_controls  (GtkImageMenuItem *imagemenuitem,
 static void 
 call_voicemail( GtkMenuItem *menuitem, gpointer data )
 {
-	show_voicemail_window();
+	if( dbus_is_voicemail_server_enabled() )
+		show_voicemail_window();
+	else
+		main_window_warning_message( _("Voicemail server module is not enabled.\nActivate it, in the preference section,\nto manage your voicemail box.") );
 }
 #endif
 

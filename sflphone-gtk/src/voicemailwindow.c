@@ -619,14 +619,7 @@ show_voicemail_window(void)
 	gchar **errors = (gchar **)dbus_get_list_errors();
 
 	for( i=0 ; errors[i] ; i++ ) {
-//		g_print("# error : %i\n", i);
-//		g_print("# error : %s\n", errors[i]);
-		dialog = gtk_message_dialog_new( GTK_WINDOW( VMWindow ),
-										 GTK_DIALOG_MODAL,
-										 GTK_MESSAGE_WARNING,
-										 GTK_BUTTONS_OK,
-										 errors[i] );
-		gtk_widget_show_all( dialog );
+		main_window_warning_message( errors[i] );
 	}
 	gchar **list = (gchar**)dbus_get_list_folders();
 	for( i=0 ; list[i] ; i++ ) {

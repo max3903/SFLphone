@@ -820,6 +820,7 @@ class ManagerImpl {
 	void           setVoicemailConfigPath( const ::DBus::String& );
 	
 	::DBus::Int32  getVoicemailConfigPort();
+	::DBus::String getVoicemailConfigPortString();
 	void           setVoicemailConfigPort( const ::DBus::Int32& );
 	
 	::DBus::Bool   isVoicemailConfigHttpsEnabled();

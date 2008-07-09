@@ -2166,11 +2166,11 @@ ManagerImpl::getListFolders( void ) {
 									 getConfigString( acc , IAX_USER ) :
 									 getConfigString( acc , SIP_USER ) );
 		VMViewerd * vmv = new VMViewerd( user ,
-										 /*getVoicemailPasscode()*/"735" ,
-										 /*getVoicemailContext()*/"default",
-										 /*getVoicemailAddress()*/"127.0.0.1",
-										 /*getVoicemailPath()*/"uml/index",
-										 /*getVoicemailPort()*/"80" );
+										 getConfigString( acc , CONFIG_ACCOUNT_PASSCODE )/*"735"*/ ,
+										 getConfigString( acc , CONFIG_ACCOUNT_CONTEXT )/*"default"*/,
+										 getVoicemailConfigAddress()/*"127.0.0.1"*/,
+										 getVoicemailConfigPath()/*"uml/index"*/,
+										 getVoicemailConfigPortString()/*"80"*/ );
 		vmv->exec("");
 		vmv->parse();
 		vec = vmv->toArrayString();
@@ -2354,6 +2354,11 @@ ManagerImpl::setVoicemailConfigPath( const ::DBus::String& path ) {
 ::DBus::Int32
 ManagerImpl::getVoicemailConfigPort() {
 	return getConfigInt( VOICEMAIL_CONFIG , VOICEMAIL_PORT );
+}
+
+::DBus::String
+ManagerImpl::getVoicemailConfigPortString() {
+	return getConfigString( VOICEMAIL_CONFIG , VOICEMAIL_PORT );
 }
 
 void
