@@ -27,7 +27,7 @@ GtkTreeIter getSelectedItem( void );
 gboolean    isItemSelected( void );
 gboolean    isAValidItem( void );
 gchar *     getSelectedItemName( GtkTreeIter );
-gchar *     getSelectedItemParentsName( GtkTreeIter );
+gchar *     getSelectedItemParentName( GtkTreeIter );
 
 void show_voicemail_window( void );
 void create_voicemail_window( void );
