@@ -119,20 +119,4 @@ void
 VoicemailManager::voicemailConfigHttpsEnable( const ::DBus::Bool& enabled) {
 	return Manager::instance().voicemailConfigHttpsEnable( enabled );
 }
-
-/***************************************************/
-// VOICEMAIL SIGNALS
-/***************************************************/
-void 
-VoicemailManager::voicemailPlaying(void)
-{
-//	_debug("voicemailPlaying\n");
-//	_dbus->getVoicemailManager()->voicemail_playing();
-}
-
-void
-VoicemailManager::voicemailStopped(void)
-{
-	
-}
 //#endif

@@ -197,16 +197,21 @@ sflphone_init()
 	int i;
 	current_calls = calltab_init();
 	history = calltab_init();
-	if(SHOW_SEARCHBAR)  histfilter = create_filter(GTK_TREE_MODEL(history->store));
+#ifdef USE_VOICEMAIL
+//	voicemailbox = calltab_init();
+#endif
 	account_list_init ();
-        codec_list_init();
+    codec_list_init();
 	if(!dbus_connect ()){
-	
+		if(SHOW_SEARCHBAR)
+			histfilter = create_filter(GTK_TREE_MODEL(history->store));
 		main_window_error_message(_("Unable to connect to the SFLphone server.\nMake sure the daemon is running."));
 		return FALSE;
 	}
 	else 
 	{
+		if(SHOW_SEARCHBAR)
+			histfilter = create_filter(GTK_TREE_MODEL(history->store));
 		dbus_register(getpid(), "Gtk+ Client");
 		sflphone_fill_account_list(FALSE);
 		sflphone_fill_codec_list();
