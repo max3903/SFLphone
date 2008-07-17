@@ -29,13 +29,13 @@ IAXHEADERS =
 endif
 
 #if USE_VOICEMAIL
-VOICEMAILDIR = voicemail
-VOICEMAILLIB = voicemail/libvoicemail.la
+VOICEMAILDIR    = voicemail
+VOICEMAILLIB    = voicemail/libvoicemail.la
 #VOICEMAILFLAGS = -DUSE_VOICEMAIL
 #else
-#VOICEMAILDIR = voicemail
-#VOICEMAILLIB = voicemail/libvoicemail.la
-#VOICEMAILFLAGS = -DUSE_VOICEMAIL
+#VOICEMAILDIR   =
+#VOICEMAILLIB   =
+#VOICEMAILFLAGS =
 #endif
 
 ALSAFLAG= -lasound

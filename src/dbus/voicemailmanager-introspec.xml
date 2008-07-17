@@ -31,7 +31,11 @@
       <arg type="s" name="voicemailName" direction="in"/>
     </method>
     
+    <signal name="voicemailPlaying"/>
+    
     <method name="stopVoicemail"/>
+    
+    <signal name="voicemailStopped"/>
     
     <!-- VOICEMAIL CONFIGURATION -->
     <method name="isVoicemailServerEnabled">

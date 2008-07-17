@@ -45,13 +45,11 @@ void Voicemail::setCallerchan(string chan) {
 	_callerchan = chan;
 }
 
-string Voicemail::getCalleridString() {
-	ostringstream oss;
-	oss << _callerid;
-	return oss.str();
+string Voicemail::getCallerid() {
+	return _callerid;
 }
 
-void Voicemail::setCallerid(int cal) {
+void Voicemail::setCallerid(string cal) {
 	_callerid = cal;
 }
 
@@ -87,6 +85,10 @@ void Voicemail::setName(string nam) {
 
 string Voicemail::getName() {
 	return _name;
+}
+
+string Voicemail::getOrigdate() {
+	return _origdate;
 }
 
 void Voicemail::setOrigdate(string dat) {
@@ -141,42 +143,48 @@ VoicemailSound * Voicemail::getVMSoundByFormat(string ext) {
 }
 
 string Voicemail::toShortString() {
-	string res( _name );
-	res.append( " - " );
+	string res;
+	res.append("From <b>");
+	res.append( getCallerid() );
+	res.append("</b>\non <i>");
+	res.append( getOrigdate() );
+	res.append("</i>|");
+	res.append( _name );
+/*	res.append( " - " );
 	res.append( getIdString() );
 	res.append( " - " );
-	res.append( getDurationString() );
-	cout << res << endl;
+	res.append( getDurationString() );*/
+//	cout << res << endl;
 	return res;
 }
 
 string Voicemail::toString() {
-	string res("'-name         : " );
+	string res("name         : " );
 	res.append( _name );
-	res.append("\n'-id           : " );
+	res.append("\nid           : " );
 	res.append( getIdString() );
-	res.append("\n'-callerchan   : " );
+	res.append("\ncallerchan   : " );
 	res.append( _callerchan );
-	res.append("\n'-callerid     : " );
-	res.append( getCalleridString() );
-	res.append("\n'-category     : " );
-	res.append( _category );
-	res.append("\n'-context      : " );
-	res.append( _context );
-	res.append("\n'-duration     : " );
+	res.append("\ncallerid     : " );
+	res.append( getCallerid() );
+//	res.append("\ncategory     : " );
+//	res.append( _category );
+//	res.append("\ncontext      : " );
+//	res.append( _context );
+	res.append("\nduration     : " );
 	res.append( getDurationString() );
-	res.append("\n'-exten        : " );
+	res.append("\nexten        : " );
 	res.append( _exten );
-	res.append("\n'-macrocontext : " );
-	res.append( _macrocontext );
-	res.append("\n'-origdate     : " );
+//	res.append("\nmacrocontext : " );
+//	res.append( _macrocontext );
+	res.append("\norigdate     : " );
 	res.append( _origdate );
-	res.append("\n'-origmailbox  : " );
-	res.append( getOrigmailboxString() );
-	res.append("\n'-origtime     : " );
-	res.append( getOrigtimeString() );
-	res.append("\n'-priority     : " );
-	res.append( getPriorityString() );
+//	res.append("\norigmailbox  : " );
+//	res.append( getOrigmailboxString() );
+//	res.append("\norigtime     : " );
+//	res.append( getOrigtimeString() );
+//	res.append("\npriority     : " );
+//	res.append( getPriorityString() );
 //	cout << "'-[ VOICEMAIL ]" << endl;
 //	cout << res << endl;
 	return res;

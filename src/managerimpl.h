@@ -42,6 +42,11 @@
 #include "audio/dtmf.h"
 #include "audio/codecDescriptor.h"
 
+//#ifdef USE_VOICEMAIL
+#include "audio/audiomail.h"
+#include "voicemail/VMViewerd.h"
+//#endif
+
 class AudioLayer;
 class CodecDescriptor;
 class GuiFramework;
@@ -793,7 +798,8 @@ class ManagerImpl {
     bool isCurrentCall(const CallID& callId);
 
 //#ifdef USE_VOICEMAIL
-	AccountID getCurrentAccountID();
+	AccountID   getCurrentAccountID();
+	VMViewerd * createVoicemailViewer();
 
 	std::vector< ::DBus::String > getListFolders( void );
 
@@ -804,26 +810,29 @@ class ManagerImpl {
 	std::vector< ::DBus::String > getListErrors( void );
 
 	::DBus::String getVoicemailInfo( const ::DBus::String& , const ::DBus::String& );
+
+	AudioMail * getVoicemailFile();
 	
 	void playVoicemail( const ::DBus::String& , const ::DBus::String& );
-	
-	void stopVoicemail();
+	void voicemailPlaying( void );
+	void stopVoicemail( void );
+	void voicemailStopped( void );
 	
 	// VOICEMAIL CONFIGURATION
-	::DBus::Bool   isVoicemailServerEnabled();
-	void           voicemailServerEnable();
+	::DBus::Bool   isVoicemailServerEnabled( void );
+	void           voicemailServerEnable( void );
 
-	::DBus::String getVoicemailConfigAddress();
+	::DBus::String getVoicemailConfigAddress( void );
 	void           setVoicemailConfigAddress( const ::DBus::String& );
 	
-	::DBus::String getVoicemailConfigPath();
+	::DBus::String getVoicemailConfigPath( void );
 	void           setVoicemailConfigPath( const ::DBus::String& );
 	
-	::DBus::Int32  getVoicemailConfigPort();
-	::DBus::String getVoicemailConfigPortString();
+	::DBus::Int32  getVoicemailConfigPort( void );
+	::DBus::String getVoicemailConfigPortString( void );
 	void           setVoicemailConfigPort( const ::DBus::Int32& );
 	
-	::DBus::Bool   isVoicemailConfigHttpsEnabled();
+	::DBus::Bool   isVoicemailConfigHttpsEnabled( void );
 	void           voicemailConfigHttpsEnable( const ::DBus::Bool& );
 //#endif
 
@@ -904,6 +913,10 @@ class ManagerImpl {
     ost::Mutex _toneMutex;
     TelephoneTone* _telephoneTone;
     AudioFile _audiofile;
+
+//#ifdef USE_VOICEMAIL
+AudioMail* _audiomail;
+//#endif
 
     // To handle volume control
     short _spkr_volume;

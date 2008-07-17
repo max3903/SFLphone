@@ -2139,7 +2139,7 @@ ManagerImpl::getAccountLink(const AccountID& accountID)
  *********************/
 AccountID
 ManagerImpl::getCurrentAccountID() {
-	std::cout << "getCurrentAccount()" << std::endl;
+//	std::cout << "getCurrentAccount()" << std::endl;
 	AccountID acc;
 	AccountMap::iterator it = _accountMap.begin();
 	while( it != _accountMap.end() ) {
@@ -2155,22 +2155,28 @@ ManagerImpl::getCurrentAccountID() {
 	return acc;
 }
 
+VMViewerd *
+ManagerImpl::createVoicemailViewer() {
+	AccountID acc = getCurrentAccountID();
+	std::string acc_type = getConfigString( acc , CONFIG_ACCOUNT_TYPE );
+	std::string user = ( strcmp( getConfigString( acc , CONFIG_ACCOUNT_TYPE ).c_str() , "IAX" ) == 0 ?
+								 getConfigString( acc , IAX_USER ) :
+								 getConfigString( acc , SIP_USER ) );
+	return new VMViewerd( user ,
+						  getConfigString( acc , CONFIG_ACCOUNT_PASSCODE ) ,
+						  getConfigString( acc , CONFIG_ACCOUNT_CONTEXT ) ,
+						  getVoicemailConfigAddress() ,
+						  getVoicemailConfigPath() ,
+						  getVoicemailConfigPortString() );
+}
+
 std::vector< ::DBus::String >
 ManagerImpl::getListFolders( void ) {
-	std::cout << "getListFolders()" << std::endl;
+//	std::cout << "getListFolders()" << std::endl;
 	AccountID acc = getCurrentAccountID();
 	std::vector< ::DBus::String > vec;
 //	if( acc ) {
-		std::string acc_type = getConfigString( acc , CONFIG_ACCOUNT_TYPE );
-		std::string user = ( strcmp( getConfigString( acc , CONFIG_ACCOUNT_TYPE ).c_str() , "IAX" ) == 0 ?
-									 getConfigString( acc , IAX_USER ) :
-									 getConfigString( acc , SIP_USER ) );
-		VMViewerd * vmv = new VMViewerd( user ,
-										 getConfigString( acc , CONFIG_ACCOUNT_PASSCODE )/*"735"*/ ,
-										 getConfigString( acc , CONFIG_ACCOUNT_CONTEXT )/*"default"*/,
-										 getVoicemailConfigAddress()/*"127.0.0.1"*/,
-										 getVoicemailConfigPath()/*"uml/index"*/,
-										 getVoicemailConfigPortString()/*"80"*/ );
+		VMViewerd * vmv = createVoicemailViewer();
 		vmv->exec("");
 		vmv->parse();
 		vec = vmv->toArrayString();
@@ -2180,15 +2186,11 @@ ManagerImpl::getListFolders( void ) {
 
 std::vector< ::DBus::String >
 ManagerImpl::getListMails( const ::DBus::String& folder ) {
-	std::cout << "getListMails()" << std::endl;
+//	std::cout << "getListMails()" << std::endl;
 	AccountID acc = getCurrentAccountID();
 	std::vector< ::DBus::String > vec;
 //	if( acc != 0 ) {
-		std::string acc_type = getConfigString( acc , CONFIG_ACCOUNT_TYPE );
-		std::string user = ( strcmp( getConfigString( acc , CONFIG_ACCOUNT_TYPE ).c_str() , "IAX" ) == 0 ?
-									 getConfigString( acc , IAX_USER ) :
-									 getConfigString( acc , SIP_USER ) );
-		VMViewerd * vmv = new VMViewerd( user , "735" , "default", "127.0.0.1", "uml/index", "80" );
+		VMViewerd * vmv = createVoicemailViewer();
 		vmv->exec( folder );
 		vmv->parse();
 		vec = vmv->toFolderArrayString(folder);
@@ -2198,15 +2200,11 @@ ManagerImpl::getListMails( const ::DBus::String& folder ) {
 
 int
 ManagerImpl::getFolderCount( const ::DBus::String& folder ) {
-	std::cout << "getListMails()" << std::endl;
+//	std::cout << "getFolderCount()" << std::endl;
 	AccountID acc = getCurrentAccountID();
 	std::vector< ::DBus::String > vec;
 //	if( acc != 0 ) {
-		std::string acc_type = getConfigString( acc , CONFIG_ACCOUNT_TYPE );
-		std::string user = ( strcmp( getConfigString( acc , CONFIG_ACCOUNT_TYPE ).c_str() , "IAX" ) == 0 ?
-									 getConfigString( acc , IAX_USER ) :
-									 getConfigString( acc , SIP_USER ) );
-		VMViewerd * vmv = new VMViewerd( user , "735" , "default", "127.0.0.1", "uml/index", "80" );
+		VMViewerd * vmv = createVoicemailViewer();
 		vmv->exec( folder );
 		vmv->parse();
 		return vmv->getFolderCount(folder);
@@ -2216,15 +2214,11 @@ ManagerImpl::getFolderCount( const ::DBus::String& folder ) {
 
 std::vector< ::DBus::String >
 ManagerImpl::getListErrors( void ) {
-	std::cout << "getListErrors()" << std::endl;
+//	std::cout << "getListErrors()" << std::endl;
 	AccountID acc = getCurrentAccountID();
 	std::vector< ::DBus::String > vec;
 //	if( acc != 0 ) {
-		std::string acc_type = getConfigString( acc , CONFIG_ACCOUNT_TYPE );
-		std::string user = ( strcmp( getConfigString( acc , CONFIG_ACCOUNT_TYPE ).c_str() , "IAX" ) == 0 ?
-									 getConfigString( acc , IAX_USER ) :
-									 getConfigString( acc , SIP_USER ) );
-		VMViewerd * vmv = new VMViewerd( user , "735" , "default", "127.0.0.1", "uml/index", "80" );
+		VMViewerd * vmv = createVoicemailViewer();
 		vmv->exec("");
 		vmv->parse();
 		vec = vmv->toErrorsArrayString();
@@ -2235,21 +2229,16 @@ ManagerImpl::getListErrors( void ) {
 
 ::DBus::String
 ManagerImpl::getVoicemailInfo( const ::DBus::String& folderName , const ::DBus::String& voicemailName ) {
-	std::cout << "getVoicemailInfo( " << folderName << " , " << voicemailName << " )" << std::endl;
+	std::cout << "getVoicemailInfo(" << folderName << "," << voicemailName << ")" << std::endl;
 	::DBus::String st;
 	AccountID acc = getCurrentAccountID();
-	std::cout << acc << std::endl;
-//	std::vector< ::DBus::String > vec;
+//	std::cout << acc << std::endl;
 //	if( acc != 0 ) {
-		std::string acc_type = getConfigString( acc , CONFIG_ACCOUNT_TYPE );
-		std::string user = ( strcmp( getConfigString( acc , CONFIG_ACCOUNT_TYPE ).c_str() , "IAX" ) == 0 ?
-									 getConfigString( acc , IAX_USER ) :
-									 getConfigString( acc , SIP_USER ) );
-		VMViewerd * vmv = new VMViewerd( user , "735" , "default", "127.0.0.1", "uml/index", "80" );
-//		vmv->exec( folderName +"/"+ voicemailName );
+		VMViewerd * vmv = createVoicemailViewer();
+		vmv->exec( folderName +"/"+ voicemailName );
 		vmv->parse();
 		st = vmv->getVoicemailInfo(folderName, voicemailName);
-		std::cout << "st = " << st << std::endl;
+//		std::cout << "st = [[[" << st << "]]]" << std::endl;
 //	}
 	return st;
 }
@@ -2257,43 +2246,46 @@ ManagerImpl::getVoicemailInfo( const ::DBus::String& folderName , const ::DBus::
 
 void
 ManagerImpl::playVoicemail( const ::DBus::String& folderName , const ::DBus::String& voicemailName ) {
-	std::cout << "playVoicemail()" << std::endl;
+//	std::cout << "playVoicemail()" << std::endl;
 	AccountID acc = getCurrentAccountID();
 	std::vector< ::DBus::String > vec;
 //	if( acc != 0 ) {
-		std::string acc_type = getConfigString( acc , CONFIG_ACCOUNT_TYPE );
-		std::string user = ( strcmp( getConfigString( acc , CONFIG_ACCOUNT_TYPE ).c_str() , "IAX" ) == 0 ?
-									 getConfigString( acc , IAX_USER ) :
-									 getConfigString( acc , SIP_USER ) );
-		VMViewerd * vmv = new VMViewerd( user , "735" , "default", "127.0.0.1", "uml/index", "80" );
+		VMViewerd * vmv = createVoicemailViewer();
 		vmv->exec( folderName +"/"+ voicemailName +"/sound" );
 		vmv->parse();
 		
 //		VoicemailSound * vms = vmv->getSoundAt(2);
-		VoicemailSound * vms = vmv->getSoundByExt("ul");
+		VoicemailSound * vms = vmv->getSoundByExt("gsm");
 		if( vms ) {
 			::DBus::String st = vms->toDecodeString();
-		
-	//		ringback();
-	//		playTone();
-
 
 			AudioLayer* audiolayer = getAudioDriver();
 			if( audiolayer==0 ) { return; }
-			AudioCodec* codec = _codecDescriptorMap.getFirstCodecAvailable();
+//			AudioCodec* codec = _codecDescriptorMap.getFirstCodecAvailable();
+//			AudioCodec* codec = _codecDescriptorMap.getCodec( PAYLOAD_CODEC_ULAW );
+//			AudioCodec* codec = _codecDescriptorMap.getCodec( PAYLOAD_CODEC_GSM );
+			AudioCodec* codec = _codecDescriptorMap.getCodec( PAYLOAD_CODEC_ALAW );
+//			AudioCodec* codec = _codecDescriptorMap.getCodec( PAYLOAD_CODEC_ILBC_20 );
+//			AudioCodec* codec = _codecDescriptorMap.getCodec( PAYLOAD_CODEC_ILBC_30 );
+//			AudioCodec* codec = _codecDescriptorMap.getCodec( PAYLOAD_CODEC_SPEEX_8000 );
+//			AudioCodec* codec = _codecDescriptorMap.getCodec( PAYLOAD_CODEC_SPEEX_16000 );
+//			AudioCodec* codec = _codecDescriptorMap.getCodec( PAYLOAD_CODEC_SPEEX_32000 );
+			cout << "--- codec name :" << codec->getCodecName() << endl;
 
 			_toneMutex.enterMutex();
-			bool loadFile = _audiofile.loadFile( "/tmp/"+ voicemailName +"."+ vms->getFormat() , codec , 44100 );
+			_audiomail = new AudioMail();
+			int sampleRate  = audiolayer->getSampleRate();
+			bool loadMail = _audiomail->loadMail( "/tmp/"+ voicemailName +"."+ vms->getFormat() , codec , 4000 );
 			_toneMutex.leaveMutex(); 
-			if( loadFile == true ) {
-				std::cout << "##### audiofile : '" << _audiofile.isStarted() << "'" << std::endl;
+			if( loadMail == true ) {
+				std::cout << "##### loadMail : '" << _audiomail->isStarted() << "'" << std::endl;
 				_toneMutex.enterMutex(); 
-				_audiofile.start();
+				_audiomail->start();
 				_toneMutex.leaveMutex(); 
-				int size = _audiofile.getSize();
+				int size = _audiomail->getSize();
 				std::cout << "size : " << size << std::endl;
 				SFLDataFormat output[ size ];
-				_audiofile.getNext( output , size , 100 , true );
+				_audiomail->getNext( output , size , 100 , true );
 				audiolayer->putUrgent( output , size );
 //				audiolayer->playSamples( output , sizeof(SFLDataFormat)*size , false );
 				audiolayer->playMail();// output , sizeof(SFLDataFormat)*size  );
@@ -2305,6 +2297,10 @@ ManagerImpl::playVoicemail( const ::DBus::String& folderName , const ::DBus::Str
 //	}
 }
 
+AudioMail *
+ManagerImpl::getVoicemailFile() {
+	return _audiomail;
+}
 
 void
 ManagerImpl::stopVoicemail() {
@@ -2376,6 +2372,23 @@ void
 ManagerImpl::voicemailConfigHttpsEnable( const ::DBus::Bool& enabled) {
 	setConfig( VOICEMAIL_CONFIG , VOICEMAIL_USES_HTTPS , enabled );
 	saveConfig();
+}
+
+//-------------------
+// VOICEMAIL SIGNALS
+//-------------------
+void
+ManagerImpl::voicemailPlaying(void) 
+{
+	_debug("voicemailPlaying\n");
+	_dbus->getVoicemailManager()->voicemailPlaying();
+}
+
+void
+ManagerImpl::voicemailStopped(void) 
+{
+	_debug("voicemailStopped\n");
+	_dbus->getVoicemailManager()->voicemailStopped();
 }
 //#endif
 

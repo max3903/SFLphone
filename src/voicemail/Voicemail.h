@@ -30,7 +30,7 @@ class Voicemail {
 	private :
 		int          _id;
 		std::string  _callerchan;
-		int          _callerid;
+		std::string  _callerid;
 		std::string  _category;
 		std::string  _context;
 		int          _duration;
@@ -51,8 +51,8 @@ class Voicemail {
 		std::string getIdString();
 		void        setId(int);
 		void        setCallerchan(std::string);
-		std::string getCalleridString();
-		void        setCallerid(int);
+		std::string getCallerid();
+		void        setCallerid(std::string);
 		void        setCategory(std::string);
 		void        setContext(std::string);
 		std::string getDurationString();
@@ -61,6 +61,7 @@ class Voicemail {
 		void        setMacrocontext(std::string);
 		void        setName(std::string);
 		std::string getName();
+		std::string getOrigdate();
 		void        setOrigdate(std::string);
 		std::string getOrigmailboxString();
 		void        setOrigmailbox(int);

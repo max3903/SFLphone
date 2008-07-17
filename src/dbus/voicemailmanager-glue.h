@@ -129,6 +129,14 @@ public:
             { "enabled", "b", true },
             { 0, 0, 0 }
         };
+        static ::DBus::IntrospectedArgument voicemailPlaying_args[] = 
+        {
+            { 0, 0, 0 }
+        };
+        static ::DBus::IntrospectedArgument voicemailStopped_args[] = 
+        {
+            { 0, 0, 0 }
+        };
         static ::DBus::IntrospectedMethod VoicemailManager_methods[] = 
         {
             { "getListFolders", getListFolders_args },
@@ -152,6 +160,8 @@ public:
         };
         static ::DBus::IntrospectedMethod VoicemailManager_signals[] = 
         {
+            { "voicemailPlaying", voicemailPlaying_args },
+            { "voicemailStopped", voicemailStopped_args },
             { 0, 0 }
         };
         static ::DBus::IntrospectedProperty VoicemailManager_properties[] = 
@@ -201,6 +211,16 @@ public:
 
     /* signal emitters for this interface
      */
+    void voicemailPlaying(  )
+    {
+        ::DBus::SignalMessage sig("voicemailPlaying");
+        emit_signal(sig);
+    }
+    void voicemailStopped(  )
+    {
+        ::DBus::SignalMessage sig("voicemailStopped");
+        emit_signal(sig);
+    }
 
 private:
 

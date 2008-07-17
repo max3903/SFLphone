@@ -25,7 +25,6 @@
 #include <callmanager-glue.h>
 #include <configurationmanager-glue.h>
 #include <instance-glue.h>
-#include <voicemailmanager-glue.h>
 #include <configwindow.h>
 #include <mainwindow.h>
 #include <marshaller.h>
@@ -37,6 +36,10 @@
 #include <actions.h>
 #include <string.h>
 #include <dbus/dbus-glib.h>
+
+#ifdef USE_VOICEMAIL
+#include <voicemailmanager-glue.h>
+#endif
 
 DBusGConnection * connection;
 DBusGProxy * callManagerProxy;
@@ -176,6 +179,20 @@ error_alert(DBusGProxy *proxy,
   sflphone_throw_exception( errCode );
 }
 
+static void
+voicemail_playing( DBusGProxy *proxy , int errCode , void * foo )
+{
+	g_print("Voicemail's playin'..\n");
+	voicemail_is_playing();
+}
+
+static void
+voicemail_stopped( DBusGProxy *proxy , int errCode , void * foo )
+{
+	g_print("Voicemail's stopped\n");
+	voicemail_is_stopped();
+}
+
 gboolean 
 dbus_connect ()
 {
@@ -277,6 +294,7 @@ dbus_connect ()
   dbus_g_proxy_connect_signal (configurationManagerProxy,
     "errorAlert", G_CALLBACK(error_alert), NULL, NULL);
 
+#ifdef USE_VOICEMAIL
   voicemailManagerProxy = dbus_g_proxy_new_for_name (connection,
                                   "org.sflphone.SFLphone",
                                   "/org/sflphone/SFLphone/VoicemailManager",
@@ -287,7 +305,17 @@ dbus_connect ()
     return FALSE;
   }
   g_print ("DBus connected to VoicemailManager\n");
-
+  
+  dbus_g_proxy_add_signal (voicemailManagerProxy, 
+    "voicemailPlaying", G_TYPE_INT , G_TYPE_INVALID);
+  dbus_g_proxy_connect_signal (voicemailManagerProxy,
+    "voicemailPlaying", G_CALLBACK(voicemail_playing), NULL, NULL);
+    
+  dbus_g_proxy_add_signal (voicemailManagerProxy, 
+    "voicemailStopped", G_TYPE_INT , G_TYPE_INVALID);
+  dbus_g_proxy_connect_signal (voicemailManagerProxy,
+    "voicemailStopped", G_CALLBACK(voicemail_stopped), NULL, NULL);
+#endif
 
   return TRUE;
 }
@@ -297,7 +325,9 @@ dbus_clean ()
 {
     g_object_unref (callManagerProxy);
     g_object_unref (configurationManagerProxy);
+#ifdef USE_VOICEMAIL
     g_object_unref (voicemailManagerProxy);
+#endif
 }
 
 

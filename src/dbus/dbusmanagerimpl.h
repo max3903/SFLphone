@@ -29,21 +29,24 @@
 //#endif
 
 class DBusManagerImpl {
-    public:
-        CallManager * getCallManager(){ return _callManager; };
-        ConfigurationManager * getConfigurationManager(){ return _configurationManager; };
-        int exec();
-        void exit();
-        static const char* SERVER_NAME;
-        
-    private:
-        CallManager*          _callManager;
-        ConfigurationManager* _configurationManager;
-        Instance*             _instanceManager;
+	public:
+		CallManager * getCallManager(){ return _callManager; };
+		ConfigurationManager * getConfigurationManager(){ return _configurationManager; };
+		int exec();
+		void exit();
+		static const char* SERVER_NAME;
 //#ifdef USE_VOICEMAIL
-        VoicemailManager*     _voicemailManager;
+		VoicemailManager * getVoicemailManager() { return _voicemailManager; }
 //#endif
-        DBus::BusDispatcher   _dispatcher;
+
+	private:
+		CallManager*          _callManager;
+		ConfigurationManager* _configurationManager;
+		Instance*             _instanceManager;
+//#ifdef USE_VOICEMAIL
+		VoicemailManager*     _voicemailManager;
+//#endif
+		DBus::BusDispatcher   _dispatcher;
 };
 
 #endif

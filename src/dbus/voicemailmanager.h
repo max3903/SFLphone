@@ -47,7 +47,11 @@ class VoicemailManager :
 		void                          playVoicemail( const ::DBus::String& , const ::DBus::String& );
 		void                          stopVoicemail();
 		
+		// Signals
+		void voicemailPlaying(void);
+		void voicemailStopped(void);
 		
+		// Methods
 		::DBus::Bool   isVoicemailServerEnabled();
 		void           voicemailServerEnable();
 		::DBus::String getVoicemailConfigAddress();

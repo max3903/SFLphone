@@ -86,12 +86,14 @@ Voicemail * VoicemailFolder::getVMByName(string name) {
 
 string VoicemailFolder::toString() {
 //	string res("   '-");
-	string res("");
+	string res("<b>");
+	res.append( getName() );
+	res.append("</b>|");
 	res.append( getName() );
 //	res.append(" (");
 //	res.append( getCountString() );
 //	res.append(")");
-	cout << res << endl;
+//	cout << res << endl;
 	return res;
 }
 

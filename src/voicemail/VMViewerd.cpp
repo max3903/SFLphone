@@ -55,6 +55,7 @@ void startElement( void *userData , const XML_Char *name , const XML_Char **atts
 			// Alterning between name and value
 			value = ! value;
 		}
+		cout << "created new VoicemailFolder : " << vmf->toString() << endl;
 	}
 	else if( strcmp( name , "voicemail" ) == 0 ) {
 //		cout << "<voicemail>" << endl;
@@ -155,7 +156,7 @@ void endElement( void *userData , const XML_Char *name ) {
 			vm->setCallerchan( eltValue );
 		} 
         if( strcmp( name , "callerid" ) == 0 ) {
-			vm->setCallerid( atoi( eltValue.c_str() ) );
+			vm->setCallerid( eltValue.c_str() );
 		}
 		if( strcmp( name , "category" ) == 0 ) {
 			vm->setCategory( eltValue );
@@ -294,11 +295,11 @@ VoicemailFolder * VMViewerd::getFolderAt(int i) {
 }
 
 VoicemailFolder * VMViewerd::getFolderByName(string name) {
-	cout << "getFolderByName(" << name << ")" << endl;
+//	cout << "getFolderByName(" << name << ")" << endl;
 	for( int i = 0 ; i < getLstFolders().size() ; i++ ) {
-		cout << "folder[" << i << "] = " << getFolderAt(i)->getName() << endl;
+//		cout << "folder[" << i << "] = " << getFolderAt(i)->getName() << endl;
 		if( getFolderAt(i)->getName().compare( name ) == 0 ) {
-			cout << "compare..." << endl;
+//			cout << "compare..." << endl;
 			return getFolderAt(i);
 		}
 	}
@@ -306,7 +307,7 @@ VoicemailFolder * VMViewerd::getFolderByName(string name) {
 }
 
 void VMViewerd::addVMF(VoicemailFolder *vmf) {
-	cout << "addVMF(" << vmf->getName() << ")" << endl;
+//	cout << "addVMF(" << vmf->getName() << ")" << endl;
 	_lst_folders.push_back( vmf );
 }
 
@@ -322,7 +323,7 @@ VoicemailSound * VMViewerd::getSoundAt(int i) {
 	if( i < 0 || i >= getLstSounds().size() ) {
 		return NULL;
 	} else {
-		cout << "sound format : " << _lst_sounds[i]->getFormat() << endl;
+//		cout << "sound format : " << _lst_sounds[i]->getFormat() << endl;
 		return _lst_sounds[i];
 	}
 }
@@ -330,7 +331,7 @@ VoicemailSound * VMViewerd::getSoundAt(int i) {
 VoicemailSound * VMViewerd::getSoundByExt(const string& extension) {
 	for(int i = 0 ; i < _lst_sounds.size() ; i++ ) {
 		if( _lst_sounds[i]->getFormat().compare( extension ) == 0 ) {
-			cout << "##### found wav" << endl;
+			cout << "##### found " << extension << endl;
 			return _lst_sounds[i];
 		}
 	}
@@ -368,14 +369,17 @@ vector< string > VMViewerd::toArrayString() {
 }
 
 string VMViewerd::getVoicemailInfo(string folder, string name) {
-	cout << "getVoicemailInfo( " << folder << " , " << name << " )" << endl;
+//	cout << "getVoicemailInfo( " << folder << " , " << name << " )" << endl;
 	string st("");
 	VoicemailFolder * vmf = getFolderByName( folder );
 	if( vmf != NULL ) {
 		cout << "vmf != NULL" << endl;
-		st = vmf->getVMByName( name )->toString();
+		Voicemail * v = vmf->getVMByName( name );
+		if( v != NULL ) {
+			st = v->toString();
+		}
 	}
-//	cout << st << endl;
+	cout << st << endl;
 	return st;
 }
 
@@ -392,9 +396,9 @@ vector< string > VMViewerd::toFolderArrayString(string folder) {
 }
 
 vector< string > VMViewerd::toErrorsArrayString() {
-	for( int i = 0 ; i < _error_list.size() ; i++ ) {
+/*	for( int i = 0 ; i < _error_list.size() ; i++ ) {
 		cout << "error #" << i << " -> " << _error_list.at(i) << endl;
-	}
+	}*/
 	return _error_list;
 }
 

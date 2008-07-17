@@ -26,13 +26,15 @@
 GtkTreeIter getSelectedItem( void );
 gboolean    isItemSelected( void );
 gboolean    isAValidItem( void );
-gchar *     getSelectedItemName( GtkTreeIter );
 gchar *     getSelectedItemParentName( GtkTreeIter );
 
 void show_voicemail_window( void );
 void create_voicemail_window( void );
 void create_tree( void );
-void update_tree( gchar * );
+void update_tree( gchar * , gchar * );
 void update_tree_complete( gchar ** , int );
+
+void voicemail_is_playing();
+void voicemail_is_stopped();
 
 #endif

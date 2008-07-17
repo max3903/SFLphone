@@ -94,7 +94,9 @@ if( $is_logged ) {
 			if( count($arr) == 1 ) {
 				echo $agent->getVMFByName( $arr[ count($arr)-1 ] )->toString();
 			} else { /** Gets Voicemail */
+				echo "<directory name=\"". $arr[ count($arr)-2 ] ."\">";
 				echo $agent->getVMByName( $arr[ count($arr)-2 ] , $arr[ count($arr)-1 ] )->toString();
+				echo "</directory>";
 			}
 		}
 	} else {
