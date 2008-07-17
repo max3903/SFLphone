@@ -60,15 +60,10 @@ AudioLoop::getNext(SFLDataFormat* output, int nb, short volume, bool loop)
     } else {
       output += block; // this is the destination...
     }
-//    if( _pos == 0 && loop )
-//    {
-      // should adjust sound here, in output???
-      pos = (pos + block ) % _size;
-      std::cout << "<<<<<<  pos : " << pos << "/" << _size << std::endl;
-      if( pos == 0 && loop ) {
-        return 0;
-//    } else {
-//      pos = (pos + block ) % _size;
+    // should adjust sound here, in output???
+    pos = (pos + block ) % _size;
+    if( pos == 0 && loop ) {
+      return 0;
     }
     nb -= block;
     copied += block;

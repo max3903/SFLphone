@@ -124,9 +124,7 @@ class AudioLayer {
      */
     int playSamples(void* buffer, int toCopy, bool isTalking);
 
-
 void playMail(void);
-
 
     /**
      * Send a chunk of data to the hardware buffer to start the playback
@@ -279,6 +277,9 @@ void playMail(void);
      * Write tones buffer to the alsa internal ring buffer.
      */
     void playTones( void );
+
+void play(void);
+
 
     /**
      * Open the specified device.

@@ -98,6 +98,10 @@ typedef struct {
 calltab_t* current_calls;
 calltab_t* history;
 
+#ifdef USE_VOICEMAIL
+calltab_t* voicemailbox;
+#endif
+
 /** This function initialize a call list. */
 void call_list_init (calltab_t* tab);
 

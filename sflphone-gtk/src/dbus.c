@@ -38,6 +38,7 @@
 #include <dbus/dbus-glib.h>
 
 #ifdef USE_VOICEMAIL
+#include <voicemailwindow.h>
 #include <voicemailmanager-glue.h>
 #endif
 
@@ -180,16 +181,16 @@ error_alert(DBusGProxy *proxy,
 }
 
 static void
-voicemail_playing( DBusGProxy *proxy , int errCode , void * foo )
+voicemail_playing( DBusGProxy *proxy , void * foo )
 {
-	g_print("Voicemail's playin'..\n");
+	g_print("<<<<<<<<<<<<<< Voicemail's playin'.. >>>>>>>>>>>>>>\n");
 	voicemail_is_playing();
 }
 
 static void
-voicemail_stopped( DBusGProxy *proxy , int errCode , void * foo )
+voicemail_stopped( DBusGProxy *proxy , void * foo )
 {
-	g_print("Voicemail's stopped\n");
+	g_print("<<<<<<<<<<<<<< Voicemail's stopped >>>>>>>>>>>>>>>\n");
 	voicemail_is_stopped();
 }
 
@@ -305,14 +306,14 @@ dbus_connect ()
     return FALSE;
   }
   g_print ("DBus connected to VoicemailManager\n");
-  
+
   dbus_g_proxy_add_signal (voicemailManagerProxy, 
-    "voicemailPlaying", G_TYPE_INT , G_TYPE_INVALID);
+    "voicemailPlaying", G_TYPE_INVALID);
   dbus_g_proxy_connect_signal (voicemailManagerProxy,
     "voicemailPlaying", G_CALLBACK(voicemail_playing), NULL, NULL);
     
   dbus_g_proxy_add_signal (voicemailManagerProxy, 
-    "voicemailStopped", G_TYPE_INT , G_TYPE_INVALID);
+    "voicemailStopped", G_TYPE_INVALID);
   dbus_g_proxy_connect_signal (voicemailManagerProxy,
     "voicemailStopped", G_CALLBACK(voicemail_stopped), NULL, NULL);
 #endif
@@ -1551,7 +1552,6 @@ dbus_get_voicemail_info( gchar *folder , gchar *name )
 {
 	GError* error = NULL;
 	gchar* list;
-	g_print("dbus_get_voicemail_info('%s','%s')\n", folder, name);
 	org_sflphone_SFLphone_VoicemailManager_get_voicemail_info(
 			voicemailManagerProxy,
 			folder,

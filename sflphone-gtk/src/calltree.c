@@ -37,6 +37,10 @@ GtkToolItem * transfertButton;
 GtkToolItem * unholdButton;
 GtkToolItem * historyButton;
 GtkToolItem * mailboxButton;
+#ifdef USE_VOICEMAIL
+GtkToolItem * voicemailboxButton;
+gboolean voicemailbox_shown;
+#endif
 guint transfertButtonConnId; //The button toggled signal connection ID
 gboolean history_shown;
 
@@ -190,7 +194,8 @@ toggle_history(GtkToggleToolButton *toggle_tool_button,
 	sel = gtk_tree_view_get_selection (GTK_TREE_VIEW (active_calltree->view));
 	g_signal_emit_by_name(sel, "changed");
 	toolbar_update_buttons();
-	gtk_tree_model_filter_refilter(GTK_TREE_MODEL_FILTER(histfilter));
+	if( histfilter )
+		gtk_tree_model_filter_refilter(GTK_TREE_MODEL_FILTER(histfilter));
 
 }
 
@@ -484,6 +489,22 @@ create_toolbar ()
   g_signal_connect (G_OBJECT (mailboxButton), "clicked",
       G_CALLBACK (call_mailbox), NULL);
   gtk_toolbar_insert(GTK_TOOLBAR(ret), GTK_TOOL_ITEM(mailboxButton), -1);
+
+#ifdef USE_VOICEMAIL
+//  image = gtk_image_new_from_file( ICONS_DIR "/play-small.png" );
+//  voicemailboxButton = gtk_tool_button_new( image , _("Voicemail Box") );
+  voicemailboxButton = gtk_toggle_tool_button_new_from_stock( GTK_STOCK_MEDIA_PLAY );
+//  gtk_tool_button_set_icon_widget( GTK_TOOL_BUTTON( voicemailboxButton ) , image);
+//  if( account_list_get_size() ==0 )
+//    gtk_widget_set_state( GTK_WIDGET( voicemailboxButton ) , GTK_STATE_INSENSITIVE );
+#if GTK_CHECK_VERSION(2,12,0)
+  gtk_widget_set_tooltip_text( GTK_WIDGET( voicemailboxButton ) , _("Voicemail Box") );
+#endif
+//  g_signal_connect( G_OBJECT( voicemailboxButton ) , "clicked", G_CALLBACK( call_mailbox ) , NULL );
+  gtk_toolbar_insert( GTK_TOOLBAR( ret ) , GTK_TOOL_ITEM( voicemailboxButton ) , -1 );
+  voicemailbox_shown = FALSE;
+#endif
+
 
   return ret;
 

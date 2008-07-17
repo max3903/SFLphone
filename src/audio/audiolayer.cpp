@@ -137,9 +137,9 @@ AudioLayer::stopStream(void)
 }
 
 void AudioLayer::AlsaCallBack( snd_async_handler_t* pcm_callback )
-{ 
-  std::cout << "AlsaCallBack" << std::endl;
-  ( ( AudioLayer *)snd_async_handler_get_callback_private( pcm_callback )) -> playTones();
+{
+//  ( ( AudioLayer *)snd_async_handler_get_callback_private( pcm_callback )) -> playTones();
+  ( ( AudioLayer *)snd_async_handler_get_callback_private( pcm_callback )) -> play();
 }
 
 
@@ -256,6 +256,20 @@ AudioLayer::toggleEchoTesting() {
 ////////////////////////////////////////////////////////////////////////////////////////////
 
 
+void
+AudioLayer::play(void)
+{
+	cout << "play => ";
+	if( _isVoicemail )
+	{
+		playMail();
+	}
+	else
+	{
+		playTones();
+	}
+}
+
 
   void
 AudioLayer::playTones( void )
@@ -263,7 +277,7 @@ AudioLayer::playTones( void )
   int frames = _periodSize ; 
   int maxBytes = frames * sizeof(SFLDataFormat) ;
   SFLDataFormat* out = (SFLDataFormat*)malloc(maxBytes * sizeof(SFLDataFormat));
-  std::cout << "playTones" << std::endl;
+//  cout << "playTones" << endl;
   if( _talk ) {}
   else {
     AudioLoop *tone = _manager -> getTelephoneTone();
@@ -273,56 +287,46 @@ AudioLayer::playTones( void )
       write( out , maxBytes );
     } 
     else if( ( tone=_manager->getTelephoneFile() ) != 0 ){
-      std::cout << "getNext(out,"<< frames <<","<< spkrVol <<")" << std::endl;
       int nbCopied = tone ->getNext( out , frames , spkrVol , _isVoicemail );
-      std::cout << "nbCopied : " << nbCopied << std::endl;
-//#ifdef USE_VOICEMAIL
-      if( nbCopied !=  0 ) {
-        write( out , maxBytes );
-      } else {
-        _isVoicemail = false;
-        _manager->stopVoicemail();
-      }
-//#else
-//      write( out , maxBytes );
-//#endif
+      write( out , maxBytes );
     }
   }
   // free the temporary data buffer 
   free( out ); out = 0;
 }
 
+//#ifdef USE_VOICEMAIL
   void
 AudioLayer::playMail( void )
 {
-  std::cout << "playMail" << std::endl;
-  _isVoicemail = true;
-  playTones();
-/*  int frames = _periodSize ; 
-  int maxBytes = frames * sizeof(SFLDataFormat) ;
-  SFLDataFormat* out = (SFLDataFormat*)malloc(maxBytes * sizeof(SFLDataFormat));
-  if( _talk ) {}
-  else {
-    AudioLoop *file = _manager->getTelephoneFile();
-    _isVoicemail = true;
-    int spkrVol = _manager->getSpkrVolume();
-    std::cout << "getNext(out,"<< frames <<","<< spkrVol <<")" << std::endl;
-    int nbCopied = file->getNext( out , frames , spkrVol , true );
-    std::cout << "nbCopied : " << nbCopied << std::endl;
-    _urgentBuffer.debug();
-    if( _isVoicemail ) {
-      write( out , maxBytes );
-      _isVoicemail = false;
-    }
-//    if( _isVoicemail ) {
-//    	_isVoicemail = false;
-//      _urgentBuffer.debug();	
-//    	stopStream();
-//    }
-  }
-  // free the temporary data buffer 
-  free( out ); out = 0;*/
+//	int frames = _periodSize;
+	int frames = _periodSize;
+	cout << "frames : " << frames << endl;
+	int maxBytes = frames * sizeof(SFLDataFormat) ;
+	SFLDataFormat* out = (SFLDataFormat*)malloc(maxBytes * sizeof(SFLDataFormat));
+	AudioLoop *mail;
+
+	cout << "playMail" << endl;
+	if( _talk ) {}
+	else {
+		_isVoicemail = true;
+		if( ( mail=_manager->getVoicemailFile() ) != 0 ) {
+			_manager->voicemailPlaying();
+			int nbCopied = mail->getNext( out , frames , 100 , _isVoicemail );
+			if( nbCopied !=  0 ) {
+				write( out , maxBytes );
+				//           data + count * bits_per_frame / 8
+			} else {
+				_isVoicemail = false;
+				_manager->stopVoicemail();
+				_manager->voicemailStopped();
+			}
+		}
+	}
+	// free the temporary data buffer 
+	free( out ); out = 0;
 }
+//#endif
 
 
 bool
