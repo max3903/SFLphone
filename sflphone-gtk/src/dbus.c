@@ -181,16 +181,16 @@ error_alert(DBusGProxy *proxy,
 }
 
 static void
-voicemail_playing( DBusGProxy *proxy , void * foo )
+voicemail_playing( DBusGProxy *proxy ,
+				   void * foo )
 {
-	g_print("<<<<<<<<<<<<<< Voicemail's playin'.. >>>>>>>>>>>>>>\n");
 	voicemail_is_playing();
 }
 
 static void
-voicemail_stopped( DBusGProxy *proxy , void * foo )
+voicemail_stopped( DBusGProxy *proxy ,
+				   void * foo )
 {
-	g_print("<<<<<<<<<<<<<< Voicemail's stopped >>>>>>>>>>>>>>>\n");
 	voicemail_is_stopped();
 }
 
