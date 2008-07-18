@@ -35,6 +35,7 @@ class VMViewerd {
 		string _pwdVMail;
 		string _context;
 
+		bool   _srvUsesHttps;
 		string _srvAddr;
 		string _srvPath;
 		string _srvPort;
@@ -49,10 +50,11 @@ class VMViewerd {
 		vector<string>            _error_list;
 	
 	public :
-		VMViewerd(string logVM, string pwdVM, string ctxt, string srvAddr, string srvPath, string srvPort):
+		VMViewerd(string logVM, string pwdVM, string ctxt, bool srvHttps, string srvAddr, string srvPath, string srvPort):
 					_logVMail(logVM),
 					_pwdVMail(pwdVM),
 					_context(ctxt),
+					_srvUsesHttps(srvHttps),
 					_srvAddr(srvAddr),
 					_srvPath(srvPath),
 					_srvPort(srvPort) {
@@ -67,13 +69,13 @@ class VMViewerd {
 		string getPwdVMail();
 		void   setPwdVMail(string);
 		
+		bool isHttpsEnabled() { return _srvUsesHttps; };
+		
 		string getSrvAddr();
 		void   setSrvAddr(string);
 		
 		string      getSrvPort();
-		inline void setSrvPort(string p) {
-			_srvPort = p;
-		};
+		inline void setSrvPort(string p) { _srvPort = p; };
 		
 		string getFileStore();
 		
@@ -91,6 +93,7 @@ class VMViewerd {
 		VoicemailSound *         getSoundAt(int);
 		VoicemailSound *         getSoundByExt(const string&);
 		void                     addVMS(VoicemailSound *);
+		
 		void                     addError(string err);
 		
 		vector<string> toArrayString();
@@ -102,9 +105,6 @@ class VMViewerd {
 		/** */
 		int exec(string);
 		void parse();
-/*		void startElement(void *, const XML_Char *, const XML_Char **);
-		void endElement(void *, const XML_Char *);
-		void character(void *, const char *, int);*/
 		void extrat();
 		
 };

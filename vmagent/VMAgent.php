@@ -251,6 +251,16 @@ class VMAgent {
 	 * @param string a_voicemail_name
 	 * @return bool TRUE if all files (txt+sound) have been well deletes, FALSE otherwise
 	 */
+	public function deleteFolder( $folder ) {
+		return $this->vmStorage->deleteFolder( $folder );
+	}
+	
+	/**
+	 * delete(a_voicemail_folder, a_voicemail_name)
+	 * @param string a_voicemail_folder
+	 * @param string a_voicemail_name
+	 * @return bool TRUE if all files (txt+sound) have been well deletes, FALSE otherwise
+	 */
 	public function delete( $folder , $vmName ) {
 		return $this->vmStorage->delete( $folder , $vmName );
 	}

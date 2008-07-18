@@ -244,24 +244,25 @@ VMViewerd::~VMViewerd() {
 
 int VMViewerd::exec(string cmd) {
 	// Sets the unix following command :
-	// wget -q -O <path_to_file_to_store_received_datas> "http://<context>-<user_login>:<user_password>@<full_server_address>/<cmd>"
-	string s = "wget -q -O ";
-	s += getFileStore(); // save request to file
-	s += " \"http://";
-	s += _context; // user's asterisk context
-	s += "-";
-	s += getLogVMail(); // user's login/voicemail #
-	s += ":";
-	s += getPwdVMail(); // user's passcode to voicemail system
-	s += "@";
-	s += _srvAddr; // asterisk's ip address
-	s += ":";
-	s += getSrvPort(); // asterisk's ip port
-	s += "/";
-	s += _srvPath; // asterisk's path to webservice
-	s += "/";
-	s += cmd; // command to execute (e.g. list, sound, del, etc.)
-	s += "\"";
+	// wget -q -O <path_to_file_to_store_received_datas> "http{s}://<context>-<user_login>:<user_password>@<full_server_address>/<cmd>"
+	string s( "wget -q -O " );
+	s.append( getFileStore() ); // save request to file
+	s.append( " \"" );
+	s.append( isHttpsEnabled() ? "https://" : "http://" ); // HTTPS or HTTP ?
+	s.append( _context ); // user's asterisk context
+	s.append( "-" );
+	s.append( getLogVMail() ); // user's login/voicemail #
+	s.append( ":" );
+	s.append( getPwdVMail() ); // user's passcode to voicemail system
+	s.append( "@" );
+	s.append( _srvAddr ); // asterisk's ip address
+	s.append( ":" );
+	s.append( getSrvPort() ); // asterisk's ip port
+	s.append( "/" );
+	s.append( _srvPath ); // asterisk's path to webservice
+	s.append( "/" );
+	s.append( cmd ); // command to execute (e.g. list, sound, del, etc.)
+	s.append( "\"" );
 	cout << "exec : " << s.c_str() << endl;
 	return system( s.c_str() );
 }
@@ -295,11 +296,8 @@ VoicemailFolder * VMViewerd::getFolderAt(int i) {
 }
 
 VoicemailFolder * VMViewerd::getFolderByName(string name) {
-//	cout << "getFolderByName(" << name << ")" << endl;
 	for( int i = 0 ; i < getLstFolders().size() ; i++ ) {
-//		cout << "folder[" << i << "] = " << getFolderAt(i)->getName() << endl;
 		if( getFolderAt(i)->getName().compare( name ) == 0 ) {
-//			cout << "compare..." << endl;
 			return getFolderAt(i);
 		}
 	}
@@ -307,7 +305,6 @@ VoicemailFolder * VMViewerd::getFolderByName(string name) {
 }
 
 void VMViewerd::addVMF(VoicemailFolder *vmf) {
-//	cout << "addVMF(" << vmf->getName() << ")" << endl;
 	_lst_folders.push_back( vmf );
 }
 
@@ -323,7 +320,6 @@ VoicemailSound * VMViewerd::getSoundAt(int i) {
 	if( i < 0 || i >= getLstSounds().size() ) {
 		return NULL;
 	} else {
-//		cout << "sound format : " << _lst_sounds[i]->getFormat() << endl;
 		return _lst_sounds[i];
 	}
 }
@@ -369,17 +365,14 @@ vector< string > VMViewerd::toArrayString() {
 }
 
 string VMViewerd::getVoicemailInfo(string folder, string name) {
-//	cout << "getVoicemailInfo( " << folder << " , " << name << " )" << endl;
 	string st("");
 	VoicemailFolder * vmf = getFolderByName( folder );
 	if( vmf != NULL ) {
-		cout << "vmf != NULL" << endl;
 		Voicemail * v = vmf->getVMByName( name );
 		if( v != NULL ) {
 			st = v->toString();
 		}
 	}
-	cout << st << endl;
 	return st;
 }
 
@@ -396,9 +389,6 @@ vector< string > VMViewerd::toFolderArrayString(string folder) {
 }
 
 vector< string > VMViewerd::toErrorsArrayString() {
-/*	for( int i = 0 ; i < _error_list.size() ; i++ ) {
-		cout << "error #" << i << " -> " << _error_list.at(i) << endl;
-	}*/
 	return _error_list;
 }
 
@@ -409,10 +399,8 @@ void VMViewerd::toString() {
 	if( getLstFolders().size() != 0 ) {
 		cout << " '-VOICEMAIL FOLDERS" << endl;
 		for( i=0 ; i<=getLstFolders().size()-1 ; i++ ) {
-			//cout << " | '-" << getFolderAt(i)->getName() << endl;
 			getFolderAt(i)->toString();
 			for( j=0 ; j<=getFolderAt(i)->getCount()-1 ; j++ ) {
-				//cout << " |     '-" << getFolderAt(i)->getVMAt(j)->getName() << endl;
 				getFolderAt(i)->getVMAt(j)->toShortString();
 			}
 		}
@@ -420,7 +408,6 @@ void VMViewerd::toString() {
 	if( getLstSounds().size() != 0 ) {
 		cout << " '-VOICEMAIL SOUNDS" << endl;
 		for( i=0 ; i<=getLstSounds().size()-1 ; i++ ) {
-			//cout << "   '-" << getFolderAt(i)->getName() << endl;
 			getSoundAt(i)->toString();
 		}
 	}

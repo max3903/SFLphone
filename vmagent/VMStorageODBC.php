@@ -66,6 +66,15 @@ class VMStorageODBC extends VMStorage {
 	public function rename( $foldName , $oldName , $newName ) {
 		
 	}
+	
+	/**
+	* deleteFolder(a_voicemail_folder)
+	* @param string a_voicemail_folder
+	* @return bool
+	*/
+	public function deleteFolder( $folder ) {
+	
+	}
 
 	/**
 	* delete(a_voicemail_folderm, a_voicemail)

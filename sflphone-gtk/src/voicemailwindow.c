@@ -474,7 +474,7 @@ update_tree( gchar * markup_text , gchar * text )
 	/* Data updates */
  	gtk_tree_store_set( GTK_TREE_STORE( model ) , &iter ,
  						IMG_COLUMN , pixbuf ,
- 						TEXT_COLUMN , markup_text ,
+ 						TEXT_COLUMN , _( markup_text ) ,
  						DATA_COLUMN , text , -1 );
 }
 
@@ -509,7 +509,7 @@ update_tree_complete( gchar **voicemails , int numline )
 		/** Updating datas */
 		gtk_tree_store_set( GTK_TREE_STORE( model ) , &iterChild,
 							IMG_COLUMN  , pixBuf,
-							TEXT_COLUMN , tab[0],
+							TEXT_COLUMN , _( tab[0] ),
 							DATA_COLUMN , tab[1], -1);
 	}
 }

@@ -2139,7 +2139,6 @@ ManagerImpl::getAccountLink(const AccountID& accountID)
  *********************/
 AccountID
 ManagerImpl::getCurrentAccountID() {
-//	std::cout << "getCurrentAccount()" << std::endl;
 	AccountID acc;
 	AccountMap::iterator it = _accountMap.begin();
 	while( it != _accountMap.end() ) {
@@ -2165,6 +2164,7 @@ ManagerImpl::createVoicemailViewer() {
 	return new VMViewerd( user ,
 						  getConfigString( acc , CONFIG_ACCOUNT_PASSCODE ) ,
 						  getConfigString( acc , CONFIG_ACCOUNT_CONTEXT ) ,
+						  isVoicemailServerEnabled() ,
 						  getVoicemailConfigAddress() ,
 						  getVoicemailConfigPath() ,
 						  getVoicemailConfigPortString() );

@@ -208,7 +208,34 @@ class VMStorageFile extends VMStorage {
 		echo "<error-message>Voicemail ". $oldName ." not found</error-message>";
 		return FALSE;
 	}
-
+	
+	/**
+	* deleteFolder(a_voicemail_folder)
+	* @param string a_voicemail_folder
+	* @return bool
+	*/
+	public function deleteFolder( $folder ) {
+		foreach( $this->lstFolders as $fol ) {	
+			if( strcmp( $fol->getName() , $folder ) == 0 ) {
+				foreach( $fol->getListVM() as $vm ) {
+					if( ! unlink( $this->pathFolder ."/". $folder ."/". $vmName .".txt" ) ) {
+						echo "<error-message>". $vm ." wasn't deleted</error-message>";
+					}
+					$arr = $vm->getFormats();
+					foreach( $arr as $file ) {
+						$basename = substr( $file , strrpos( $file , "." )+1 , strlen( $file ) );
+						if( ! unlink( $this->pathFolder ."/". $folder ."/". $vmName .".". $basename ) ) {
+							echo "<error-message>". $file ." wasn't deleted</error-message>";
+						}
+					}
+				}
+				return TRUE;
+			}
+		}
+		echo "<error-message>File ". $vmName ." not found</error-message>";
+		return FALSE;
+	}
+	
 	/**
 	* delete(a_voicemail_folderm, a_voicemail)
 	* @param string a_voicemail_folder

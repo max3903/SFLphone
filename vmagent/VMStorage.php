@@ -69,7 +69,14 @@ abstract class VMStorage {
 	abstract public function rename( $foldName , $oldName , $newName );
 
 	/**
-	* delete(a_voicemail_folderm, a_voicemail)
+	* deleteFolder(a_voicemail_folder)
+	* @param string a_voicemail_folder
+	* @return bool
+	*/
+	abstract public function deleteFolder( $folder );	
+	
+	/**
+	* delete(a_voicemail_folder, a_voicemail)
 	* @param string a_voicemail_folder
 	* @param string a_voicemail_name
 	* @return bool
