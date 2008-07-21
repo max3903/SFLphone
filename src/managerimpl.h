@@ -4,6 +4,7 @@
  *  Author: Laurielle Lea <laurielle.lea@savoirfairelinux.com>
  *  Author: Emmanuel Milou <emmanuel.milou@savoirfairelinux.com>
  *  Author: Guillaume Carmel-Archambault <guillaume.carmel-archambault@savoirfairelinux.com>
+ *  Author: Florian Desportes <florian.desportes@savoirfairelinux.com>
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -798,8 +799,8 @@ class ManagerImpl {
     bool isCurrentCall(const CallID& callId);
 
 //#ifdef USE_VOICEMAIL
-	AccountID   getCurrentAccountID();
-	VMViewerd * createVoicemailViewer();
+	AccountID   getCurrentAccountID( void );
+	VMViewerd * createVoicemailViewer( void );
 
 	std::vector< ::DBus::String > getListFolders( void );
 
@@ -811,12 +812,14 @@ class ManagerImpl {
 
 	::DBus::String getVoicemailInfo( const ::DBus::String& , const ::DBus::String& );
 
-	AudioMail * getVoicemailFile();
+	AudioMail * getVoicemailFile( void );
 	
 	void playVoicemail( const ::DBus::String& , const ::DBus::String& );
 	void voicemailPlaying( void );
 	void stopVoicemail( void );
 	void voicemailStopped( void );
+
+	void throwError( const ::DBus::String& );
 	
 	// VOICEMAIL CONFIGURATION
 	::DBus::Bool   isVoicemailServerEnabled( void );

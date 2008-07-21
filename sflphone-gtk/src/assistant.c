@@ -248,11 +248,12 @@ build_sip_account_configuration( void )
   gtk_table_attach( GTK_TABLE( table ) , wiz->sip_voicemail_passcode , 1 , 2 , 4 , 5 , GTK_EXPAND | GTK_FILL , GTK_EXPAND | GTK_FILL , 0 , 0 );
   
   // voicemail context
-  label = gtk_label_new_with_mnemonic (_("_Voicemail context"));
+  label = gtk_label_new_with_mnemonic (_("V_oicemail context"));
   gtk_table_attach ( GTK_TABLE( table ) , label , 0 , 1 , 5 , 6 , GTK_EXPAND | GTK_FILL , GTK_EXPAND | GTK_FILL , 0 , 0 );
   gtk_misc_set_alignment( GTK_MISC( label ) , 0 , 0.5 );
   wiz->sip_voicemail_context = gtk_combo_box_entry_new_text();
   gtk_combo_box_append_text( GTK_COMBO_BOX( wiz->sip_voicemail_context ) , "default" );
+  gtk_combo_box_set_active( GTK_COMBO_BOX( wiz->sip_voicemail_context ) , 0 );
   gtk_table_attach( GTK_TABLE( table ) , wiz->sip_voicemail_context , 1 , 2 , 5 , 6 , GTK_EXPAND | GTK_FILL , GTK_EXPAND | GTK_FILL , 0 , 0 );
 #endif
 

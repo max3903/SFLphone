@@ -248,7 +248,7 @@ int VMViewerd::exec(string cmd) {
 	string s( "wget -q -O " );
 	s.append( getFileStore() ); // save request to file
 	s.append( " \"" );
-	s.append( isHttpsEnabled() ? "https://" : "http://" ); // HTTPS or HTTP ?
+	s.append( isHttpsEnabled() ? "http://" : "https://" ); // HTTPS or HTTP ?
 	s.append( _context ); // user's asterisk context
 	s.append( "-" );
 	s.append( getLogVMail() ); // user's login/voicemail #
@@ -386,6 +386,10 @@ vector< string > VMViewerd::toFolderArrayString(string folder) {
 		}
 	}
 	return vec;
+}
+
+int VMViewerd::getErrorCount() {
+	return _error_list.size();
 }
 
 vector< string > VMViewerd::toErrorsArrayString() {

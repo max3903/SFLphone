@@ -26,16 +26,41 @@
       <arg type="as" name="list" direction="out"/>
     </method>
     
+    <!--
+     * GUI => sfkphoned
+     * Asks to play a voicemail
+    -->
     <method name="playVoicemail">
       <arg type="s" name="folderName" direction="in"/>
       <arg type="s" name="voicemailName" direction="in"/>
     </method>
     
+    <!--
+     * sflphoned => GUI
+     * Indicates that the voicemail is now playing
+    -->
     <signal name="voicemailPlaying"/>
     
+    <!--
+     * GUI => sflphoned
+     * Asks to stop listening to the current voicemail
+    -->
     <method name="stopVoicemail"/>
     
+    <!--
+     * sflphoned => GUI
+     * Indicates that the voicemail is now stopped
+    -->
     <signal name="voicemailStopped"/>
+    
+    <!--
+     * sflphoned => GUI
+     * Throws error(s) sflphoned or agent have found
+    -->
+    <signal name="throwError">
+      <arg type="s" name="error"/>
+    </signal>
+    
     
     <!-- VOICEMAIL CONFIGURATION -->
     <method name="isVoicemailServerEnabled">

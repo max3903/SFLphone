@@ -2,7 +2,8 @@
  *  Copyright (C) 2004-2008 Savoir-Faire Linux inc.
  *  Author: Yan Morin <yan.morin@savoirfairelinux.com>
  *  Author: Laurielle Lea <laurielle.lea@savoirfairelinux.com>
- *  Authoe: Emmanuel Milou <emmanuel.milou@savoirfairelinux.com>
+ *  Author: Emmanuel Milou <emmanuel.milou@savoirfairelinux.com>
+ *  Author: Florian Desportes <florian.desportes@savoirfairelinux.com>
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -98,6 +99,8 @@
 #define VOICEMAIL_PATH        "Voicemail.path"
 #define VOICEMAIL_PORT        "Voicemail.port"
 #define VOICEMAIL_USES_HTTPS  "Voicemail.usesHttps"
+
+#define VOICEMAIL_DEFAULT_PORT_STR "80"
 //#endif
 
 #endif // __USER_CFG_H__

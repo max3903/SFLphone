@@ -41,6 +41,9 @@ extern void g_cclosure_user_marshal_VOID__STRING_DOUBLE (GClosure     *closure,
                                                          gpointer      invocation_hint,
                                                          gpointer      marshal_data);
 
+/* VOID:STRING (marshaller.list:6) */
+#define g_cclosure_user_marshal_VOID__STRING	g_cclosure_marshal_VOID__STRING
+
 G_END_DECLS
 
 #endif /* __g_cclosure_user_marshal_MARSHAL_H__ */

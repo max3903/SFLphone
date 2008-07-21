@@ -5,6 +5,7 @@
  *  Author: Laurielle Lea <laurielle.lea@savoirfairelinux.com>
  *  Author: Emmanuel Milou <emmanuel.milou@savoirfairelinux.com>
  *  Author: Guillaume Carmel-Archambault <guillaume.carmel-archambault@savoirfairelinux.com>
+ *  Author: Florian Desportes <florian.desportes@savoirfairelinux.com>
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -986,6 +987,15 @@ ManagerImpl::initConfigFile (void)
   fill_config_int(CONFIG_VOLUME , YES_STR);
   fill_config_int(CONFIG_HISTORY , DFT_MAX_CALLS);
   fill_config_int(REGISTRATION_EXPIRE , DFT_EXPIRE_VALUE);
+  
+//#ifdef USE_VOICEMAIL
+  section = VOICEMAIL_CONFIG;
+  fill_config_int(VOICEMAIL_ENABLED, NO_STR);
+  fill_config_str(VOICEMAIL_ADDRESS, EMPTY_FIELD);
+  fill_config_str(VOICEMAIL_PATH, EMPTY_FIELD);
+  fill_config_int(VOICEMAIL_PORT, VOICEMAIL_DEFAULT_PORT_STR);
+  fill_config_int(VOICEMAIL_USES_HTTPS, NO_STR);
+//#endif
 
   // Loads config from ~/.sflphone/sflphonedrc or so..
   if (createSettingsPath() == 1) {
@@ -2138,7 +2148,7 @@ ManagerImpl::getAccountLink(const AccountID& accountID)
  * VOICEMAIL MANAGER *
  *********************/
 AccountID
-ManagerImpl::getCurrentAccountID() {
+ManagerImpl::getCurrentAccountID( void ) {
 	AccountID acc;
 	AccountMap::iterator it = _accountMap.begin();
 	while( it != _accountMap.end() ) {
@@ -2155,7 +2165,7 @@ ManagerImpl::getCurrentAccountID() {
 }
 
 VMViewerd *
-ManagerImpl::createVoicemailViewer() {
+ManagerImpl::createVoicemailViewer( void ) {
 	AccountID acc = getCurrentAccountID();
 	std::string acc_type = getConfigString( acc , CONFIG_ACCOUNT_TYPE );
 	std::string user = ( strcmp( getConfigString( acc , CONFIG_ACCOUNT_TYPE ).c_str() , "IAX" ) == 0 ?
@@ -2172,15 +2182,23 @@ ManagerImpl::createVoicemailViewer() {
 
 std::vector< ::DBus::String >
 ManagerImpl::getListFolders( void ) {
-//	std::cout << "getListFolders()" << std::endl;
-	AccountID acc = getCurrentAccountID();
 	std::vector< ::DBus::String > vec;
-//	if( acc ) {
+	AccountID acc = getCurrentAccountID();
+	if( acc != AccountNULL ) {
 		VMViewerd * vmv = createVoicemailViewer();
 		vmv->exec("");
 		vmv->parse();
+		std::cout << "#### NB ERRORS : " << vmv->getErrorCount() << std::endl;
+		if( int nb = vmv->getErrorCount() != 0 ) {
+			vector< string > vec = vmv->toErrorsArrayString();
+			for( int i = 0 ; i < nb ; i++ ) {
+				_dbus->getVoicemailManager()->throwError( vec.at(i) );
+			}
+		}
 		vec = vmv->toArrayString();
-//	}
+	} else {
+		_dbus->getVoicemailManager()->throwError("Error while identifying.\nPlease try again.");
+	}
 	return vec;
 }
 
@@ -2214,15 +2232,16 @@ ManagerImpl::getFolderCount( const ::DBus::String& folder ) {
 
 std::vector< ::DBus::String >
 ManagerImpl::getListErrors( void ) {
-//	std::cout << "getListErrors()" << std::endl;
 	AccountID acc = getCurrentAccountID();
 	std::vector< ::DBus::String > vec;
-//	if( acc != 0 ) {
+	if( acc != AccountNULL ) {
 		VMViewerd * vmv = createVoicemailViewer();
 		vmv->exec("");
 		vmv->parse();
 		vec = vmv->toErrorsArrayString();
-//	}
+	} else {
+		_dbus->getVoicemailManager()->throwError("Error while identifying.\nPlease try again.");
+	}
 	return vec;
 }
 
@@ -2298,12 +2317,12 @@ ManagerImpl::playVoicemail( const ::DBus::String& folderName , const ::DBus::Str
 }
 
 AudioMail *
-ManagerImpl::getVoicemailFile() {
+ManagerImpl::getVoicemailFile( void ) {
 	return _audiomail;
 }
 
 void
-ManagerImpl::stopVoicemail() {
+ManagerImpl::stopVoicemail( void ) {
 	AudioLayer *audiolayer = getAudioDriver();
 //	stopTone(true);
 //	_audiofile.stop();
@@ -2314,19 +2333,19 @@ ManagerImpl::stopVoicemail() {
 // VOICEMAIL CONFIGURATION
 //---------------------------
 ::DBus::Bool
-ManagerImpl::isVoicemailServerEnabled() {
+ManagerImpl::isVoicemailServerEnabled( void ) {
 	return getConfigInt( VOICEMAIL_CONFIG , VOICEMAIL_ENABLED );
 }
 
 void
-ManagerImpl::voicemailServerEnable() {
+ManagerImpl::voicemailServerEnable( void ) {
 	( getConfigString( VOICEMAIL_CONFIG , VOICEMAIL_ENABLED ) == YES_STR ?
 		setConfig( VOICEMAIL_CONFIG , VOICEMAIL_ENABLED , NO_STR ) :
 		setConfig( VOICEMAIL_CONFIG , VOICEMAIL_ENABLED , YES_STR ) );
 }
 
 ::DBus::String
-ManagerImpl::getVoicemailConfigAddress() {
+ManagerImpl::getVoicemailConfigAddress( void ) {
 	return getConfigString( VOICEMAIL_CONFIG , VOICEMAIL_ADDRESS );
 }
 
@@ -2337,7 +2356,7 @@ ManagerImpl::setVoicemailConfigAddress( const ::DBus::String& address ) {
 }
 
 ::DBus::String
-ManagerImpl::getVoicemailConfigPath() {
+ManagerImpl::getVoicemailConfigPath( void ) {
 	return getConfigString( VOICEMAIL_CONFIG , VOICEMAIL_PATH );
 }
 
@@ -2348,12 +2367,12 @@ ManagerImpl::setVoicemailConfigPath( const ::DBus::String& path ) {
 }
 
 ::DBus::Int32
-ManagerImpl::getVoicemailConfigPort() {
+ManagerImpl::getVoicemailConfigPort( void ) {
 	return getConfigInt( VOICEMAIL_CONFIG , VOICEMAIL_PORT );
 }
 
 ::DBus::String
-ManagerImpl::getVoicemailConfigPortString() {
+ManagerImpl::getVoicemailConfigPortString( void ) {
 	return getConfigString( VOICEMAIL_CONFIG , VOICEMAIL_PORT );
 }
 
@@ -2364,7 +2383,7 @@ ManagerImpl::setVoicemailConfigPort( const ::DBus::Int32& port ) {
 }
 
 ::DBus::Bool
-ManagerImpl::isVoicemailConfigHttpsEnabled() {
+ManagerImpl::isVoicemailConfigHttpsEnabled( void ) {
 	return getConfigInt( VOICEMAIL_CONFIG , VOICEMAIL_USES_HTTPS );
 }
 
@@ -2378,17 +2397,24 @@ ManagerImpl::voicemailConfigHttpsEnable( const ::DBus::Bool& enabled) {
 // VOICEMAIL SIGNALS
 //-------------------
 void
-ManagerImpl::voicemailPlaying(void) 
+ManagerImpl::voicemailPlaying( void ) 
 {
 	_debug("voicemailPlaying\n");
 	_dbus->getVoicemailManager()->voicemailPlaying();
 }
 
 void
-ManagerImpl::voicemailStopped(void) 
+ManagerImpl::voicemailStopped( void )
 {
 	_debug("voicemailStopped\n");
 	_dbus->getVoicemailManager()->voicemailStopped();
+}
+
+void
+ManagerImpl::throwError( const ::DBus::String& error )
+{
+	_debug("<<<<<< throwError >>>>>>\n");
+	_dbus->getVoicemailManager()->throwError( error );
 }
 //#endif
 

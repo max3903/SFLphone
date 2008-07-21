@@ -137,6 +137,11 @@ public:
         {
             { 0, 0, 0 }
         };
+        static ::DBus::IntrospectedArgument throwError_args[] = 
+        {
+            { "error", "s", false },
+            { 0, 0, 0 }
+        };
         static ::DBus::IntrospectedMethod VoicemailManager_methods[] = 
         {
             { "getListFolders", getListFolders_args },
@@ -162,6 +167,7 @@ public:
         {
             { "voicemailPlaying", voicemailPlaying_args },
             { "voicemailStopped", voicemailStopped_args },
+            { "throwError", throwError_args },
             { 0, 0 }
         };
         static ::DBus::IntrospectedProperty VoicemailManager_properties[] = 
@@ -219,6 +225,13 @@ public:
     void voicemailStopped(  )
     {
         ::DBus::SignalMessage sig("voicemailStopped");
+        emit_signal(sig);
+    }
+    void throwError( const ::DBus::String& arg1 )
+    {
+        ::DBus::SignalMessage sig("throwError");
+        ::DBus::MessageIter wi = sig.writer();
+        wi << arg1;
         emit_signal(sig);
     }
 

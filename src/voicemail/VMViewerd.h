@@ -99,6 +99,8 @@ class VMViewerd {
 		vector<string> toArrayString();
 		vector<string> toFolderArrayString(string);
 		string         getVoicemailInfo(string, string);
+		
+		int            getErrorCount();
 		vector<string> toErrorsArrayString();
 		void toString();
 		

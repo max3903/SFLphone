@@ -194,6 +194,14 @@ voicemail_stopped( DBusGProxy *proxy ,
 	voicemail_is_stopped();
 }
 
+static void
+voicemail_throw_error( DBusGProxy *proxy ,
+					   gchar * error )
+{
+	g_print("dbus - voicemail_throw_error(%s)", error);
+	voicemail_catch_error( *error );
+}
+
 gboolean 
 dbus_connect ()
 {
@@ -316,6 +324,13 @@ dbus_connect ()
     "voicemailStopped", G_TYPE_INVALID);
   dbus_g_proxy_connect_signal (voicemailManagerProxy,
     "voicemailStopped", G_CALLBACK(voicemail_stopped), NULL, NULL);
+  
+  dbus_g_object_register_marshaller(g_cclosure_user_marshal_VOID__STRING,
+          G_TYPE_NONE, G_TYPE_STRING, G_TYPE_INVALID);
+  dbus_g_proxy_add_signal (voicemailManagerProxy, 
+    "throwError", G_TYPE_NONE, G_TYPE_STRING, G_TYPE_INVALID);
+  dbus_g_proxy_connect_signal (voicemailManagerProxy,
+    "throwError", G_CALLBACK(voicemail_throw_error), NULL, NULL);
 #endif
 
   return TRUE;

@@ -74,7 +74,7 @@ $agent = new VMAgent($login, $pass, $context);
 $is_logged = $agent->login( $login , $pass , $context );
 
 if( $is_logged == FALSE ) {
-	echo "<login>ERROR</login>\n";
+	echo "<error>Login or password incorrect, try again</error>\n";
 }
 
 

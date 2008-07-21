@@ -40,7 +40,7 @@ class VoicemailManager :
 
 	public:
 		std::vector< ::DBus::String > getListFolders( void );
-		int getFolderCount( const ::DBus::String& );
+		int                           getFolderCount( const ::DBus::String& );
 		std::vector< ::DBus::String > getListMails( const ::DBus::String& );
 		std::vector< ::DBus::String > getListErrors( void );
 		::DBus::String                getVoicemailInfo( const ::DBus::String& , const ::DBus::String& );
