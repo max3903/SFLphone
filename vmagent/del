@@ -26,11 +26,19 @@
 //
 
 $arr = explode( "/" , substr( $_SERVER['PATH_INFO'] , 1 ) );
-$folder    = $arr[0];
-$voicemail = $arr[1];
+
+for( $i = 0 ; $i <= count( $arr ) ; $i++ ) {
+	echo "<arr$i>$arr[$i]</arr$i>";
+}
 
 echo "<deleted>";
-$agent->delete( $folder , $voicemail );
+if( count( $arr ) == 2 ) { // Delete a complete folder
+	$agent->deleteFolder( $arr[0] );
+} else if( count( $arr ) == 3 ) { // Delete a voicemail
+	$agent->delete( $arr[0] , $arr[1] );
+} else {
+	echo "<error>No folder and no voicemail given</error>";
+}
 echo "</deleted>\n";
 
 ?>

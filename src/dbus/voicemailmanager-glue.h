@@ -20,6 +20,8 @@ public:
     VoicemailManager()
     : ::DBus::InterfaceAdaptor("org.sflphone.SFLphone.VoicemailManager")
     {
+        register_method(VoicemailManager, openConnection, _openConnection_stub);
+        register_method(VoicemailManager, closeConnection, _closeConnection_stub);
         register_method(VoicemailManager, getListFolders, _getListFolders_stub);
         register_method(VoicemailManager, getFolderCount, _getFolderCount_stub);
         register_method(VoicemailManager, getListMails, _getListMails_stub);
@@ -41,6 +43,14 @@ public:
 
     ::DBus::IntrospectedInterface* const introspect() const 
     {
+        static ::DBus::IntrospectedArgument openConnection_args[] = 
+        {
+            { 0, 0, 0 }
+        };
+        static ::DBus::IntrospectedArgument closeConnection_args[] = 
+        {
+            { 0, 0, 0 }
+        };
         static ::DBus::IntrospectedArgument getListFolders_args[] = 
         {
             { "list", "as", false },
@@ -144,6 +154,8 @@ public:
         };
         static ::DBus::IntrospectedMethod VoicemailManager_methods[] = 
         {
+            { "openConnection", openConnection_args },
+            { "closeConnection", closeConnection_args },
             { "getListFolders", getListFolders_args },
             { "getFolderCount", getFolderCount_args },
             { "getListMails", getListMails_args },
@@ -195,6 +207,8 @@ public:
     /* methods exported by this interface,
      * you will have to implement them in your ObjectAdaptor
      */
+    virtual void openConnection(  ) = 0;
+    virtual void closeConnection(  ) = 0;
     virtual std::vector< ::DBus::String > getListFolders(  ) = 0;
     virtual ::DBus::Int32 getFolderCount( const ::DBus::String& folder ) = 0;
     virtual std::vector< ::DBus::String > getListMails( const ::DBus::String& folder ) = 0;
@@ -239,6 +253,22 @@ private:
 
     /* unmarshalers (to unpack the DBus message before calling the actual interface method)
      */
+    ::DBus::Message _openConnection_stub( const ::DBus::CallMessage& call )
+    {
+        ::DBus::MessageIter ri = call.reader();
+
+        openConnection();
+        ::DBus::ReturnMessage reply(call);
+        return reply;
+    }
+    ::DBus::Message _closeConnection_stub( const ::DBus::CallMessage& call )
+    {
+        ::DBus::MessageIter ri = call.reader();
+
+        closeConnection();
+        ::DBus::ReturnMessage reply(call);
+        return reply;
+    }
     ::DBus::Message _getListFolders_stub( const ::DBus::CallMessage& call )
     {
         ::DBus::MessageIter ri = call.reader();

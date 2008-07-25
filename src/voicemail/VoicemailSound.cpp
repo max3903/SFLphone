@@ -28,18 +28,17 @@ VoicemailSound::VoicemailSound() {
 }
 
 VoicemailSound::~VoicemailSound() {
-//	std::cout << "~VoicemailSound" << std::endl;
 }
 
-void VoicemailSound::setFormat(std::string form) {
+void VoicemailSound::setFormat(const std::string& form) {
 	_format = form;
 }
 
-void VoicemailSound::setFile(std::string fil) {
+void VoicemailSound::setFile(const std::string& fil) {
 	_file = fil;
 }
 
-void VoicemailSound::setFolder(std::string fol) {
+void VoicemailSound::setFolder(const std::string& fol) {
 	_folder = fol;
 }
 
@@ -47,23 +46,69 @@ std::string VoicemailSound::getFormat() {
 	return _format;
 }
 
-void VoicemailSound::setDatas( std::string dat ) {
+void VoicemailSound::setDatas(const std::string& dat) {
 	_datas = dat;
 }
 
+std::string VoicemailSound::decode() {
+	/** Code is part of Base64, here is original file header */
+	/*********************************************************************
+	* Base64 - a simple base64 encoder and decoder.
+	*
+	* Copyright (c) 1999, Bob Withers - bwit@pobox.com
+	*
+	* This code may be freely used for any purpose, either personal
+	* or commercial, provided the authors copyright notice remains
+	* intact.
+	*********************************************************************/
+	/*********************************************************************
+	* file altered by : Christophe Tournayre
+	*********************************************************************/
+	string::size_type i;
+	char c;
+	char c1;
+	string::size_type len = _datas.length();
+	string ret;
 
-std::string VoicemailSound::toDecodeString() {
-	std::string decoded = Base64::decode( _datas );
+	for( i = 0 ; i < len ; ++i ) {
+		c = (char) cvt.find(_datas[i]);
+		++i;
+		c1 = (char) cvt.find(_datas[i]);
+		c = (c << 2) | ((c1 >> 4) & 0x3);
+		ret.append(1, c);
+		if (++i < len) {
+			c = _datas[i];
+			if (fillchar == c)
+				break;
+			c = (char) cvt.find(c);
+			c1 = ((c1 << 4) & 0xf0) | ((c >> 2) & 0xf);
+			ret.append(1, c1);
+		}
+		if (++i < len) {
+			c1 = _datas[i];
+			if (fillchar == c1)
+				break;
+			c1 = (char) cvt.find(c1);
+			c = ((c << 6) & 0xc0) | c1;
+			ret.append(1, c);
+		}
+	}
+	return ret;
+}
+
+
+/*std::string VoicemailSound::toDecodeString() {
+	std::string decoded = Base64::decode(_datas);
 	std::ofstream file;
 
-	std::string filename = "/tmp/"+ _file +"."+ _format;
+	std::string filename("/tmp/"+ _file +"."+ _format);
 	cout << "created : " << filename << endl;
-	file.open( filename.c_str() , fstream::out );
+	file.open(filename.c_str(), fstream::out);
 	file << decoded;
 	file.close();
 
 	return decoded;
-}
+}*/
 
 
 std::string VoicemailSound::toString() {

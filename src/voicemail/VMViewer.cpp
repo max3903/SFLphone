@@ -23,8 +23,6 @@
 #include <fstream>  // To read xml file
 #include "VMViewer.h"
 
-using namespace std;
-
 VoicemailFolder *vmf;
 Voicemail       *vm;
 VoicemailSound  *vms;
@@ -35,12 +33,12 @@ string          eltValue;
  * XML HANDLERS *
  ****************/
 void startElement(void *userData, const XML_Char *name, const XML_Char **atts) {
+	VMViewer *vmv = (VMViewer *)userData;
 	if( strcmp(name, "result") == 0 ) {
-//		cout << "<result>" << endl;
+//		std::cout << "<result>" << std::endl;
 	}
 	else if( strcmp(name, "directory") == 0 ) {
-//		cout << "<directory>" << endl;
-//		vmf = new VoicemailFolder();
+//		std::cout << "<directory>" << std::endl;
 		bool value = false; // To know if parsing name or value
 		const char** attribute;
 		for( attribute = atts ; *attribute ; attribute++ ) {
@@ -48,8 +46,13 @@ void startElement(void *userData, const XML_Char *name, const XML_Char **atts) {
 				// Parsing a value so its name is the previous string
 				const char* attributeName = *(attribute-1);
 				if( strcmp(attributeName, "name") == 0 ) {
-					vmf = vm->getFolderByName(*attribute);
-//					vmf->setName(*attribute);
+					// If a folder doesn't exist
+					if( vmv->getFolderByName(*attribute) == NULL ) {
+						vmf = new VoicemailFolder();
+						vmf->setName(*attribute);
+					} else {
+						vmf = vmv->getFolderByName(*attribute);
+					}
 				}
 				else if( strcmp(attributeName, "count") == 0 ) {
 					vmf->setCount(atoi(*attribute));
@@ -58,20 +61,19 @@ void startElement(void *userData, const XML_Char *name, const XML_Char **atts) {
 			// Alterning between name and value
 			value = ! value;
 		}
-		cout << "created new VoicemailFolder : " << vmf->toString() << endl;
 	}
-	else if( strcmp( name , "voicemail" ) == 0 ) {
-//		cout << "<voicemail>" << endl;
+	else if( strcmp(name, "voicemail") == 0 ) {
+//		std::cout << "<voicemail>" << std::endl;
 		vm = new Voicemail();
 	}
-	else if( strcmp( name , "deleted" ) == 0 ) {
-//		cout << "<deleted>" << endl;
+	else if( strcmp(name, "deleted") == 0 ) {
+//		std::cout << "<deleted>" << std::endl;
 	}
-	else if( strcmp( name , "renamed" ) == 0 ) {
-//		cout << "<renamed>" << endl;
+	else if( strcmp(name, "renamed") == 0 ) {
+//		std::cout << "<renamed>" << std::endl;
 	}
-	else if( strcmp( name , "sound" ) == 0 ) {
-//		cout << "<sound>" << endl;
+	else if( strcmp(name, "sound") == 0 ) {
+//		std::cout << "<sound>" << std::endl;
 		vms = new VoicemailSound();
 		bool value = false;		// To know if parsing name or value
 		const char** attribute;
@@ -79,121 +81,121 @@ void startElement(void *userData, const XML_Char *name, const XML_Char **atts) {
 			if( value ) {
 				// Parsing a value so its name is the previous string
 				const char* attributeName = *(attribute-1);
-				if( strcmp( attributeName , "folder" ) == 0 ) {
-					vms->setFolder( *attribute );
+				if( strcmp(attributeName, "folder") == 0 ) {
+					vms->setFolder(*attribute);
 				}
-				else if( strcmp( attributeName , "file" ) == 0 ) {
-					vms->setFile( *attribute );
+				else if( strcmp(attributeName, "file") == 0 ) {
+					vms->setFile(*attribute);
 				}
-				else if( strcmp( attributeName , "format" ) == 0 ) {
-					vms->setFormat( *attribute );
+				else if( strcmp(attributeName, "format") == 0 ) {
+					vms->setFormat(*attribute);
 				}
 			}
 			// Alterning between name and value
 			value = ! value;
 		}
 	}
-	else if( strcmp( name , "error" ) == 0 ) {
-//		cout << "<error>" << endl;
+	else if( strcmp(name, "error") == 0 ) {
+//		std::cout << "<error>" << std::endl;
 	}
-	else if( strcmp( name , "error-message" ) == 0 ) {
-//		cout << "<error-message>" << endl;
+	else if( strcmp(name, "error-message") == 0 ) {
+//		std::cout << "<error-message>" << std::endl;
 	}
 	else {
-//		cout << "<" << name << ">" << endl;
-		if( strcmp( name , "name" ) == 0 ) {
-//			cout << "voicemail name : " << eltValue << endl;
-			vm->setName( eltValue );
+//		std::cout << "<" << name << ">" << std::endl;
+		if( strcmp(name, "name") == 0 ) {
+//			std::cout << "voicemail name : " << eltValue << std::endl;
+			vm->setName(eltValue);
 			eltValue.clear();
 		}
 	}
 }
 
 
-void endElement( void *userData , const XML_Char *name ) {
+void endElement(void *userData, const XML_Char *name) {
 	VMViewer *vmv = (VMViewer *)userData;
-	if( strcmp( name , "result" ) == 0 ) {
-//		cout << "</result>" << endl;
+	if( strcmp(name, "result") == 0 ) {
+//		std::cout << "</result>" << std::endl;
 	}
-	else if( strcmp( name , "directory" ) == 0 ) {
-//		cout << "</directory>" << endl;
-		vmv->addVMF( vmf );
+	else if( strcmp(name, "directory") == 0 ) {
+//		std::cout << "</directory>" << std::endl;
+		vmv->addVMF(vmf);
 		vmf = NULL;
 	}
-	else if( strcmp( name , "voicemail" ) == 0 ) {
-//		cout << "</voicemail>" << endl;
-		vmf->addVM( vm );
+	else if( strcmp(name, "voicemail") == 0 ) {
+//		std::cout << "</voicemail>" << std::endl;
+		vmf->addVM(vm);
 		vm = NULL;
 	}
-	else if( strcmp( name , "deleted" ) == 0 ) {
-//		cout << "</deleted>" << endl;
+	else if( strcmp(name, "deleted") == 0 ) {
+//		std::cout << "</deleted>" << std::endl;
 	}
-	else if( strcmp( name , "renamed" ) == 0 ) {
-//		cout << "</renamed>" << endl;
+	else if( strcmp(name, "renamed") == 0 ) {
+//		std::cout << "</renamed>" << std::endl;
 	}
-	else if( strcmp( name , "sound" ) == 0 ) {
-		vms->setDatas( eltValue );
-		vmv->addVMS( vms );
+	else if( strcmp(name, "sound") == 0 ) {
+		vms->setDatas(eltValue);
+		vmv->addVMS(vms);
 		vms = NULL;
 	}
-	else if( strcmp( name , "error" ) == 0 ) {
-//		cout << "</error>" << endl;
-//		cout << "error : " << eltValue << endl;
-		vmv->addError( eltValue );
+	else if( strcmp(name, "error") == 0 ) {
+//		std::cout << "</error>" << std::endl;
+//		std::cout << "error : " << eltValue << std::endl;
+		vmv->addError(eltValue);
 	}
-	else if( strcmp( name , "error-message" ) == 0 ) {
-//		cout << "</error-message>" << endl;
-		vmv->addError( eltValue );
+	else if( strcmp(name, "error-message") == 0 ) {
+//		std::cout << "</error-message>" << std::endl;
+		vmv->addError(eltValue);
 	}
 	else {
 		/** VOICEMAIL'S INFORMATIONS */
-//		cout << "endElement, value : " << eltValue << endl;
-//		cout << "</" << name << ">" << endl;
-		if( strcmp( name , "name" ) == 0 ) {
-			vm->setName( eltValue );
+//		std::cout << "endElement, value : " << eltValue << std::endl;
+//		std::cout << "</" << name << ">" << std::endl;
+		if( strcmp(name, "name") == 0 ) {
+			vm->setName(eltValue);
 		}
-		if( strcmp( name , "id" ) == 0 ) {
-			vm->setId( atoi( eltValue.c_str() ) );
+		if( strcmp(name, "id") == 0 ) {
+			vm->setId(atoi(eltValue.c_str()));
 		}
-		if( strcmp( name , "callerchan" ) == 0 ) {
-			vm->setCallerchan( eltValue );
+		if( strcmp(name, "callerchan") == 0 ) {
+			vm->setCallerchan(eltValue);
 		} 
-        if( strcmp( name , "callerid" ) == 0 ) {
-			vm->setCallerid( eltValue.c_str() );
+        if( strcmp(name, "callerid") == 0 ) {
+			vm->setCallerid(eltValue.c_str());
 		}
-		if( strcmp( name , "category" ) == 0 ) {
-			vm->setCategory( eltValue );
+		if( strcmp(name, "category") == 0 ) {
+			vm->setCategory(eltValue);
 		}
-		if( strcmp( name , "context" ) == 0 ) {
-			vm->setContext( eltValue );
+		if( strcmp(name, "context") == 0 ) {
+			vm->setContext(eltValue);
 		}
-		if( strcmp( name , "duration" ) == 0 ) {
-			vm->setDuration( atoi( eltValue.c_str() ) );
+		if( strcmp(name, "duration") == 0 ) {
+			vm->setDuration(atoi(eltValue.c_str()));
 		}
-		if( strcmp( name , "exten" ) == 0 ) {
-			vm->setExten( eltValue );
+		if( strcmp(name, "exten") == 0 ) {
+			vm->setExten(eltValue);
 		}
-		if( strcmp( name , "macrocontext" ) == 0 ) {
-			vm->setMacrocontext( eltValue );
+		if( strcmp(name, "macrocontext") == 0 ) {
+			vm->setMacrocontext(eltValue);
 		}
-		if( strcmp( name , "origdate" ) == 0 ) {
-			vm->setOrigdate( eltValue );
+		if( strcmp(name, "origdate") == 0 ) {
+			vm->setOrigdate(eltValue);
 		}
-		if( strcmp( name , "origmailbox" ) == 0 ) {
-			vm->setOrigmailbox( atoi( eltValue.c_str() ) );
+		if( strcmp(name, "origmailbox") == 0 ) {
+			vm->setOrigmailbox(atoi(eltValue.c_str()));
 		}
-		if( strcmp( name , "origtime" ) == 0 ) {
-			vm->setOrigtime( atoi( eltValue.c_str() ) );
+		if( strcmp(name, "origtime") == 0 ) {
+			vm->setOrigtime(atoi(eltValue.c_str()));
 		}
-		if( strcmp( name , "priority" ) == 0 ) {
-			vm->setPriority( atoi( eltValue.c_str() ) );
+		if( strcmp(name, "priority") == 0 ) {
+			vm->setPriority(atoi(eltValue.c_str()));
 		}
 		eltValue.clear();
 	}
 }
 
-void character( void *userData , const char *s , int len ) {
-	eltValue = string( s , len );
+void character(void *userData, const char *s, int len) {
+	eltValue = string(s, len);
 }
 
 
@@ -220,38 +222,44 @@ VMViewer::VMViewer( string logVM,
 };
 
 VMViewer::~VMViewer() {
-//	cout << "~VMViewer" << endl;
+//	std::cout << "~VMViewer" << std::endl;
 	g_thread_exit(NULL);
 }
 
 const string VMViewer::createRequest(const string& command) {
-	string s( isHttpsEnabled() ? "http://" : "https://" ); // HTTPS or HTTP ?
-	s.append( _context ); // user's asterisk context
-	s.append( "-" );
-	s.append( getLogVMail() ); // user's login/voicemail #
-	s.append( ":" );
-	s.append( getPwdVMail() ); // user's passcode to voicemail system
-	s.append( "@" );
-	s.append( _srvAddr ); // asterisk's ip address
-	s.append( ":" );
-	s.append( getSrvPort() ); // asterisk's ip port
-	s.append( "/" );
-	s.append( _srvPath ); // asterisk's path to webservice
-	s.append( "/" );
-	s.append( command ); // command to execute (e.g. list, sound, del, etc.)
+	string s(isHttpsEnabled() ? "http://" : "https://"); // HTTPS or HTTP ?
+	s.append(_context); // user's asterisk context
+	s.append("-");
+	s.append(getLogVMail()); // user's login/voicemail #
+	s.append(":");
+	s.append(getPwdVMail()); // user's passcode to voicemail system
+	s.append("@");
+	s.append(_srvAddr); // asterisk's ip address
+	s.append(":");
+	s.append(getSrvPort()); // asterisk's ip port
+	s.append("/");
+	s.append(_srvPath); // asterisk's path to webservice
+	s.append("/");
+	s.append(command); // command to execute (e.g. list, sound, del, etc.)
 	return s;
 }
 
-int VMViewer::exec(string cmd) {
+int VMViewer::exec(const string& cmd) {
 	// Sets the unix following command :
 	// wget -q -O <path_to_file_to_store_received_datas> "http{s}://<context>-<user_login>:<user_password>@<full_server_address>/<cmd>"
-	string s( "wget -q -O " );
-	s.append( getFileStore() ); // save request to file
-	s.append( " \"" );
-	s.append( createRequest(cmd) );
-	s.append( "\"" );
-	cout << "exec : " << s.c_str() << endl;
-	return system( s.c_str() );
+	string s("wget -q -O ");
+	s.append(getFileStore()); // save request to file
+	s.append(" \"");
+	s.append(createRequest(cmd));
+	s.append("\"");
+	std::cout << "exec : " << s.c_str() << std::endl;
+	return system(s.c_str());
+}
+
+void VMViewer::removeAll(void) {
+	_lst_folders.clear();
+	_lst_sounds.clear();
+	_error_list.clear();
 }
 
 void VMViewer::parse() {
@@ -261,7 +269,7 @@ void VMViewer::parse() {
 	int length;
 
 	// Opens XML file stored in _fileStore instance var, usually /tmp/sflphone_vm
-	file.open( getFileStore().c_str(), fstream::in );
+	file.open(getFileStore().c_str(), fstream::in);
 
 	// Gets length of file:
 	file.seekg(0, ios::end);
@@ -275,22 +283,22 @@ void VMViewer::parse() {
 	XML_Parser parser = XML_ParserCreate(NULL);
 
 	// Sets functions that will be called when parsing elements and character data
-	XML_SetElementHandler( parser, startElement , endElement );
-	XML_SetCharacterDataHandler( parser, character );
-	XML_SetUserData( parser , this );
+	XML_SetElementHandler(parser, startElement, endElement);
+	XML_SetCharacterDataHandler(parser, character);
+	XML_SetUserData(parser, this);
 
 	// Parses the data
 	file.read(buf, length);
-	//cout << "file : " << buf << endl;
+	//std::cout << "file : " << buf << endl;
 	if( XML_Parse(parser, buf, length, 0) == XML_STATUS_ERROR ) {
-		cout << " ERRORR reading file..." << endl;
-		cout << XML_ErrorString( XML_GetErrorCode( parser ) ) << endl;
+		std::cout << " ERRORR reading file..." << std::endl;
+		std::cout << XML_ErrorString(XML_GetErrorCode(parser)) << std::endl;
 	}
 	
 	file.close();
 	delete[] buf;
 
-	XML_ParserFree( parser );
+	XML_ParserFree(parser);
 }
 
 
@@ -299,8 +307,6 @@ bool VMViewer::execAndParse(const string& command) {
 	SoupMessage *msg;
 	guint       status;
 
-/*	g_thread_init(NULL);
-	g_type_init();*/
 	std::cout << "execAndParse(" << command << ")  ==>  " << createRequest(command) << std::endl;
 	
 	session = soup_session_sync_new();
@@ -318,8 +324,8 @@ bool VMViewer::execAndParse(const string& command) {
 
 		// Parses the data
 		if( XML_Parse(parser, msg->response_body->data, strlen(msg->response_body->data), 0) == XML_STATUS_ERROR ) {
-			cout << " ERRORR reading file..." << endl;
-			cout << XML_ErrorString(XML_GetErrorCode(parser)) << endl;
+			std::cout << " ERRORR reading file..." << std::endl;
+			std::cout << XML_ErrorString(XML_GetErrorCode(parser)) << std::endl;
 		}
 	
 		XML_ParserFree(parser);
@@ -337,6 +343,10 @@ string VMViewer::getLogVMail() {
 string VMViewer::getPwdVMail() {
 	return _pwdVMail;
 }
+		
+string VMViewer::getContext() {
+	return _context;
+}
 
 string VMViewer::getSrvPort() {
 	return _srvPort;
@@ -344,6 +354,30 @@ string VMViewer::getSrvPort() {
 
 string VMViewer::getFileStore() {
 	return _file_store;
+}
+
+void VMViewer::setLogVMail(const string& log) {
+	_logVMail = log;
+}
+
+void VMViewer::setPwdVMail(const string& pass) {
+	_pwdVMail = pass;
+}
+
+void VMViewer::setContext(const string& ctxt) {
+	_context = ctxt;
+}
+
+void VMViewer::setHttpsEnabled(bool enable) {
+	_srvUsesHttps = enable;
+}
+
+void VMViewer::setSrvAddr(const string& addr) {
+	_srvAddr = addr;
+}
+
+void VMViewer::setSrvPath(const string& path) {
+	_srvPath = path;
 }
 
 vector<VoicemailFolder *> VMViewer::getLstFolders() {
@@ -358,9 +392,9 @@ VoicemailFolder * VMViewer::getFolderAt(int i) {
 	}
 }
 
-VoicemailFolder * VMViewer::getFolderByName(string name) {
+VoicemailFolder * VMViewer::getFolderByName(const string& name) {
 	for( int i = 0 ; i < getLstFolders().size() ; i++ ) {
-		if( getFolderAt(i)->getName().compare( name ) == 0 ) {
+		if( getFolderAt(i)->getName().compare(name) == 0 ) {
 			return getFolderAt(i);
 		}
 	}
@@ -368,11 +402,14 @@ VoicemailFolder * VMViewer::getFolderByName(string name) {
 }
 
 void VMViewer::addVMF(VoicemailFolder *vmf) {
-	_lst_folders.push_back( vmf );
+	/** Checks whether or not the folder already exists */
+	if( getFolderByName(vmf->getName()) == NULL ) {
+		_lst_folders.push_back(vmf);
+	}
 }
 
 //bool VMViewer::removeVMF(VoicemailFolder vmf) {
-//	return _lst_folders.erase( vmf );
+//	return _lst_folders.erase(vmf);
 //}
 
 vector<VoicemailSound *> VMViewer::getLstSounds() {
@@ -388,9 +425,9 @@ VoicemailSound * VMViewer::getSoundAt(int i) {
 }
 
 VoicemailSound * VMViewer::getSoundByExt(const string& extension) {
-	for(int i = 0 ; i < _lst_sounds.size() ; i++ ) {
-		if( _lst_sounds[i]->getFormat().compare( extension ) == 0 ) {
-			cout << "##### found " << extension << endl;
+	for( int i = 0 ; i < _lst_sounds.size() ; i++ ) {
+		if( _lst_sounds[i]->getFormat().compare(extension) == 0 ) {
+			std::cout << "##### found " << extension << std::endl;
 			return _lst_sounds[i];
 		}
 	}
@@ -399,10 +436,10 @@ VoicemailSound * VMViewer::getSoundByExt(const string& extension) {
 
 
 void VMViewer::addVMS(VoicemailSound * vms) {
-	_lst_sounds.push_back( vms );
+	_lst_sounds.push_back(vms);
 }
 
-int VMViewer::getFolderCount(string folder) {
+int VMViewer::getFolderCount(const string& folder) {
 	VoicemailFolder * vmf;
 	if( (vmf = getFolderByName(folder)) != NULL ) {
 		return vmf->getCount();
@@ -411,27 +448,27 @@ int VMViewer::getFolderCount(string folder) {
 	}
 }
 
-void VMViewer::addError(string err) {
-	_error_list.push_back( err );
+void VMViewer::addError(const string& err) {
+	_error_list.push_back(err);
 }
 
 
 vector< string > VMViewer::toArrayString() {
-	int i,j;
+	int i, j;
 	vector<string> vec;
 	if( getLstFolders().size() != 0 ) {
 		for( i=0 ; i<=getLstFolders().size()-1 ; i++ ) {
-			vec.push_back( getFolderAt(i)->toString() );
+			vec.push_back(getFolderAt(i)->toString());
 		}
 	}
 	return vec;
 }
 
-string VMViewer::getVoicemailInfo(string folder, string name) {
+string VMViewer::getVoicemailInfo(const string& folder, const string& name) {
 	string st("");
-	VoicemailFolder * vmf = getFolderByName( folder );
+	VoicemailFolder * vmf = getFolderByName(folder);
 	if( vmf != NULL ) {
-		Voicemail * v = vmf->getVMByName( name );
+		Voicemail * v = vmf->getVMByName(name);
 		if( v != NULL ) {
 			st = v->toString();
 		}
@@ -439,13 +476,13 @@ string VMViewer::getVoicemailInfo(string folder, string name) {
 	return st;
 }
 
-vector< string > VMViewer::toFolderArrayString(string folder) {
+vector< string > VMViewer::toFolderArrayString(const string& folder) {
 	int i,j;
 	vector<string> vec;
 	VoicemailFolder * vmf;
 	if( (vmf = getFolderByName(folder) ) != NULL ) {
-		for( i=0 ; i<=vmf->getCount()-1 ; i++ ) {
-			vec.push_back( vmf->getVMAt(i)->toShortString() );
+		for( i = 0 ; i <= vmf->getCount()-1 ; i++ ) {
+			vec.push_back(vmf->getVMAt(i)->toShortString());
 		}
 	}
 	return vec;
@@ -461,22 +498,22 @@ vector< string > VMViewer::toErrorsArrayString() {
 
 
 void VMViewer::toString() {
-	int i,j;
-	cout << "VMViewer" << endl;
+	int i, j;
+	std::cout << "VMViewer" << std::endl;
 	if( getLstFolders().size() != 0 ) {
-		cout << " '-VOICEMAIL FOLDERS" << endl;
-		for( i=0 ; i<=getLstFolders().size()-1 ; i++ ) {
-			getFolderAt(i)->toString();
-			for( j=0 ; j<=getFolderAt(i)->getCount()-1 ; j++ ) {
-				getFolderAt(i)->getVMAt(j)->toShortString();
-			}
+		std::cout << " '-VOICEMAIL FOLDERS (" << getLstFolders().size() << ")" << std::endl;
+		for( i = 0 ; i <= getLstFolders().size()-1 ; i++ ) {
+			std::cout << "   '- " << getFolderAt(i)->toString() << " (" << getFolderAt(i)->getCount() << ")" << std::endl;
+//			for( j=0 ; j<=getFolderAt(i)->getCount()-1 ; j++ ) {
+//				std::cout << "      '- " << getFolderAt(i)->getVMAt(j)->toString() << std::endl;
+//			}
 		}
 	}
-	if( getLstSounds().size() != 0 ) {
-		cout << " '-VOICEMAIL SOUNDS" << endl;
+/*	if( getLstSounds().size() != 0 ) {
+		std::cout << " '-VOICEMAIL SOUNDS" << std::endl;
 		for( i=0 ; i<=getLstSounds().size()-1 ; i++ ) {
-			getSoundAt(i)->toString();
+			std::cout << getSoundAt(i)->toString() << std::endl;
 		}
-	}
+	}*/
 }
 

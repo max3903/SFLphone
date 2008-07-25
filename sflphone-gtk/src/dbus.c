@@ -180,6 +180,7 @@ error_alert(DBusGProxy *proxy,
   sflphone_throw_exception( errCode );
 }
 
+#ifdef USE_VOICEMAIL
 static void
 voicemail_playing( DBusGProxy *proxy ,
 				   void * foo )
@@ -198,9 +199,9 @@ static void
 voicemail_throw_error( DBusGProxy *proxy ,
 					   gchar * error )
 {
-	g_print("dbus - voicemail_throw_error(%s)", error);
-	voicemail_catch_error( *error );
+	voicemail_catch_error( error );
 }
+#endif
 
 gboolean 
 dbus_connect ()
@@ -328,7 +329,7 @@ dbus_connect ()
   dbus_g_object_register_marshaller(g_cclosure_user_marshal_VOID__STRING,
           G_TYPE_NONE, G_TYPE_STRING, G_TYPE_INVALID);
   dbus_g_proxy_add_signal (voicemailManagerProxy, 
-    "throwError", G_TYPE_NONE, G_TYPE_STRING, G_TYPE_INVALID);
+    "throwError", G_TYPE_STRING, G_TYPE_INVALID);
   dbus_g_proxy_connect_signal (voicemailManagerProxy,
     "throwError", G_CALLBACK(voicemail_throw_error), NULL, NULL);
 #endif
@@ -1486,6 +1487,40 @@ dbus_get_mail_notify( void )
 /********************
  * VOICEMAIL VIEWER *
  ********************/
+void
+dbus_open_connection(void)
+{
+	GError* error = NULL;
+	org_sflphone_SFLphone_VoicemailManager_open_connection(
+			voicemailManagerProxy,
+			&error);
+	if(error)
+	{
+		g_error_free(error);
+	}
+	else
+		g_print("Called dbus_open_connexion\n");
+}
+
+void
+dbus_close_connection(void)
+{
+	g_print("Before dbus_close_connection\n");
+	GError* error = NULL;
+	org_sflphone_SFLphone_VoicemailManager_close_connection(
+			voicemailManagerProxy,
+			&error);
+	if(error)
+	{
+		g_error_free(error);
+	}
+	else
+		g_print("Called dbus_close_connexion\n");
+}
+
+/*********************
+ * VOICEMAIL METHODS *
+ *********************/
 gchar**
 dbus_get_list_folders( void )
 {

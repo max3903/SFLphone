@@ -18,7 +18,7 @@
  */
 
 #ifndef __VoicemailFolder_H_
-#define __VoicemailFolder_H_
+#define __VoicemailFolder_H_ 1
 
 #include <string>
 #include <vector>
@@ -32,24 +32,27 @@ class VoicemailFolder {
 		int                      _count;
 	
 	public :
+		/** Cstor / Dstor */
 		VoicemailFolder();
 		~VoicemailFolder();
 		
-		void        setName(std::string);
+		/** Getters / Setters */
+		void        setName(const std::string&);
 		std::string getName();
 		
 		void        setCount(int);
 		int         getCount();
 		std::string getCountString();
-
+		
+		/** Dealing with voicemail */
 		std::vector<Voicemail *> getLstVM();
 		void                     addVM(Voicemail *);
 		bool                     removeVM(Voicemail *);
 		Voicemail *              getVMAt(int);
-		Voicemail *              getVMByName(std::string);
+		Voicemail *              getVMByName(const std::string&);
 		
+		/** ToString */
 		std::string toString();
-
 };
 
 #endif

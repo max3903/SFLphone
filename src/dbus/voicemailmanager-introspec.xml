@@ -1,7 +1,13 @@
 <?xml version="1.0" ?>
 <node name="/org/sflphone/SFLphone">
   <interface name="org.sflphone.SFLphone.VoicemailManager">
-  
+    
+    <!-- OPEN/CLOSE VOICEMAIL CONNEXION -->
+    <method name="openConnection"/>
+    
+    <method name="closeConnection"/>
+    
+    <!-- METHODS -->
     <method name="getListFolders">
       <arg type="as" name="list" direction="out"/>
     </method>

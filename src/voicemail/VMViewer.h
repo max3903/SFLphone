@@ -18,7 +18,7 @@
  */
 
 #ifndef __VMViewer_H_
-#define __VMViewer_H_
+#define __VMViewer_H_ 1
 
 #include <string>
 #include <vector>
@@ -66,15 +66,22 @@ class VMViewer {
 		
 		/** Getters / Setters */
 		string getLogVMail();
-		void   setLogVMail(string);
+		void   setLogVMail(const string&);
 		
 		string getPwdVMail();
-		void   setPwdVMail(string);
+		void   setPwdVMail(const string&);
+		
+		string getContext();
+		void   setContext(const string&);
 		
 		bool isHttpsEnabled() { return _srvUsesHttps; };
+		void setHttpsEnabled(bool);
 		
 		string getSrvAddr();
-		void   setSrvAddr(string);
+		void   setSrvAddr(const string&);
+		
+		string getSrvPath();
+		void   setSrvPath(const string&);
 		
 		string      getSrvPort();
 		inline void setSrvPort(string p) { _srvPort = p; };
@@ -108,10 +115,10 @@ class VMViewer {
 		
 		/** Dealing with agent */
 		const string createRequest(const string&);
-		int          exec(string);
+		int          exec(const string&);
 		void         parse();
 		bool         execAndParse(const string&);
-		void         extrat();
+		void         removeAll(void);
 		
 };
 

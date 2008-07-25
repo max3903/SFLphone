@@ -18,10 +18,9 @@
  */
 
 #ifndef __VoicemailSound_H_
-#define __VoicemailSound_H_
+#define __VoicemailSound_H_ 1
 
 #include <string>
-//#include "base64.h"
 
 class VoicemailSound {
 	
@@ -32,18 +31,22 @@ class VoicemailSound {
 		std::string _datas;
 	
 	public :
+		/** Cstor / Dstor */
 		VoicemailSound();
 		~VoicemailSound();
 		
-		void        setFormat(std::string);
+		/** Getters / Setters */
+		void        setFormat(const std::string&);
 		std::string getFormat();
-		void        setFolder(std::string);
+		void        setFolder(const std::string&);
 		std::string getFolder();
-		void        setFile(std::string);
+		void        setFile(const std::string&);
 		std::string getFile();
-		void        setDatas(std::string);
+		void        setDatas(const std::string&);
 		
-		std::string toDecodeString();
+		/** Dealing with data which represent the audio file */
+		std::string decode();
+		//std::string toDecodeString();
 		std::string toString();
 
 };

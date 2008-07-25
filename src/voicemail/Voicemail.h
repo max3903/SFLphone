@@ -18,7 +18,7 @@
  */
 
 #ifndef __Voicemail_H_
-#define __Voicemail_H_
+#define __Voicemail_H_ 1
 
 #include <string>
 #include <vector>
@@ -45,24 +45,26 @@ class Voicemail {
 		std::vector<VoicemailSound *> _lst_sounds;
 
 	public :
+		/** Cstor / Dstor */
 		Voicemail();
 		~Voicemail();
 		
+		/** Getters / Setters */
 		std::string getIdString();
 		void        setId(int);
-		void        setCallerchan(std::string);
+		void        setCallerchan(const std::string&);
 		std::string getCallerid();
-		void        setCallerid(std::string);
-		void        setCategory(std::string);
-		void        setContext(std::string);
+		void        setCallerid(const std::string&);
+		void        setCategory(const std::string&);
+		void        setContext(const std::string&);
 		std::string getDurationString();
 		void        setDuration(int);
-		void        setExten(std::string);
-		void        setMacrocontext(std::string);
-		void        setName(std::string);
+		void        setExten(const std::string&);
+		void        setMacrocontext(const std::string&);
+		void        setName(const std::string&);
 		std::string getName();
 		std::string getOrigdate();
-		void        setOrigdate(std::string);
+		void        setOrigdate(const std::string&);
 		std::string getOrigmailboxString();
 		void        setOrigmailbox(int);
 		std::string getOrigtimeString();
@@ -70,9 +72,11 @@ class Voicemail {
 		std::string getPriorityString();
 		void        setPriority(int);
 		
+		/** Getting voicemail's sound files */
 		VoicemailSound * getVMSoundAt(int);
-		VoicemailSound * getVMSoundByFormat(std::string);
+		VoicemailSound * getVMSoundByFormat(const std::string&);
 		
+		/** ToString */
 		std::string toShortString();
 		std::string toString();
 

@@ -20,7 +20,7 @@
 //#ifdef USE_VOICEMAIL
  
 #ifndef VOICEMAILMANAGER_H
-#define VOICEMAILMANAGER_H
+#define VOICEMAILMANAGER_H 1
 
 #include "voicemailmanager-glue.h"
 #include <dbus-c++/dbus.h>
@@ -37,27 +37,29 @@ class VoicemailManager :
 		~VoicemailManager();
 
 		static const char* SERVER_PATH;
-
-	public:
-		std::vector< ::DBus::String > getListFolders( void );
-		int                           getFolderCount( const ::DBus::String& );
-		std::vector< ::DBus::String > getListMails( const ::DBus::String& );
-		std::vector< ::DBus::String > getListErrors( void );
-		::DBus::String                getVoicemailInfo( const ::DBus::String& , const ::DBus::String& );
-		void                          playVoicemail( const ::DBus::String& , const ::DBus::String& );
-		void                          stopVoicemail();
+		
+		void openConnection(void);
+		void closeConnection(void);
+		
+		std::vector< ::DBus::String > getListFolders(void);
+		int                           getFolderCount(const ::DBus::String&);
+		std::vector< ::DBus::String > getListMails(const ::DBus::String&);
+		std::vector< ::DBus::String > getListErrors(void);
+		::DBus::String                getVoicemailInfo(const ::DBus::String&, const ::DBus::String&);
+		void                          playVoicemail(const ::DBus::String&, const ::DBus::String&);
+		void                          stopVoicemail(void);
 		
 		// Methods
-		::DBus::Bool   isVoicemailServerEnabled();
-		void           voicemailServerEnable();
-		::DBus::String getVoicemailConfigAddress();
-		void           setVoicemailConfigAddress( const ::DBus::String& );
-		::DBus::String getVoicemailConfigPath();
-		void           setVoicemailConfigPath( const ::DBus::String& );
-		::DBus::Int32  getVoicemailConfigPort();
-		void           setVoicemailConfigPort( const ::DBus::Int32& );
-		::DBus::Bool   isVoicemailConfigHttpsEnabled();
-		void           voicemailConfigHttpsEnable( const ::DBus::Bool& );
+		::DBus::Bool   isVoicemailServerEnabled(void);
+		void           voicemailServerEnable(void);
+		::DBus::String getVoicemailConfigAddress(void);
+		void           setVoicemailConfigAddress(const ::DBus::String&);
+		::DBus::String getVoicemailConfigPath(void);
+		void           setVoicemailConfigPath(const ::DBus::String&);
+		::DBus::Int32  getVoicemailConfigPort(void);
+		void           setVoicemailConfigPort(const ::DBus::Int32&);
+		::DBus::Bool   isVoicemailConfigHttpsEnabled(void);
+		void           voicemailConfigHttpsEnable(const ::DBus::Bool&);
 
 };
 

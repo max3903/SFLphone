@@ -22,21 +22,17 @@
 #include <string>
 #include "VoicemailFolder.h"
 
-using namespace std;
-
 VoicemailFolder::VoicemailFolder() {
-//	vector<Voicemail> _lst_vm;
 }
 
 VoicemailFolder::~VoicemailFolder() {
-//	cout << "~VoicemailFolder" << endl;
 }
 
-void VoicemailFolder::setName(string name) {
+void VoicemailFolder::setName(const std::string& name) {
 	_name = name;
 }
 
-string VoicemailFolder::getName() {
+std::string VoicemailFolder::getName() {
 	return _name;
 }
 
@@ -48,17 +44,18 @@ int VoicemailFolder::getCount() {
 	return _count;
 }
 
-string VoicemailFolder::getCountString() {
-	ostringstream oss;
+std::string VoicemailFolder::getCountString() {
+	std::ostringstream oss;
 	oss << getCount();
 	return oss.str();
 }
-vector<Voicemail *> VoicemailFolder::getLstVM() {
+
+std::vector<Voicemail *> VoicemailFolder::getLstVM() {
 	return _lst_vm;
 }
 
 void VoicemailFolder::addVM(Voicemail *vm) {
-	_lst_vm.push_back( vm );
+	_lst_vm.push_back(vm);
 //	_count++;
 }
 
@@ -75,21 +72,20 @@ Voicemail * VoicemailFolder::getVMAt(int i) {
 	}
 }
 
-Voicemail * VoicemailFolder::getVMByName(string name) {
+Voicemail * VoicemailFolder::getVMByName(const std::string& name) {
 	for( int i = 0 ; i < getCount() ; i++ ) {
-		if( getVMAt(i)->getName().compare( name ) == 0 ) {
+		if( getVMAt(i)->getName().compare(name) == 0 ) {
 			return getVMAt(i);
 		}
 	}
 	return NULL;
 }
 
-string VoicemailFolder::toString() {
-//	string res("   '-");
-	string res("<b>");
-	res.append( getName() );
+std::string VoicemailFolder::toString() {
+	std::string res("<b>");
+	res.append(getName());
 	res.append("</b>|");
-	res.append( getName() );
+	res.append(getName());
 //	res.append(" (");
 //	res.append( getCountString() );
 //	res.append(")");

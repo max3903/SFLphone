@@ -12,7 +12,7 @@
 *********************************************************************/
 
 #ifndef __LIBCONNECT_PROJECT__BASE64_HPP__
-#define __LIBCONNECT_PROJECT__BASE64_HPP__
+#define __LIBCONNECT_PROJECT__BASE64_HPP__ 1
 
 #include <string>
 

@@ -24,99 +24,110 @@
 
 const char* VoicemailManager::SERVER_PATH = "/org/sflphone/SFLphone/VoicemailManager";
 
-VoicemailManager::VoicemailManager( DBus::Connection& connection )
-		: DBus::ObjectAdaptor( connection, SERVER_PATH ) {
+VoicemailManager::VoicemailManager(DBus::Connection& connection)
+		: DBus::ObjectAdaptor(connection, SERVER_PATH) {
 }
 
 VoicemailManager::~VoicemailManager() {
 }
 
+void
+VoicemailManager::openConnection(void) {
+	Manager::instance().openConnection();
+}
+
+void
+VoicemailManager::closeConnection(void) {
+	Manager::instance().destroyVoicemailViewer();
+}
+
 std::vector< ::DBus::String >
-VoicemailManager::getListFolders( void ) {
+VoicemailManager::getListFolders(void) {
 	return Manager::instance().getListFolders();
 }
 
 int
-VoicemailManager::getFolderCount( const ::DBus::String& folder ) {
-	return Manager::instance().getFolderCount( folder );
+VoicemailManager::getFolderCount(const ::DBus::String& folder) {
+	return Manager::instance().getFolderCount(folder);
 }
 
 
 std::vector< ::DBus::String >
-VoicemailManager::getListMails( const ::DBus::String& folder ) {
-	return Manager::instance().getListMails( folder );
+VoicemailManager::getListMails(const ::DBus::String& folder) {
+	return Manager::instance().getListMails(folder);
 }
 
 std::vector< ::DBus::String >
-VoicemailManager::getListErrors( void ) {
+VoicemailManager::getListErrors(void) {
 	return Manager::instance().getListErrors();
 }
 
 ::DBus::String
-VoicemailManager::getVoicemailInfo( const ::DBus::String& folderName , const ::DBus::String& voicemailName ) {
-	return Manager::instance().getVoicemailInfo( folderName , voicemailName );
+VoicemailManager::getVoicemailInfo(const ::DBus::String& folderName, const ::DBus::String& voicemailName) {
+	return Manager::instance().getVoicemailInfo(folderName, voicemailName);
 }
 
 void
-VoicemailManager::playVoicemail( const ::DBus::String& folderName , const ::DBus::String& voicemailName ) {
-	Manager::instance().playVoicemail( folderName , voicemailName );
+VoicemailManager::playVoicemail(const ::DBus::String& folderName, const ::DBus::String& voicemailName) {
+	Manager::instance().playVoicemail(folderName, voicemailName);
 }
 
 void
-VoicemailManager::stopVoicemail() {
+VoicemailManager::stopVoicemail(void) {
 	Manager::instance().stopVoicemail();
 }
+
 
 /***************************************************/
 // VOICEMAIL CONFIGURATION 
 /***************************************************/
 ::DBus::Bool
-VoicemailManager::isVoicemailServerEnabled() {
+VoicemailManager::isVoicemailServerEnabled(void) {
 	return Manager::instance().isVoicemailServerEnabled();
 }
 
 void
-VoicemailManager::voicemailServerEnable() {
+VoicemailManager::voicemailServerEnable(void) {
 	Manager::instance().voicemailServerEnable();
 }
 
 ::DBus::String
-VoicemailManager::getVoicemailConfigAddress() {
+VoicemailManager::getVoicemailConfigAddress(void) {
 	return Manager::instance().getVoicemailConfigAddress();
 }
 
 void
-VoicemailManager::setVoicemailConfigAddress( const ::DBus::String& address ) {
-	return Manager::instance().setVoicemailConfigAddress( address );
+VoicemailManager::setVoicemailConfigAddress(const ::DBus::String& address) {
+	return Manager::instance().setVoicemailConfigAddress(address);
 }
 
 ::DBus::String
-VoicemailManager::getVoicemailConfigPath() {
+VoicemailManager::getVoicemailConfigPath(void) {
 	return Manager::instance().getVoicemailConfigPath();
 }
 
 void
-VoicemailManager::setVoicemailConfigPath( const ::DBus::String& path ) {
-	return Manager::instance().setVoicemailConfigPath( path );
+VoicemailManager::setVoicemailConfigPath(const ::DBus::String& path) {
+	return Manager::instance().setVoicemailConfigPath(path);
 }
 
 ::DBus::Int32
-VoicemailManager::getVoicemailConfigPort() {
+VoicemailManager::getVoicemailConfigPort(void) {
 	return Manager::instance().getVoicemailConfigPort();
 }
 
 void
-VoicemailManager::setVoicemailConfigPort( const ::DBus::Int32& port ) {
-	return Manager::instance().setVoicemailConfigPort( port );
+VoicemailManager::setVoicemailConfigPort(const ::DBus::Int32& port) {
+	return Manager::instance().setVoicemailConfigPort(port);
 }
 
 ::DBus::Bool
-VoicemailManager::isVoicemailConfigHttpsEnabled() {
+VoicemailManager::isVoicemailConfigHttpsEnabled(void) {
 	return Manager::instance().isVoicemailConfigHttpsEnabled();
 }
 
 void
-VoicemailManager::voicemailConfigHttpsEnable( const ::DBus::Bool& enabled) {
-	return Manager::instance().voicemailConfigHttpsEnable( enabled );
+VoicemailManager::voicemailConfigHttpsEnable(const ::DBus::Bool& enabled) {
+	Manager::instance().setVoicemailConfigHttps(enabled);
 }
-//#endif
+//#end

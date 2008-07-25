@@ -45,7 +45,7 @@
 
 //#ifdef USE_VOICEMAIL
 #include "audio/audiomail.h"
-#include "voicemail/VMViewerd.h"
+#include "voicemail/VMViewer.h"
 //#endif
 
 class AudioLayer;
@@ -56,6 +56,10 @@ class VoIPLink;
 
 #ifdef USE_ZEROCONF
 class DNSService;
+#endif
+
+#ifdef USE_VOICEMAIL
+class VMViewer;
 #endif
 
 /** Define a type for a AccountMap container */
@@ -798,45 +802,177 @@ class ManagerImpl {
      */
     bool isCurrentCall(const CallID& callId);
 
+
 //#ifdef USE_VOICEMAIL
-	AccountID   getCurrentAccountID( void );
-	VMViewerd * createVoicemailViewer( void );
-
-	std::vector< ::DBus::String > getListFolders( void );
-
-	std::vector< ::DBus::String > getListMails( const ::DBus::String& );
-
-	int getFolderCount( const ::DBus::String& );
+	/**
+	 * Get the current account id
+	 * @return AccountID the current active AccountID or AccountNULL
+	 */
+	AccountID getCurrentAccountID(void);
 	
-	std::vector< ::DBus::String > getListErrors( void );
-
-	::DBus::String getVoicemailInfo( const ::DBus::String& , const ::DBus::String& );
-
-	AudioMail * getVoicemailFile( void );
+	/**
+	 * Open the voicemail connexion
+	 * If connexion doesn't exist, creates the configuration for voicemail viewer,
+	 * else reload configuration.
+	 */
+	void openConnection(void);
 	
-	void playVoicemail( const ::DBus::String& , const ::DBus::String& );
-	void voicemailPlaying( void );
-	void stopVoicemail( void );
-	void voicemailStopped( void );
-
-	void throwError( const ::DBus::String& );
+	/**
+	 * Create the voicemail viewer with all user's configuration
+	 * @return VMViewer newly created voicemail viewer
+	 */
+	void createVoicemailViewer(void);
 	
+	/**
+	 * Destroy the voicemail viewer
+	 */
+	void destroyVoicemailViewer(void);
+	
+	/**
+	 * Renew the voicemail viewer configuration
+	 * @return bool true if changes have been done, false otherwise
+	 */
+	bool renewVoicemailConfig();
+	
+	/********************************************************/
+	// DBUS method calls
+	/********************************************************/
+	
+	/**
+	 * Get the list of the voicemails folders
+	 * @return vector<::DBus::String> the folder list (vector)
+	 */
+	std::vector< ::DBus::String > getListFolders(void);
+	
+	/**
+	 * Get the list of all voicemails included in a folder
+	 * @param ::DBus::String the name of the folder to search into
+	 * @return vector<::DBus::String> the voicemail list (vector)
+	 */
+	std::vector< ::DBus::String > getListMails(const ::DBus::String&);
+	
+	/**
+	 * Get the number of folders found
+	 * @param ::DBus::String the name of a folder
+	 * @return int the number of folders
+	 */
+	int getFolderCount(const ::DBus::String&);
+	
+	/**
+	 * Get the list of errors the web-agent gave
+	 * @return vector<::DBus::String> the list of errors (vector)
+	 */
+	std::vector< ::DBus::String > getListErrors(void);
+	
+	/**
+	 * Get the informations about a voicemail
+	 * @param ::DBus::String the name of the folder to search into
+	 * @param ::DBus::String the name of the voicemail to get information
+	 * @return ::DBus::String all the informations about a voicemail in a string
+	 */
+	::DBus::String getVoicemailInfo(const ::DBus::String&, const ::DBus::String&);
+	
+	/**
+	 * Get the current voicemail file to play with
+	 * @return AudioMail the voicemail sound file
+	 */
+	AudioMail * getVoicemailFile(void);
+	
+	/********************************************************/
+	// Playing and stopping voicemail sound files
+	/********************************************************/
+	
+	/**
+	 * Plays a voicemail sound file
+	 * @param ::DBus::String the name of the folder to search into
+	 * @param ::DBus::String the name of the voicemail to listen to
+	 */
+	void playVoicemail(const ::DBus::String&, const ::DBus::String&);
+	/**
+	 * Signal to emit to GUI-client when the voicemail sound file is really playing
+	 */
+	void voicemailPlaying(void);
+	
+	/**
+	 * Stops playing the current voicemail soudn file
+	 */
+	void stopVoicemail(void);
+	/**
+	 * Signal to emit to GUI-client when the voicemail sound file is stopped
+	 */
+	void voicemailStopped(void);
+	
+	/**
+	 * Signal to emit to GUI-client when finding an error (from web-agent)
+	 */
+	void throwError(const ::DBus::String&);
+	
+	/********************************************************/
 	// VOICEMAIL CONFIGURATION
-	::DBus::Bool   isVoicemailServerEnabled( void );
-	void           voicemailServerEnable( void );
-
-	::DBus::String getVoicemailConfigAddress( void );
-	void           setVoicemailConfigAddress( const ::DBus::String& );
+	/********************************************************/
 	
-	::DBus::String getVoicemailConfigPath( void );
-	void           setVoicemailConfigPath( const ::DBus::String& );
+	/**
+	 * Get whether or not the voicemail web-agent is activated
+	 * @return ::DBus::Bool true if web-agent is activated, false otherwise
+	 */
+	::DBus::Bool isVoicemailServerEnabled(void);
 	
-	::DBus::Int32  getVoicemailConfigPort( void );
-	::DBus::String getVoicemailConfigPortString( void );
-	void           setVoicemailConfigPort( const ::DBus::Int32& );
+	/**
+	 * Switch the voicemail web-agent active or not
+	 * If active, deactivate it, else activate it
+	 */
+	void voicemailServerEnable(void);
 	
-	::DBus::Bool   isVoicemailConfigHttpsEnabled( void );
-	void           voicemailConfigHttpsEnable( const ::DBus::Bool& );
+	/**
+	 * Get the IP address where the voicemail web-agent is
+	 * @return ::DBus::String the IP address
+	 */
+	::DBus::String getVoicemailConfigAddress(void);
+	/**
+	 * Set the IP address where the voicemail web-agent is
+	 * @param ::DBus::String the IP address (alphabetical or numerical allowed : "localhost" or "127.0.0.1")
+	 */
+	void setVoicemailConfigAddress(const ::DBus::String&);
+	
+	/**
+	 * Get the path to the voicemail web-agent on the server
+	 * @return ::DBus::String the path on the server
+	 */
+	::DBus::String getVoicemailConfigPath(void);
+	/**
+	 * Set the path to the voicemail web-agent
+	 * For example : http://127.0.0.1/web-agent/index => the path is "web-agent/index"
+	 * @param ::DBus::String the path to find "index" file
+	 */
+	void setVoicemailConfigPath(const ::DBus::String&);
+	
+	/**
+	 * Get the appropriate port number to dialog with the voicemail web-agent
+	 * @return ::DBus::Int32 the port number
+	 */
+	::DBus::Int32 getVoicemailConfigPort(void);
+	/**
+	 * Get the appropriate port number to dialog with the voicemail web-agent in string format
+	 * @return ::DBus::String the port number
+	 */
+	::DBus::String getVoicemailConfigPortString(void);
+	/**
+	 * Set the appropriate port number to dialog with the voicemail web-agent
+	 * May be #80 (simple http) or #443 (for https)
+	 * @param ::DBus::Int32 the port number
+	 */
+	void setVoicemailConfigPort(const ::DBus::Int32&);
+	
+	/**
+	 * Get whether or not the HTTPS protocol is defined
+	 * @return ::DBus::Bool true if HTTPS is activated, false otherwise
+	 */
+	::DBus::Bool isVoicemailConfigHttpsEnabled(void);
+	/**
+	 * Set the HTPPS protocol active or not
+	 * @param ::DBus::Bool true to activate, false to deactivate
+	 */
+	void setVoicemailConfigHttps(const ::DBus::Bool&);
 //#endif
 
   private:
@@ -917,9 +1053,14 @@ class ManagerImpl {
     TelephoneTone* _telephoneTone;
     AudioFile _audiofile;
 
+
 //#ifdef USE_VOICEMAIL
+	/** The voicemail sound file to play with */
 AudioMail* _audiomail;
+	/** The voicemail viewer in order to dialog with the voicemail web-agent */
+VMViewer * _vmv;
 //#endif
+
 
     // To handle volume control
     short _spkr_volume;
