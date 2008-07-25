@@ -23,6 +23,7 @@
 #include "audiomail.h"
 #include "codecDescriptor.h"
 #include <fstream>
+#include <string.h>
 #include <math.h>
 #include <samplerate.h>
 
@@ -62,7 +63,7 @@ AudioMail::loadMail( const std::string& filename , AudioCodec* codec , unsigned 
 	}
 
 	std::fstream file;
-	file.open( filename.c_str() , std::fstream::in );
+	file.open( filename.c_str() , std::fstream::in | std::fstream::binary );
 	if( ! file.is_open() ) {
 		// unable to load the file
 		_debug("Unable to open audio file %s\n", filename.c_str());
@@ -81,20 +82,43 @@ AudioMail::loadMail( const std::string& filename , AudioCodec* codec , unsigned 
 	// read data as a block:
 	file.read( fileBuffer , length );
 	file.close();
+	
+	int16 monoBuffer[ (length / 33) * 320 ];
+	unsigned int expandedsize = 0;
+	for( int i = 0 ; i < (length/33) ; i++ ) {
+		char  buffer33[34];
+		int16 buffer320[321];
 
-	int16 monoBuffer[length];
-	unsigned int expandedsize = _codec->codecDecode (monoBuffer, (unsigned char *) fileBuffer, length);
-	if (expandedsize != length*2) {
-		_debug("Audio file error on loading audio file!");
-		return false;
+		memset( buffer33, 0, 33 );
+		if( (i*33) +33 > length ) {
+//			std::cout << " i > length :: " << (i*33+33) << std::endl;
+			int rest = i*33 + 33 - length;
+			memcpy( buffer33, fileBuffer + i*33-1, rest );
+			memcpy( buffer33, 0, i*33+1 + rest);
+		} else {
+//			std::cout << " memcpy( .. , ..+ " << (i*33) << " -> " << (i*33)+33 << std::endl;
+			memcpy( buffer33, fileBuffer + i*33, 33 );
+		}
+		expandedsize += _codec->codecDecode( buffer320 , (unsigned char *)buffer33, length );
+//		std::cout << "expandedsize : " << expandedsize << std::endl;
+		memcpy( monoBuffer + (i*320), buffer320, 320 ); // mettre iteration si ordering a l`envers
 	}
+	std::cout << "expanded size : " << expandedsize << std::endl;
+/*	if( expandedsize != length/33*320 ) {
+		_debug("Audio file error on loading audio file (%d/%d)!", expandedsize , length/33*320 );
+		return false;
+	}*/
 	unsigned int nbSampling = expandedsize/sizeof(int16);
 
 
-/*
+
+
+
 	// we need to change the sample rating here:
 	// case 1: we don't have to resample : only do splitting and convert
-	_size   = nbSampling;
+/*	_size   = nbSampling;
+	std::cout << "size : " << _size << std::endl;
+	std::cout << "size*sizeof(SFLDataFormat) : " << _size*sizeof(SFLDataFormat) << std::endl;
 	_buffer = new SFLDataFormat[_size];
 #ifdef DATAFORMAT_IS_FLOAT
 	// src to dest
@@ -102,8 +126,8 @@ AudioMail::loadMail( const std::string& filename , AudioCodec* codec , unsigned 
 #else
 	// dest to src
 	memcpy(_buffer, monoBuffer, _size*sizeof(SFLDataFormat));
-#endif
-*/
+#endif*/
+
 
 
 	double factord = (double)sampleRate / 8000;
@@ -118,12 +142,6 @@ AudioMail::loadMail( const std::string& filename , AudioCodec* codec , unsigned 
 	src_data.output_frames = sizeOut;
 	src_data.src_ratio = factord;
 
-#ifdef DATAFORMAT_IS_FLOAT
-	// case number 2.1: the output is float32 : convert directly in _bufferTmp
-	src_data.data_out = bufferTmp;
-	src_simple (&src_data, SRC_SINC_BEST_QUALITY, 1);
-#else
-	// case number 2.2: the output is int16 : convert and change to int16
 	float* floatBufferOut = new float[sizeOut];
 	src_data.data_out = floatBufferOut;
 
@@ -131,7 +149,6 @@ AudioMail::loadMail( const std::string& filename , AudioCodec* codec , unsigned 
 	src_float_to_short_array(floatBufferOut, bufferTmp, src_data.output_frames_gen);
 
 	delete [] floatBufferOut;
-#endif
 	delete [] floatBufferIn;
 	nbSampling = src_data.output_frames_gen; 
 

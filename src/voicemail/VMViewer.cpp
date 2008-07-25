@@ -18,8 +18,10 @@
  */
 
 #include <iostream>
+#include <expat.h>
+#include <libsoup/soup.h> // to use libsoup
 #include <fstream>  // To read xml file
-#include "VMViewerd.h"
+#include "VMViewer.h"
 
 using namespace std;
 
@@ -32,24 +34,25 @@ string          eltValue;
 /****************
  * XML HANDLERS *
  ****************/
-void startElement( void *userData , const XML_Char *name , const XML_Char **atts ) {
-	if( strcmp( name , "result" ) == 0 ) {
+void startElement(void *userData, const XML_Char *name, const XML_Char **atts) {
+	if( strcmp(name, "result") == 0 ) {
 //		cout << "<result>" << endl;
 	}
-	else if( strcmp( name , "directory" ) == 0 ) {
+	else if( strcmp(name, "directory") == 0 ) {
 //		cout << "<directory>" << endl;
-		vmf = new VoicemailFolder();
-		bool value = false;		// To know if parsing name or value
+//		vmf = new VoicemailFolder();
+		bool value = false; // To know if parsing name or value
 		const char** attribute;
 		for( attribute = atts ; *attribute ; attribute++ ) {
 			if( value ) {
 				// Parsing a value so its name is the previous string
 				const char* attributeName = *(attribute-1);
-				if( strcmp( attributeName , "name" ) == 0 ) {
-					vmf->setName( *attribute );
+				if( strcmp(attributeName, "name") == 0 ) {
+					vmf = vm->getFolderByName(*attribute);
+//					vmf->setName(*attribute);
 				}
-				else if( strcmp( attributeName , "count" ) == 0 ) {
-					vmf->setCount( atoi( *attribute ) );
+				else if( strcmp(attributeName, "count") == 0 ) {
+					vmf->setCount(atoi(*attribute));
 				}
 			}
 			// Alterning between name and value
@@ -108,7 +111,7 @@ void startElement( void *userData , const XML_Char *name , const XML_Char **atts
 
 
 void endElement( void *userData , const XML_Char *name ) {
-	VMViewerd *vmv = (VMViewerd *)userData;
+	VMViewer *vmv = (VMViewer *)userData;
 	if( strcmp( name , "result" ) == 0 ) {
 //		cout << "</result>" << endl;
 	}
@@ -194,7 +197,64 @@ void character( void *userData , const char *s , int len ) {
 }
 
 
-void VMViewerd::parse() {
+/**********************************
+ * VMViewer METHODS' DECLARATION *
+ **********************************/
+VMViewer::VMViewer( string logVM,
+					string pwdVM,
+					string ctxt,
+					bool   srvHttps,
+					string srvAddr,
+					string srvPath,
+					string srvPort ) {
+	_logVMail     = logVM;
+	_pwdVMail     = pwdVM;
+	_context      = ctxt;
+	_srvUsesHttps = srvHttps;
+	_srvAddr      = srvAddr;
+	_srvPath      = srvPath;
+	_srvPort      = srvPort;
+	_file_store   = "/tmp/sflphone_vm";
+	g_thread_init(NULL);
+	g_type_init();
+};
+
+VMViewer::~VMViewer() {
+//	cout << "~VMViewer" << endl;
+	g_thread_exit(NULL);
+}
+
+const string VMViewer::createRequest(const string& command) {
+	string s( isHttpsEnabled() ? "http://" : "https://" ); // HTTPS or HTTP ?
+	s.append( _context ); // user's asterisk context
+	s.append( "-" );
+	s.append( getLogVMail() ); // user's login/voicemail #
+	s.append( ":" );
+	s.append( getPwdVMail() ); // user's passcode to voicemail system
+	s.append( "@" );
+	s.append( _srvAddr ); // asterisk's ip address
+	s.append( ":" );
+	s.append( getSrvPort() ); // asterisk's ip port
+	s.append( "/" );
+	s.append( _srvPath ); // asterisk's path to webservice
+	s.append( "/" );
+	s.append( command ); // command to execute (e.g. list, sound, del, etc.)
+	return s;
+}
+
+int VMViewer::exec(string cmd) {
+	// Sets the unix following command :
+	// wget -q -O <path_to_file_to_store_received_datas> "http{s}://<context>-<user_login>:<user_password>@<full_server_address>/<cmd>"
+	string s( "wget -q -O " );
+	s.append( getFileStore() ); // save request to file
+	s.append( " \"" );
+	s.append( createRequest(cmd) );
+	s.append( "\"" );
+	cout << "exec : " << s.c_str() << endl;
+	return system( s.c_str() );
+}
+
+void VMViewer::parse() {
 	// Parses the data
 	std::fstream file;
 	char * buf;
@@ -234,60 +294,63 @@ void VMViewerd::parse() {
 }
 
 
-/**********************************
- * VMVIEWERD METHODS' DECLARATION *
- **********************************/
+bool VMViewer::execAndParse(const string& command) {
+	SoupSession *session;
+	SoupMessage *msg;
+	guint       status;
 
-VMViewerd::~VMViewerd() {
-//	cout << "~VMViewerd" << endl;
+/*	g_thread_init(NULL);
+	g_type_init();*/
+	std::cout << "execAndParse(" << command << ")  ==>  " << createRequest(command) << std::endl;
+	
+	session = soup_session_sync_new();
+	msg     = soup_message_new("GET", createRequest(command).c_str());
+	status  = soup_session_send_message(session, msg);
+	if( status == 200 ) {
+
+		// Creates parser for presence status provided in XML body
+		XML_Parser parser = XML_ParserCreate(NULL);
+
+		// Sets functions that will be called when parsing elements and character data
+		XML_SetElementHandler(parser, startElement, endElement);
+		XML_SetCharacterDataHandler(parser, character);
+		XML_SetUserData(parser, this);
+
+		// Parses the data
+		if( XML_Parse(parser, msg->response_body->data, strlen(msg->response_body->data), 0) == XML_STATUS_ERROR ) {
+			cout << " ERRORR reading file..." << endl;
+			cout << XML_ErrorString(XML_GetErrorCode(parser)) << endl;
+		}
+	
+		XML_ParserFree(parser);
+		return true;
+	} else {
+		return false;
+	}
 }
 
-int VMViewerd::exec(string cmd) {
-	// Sets the unix following command :
-	// wget -q -O <path_to_file_to_store_received_datas> "http{s}://<context>-<user_login>:<user_password>@<full_server_address>/<cmd>"
-	string s( "wget -q -O " );
-	s.append( getFileStore() ); // save request to file
-	s.append( " \"" );
-	s.append( isHttpsEnabled() ? "http://" : "https://" ); // HTTPS or HTTP ?
-	s.append( _context ); // user's asterisk context
-	s.append( "-" );
-	s.append( getLogVMail() ); // user's login/voicemail #
-	s.append( ":" );
-	s.append( getPwdVMail() ); // user's passcode to voicemail system
-	s.append( "@" );
-	s.append( _srvAddr ); // asterisk's ip address
-	s.append( ":" );
-	s.append( getSrvPort() ); // asterisk's ip port
-	s.append( "/" );
-	s.append( _srvPath ); // asterisk's path to webservice
-	s.append( "/" );
-	s.append( cmd ); // command to execute (e.g. list, sound, del, etc.)
-	s.append( "\"" );
-	cout << "exec : " << s.c_str() << endl;
-	return system( s.c_str() );
-}
 
-string VMViewerd::getLogVMail() {
+string VMViewer::getLogVMail() {
 	return _logVMail;
 }
 
-string VMViewerd::getPwdVMail() {
+string VMViewer::getPwdVMail() {
 	return _pwdVMail;
 }
 
-string VMViewerd::getSrvPort() {
+string VMViewer::getSrvPort() {
 	return _srvPort;
 }
 
-string VMViewerd::getFileStore() {
+string VMViewer::getFileStore() {
 	return _file_store;
 }
 
-vector<VoicemailFolder *> VMViewerd::getLstFolders() {
+vector<VoicemailFolder *> VMViewer::getLstFolders() {
 	return _lst_folders;
 }
 
-VoicemailFolder * VMViewerd::getFolderAt(int i) {
+VoicemailFolder * VMViewer::getFolderAt(int i) {
 	if( i < 0 || i >= getLstFolders().size() ) {
 		return NULL;
 	} else {
@@ -295,7 +358,7 @@ VoicemailFolder * VMViewerd::getFolderAt(int i) {
 	}
 }
 
-VoicemailFolder * VMViewerd::getFolderByName(string name) {
+VoicemailFolder * VMViewer::getFolderByName(string name) {
 	for( int i = 0 ; i < getLstFolders().size() ; i++ ) {
 		if( getFolderAt(i)->getName().compare( name ) == 0 ) {
 			return getFolderAt(i);
@@ -304,19 +367,19 @@ VoicemailFolder * VMViewerd::getFolderByName(string name) {
 	return NULL;
 }
 
-void VMViewerd::addVMF(VoicemailFolder *vmf) {
+void VMViewer::addVMF(VoicemailFolder *vmf) {
 	_lst_folders.push_back( vmf );
 }
 
-//bool VMViewerd::removeVMF(VoicemailFolder vmf) {
+//bool VMViewer::removeVMF(VoicemailFolder vmf) {
 //	return _lst_folders.erase( vmf );
 //}
 
-vector<VoicemailSound *> VMViewerd::getLstSounds() {
+vector<VoicemailSound *> VMViewer::getLstSounds() {
 	return _lst_sounds;
 }
 
-VoicemailSound * VMViewerd::getSoundAt(int i) {
+VoicemailSound * VMViewer::getSoundAt(int i) {
 	if( i < 0 || i >= getLstSounds().size() ) {
 		return NULL;
 	} else {
@@ -324,7 +387,7 @@ VoicemailSound * VMViewerd::getSoundAt(int i) {
 	}
 }
 
-VoicemailSound * VMViewerd::getSoundByExt(const string& extension) {
+VoicemailSound * VMViewer::getSoundByExt(const string& extension) {
 	for(int i = 0 ; i < _lst_sounds.size() ; i++ ) {
 		if( _lst_sounds[i]->getFormat().compare( extension ) == 0 ) {
 			cout << "##### found " << extension << endl;
@@ -335,11 +398,11 @@ VoicemailSound * VMViewerd::getSoundByExt(const string& extension) {
 }
 
 
-void VMViewerd::addVMS(VoicemailSound * vms) {
+void VMViewer::addVMS(VoicemailSound * vms) {
 	_lst_sounds.push_back( vms );
 }
 
-int VMViewerd::getFolderCount(string folder) {
+int VMViewer::getFolderCount(string folder) {
 	VoicemailFolder * vmf;
 	if( (vmf = getFolderByName(folder)) != NULL ) {
 		return vmf->getCount();
@@ -348,12 +411,12 @@ int VMViewerd::getFolderCount(string folder) {
 	}
 }
 
-void VMViewerd::addError(string err) {
+void VMViewer::addError(string err) {
 	_error_list.push_back( err );
 }
 
 
-vector< string > VMViewerd::toArrayString() {
+vector< string > VMViewer::toArrayString() {
 	int i,j;
 	vector<string> vec;
 	if( getLstFolders().size() != 0 ) {
@@ -364,7 +427,7 @@ vector< string > VMViewerd::toArrayString() {
 	return vec;
 }
 
-string VMViewerd::getVoicemailInfo(string folder, string name) {
+string VMViewer::getVoicemailInfo(string folder, string name) {
 	string st("");
 	VoicemailFolder * vmf = getFolderByName( folder );
 	if( vmf != NULL ) {
@@ -376,7 +439,7 @@ string VMViewerd::getVoicemailInfo(string folder, string name) {
 	return st;
 }
 
-vector< string > VMViewerd::toFolderArrayString(string folder) {
+vector< string > VMViewer::toFolderArrayString(string folder) {
 	int i,j;
 	vector<string> vec;
 	VoicemailFolder * vmf;
@@ -388,18 +451,18 @@ vector< string > VMViewerd::toFolderArrayString(string folder) {
 	return vec;
 }
 
-int VMViewerd::getErrorCount() {
+int VMViewer::getErrorCount() {
 	return _error_list.size();
 }
 
-vector< string > VMViewerd::toErrorsArrayString() {
+vector< string > VMViewer::toErrorsArrayString() {
 	return _error_list;
 }
 
 
-void VMViewerd::toString() {
+void VMViewer::toString() {
 	int i,j;
-	cout << "VMVIEWERD" << endl;
+	cout << "VMViewer" << endl;
 	if( getLstFolders().size() != 0 ) {
 		cout << " '-VOICEMAIL FOLDERS" << endl;
 		for( i=0 ; i<=getLstFolders().size()-1 ; i++ ) {

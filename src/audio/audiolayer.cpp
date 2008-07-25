@@ -259,7 +259,7 @@ AudioLayer::toggleEchoTesting() {
 void
 AudioLayer::play(void)
 {
-	cout << "play => ";
+//#ifdef USE_VOICEMAIL
 	if( _isVoicemail )
 	{
 		playMail();
@@ -268,6 +268,9 @@ AudioLayer::play(void)
 	{
 		playTones();
 	}
+//#else
+//	playTones();
+//#endif
 }
 
 
@@ -277,7 +280,7 @@ AudioLayer::playTones( void )
   int frames = _periodSize ; 
   int maxBytes = frames * sizeof(SFLDataFormat) ;
   SFLDataFormat* out = (SFLDataFormat*)malloc(maxBytes * sizeof(SFLDataFormat));
-//  cout << "playTones" << endl;
+  cout << "playTones" << endl;
   if( _talk ) {}
   else {
     AudioLoop *tone = _manager -> getTelephoneTone();
@@ -299,7 +302,6 @@ AudioLayer::playTones( void )
   void
 AudioLayer::playMail( void )
 {
-//	int frames = _periodSize;
 	int frames = _periodSize;
 	cout << "frames : " << frames << endl;
 	int maxBytes = frames * sizeof(SFLDataFormat) ;
@@ -312,14 +314,14 @@ AudioLayer::playMail( void )
 		_isVoicemail = true;
 		if( ( mail=_manager->getVoicemailFile() ) != 0 ) {
 			_manager->voicemailPlaying();
-			int nbCopied = mail->getNext( out , frames , 100 , _isVoicemail );
+			int spkrVol = _manager->getSpkrVolume();
+			int nbCopied = mail->getNext( out , frames , spkrVol , _isVoicemail );
 			if( nbCopied !=  0 ) {
 				write( out , maxBytes );
 				//           data + count * bits_per_frame / 8
 			} else {
 				_isVoicemail = false;
 				_manager->stopVoicemail();
-				_manager->voicemailStopped();
 			}
 		}
 	}

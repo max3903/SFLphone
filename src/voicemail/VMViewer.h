@@ -17,18 +17,18 @@
  *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
-#ifndef __VMViewerd_H_
-#define __VMViewerd_H_
+#ifndef __VMViewer_H_
+#define __VMViewer_H_
 
 #include <string>
 #include <vector>
-#include <expat.h>
 #include "VoicemailFolder.h"
 #include "VoicemailSound.h"
 
 using namespace std;
 
-class VMViewerd {
+
+class VMViewer {
 	
 	private :
 		string _logVMail;
@@ -50,7 +50,7 @@ class VMViewerd {
 		vector<string>            _error_list;
 	
 	public :
-		VMViewerd(string logVM, string pwdVM, string ctxt, bool srvHttps, string srvAddr, string srvPath, string srvPort):
+		VMViewer(string logVM, string pwdVM, string ctxt, bool srvHttps, string srvAddr, string srvPath, string srvPort)/*:
 					_logVMail(logVM),
 					_pwdVMail(pwdVM),
 					_context(ctxt),
@@ -59,8 +59,10 @@ class VMViewerd {
 					_srvPath(srvPath),
 					_srvPort(srvPort) {
 			_file_store = "/tmp/sflphone_vm";
-		};
-		~VMViewerd();
+			g_thread_init(NULL);
+			g_type_init();
+		}*/;
+		~VMViewer();
 		
 		/** Getters / Setters */
 		string getLogVMail();
@@ -83,8 +85,8 @@ class VMViewerd {
 		/** Maniplulation of voicemail's folders */
 		vector<VoicemailFolder *> getLstFolders();
 		VoicemailFolder *         getFolderAt(int);
-		VoicemailFolder *         getFolderByName(string);
-		int                       getFolderCount(string);
+		VoicemailFolder *         getFolderByName(const string&);
+		int                       getFolderCount(const string&);
 		void                      addVMF(VoicemailFolder *);
 //		bool                      removeVMF(VoicemailFolder *);
 		
@@ -94,20 +96,22 @@ class VMViewerd {
 		VoicemailSound *         getSoundByExt(const string&);
 		void                     addVMS(VoicemailSound *);
 		
-		void                     addError(string err);
+		void                     addError(const string&);
 		
 		vector<string> toArrayString();
-		vector<string> toFolderArrayString(string);
-		string         getVoicemailInfo(string, string);
+		vector<string> toFolderArrayString(const string&);
+		string         getVoicemailInfo(const string&, const string&);
 		
 		int            getErrorCount();
 		vector<string> toErrorsArrayString();
 		void toString();
 		
-		/** */
-		int exec(string);
-		void parse();
-		void extrat();
+		/** Dealing with agent */
+		const string createRequest(const string&);
+		int          exec(string);
+		void         parse();
+		bool         execAndParse(const string&);
+		void         extrat();
 		
 };
 
