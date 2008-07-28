@@ -35,10 +35,8 @@ string          eltValue;
 void startElement(void *userData, const XML_Char *name, const XML_Char **atts) {
 	VMViewer *vmv = (VMViewer *)userData;
 	if( strcmp(name, "result") == 0 ) {
-//		std::cout << "<result>" << std::endl;
 	}
 	else if( strcmp(name, "directory") == 0 ) {
-//		std::cout << "<directory>" << std::endl;
 		bool value = false; // To know if parsing name or value
 		const char** attribute;
 		for( attribute = atts ; *attribute ; attribute++ ) {
@@ -63,17 +61,13 @@ void startElement(void *userData, const XML_Char *name, const XML_Char **atts) {
 		}
 	}
 	else if( strcmp(name, "voicemail") == 0 ) {
-//		std::cout << "<voicemail>" << std::endl;
 		vm = new Voicemail();
 	}
 	else if( strcmp(name, "deleted") == 0 ) {
-//		std::cout << "<deleted>" << std::endl;
 	}
 	else if( strcmp(name, "renamed") == 0 ) {
-//		std::cout << "<renamed>" << std::endl;
 	}
 	else if( strcmp(name, "sound") == 0 ) {
-//		std::cout << "<sound>" << std::endl;
 		vms = new VoicemailSound();
 		bool value = false;		// To know if parsing name or value
 		const char** attribute;
@@ -96,15 +90,11 @@ void startElement(void *userData, const XML_Char *name, const XML_Char **atts) {
 		}
 	}
 	else if( strcmp(name, "error") == 0 ) {
-//		std::cout << "<error>" << std::endl;
 	}
 	else if( strcmp(name, "error-message") == 0 ) {
-//		std::cout << "<error-message>" << std::endl;
 	}
 	else {
-//		std::cout << "<" << name << ">" << std::endl;
 		if( strcmp(name, "name") == 0 ) {
-//			std::cout << "voicemail name : " << eltValue << std::endl;
 			vm->setName(eltValue);
 			eltValue.clear();
 		}
@@ -115,23 +105,18 @@ void startElement(void *userData, const XML_Char *name, const XML_Char **atts) {
 void endElement(void *userData, const XML_Char *name) {
 	VMViewer *vmv = (VMViewer *)userData;
 	if( strcmp(name, "result") == 0 ) {
-//		std::cout << "</result>" << std::endl;
 	}
 	else if( strcmp(name, "directory") == 0 ) {
-//		std::cout << "</directory>" << std::endl;
 		vmv->addVMF(vmf);
 		vmf = NULL;
 	}
 	else if( strcmp(name, "voicemail") == 0 ) {
-//		std::cout << "</voicemail>" << std::endl;
 		vmf->addVM(vm);
 		vm = NULL;
 	}
 	else if( strcmp(name, "deleted") == 0 ) {
-//		std::cout << "</deleted>" << std::endl;
 	}
 	else if( strcmp(name, "renamed") == 0 ) {
-//		std::cout << "</renamed>" << std::endl;
 	}
 	else if( strcmp(name, "sound") == 0 ) {
 		vms->setDatas(eltValue);
@@ -139,18 +124,13 @@ void endElement(void *userData, const XML_Char *name) {
 		vms = NULL;
 	}
 	else if( strcmp(name, "error") == 0 ) {
-//		std::cout << "</error>" << std::endl;
-//		std::cout << "error : " << eltValue << std::endl;
 		vmv->addError(eltValue);
 	}
 	else if( strcmp(name, "error-message") == 0 ) {
-//		std::cout << "</error-message>" << std::endl;
 		vmv->addError(eltValue);
 	}
 	else {
 		/** VOICEMAIL'S INFORMATIONS */
-//		std::cout << "endElement, value : " << eltValue << std::endl;
-//		std::cout << "</" << name << ">" << std::endl;
 		if( strcmp(name, "name") == 0 ) {
 			vm->setName(eltValue);
 		}
@@ -222,7 +202,6 @@ VMViewer::VMViewer( string logVM,
 };
 
 VMViewer::~VMViewer() {
-//	std::cout << "~VMViewer" << std::endl;
 	g_thread_exit(NULL);
 }
 
@@ -244,63 +223,11 @@ const string VMViewer::createRequest(const string& command) {
 	return s;
 }
 
-int VMViewer::exec(const string& cmd) {
-	// Sets the unix following command :
-	// wget -q -O <path_to_file_to_store_received_datas> "http{s}://<context>-<user_login>:<user_password>@<full_server_address>/<cmd>"
-	string s("wget -q -O ");
-	s.append(getFileStore()); // save request to file
-	s.append(" \"");
-	s.append(createRequest(cmd));
-	s.append("\"");
-	std::cout << "exec : " << s.c_str() << std::endl;
-	return system(s.c_str());
-}
-
 void VMViewer::removeAll(void) {
 	_lst_folders.clear();
 	_lst_sounds.clear();
 	_error_list.clear();
 }
-
-void VMViewer::parse() {
-	// Parses the data
-	std::fstream file;
-	char * buf;
-	int length;
-
-	// Opens XML file stored in _fileStore instance var, usually /tmp/sflphone_vm
-	file.open(getFileStore().c_str(), fstream::in);
-
-	// Gets length of file:
-	file.seekg(0, ios::end);
-	length = file.tellg();
-	file.seekg(0, ios::beg);
-
-	// Allocates memory:
-	buf = new char[length];
-
-	// Creates parser for presence status provided in XML body
-	XML_Parser parser = XML_ParserCreate(NULL);
-
-	// Sets functions that will be called when parsing elements and character data
-	XML_SetElementHandler(parser, startElement, endElement);
-	XML_SetCharacterDataHandler(parser, character);
-	XML_SetUserData(parser, this);
-
-	// Parses the data
-	file.read(buf, length);
-	//std::cout << "file : " << buf << endl;
-	if( XML_Parse(parser, buf, length, 0) == XML_STATUS_ERROR ) {
-		std::cout << " ERRORR reading file..." << std::endl;
-		std::cout << XML_ErrorString(XML_GetErrorCode(parser)) << std::endl;
-	}
-	
-	file.close();
-	delete[] buf;
-
-	XML_ParserFree(parser);
-}
-
 
 bool VMViewer::execAndParse(const string& command) {
 	SoupSession *session;

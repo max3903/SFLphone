@@ -1487,28 +1487,34 @@ dbus_get_mail_notify( void )
 /********************
  * VOICEMAIL VIEWER *
  ********************/
-void
+gboolean
 dbus_open_connection(void)
 {
 	GError* error = NULL;
+	gboolean opening = FALSE;
 	org_sflphone_SFLphone_VoicemailManager_open_connection(
 			voicemailManagerProxy,
+			NULL,
 			&error);
 	if(error)
 	{
 		g_error_free(error);
 	}
 	else
-		g_print("Called dbus_open_connexion\n");
+	{
+		opening = TRUE;
+		g_print("Called dbus_open_connection\n");
+	}
+	return opening;
 }
 
-void
+gboolean
 dbus_close_connection(void)
 {
-	g_print("Before dbus_close_connection\n");
 	GError* error = NULL;
 	org_sflphone_SFLphone_VoicemailManager_close_connection(
 			voicemailManagerProxy,
+			NULL,
 			&error);
 	if(error)
 	{
@@ -1516,13 +1522,14 @@ dbus_close_connection(void)
 	}
 	else
 		g_print("Called dbus_close_connexion\n");
+	return FALSE;
 }
 
 /*********************
  * VOICEMAIL METHODS *
  *********************/
 gchar**
-dbus_get_list_folders( void )
+dbus_get_list_folders(void)
 {
 	GError* error = NULL;
 	gchar** list;
@@ -1540,7 +1547,7 @@ dbus_get_list_folders( void )
 }
 
 gint
-dbus_get_folder_count( gchar * folder )
+dbus_get_folder_count(gchar * folder)
 {
 	GError* error = NULL;
 	gint count = 0;
@@ -1560,7 +1567,7 @@ dbus_get_folder_count( gchar * folder )
 
 
 gchar**
-dbus_get_list_mails( gchar * folder )
+dbus_get_list_mails(gchar * folder)
 {
 	GError* error = NULL;
 	gchar** list;
@@ -1580,7 +1587,7 @@ dbus_get_list_mails( gchar * folder )
 
 
 gchar**
-dbus_get_list_errors( void )
+dbus_get_list_errors(void)
 {
 	GError* error = NULL;
 	gchar** list;
@@ -1598,7 +1605,7 @@ dbus_get_list_errors( void )
 }
 
 gchar*
-dbus_get_voicemail_info( gchar *folder , gchar *name )
+dbus_get_voicemail_info(gchar *folder, gchar *name)
 {
 	GError* error = NULL;
 	gchar* list;
@@ -1618,7 +1625,7 @@ dbus_get_voicemail_info( gchar *folder , gchar *name )
 }
 
 void
-dbus_play_voicemail( gchar *folderName , gchar *voicemailName )
+dbus_play_voicemail(gchar *folderName, gchar *voicemailName)
 {
 	GError* error = NULL;
 	org_sflphone_SFLphone_VoicemailManager_play_voicemail(
@@ -1635,7 +1642,7 @@ dbus_play_voicemail( gchar *folderName , gchar *voicemailName )
 }
 
 void
-dbus_stop_voicemail()
+dbus_stop_voicemail(void)
 {
 	GError* error = NULL;
 	org_sflphone_SFLphone_VoicemailManager_stop_voicemail(
@@ -1653,7 +1660,7 @@ dbus_stop_voicemail()
  * VOICEMAIL CONFIG *
  ********************/
 gboolean
-dbus_is_voicemail_server_enabled()
+dbus_is_voicemail_server_enabled(void)
 {
 	GError* error = NULL;
 	gboolean enabled;
@@ -1671,7 +1678,7 @@ dbus_is_voicemail_server_enabled()
 }
 
 void
-dbus_voicemail_server_enable()
+dbus_voicemail_server_enable(void)
 {
 	GError* error = NULL;
 	org_sflphone_SFLphone_VoicemailManager_voicemail_server_enable(
@@ -1686,7 +1693,7 @@ dbus_voicemail_server_enable()
 }
 
 gchar *
-dbus_get_voicemail_config_address()
+dbus_get_voicemail_config_address(void)
 {
 	GError* error = NULL;
 	gchar * address;
@@ -1704,7 +1711,7 @@ dbus_get_voicemail_config_address()
 }
 
 void
-dbus_set_voicemail_config_address( gchar * address )
+dbus_set_voicemail_config_address(gchar * address)
 {
 	GError* error = NULL;
 	org_sflphone_SFLphone_VoicemailManager_set_voicemail_config_address(
@@ -1720,7 +1727,7 @@ dbus_set_voicemail_config_address( gchar * address )
 }
 
 gchar *
-dbus_get_voicemail_config_path()
+dbus_get_voicemail_config_path(void)
 {
 	GError* error = NULL;
 	gchar * path;
@@ -1738,7 +1745,7 @@ dbus_get_voicemail_config_path()
 }
 
 void
-dbus_set_voicemail_config_path( gchar * path)
+dbus_set_voicemail_config_path(gchar * path)
 {
 	GError* error = NULL;
 	org_sflphone_SFLphone_VoicemailManager_set_voicemail_config_path(
@@ -1754,7 +1761,7 @@ dbus_set_voicemail_config_path( gchar * path)
 }
 
 gint
-dbus_get_voicemail_config_port()
+dbus_get_voicemail_config_port(void)
 {
 	GError* error = NULL;
 	gint port = 80;
@@ -1772,7 +1779,7 @@ dbus_get_voicemail_config_port()
 }
 
 void
-dbus_set_voicemail_config_port( gint port )
+dbus_set_voicemail_config_port(gint port)
 {
 	GError* error = NULL;
 	org_sflphone_SFLphone_VoicemailManager_set_voicemail_config_port(
@@ -1788,7 +1795,7 @@ dbus_set_voicemail_config_port( gint port )
 }
 
 gboolean
-dbus_is_voicemail_config_https_enabled()
+dbus_is_voicemail_config_https_enabled(void)
 {
 	GError* error = NULL;
 	gboolean enabled = FALSE;
@@ -1806,7 +1813,7 @@ dbus_is_voicemail_config_https_enabled()
 }
 
 void
-dbus_voicemail_config_https_enable( gboolean enabled )
+dbus_voicemail_config_https_enable(gboolean enabled)
 {
 	GError* error = NULL;
 	org_sflphone_SFLphone_VoicemailManager_voicemail_config_https_enable(

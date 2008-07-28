@@ -48,9 +48,9 @@ abstract class VMStorage {
 	* renameAll()
 	* @return bool
 	*/
-	public function renameAll( $folder ) {
+	public function renameAll($folder) {
 		foreach( $lstFolders[$folder] as $vm ) {
-			$this->rename( $vm );
+			$this->rename($vm);
 		}
 	}
 
@@ -66,14 +66,14 @@ abstract class VMStorage {
 	* @param string a_voicemail_new_name
 	* @return bool
 	*/
-	abstract public function rename( $foldName , $oldName , $newName );
+	abstract public function rename($foldName, $oldName, $newName);
 
 	/**
 	* deleteFolder(a_voicemail_folder)
 	* @param string a_voicemail_folder
 	* @return bool
 	*/
-	abstract public function deleteFolder( $folder );	
+	abstract public function deleteFolder($folder);	
 	
 	/**
 	* delete(a_voicemail_folder, a_voicemail)
@@ -81,7 +81,7 @@ abstract class VMStorage {
 	* @param string a_voicemail_name
 	* @return bool
 	*/
-	abstract public function delete( $folder , $vm );
+	abstract public function delete($folder, $vm);
 	
 	/**
 	 * getLstFolders()

@@ -18,7 +18,7 @@
  *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
-if( ! isset( $_SERVER['PHP_AUTH_USER'] ) ) {
+if( ! isset($_SERVER['PHP_AUTH_USER']) ) {
 	header("WWW-Authenticate: Basic realm=\"VoiceMail Access\"");
 	header("HTTP/1.0 401 Unauthorized");
 	exit;
@@ -62,16 +62,16 @@ require_once "VMAgent.php";
  * INIT & LOGIN
  **********************************************************/
 // Gets context, login and password from url
-$context = substr( $_SERVER['PHP_AUTH_USER'] ,
-				   0 ,
-				   strpos( $_SERVER['PHP_AUTH_USER'] , "-" ) );
-$login   = substr( $_SERVER['PHP_AUTH_USER'] ,
-				   strpos( $_SERVER['PHP_AUTH_USER'] , "-" ) + 1 ,
-				   strlen( $_SERVER['PHP_AUTH_USER'] ) );
+$context = substr( $_SERVER['PHP_AUTH_USER'],
+				   0,
+				   strpos($_SERVER['PHP_AUTH_USER'], "-") );
+$login   = substr( $_SERVER['PHP_AUTH_USER'],
+				   strpos($_SERVER['PHP_AUTH_USER'], "-")+1,
+				   strlen($_SERVER['PHP_AUTH_USER']) );
 $pass    = $_SERVER['PHP_AUTH_PW'];
 
 $agent = new VMAgent($login, $pass, $context);
-$is_logged = $agent->login( $login , $pass , $context );
+$is_logged = $agent->login($login, $pass, $context);
 
 if( $is_logged == FALSE ) {
 	echo "<error>Login or password incorrect, try again</error>\n";
@@ -83,24 +83,24 @@ if( $is_logged == FALSE ) {
  **********************************************************/
 if( $is_logged ) {
 	$agent->load();
-	if( ! empty( $_SERVER['PATH_INFO'] ) && $_SERVER['PATH_INFO'] != "/" ) {
-		$path = trim( rtrim( $_SERVER['PATH_INFO'] , "/" ) , "/" );
-		$arr = explode( "/" , $path );
+	if( ! empty($_SERVER['PATH_INFO']) && $_SERVER['PATH_INFO'] != "/" ) {
+		$path = trim(rtrim($_SERVER['PATH_INFO'], "/"), "/");
+		$arr = explode("/", $path);
 		/** rename, list, del, sound */
-		if( file_exists( $arr[count($arr)-1] ) ) {
-			include( $arr[count($arr)-1] );
+		if( file_exists($arr[count($arr)-1]) ) {
+			include($arr[count($arr)-1]);
 		} else {
 			/** Gets Voicemail Folder */
 			if( count($arr) == 1 ) {
-				echo $agent->getVMFByName( $arr[ count($arr)-1 ] )->toString();
+				echo $agent->getVMFByName($arr[count($arr)-1])->toString();
 			} else { /** Gets Voicemail */
-				echo "<directory name=\"". $arr[ count($arr)-2 ] ."\">";
-				echo $agent->getVMByName( $arr[ count($arr)-2 ] , $arr[ count($arr)-1 ] )->toString();
+				echo "<directory name=\"". $arr[count($arr)-2] ."\">";
+				echo $agent->getVMByName($arr[count($arr)-2], $arr[count($arr)-1])->toString();
 				echo "</directory>";
 			}
 		}
 	} else {
-		include( "list" );
+		include("list");
 	}
 }
 

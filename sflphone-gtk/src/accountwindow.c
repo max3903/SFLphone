@@ -116,7 +116,7 @@ show_account_window (account_t * a)
 
 #ifdef USE_VOICEMAIL
   gchar * curVoicemailPass = "";
-  gchar * curVoicemailContext = "";
+  gchar * curVoicemailContext = "default";
 #endif
 
   // Load from SIP/IAX/Unknown ?
@@ -265,28 +265,26 @@ show_account_window (account_t * a)
   gtk_entry_set_text(GTK_ENTRY(entryMailbox), curMailbox);
   gtk_table_attach ( GTK_TABLE( table ), entryMailbox, 1, 2, 8, 9, GTK_EXPAND | GTK_FILL, GTK_EXPAND | GTK_FILL, 0, 0);
 
-
 #ifdef USE_VOICEMAIL
-  label = gtk_label_new_with_mnemonic (_("_Voicemail passcode"));
-  gtk_table_attach ( GTK_TABLE( table ), label, 0, 1, 9, 10, GTK_EXPAND | GTK_FILL, GTK_EXPAND | GTK_FILL, 0, 0);
-  gtk_misc_set_alignment(GTK_MISC (label), 0, 0.5);
+  label = gtk_label_new_with_mnemonic(_("_Voicemail passcode"));
+  gtk_table_attach(GTK_TABLE(table), label, 0, 1, 9, 10, GTK_EXPAND | GTK_FILL, GTK_EXPAND | GTK_FILL, 0, 0);
+  gtk_misc_set_alignment(GTK_MISC(label), 0, 0.5);
   entryVoicemailPass = sexy_icon_entry_new();
-  image = gtk_image_new_from_stock( GTK_STOCK_DIALOG_AUTHENTICATION , GTK_ICON_SIZE_SMALL_TOOLBAR );
-  sexy_icon_entry_set_icon( SEXY_ICON_ENTRY(entryVoicemailPass), SEXY_ICON_ENTRY_PRIMARY , GTK_IMAGE(image) ); 
+  image = gtk_image_new_from_stock(GTK_STOCK_DIALOG_AUTHENTICATION, GTK_ICON_SIZE_SMALL_TOOLBAR);
+  sexy_icon_entry_set_icon(SEXY_ICON_ENTRY(entryVoicemailPass), SEXY_ICON_ENTRY_PRIMARY, GTK_IMAGE(image)); 
   gtk_entry_set_visibility(GTK_ENTRY(entryVoicemailPass), FALSE);
-  gtk_label_set_mnemonic_widget (GTK_LABEL (label), entryVoicemailPass);
+  gtk_label_set_mnemonic_widget(GTK_LABEL(label), entryVoicemailPass);
   gtk_entry_set_text(GTK_ENTRY(entryVoicemailPass), curVoicemailPass);
-  gtk_table_attach ( GTK_TABLE( table ), entryVoicemailPass, 1, 2, 9, 10, GTK_EXPAND | GTK_FILL, GTK_EXPAND | GTK_FILL, 0, 0);
+  gtk_table_attach(GTK_TABLE(table), entryVoicemailPass, 1, 2, 9, 10, GTK_EXPAND | GTK_FILL, GTK_EXPAND | GTK_FILL, 0, 0);
   
-  label = gtk_label_new_with_mnemonic (_("_Voicemail context"));
-  gtk_table_attach ( GTK_TABLE( table ), label, 0, 1, 10, 11, GTK_EXPAND | GTK_FILL, GTK_EXPAND | GTK_FILL, 0, 0);
-  gtk_misc_set_alignment(GTK_MISC (label), 0, 0.5);
+  label = gtk_label_new_with_mnemonic(_("_Voicemail context"));
+  gtk_table_attach(GTK_TABLE(table), label, 0, 1, 10, 11, GTK_EXPAND | GTK_FILL, GTK_EXPAND | GTK_FILL, 0, 0);
+  gtk_misc_set_alignment(GTK_MISC(label), 0, 0.5);
   entryVoicemailContext = gtk_combo_box_entry_new_text();
-  gtk_combo_box_prepend_text( GTK_COMBO_BOX( entryVoicemailContext ) , curVoicemailContext );
-  gtk_combo_box_set_active( GTK_COMBO_BOX( entryVoicemailContext ) , 0 );
-  gtk_table_attach ( GTK_TABLE( table ), entryVoicemailContext, 1, 2, 10, 11, GTK_EXPAND | GTK_FILL, GTK_EXPAND | GTK_FILL, 0, 0);
+  gtk_combo_box_prepend_text(GTK_COMBO_BOX(entryVoicemailContext), curVoicemailContext);
+  gtk_combo_box_set_active(GTK_COMBO_BOX(entryVoicemailContext), 0);
+  gtk_table_attach(GTK_TABLE(table), entryVoicemailContext, 1, 2, 10, 11, GTK_EXPAND | GTK_FILL, GTK_EXPAND | GTK_FILL, 0, 0);
 #endif
-
 
   gtk_widget_show_all( table );
   gtk_container_set_border_width (GTK_CONTAINER(table), 10);
@@ -357,15 +355,15 @@ show_account_window (account_t * a)
 						  g_strdup(proto) );
 
 #ifdef USE_VOICEMAIL
-	g_hash_table_replace( currentAccount->properties, 
-						  g_strdup(ACCOUNT_PASSCODE), 
+	g_hash_table_replace( currentAccount->properties,
+						  g_strdup(ACCOUNT_PASSCODE),
 						  g_strdup((gchar *)gtk_entry_get_text(GTK_ENTRY(entryVoicemailPass))) );
-	gchar * context = g_strdup((gchar *)gtk_combo_box_get_active_text( GTK_COMBO_BOX( entryVoicemailContext ) ) );
-	if( strcmp( context , "" ) == 0 || context == NULL ) {
+	gchar * context = g_strdup((gchar *)gtk_combo_box_get_active_text(GTK_COMBO_BOX(entryVoicemailContext)));
+	if( strcmp(context, "") == 0 || context == NULL ) {
 		context = "default";
 	}
-	g_hash_table_replace( currentAccount->properties, 
-						  g_strdup(ACCOUNT_CONTEXT), 
+	g_hash_table_replace( currentAccount->properties,
+						  g_strdup(ACCOUNT_CONTEXT),
 						  context );
 #endif
 

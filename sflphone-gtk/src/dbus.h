@@ -404,12 +404,12 @@ void dbus_unregister(int pid);
 /**
  * Voicemail - opens the connexion
  */
-void dbus_open_connection(void);
+gboolean dbus_open_connection(void);
 
 /**
  * Voicemail - close the connexion
  */
-void dbus_close_connection(void);
+gboolean dbus_close_connection(void);
 
 /**
  * Voicemail - get the list of all voicemail folder found by voicemail agent
@@ -455,7 +455,7 @@ void dbus_play_voicemail(gchar *, gchar *);
 /**
  * Voicemail - stop a playing voicemail
  */
-void dbus_stop_voicemail();
+void dbus_stop_voicemail(void);
 
 //-------------------------
 // VOICEMAIL CONFIGURATION
@@ -465,17 +465,17 @@ void dbus_stop_voicemail();
  * Voicemail - return whether ot not the communication with voicemail agent
  * @return gboolean true if enabled, false otherwise
  */
-gboolean dbus_is_voicemail_server_enabled();
+gboolean dbus_is_voicemail_server_enabled(void);
 /**
  * Voicemail - (des)activate communication with voicemail Agent
  */
-void dbus_voicemail_server_enable();
+void dbus_voicemail_server_enable(void);
 
 /**
  * Voicemail - get the voicemail server address
  * @return gchar* the address of the voicemail server (alphabetical or numerical allowed)
  */
-gchar * dbus_get_voicemail_config_address();
+gchar * dbus_get_voicemail_config_address(void);
 /**
  * Voicemail - set the voicemail server address
  * @param gchar* the address of the voicemail server
@@ -486,7 +486,7 @@ void dbus_set_voicemail_config_address(gchar *);
  * Voicemail - get the voicemail server path to the index.php file
  * @return gchar* the path
  */
-gchar * dbus_get_voicemail_config_path();
+gchar * dbus_get_voicemail_config_path(void);
 /**
  * Voicemail - set the voicemail server path to the index.php file
  * @param gchar* the path of the voicemail server
@@ -497,7 +497,7 @@ void dbus_set_voicemail_config_path(gchar *);
  * Voicemail - get the voicemail server port (HTTP = 80, HTTPS = 443)
  * @return gint the port of the voicemail server
  */
-gint dbus_get_voicemail_config_port();
+gint dbus_get_voicemail_config_port(void);
 /**
  * Voicemail - set the voicemail server port (HTTP = 80, HTTPS = 443)
  * @param gint the port of the voicemail server
@@ -508,7 +508,7 @@ void dbus_set_voicemail_config_port(gint);
  * Voicemail - get whether or not the use of HTTPS protocol is enable
  * @return gboolean true if HTTPS is enabled, false otherwise
  */
-gboolean dbus_is_voicemail_config_https_enabled();
+gboolean dbus_is_voicemail_config_https_enabled(void);
 /**
  * Voicemail - get & set the use of HTTPS protocol
  * @param gboolean true to enable HTTPS protocol, false to disable

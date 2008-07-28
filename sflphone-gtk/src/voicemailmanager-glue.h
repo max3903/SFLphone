@@ -14,21 +14,22 @@ static
 inline
 #endif
 gboolean
-org_sflphone_SFLphone_VoicemailManager_open_connection (DBusGProxy *proxy, GError **error)
+org_sflphone_SFLphone_VoicemailManager_open_connection (DBusGProxy *proxy, gboolean* OUT_opening, GError **error)
 
 {
-  return dbus_g_proxy_call (proxy, "openConnection", error, G_TYPE_INVALID, G_TYPE_INVALID);
+  return dbus_g_proxy_call (proxy, "openConnection", error, G_TYPE_INVALID, G_TYPE_BOOLEAN, OUT_opening, G_TYPE_INVALID);
 }
 
-typedef void (*org_sflphone_SFLphone_VoicemailManager_open_connection_reply) (DBusGProxy *proxy, GError *error, gpointer userdata);
+typedef void (*org_sflphone_SFLphone_VoicemailManager_open_connection_reply) (DBusGProxy *proxy, gboolean OUT_opening, GError *error, gpointer userdata);
 
 static void
 org_sflphone_SFLphone_VoicemailManager_open_connection_async_callback (DBusGProxy *proxy, DBusGProxyCall *call, void *user_data)
 {
   DBusGAsyncData *data = (DBusGAsyncData*) user_data;
   GError *error = NULL;
-  dbus_g_proxy_end_call (proxy, call, &error, G_TYPE_INVALID);
-  (*(org_sflphone_SFLphone_VoicemailManager_open_connection_reply)data->cb) (proxy, error, data->userdata);
+  gboolean OUT_opening;
+  dbus_g_proxy_end_call (proxy, call, &error, G_TYPE_BOOLEAN, &OUT_opening, G_TYPE_INVALID);
+  (*(org_sflphone_SFLphone_VoicemailManager_open_connection_reply)data->cb) (proxy, OUT_opening, error, data->userdata);
   return;
 }
 
@@ -51,21 +52,22 @@ static
 inline
 #endif
 gboolean
-org_sflphone_SFLphone_VoicemailManager_close_connection (DBusGProxy *proxy, GError **error)
+org_sflphone_SFLphone_VoicemailManager_close_connection (DBusGProxy *proxy, gboolean* OUT_closing, GError **error)
 
 {
-  return dbus_g_proxy_call (proxy, "closeConnection", error, G_TYPE_INVALID, G_TYPE_INVALID);
+  return dbus_g_proxy_call (proxy, "closeConnection", error, G_TYPE_INVALID, G_TYPE_BOOLEAN, OUT_closing, G_TYPE_INVALID);
 }
 
-typedef void (*org_sflphone_SFLphone_VoicemailManager_close_connection_reply) (DBusGProxy *proxy, GError *error, gpointer userdata);
+typedef void (*org_sflphone_SFLphone_VoicemailManager_close_connection_reply) (DBusGProxy *proxy, gboolean OUT_closing, GError *error, gpointer userdata);
 
 static void
 org_sflphone_SFLphone_VoicemailManager_close_connection_async_callback (DBusGProxy *proxy, DBusGProxyCall *call, void *user_data)
 {
   DBusGAsyncData *data = (DBusGAsyncData*) user_data;
   GError *error = NULL;
-  dbus_g_proxy_end_call (proxy, call, &error, G_TYPE_INVALID);
-  (*(org_sflphone_SFLphone_VoicemailManager_close_connection_reply)data->cb) (proxy, error, data->userdata);
+  gboolean OUT_closing;
+  dbus_g_proxy_end_call (proxy, call, &error, G_TYPE_BOOLEAN, &OUT_closing, G_TYPE_INVALID);
+  (*(org_sflphone_SFLphone_VoicemailManager_close_connection_reply)data->cb) (proxy, OUT_closing, error, data->userdata);
   return;
 }
 

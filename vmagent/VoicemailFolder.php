@@ -31,7 +31,7 @@ class VoicemailFolder {
 	/**
 	 * VoicemailFolder -- Constructor
 	 */	
-	public function __construct( $name="" ) {
+	public function __construct($name="") {
 		$this->folderName = $name;
 		$this->lstVM = array();
 	}
@@ -40,8 +40,8 @@ class VoicemailFolder {
 	 * VoicemailFolder -- Destructor
 	 */	
 	public function __destruct() {
-		for( $i=count($this->lstVM) ; $i>=0 ; $i-- ) {
-			array_pop( $this->lstVM );
+		for( $i = count($this->lstVM) ; $i >= 0 ; $i-- ) {
+			array_pop($this->lstVM);
 		}
 	}
 	
@@ -49,7 +49,7 @@ class VoicemailFolder {
 	 * setName(name)
 	 * @param string name
 	 */
-	public function setName( $name ) {
+	public function setName($name) {
 		$this->$folderName = $name;
 	}
 	
@@ -66,7 +66,7 @@ class VoicemailFolder {
 	 * @return int nb_of_voicemail
 	 */
 	public function getCount() {
-		return count( $this->lstVM );
+		return count($this->lstVM);
 	}	
 
 	/**
@@ -82,9 +82,9 @@ class VoicemailFolder {
 	 * @param string a_voicemail_name
 	 * @return Voicemail the_searched_voicemail
 	 */
-	public function getVMByName( $newName ) {
+	public function getVMByName($newName) {
 		foreach( $this->getListVM() as $vm ) {
-			if( strcmp( $vm->getName() , $newName ) == 0 ) {
+			if( strcmp($vm->getName(), $newName) == 0 ) {
 				return $vm;
 			}
 		}
@@ -95,23 +95,23 @@ class VoicemailFolder {
 	 * addVMail(a_voicemail)
 	 * @param Voicemail a_voicemail
 	 */
-	public function addVMail( $vm ) {
-		array_push( $this->lstVM , $vm );
+	public function addVMail($vm) {
+		array_push($this->lstVM, $vm);
 	}
 	
 	/**
-	 * rename( old_vm_name , new_vm_name )
+	 * rename(old_vm_name, new_vm_name)
 	 * @param string old_vm_name
 	 * @param string new_vm_name
 	 * @return string result : "OK" if ok, a text message otherwise
 	 */
-	public function rename( $oldName , $newName ) {
+	public function rename($oldName, $newName) {
 		foreach( $this->getListVM() as $vm ) {
-			if( strcmp( $vm->getName() , $oldName ) == 0 ) {
+			if( strcmp($vm->getName(), $oldName) == 0 ) {
 				$vm->setName( $newName );
 				foreach( $vm->getFormats() as $format ) {
-					$arr = explode( "." , $format );
-					$new = $newName .".". $arr[ count($arr)-1 ];
+					$arr = explode(".", $format);
+					$new = $newName .".". $arr[count($arr)-1];
 				}
 				return "OK";
 			}
@@ -123,7 +123,7 @@ class VoicemailFolder {
 	 * toShortString()
 	 */
 	public function toShortString() {
-		$ret = "  <directory name=\"". $this->getName() ."\" count=\"". $this->getCount() ."\">";
+		$ret = "<directory name=\"". $this->getName() ."\" count=\"". $this->getCount() ."\">";
 		if( $this->getCount() != 0 ) {
 			$ret .= "\n";
 //			foreach( $this->lstVM as $vm ) {
@@ -151,5 +151,5 @@ class VoicemailFolder {
 		return $ret;
 	}
 
-} // end of Voicemail
+} // end of VoicemailFolder
 ?>

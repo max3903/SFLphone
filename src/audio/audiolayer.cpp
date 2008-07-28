@@ -3,6 +3,7 @@
  *  Author: Yan Morin <yan.morin@savoirfairelinux.com>
  *  Author: Jerome Oufella <jerome.oufella@savoirfairelinux.com> 
  *  Author: Emmanuel Milou <emmanuel.milou@savoirfairelinux.com>
+ *  Author: Florian Desportes <florian.desportes@savoirfairelinux.com>
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -18,12 +19,6 @@
  *  along with this program; if not, write to the Free Software
  *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
-
-
-//#ifndef USE_VOICEMAIL
-#define USE_VOICEMAIL
-//#endif
-
 
 #include <cstdio>
 #include <cstdlib>
@@ -318,7 +313,6 @@ AudioLayer::playMail( void )
 			int nbCopied = mail->getNext( out , frames , spkrVol , _isVoicemail );
 			if( nbCopied !=  0 ) {
 				write( out , maxBytes );
-				//           data + count * bits_per_frame / 8
 			} else {
 				_isVoicemail = false;
 				_manager->stopVoicemail();

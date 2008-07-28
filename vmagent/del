@@ -25,17 +25,17 @@
 // http://default-6666:735@127.0.0.1/uml/index/INBOX/msg0000/del
 //
 
-$arr = explode( "/" , substr( $_SERVER['PATH_INFO'] , 1 ) );
+$arr = explode("/", substr($_SERVER['PATH_INFO'], 1));
 
-for( $i = 0 ; $i <= count( $arr ) ; $i++ ) {
+/*for( $i = 0 ; $i <= count($arr) ; $i++ ) {
 	echo "<arr$i>$arr[$i]</arr$i>";
-}
+}*/
 
 echo "<deleted>";
-if( count( $arr ) == 2 ) { // Delete a complete folder
-	$agent->deleteFolder( $arr[0] );
-} else if( count( $arr ) == 3 ) { // Delete a voicemail
-	$agent->delete( $arr[0] , $arr[1] );
+if( count($arr) == 2 ) { // Delete a complete folder
+	$agent->deleteFolder($arr[0]);
+} else if( count($arr) == 3 ) { // Delete a voicemail
+	$agent->delete($arr[0], $arr[1]);
 } else {
 	echo "<error>No folder and no voicemail given</error>";
 }

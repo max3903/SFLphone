@@ -45,10 +45,12 @@ public:
     {
         static ::DBus::IntrospectedArgument openConnection_args[] = 
         {
+            { "opening", "b", false },
             { 0, 0, 0 }
         };
         static ::DBus::IntrospectedArgument closeConnection_args[] = 
         {
+            { "closing", "b", false },
             { 0, 0, 0 }
         };
         static ::DBus::IntrospectedArgument getListFolders_args[] = 
@@ -207,8 +209,8 @@ public:
     /* methods exported by this interface,
      * you will have to implement them in your ObjectAdaptor
      */
-    virtual void openConnection(  ) = 0;
-    virtual void closeConnection(  ) = 0;
+    virtual ::DBus::Bool openConnection(  ) = 0;
+    virtual ::DBus::Bool closeConnection(  ) = 0;
     virtual std::vector< ::DBus::String > getListFolders(  ) = 0;
     virtual ::DBus::Int32 getFolderCount( const ::DBus::String& folder ) = 0;
     virtual std::vector< ::DBus::String > getListMails( const ::DBus::String& folder ) = 0;
@@ -257,16 +259,20 @@ private:
     {
         ::DBus::MessageIter ri = call.reader();
 
-        openConnection();
+        ::DBus::Bool argout1 = openConnection();
         ::DBus::ReturnMessage reply(call);
+        ::DBus::MessageIter wi = reply.writer();
+        wi << argout1;
         return reply;
     }
     ::DBus::Message _closeConnection_stub( const ::DBus::CallMessage& call )
     {
         ::DBus::MessageIter ri = call.reader();
 
-        closeConnection();
+        ::DBus::Bool argout1 = closeConnection();
         ::DBus::ReturnMessage reply(call);
+        ::DBus::MessageIter wi = reply.writer();
+        wi << argout1;
         return reply;
     }
     ::DBus::Message _getListFolders_stub( const ::DBus::CallMessage& call )

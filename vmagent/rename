@@ -26,16 +26,13 @@
 //
 
 // Gets folder, current name and new name of the voicemail to rename
-$arr = explode( "/" , substr( $_SERVER['PATH_INFO'] , 1 ) );
+$arr = explode("/", substr($_SERVER['PATH_INFO'], 1));
 $folder   = $arr[0];
 $old_name = $arr[1];
 $new_name = $_GET['n'];
-//echo "folder : $folder<br/>";
-//echo "old_name : $old_name<br/>";
-//echo "new_name : $new_name<br/>";
 
 echo "<renamed>";
-$agent->rename( $folder , $old_name , $new_name );
+$agent->rename($folder, $old_name, $new_name);
 echo "</renamed>\n";
 
 ?>

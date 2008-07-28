@@ -3,9 +3,13 @@
   <interface name="org.sflphone.SFLphone.VoicemailManager">
     
     <!-- OPEN/CLOSE VOICEMAIL CONNEXION -->
-    <method name="openConnection"/>
+    <method name="openConnection">
+      <arg type="b" name="opening" direction="out"/>
+    </method>
     
-    <method name="closeConnection"/>
+    <method name="closeConnection">
+      <arg type="b" name="closing" direction="out"/>
+    </method>
     
     <!-- METHODS -->
     <method name="getListFolders">

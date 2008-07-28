@@ -46,7 +46,7 @@ class Voicemail {
 	/**
 	 * Voicemail -- Constructor
 	 */	
-	public function __construct( $name="" ) {
+	public function __construct($name="") {
 		$this->name = $name;
 		$this->lstFormat = array();
 	}
@@ -70,7 +70,7 @@ class Voicemail {
 	 * setName( a_name )
 	 * @param string a_name
 	 */
-	public function setName( $nam ) {
+	public function setName($nam) {
 		$this->name = $nam;
 	}
 	
@@ -79,7 +79,7 @@ class Voicemail {
 	 * @param string name
 	 * @param string value
 	 */
-	public function setValue( $key , $value ) {
+	public function setValue($key, $value) {
 		//$this->tab[ $name ] = $value;
 		//echo count( $this->tab )."<br/>";
 		$this->$key = $value;
@@ -97,8 +97,8 @@ class Voicemail {
 	 * addFormat(a_sound_format)
 	 * @param string a_sound_format
 	 */
-	public function addFormat( $format ) {
-		array_push( $this->lstFormat , $format );
+	public function addFormat($format) {
+		array_push($this->lstFormat, $format);
 	}
 	
 	/**

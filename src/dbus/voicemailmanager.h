@@ -38,8 +38,8 @@ class VoicemailManager :
 
 		static const char* SERVER_PATH;
 		
-		void openConnection(void);
-		void closeConnection(void);
+		bool openConnection(void);
+		bool closeConnection(void);
 		
 		std::vector< ::DBus::String > getListFolders(void);
 		int                           getFolderCount(const ::DBus::String&);

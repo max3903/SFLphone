@@ -34,7 +34,7 @@ class VMStorageIMAP extends VMStorage {
 	* VMStorageIMAP -- Constructor
 	* @param Folder folder 
 	*/
-	public function __construct( $folder ) {
+	public function __construct($folder) {
 		
 	}
 	
@@ -59,7 +59,7 @@ class VMStorageIMAP extends VMStorage {
 	* @param string a_voicemail_new_namel
 	* @return bool
 	*/
-	public function rename( $foldName , $oldName , $newName ) {
+	public function rename($foldName, $oldName, $newName) {
 		
 	}
 	
@@ -68,7 +68,7 @@ class VMStorageIMAP extends VMStorage {
 	* @param string a_voicemail_folder
 	* @return bool
 	*/
-	public function deleteFolder( $folder ) {
+	public function deleteFolder($folder) {
 	
 	}
 	
@@ -78,7 +78,7 @@ class VMStorageIMAP extends VMStorage {
 	* @param string a_voicemail_name
 	* @return bool
 	*/
-	public function delete( $folder , $vm ) {
+	public function delete($folder, $vm) {
 		
 	}
 

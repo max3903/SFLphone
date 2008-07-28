@@ -115,8 +115,6 @@ class VMViewer {
 		
 		/** Dealing with agent */
 		const string createRequest(const string&);
-		int          exec(const string&);
-		void         parse();
 		bool         execAndParse(const string&);
 		void         removeAll(void);
 		

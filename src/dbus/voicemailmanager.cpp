@@ -31,14 +31,16 @@ VoicemailManager::VoicemailManager(DBus::Connection& connection)
 VoicemailManager::~VoicemailManager() {
 }
 
-void
+bool
 VoicemailManager::openConnection(void) {
 	Manager::instance().openConnection();
+	return true;
 }
 
-void
+bool
 VoicemailManager::closeConnection(void) {
 	Manager::instance().destroyVoicemailViewer();
+	return false;
 }
 
 std::vector< ::DBus::String >

@@ -38,7 +38,7 @@ class VMStorageODBC extends VMStorage {
 	* @param string login
 	* @param string pass
 	*/
-	public function __construct( $server,  $login,  $pass ) {
+	public function __construct($server, $login, $pass) {
 		
 	}
 	
@@ -63,7 +63,7 @@ class VMStorageODBC extends VMStorage {
 	* @param string a_voicemail_new_name
 	* @return bool
 	*/
-	public function rename( $foldName , $oldName , $newName ) {
+	public function rename($foldName, $oldName, $newName) {
 		
 	}
 	
@@ -72,7 +72,7 @@ class VMStorageODBC extends VMStorage {
 	* @param string a_voicemail_folder
 	* @return bool
 	*/
-	public function deleteFolder( $folder ) {
+	public function deleteFolder($folder) {
 	
 	}
 
@@ -82,7 +82,7 @@ class VMStorageODBC extends VMStorage {
 	* @param string a_voicemail_name
 	* @return bool
 	*/
-	public function delete( $folder , $vm ) {
+	public function delete($folder, $vm) {
 		
 	}
 

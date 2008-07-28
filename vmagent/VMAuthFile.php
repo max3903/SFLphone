@@ -36,11 +36,11 @@ class VMAuthFile extends VMAuth {
 	* @param string context ("default" by default)
 	* @param string file_configuration ("/etc/asterisk/voicemail.conf" by default)
 	*/
-	public function __construct( $login="", $pass="", $context="default", $file="/etc/asterisk/voicemail.conf" ) {
-		$this->login = $login;
-		$this->pass = $pass;
+	public function __construct($login="", $pass="", $context="default", $file="/etc/asterisk/voicemail.conf") {
+		$this->login   = $login;
+		$this->pass    = $pass;
 		$this->context = $context;
-		$this->file = $file;
+		$this->file    = $file;
 	}
 
 	/**
@@ -62,7 +62,7 @@ class VMAuthFile extends VMAuth {
 	* setContext(a_context)
 	* @param string a_context
 	*/
-	public function setContext( $context ) {
+	public function setContext($context) {
 		$this->context = $context;
 	}
 
@@ -78,7 +78,7 @@ class VMAuthFile extends VMAuth {
 	* setLogin(a_login)
 	* @param string a_login
 	*/
-	public function setLogin( $login ) {
+	public function setLogin($login) {
 		$this->login = $login;
 	}
 	
@@ -94,7 +94,7 @@ class VMAuthFile extends VMAuth {
 	* setPass(a_password)
 	* @param string a_password
 	*/
-	public function setPass( $pass ) {
+	public function setPass($pass) {
 		$this->pass = $pass;
 	}
 
@@ -103,9 +103,9 @@ class VMAuthFile extends VMAuth {
 	* @return TRUE if well registered in $VOICEMAIL_CONF file (default is /etc/asterisk/voicemail.conf), FALSE otherwise
 	*/
 	public function login() {
-		$fd = fopen( $this->file , "r" );
+		$fd = fopen($this->file, "r");
 		if( !$fd ) {
-			echo "  <error>";
+			echo "<error>";
 			echo "Could not open the VOICEMAIL_CONF file : $VOICEMAIL_CONF\n"; 
 			echo "</error>\n";
 			return FALSE;
@@ -113,24 +113,27 @@ class VMAuthFile extends VMAuth {
 		
 		$valid = FALSE;
 		$cont = "";
-		while( ! feof( $fd ) ) {
-			$buf = fgets( $fd, 4096 );
-			$line = trim( $buf );
+		while( ! feof($fd) ) {
+			$buf = fgets($fd, 4096);
+			$line = trim($buf);
 			/** Saving current context */ 
 			$pattern = '/^\[(.*)\]$/';
-			if( preg_match( $pattern, $line, $matches ) ) {
+			if( preg_match($pattern, $line, $matches) ) {
 				$cont = $matches[1];
 			}
 			/** Matching current mailbox with own datas */
 			$pattern  = '/^\s*(\w+)\s*=>\s*(\d+),.*$/';
-			if( preg_match( $pattern, $line, $matches ) ) {
-				if( $cont == $this->getContext() && $matches[1] == $this->login && $matches[2] == $this->pass ) {
+			if( preg_match($pattern, $line, $matches) ) {
+				if( $cont == $this->getContext() &&
+					$matches[1] == $this->login &&
+					$matches[2] == $this->pass ) {
 					$valid = TRUE;
+					fclose($fd);
 					return $valid;
 				}
 			}
 		}
-		fclose( $fd );
+		fclose($fd);
 		return $valid;
 	}
 

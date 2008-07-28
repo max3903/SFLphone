@@ -46,10 +46,10 @@ class VMAgent {
 	 * @param string type_authentication
 	 * @param string type_file_storage
 	 */
-	public function __construct( $login, $pass, $context ) {
+	public function __construct($login, $pass, $context) {
 		$vmAPI = new VMApiMan(); // ApiMan
-		$this->autoAuthentication( $login, $pass, $context );
-		$this->checkStorage( $login, $pass, $context );
+		$this->autoAuthentication($login, $pass, $context);
+		$this->checkStorage($login, $pass, $context);
 	}
 	
 	/**
@@ -65,8 +65,8 @@ class VMAgent {
 	 * @param string password
 	 * @param string context
 	 */
-	private function autoAuthentication( $login, $pass, $context ) {
-		$fd = fopen( "/etc/asterisk/voicemail.conf" , "r" );
+	private function autoAuthentication($login, $pass, $context) {
+		$fd = fopen("/etc/asterisk/voicemail.conf", "r");
 		if( !$fd ) {
 			echo "<error>";
 			echo "Could not open the VOICEMAIL_CONF file : $VOICEMAIL_CONF\n"; 
@@ -75,18 +75,18 @@ class VMAgent {
 		}
 		$inDBpattern = '/^\s*searchcontexts=yes/';
 		$authDB = FALSE;
-		while( ! feof( $fd ) ) {
-			$buf = fgets( $fd, 4096 );
-			$line = trim( $buf );
-			if( preg_match( $inDBpattern, $line ) ) {
+		while( ! feof($fd) ) {
+			$buf = fgets($fd, 4096);
+			$line = trim($buf);
+			if( preg_match($inDBpattern, $line) ) {
 				$authDB = TRUE;
 			}
 		}
-		fclose( $fd );
+		fclose($fd);
 		if( $authDB ) {
 			$this->vmAuth = new VMAuthDB();// $login, $pass, $context );
 		} else {
-			$this->vmAuth = new VMAuthFile( $login, $pass, $context );
+			$this->vmAuth = new VMAuthFile($login, $pass, $context);
 		}
 	}
 	
@@ -96,8 +96,8 @@ class VMAgent {
 	 * @param string password
 	 * @param string context
 	 */
-	private function checkStorage( $login, $pass, $context ) {
-		$fd = fopen( "/etc/asterisk/voicemail.conf" , "r" );
+	private function checkStorage($login, $pass, $context) {
+		$fd = fopen("/etc/asterisk/voicemail.conf", "r");
 		if( !$fd ) {
 			echo "<error>";
 			echo "Could not open the VOICEMAIL_CONF file : $VOICEMAIL_CONF\n"; 
@@ -105,44 +105,48 @@ class VMAgent {
 			return FALSE;
 		}
 		
-		$inODBCpattern = array( "/^\s*odbcstorage=(.*)/" => "" , "/^\s*odbctable=(.*)/" => "" );
-		$inIMAPpattern = array( "/^\s*imapserver=(.*)/" => "" , "/^\s*imapport=(.*)/" => "" , "/^\s*authuser=(.*)/" => "" ,
-								"/^\s*authpassword=(.*)/" => "" , "/^\s*imapfolder=(.*)/" => "" );
+		$inODBCpattern = array( "/^\s*odbcstorage=(.*)/" => "",
+								"/^\s*odbctable=(.*)/" => "" );
+		$inIMAPpattern = array( "/^\s*imapserver=(.*)/" => "",
+								"/^\s*imapport=(.*)/" => "",
+								"/^\s*authuser=(.*)/" => "",
+								"/^\s*authpassword=(.*)/" => "",
+								"/^\s*imapfolder=(.*)/" => "" );
 		$authODBC = FALSE;
 		$authIMAP = FALSE;
-		while( ! feof( $fd ) ) {
-			$buf = fgets( $fd, 4096 );
-			$line = trim( $buf );
+		while( ! feof($fd) ) {
+			$buf = fgets($fd, 4096);
+			$line = trim($buf);
 			foreach( $inODBCpattern as $key => $val ) {
-				if( preg_match( $key , $line , $matches ) ) {
+				if( preg_match($key, $line, $matches) ) {
 					$inODBCpattern[$key] = $matches[1];
 				}
 			}
 			foreach( $inIMAPpattern as $key => $val ) {
-				if( preg_match( $key , $line , $matches ) ) {
+				if( preg_match($key, $line, $matches) ) {
 					$inODBCpattern[$key] = $matches[1];
 				}
 			}
 		}
-		fclose( $fd );
+		fclose($fd);
 		$inODBC = TRUE;
 		$inIMAP = TRUE;
 		foreach( $inODBCpattern as $key => $val ) {
-				if( empty( $val ) ) {
+				if( empty($val) ) {
 				$inODBC = FALSE;
 			}
 		}
 		foreach( $inIMAPpattern as $key => $val ) {
-			if( empty( $val ) ) {
+			if( empty($val) ) {
 				$inIMAP = FALSE;
 			}
 		}
 		if( $inODBC ) {
 			$this->vmAuth = new VMStorageODBC();// $login, $pass, $context );
 		} else if( $inIMAP ) {
-			$this->vmAuth = new VMStorageIMAP( $login, $pass, $context );
+			$this->vmAuth = new VMStorageIMAP($login, $pass, $context);
 		} else {
-			$this->vmStorage = new VMStorageFile( "/var/spool/asterisk/voicemail/". $context ."/". $login );
+			$this->vmStorage = new VMStorageFile("/var/spool/asterisk/voicemail/". $context ."/". $login);
 		}
 	}
 	
@@ -159,9 +163,9 @@ class VMAgent {
 	 * @param string a_voicemail_folder_name
 	 * @return VoicemailFolder the_voicemail_folder
 	 */
-	public function getVMFByName( $name ) {
+	public function getVMFByName($name) {
 		foreach( $this->vmStorage->getLstFolders() as $vmf ) {
-			if( strcmp( $vmf->getName() , $name ) == 0 ) {
+			if( strcmp($vmf->getName(), $name) == 0 ) {
 				return $vmf;
 			}
 		}
@@ -173,7 +177,7 @@ class VMAgent {
 	 * @param string a_voicemail_name
 	 * @return Voicemail the_voicemail
 	 */
-	public function getVMByName( $fol , $name ) {
+	public function getVMByName($fol, $name) {
 		return $this->getVMFByName($fol)->getVMByName($name);
 	}
 	
@@ -183,7 +187,7 @@ class VMAgent {
 	 * @return Voicemail
 	 * @access public
 	 */
-	public function getVMAt( $num ) {
+	public function getVMAt($num) {
 		if( $num >= 0 && $num < count($this->vmList) ) {
 			return $this->vmList[$num];
 		} else {
@@ -198,10 +202,10 @@ class VMAgent {
 	 * @param string context
 	 * @return TRUE if well registered, FALSE otherwise
 	 */
-	public function login( $login, $pass, $context="default" ) {
-		$this->vmAuth->setLogin( $login );
-		$this->vmAuth->setPass( $pass );
-		$this->vmAuth->setContext( $context );
+	public function login($login, $pass, $context="default") {
+		$this->vmAuth->setLogin($login);
+		$this->vmAuth->setPass($pass);
+		$this->vmAuth->setContext($context);
 		if( $this->vmAuth->login() ) {
 			return TRUE;
 		} else {
@@ -230,8 +234,8 @@ class VMAgent {
 	 * @param string a_voicemail_to_get_the_sound
 	 * @return bool TRUE if the choosen voicemail exists and we have a sound file, FALSE otherwise
 	 */
-	public function getSound( $folder , $voicemail ) {
-		return $this->vmStorage->getSound( $folder , $voicemail );
+	public function getSound($folder, $voicemail) {
+		return $this->vmStorage->getSound($folder, $voicemail);
 	}
 	
 	/**
@@ -241,8 +245,8 @@ class VMAgent {
 	 * @param string a_voicemail_future_name
 	 * @return bool TRUE if all files (txt+sound) have been well renamed, FALSE otherwise
 	 */
-	public function rename( $folderName , $oldVMName , $newVMName ) {
-		return $this->vmStorage->rename( $folderName , $oldVMName , $newVMName );
+	public function rename($folderName, $oldVMName, $newVMName) {
+		return $this->vmStorage->rename($folderName, $oldVMName, $newVMName);
 	}
 	
 	/**
@@ -251,8 +255,8 @@ class VMAgent {
 	 * @param string a_voicemail_name
 	 * @return bool TRUE if all files (txt+sound) have been well deletes, FALSE otherwise
 	 */
-	public function deleteFolder( $folder ) {
-		return $this->vmStorage->deleteFolder( $folder );
+	public function deleteFolder($folder) {
+		return $this->vmStorage->deleteFolder($folder);
 	}
 	
 	/**
@@ -261,8 +265,8 @@ class VMAgent {
 	 * @param string a_voicemail_name
 	 * @return bool TRUE if all files (txt+sound) have been well deletes, FALSE otherwise
 	 */
-	public function delete( $folder , $vmName ) {
-		return $this->vmStorage->delete( $folder , $vmName );
+	public function delete($folder, $vmName) {
+		return $this->vmStorage->delete($folder, $vmName);
 	}
 
 } // end of VMAgent
