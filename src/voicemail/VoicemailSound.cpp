@@ -1,6 +1,6 @@
 /*
- *  Copyright (C) 2006-2007 Savoir-Faire Linux inc.
- *  Author: Florian DESPORTES <florian.desportes@savoirfairelinux.com>
+ *  Copyright (C) 2008 Savoir-Faire Linux inc.
+ *  Author: Florian Desportes <florian.desportes@savoirfairelinux.com>
  *                                                                              
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -21,7 +21,6 @@
 #include <fstream>
 #include <string>
 #include "VoicemailSound.h"
-#include "base64.h"
 
 
 VoicemailSound::VoicemailSound() {
@@ -52,23 +51,29 @@ void VoicemailSound::setDatas(const std::string& dat) {
 
 std::string VoicemailSound::decode() {
 	/** Code is part of Base64, here is original file header */
-	/*********************************************************************
-	* Base64 - a simple base64 encoder and decoder.
-	*
-	* Copyright (c) 1999, Bob Withers - bwit@pobox.com
-	*
-	* This code may be freely used for any purpose, either personal
-	* or commercial, provided the authors copyright notice remains
-	* intact.
-	*********************************************************************/
-	/*********************************************************************
-	* file altered by : Christophe Tournayre
-	*********************************************************************/
-	string::size_type i;
+	/****************************************************************
+	 * Base64 - a simple base64 encoder and decoder.
+	 *
+	 * Copyright (c) 1999, Bob Withers - bwit@pobox.com
+	 *
+	 * This code may be freely used for any purpose, either personal
+	 * or commercial, provided the authors copyright notice remains
+	 * intact.
+	 ****************************************************************/
+	/****************************************************************
+	 * file altered by : Christophe Tournayre
+	 ****************************************************************/
+	// Filling character
+	char fillchar = '=';
+	// Base64 alphabet
+	std::string cvt = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+					  "abcdefghijklmnopqrstuvwxyz"
+					  "0123456789+/";
+	std::string::size_type i;
 	char c;
 	char c1;
-	string::size_type len = _datas.length();
-	string ret;
+	std::string::size_type len = _datas.length();
+	std::string ret;
 
 	for( i = 0 ; i < len ; ++i ) {
 		c = (char) cvt.find(_datas[i]);
@@ -95,21 +100,6 @@ std::string VoicemailSound::decode() {
 	}
 	return ret;
 }
-
-
-/*std::string VoicemailSound::toDecodeString() {
-	std::string decoded = Base64::decode(_datas);
-	std::ofstream file;
-
-	std::string filename("/tmp/"+ _file +"."+ _format);
-	cout << "created : " << filename << endl;
-	file.open(filename.c_str(), fstream::out);
-	file << decoded;
-	file.close();
-
-	return decoded;
-}*/
-
 
 std::string VoicemailSound::toString() {
 	std::string res("   [ VOICEMAILSOUND ]");
