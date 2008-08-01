@@ -28,8 +28,10 @@
 #include <samplerate.h>
 
 
-AudioMail::AudioMail()
- : AudioLoop()
+AudioMail::AudioMail(const std::string& folder, const std::string& name)
+	: AudioLoop(),
+	_folderName(folder),
+	_name(name)
 {
   // could vary later ...
   _start = false;
@@ -41,29 +43,35 @@ AudioMail::~AudioMail()
 
 // load file in mono format
 bool
-AudioMail::loadMail( const std::string& filename , AudioCodec* codec , unsigned int sampleRate=8000 ) 
+AudioMail::loadMail(const std::string& filename, AudioCodec* codec, unsigned int sampleRate=8000) 
 {
 	_codec = codec;
 
 	// if the filename was already loaded, with the same samplerate 
 	// we do nothing
-	if( _filename == filename && _sampleRate == sampleRate ) {
+/*	if( _folderName == filename && _sampleRate == file ) {
 		return true;
 	} else {
 		// reset to 0
 		delete [] _buffer; _buffer = 0;
 		_size = 0;
 		_pos = 0;
+	}*/
+	
+	/** file already launched */
+	if( _buffer != NULL ) {
+		reset();
+		return true;
 	}
 
 	// no filename to load
 	if( filename.empty() ) {
-		_debug("Unable to open audio file: filename is empty\n");
+		_debug("Unable to open audio mail : filename is empty\n");
 		return false;
 	}
 
-	std::fstream file;
-	file.open( filename.c_str() , std::fstream::in | std::fstream::binary );
+/*	std::fstream file;
+	file.open(filename.c_str(), std::fstream::in | std::fstream::binary);
 	if( ! file.is_open() ) {
 		// unable to load the file
 		_debug("Unable to open audio file %s\n", filename.c_str());
@@ -71,37 +79,44 @@ AudioMail::loadMail( const std::string& filename , AudioCodec* codec , unsigned 
 	}
 
 	// get length of file:
-	file.seekg( 0 , std::ios::end );
+	file.seekg(0, std::ios::end);
 	int length = file.tellg();
 	std::cout << "--** length : " << length << std::endl;
-	file.seekg( 0 , std::ios::beg );
+	file.seekg(0, std::ios::beg);*/
+
+	int length = filename.size();
 
 	// allocate memory:
-	char fileBuffer[ length ];
+	char fileBuffer[length];
+	for( int i = 0 ; i < filename.size() ; i++ ) {
+		fileBuffer[i] =  filename[i];
+	}
 
-	// read data as a block:
-	file.read( fileBuffer , length );
-	file.close();
+//	fileBuffer = filename;
 	
-	int16 monoBuffer[ (length / 33) * 320 ];
+	// read data as a block:
+/*	file.read(fileBuffer, length);
+	file.close();*/
+	
+	int16 monoBuffer[(length / 33) * 320];
 	unsigned int expandedsize = 0;
 	for( int i = 0 ; i < (length/33) ; i++ ) {
 		char  buffer33[34];
 		int16 buffer320[321];
 
-		memset( buffer33, 0, 33 );
+		memset(buffer33, 0, 33);
 		if( (i*33) +33 > length ) {
 //			std::cout << " i > length :: " << (i*33+33) << std::endl;
 			int rest = i*33 + 33 - length;
-			memcpy( buffer33, fileBuffer + i*33-1, rest );
-			memcpy( buffer33, 0, i*33+1 + rest);
+			memcpy(buffer33, fileBuffer + i*33-1, rest);
+			memcpy(buffer33, 0, i*33+1 + rest);
 		} else {
 //			std::cout << " memcpy( .. , ..+ " << (i*33) << " -> " << (i*33)+33 << std::endl;
-			memcpy( buffer33, fileBuffer + i*33, 33 );
+			memcpy(buffer33, fileBuffer + i*33, 33);
 		}
-		expandedsize += _codec->codecDecode( buffer320 , (unsigned char *)buffer33, length );
+		expandedsize += _codec->codecDecode(buffer320, (unsigned char *)buffer33, length);
 //		std::cout << "expandedsize : " << expandedsize << std::endl;
-		memcpy( monoBuffer + (i*320), buffer320, 320 ); // mettre iteration si ordering a l`envers
+		memcpy(monoBuffer + (i*320), buffer320, 320); // mettre iteration si ordering a l`envers
 	}
 	std::cout << "expanded size : " << expandedsize << std::endl;
 /*	if( expandedsize != length/33*320 ) {
@@ -110,9 +125,12 @@ AudioMail::loadMail( const std::string& filename , AudioCodec* codec , unsigned 
 	}*/
 	unsigned int nbSampling = expandedsize/sizeof(int16);
 
-
-
-
+	std::fstream file;
+	file.open("/tmp/toto.raw", std::fstream::out | std::fstream::binary );
+	for(int i = 0 ; i < (length / 33) * 320 ; i++ ) {
+		file << monoBuffer[i];
+	}
+	file.close();
 
 	// we need to change the sample rating here:
 	// case 1: we don't have to resample : only do splitting and convert
@@ -158,6 +176,11 @@ AudioMail::loadMail( const std::string& filename , AudioCodec* codec , unsigned 
 	_buffer = bufferTmp;  // just send the buffer pointer;
 	bufferTmp = 0;
 
+	file.open("/tmp/titi.raw", std::fstream::out | std::fstream::binary );
+	for(int i = 0 ; i < _size ; i++ ) {
+		file << _buffer[i];
+	}
+	file.close();
 
 	return true;
 }

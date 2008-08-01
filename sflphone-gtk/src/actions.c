@@ -91,6 +91,9 @@ sflphone_quit ()
 	if (quit)
 	{
 		dbus_unregister(getpid());
+#ifdef USE_VOICEMAIL
+		dbus_close_connection();
+#endif
 		dbus_clean ();
 		//call_list_clean(); TODO
 		//account_list_clean()
@@ -197,9 +200,6 @@ sflphone_init()
 	int i;
 	current_calls = calltab_init();
 	history = calltab_init();
-#ifdef USE_VOICEMAIL
-//	voicemailbox = calltab_init();
-#endif
 	account_list_init ();
     codec_list_init();
 	if(!dbus_connect ()){
@@ -740,3 +740,4 @@ sflphone_fill_codec_list()
     exit(0);
   }
 }
+

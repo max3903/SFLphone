@@ -38,6 +38,7 @@
 #include <dbus/dbus-glib.h>
 
 #ifdef USE_VOICEMAIL
+#include <mail.h>
 #include <voicemailwindow.h>
 #include <voicemailmanager-glue.h>
 #endif
@@ -185,21 +186,33 @@ static void
 voicemail_playing( DBusGProxy *proxy ,
 				   void * foo )
 {
-	voicemail_is_playing();
+	if( VMVWindow != NULL )
+	{
+		voicemail_is_playing();
+	}
+	mail_is_playing();
 }
 
 static void
 voicemail_stopped( DBusGProxy *proxy ,
 				   void * foo )
 {
-	voicemail_is_stopped();
+	if( VMVWindow != NULL )
+	{
+		voicemail_is_stopped();
+	}
+	mail_is_stopped();
 }
 
 static void
 voicemail_throw_error( DBusGProxy *proxy ,
 					   gchar * error )
 {
-	voicemail_catch_error( error );
+	if( VMVWindow != NULL )
+	{
+		voicemail_catch_error( error );
+	}
+	mail_catch_error( error );
 }
 #endif
 
@@ -1602,6 +1615,26 @@ dbus_get_list_errors(void)
 	else
 		g_print("Called dbus_get_list_errors\n");
 	return list;
+}
+
+GHashTable *
+dbus_get_voicemail(gchar *folder, gchar *name)
+{
+	GError* error = NULL;
+	GHashTable * infos;
+	org_sflphone_SFLphone_VoicemailManager_get_voicemail(
+			voicemailManagerProxy,
+			folder,
+			name,
+			&infos,
+			&error);
+	if(error)
+	{
+		g_error_free(error);
+	}
+	else
+		g_print("Called dbus_get_voicemail_info\n");
+	return infos;
 }
 
 gchar*
