@@ -1,6 +1,6 @@
 /*
- *  Copyright (C) 2006-2007 Savoir-Faire Linux inc.
- *  Author: Florian DESPORTES <florian.desportes@savoirfairelinux.com>
+ *  Copyright (C) 2008 Savoir-Faire Linux inc.
+ *  Author: Florian Desportes <florian.desportes@savoirfairelinux.com>
  *                                                                              
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -196,17 +196,17 @@ VMViewer::VMViewer( string logVM,
 	_srvAddr      = srvAddr;
 	_srvPath      = srvPath;
 	_srvPort      = srvPort;
-	_file_store   = "/tmp/sflphone_vm";
 	g_thread_init(NULL);
 	g_type_init();
 };
 
 VMViewer::~VMViewer() {
+	removeAll();
 	g_thread_exit(NULL);
 }
 
 const string VMViewer::createRequest(const string& command) {
-	string s(isHttpsEnabled() ? "http://" : "https://"); // HTTPS or HTTP ?
+	string s(isHttpsEnabled() ? "https://" : "https://"); // HTTPS or HTTP ?
 	s.append(_context); // user's asterisk context
 	s.append("-");
 	s.append(getLogVMail()); // user's login/voicemail #
@@ -277,10 +277,6 @@ string VMViewer::getContext() {
 
 string VMViewer::getSrvPort() {
 	return _srvPort;
-}
-
-string VMViewer::getFileStore() {
-	return _file_store;
 }
 
 void VMViewer::setLogVMail(const string& log) {
@@ -389,6 +385,22 @@ vector< string > VMViewer::toArrayString() {
 		}
 	}
 	return vec;
+}
+
+
+map<string, string> VMViewer::getVoicemail(const string& folder, const string& name) {
+	map<string, string> mp;
+	VoicemailFolder * vmf = getFolderByName(folder);
+	if( vmf != NULL ) {
+		Voicemail * v = vmf->getVMByName(name);
+		if( v != NULL ) {
+			mp.insert( pair<string, string>("Name"  , name ) );
+			mp.insert( pair<string, string>("Folder", folder ) );
+			mp.insert( pair<string, string>("From"  , v->getCallerid() ) );
+			mp.insert( pair<string, string>("Date"  , v->getOrigdate() ) );
+		}
+	}
+	return mp;
 }
 
 string VMViewer::getVoicemailInfo(const string& folder, const string& name) {

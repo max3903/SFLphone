@@ -46,6 +46,10 @@ void create_call_tree(calltab_t* tab);
 void toolbar_update_buttons();
 static void toggle_history(GtkToggleToolButton *toggle_tool_button, gpointer user_data);
 
+#ifdef USE_VOICEMAIL
+static void toggle_voicemail(GtkToggleToolButton *toggle_tool_button, gpointer user_data);
+#endif
+
 /**
  * Add a call in the calltree
  * @param c The call to add
@@ -69,6 +73,12 @@ void update_call_tree_remove (calltab_t* ct, call_t * c);
  */
 GtkWidget * create_toolbar();
 
-void switch_tab( void );
+void switch_tab(void);
+
+#ifdef USE_VOICEMAIL
+void select_voicemail(void);
+
+void select_history(void);
+#endif
 
 #endif 

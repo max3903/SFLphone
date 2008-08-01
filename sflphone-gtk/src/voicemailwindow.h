@@ -74,7 +74,7 @@ void create_tree(void);
 
 /**
  * Fills the treeview with all the folders
- * @param gchar* the 'markuped' name of the folder (example : '<b>INBOX</b>'
+ * @param gchar* the 'markuped' name of the folder (example : '<b>INBOX</b>')
  * @param gchar* the single name of the folder     (example : 'INBOX')
  */
 void update_tree(gchar *, gchar *);

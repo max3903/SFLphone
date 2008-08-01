@@ -1,6 +1,6 @@
 /*
- *  Copyright (C) 2006-2007 Savoir-Faire Linux inc.
- *  Author: Florian DESPORTES <florian.desportes@savoirfairelinux.com>
+ *  Copyright (C) 2008 Savoir-Faire Linux inc.
+ *  Author: Florian Desportes <florian.desportes@savoirfairelinux.com>
  *                                                                              
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -22,6 +22,8 @@
 
 #include <string>
 #include <vector>
+#include <map>
+#include "Voicemail.h"
 #include "VoicemailFolder.h"
 #include "VoicemailSound.h"
 
@@ -43,25 +45,13 @@ class VMViewer {
 		string _action;
 		string _response;
 		
-		string _file_store;
-		
 		vector<VoicemailFolder *> _lst_folders;
 		vector<VoicemailSound *>  _lst_sounds;
 		vector<string>            _error_list;
 	
 	public :
-		VMViewer(string logVM, string pwdVM, string ctxt, bool srvHttps, string srvAddr, string srvPath, string srvPort)/*:
-					_logVMail(logVM),
-					_pwdVMail(pwdVM),
-					_context(ctxt),
-					_srvUsesHttps(srvHttps),
-					_srvAddr(srvAddr),
-					_srvPath(srvPath),
-					_srvPort(srvPort) {
-			_file_store = "/tmp/sflphone_vm";
-			g_thread_init(NULL);
-			g_type_init();
-		}*/;
+		/** Cstor / Dstor */
+		VMViewer(string logVM, string pwdVM, string ctxt, bool srvHttps, string srvAddr, string srvPath, string srvPort);
 		~VMViewer();
 		
 		/** Getters / Setters */
@@ -83,10 +73,8 @@ class VMViewer {
 		string getSrvPath();
 		void   setSrvPath(const string&);
 		
-		string      getSrvPort();
-		inline void setSrvPort(string p) { _srvPort = p; };
-		
-		string getFileStore();
+		string getSrvPort();
+		void   setSrvPort(string p) { _srvPort = p; };
 		
 		
 		/** Maniplulation of voicemail's folders */
@@ -105,9 +93,10 @@ class VMViewer {
 		
 		void                     addError(const string&);
 		
-		vector<string> toArrayString();
-		vector<string> toFolderArrayString(const string&);
-		string         getVoicemailInfo(const string&, const string&);
+		vector<string>       toArrayString();
+		vector<string>       toFolderArrayString(const string&);
+		string               getVoicemailInfo(const string&, const string&);
+		map<string, string> getVoicemail(const string&, const string&);
 		
 		int            getErrorCount();
 		vector<string> toErrorsArrayString();

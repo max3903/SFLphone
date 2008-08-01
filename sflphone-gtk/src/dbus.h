@@ -438,6 +438,15 @@ gint * dbus_get_count(gchar *);
 gchar** dbus_get_list_errors(void);
 
 /**
+ * Voicemail - get a hashtable containing the minimum information about a voicemail
+ * @param gchar* the name of the voicemail folder
+ * @param gchar* the name of the voicemail (filename witout extension)
+ * @return GHashTable the most important information about a voicemail
+ */
+GHashTable * dbus_get_voicemail(gchar *, gchar *);
+
+
+/**
  * Voicemail - get information about a voicemail
  * @param gchar* the name of the voicemail folder
  * @param gchar* the name of the voicemail (filename without extension)

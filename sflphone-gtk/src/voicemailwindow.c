@@ -644,8 +644,16 @@ show_voicemail_window(void)
 {
 	gint i = 0;
 
-	if( dbus_open_connection() == TRUE ) {
-		create_voicemail_window();
+	if( dbus_open_connection() == TRUE )
+	{
+		if( VMWindow == NULL )
+		{
+			create_voicemail_window();
+		}
+		else
+		{
+			gtk_tree_store_clear(GTK_TREE_STORE(treeview));
+		}
 /*		gchar **errors = (gchar **)dbus_get_list_errors();
 		for( i = 0 ; errors[i] ; i++ ) {
 			main_window_warning_message(errors[i]);

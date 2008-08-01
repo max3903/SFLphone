@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2007 Savoir-Faire Linux inc.
+ *  Copyright (C) 2008 Savoir-Faire Linux inc.
  *  Author: Florian Desportes <florian.desportes@savoirfairelinux.com>
  *                                                                              
  *  This program is free software; you can redistribute it and/or modify
@@ -62,6 +62,11 @@ VoicemailManager::getListMails(const ::DBus::String& folder) {
 std::vector< ::DBus::String >
 VoicemailManager::getListErrors(void) {
 	return Manager::instance().getListErrors();
+}
+
+std::map< ::DBus::String, ::DBus::String >
+VoicemailManager::getVoicemail(const ::DBus::String& folderName, const ::DBus::String& voicemailName) {
+	return Manager::instance().getVoicemail(folderName, voicemailName);
 }
 
 ::DBus::String

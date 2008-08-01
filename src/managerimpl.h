@@ -872,6 +872,8 @@ class ManagerImpl {
 	 */
 	::DBus::String getVoicemailInfo(const ::DBus::String&, const ::DBus::String&);
 	
+	std::map< ::DBus::String, ::DBus::String > getVoicemail(const ::DBus::String&, const ::DBus::String&);
+	
 	/**
 	 * Get the current voicemail file to play with
 	 * @return AudioMail the voicemail sound file

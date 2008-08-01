@@ -25,6 +25,10 @@
 #include <calllist.h>
 #include <menus.h>
 #include <dbus.h>
+#ifdef USE_VOICEMAIL
+#include "mail.h"
+#endif
+
 
 
 
@@ -40,17 +44,54 @@ GtkToolItem * mailboxButton;
 #ifdef USE_VOICEMAIL
 GtkToolItem * voicemailboxButton;
 gboolean voicemailbox_shown;
+guint toggledBtnVoicemailId;
 #endif
+guint toggledBtnHistoryId;
 guint transfertButtonConnId; //The button toggled signal connection ID
 gboolean history_shown;
 
   void
 switch_tab()
 {
-  (gtk_toggle_tool_button_get_active(GTK_TOGGLE_TOOL_BUTTON(historyButton)))? 
-    gtk_toggle_tool_button_set_active(GTK_TOGGLE_TOOL_BUTTON(historyButton), FALSE):
-    gtk_toggle_tool_button_set_active(GTK_TOGGLE_TOOL_BUTTON(historyButton), TRUE);
+	(gtk_toggle_tool_button_get_active(GTK_TOGGLE_TOOL_BUTTON(historyButton)))? 
+			gtk_toggle_tool_button_set_active(GTK_TOGGLE_TOOL_BUTTON(historyButton), FALSE):
+			gtk_toggle_tool_button_set_active(GTK_TOGGLE_TOOL_BUTTON(historyButton), TRUE);
 }
+
+#ifdef USE_VOICEMAIL
+  void
+show_calls()
+{
+	gtk_toggle_tool_button_set_active(GTK_TOGGLE_TOOL_BUTTON(voicemailboxButton), FALSE);
+	gtk_toggle_tool_button_set_active(GTK_TOGGLE_TOOL_BUTTON(historyButton), FALSE);
+}
+
+  void
+select_voicemail(void)
+{
+	if( gtk_toggle_tool_button_get_active(GTK_TOGGLE_TOOL_BUTTON(historyButton)) ) {
+		g_signal_handler_block(GTK_TOGGLE_TOOL_BUTTON(historyButton), toggledBtnHistoryId);
+		gtk_toggle_tool_button_set_active(GTK_TOGGLE_TOOL_BUTTON(historyButton), FALSE);
+		g_signal_handler_unblock(GTK_TOGGLE_TOOL_BUTTON(historyButton), toggledBtnHistoryId);
+	}
+	g_signal_handler_block(GTK_TOGGLE_TOOL_BUTTON(voicemailboxButton), toggledBtnVoicemailId);
+	gtk_toggle_tool_button_set_active(GTK_TOGGLE_TOOL_BUTTON(voicemailboxButton), TRUE);
+	g_signal_handler_unblock(GTK_TOGGLE_TOOL_BUTTON(voicemailboxButton), toggledBtnVoicemailId);
+}
+
+  void
+select_history(void)
+{
+	if( gtk_toggle_tool_button_get_active(GTK_TOGGLE_TOOL_BUTTON(voicemailboxButton)) ) {
+		g_signal_handler_block(GTK_TOGGLE_TOOL_BUTTON(voicemailboxButton), toggledBtnVoicemailId);
+		gtk_toggle_tool_button_set_active(GTK_TOGGLE_TOOL_BUTTON(voicemailboxButton), FALSE);
+		g_signal_handler_unblock(GTK_TOGGLE_TOOL_BUTTON(voicemailboxButton), toggledBtnVoicemailId);
+	}
+	g_signal_handler_block(GTK_TOGGLE_TOOL_BUTTON(historyButton), toggledBtnHistoryId);
+	gtk_toggle_tool_button_set_active(GTK_TOGGLE_TOOL_BUTTON(historyButton), TRUE);
+	g_signal_handler_unblock(GTK_TOGGLE_TOOL_BUTTON(historyButton), toggledBtnHistoryId);
+}
+#endif
 
 /**
  * Show popup menu
@@ -76,12 +117,12 @@ button_pressed(GtkWidget* widget, GdkEventButton *event, gpointer user_data)
   {
     if( active_calltree == current_calls )
     {
-      show_popup_menu(widget,  event);
+      show_popup_menu(widget, event);
       return TRUE;
     }
     else
     {
-      show_popup_menu_history(widget,  event);
+      show_popup_menu_history(widget, event);
       return TRUE;
     }
   }
@@ -115,18 +156,35 @@ call_button( GtkWidget *widget, gpointer   data )
       call_list_add(current_calls, newCall);
       update_call_tree_add(current_calls, newCall);
       sflphone_place_call(newCall);
-      if( active_calltree == history )  switch_tab();
+      if( active_calltree == history )
+#ifdef USE_VOICEMAIL
+        show_calls();		
+#else
+        switch_tab();
+#endif
     }
     else
     {
       sflphone_new_call();
-      if( active_calltree == history )  switch_tab();
+      if( active_calltree == history )
+#ifdef USE_VOICEMAIL
+        show_calls();		
+#else
+        switch_tab();
+#endif
+
     }
   }
   else
   {
     sflphone_new_call();
-    if( active_calltree == history )  switch_tab();
+    if( active_calltree == history )
+#ifdef USE_VOICEMAIL
+      show_calls();		
+#else
+      switch_tab();
+#endif
+
   }
 }
 
@@ -175,20 +233,33 @@ unhold( GtkWidget *widget, gpointer   data )
   sflphone_off_hold();
 }
 
-  static void
+  void
 toggle_history(GtkToggleToolButton *toggle_tool_button,
     gpointer	user_data)
 {
+	g_print(">>>>>>>>>> toggle_history\n");
 	GtkTreeSelection *sel;
 	if(history_shown){
 		active_calltree = current_calls;
 		gtk_widget_hide(history->tree);
-		gtk_widget_show(current_calls->tree);
+#ifdef USE_VOICEMAIL
+		if( voicemailbox_shown ) {
+			gtk_widget_show(voicemailInbox->tree);
+			select_voicemail();
+		} else
+#endif
+			gtk_widget_show(current_calls->tree);
 		history_shown = FALSE;
 	}else{
 		active_calltree = history;
-		gtk_widget_hide(current_calls->tree);
 		gtk_widget_show(history->tree);
+#ifdef USE_VOICEMAIL
+		if( voicemailbox_shown ) {
+			gtk_widget_hide(voicemailInbox->tree);
+			select_history();
+		} else
+#endif
+			gtk_widget_hide(current_calls->tree);
 		history_shown = TRUE;
 	}
 	sel = gtk_tree_view_get_selection (GTK_TREE_VIEW (active_calltree->view));
@@ -198,6 +269,39 @@ toggle_history(GtkToggleToolButton *toggle_tool_button,
 		gtk_tree_model_filter_refilter(GTK_TREE_MODEL_FILTER(histfilter));
 
 }
+
+#ifdef USE_VOICEMAIL
+  void
+toggle_voicemail(GtkToggleToolButton *toggle_tool_button, gpointer user_data)
+{
+	g_print(">> toggle_voicemail\n");
+	if( voicemailbox_shown ) { // Hide Inbox voicemails
+		g_print(">>>> toggle_voicemail == voicemailbox_shown TRUE\n");
+		gtk_widget_hide(voicemailInbox->tree);
+		if( history_shown ) { // Restore history
+			g_print(">>>>>> toggle_voicemail == history_shown TRUE\n");
+			gtk_widget_show(history->tree);
+			select_history();
+		} else { // Restore calls
+			g_print(">>>>>> toggle_voicemail == history_shown FALSE\n");
+			gtk_widget_show(current_calls->tree);
+		}
+		voicemailbox_shown = FALSE;
+	} else { // Show Inbox voicemails
+		g_print(">>>> toggle_voicemail == voicemailbox_shown FALSE\n");
+		gtk_widget_show(voicemailInbox->tree);
+		if( history_shown ) { // Restore history
+			g_print(">>>>>> toggle_voicemail == history_shown TRUE\n");
+			gtk_widget_hide(history->tree);
+			select_voicemail();
+		} else { // Restore calls
+			g_print(">>>>>> toggle_voicemail == history_shown FALSE\n");
+			gtk_widget_hide(current_calls->tree);
+		}
+		voicemailbox_shown = TRUE;
+	}
+}
+#endif
 
   static void
 call_mailbox( GtkWidget* widget , gpointer data )
@@ -473,7 +577,7 @@ create_toolbar ()
   gtk_widget_set_tooltip_text(GTK_WIDGET(historyButton), _("History"));
 #endif
   gtk_tool_button_set_label(GTK_TOOL_BUTTON(historyButton), _("History"));
-  g_signal_connect (G_OBJECT (historyButton), "toggled",
+  toggledBtnHistoryId = g_signal_connect (G_OBJECT (historyButton), "toggled",
       G_CALLBACK (toggle_history), NULL);
   gtk_toolbar_insert(GTK_TOOLBAR(ret), GTK_TOOL_ITEM(historyButton), -1);  
   history_shown = FALSE;
@@ -491,17 +595,17 @@ create_toolbar ()
   gtk_toolbar_insert(GTK_TOOLBAR(ret), GTK_TOOL_ITEM(mailboxButton), -1);
 
 #ifdef USE_VOICEMAIL
-//  image = gtk_image_new_from_file( ICONS_DIR "/play-small.png" );
-//  voicemailboxButton = gtk_tool_button_new( image , _("Voicemail Box") );
-  voicemailboxButton = gtk_toggle_tool_button_new_from_stock( GTK_STOCK_MEDIA_PLAY );
-//  gtk_tool_button_set_icon_widget( GTK_TOOL_BUTTON( voicemailboxButton ) , image);
-//  if( account_list_get_size() ==0 )
-//    gtk_widget_set_state( GTK_WIDGET( voicemailboxButton ) , GTK_STATE_INSENSITIVE );
+//  voicemailboxButton = gtk_toggle_tool_button_new_from_stock(GTK_STOCK_MEDIA_PLAY);
+  image = gtk_image_new_from_file(ICONS_DIR "/headphones.png");
+  voicemailboxButton = gtk_toggle_tool_button_new();
+  gtk_tool_button_set_icon_widget(GTK_TOOL_BUTTON(voicemailboxButton), image);
+//  if( voicemail_list_get_size() ==0 )
+//    gtk_widget_set_state(GTK_WIDGET(voicemailboxButton), GTK_STATE_INSENSITIVE);
 #if GTK_CHECK_VERSION(2,12,0)
-  gtk_widget_set_tooltip_text( GTK_WIDGET( voicemailboxButton ) , _("Voicemail Box") );
+  gtk_widget_set_tooltip_text(GTK_WIDGET(voicemailboxButton), _("Voicemail Box"));
 #endif
-//  g_signal_connect( G_OBJECT( voicemailboxButton ) , "clicked", G_CALLBACK( call_mailbox ) , NULL );
-  gtk_toolbar_insert( GTK_TOOLBAR( ret ) , GTK_TOOL_ITEM( voicemailboxButton ) , -1 );
+  toggledBtnVoicemailId = g_signal_connect(G_OBJECT(voicemailboxButton), "toggled", G_CALLBACK(toggle_voicemail), NULL);
+  gtk_toolbar_insert(GTK_TOOLBAR(ret), GTK_TOOL_ITEM(voicemailboxButton), -1);
   voicemailbox_shown = FALSE;
 #endif
 

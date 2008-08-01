@@ -25,6 +25,12 @@
       <arg type="s" name="folder" direction="in"/>
       <arg type="as" name="list" direction="out"/>
     </method>
+
+    <method name="getVoicemail">
+      <arg type="s" name="folder" direction="in"/>
+      <arg type="s" name="name" direction="in"/>
+      <arg type="a{ss}" name="infos" direction="out"/>
+    </method>
     
     <method name="getVoicemailInfo">
       <arg type="s" name="folder" direction="in"/>

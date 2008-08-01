@@ -4,19 +4,19 @@ NOFIFY_LIBS=-lnotify
 SEXY_LIBS=-lsexy
 
 #if GTK_CHECK_VERSION(2,10,0)  
-STATUSICON_HEADER = statusicon.h
 STATUSICON_SOURCE = statusicon.c
+STATUSICON_HEADER = statusicon.h
 #elif
-#STATUSICON_HEADER = 
 #STATUSICON_SOURCE = 
+#STATUSICON_HEADER = 
 #endif
 
 #if USE_VOICEMAIL
-VOICEMAIL_HEADER = voicemailwindow.h
-VOICEMAIL_SOURCE = voicemailwindow.c
+VOICEMAIL_SOURCE = voicemailwindow.c  mail.c
+VOICEMAIL_HEADER = voicemailwindow.h  mail.h
 #else
-#VOICEMAIL_HEADER = 
 #VOICEMAIL_SOURCE = 
+#VOICEMAIL_HEADER = 
 #endif
 
 

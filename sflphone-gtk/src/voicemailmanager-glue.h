@@ -204,6 +204,44 @@ static
 inline
 #endif
 gboolean
+org_sflphone_SFLphone_VoicemailManager_get_voicemail (DBusGProxy *proxy, const char * IN_folder, const char * IN_name, GHashTable** OUT_infos, GError **error)
+
+{
+  return dbus_g_proxy_call (proxy, "getVoicemail", error, G_TYPE_STRING, IN_folder, G_TYPE_STRING, IN_name, G_TYPE_INVALID, dbus_g_type_get_map ("GHashTable", G_TYPE_STRING, G_TYPE_STRING), OUT_infos, G_TYPE_INVALID);
+}
+
+typedef void (*org_sflphone_SFLphone_VoicemailManager_get_voicemail_reply) (DBusGProxy *proxy, GHashTable *OUT_infos, GError *error, gpointer userdata);
+
+static void
+org_sflphone_SFLphone_VoicemailManager_get_voicemail_async_callback (DBusGProxy *proxy, DBusGProxyCall *call, void *user_data)
+{
+  DBusGAsyncData *data = (DBusGAsyncData*) user_data;
+  GError *error = NULL;
+  GHashTable* OUT_infos;
+  dbus_g_proxy_end_call (proxy, call, &error, dbus_g_type_get_map ("GHashTable", G_TYPE_STRING, G_TYPE_STRING), &OUT_infos, G_TYPE_INVALID);
+  (*(org_sflphone_SFLphone_VoicemailManager_get_voicemail_reply)data->cb) (proxy, OUT_infos, error, data->userdata);
+  return;
+}
+
+static
+#ifdef G_HAVE_INLINE
+inline
+#endif
+DBusGProxyCall*
+org_sflphone_SFLphone_VoicemailManager_get_voicemail_async (DBusGProxy *proxy, const char * IN_folder, const char * IN_name, org_sflphone_SFLphone_VoicemailManager_get_voicemail_reply callback, gpointer userdata)
+
+{
+  DBusGAsyncData *stuff;
+  stuff = g_new (DBusGAsyncData, 1);
+  stuff->cb = G_CALLBACK (callback);
+  stuff->userdata = userdata;
+  return dbus_g_proxy_begin_call (proxy, "getVoicemail", org_sflphone_SFLphone_VoicemailManager_get_voicemail_async_callback, stuff, g_free, G_TYPE_STRING, IN_folder, G_TYPE_STRING, IN_name, G_TYPE_INVALID);
+}
+static
+#ifdef G_HAVE_INLINE
+inline
+#endif
+gboolean
 org_sflphone_SFLphone_VoicemailManager_get_voicemail_info (DBusGProxy *proxy, const char * IN_folder, const char * IN_name, char ** OUT_list, GError **error)
 
 {

@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2007 Savoir-Faire Linux inc.
+ *  Copyright (C) 2008 Savoir-Faire Linux inc.
  *  Author: Florian Desportes <florian.desportes@savoirfairelinux.com>
  *                                                                              
  *  This program is free software; you can redistribute it and/or modify
@@ -45,6 +45,7 @@ class VoicemailManager :
 		int                           getFolderCount(const ::DBus::String&);
 		std::vector< ::DBus::String > getListMails(const ::DBus::String&);
 		std::vector< ::DBus::String > getListErrors(void);
+		std::map< ::DBus::String, ::DBus::String > getVoicemail(const ::DBus::String&, const ::DBus::String&);
 		::DBus::String                getVoicemailInfo(const ::DBus::String&, const ::DBus::String&);
 		void                          playVoicemail(const ::DBus::String&, const ::DBus::String&);
 		void                          stopVoicemail(void);
