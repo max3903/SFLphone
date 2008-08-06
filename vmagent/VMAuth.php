@@ -1,6 +1,6 @@
 <?php
 /*
- *  Copyright (C) 2006-2007 Savoir-Faire Linux inc.
+ *  Copyright (C) 2008 Savoir-Faire Linux inc.
  *  Author: Florian DESPORTES <florian.desportes@savoirfairelinux.com>
  *                                                                              
  *  This program is free software; you can redistribute it and/or modify
@@ -61,7 +61,7 @@ abstract class VMAuth {
 
 	/**
 	* logoff()
-	* ;ust be defined in inherited classes
+	* Must be defined in inherited classes
 	* @return bool
 	*/
 	abstract public function logoff();
