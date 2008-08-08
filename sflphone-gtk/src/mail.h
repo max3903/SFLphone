@@ -25,11 +25,12 @@
 #include <gtk/gtk.h>
 
 typedef struct {
-	gchar    * name;
-	gchar    * folder;
-	gchar    * from;
-	gchar    * date;
+	gchar    *name;
+	gchar    *folder;
+	gchar    *from;
+	gchar    *date;
 	gboolean isPlaying;
+	gchar    *all;
 	/** The account used to place/receive the call */
 //	gchar * accountID;
 	/** Unique identifier of the call */
@@ -43,7 +44,7 @@ typedef struct {
 	GtkWidget    *tree;
 
 //	GQueue *callQueue;
-//	mail_t *selectedCall;
+	mail_t *selectedMail;
 } mailtab_t;
 
 mailtab_t * voicemailInbox;

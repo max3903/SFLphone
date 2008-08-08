@@ -68,6 +68,11 @@ void show_voicemail_window(void);
 void create_voicemail_window(void);
 
 /**
+ * Gets the voicemail widget window
+ */
+GtkWidget * getVoicemailWindow(void);
+
+/**
  * Creates the treeview and its model, doesn't fill it !
  */
 void create_tree(void);
@@ -94,11 +99,11 @@ void update_tree_complete(gchar **, int);
 /**
  * Signal from sflphoned indicating a voicemail is playing
  */
-void voicemail_is_playing();
+void voicemail_is_playing(void);
 
 /**
  * Signal from sflphoned indicating a voicemail has been stopped or is finished to play
  */
-void voicemail_is_stopped();
+void voicemail_is_stopped(void);
 
 #endif

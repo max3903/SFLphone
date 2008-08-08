@@ -47,6 +47,8 @@ void toolbar_update_buttons();
 static void toggle_history(GtkToggleToolButton *toggle_tool_button, gpointer user_data);
 
 #ifdef USE_VOICEMAIL
+void deactivate_voicemail(void);
+
 static void toggle_voicemail(GtkToggleToolButton *toggle_tool_button, gpointer user_data);
 #endif
 

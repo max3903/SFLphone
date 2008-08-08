@@ -2159,6 +2159,9 @@ AccountID
 ManagerImpl::getCurrentAccountID(void) {
 	AccountID acc;
 	AccountMap::iterator it = _accountMap.begin();
+	if( _accountMap.size() == 0 ) {
+		return "0";
+	}
 	while( it != _accountMap.end() ) {
 		if( it->second->isEnabled() ) {
 			enum VoIPLink::RegistrationState state = it->second->getRegistrationState();
@@ -2186,7 +2189,8 @@ void
 ManagerImpl::createVoicemailViewer(void) {
 	std::cout << "       ==== createVoicemailViewer ====" << std::endl;
 	AccountID acc = getCurrentAccountID();
-	if( acc != AccountNULL ) {
+	std::cout << "          > acc : " << acc << std::endl;
+	if( acc != AccountNULL && acc != "0" ) {
 		std::string acc_type = getConfigString(acc, CONFIG_ACCOUNT_TYPE);
 		std::string user = ( strcmp(getConfigString(acc, CONFIG_ACCOUNT_TYPE).c_str(), "IAX") == 0 ?
 									getConfigString(acc, IAX_USER) :
@@ -2200,9 +2204,9 @@ ManagerImpl::createVoicemailViewer(void) {
 							 getVoicemailConfigAddress(),
 							 getVoicemailConfigPath(),
 							 getVoicemailConfigPortString() );
-	} else {
-		_dbus->getVoicemailManager()->throwError(_("Error while identifying.\nPlease try again."));
+	} else if( acc != "0" ) { // No active account
 		std::cout << "       ---- createVoicemailViewer - NULL ----" << std::endl;
+//		_dbus->getVoicemailManager()->throwError(_("Error while identifying.\nPlease try again."));
 	}
 }
 
@@ -2303,10 +2307,11 @@ ManagerImpl::getVoicemail(const ::DBus::String& folderName, const ::DBus::String
 
 void
 ManagerImpl::playVoicemail(const ::DBus::String& folderName, const ::DBus::String& voicemailName) {
-	std::vector< ::DBus::String > vec;
 	
 	if( _audiomail != NULL && _audiomail->getName() == voicemailName && _audiomail->getFolderName() == folderName ) {
-		_toneMutex.enterMutex(); 
+		AudioLayer* audiolayer = getAudioDriver();
+		_toneMutex.enterMutex();
+		_audiomail->reset();
 		_audiomail->start();
 		_toneMutex.leaveMutex(); 
 		int size = _audiomail->getSize();
@@ -2318,7 +2323,7 @@ ManagerImpl::playVoicemail(const ::DBus::String& folderName, const ::DBus::Strin
 	}
 	if( _vmv->execAndParse(folderName +"/"+ voicemailName +"/sound") ) {
 //		VoicemailSound * vms = vmv->getSoundAt(2);
-		std::string ext("gsm");
+		std::string ext("ul");
 		VoicemailSound * vms = _vmv->getSoundByExt(ext);
 		if( vms ) {
 //			::DBus::String st = vms->toDecodeString();
@@ -2327,8 +2332,8 @@ ManagerImpl::playVoicemail(const ::DBus::String& folderName, const ::DBus::Strin
 			AudioLayer* audiolayer = getAudioDriver();
 			if( audiolayer == 0 ) { return; }
 //			AudioCodec* codec = _codecDescriptorMap.getFirstCodecAvailable();
-//			AudioCodec* codec = _codecDescriptorMap.getCodec(PAYLOAD_CODEC_ULAW);
-			AudioCodec* codec = _codecDescriptorMap.getCodec(PAYLOAD_CODEC_GSM);
+			AudioCodec* codec = _codecDescriptorMap.getCodec(PAYLOAD_CODEC_ULAW);
+//			AudioCodec* codec = _codecDescriptorMap.getCodec(PAYLOAD_CODEC_GSM);
 //			AudioCodec* codec = _codecDescriptorMap.getCodec(PAYLOAD_CODEC_ALAW);
 //			AudioCodec* codec = _codecDescriptorMap.getCodec(PAYLOAD_CODEC_ILBC_20);
 //			AudioCodec* codec = _codecDescriptorMap.getCodec(PAYLOAD_CODEC_ILBC_30);
@@ -2346,7 +2351,7 @@ ManagerImpl::playVoicemail(const ::DBus::String& folderName, const ::DBus::Strin
 				}
 				_audiomail = new AudioMail(folderName, voicemailName);
 			}
-			bool loadMail = _audiomail->loadMail(vms->decode(), codec, 44100);
+			bool loadMail = _audiomail->loadMail(vms->decode(), ext, codec, 44100);
 			int sampleRate = audiolayer->getSampleRate();
 			std::cout << "sample rate : " << sampleRate << std::endl;
 			//bool loadMail = _audiomail->loadMail("/tmp/"+ voicemailName +"."+ vms->getFormat(), codec, 44100);
@@ -2380,29 +2385,7 @@ ManagerImpl::stopVoicemail(void) {
 	AudioLayer *audiolayer = getAudioDriver();
 	audiolayer->stopStream();
 	voicemailStopped();
-	delete _audiomail;
-	_audiomail = 0;
-	
-/*	
-	int hasToPlayTone = getConfigInt(SIGNALISATION, PLAY_TONES);
-	if (!hasToPlayTone) return;
-
-	if (stopAudio) {
-	AudioLayer* audiolayer = getAudioDriver();
-	if (audiolayer) { audiolayer->stopStream(); }
-	}
-
-	_toneMutex.enterMutex();
-	if (_telephoneTone != 0) {
-	_telephoneTone->setCurrentTone(Tone::TONE_NULL);
-	}
-	_toneMutex.leaveMutex();
-
-	// for ringing tone..
-	_toneMutex.enterMutex();
-	_audiofile.stop();
-	_toneMutex.leaveMutex();
-*/
+	_audiomail->reset();
 }
 
 //---------------------------

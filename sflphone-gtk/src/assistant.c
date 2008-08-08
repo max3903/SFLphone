@@ -332,6 +332,7 @@ build_iax_account_configuration( void )
   gtk_misc_set_alignment( GTK_MISC( label ) , 0 , 0.5 );
   wiz->iax_voicemail_context = gtk_combo_box_entry_new_text();
   gtk_combo_box_append_text( GTK_COMBO_BOX( wiz->iax_voicemail_context ) , "default" );
+  gtk_combo_box_set_active( GTK_COMBO_BOX( wiz->iax_voicemail_context ) , 0 );
   gtk_table_attach( GTK_TABLE( table ) , wiz->iax_voicemail_context , 1 , 2 , 5 , 6 , GTK_EXPAND | GTK_FILL , GTK_EXPAND | GTK_FILL , 0 , 0 );
 #endif
   

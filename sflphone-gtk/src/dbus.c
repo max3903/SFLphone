@@ -182,37 +182,47 @@ error_alert(DBusGProxy *proxy,
 }
 
 #ifdef USE_VOICEMAIL
+
+/*********************
+ * VOICEMAIL SIGNALS *
+ *********************/
 static void
-voicemail_playing( DBusGProxy *proxy ,
-				   void * foo )
+voicemail_playing(DBusGProxy *proxy, void * foo)
 {
-	if( VMVWindow != NULL )
+	if( getVoicemailWindow() != NULL )
 	{
 		voicemail_is_playing();
 	}
-	mail_is_playing();
+	else
+	{
+		mail_is_playing();
+	}
 }
 
 static void
-voicemail_stopped( DBusGProxy *proxy ,
-				   void * foo )
+voicemail_stopped(DBusGProxy *proxy, void * foo)
 {
-	if( VMVWindow != NULL )
+	if( getVoicemailWindow() != NULL )
 	{
 		voicemail_is_stopped();
 	}
-	mail_is_stopped();
+	else
+	{
+		mail_is_stopped();
+	}
 }
 
 static void
-voicemail_throw_error( DBusGProxy *proxy ,
-					   gchar * error )
+voicemail_throw_error(DBusGProxy *proxy, gchar * error)
 {
-	if( VMVWindow != NULL )
+	if( getVoicemailWindow() != NULL )
 	{
-		voicemail_catch_error( error );
+		voicemail_catch_error(error);
 	}
-	mail_catch_error( error );
+	else
+	{
+		mail_catch_error(error);
+	}
 }
 #endif
 
@@ -1534,7 +1544,7 @@ dbus_close_connection(void)
 		g_error_free(error);
 	}
 	else
-		g_print("Called dbus_close_connexion\n");
+		g_print("Called dbus_close_connection\n");
 	return FALSE;
 }
 

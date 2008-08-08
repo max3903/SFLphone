@@ -31,6 +31,10 @@
 
 #include <gtk/gtk.h>
 
+#ifdef USE_VOICEMAIL
+#include "voicemailwindow.h"
+#endif
+
 /**
  * Local variables
  */
@@ -1241,10 +1245,10 @@ set_voicemail_config(void * datas)
 	dbus_set_voicemail_config_address(gtk_entry_get_text(GTK_ENTRY(voicemailAddressEntry)));
 	dbus_set_voicemail_config_path(gtk_entry_get_text(GTK_ENTRY(voicemailPathEntry)));
 	dbus_set_voicemail_config_port(gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON(voicemailSpinButton)));
-//	if( VMWindow != NULL )
-//	{
+	if( getVoicemailWindow() != NULL )
+	{
 		main_window_warning_message(_("You must restart voicemail viewer to take effects"));
-//	}
+	}
 	gtk_widget_set_sensitive(GTK_WIDGET(voicemailApplyButton), FALSE);
 }
 

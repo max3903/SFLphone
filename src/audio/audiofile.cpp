@@ -138,7 +138,7 @@ AudioFile::loadFile(const std::string& filename, AudioCodec* codec , unsigned in
    delete [] floatBufferOut;
 #endif
    delete [] floatBufferIn;
-   nbSampling = src_data.output_frames_gen; 
+   nbSampling = src_data.output_frames_gen; 	
 
    // if we are in mono, we send the bufferTmp location and don't delete it
    // else we split the audio in 2 and put it into buffer

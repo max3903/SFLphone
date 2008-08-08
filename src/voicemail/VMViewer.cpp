@@ -18,8 +18,8 @@
  */
 
 #include <iostream>
-#include <expat.h>
-#include <libsoup/soup.h> // to use libsoup
+#include <expat.h> // TO use XML lib
+#include <libsoup/soup.h> // To use libsoup
 #include <fstream>  // To read xml file
 #include "VMViewer.h"
 
@@ -119,7 +119,7 @@ void endElement(void *userData, const XML_Char *name) {
 	else if( strcmp(name, "renamed") == 0 ) {
 	}
 	else if( strcmp(name, "sound") == 0 ) {
-		vms->setDatas(eltValue);
+		vms->setData(eltValue);
 		vmv->addVMS(vms);
 		vms = NULL;
 	}
@@ -398,6 +398,7 @@ map<string, string> VMViewer::getVoicemail(const string& folder, const string& n
 			mp.insert( pair<string, string>("Folder", folder ) );
 			mp.insert( pair<string, string>("From"  , v->getCallerid() ) );
 			mp.insert( pair<string, string>("Date"  , v->getOrigdate() ) );
+			mp.insert( pair<string, string>("All"   , v->toString() ) );
 		}
 	}
 	return mp;
@@ -421,7 +422,8 @@ vector< string > VMViewer::toFolderArrayString(const string& folder) {
 	VoicemailFolder * vmf;
 	if( (vmf = getFolderByName(folder) ) != NULL ) {
 		for( i = 0 ; i <= vmf->getCount()-1 ; i++ ) {
-			vec.push_back(vmf->getVMAt(i)->toShortString());
+//			vec.push_back(vmf->getVMAt(i)->toShortString());
+			vec.push_back(vmf->getVMAt(i)->getName());
 		}
 	}
 	return vec;

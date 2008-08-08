@@ -275,7 +275,7 @@ AudioLayer::playTones( void )
   int frames = _periodSize ; 
   int maxBytes = frames * sizeof(SFLDataFormat) ;
   SFLDataFormat* out = (SFLDataFormat*)malloc(maxBytes * sizeof(SFLDataFormat));
-  cout << "playTones" << endl;
+//  cout << "playTones" << endl;
   if( _talk ) {}
   else {
     AudioLoop *tone = _manager -> getTelephoneTone();

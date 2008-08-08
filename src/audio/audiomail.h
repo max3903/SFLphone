@@ -24,67 +24,14 @@
 #define __AUDIOMAIL_H__
 
 #include "audioloop.h"
-#include "codecs/audiocodec.h"
-#include "codecDescriptor.h"
 
 /**
- * @file audiofile.h
- * @brief A class to manage sound files
+ * @file audiomail.h
+ * @brief A class to manage voicemail sound files
  */
 
 class AudioMail : public AudioLoop
 {
-	public:
-		/**
-		* Constructor
-		* @param std::string the name of the folder containing the voicemail
-		* @parma std::string the name of the voicemail file
-		*/
-		AudioMail(const std::string& folder, const std::string& name);
-
-		/**
-		* Destructor
-		*/
-		~AudioMail();
-
-		/**
-		* Load a sound file in memory
-		* @param filename  The absolute path to the file
-		* @param codec     The codec to decode and encode it
-		* @param sampleRate	The sample rate to read it
-		* @return bool   True on success
-		*/
-		bool loadMail(const std::string& filename, AudioCodec *codec , unsigned int sampleRate);
-
-		/**
-		* Start the voicemail file
-		*/
-		void start() { _start = true; }
-
-		/**
-		* Stop the voicemail file
-		*/
-		void stop()  { _start = false; }
-
-		/**
-		* Tells whether or not the file is playing
-		* @return bool True if yes
-		*		  false otherwise
-		*/
-		bool isStarted() { return _start; }
-
-		/**
-		* Gets the voicemail folder's name
-		* @return std::string the folder's name containing the voicemail
-		*/
-		std::string getFolderName() { return _folderName; }
-
-		/**
-		* Gets the voicemail filename
-		* @return std::string the voicemail file name
-		*/
-		std::string getName() { return _name; }
-
 	private:
 		/** The folder's name ot the voicemail */
 		std::string _folderName;
@@ -97,6 +44,63 @@ class AudioMail : public AudioLoop
 
 		/** Start or not */
 		bool _start;
+		
+	public:
+		/**
+		 * Constructor
+		 * @param std::string the name of the folder containing the voicemail
+		 * @parma std::string the name of the voicemail file
+		 */
+		AudioMail(const std::string& folder, const std::string& name);
+
+		/**
+		 * Destructor
+		 */
+		~AudioMail();
+
+		/**
+		 * Load a sound file in memory
+		 * @param filename  The absolute path to the file
+		 * @parama
+		 * @param codec     The codec to decode and encode it
+		 * @param sampleRate	The sample rate to read it
+		 * @return bool   True on success
+		 */
+		bool loadMail(const std::string& filename, const std::string&, AudioCodec *codec , unsigned int sampleRate);
+
+		/**
+		 * Start the voicemail file
+		 */
+		void start() { _start = true; }
+
+		/**
+		 * Stop the voicemail file
+		 */
+		void stop()  { _start = false; }
+
+		/**
+		 * Tells whether or not the file is playing
+		 * @return bool True if yes
+		 *		  false otherwise
+		 */
+		bool isStarted() { return _start; }
+
+		/**
+		 * Gets the voicemail folder's name
+		 * @return std::string the folder's name containing the voicemail
+		 */
+		std::string getFolderName() { return _folderName; }
+
+		/**
+		 * Gets the voicemail filename
+		 * @return std::string the voicemail file name
+		 */
+		std::string getName() { return _name; }
+
+
+		unsigned int decode_gsm(const std::string& folder, int16 * monoBuffer);
+		unsigned int decode_wav(const std::string& filename, int16 * monoBuffer);
+		unsigned int decode_ul(const std::string& filename, int16 * monoBuffer);
 };
 
 #endif // __AUDIOMAIL_H__

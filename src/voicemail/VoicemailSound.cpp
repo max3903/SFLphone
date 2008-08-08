@@ -45,8 +45,8 @@ std::string VoicemailSound::getFormat() {
 	return _format;
 }
 
-void VoicemailSound::setDatas(const std::string& dat) {
-	_datas = dat;
+void VoicemailSound::setData(const std::string& dat) {
+	_data = dat;
 }
 
 std::string VoicemailSound::decode() {
@@ -72,17 +72,17 @@ std::string VoicemailSound::decode() {
 	std::string::size_type i;
 	char c;
 	char c1;
-	std::string::size_type len = _datas.length();
+	std::string::size_type len = _data.length();
 	std::string ret;
 
 	for( i = 0 ; i < len ; ++i ) {
-		c = (char) cvt.find(_datas[i]);
+		c = (char) cvt.find(_data[i]);
 		++i;
-		c1 = (char) cvt.find(_datas[i]);
+		c1 = (char) cvt.find(_data[i]);
 		c = (c << 2) | ((c1 >> 4) & 0x3);
 		ret.append(1, c);
 		if (++i < len) {
-			c = _datas[i];
+			c = _data[i];
 			if (fillchar == c)
 				break;
 			c = (char) cvt.find(c);
@@ -90,7 +90,7 @@ std::string VoicemailSound::decode() {
 			ret.append(1, c1);
 		}
 		if (++i < len) {
-			c1 = _datas[i];
+			c1 = _data[i];
 			if (fillchar == c1)
 				break;
 			c1 = (char) cvt.find(c1);
@@ -109,8 +109,8 @@ std::string VoicemailSound::toString() {
 	res.append( _folder );
 	res.append("\n'-file   : ");
 	res.append( _file );
-//	res.append("\n'-datas (length) : ");
-//	res.append( _datas.size() );
+//	res.append("\n'-data (length) : ");
+//	res.append( _data.size() );
 	std::cout << res << std::endl;
 	return res;
 }

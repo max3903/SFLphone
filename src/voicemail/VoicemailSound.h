@@ -25,10 +25,14 @@
 class VoicemailSound {
 	
 	private :
+		/** The format (file extension) of the voicemail */
 		std::string _format;
+		/** The name of the folder where the voicemail is stored */
 		std::string _folder;
+		/** The name of the associated voicemail message */
 		std::string _file;
-		std::string _datas;
+		/** The data from the audio file */
+		std::string _data;
 	
 	public :
 		/** Cstor / Dstor */
@@ -42,7 +46,7 @@ class VoicemailSound {
 		std::string getFolder();
 		void        setFile(const std::string&);
 		std::string getFile();
-		void        setDatas(const std::string&);
+		void        setData(const std::string&);
 		
 		/** Dealing with data which represent the audio file */
 		std::string decode();

@@ -91,6 +91,13 @@ select_history(void)
 	gtk_toggle_tool_button_set_active(GTK_TOGGLE_TOOL_BUTTON(historyButton), TRUE);
 	g_signal_handler_unblock(GTK_TOGGLE_TOOL_BUTTON(historyButton), toggledBtnHistoryId);
 }
+
+  void
+deactivate_voicemail(void)
+{
+	g_print("deactivate_voicemail\n");
+	gtk_widget_set_sensitive(GTK_WIDGET(voicemailboxButton), FALSE);
+}
 #endif
 
 /**
