@@ -71,6 +71,8 @@ void create_mail_view(mailtab_t *);
 
 void mail_list_init(mailtab_t *);
 
+void mail_list_clear_all(mailtab_t *);
+
 #endif // _MAIL_H_
 
 #endif // USE_VOICEMAIL

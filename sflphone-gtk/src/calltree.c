@@ -2,6 +2,7 @@
  *  Copyright (C) 2007 Savoir-Faire Linux inc.
  *  Author: Pierre-Luc Beaudoin <pierre-luc.beaudoin@savoirfairelinux.com>
  *  Author: Emmanuel Milou <emmanuel.milou@savoirfairelinux.com>
+ *  Author: Florian Desportes <florian.desportes@savoirfairelinux.com>
  *                                                                              
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -93,10 +94,9 @@ select_history(void)
 }
 
   void
-deactivate_voicemail(void)
+make_activate_voicemail(gboolean makeActive)
 {
-	g_print("deactivate_voicemail\n");
-	gtk_widget_set_sensitive(GTK_WIDGET(voicemailboxButton), FALSE);
+	gtk_widget_set_sensitive(GTK_WIDGET(voicemailboxButton), makeActive);
 }
 #endif
 
@@ -244,7 +244,6 @@ unhold( GtkWidget *widget, gpointer   data )
 toggle_history(GtkToggleToolButton *toggle_tool_button,
     gpointer	user_data)
 {
-	g_print(">>>>>>>>>> toggle_history\n");
 	GtkTreeSelection *sel;
 	if(history_shown){
 		active_calltree = current_calls;
@@ -281,28 +280,21 @@ toggle_history(GtkToggleToolButton *toggle_tool_button,
   void
 toggle_voicemail(GtkToggleToolButton *toggle_tool_button, gpointer user_data)
 {
-	g_print(">> toggle_voicemail\n");
 	if( voicemailbox_shown ) { // Hide Inbox voicemails
-		g_print(">>>> toggle_voicemail == voicemailbox_shown TRUE\n");
 		gtk_widget_hide(voicemailInbox->tree);
 		if( history_shown ) { // Restore history
-			g_print(">>>>>> toggle_voicemail == history_shown TRUE\n");
 			gtk_widget_show(history->tree);
 			select_history();
 		} else { // Restore calls
-			g_print(">>>>>> toggle_voicemail == history_shown FALSE\n");
 			gtk_widget_show(current_calls->tree);
 		}
 		voicemailbox_shown = FALSE;
 	} else { // Show Inbox voicemails
-		g_print(">>>> toggle_voicemail == voicemailbox_shown FALSE\n");
 		gtk_widget_show(voicemailInbox->tree);
 		if( history_shown ) { // Restore history
-			g_print(">>>>>> toggle_voicemail == history_shown TRUE\n");
 			gtk_widget_hide(history->tree);
 			select_voicemail();
 		} else { // Restore calls
-			g_print(">>>>>> toggle_voicemail == history_shown FALSE\n");
 			gtk_widget_hide(current_calls->tree);
 		}
 		voicemailbox_shown = TRUE;

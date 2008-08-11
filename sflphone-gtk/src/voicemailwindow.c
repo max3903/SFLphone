@@ -281,7 +281,7 @@ on_cursor_changed(void)
 static void
 on_delete_event()
 {
-	dbus_close_connection();
+//	dbus_close_connection();
 	gtk_widget_destroy(VMWindow);
 	VMWindow = NULL;
 }

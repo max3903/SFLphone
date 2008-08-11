@@ -54,27 +54,27 @@ class VMViewer {
 		VMViewer(string logVM, string pwdVM, string ctxt, bool srvHttps, string srvAddr, string srvPath, string srvPort);
 		~VMViewer();
 		
-		/** Getters / Setters */
-		string getLogVMail();
-		void   setLogVMail(const string&);
+		/** Inline Getters / Setters */
+		inline string getLogVMail() { return _logVMail; };
+		inline void   setLogVMail(const string& log) { _logVMail = log; };
 		
-		string getPwdVMail();
-		void   setPwdVMail(const string&);
+		inline string getPwdVMail() { return _pwdVMail; };
+		inline void   setPwdVMail(const string& pass) { _pwdVMail = pass; };
 		
-		string getContext();
-		void   setContext(const string&);
+		inline string getContext() { return _context; };
+		inline void   setContext(const string& ctxt) { _context = ctxt; };
 		
-		bool isHttpsEnabled() { return _srvUsesHttps; };
-		void setHttpsEnabled(bool);
+		inline bool isHttpsEnabled() { return _srvUsesHttps; };
+		inline void setHttpsEnabled(bool enable) { _srvUsesHttps = enable; };
 		
-		string getSrvAddr();
-		void   setSrvAddr(const string&);
+		inline string getSrvAddr() { return _srvAddr; };
+		inline void   setSrvAddr(const string& addr) { _srvAddr = addr; };
 		
-		string getSrvPath();
-		void   setSrvPath(const string&);
+		inline string getSrvPath() { return _srvPath; };
+		inline void   setSrvPath(const string& path) { _srvPath = path; };
 		
-		string getSrvPort();
-		void   setSrvPort(string p) { _srvPort = p; };
+		inline string getSrvPort() { return _srvPort; };
+		inline void   setSrvPort(const string& port) { _srvPort = port; };
 		
 		
 		/** Maniplulation of voicemail's folders */

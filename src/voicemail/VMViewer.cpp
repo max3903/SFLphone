@@ -262,47 +262,6 @@ bool VMViewer::execAndParse(const string& command) {
 	}
 }
 
-
-string VMViewer::getLogVMail() {
-	return _logVMail;
-}
-
-string VMViewer::getPwdVMail() {
-	return _pwdVMail;
-}
-		
-string VMViewer::getContext() {
-	return _context;
-}
-
-string VMViewer::getSrvPort() {
-	return _srvPort;
-}
-
-void VMViewer::setLogVMail(const string& log) {
-	_logVMail = log;
-}
-
-void VMViewer::setPwdVMail(const string& pass) {
-	_pwdVMail = pass;
-}
-
-void VMViewer::setContext(const string& ctxt) {
-	_context = ctxt;
-}
-
-void VMViewer::setHttpsEnabled(bool enable) {
-	_srvUsesHttps = enable;
-}
-
-void VMViewer::setSrvAddr(const string& addr) {
-	_srvAddr = addr;
-}
-
-void VMViewer::setSrvPath(const string& path) {
-	_srvPath = path;
-}
-
 vector<VoicemailFolder *> VMViewer::getLstFolders() {
 	return _lst_folders;
 }
@@ -349,6 +308,7 @@ VoicemailSound * VMViewer::getSoundAt(int i) {
 
 VoicemailSound * VMViewer::getSoundByExt(const string& extension) {
 	for( int i = 0 ; i < _lst_sounds.size() ; i++ ) {
+		std::cout << "## format : " << _lst_sounds[i]->getFormat() << std::endl;
 		if( _lst_sounds[i]->getFormat().compare(extension) == 0 ) {
 			std::cout << "##### found " << extension << std::endl;
 			return _lst_sounds[i];

@@ -814,14 +814,22 @@ class ManagerImpl {
 	 * Open the voicemail connexion
 	 * If connexion doesn't exist, creates the configuration for voicemail viewer,
 	 * else reload configuration.
+	 * @return true if connection is active and all parameters are filled, false otherwise
 	 */
-	void openConnection(void);
+	::DBus::Bool openConnection(void);
+	
+	/**
+	 * Check if all voicemail configuration are filled
+	 * @param AccountID* the current account
+	 * @return bool if all parameters to configure voicemail communication are filled
+	 */
+	bool checkVoicemailConfig(AccountID);
 	
 	/**
 	 * Create the voicemail viewer with all user's configuration
 	 * @return VMViewer newly created voicemail viewer
 	 */
-	void createVoicemailViewer(void);
+	bool createVoicemailViewer(void);
 	
 	/**
 	 * Destroy the voicemail viewer

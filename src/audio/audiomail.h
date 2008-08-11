@@ -24,6 +24,8 @@
 #define __AUDIOMAIL_H__
 
 #include "audioloop.h"
+#include "codecs/audiocodec.h"
+#include "codecDescriptor.h"
 
 /**
  * @file audiomail.h

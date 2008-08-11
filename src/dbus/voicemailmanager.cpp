@@ -31,13 +31,12 @@ VoicemailManager::VoicemailManager(DBus::Connection& connection)
 VoicemailManager::~VoicemailManager() {
 }
 
-bool
+::DBus::Bool
 VoicemailManager::openConnection(void) {
-	Manager::instance().openConnection();
-	return true;
+	return Manager::instance().openConnection();
 }
 
-bool
+::DBus::Bool
 VoicemailManager::closeConnection(void) {
 	Manager::instance().destroyVoicemailViewer();
 	return false;

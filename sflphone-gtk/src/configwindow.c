@@ -3,6 +3,7 @@
  *  Author: Pierre-Luc Beaudoin <pierre-luc.beaudoin@savoirfairelinux.com>
  *  Author: Emmanuel Milou <emmanuel.milou@savoirfairelinux.com>
  *  Author: Guillaume Carmel-Archambault <guillaume.carmel-archambault@savoirfairelinux.com>
+ *  Author: Florian Desportes <florian.desportes@savoirfairelinux.com>
  *  
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -33,6 +34,9 @@
 
 #ifdef USE_VOICEMAIL
 #include "voicemailwindow.h"
+#include "menus.h"
+#include "calltree.h"
+#include "mail.h"
 #endif
 
 /**
@@ -696,6 +700,25 @@ enable_account(GtkCellRendererToggle *rend , gchar* path,  gpointer data )
   // Modify account state       
   g_hash_table_replace( acc->properties , g_strdup(ACCOUNT_ENABLED) , g_strdup((enable == 1)? "TRUE":"FALSE"));
   dbus_send_register( acc->accountID , enable );
+
+#ifdef USE_VOICEMAIL
+  if( enable )
+  {
+    if( account_list_get_registered_accounts() == 1 )
+    {
+      mail_list_init(voicemailInbox);
+    }
+    else
+    {
+      mail_list_clear_all(voicemailInbox);
+      mail_list_init(voicemailInbox);
+    }
+  }
+  else
+  {
+    mail_list_clear_all(voicemailInbox);
+  }
+#endif
 }
 
 /**
@@ -1276,13 +1299,19 @@ changed(void)
 }
 
 static void
-switchVoicemailVisible(gboolean enabled)
+switch_voicemail_visible(gboolean enabled)
 {
 	gtk_widget_set_sensitive(GTK_WIDGET(voicemailAddressEntry), enabled);
 	gtk_widget_set_sensitive(GTK_WIDGET(voicemailPathEntry)   , enabled);
 	gtk_widget_set_sensitive(GTK_WIDGET(voicemailSpinButton)  , enabled);
 	gtk_widget_set_sensitive(GTK_WIDGET(voicemailChkBtnYes)   , enabled);
 	gtk_widget_set_sensitive(GTK_WIDGET(voicemailChkBtnNo)    , enabled);
+	voicemail_menu_make_active(enabled);
+	make_activate_voicemail(enabled);
+	if( enabled )
+		dbus_open_connection();
+	else
+		dbus_close_connection();
 }
 
 /**
@@ -1292,7 +1321,7 @@ static void
 voicemail_enabled(GtkToggleButton *button)
 {
 	dbus_voicemail_server_enable();
-	switchVoicemailVisible(gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(button)));
+	switch_voicemail_visible(gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(button)));
 }
 
 /**
@@ -1310,8 +1339,8 @@ create_voicemail_tab(void)
 	GtkWidget *enableVoicemail;
 
 	gboolean isVoicemailEnabled = dbus_is_voicemail_server_enabled();
-	gchar    *address  = (gchar *)dbus_get_voicemail_config_address();
-	gchar    *path     = (gchar *)dbus_get_voicemail_config_path();
+	gchar    *address = (gchar *)dbus_get_voicemail_config_address();
+	gchar    *path    = (gchar *)dbus_get_voicemail_config_path();
 
 	/** Main voicemail widget */
 	ret = gtk_vbox_new(FALSE, 10);
@@ -1407,7 +1436,7 @@ create_voicemail_tab(void)
 	g_signal_connect(G_OBJECT(voicemailApplyButton), "clicked", G_CALLBACK(set_voicemail_config), NULL);
 	gtk_widget_show(voicemailApplyButton);
 	
-	switchVoicemailVisible(isVoicemailEnabled);
+	switch_voicemail_visible(isVoicemailEnabled);
 	
 	return ret;
 }
@@ -1572,40 +1601,40 @@ show_config_window ()
 void
 show_accounts_window( void )
 {
-  GtkDialog * dialog;
-  GtkWidget * accountFrame;
-  GtkWidget * tab;
+	GtkDialog * dialog;
+	GtkWidget * accountFrame;
+	GtkWidget * tab;
 
-  dialogOpen = TRUE;
+	dialogOpen = TRUE;
 
-  dialog = GTK_DIALOG(gtk_dialog_new_with_buttons (_("Accounts"),
-                              GTK_WINDOW(get_main_window()),
-                              GTK_DIALOG_DESTROY_WITH_PARENT,
-                              GTK_STOCK_CLOSE,
-                              GTK_RESPONSE_ACCEPT,
-                              NULL));
+	dialog = GTK_DIALOG( gtk_dialog_new_with_buttons (_("Accounts"),
+						 GTK_WINDOW(get_main_window()),
+						 GTK_DIALOG_DESTROY_WITH_PARENT,
+						 GTK_STOCK_CLOSE,
+						 GTK_RESPONSE_ACCEPT,
+						 NULL) );
 
-        // Set window properties
-        gtk_dialog_set_has_separator(dialog, FALSE);
-        gtk_window_set_default_size(GTK_WINDOW(dialog), 400, 400);
-        gtk_container_set_border_width(GTK_CONTAINER(dialog), 0);
+	// Set window properties
+	gtk_dialog_set_has_separator(dialog, FALSE);
+	gtk_window_set_default_size(GTK_WINDOW(dialog), 400, 400);
+	gtk_container_set_border_width(GTK_CONTAINER(dialog), 0);
 
 	accountFrame = gtk_frame_new( _("Accounts previously setup"));
 	gtk_box_pack_start( GTK_BOX( dialog->vbox ), accountFrame , TRUE, TRUE, 0);
-        gtk_container_set_border_width(GTK_CONTAINER(accountFrame), 10);
-        gtk_widget_show(accountFrame);
+	gtk_container_set_border_width(GTK_CONTAINER(accountFrame), 10);
+	gtk_widget_show(accountFrame);
 
 	// Accounts tab
-        tab = create_accounts_tab();
+	tab = create_accounts_tab();
 
 	gtk_container_add(GTK_CONTAINER(accountFrame) , tab);
 
-      gtk_dialog_run( dialog );
+	gtk_dialog_run( dialog );
 
-      dialogOpen=FALSE;
-      gtk_widget_destroy(GTK_WIDGET(dialog));
-      if( account_list_get_size() >0 && account_list_get_current()==NULL ) 
-	account_list_set_current_pos(0);
-      toolbar_update_buttons();
+	dialogOpen=FALSE;
+	gtk_widget_destroy(GTK_WIDGET(dialog));
+	if( account_list_get_size() >0 && account_list_get_current()==NULL ) 
+		account_list_set_current_pos(0);
+	toolbar_update_buttons();
 }
 

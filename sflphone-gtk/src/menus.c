@@ -49,6 +49,10 @@ GtkWidget * dialpadMenu;
 GtkWidget * volumeMenu;
 GtkWidget * searchbarMenu;
 
+#ifdef USE_VOICEMAIL
+GtkWidget * voicemail_menu;
+#endif
+
 
 void update_menus()
 { 
@@ -628,6 +632,12 @@ call_voicemail( GtkMenuItem *menuitem, gpointer data )
 	else
 		main_window_warning_message( _("Voicemail server module is not enabled.\nActivate it, in the preference section,\nto manage your voicemail box.") );
 }
+
+void
+voicemail_menu_make_active(gboolean makeActive)
+{
+	gtk_widget_set_sensitive(GTK_WIDGET(voicemail_menu), makeActive);
+}
 #endif
 
   static void 
@@ -686,13 +696,14 @@ create_view_menu()
   gtk_menu_item_set_submenu (GTK_MENU_ITEM (root_menu), menu);
   
 #ifdef USE_VOICEMAIL
-  sub_menu = gtk_separator_menu_item_new ();
-  gtk_menu_shell_append (GTK_MENU_SHELL (menu), sub_menu);
+  sub_menu = gtk_separator_menu_item_new();
+  gtk_menu_shell_append(GTK_MENU_SHELL(menu), sub_menu);
   
-  sub_menu = gtk_image_menu_item_new_with_mnemonic(_("_VoiceMail Viewer"));
-  gtk_menu_shell_append (GTK_MENU_SHELL (menu), sub_menu);
-  g_signal_connect( G_OBJECT( sub_menu ) , "activate" , G_CALLBACK( call_voicemail  ) , NULL );
-  gtk_widget_show (sub_menu);
+  voicemail_menu = gtk_image_menu_item_new_with_mnemonic(_("_VoiceMail Viewer"));
+  gtk_menu_shell_append(GTK_MENU_SHELL(menu), voicemail_menu);
+  g_signal_connect(G_OBJECT(voicemail_menu), "activate", G_CALLBACK(call_voicemail), NULL);
+  voicemail_menu_make_active(dbus_open_connection());
+  gtk_widget_show(sub_menu);
 #endif
 
   return root_menu;

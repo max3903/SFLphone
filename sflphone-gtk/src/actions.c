@@ -91,12 +91,12 @@ sflphone_quit ()
 	if (quit)
 	{
 		dbus_unregister(getpid());
-#ifdef USE_VOICEMAIL
-		dbus_close_connection();
-#endif
 		dbus_clean ();
 		//call_list_clean(); TODO
 		//account_list_clean()
+#ifdef USE_VOICEMAIL
+		dbus_close_connection();
+#endif
 		gtk_main_quit ();
 	}
 	return quit;

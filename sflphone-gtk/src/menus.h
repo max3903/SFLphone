@@ -49,4 +49,9 @@ void show_popup_menu (GtkWidget *my_widget, GdkEventButton *event);
  * @param event The mouse event
  */
 void show_popup_menu_history (GtkWidget *my_widget, GdkEventButton *event);
-#endif 
+
+#ifdef USE_VOICEMAIL
+void voicemail_menu_make_active(gboolean);
+#endif // USE_VOICEMAIL
+
+#endif

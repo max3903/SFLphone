@@ -46,7 +46,7 @@ mailtab_init(void)
 	ret->tree      = NULL;
 
 	create_mail_view(ret);
-	mail_list_init(ret);
+//	mail_list_init(ret);
 	
 	return ret;
 }
@@ -226,8 +226,8 @@ mail_list_init(mailtab_t * tab)
 	gchar **fl;
 
 	for( fl = folders ; *folders ; folders++ ) {
-		gchar       **folder = g_strsplit(*folders, "|", 2);
-		gint        count = dbus_get_folder_count(folder[1]);
+		gchar **folder = g_strsplit(*folders, "|", 2);
+		gint  count    = dbus_get_folder_count(folder[1]);
 		GtkTreeIter iter;
 
 		gtk_list_store_append(GTK_LIST_STORE(tab->store), &iter);
@@ -239,7 +239,6 @@ mail_list_init(mailtab_t * tab)
 		{
 			GdkPixbuf *pixBuf;
 			gchar     **voicemails = (gchar **)dbus_get_list_mails(folder[1]);
-//			g_print("dbus_get_list_mails(%s)\n", n[1]);
 			gchar     **lst;
 			
 			for( lst = voicemails ; *voicemails ; voicemails++ ) {
@@ -255,14 +254,18 @@ mail_list_init(mailtab_t * tab)
 				/** Splits voicemail information as decribed : "who_called_and_time_of_call|name_of_the_file" */
 				ret = g_new(mail_t, 1);
 				infos = (GHashTable *)dbus_get_voicemail(folder[1], *voicemails);
-				if( infos == NULL )  break;
-				ret->name      = g_hash_table_lookup(infos, "Name");
-				ret->folder    = g_hash_table_lookup(infos, "Folder");
-				ret->from      = g_hash_table_lookup(infos, "From");
-				ret->date      = g_hash_table_lookup(infos, "Date");
+				if( infos == NULL )
+					break;
+				ret->name      = g_strdup( g_hash_table_lookup(infos, "Name") );
+				ret->folder    = g_strdup( g_hash_table_lookup(infos, "Folder") );
+				ret->from      = g_strdup( g_hash_table_lookup(infos, "From") );
+				ret->date      = g_strdup( g_hash_table_lookup(infos, "Date") );
 				ret->isPlaying = FALSE;
 				
-				text = g_strdup_printf("From <b>%s</b>\non <i>%s</i>", ret->from, ret->date);
+				if( strcmp(ret->folder, "INBOX") == 0 )
+					text = g_strdup_printf("<b>From %s\non <i>%s</i></b>", ret->from, ret->date);
+				else
+					text = g_strdup_printf("From %s\non <i>%s</i>", ret->from, ret->date);
 
 //				pixBuf = gdk_pixbuf_new_from_file(ICONS_DIR "/play.svg", NULL/*error*/);
 				pixBuf = gdk_pixbuf_new_from_file_at_scale( ICONS_DIR "/play.svg",
@@ -279,11 +282,22 @@ mail_list_init(mailtab_t * tab)
 									VM_TEXT_COLUMN            , _(text),
 									VM_DATA_COLUMN            , ret,
 									-1);
+				g_hash_table_destroy(infos);
 			}
 			g_strfreev(lst);
 		}
 		g_strfreev(folder);
 	}
-//	g_strfreev(ls);
+	g_strfreev(fl);
 }
 
+
+void mail_list_clear_all(mailtab_t *t)
+{
+//	gtk_tree_store_clear(t->store);
+	gtk_list_store_clear(t->store);
+	gtk_widget_destroy(t->view);
+	gtk_widget_destroy(t->tree);
+
+	t->selectedMail = NULL;
+}

@@ -1517,17 +1517,12 @@ dbus_open_connection(void)
 	gboolean opening = FALSE;
 	org_sflphone_SFLphone_VoicemailManager_open_connection(
 			voicemailManagerProxy,
-			NULL,
+			&opening,
 			&error);
 	if(error)
-	{
 		g_error_free(error);
-	}
 	else
-	{
-		opening = TRUE;
 		g_print("Called dbus_open_connection\n");
-	}
 	return opening;
 }
 
@@ -1535,17 +1530,16 @@ gboolean
 dbus_close_connection(void)
 {
 	GError* error = NULL;
+	gboolean closing = FALSE;
 	org_sflphone_SFLphone_VoicemailManager_close_connection(
 			voicemailManagerProxy,
-			NULL,
+			&closing,
 			&error);
 	if(error)
-	{
 		g_error_free(error);
-	}
 	else
 		g_print("Called dbus_close_connection\n");
-	return FALSE;
+	return closing;
 }
 
 /*********************
@@ -1561,9 +1555,7 @@ dbus_get_list_folders(void)
 			&list,
 			&error);
 	if(error)
-	{
 		g_error_free(error);
-	}
 	else
 		g_print("Called dbus_get_list_folders\n");
 	return list;
@@ -1580,9 +1572,7 @@ dbus_get_folder_count(gchar * folder)
 			&count,
 			&error);
 	if(error)
-	{
 		g_error_free(error);
-	}
 	else
 		g_print("Called dbus_get_count\n");
 	return count;
@@ -1600,9 +1590,7 @@ dbus_get_list_mails(gchar * folder)
 			&list,
 			&error);
 	if(error)
-	{
 		g_error_free(error);
-	}
 	else
 		g_print("Called dbus_get_list_mails\n");
 	return list;
@@ -1619,9 +1607,7 @@ dbus_get_list_errors(void)
 			&list,
 			&error);
 	if(error)
-	{
 		g_error_free(error);
-	}
 	else
 		g_print("Called dbus_get_list_errors\n");
 	return list;
@@ -1706,7 +1692,7 @@ gboolean
 dbus_is_voicemail_server_enabled(void)
 {
 	GError* error = NULL;
-	gboolean enabled;
+	gboolean enabled = FALSE;
 	org_sflphone_SFLphone_VoicemailManager_is_voicemail_server_enabled(
 			voicemailManagerProxy,
 			&enabled,

@@ -168,8 +168,10 @@ void ManagerImpl::terminate()
   _codecDescriptorMap.deleteHandlePointer();
 
 //#ifdef USE_VOICEMAIL
-  _debug("Unload Voicemail Viewer\n");
-  delete _vmv; _vmv = NULL;
+  if( _vmv != NULL ) {
+    _debug("Unload Voicemail Viewer\n");
+    delete _vmv; _vmv = NULL;
+  }
 //#endif
 }
 
@@ -998,10 +1000,10 @@ ManagerImpl::initConfigFile (void)
   
 //#ifdef USE_VOICEMAIL
   section = VOICEMAIL_CONFIG;
-  fill_config_int(VOICEMAIL_ENABLED, NO_STR);
-  fill_config_str(VOICEMAIL_ADDRESS, EMPTY_FIELD);
-  fill_config_str(VOICEMAIL_PATH, EMPTY_FIELD);
-  fill_config_int(VOICEMAIL_PORT, VOICEMAIL_DEFAULT_PORT_STR);
+  fill_config_int(VOICEMAIL_ENABLED   , NO_STR);
+  fill_config_str(VOICEMAIL_ADDRESS   , EMPTY_FIELD);
+  fill_config_str(VOICEMAIL_PATH      , EMPTY_FIELD);
+  fill_config_int(VOICEMAIL_PORT      , VOICEMAIL_DEFAULT_PORT_STR);
   fill_config_int(VOICEMAIL_USES_HTTPS, NO_STR);
 //#endif
 
@@ -2167,7 +2169,6 @@ ManagerImpl::getCurrentAccountID(void) {
 			enum VoIPLink::RegistrationState state = it->second->getRegistrationState();
 			if( state == VoIPLink::Registered ) {
 				acc = it->first;
-				std::cout << "++++++ acc : " << acc << std::endl;
 				break;
 			}
 		}
@@ -2176,27 +2177,46 @@ ManagerImpl::getCurrentAccountID(void) {
 	return acc;
 }
 
-void
+::DBus::Bool
 ManagerImpl::openConnection(void) {
+	std::cout << "--- openConnection : ";
 	if( _vmv == NULL ) {
-		createVoicemailViewer();
+		std::cout << "_vmv = NULL : ";
+		return createVoicemailViewer();
 	} else {
-		renewVoicemailConfig();
+		std::cout << "_vmv != NULL : ";
+		return renewVoicemailConfig();
 	}
 }
 
-void
+bool
+ManagerImpl::checkVoicemailConfig(AccountID acc) {
+
+	bool b = true;
+	if( ! isVoicemailServerEnabled() )
+		return false;
+	if( getConfigString(acc, CONFIG_ACCOUNT_PASSCODE).compare("") == 0 )
+		b = false;
+	if( getConfigString(acc, CONFIG_ACCOUNT_CONTEXT).compare("") == 0 )
+		b = false;
+	if( getVoicemailConfigAddress().compare("") == 0 )
+		b = false;
+	if( getVoicemailConfigPath().compare("") == 0 )
+		b = false;
+	if( getVoicemailConfigPortString().compare("") == 0 )
+		b = false;
+	std::cout << "check : " << (b ? "TRUE" : "FALSE") << std::endl;
+	return b;
+}
+
+bool
 ManagerImpl::createVoicemailViewer(void) {
-	std::cout << "       ==== createVoicemailViewer ====" << std::endl;
 	AccountID acc = getCurrentAccountID();
-	std::cout << "          > acc : " << acc << std::endl;
-	if( acc != AccountNULL && acc != "0" ) {
+	if( acc != AccountNULL && acc != "0" && checkVoicemailConfig(acc) ) {
 		std::string acc_type = getConfigString(acc, CONFIG_ACCOUNT_TYPE);
 		std::string user = ( strcmp(getConfigString(acc, CONFIG_ACCOUNT_TYPE).c_str(), "IAX") == 0 ?
 									getConfigString(acc, IAX_USER) :
 									getConfigString(acc, SIP_USER) );
-		std::cout << "       ---- createVoicemailViewer - OK ----" << std::endl;
-		std::cout << "          = isVoicemailServerEnabled : " << isVoicemailServerEnabled() << std::endl;
 		_vmv = new VMViewer( user ,
 							 getConfigString(acc, CONFIG_ACCOUNT_PASSCODE),
 							 getConfigString(acc, CONFIG_ACCOUNT_CONTEXT),
@@ -2204,9 +2224,11 @@ ManagerImpl::createVoicemailViewer(void) {
 							 getVoicemailConfigAddress(),
 							 getVoicemailConfigPath(),
 							 getVoicemailConfigPortString() );
-	} else if( acc != "0" ) { // No active account
-		std::cout << "       ---- createVoicemailViewer - NULL ----" << std::endl;
-//		_dbus->getVoicemailManager()->throwError(_("Error while identifying.\nPlease try again."));
+		std::cout << "createVoicemailViewer : TRUE" << std::endl;
+		return true;
+	} else { // No active account
+		std::cout << "createVoicemailViewer : FALSE" << std::endl;
+		return false;
 	}
 }
 
@@ -2218,7 +2240,6 @@ ManagerImpl::destroyVoicemailViewer(void) {
 
 bool
 ManagerImpl::renewVoicemailConfig() {
-	std::cout << "~~~ renewVoicemailConfig" << std::endl;
 	AccountID acc = getCurrentAccountID();
 	if( acc != AccountNULL && _vmv != NULL ) {
 		_vmv->removeAll();
@@ -2233,8 +2254,10 @@ ManagerImpl::renewVoicemailConfig() {
 		_vmv->setSrvAddr(getVoicemailConfigAddress());
 		_vmv->setSrvPath(getVoicemailConfigPath());
 		_vmv->setSrvPort(getVoicemailConfigPortString());
+		std::cout << "renewVoicemailConfig : TRUE" << std::endl;
 		return true;
 	} else {
+		std::cout << "renewVoicemailConfig : FALSE" << std::endl;
 		_dbus->getVoicemailManager()->throwError(_("Can't renew voicemail config due to changing account."));
 		return false;
 	}
@@ -2308,7 +2331,15 @@ ManagerImpl::getVoicemail(const ::DBus::String& folderName, const ::DBus::String
 void
 ManagerImpl::playVoicemail(const ::DBus::String& folderName, const ::DBus::String& voicemailName) {
 	
-	if( _audiomail != NULL && _audiomail->getName() == voicemailName && _audiomail->getFolderName() == folderName ) {
+	std::cout << " ---- playVoicemail ----" << std::endl;
+	if( _audiomail != NULL ) {
+		std::cout << " audio_name : " << _audiomail->getName() << " <=> mail_name : " << voicemailName << std::endl;
+		std::cout << " audio_folder : " << _audiomail->getFolderName() << " <=> mail_folder : " << folderName << std::endl;
+	}
+	
+	if( _audiomail != NULL &&
+			_audiomail->getName().compare(voicemailName) == 0 &&
+			_audiomail->getFolderName().compare(folderName) == 0 ) {
 		AudioLayer* audiolayer = getAudioDriver();
 		_toneMutex.enterMutex();
 		_audiomail->reset();
@@ -2321,58 +2352,61 @@ ManagerImpl::playVoicemail(const ::DBus::String& folderName, const ::DBus::Strin
 		audiolayer->putUrgent(output, size);
 		audiolayer->playMail();
 	}
-	if( _vmv->execAndParse(folderName +"/"+ voicemailName +"/sound") ) {
-//		VoicemailSound * vms = vmv->getSoundAt(2);
-		std::string ext("ul");
-		VoicemailSound * vms = _vmv->getSoundByExt(ext);
-		if( vms ) {
-//			::DBus::String st = vms->toDecodeString();
-//			::DBus::String st = vms->decode();
+	else {
+		if( _vmv->execAndParse(folderName +"/"+ voicemailName +"/sound") ) {
+	//		VoicemailSound * vms = vmv->getSoundAt(2);
+			std::string ext("ul");
+			VoicemailSound * vms = _vmv->getSoundByExt(ext);
+			if( vms ) {
+	//			::DBus::String st = vms->toDecodeString();
+	//			::DBus::String st = vms->decode();
 
-			AudioLayer* audiolayer = getAudioDriver();
-			if( audiolayer == 0 ) { return; }
-//			AudioCodec* codec = _codecDescriptorMap.getFirstCodecAvailable();
-			AudioCodec* codec = _codecDescriptorMap.getCodec(PAYLOAD_CODEC_ULAW);
-//			AudioCodec* codec = _codecDescriptorMap.getCodec(PAYLOAD_CODEC_GSM);
-//			AudioCodec* codec = _codecDescriptorMap.getCodec(PAYLOAD_CODEC_ALAW);
-//			AudioCodec* codec = _codecDescriptorMap.getCodec(PAYLOAD_CODEC_ILBC_20);
-//			AudioCodec* codec = _codecDescriptorMap.getCodec(PAYLOAD_CODEC_ILBC_30);
-//			AudioCodec* codec = _codecDescriptorMap.getCodec(PAYLOAD_CODEC_SPEEX_8000);
-//			AudioCodec* codec = _codecDescriptorMap.getCodec(PAYLOAD_CODEC_SPEEX_16000);
-//			AudioCodec* codec = _codecDescriptorMap.getCodec(PAYLOAD_CODEC_SPEEX_32000);
-			cout << "--- codec name :" << codec->getCodecName() << endl;
+				AudioLayer* audiolayer = getAudioDriver();
+				if( audiolayer == 0 ) { return; }
+	//			AudioCodec* codec = _codecDescriptorMap.getFirstCodecAvailable();
+				AudioCodec* codec = _codecDescriptorMap.getCodec(PAYLOAD_CODEC_ULAW);
+	//			AudioCodec* codec = _codecDescriptorMap.getCodec(PAYLOAD_CODEC_GSM);
+	//			AudioCodec* codec = _codecDescriptorMap.getCodec(PAYLOAD_CODEC_ALAW);
+	//			AudioCodec* codec = _codecDescriptorMap.getCodec(PAYLOAD_CODEC_ILBC_20);
+	//			AudioCodec* codec = _codecDescriptorMap.getCodec(PAYLOAD_CODEC_ILBC_30);
+	//			AudioCodec* codec = _codecDescriptorMap.getCodec(PAYLOAD_CODEC_SPEEX_8000);
+	//			AudioCodec* codec = _codecDescriptorMap.getCodec(PAYLOAD_CODEC_SPEEX_16000);
+	//			AudioCodec* codec = _codecDescriptorMap.getCodec(PAYLOAD_CODEC_SPEEX_32000);
+				cout << "--- codec name :" << codec->getCodecName() << endl;
 
-			_toneMutex.enterMutex();
-			if( _audiomail == NULL || ( _audiomail->getFolderName() != folderName && _audiomail->getName() != voicemailName ) ) {
-				if( _audiomail != NULL ) {
-					delete _audiomail;
-					_audiomail = 0;
-					_audiomail->reset();
+				_toneMutex.enterMutex();
+				if( _audiomail == NULL || ( _audiomail->getFolderName() != folderName && _audiomail->getName() != voicemailName ) ) {
+					if( _audiomail != NULL ) {
+						delete _audiomail;
+						_audiomail = 0;
+						_audiomail->reset();
+					}
+					_audiomail = new AudioMail(folderName, voicemailName);
 				}
-				_audiomail = new AudioMail(folderName, voicemailName);
-			}
-			bool loadMail = _audiomail->loadMail(vms->decode(), ext, codec, 44100);
-			int sampleRate = audiolayer->getSampleRate();
-			std::cout << "sample rate : " << sampleRate << std::endl;
-			//bool loadMail = _audiomail->loadMail("/tmp/"+ voicemailName +"."+ vms->getFormat(), codec, 44100);
-			_toneMutex.leaveMutex(); 
-			if( loadMail == true ) {
-				std::cout << "##### loadMail : '" << _audiomail->isStarted() << "'" << std::endl;
-				_toneMutex.enterMutex(); 
-				_audiomail->start();
+				bool loadMail = _audiomail->loadMail(vms->decode(), ext, codec, 44100);
+				int sampleRate = audiolayer->getSampleRate();
+				std::cout << "sample rate : " << sampleRate << std::endl;
+				//bool loadMail = _audiomail->loadMail("/tmp/"+ voicemailName +"."+ vms->getFormat(), codec, 44100);
 				_toneMutex.leaveMutex(); 
-				int size = _audiomail->getSize();
-				std::cout << "size : " << size << std::endl;
-				SFLDataFormat output[size];
-				_audiomail->getNext(output, size, 100, true);
-				audiolayer->putUrgent(output, size);
-				audiolayer->playMail();
+				if( loadMail == true ) {
+					std::cout << "##### loadMail : '" << _audiomail->isStarted() << "'" << std::endl;
+					_toneMutex.enterMutex(); 
+					_audiomail->start();
+					_toneMutex.leaveMutex(); 
+					int size = _audiomail->getSize();
+					std::cout << "size : " << size << std::endl;
+					SFLDataFormat output[size];
+					_audiomail->getNext(output, size, 100, true);
+					audiolayer->putUrgent(output, size);
+					audiolayer->playMail();
+				}
+			} else {
+				throwError(_("No voicemail with '"+ ext +"' extension found."));
 			}
-		} else {
-			throwError(_("No voicemail with '"+ ext +"' extension found."));
+			delete vms;
 		}
-		delete vms;
 	}
+	std::cout << " ---- [playVoicemail] ----" << std::endl;
 }
 
 AudioMail *
