@@ -711,6 +711,7 @@ enable_account(GtkCellRendererToggle *rend , gchar* path,  gpointer data )
     else
     {
       mail_list_clear_all(voicemailInbox);
+      dbus_open_connection();
       mail_list_init(voicemailInbox);
     }
   }

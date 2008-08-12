@@ -38,12 +38,12 @@ typedef struct {
 } mail_t;
 
 typedef struct {
-//	GtkTreeStore *store;
-	GtkListStore *store;
-	GtkWidget    *view;
-	GtkWidget    *tree;
+	GtkTreeStore *treestore;
+	GtkListStore *liststore;
+	GtkWidget    *listview;
+	GtkWidget    *treeview;
+	GtkWidget    *treewidget;
 
-//	GQueue *callQueue;
 	mail_t *selectedMail;
 } mailtab_t;
 

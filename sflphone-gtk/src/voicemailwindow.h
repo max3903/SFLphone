@@ -69,6 +69,7 @@ void create_voicemail_window(void);
 
 /**
  * Gets the voicemail widget window
+ * @return GtkWidget* the voicemail viewer window
  */
 GtkWidget * getVoicemailWindow(void);
 

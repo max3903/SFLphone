@@ -154,7 +154,7 @@ create_main_window ()
     g_print("dbus_open_connection KO\n");
     make_activate_voicemail(FALSE);
   }
-  gtk_box_pack_start(GTK_BOX(vbox), voicemailInbox->tree, TRUE /*expand*/, TRUE /*fill*/,  0 /*padding*/);
+  gtk_box_pack_start(GTK_BOX(vbox), voicemailInbox->treewidget, TRUE /*expand*/, TRUE /*fill*/,  0 /*padding*/);
 //  gtk_box_pack_start(GTK_BOX(vbox), voicemailOld->tree, TRUE /*expand*/, TRUE /*fill*/,  0 /*padding*/);
 #endif
   
@@ -194,7 +194,7 @@ create_main_window ()
 //  gtk_widget_hide(current_calls->tree);
 #ifdef USE_VOICEMAIL
   if( voicemailInbox ) {
-    gtk_widget_hide(voicemailInbox->tree);
+    gtk_widget_hide(voicemailInbox->treewidget);
   }
 #endif
   

@@ -250,7 +250,7 @@ toggle_history(GtkToggleToolButton *toggle_tool_button,
 		gtk_widget_hide(history->tree);
 #ifdef USE_VOICEMAIL
 		if( voicemailbox_shown ) {
-			gtk_widget_show(voicemailInbox->tree);
+			gtk_widget_show(voicemailInbox->treewidget);
 			select_voicemail();
 		} else
 #endif
@@ -261,7 +261,7 @@ toggle_history(GtkToggleToolButton *toggle_tool_button,
 		gtk_widget_show(history->tree);
 #ifdef USE_VOICEMAIL
 		if( voicemailbox_shown ) {
-			gtk_widget_hide(voicemailInbox->tree);
+			gtk_widget_hide(voicemailInbox->treewidget);
 			select_history();
 		} else
 #endif
@@ -281,7 +281,7 @@ toggle_history(GtkToggleToolButton *toggle_tool_button,
 toggle_voicemail(GtkToggleToolButton *toggle_tool_button, gpointer user_data)
 {
 	if( voicemailbox_shown ) { // Hide Inbox voicemails
-		gtk_widget_hide(voicemailInbox->tree);
+		gtk_widget_hide(voicemailInbox->treewidget);
 		if( history_shown ) { // Restore history
 			gtk_widget_show(history->tree);
 			select_history();
@@ -290,7 +290,7 @@ toggle_voicemail(GtkToggleToolButton *toggle_tool_button, gpointer user_data)
 		}
 		voicemailbox_shown = FALSE;
 	} else { // Show Inbox voicemails
-		gtk_widget_show(voicemailInbox->tree);
+		gtk_widget_show(voicemailInbox->treewidget);
 		if( history_shown ) { // Restore history
 			gtk_widget_hide(history->tree);
 			select_voicemail();

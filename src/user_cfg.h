@@ -101,6 +101,6 @@
 #define VOICEMAIL_USES_HTTPS  "Voicemail.usesHttps"
 
 #define VOICEMAIL_DEFAULT_PORT_STR "80"
-//#endif
+//#endif // USE_VOICEMAIL
 
 #endif // __USER_CFG_H__

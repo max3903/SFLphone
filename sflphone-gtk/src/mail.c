@@ -41,9 +41,10 @@ mailtab_init(void)
 	mailtab_t* ret;
 	ret = malloc(sizeof(mailtab_t));
 
-	ret->store     = NULL;
-	ret->view      = NULL;
-	ret->tree      = NULL;
+	ret->treestore = NULL;
+	ret->liststore = NULL;
+	ret->listview  = NULL;
+	ret->treeview  = NULL;
 
 	create_mail_view(ret);
 //	mail_list_init(ret);
@@ -101,8 +102,8 @@ mail_is_playing(void)
 		
 		g_print("mail_is_playing\n");
 		
-		model     = gtk_tree_view_get_model(GTK_TREE_VIEW(voicemailInbox->view));
-		selection = gtk_tree_view_get_selection(GTK_TREE_VIEW(voicemailInbox->view));
+		model     = gtk_tree_view_get_model(GTK_TREE_VIEW(voicemailInbox->listview));
+		selection = gtk_tree_view_get_selection(GTK_TREE_VIEW(voicemailInbox->listview));
 		gtk_tree_selection_get_selected(selection, &model, &iter);
 
 		gtk_tree_model_get_value(model, &iter, 2, &val);
@@ -119,7 +120,7 @@ mail_is_playing(void)
 													NULL/*error*/ );
 		/** Updates selected row */
 //		gtk_tree_store_set(GTK_TREE_STORE(model), &iter, VM_IMG_COLUMN, pixbuf, -1);
-		gtk_list_store_set(GTK_LIST_STORE(voicemailInbox->store), &iter, VM_IMG_COLUMN, pixbuf, -1);
+		gtk_list_store_set(GTK_LIST_STORE(voicemailInbox->liststore), &iter, VM_IMG_COLUMN, pixbuf, -1);
 	}
 }
 
@@ -139,8 +140,8 @@ mail_is_stopped(void)
 
 	g_print("mail_is_stopped\n");
 
-	model     = gtk_tree_view_get_model(GTK_TREE_VIEW(voicemailInbox->view));
-	selection = gtk_tree_view_get_selection(GTK_TREE_VIEW(voicemailInbox->view));
+	model     = gtk_tree_view_get_model(GTK_TREE_VIEW(voicemailInbox->listview));
+	selection = gtk_tree_view_get_selection(GTK_TREE_VIEW(voicemailInbox->listview));
 	/** Gets nth row to stop */
 	gtk_tree_selection_get_selected(selection, &model, &iter);
 	/** Sets new image */
@@ -154,7 +155,7 @@ mail_is_stopped(void)
 //	gtk_tree_store_set( GTK_TREE_STORE(model), &iter,
 //						VM_IMG_COLUMN, pixbuf,
 //						-1);
-	gtk_list_store_set( GTK_LIST_STORE(voicemailInbox->store), &iter,
+	gtk_list_store_set( GTK_LIST_STORE(voicemailInbox->liststore), &iter,
 						VM_IMG_COLUMN, pixbuf,
 						-1);
 
@@ -181,8 +182,8 @@ create_mail_view(mailtab_t * tab)
 	GtkTreeViewColumn *column;
 	GtkWidget         *wid;
 	
-	tab->tree = gtk_vbox_new(FALSE, 10); 
-	gtk_container_set_border_width(GTK_CONTAINER(tab->tree), 0);
+	tab->treewidget = gtk_vbox_new(FALSE, 10); 
+	gtk_container_set_border_width(GTK_CONTAINER(tab->treewidget), 0);
 
 	wid = gtk_scrolled_window_new(NULL, NULL);
 	gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(wid), GTK_POLICY_NEVER, GTK_POLICY_AUTOMATIC);
@@ -190,32 +191,32 @@ create_mail_view(mailtab_t * tab)
 
 	/** Model creation */
 //	tab->store = gtk_tree_store_new( VM_N_COLUMN,
-	tab->store = gtk_list_store_new( VM_N_COLUMN,
-									 GDK_TYPE_PIXBUF,
-									 G_TYPE_STRING,
-									 G_TYPE_POINTER );
+	tab->liststore = gtk_list_store_new( VM_N_COLUMN,
+										 GDK_TYPE_PIXBUF,
+										 G_TYPE_STRING,
+										 G_TYPE_POINTER );
 	/** View creation */
-	tab->view = gtk_tree_view_new_with_model(GTK_TREE_MODEL(tab->store));
-	gtk_tree_view_set_headers_visible(GTK_TREE_VIEW(tab->view), FALSE);
+	tab->listview = gtk_tree_view_new_with_model(GTK_TREE_MODEL(tab->liststore));
+	gtk_tree_view_set_headers_visible(GTK_TREE_VIEW(tab->listview), FALSE);
 
 	/** First column = PIXBUF */
 	cellRenderer = gtk_cell_renderer_pixbuf_new();
 	gtk_object_set(GTK_OBJECT(cellRenderer), "width" , 30, NULL);
 	gtk_object_set(GTK_OBJECT(cellRenderer), "xpad"  , 0 , NULL);
 	column = gtk_tree_view_column_new_with_attributes("P", cellRenderer, "pixbuf", VM_IMG_COLUMN, NULL);
-	gtk_tree_view_append_column(GTK_TREE_VIEW(tab->view), column);
+	gtk_tree_view_append_column(GTK_TREE_VIEW(tab->listview), column);
 
 	/** Second column = STRING */
 	cellRenderer = gtk_cell_renderer_text_new();
 	column = gtk_tree_view_column_new_with_attributes("S", cellRenderer, "markup", VM_TEXT_COLUMN, NULL);
-	gtk_tree_view_append_column(GTK_TREE_VIEW(tab->view), column);
+	gtk_tree_view_append_column(GTK_TREE_VIEW(tab->listview), column);
 
 	/** Deleting vars and adding treeview to GUI */
-	g_object_unref(G_OBJECT(tab->store));
-	gtk_container_add(GTK_CONTAINER(wid), tab->view);
-	gtk_box_pack_start(GTK_BOX(tab->tree), wid, TRUE, TRUE, 0);
-	g_signal_connect(tab->view, "row-activated", G_CALLBACK(on_row_activated), NULL);
-	gtk_widget_show(tab->tree);
+	g_object_unref(G_OBJECT(tab->liststore));
+	gtk_container_add(GTK_CONTAINER(wid), tab->listview);
+	gtk_box_pack_start(GTK_BOX(tab->treewidget), wid, TRUE, TRUE, 0);
+	g_signal_connect(tab->listview, "row-activated", G_CALLBACK(on_row_activated), NULL);
+	gtk_widget_show(tab->treewidget);
 }
 
 
@@ -230,9 +231,9 @@ mail_list_init(mailtab_t * tab)
 		gint  count    = dbus_get_folder_count(folder[1]);
 		GtkTreeIter iter;
 
-		gtk_list_store_append(GTK_LIST_STORE(tab->store), &iter);
-		gtk_list_store_set( GTK_LIST_STORE(tab->store), &iter,
-							VM_TEXT_COLUMN            , _(folder[0]),
+		gtk_list_store_append(GTK_LIST_STORE(tab->liststore), &iter);
+		gtk_list_store_set( GTK_LIST_STORE(tab->liststore), &iter,
+							VM_TEXT_COLUMN                , _(folder[0]),
 							-1);
 
 		if( count != 0 )
@@ -249,7 +250,7 @@ mail_list_init(mailtab_t * tab)
 				
 				/* New child line creation */
 //				gtk_tree_store_append(GTK_TREE_STORE(tab->store), &iter, NULL);
-				gtk_list_store_append(GTK_LIST_STORE(tab->store), &iter);
+				gtk_list_store_append(GTK_LIST_STORE(tab->liststore), &iter);
 			
 				/** Splits voicemail information as decribed : "who_called_and_time_of_call|name_of_the_file" */
 				ret = g_new(mail_t, 1);
@@ -277,10 +278,10 @@ mail_list_init(mailtab_t * tab)
 //				gtk_tree_store_append(GTK_TREE_STORE(model), &iter, &iterParent);
 //				gtk_tree_store_set( GTK_TREE_STORE(tab->store), &iter,
 //				gtk_object_set(GTK_OBJECT(&iter), "cell-background-gdk", &bgcolor, NULL);
-				gtk_list_store_set( GTK_LIST_STORE(tab->store), &iter,
-									VM_IMG_COLUMN             , pixBuf,
-									VM_TEXT_COLUMN            , _(text),
-									VM_DATA_COLUMN            , ret,
+				gtk_list_store_set( GTK_LIST_STORE(tab->liststore), &iter,
+									VM_IMG_COLUMN                 , pixBuf,
+									VM_TEXT_COLUMN                , _(text),
+									VM_DATA_COLUMN                , ret,
 									-1);
 				g_hash_table_destroy(infos);
 			}
@@ -294,10 +295,13 @@ mail_list_init(mailtab_t * tab)
 
 void mail_list_clear_all(mailtab_t *t)
 {
-//	gtk_tree_store_clear(t->store);
-	gtk_list_store_clear(t->store);
-	gtk_widget_destroy(t->view);
-	gtk_widget_destroy(t->tree);
+	if( t )
+	{
+//		gtk_tree_store_clear(t->store);
+		gtk_list_store_clear(t->liststore);
+		gtk_widget_destroy(t->listview);
+		gtk_widget_destroy(t->treewidget);
 
-	t->selectedMail = NULL;
+		t->selectedMail = NULL;
+	}
 }
