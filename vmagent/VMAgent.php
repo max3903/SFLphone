@@ -41,6 +41,9 @@ class VMAgent {
 	private $vmStorage; // VMSotrage (abstract)
 	private $vmList;	// Voicemail's Folders list
 	
+	private $vmConfFile; // path to voicemail.conf file (default : /etc/asterisk/)
+	private $vmSpoolDir; // path to voicemail spool folder (default : /var/spool/asterisk/voicemail/)
+	
 	/**
 	 * VMAgent -- Constuctor
 	 * @param string type_authentication
@@ -48,6 +51,7 @@ class VMAgent {
 	 */
 	public function __construct($login, $pass, $context) {
 		$vmAPI = new VMApiMan(); // ApiMan
+		$this->autoDetectVoicemailFile();
 		$this->autoAuthentication($login, $pass, $context);
 		$this->checkStorage($login, $pass, $context);
 	}
@@ -60,16 +64,45 @@ class VMAgent {
 	}
 	
 	/**
+	 * autoDetectVoicemailFile()
+	 * Find out where are the 'voicemail.conf' file (by default in /etc/asterisk/)
+	 * and the directory where are stored voicemail file (by defautl in /var/spool/asterisk/voicemail/ as described in asterisk.conf)
+	 */
+	private function autoDetectVoicemailFile() {
+		$whereis = exec("whereis asterisk | cut -d':' -f2");
+		$whereis = trim($whereis);
+		$whereis = preg_replace("/\s+/", " ", $whereis); // deletes spaces to one
+		$tab_whereis = explode(" ", $whereis);
+		foreach($tab_whereis as $val) {
+			$findSpool = exec("find ". $val ." -nowarn -name \"asterisk.conf\" -print");
+			if( $findSpool != "" ) {
+				$grep = exec("grep astspooldir ". $findSpool ." | cut -d'>' -f2");
+				if( $grep != "" ) {
+					$this->vmSpoolDir = trim($grep) ."/voicemail";
+				}
+			}
+			$findConf = exec("find ". $val ." -nowarn -name \"voicemail.conf\" -print");
+			if( $findConf != "" ) {
+				$this->vmConfFile = $findConf;
+			}
+		}
+/*		echo "<command>";
+		echo "<grep>vmSpoolDir : >$this->vmSpoolDir</grep>";
+		echo "<grep>vmConfFile : >$this->vmConfFile</grep>";
+		echo "</command>";*/
+	}
+	
+	/**
 	 * autoAuthentication(login, password, context)
 	 * @param string login
 	 * @param string password
 	 * @param string context
 	 */
 	private function autoAuthentication($login, $pass, $context) {
-		$fd = fopen("/etc/asterisk/voicemail.conf", "r");
+		$fd = fopen($this->vmConfFile, "r");
 		if( !$fd ) {
 			echo "<error>";
-			echo "Could not open the VOICEMAIL_CONF file : $VOICEMAIL_CONF\n"; 
+			echo "Could not open the VOICEMAIL_CONF file : $this->vmConfFile\n"; 
 			echo "</error>\n";
 			return FALSE;
 		}
@@ -97,10 +130,10 @@ class VMAgent {
 	 * @param string context
 	 */
 	private function checkStorage($login, $pass, $context) {
-		$fd = fopen("/etc/asterisk/voicemail.conf", "r");
+		$fd = fopen($this->vmConfFile, "r");
 		if( !$fd ) {
 			echo "<error>";
-			echo "Could not open the VOICEMAIL_CONF file : $VOICEMAIL_CONF\n"; 
+			echo "Could not open the VOICEMAIL_CONF file : $this->vmConfFile\n"; 
 			echo "</error>\n";
 			return FALSE;
 		}
@@ -146,7 +179,8 @@ class VMAgent {
 		} else if( $inIMAP ) {
 			$this->vmAuth = new VMStorageIMAP($login, $pass, $context);
 		} else {
-			$this->vmStorage = new VMStorageFile("/var/spool/asterisk/voicemail/". $context ."/". $login);
+//			$this->vmStorage = new VMStorageFile("/var/spool/asterisk/voicemail/". $context ."/". $login);
+			$this->vmStorage = new VMStorageFile($this->vmSpoolDir ."/". $context ."/". $login);
 		}
 	}
 	

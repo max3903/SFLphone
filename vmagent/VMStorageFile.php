@@ -34,7 +34,7 @@ class VMStorageFile extends VMStorage {
 	* VMStorageFile -- Constructor
 	* @param Folder folder 
 	*/
-	public function __construct($path="/var/spool/asterisk/voicemail") {
+	public function __construct($path) {
 		$this->pathFolder = $path;
 	}
 	
