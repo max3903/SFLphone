@@ -348,7 +348,7 @@ voicemail_catch_error(gchar *err)
  * @param GdkEventButton* the mouse click event
  */
 static void
-show_voicemail_popup_menu(GtkWidget *widget, GdkEventButton *event)
+show_voicemail_window_popup_menu(GtkWidget *widget, GdkEventButton *event)
 {
 	GtkWidget *menu;
 	GtkWidget *menu_item;
@@ -413,7 +413,7 @@ popup_button_press(GtkWidget *widget, GdkEventButton *event)
 	/* Ignore double-clicks and triple-clicks */
 	if( event->button == 3 && event->type == GDK_BUTTON_PRESS && isItemSelected() )
 	{
-		show_voicemail_popup_menu(widget, event);
+		show_voicemail_window_popup_menu(widget, event);
 		return TRUE;
 	}
 	return FALSE;
@@ -491,7 +491,6 @@ update_tree_complete(gchar **voicemails, int numline)
 	GdkPixbuf   *pixBuf;
 	gchar       *line;
 	gchar       **list;
-	gint        i;
 	
 	/** Gets the nth line to append voicemails */
 	g_sprintf(line, "%i\0", numline);
@@ -671,8 +670,6 @@ getVoicemailWindow(void)
 void
 show_voicemail_window(void)
 {
-	gint i = 0;
-
 	if( dbus_open_connection() == TRUE )
 	{
 		if( VMWindow == NULL )
@@ -686,11 +683,13 @@ show_voicemail_window(void)
 
 		gchar **list = (gchar**)dbus_get_list_folders();
 		gchar **ls;
+		gint  i=0;
 		for( ls = list ; *list ; list++ ) {
 			gchar *folder = *list;
 			gchar **tab   = g_strsplit(folder, "|", 2);
 			update_tree(tab[0], tab[1]);
 			gint count = dbus_get_folder_count(tab[1]);
+			g_print(" {{ count : %i - '%s' - '%s' }}\n", count, tab[0], tab[1]);
 			if( count != 0 )
 			{
 				gchar ** voicemails = (gchar **)dbus_get_list_mails(tab[1]);

@@ -29,25 +29,6 @@ VoicemailSound::VoicemailSound() {
 VoicemailSound::~VoicemailSound() {
 }
 
-void VoicemailSound::setFormat(const std::string& form) {
-	_format = form;
-}
-
-void VoicemailSound::setFile(const std::string& fil) {
-	_file = fil;
-}
-
-void VoicemailSound::setFolder(const std::string& fol) {
-	_folder = fol;
-}
-
-std::string VoicemailSound::getFormat() {
-	return _format;
-}
-
-void VoicemailSound::setData(const std::string& dat) {
-	_data = dat;
-}
 
 std::string VoicemailSound::decode() {
 	/** Code is part of Base64, here is original file header */
@@ -104,11 +85,11 @@ std::string VoicemailSound::decode() {
 std::string VoicemailSound::toString() {
 	std::string res("   [ VOICEMAILSOUND ]");
 	res.append("\n'-format : ");
-	res.append( _format );
+	res.append( getFormat() );
 	res.append("\n'-folder : ");
-	res.append( _folder );
+	res.append( getFolder() );
 	res.append("\n'-file   : ");
-	res.append( _file );
+	res.append( getFile() );
 //	res.append("\n'-data (length) : ");
 //	res.append( _data.size() );
 	std::cout << res << std::endl;

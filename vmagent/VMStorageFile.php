@@ -160,8 +160,8 @@ class VMStorageFile extends VMStorage {
 						$basename = substr($file, strrpos($file, ".")+1, strlen($file));
 						echo "<sound folder=\"". $folder ."\" file=\"". $voicemail ."\" format=\"". $basename ."\">";
 						//echo "<a href=\"". $this->pathFolder ."/". $folder ."/". $file ."\">$file</a>";
-						$handle = fopen($this->pathFolder ."/". $folder ."/". $file, "r");
-						$contents = fread($handle, filesize($this->pathFolder ."/". $folder ."/". $file));
+						$handle = @fopen($this->pathFolder ."/". $folder ."/". $file, "r");
+						$contents = @fread($handle, filesize($this->pathFolder ."/". $folder ."/". $file));
 						fclose($handle);
 						echo base64_encode($contents);
 						echo "</sound>\n";

@@ -23,6 +23,7 @@
 #define _MAIL_H_ 1
 
 #include <gtk/gtk.h>
+#include <glib.h> // for GSList
 
 typedef struct {
 	gchar    *name;
@@ -43,7 +44,8 @@ typedef struct {
 	GtkWidget    *listview;
 	GtkWidget    *treeview;
 	GtkWidget    *treewidget;
-
+	
+	GSList *maillist;
 	mail_t *selectedMail;
 } mailtab_t;
 
@@ -61,7 +63,9 @@ void mail_is_playing(void);
  */
 void mail_is_stopped(void);
 
-
+/**
+ * Receiving signal from server in order to display an warning/error message
+ */
 void mail_catch_error(gchar *err);
 
 
@@ -72,6 +76,10 @@ void create_mail_view(mailtab_t *);
 void mail_list_init(mailtab_t *);
 
 void mail_list_clear_all(mailtab_t *);
+
+void mail_list_add(mailtab_t *, mail_t *);
+
+void mail_list_remove(mailtab_t *,mail_t *);
 
 #endif // _MAIL_H_
 

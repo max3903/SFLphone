@@ -50,7 +50,7 @@ class VMAgent {
 	 * @param string type_file_storage
 	 */
 	public function __construct($login, $pass, $context) {
-		$vmAPI = new VMApiMan(); // ApiMan
+		$this->vmAPI = new VMApiMan(); // ApiMan
 		$this->autoDetectVoicemailFile();
 		$this->autoAuthentication($login, $pass, $context);
 		$this->checkStorage($login, $pass, $context);
@@ -71,12 +71,12 @@ class VMAgent {
 	private function autoDetectVoicemailFile() {
 		$whereis = exec("whereis asterisk | cut -d':' -f2");
 		$whereis = trim($whereis);
-		$whereis = preg_replace("/\s+/", " ", $whereis); // deletes spaces to one
+		$whereis = preg_replace("/\s{2,}/", " ", $whereis); // deletes spaces to one
 		$tab_whereis = explode(" ", $whereis);
 		foreach($tab_whereis as $val) {
 			$findSpool = exec("find ". $val ." -nowarn -name \"asterisk.conf\" -print");
 			if( $findSpool != "" ) {
-				$grep = exec("grep astspooldir ". $findSpool ." | cut -d'>' -f2");
+				$grep = exec("sudo grep astspooldir ". $findSpool ." | cut -d'>' -f2");
 				if( $grep != "" ) {
 					$this->vmSpoolDir = trim($grep) ."/voicemail";
 				}
@@ -86,10 +86,10 @@ class VMAgent {
 				$this->vmConfFile = $findConf;
 			}
 		}
-/*		echo "<command>";
+		echo "<command>";
 		echo "<grep>vmSpoolDir : >$this->vmSpoolDir</grep>";
 		echo "<grep>vmConfFile : >$this->vmConfFile</grep>";
-		echo "</command>";*/
+		echo "</command>";
 	}
 	
 	/**
@@ -99,11 +99,12 @@ class VMAgent {
 	 * @param string context
 	 */
 	private function autoAuthentication($login, $pass, $context) {
-		$fd = fopen($this->vmConfFile, "r");
+		exec("sudo -i");
+		$fd = @fopen($this->vmConfFile, "r");
 		if( !$fd ) {
 			echo "<error>";
-			echo "Could not open the VOICEMAIL_CONF file : $this->vmConfFile\n"; 
-			echo "</error>\n";
+			echo "Could not open the VOICEMAIL_CONF file : $this->vmConfFile"; 
+			echo "</error>";
 			return FALSE;
 		}
 		$inDBpattern = '/^\s*searchcontexts=yes/';
@@ -130,11 +131,11 @@ class VMAgent {
 	 * @param string context
 	 */
 	private function checkStorage($login, $pass, $context) {
-		$fd = fopen($this->vmConfFile, "r");
+		$fd = @fopen($this->vmConfFile, "r");
 		if( !$fd ) {
 			echo "<error>";
-			echo "Could not open the VOICEMAIL_CONF file : $this->vmConfFile\n"; 
-			echo "</error>\n";
+			echo "Could not open the VOICEMAIL_CONF file : $this->vmConfFile";
+			echo "</error>";
 			return FALSE;
 		}
 		
@@ -179,7 +180,6 @@ class VMAgent {
 		} else if( $inIMAP ) {
 			$this->vmAuth = new VMStorageIMAP($login, $pass, $context);
 		} else {
-//			$this->vmStorage = new VMStorageFile("/var/spool/asterisk/voicemail/". $context ."/". $login);
 			$this->vmStorage = new VMStorageFile($this->vmSpoolDir ."/". $context ."/". $login);
 		}
 	}

@@ -2162,18 +2162,22 @@ ManagerImpl::getCurrentAccountID(void) {
 	AccountID acc;
 	AccountMap::iterator it = _accountMap.begin();
 	if( _accountMap.size() == 0 ) {
+		std::cout << "getCurrentAccountID : size = 0 ";
 		return "0";
 	}
 	while( it != _accountMap.end() ) {
 		if( it->second->isEnabled() ) {
 			enum VoIPLink::RegistrationState state = it->second->getRegistrationState();
+			std::cout << "getCurrentAccountID : state = " << state << " ";
 			if( state == VoIPLink::Registered ) {
 				acc = it->first;
+				std::cout << "getCurrentAccountID : OK ";
 				break;
 			}
 		}
 		it++;
 	}
+	std::cout << "getCurrentAccountID : KO ";
 	return acc;
 }
 
@@ -2191,7 +2195,6 @@ ManagerImpl::openConnection(void) {
 
 bool
 ManagerImpl::checkVoicemailConfig(AccountID acc) {
-
 	bool b = true;
 	if( ! isVoicemailServerEnabled() )
 		return false;
@@ -2224,9 +2227,17 @@ ManagerImpl::createVoicemailViewer(void) {
 							 getVoicemailConfigAddress(),
 							 getVoicemailConfigPath(),
 							 getVoicemailConfigPortString() );
+		std::cout << "user : " << user << std::endl;
+		std::cout << "getConfigString(acc, CONFIG_ACCOUNT_PASSCODE) : " << getConfigString(acc, CONFIG_ACCOUNT_PASSCODE) << std::endl;
+		std::cout << "getConfigString(acc, CONFIG_ACCOUNT_CONTEXT)  : " << getConfigString(acc, CONFIG_ACCOUNT_CONTEXT) << std::endl;
+		std::cout << "isVoicemailServerEnabled                      : " << isVoicemailServerEnabled() << std::endl;
+		std::cout << "getVoicemailConfigAddress                     : " << getVoicemailConfigAddress() << std::endl;
+		std::cout << "getVoicemailConfigPath                        : " << getVoicemailConfigPath() << std::endl;
+		std::cout << "getVoicemailConfigPortString                  : " << getVoicemailConfigPortString() << std::endl;
 		std::cout << "createVoicemailViewer : TRUE" << std::endl;
 		return true;
 	} else { // No active account
+		std::cout << "acc : " << acc << std::endl;
 		std::cout << "createVoicemailViewer : FALSE" << std::endl;
 		return false;
 	}
@@ -2235,7 +2246,8 @@ ManagerImpl::createVoicemailViewer(void) {
 void
 ManagerImpl::destroyVoicemailViewer(void) {
 	std::cout << "/|/|/|/|/|/ destroyVoicemailViewer" << std::endl;
-	_vmv->removeAll();
+	if( _vmv != NULL )
+		_vmv->removeAll();
 }
 
 bool
@@ -2291,11 +2303,7 @@ ManagerImpl::getListMails(const ::DBus::String& folder) {
 
 int
 ManagerImpl::getFolderCount(const ::DBus::String& folder) {
-	int count = 0;
-	if( _vmv->execAndParse(folder) ) {
-		count = _vmv->getFolderCount(folder);
-	}
-	return count;
+	return _vmv->getFolderCount(folder);
 }
 
 std::vector< ::DBus::String >
@@ -2353,25 +2361,26 @@ ManagerImpl::playVoicemail(const ::DBus::String& folderName, const ::DBus::Strin
 		audiolayer->playMail();
 	}
 	else {
+		_vmv->cleanSounds();
 		if( _vmv->execAndParse(folderName +"/"+ voicemailName +"/sound") ) {
-	//		VoicemailSound * vms = vmv->getSoundAt(2);
-			std::string ext("ul");
+//			VoicemailSound * vms = vmv->getSoundAt(2);
+			std::string ext("gsm");
 			VoicemailSound * vms = _vmv->getSoundByExt(ext);
 			if( vms ) {
-	//			::DBus::String st = vms->toDecodeString();
-	//			::DBus::String st = vms->decode();
+//				::DBus::String st = vms->toDecodeString();
+//				::DBus::String st = vms->decode();
 
 				AudioLayer* audiolayer = getAudioDriver();
 				if( audiolayer == 0 ) { return; }
-	//			AudioCodec* codec = _codecDescriptorMap.getFirstCodecAvailable();
-				AudioCodec* codec = _codecDescriptorMap.getCodec(PAYLOAD_CODEC_ULAW);
-	//			AudioCodec* codec = _codecDescriptorMap.getCodec(PAYLOAD_CODEC_GSM);
-	//			AudioCodec* codec = _codecDescriptorMap.getCodec(PAYLOAD_CODEC_ALAW);
-	//			AudioCodec* codec = _codecDescriptorMap.getCodec(PAYLOAD_CODEC_ILBC_20);
-	//			AudioCodec* codec = _codecDescriptorMap.getCodec(PAYLOAD_CODEC_ILBC_30);
-	//			AudioCodec* codec = _codecDescriptorMap.getCodec(PAYLOAD_CODEC_SPEEX_8000);
-	//			AudioCodec* codec = _codecDescriptorMap.getCodec(PAYLOAD_CODEC_SPEEX_16000);
-	//			AudioCodec* codec = _codecDescriptorMap.getCodec(PAYLOAD_CODEC_SPEEX_32000);
+//				AudioCodec* codec = _codecDescriptorMap.getFirstCodecAvailable();
+//				AudioCodec* codec = _codecDescriptorMap.getCodec(PAYLOAD_CODEC_ULAW);
+				AudioCodec* codec = _codecDescriptorMap.getCodec(PAYLOAD_CODEC_GSM);
+//				AudioCodec* codec = _codecDescriptorMap.getCodec(PAYLOAD_CODEC_ALAW);
+//				AudioCodec* codec = _codecDescriptorMap.getCodec(PAYLOAD_CODEC_ILBC_20);
+//				AudioCodec* codec = _codecDescriptorMap.getCodec(PAYLOAD_CODEC_ILBC_30);
+//				AudioCodec* codec = _codecDescriptorMap.getCodec(PAYLOAD_CODEC_SPEEX_8000);
+//				AudioCodec* codec = _codecDescriptorMap.getCodec(PAYLOAD_CODEC_SPEEX_16000);
+//				AudioCodec* codec = _codecDescriptorMap.getCodec(PAYLOAD_CODEC_SPEEX_32000);
 				cout << "--- codec name :" << codec->getCodecName() << endl;
 
 				_toneMutex.enterMutex();

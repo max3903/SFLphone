@@ -36,12 +36,12 @@ class VoicemailFolder {
 		VoicemailFolder();
 		~VoicemailFolder();
 		
-		/** Getters / Setters */
-		void        setName(const std::string&);
-		std::string getName();
+		/** Inline Getters / Setters */
+		inline std::string getName() { return _name; };
+		inline void        setName(const std::string& name) { _name = name; };
 		
-		void        setCount(int);
-		int         getCount();
+		inline int  getCount() { return _count; };
+		inline void setCount(int count) { _count = count; };
 		std::string getCountString();
 		
 		/** Dealing with voicemail */

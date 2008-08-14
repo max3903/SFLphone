@@ -207,17 +207,17 @@ VMViewer::~VMViewer() {
 
 const string VMViewer::createRequest(const string& command) {
 	string s(isHttpsEnabled() ? "https://" : "https://"); // HTTPS or HTTP ?
-	s.append(_context); // user's asterisk context
+	s.append(getContext()); // user's asterisk context
 	s.append("-");
 	s.append(getLogVMail()); // user's login/voicemail #
 	s.append(":");
 	s.append(getPwdVMail()); // user's passcode to voicemail system
 	s.append("@");
-	s.append(_srvAddr); // asterisk's ip address
+	s.append(getSrvAddr()); // asterisk's ip address
 	s.append(":");
 	s.append(getSrvPort()); // asterisk's ip port
 	s.append("/");
-	s.append(_srvPath); // asterisk's path to webservice
+	s.append(getSrvPath()); // asterisk's path to webservice
 	s.append("/");
 	s.append(command); // command to execute (e.g. list, sound, del, etc.)
 	return s;
@@ -298,6 +298,10 @@ vector<VoicemailSound *> VMViewer::getLstSounds() {
 	return _lst_sounds;
 }
 
+void VMViewer::cleanSounds() {
+	_lst_sounds.clear();
+}
+
 VoicemailSound * VMViewer::getSoundAt(int i) {
 	if( i < 0 || i >= getLstSounds().size() ) {
 		return NULL;
@@ -307,10 +311,11 @@ VoicemailSound * VMViewer::getSoundAt(int i) {
 }
 
 VoicemailSound * VMViewer::getSoundByExt(const string& extension) {
+	std::cout << "##   _lst_sounds.size : " << _lst_sounds.size() << std::endl;
 	for( int i = 0 ; i < _lst_sounds.size() ; i++ ) {
-		std::cout << "## format : " << _lst_sounds[i]->getFormat() << std::endl;
+		std::cout << "###  format : " << _lst_sounds[i]->getFormat() << std::endl;
 		if( _lst_sounds[i]->getFormat().compare(extension) == 0 ) {
-			std::cout << "##### found " << extension << std::endl;
+			std::cout << "#### found " << extension << std::endl;
 			return _lst_sounds[i];
 		}
 	}
@@ -319,7 +324,9 @@ VoicemailSound * VMViewer::getSoundByExt(const string& extension) {
 
 
 void VMViewer::addVMS(VoicemailSound * vms) {
+	std::cout << "VMViewer::addVMS";
 	_lst_sounds.push_back(vms);
+	std::cout << " - size : " << _lst_sounds.size() << std::endl;
 }
 
 int VMViewer::getFolderCount(const string& folder) {

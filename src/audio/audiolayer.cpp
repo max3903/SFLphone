@@ -298,12 +298,12 @@ AudioLayer::playTones( void )
 AudioLayer::playMail( void )
 {
 	int frames = _periodSize;
-	cout << "frames : " << frames << endl;
+//	cout << "frames : " << frames << endl;
 	int maxBytes = frames * sizeof(SFLDataFormat) ;
 	SFLDataFormat* out = (SFLDataFormat*)malloc(maxBytes * sizeof(SFLDataFormat));
 	AudioLoop *mail;
 
-	cout << "playMail" << endl;
+//	cout << "playMail" << endl;
 	if( _talk ) {}
 	else {
 		_isVoicemail = true;

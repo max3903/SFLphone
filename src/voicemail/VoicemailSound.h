@@ -39,14 +39,17 @@ class VoicemailSound {
 		VoicemailSound();
 		~VoicemailSound();
 		
-		/** Getters / Setters */
-		void        setFormat(const std::string&);
-		std::string getFormat();
-		void        setFolder(const std::string&);
-		std::string getFolder();
-		void        setFile(const std::string&);
-		std::string getFile();
-		void        setData(const std::string&);
+		/** Inline Getters / Setters */
+		inline std::string getFormat() { return _format; };
+		inline void        setFormat(const std::string& form) { _format = form; };
+		
+		inline std::string getFolder() { return _folder; };
+		inline void        setFolder(const std::string& fol) { _folder = fol; };
+		
+		inline std::string getFile() {return _file; };
+		inline void        setFile(const std::string& fil) { _file = fil; };
+		
+		inline void        setData(const std::string& dat) { _data = dat; };
 		
 		/** Dealing with data which represent the audio file */
 		std::string decode();

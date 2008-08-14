@@ -22,7 +22,7 @@
 #include <string.h>
 #include <gtk/gtk.h>
 #include <gdk/gdk.h> // For pixmaps
-#include <glib.h> // For GHashTable
+//#include <glib.h> // For GHashTable
 
 #include "dbus.h"
 #include "sflphone_const.h"
@@ -45,7 +45,8 @@ mailtab_init(void)
 	ret->liststore = NULL;
 	ret->listview  = NULL;
 	ret->treeview  = NULL;
-
+	ret->maillist  = NULL;
+	
 	create_mail_view(ret);
 //	mail_list_init(ret);
 	
@@ -81,7 +82,6 @@ on_row_activated(GtkTreeView *tree_view, GtkTreePath *path, GtkTreeViewColumn *c
 			dbus_stop_voicemail();
 		}
 	}
-//	g_free(mail);
 }
 
 
@@ -119,7 +119,6 @@ mail_is_playing(void)
 													TRUE /*preserve_aspect_ratio*/,
 													NULL/*error*/ );
 		/** Updates selected row */
-//		gtk_tree_store_set(GTK_TREE_STORE(model), &iter, VM_IMG_COLUMN, pixbuf, -1);
 		gtk_list_store_set(GTK_LIST_STORE(voicemailInbox->liststore), &iter, VM_IMG_COLUMN, pixbuf, -1);
 	}
 }
@@ -152,9 +151,6 @@ mail_is_stopped(void)
 												TRUE /*preserve_aspect_ratio*/,
 												NULL/*error*/ );
 	/** Updates selected row, just modify the image */
-//	gtk_tree_store_set( GTK_TREE_STORE(model), &iter,
-//						VM_IMG_COLUMN, pixbuf,
-//						-1);
 	gtk_list_store_set( GTK_LIST_STORE(voicemailInbox->liststore), &iter,
 						VM_IMG_COLUMN, pixbuf,
 						-1);
@@ -172,6 +168,90 @@ mail_catch_error(gchar *err)
 {
 	g_print("------- voicemail_catch_error -----------\n");
 	main_window_error_message(err);
+}
+
+
+static void
+show_popup_menu(GtkWidget *widget, GdkEventButton *event)
+{
+	GtkTreeModel     *model;
+	GtkTreeSelection *selection;
+	GtkTreeIter      iter;
+	
+	model = gtk_tree_view_get_model(GTK_TREE_VIEW(voicemailInbox->listview));
+	selection = gtk_tree_view_get_selection(GTK_TREE_VIEW(voicemailInbox->listview));
+	/** Checks if something selected */
+	if( gtk_tree_selection_get_selected(selection, &model, &iter) )
+	{
+		GtkWidget *menu;
+		GtkWidget *menu_item;
+		GdkPixbuf *pix;
+		int       button;
+		int       event_time;
+
+		menu = gtk_menu_new();
+		/** TODO : change it
+		 * Checks if there is an image on the selected item, if true, it's a voicemail
+		 */
+		gtk_tree_model_get(model, &iter, VM_IMG_COLUMN, &pix, -1);
+		if( pix != NULL )
+		{
+			GValue      val = { 0 , };
+			mail_t      *mail;
+			
+			gtk_tree_model_get_value(model, &iter, 2, &val);
+			mail = (mail_t*) g_value_get_pointer(&val);
+			g_value_unset(&val);
+			if( ! mail->isPlaying )
+			{
+				menu_item = gtk_image_menu_item_new_from_stock("gtk-media-play", NULL);
+//				g_signal_connect(GTK_MENU_ITEM(menu_item), "button_press_event", G_CALLBACK(on_play), NULL);
+			}
+			else /** Else, displays a "stop" button" */
+			{
+				menu_item = gtk_image_menu_item_new_from_stock("gtk-media-stop", NULL);
+//				g_signal_connect(GTK_MENU_ITEM(menu_item), "button_press_event", G_CALLBACK(on_stop), NULL);
+			}
+			gtk_menu_shell_append(GTK_MENU_SHELL(menu), menu_item);
+		}
+		menu_item = gtk_image_menu_item_new_from_stock("gtk-delete", NULL);
+		gtk_menu_shell_append(GTK_MENU_SHELL(menu), menu_item);
+//		g_signal_connect(GTK_MENU_ITEM(menu_item), "button_press_event", G_CALLBACK(on_delete), NULL);
+		g_signal_connect(menu, "deactivate", G_CALLBACK(gtk_widget_destroy), NULL);
+
+		/** If the event comes from the mouse */
+		if( event )
+		{
+			button = event->button;
+			event_time = event->time;
+		}
+		else /** Else, fills with rigth params */
+		{
+			button = 0;
+			event_time = gtk_get_current_event_time();
+		}
+		gtk_menu_attach_to_widget(GTK_MENU(menu), widget, NULL);
+		gtk_widget_show_all(menu);
+		gtk_menu_popup( GTK_MENU(menu),
+						NULL/*parent_menu_shell*/,
+						NULL/*parent_menu_item*/,
+						NULL/*function*/,
+						NULL/*data*/, 
+						button/*mouse_button*/,
+						event_time/*time*/ );
+	}
+}
+
+
+static gboolean
+popup_button_pressed(GtkWidget *widget, GdkEventButton *event)
+{
+	if( event->button == 3 && event->type == GDK_BUTTON_PRESS )
+	{
+		show_popup_menu(widget, event);
+		return TRUE;
+	}
+	return FALSE;
 }
 
 
@@ -216,6 +296,7 @@ create_mail_view(mailtab_t * tab)
 	gtk_container_add(GTK_CONTAINER(wid), tab->listview);
 	gtk_box_pack_start(GTK_BOX(tab->treewidget), wid, TRUE, TRUE, 0);
 	g_signal_connect(tab->listview, "row-activated", G_CALLBACK(on_row_activated), NULL);
+	g_signal_connect(tab->listview, "button-press-event", G_CALLBACK(popup_button_pressed), NULL);
 	gtk_widget_show(tab->treewidget);
 }
 
@@ -249,7 +330,6 @@ mail_list_init(mailtab_t * tab)
 				gchar      *text;
 				
 				/* New child line creation */
-//				gtk_tree_store_append(GTK_TREE_STORE(tab->store), &iter, NULL);
 				gtk_list_store_append(GTK_LIST_STORE(tab->liststore), &iter);
 			
 				/** Splits voicemail information as decribed : "who_called_and_time_of_call|name_of_the_file" */
@@ -275,9 +355,6 @@ mail_list_init(mailtab_t * tab)
 															TRUE /*preserve_aspect_ratio*/,
 															NULL /*error*/ );
 				/** Updating datas */
-//				gtk_tree_store_append(GTK_TREE_STORE(model), &iter, &iterParent);
-//				gtk_tree_store_set( GTK_TREE_STORE(tab->store), &iter,
-//				gtk_object_set(GTK_OBJECT(&iter), "cell-background-gdk", &bgcolor, NULL);
 				gtk_list_store_set( GTK_LIST_STORE(tab->liststore), &iter,
 									VM_IMG_COLUMN                 , pixBuf,
 									VM_TEXT_COLUMN                , _(text),
@@ -297,11 +374,26 @@ void mail_list_clear_all(mailtab_t *t)
 {
 	if( t )
 	{
-//		gtk_tree_store_clear(t->store);
+		gtk_tree_store_clear(t->treestore);
+		t->treestore = NULL;
 		gtk_list_store_clear(t->liststore);
+		t->liststore = NULL;
 		gtk_widget_destroy(t->listview);
+		t->listview = NULL;
 		gtk_widget_destroy(t->treewidget);
-
+		t->treewidget = NULL;
+		g_slist_free(t->maillist);
+		
 		t->selectedMail = NULL;
 	}
+}
+
+void mail_list_add(mailtab_t *tab, mail_t *mail)
+{
+	tab->maillist = g_slist_insert(tab->maillist, mail, -1/*the end*/);
+}
+
+void mail_list_remove(mailtab_t *tab, mail_t *mail)
+{
+	tab->maillist = g_slist_remove(tab->maillist, mail);
 }

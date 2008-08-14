@@ -49,28 +49,41 @@ class Voicemail {
 		Voicemail();
 		~Voicemail();
 		
-		/** Getters / Setters */
+		/** Inline Getters / Setters */
 		std::string getIdString();
-		void        setId(int);
-		void        setCallerchan(const std::string&);
-		std::string getCallerid();
-		void        setCallerid(const std::string&);
-		void        setCategory(const std::string&);
-		void        setContext(const std::string&);
+		inline void setId(int id) { _id = id; };
+		
+		inline void setCallerchan(const std::string& chan) { _callerchan = chan; };
+		
+		inline std::string getCallerid() { return _callerid; };
+		inline void        setCallerid(const std::string& cal) { _callerid = cal; };
+		
+		inline void setCategory(const std::string& cat) { _category = cat; };
+		
+		inline void setContext(const std::string& cont) { _context = cont; };
+		
 		std::string getDurationString();
-		void        setDuration(int);
-		void        setExten(const std::string&);
-		void        setMacrocontext(const std::string&);
-		void        setName(const std::string&);
-		std::string getName();
-		std::string getOrigdate();
-		void        setOrigdate(const std::string&);
+		inline void setDuration(int dur) { _duration = dur; };
+		
+		inline std::string getExten() {return _exten; };
+		inline void        setExten(const std::string& ext) { _exten = ext; };
+		
+		inline void setMacrocontext(const std::string& mac) { _macrocontext = mac; };
+		
+		inline std::string getName() { return _name; };
+		inline void        setName(const std::string& nam) { _name = nam; };
+		
+		inline std::string getOrigdate() { return _origdate; };
+		inline void        setOrigdate(const std::string& dat) { _origdate = dat; };
+		
 		std::string getOrigmailboxString();
-		void        setOrigmailbox(int);
+		inline void setOrigmailbox(int m) { _origmailbox = m; };
+		
 		std::string getOrigtimeString();
-		void        setOrigtime(int);
+		inline void setOrigtime(int t) { _origtime = t; };
+		
 		std::string getPriorityString();
-		void        setPriority(int);
+		inline void setPriority(int p) { _priority = p; };
 		
 		/** Getting voicemail's sound files */
 		VoicemailSound * getVMSoundAt(int);

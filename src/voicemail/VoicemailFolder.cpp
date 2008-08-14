@@ -23,26 +23,12 @@
 #include "VoicemailFolder.h"
 
 VoicemailFolder::VoicemailFolder() {
+	_count = 0;
 }
 
 VoicemailFolder::~VoicemailFolder() {
 }
 
-void VoicemailFolder::setName(const std::string& name) {
-	_name = name;
-}
-
-std::string VoicemailFolder::getName() {
-	return _name;
-}
-
-void VoicemailFolder::setCount(int count) {
-	_count = count;
-}
-
-int VoicemailFolder::getCount() {
-	return _count;
-}
 
 std::string VoicemailFolder::getCountString() {
 	std::ostringstream oss;
