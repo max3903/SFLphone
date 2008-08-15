@@ -146,12 +146,19 @@ create_main_window ()
   gtk_box_pack_start (GTK_BOX (vbox), history->tree, TRUE /*expand*/, TRUE /*fill*/,  0 /*padding*/);
 #ifdef USE_VOICEMAIL
   voicemailInbox = mailtab_init();
-  if( dbus_open_connection() == TRUE ) {
-    g_print("dbus_open_connection OK\n");
-    mail_list_init(voicemailInbox);
-    make_activate_voicemail(TRUE);
-  } else {
-    g_print("dbus_open_connection KO\n");
+  if( dbus_is_voicemail_server_enabled() )
+  {
+    if( dbus_open_connection() == TRUE ) {
+      g_print("dbus_open_connection OK\n");
+      mail_list_init(voicemailInbox);
+      make_activate_voicemail(TRUE);
+    } else {
+      g_print("dbus_open_connection KO\n");
+      make_activate_voicemail(FALSE);
+    }
+  }
+  else
+  {
     make_activate_voicemail(FALSE);
   }
   gtk_box_pack_start(GTK_BOX(vbox), voicemailInbox->treewidget, TRUE /*expand*/, TRUE /*fill*/,  0 /*padding*/);

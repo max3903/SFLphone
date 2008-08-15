@@ -96,6 +96,10 @@ select_history(void)
   void
 make_activate_voicemail(gboolean makeActive)
 {
+	if( voicemailbox_shown )
+	{
+		g_signal_emit_by_name(voicemailboxButton, "toggled");
+	}
 	gtk_widget_set_sensitive(GTK_WIDGET(voicemailboxButton), makeActive);
 }
 #endif
@@ -290,6 +294,10 @@ toggle_voicemail(GtkToggleToolButton *toggle_tool_button, gpointer user_data)
 		}
 		voicemailbox_shown = FALSE;
 	} else { // Show Inbox voicemails
+		// If voicemails not already initialized
+		if( gtk_tree_model_iter_n_children(GTK_TREE_MODEL(voicemailInbox->liststore), NULL) == 0 ) {
+			mail_list_init(voicemailInbox);
+		}
 		gtk_widget_show(voicemailInbox->treewidget);
 		if( history_shown ) { // Restore history
 			gtk_widget_hide(history->tree);

@@ -2171,13 +2171,14 @@ ManagerImpl::getCurrentAccountID(void) {
 			std::cout << "getCurrentAccountID : state = " << state << " ";
 			if( state == VoIPLink::Registered ) {
 				acc = it->first;
-				std::cout << "getCurrentAccountID : OK ";
+				std::cout << "getCurrentAccountID : OK " << std::endl;
 				break;
 			}
 		}
 		it++;
 	}
-	std::cout << "getCurrentAccountID : KO ";
+	if( it == _accountMap.end() )
+		std::cout << "getCurrentAccountID : KO " << std::endl;
 	return acc;
 }
 
@@ -2223,29 +2224,29 @@ ManagerImpl::createVoicemailViewer(void) {
 		_vmv = new VMViewer( user ,
 							 getConfigString(acc, CONFIG_ACCOUNT_PASSCODE),
 							 getConfigString(acc, CONFIG_ACCOUNT_CONTEXT),
-							 isVoicemailServerEnabled(),
+							 isVoicemailConfigHttpsEnabled(),
 							 getVoicemailConfigAddress(),
 							 getVoicemailConfigPath(),
 							 getVoicemailConfigPortString() );
-		std::cout << "user : " << user << std::endl;
+/*		std::cout << "user : " << user << std::endl;
 		std::cout << "getConfigString(acc, CONFIG_ACCOUNT_PASSCODE) : " << getConfigString(acc, CONFIG_ACCOUNT_PASSCODE) << std::endl;
 		std::cout << "getConfigString(acc, CONFIG_ACCOUNT_CONTEXT)  : " << getConfigString(acc, CONFIG_ACCOUNT_CONTEXT) << std::endl;
 		std::cout << "isVoicemailServerEnabled                      : " << isVoicemailServerEnabled() << std::endl;
 		std::cout << "getVoicemailConfigAddress                     : " << getVoicemailConfigAddress() << std::endl;
 		std::cout << "getVoicemailConfigPath                        : " << getVoicemailConfigPath() << std::endl;
 		std::cout << "getVoicemailConfigPortString                  : " << getVoicemailConfigPortString() << std::endl;
-		std::cout << "createVoicemailViewer : TRUE" << std::endl;
+		std::cout << "createVoicemailViewer : TRUE" << std::endl;*/
 		return true;
 	} else { // No active account
-		std::cout << "acc : " << acc << std::endl;
-		std::cout << "createVoicemailViewer : FALSE" << std::endl;
+/*		std::cout << "acc : " << acc << std::endl;
+		std::cout << "createVoicemailViewer : FALSE" << std::endl;*/
 		return false;
 	}
 }
 
 void
 ManagerImpl::destroyVoicemailViewer(void) {
-	std::cout << "/|/|/|/|/|/ destroyVoicemailViewer" << std::endl;
+	_debugVoicemail("destroyVoicemailViewer");
 	if( _vmv != NULL )
 		_vmv->removeAll();
 }
@@ -2262,15 +2263,15 @@ ManagerImpl::renewVoicemailConfig() {
 		_vmv->setLogVMail(user);
 		_vmv->setPwdVMail(getConfigString(acc, CONFIG_ACCOUNT_PASSCODE));
 		_vmv->setContext(getConfigString(acc, CONFIG_ACCOUNT_CONTEXT));
-		_vmv->setHttpsEnabled(isVoicemailServerEnabled());
+		_vmv->setHttpsEnabled(isVoicemailConfigHttpsEnabled());
 		_vmv->setSrvAddr(getVoicemailConfigAddress());
 		_vmv->setSrvPath(getVoicemailConfigPath());
 		_vmv->setSrvPort(getVoicemailConfigPortString());
-		std::cout << "renewVoicemailConfig : TRUE" << std::endl;
+		_debugVoicemail("Successfully renewed Voicemail config");
 		return true;
 	} else {
-		std::cout << "renewVoicemailConfig : FALSE" << std::endl;
-		_dbus->getVoicemailManager()->throwError(_("Can't renew voicemail config due to changing account."));
+//		_debugVoicemail("Can't renew Voicemail config");
+		_dbus->getVoicemailManager()->throwError(_("Can't renew voicemail config due to changing account.\nPlease re-register or restart SFLphone."));
 		return false;
 	}
 }
@@ -2455,6 +2456,8 @@ void
 ManagerImpl::setVoicemailConfigAddress(const ::DBus::String& address) {
 	setConfig(VOICEMAIL_CONFIG, VOICEMAIL_ADDRESS, address);
 	saveConfig();
+	if( _vmv != NULL )
+		_vmv->setSrvAddr(address);
 }
 
 ::DBus::String
@@ -2466,6 +2469,8 @@ void
 ManagerImpl::setVoicemailConfigPath(const ::DBus::String& path) {
 	setConfig(VOICEMAIL_CONFIG, VOICEMAIL_PATH, path);
 	saveConfig();
+	if( _vmv != NULL )
+		_vmv->setSrvPath(path);
 }
 
 ::DBus::Int32
@@ -2482,6 +2487,8 @@ void
 ManagerImpl::setVoicemailConfigPort(const ::DBus::Int32& port) {
 	setConfig(VOICEMAIL_CONFIG, VOICEMAIL_PORT, port);
 	saveConfig();
+	if( _vmv != NULL )
+		_vmv->setSrvPort(getVoicemailConfigPortString());
 }
 
 ::DBus::Bool
@@ -2493,6 +2500,7 @@ void
 ManagerImpl::setVoicemailConfigHttps(const ::DBus::Bool& enabled) {
 	setConfig(VOICEMAIL_CONFIG, VOICEMAIL_USES_HTTPS, enabled);
 	saveConfig();
+		_vmv->setHttpsEnabled(enabled);
 }
 
 //-------------------
@@ -2501,21 +2509,21 @@ ManagerImpl::setVoicemailConfigHttps(const ::DBus::Bool& enabled) {
 void
 ManagerImpl::voicemailPlaying(void) 
 {
-	_debug("voicemailPlaying\n");
+	_debugVoicemail("voicemailPlaying\n");
 	_dbus->getVoicemailManager()->voicemailPlaying();
 }
 
 void
 ManagerImpl::voicemailStopped(void)
 {
-	_debug("voicemailStopped\n");
+	_debugVoicemail("voicemailStopped\n");
 	_dbus->getVoicemailManager()->voicemailStopped();
 }
 
 void
 ManagerImpl::throwError(const ::DBus::String& error)
 {
-	_debug("<<<<<< throwError >>>>>>\n");
+	_debugVoicemail("<<<<<< throwError >>>>>>\n");
 	_dbus->getVoicemailManager()->throwError(error);
 }
 //#endif /** USE_VOICEMAIL */

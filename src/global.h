@@ -52,6 +52,9 @@ typedef short int16;
   #define _debugException(...) fprintf(stderr, "[sfl-excep] " __VA_ARGS__ "\n")
   #define _debugInit(...)      fprintf(stderr, "[sfl-init] " __VA_ARGS__ "\n")
   #define _debugAlsa(...)      fprintf(stderr, "[alsa-debug] " __VA_ARGS__ )
+  #ifdef USE_VOICEMAIL
+    #define _debugVoicemail(...) fprintf(stderr, "[voicemail-debug] ", __VA_ARGS__ "\n")
+  #endif
 #else
   #define _debug(...)
   #define _debugStart(...)
@@ -60,6 +63,9 @@ typedef short int16;
   #define _debugException(...)
   #define _debugInit(...)
   #define _debugAlsa(...)
+  #ifdef USE_VOICEMAIL
+    #define _debugVoicemail(...)
+  #endif
 #endif
 
 #define SFLPHONED_VERSION "0.8.2"		/** Version number */

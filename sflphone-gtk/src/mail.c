@@ -374,14 +374,16 @@ void mail_list_clear_all(mailtab_t *t)
 {
 	if( t )
 	{
-		gtk_tree_store_clear(t->treestore);
-		t->treestore = NULL;
-		gtk_list_store_clear(t->liststore);
-		t->liststore = NULL;
-		gtk_widget_destroy(t->listview);
-		t->listview = NULL;
-		gtk_widget_destroy(t->treewidget);
-		t->treewidget = NULL;
+		if( t->treestore )
+		{
+			gtk_tree_store_clear(GTK_TREE_STORE(t->treestore));
+//			t->treestore = NULL;
+		}
+		if( t->liststore )
+		{
+			gtk_list_store_clear(GTK_LIST_STORE(t->liststore));
+//			t->liststore = NULL;
+		}
 		g_slist_free(t->maillist);
 		
 		t->selectedMail = NULL;

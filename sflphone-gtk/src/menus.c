@@ -702,7 +702,7 @@ create_view_menu()
   voicemail_menu = gtk_image_menu_item_new_with_mnemonic(_("_VoiceMail Viewer"));
   gtk_menu_shell_append(GTK_MENU_SHELL(menu), voicemail_menu);
   g_signal_connect(G_OBJECT(voicemail_menu), "activate", G_CALLBACK(call_voicemail), NULL);
-  voicemail_menu_make_active(dbus_open_connection());
+  voicemail_menu_make_active(dbus_is_voicemail_server_enabled());
   gtk_widget_show(sub_menu);
 #endif
 

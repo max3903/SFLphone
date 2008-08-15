@@ -418,11 +418,18 @@ gboolean dbus_close_connection(void);
 gchar** dbus_get_list_folders(void);
 
 /**
+ * Voicemail - get the number of voicemail stored in a folder
+ * @param gchar* the name of the voicemail folder
+ * @return gint the number of voicemails contained in the specified folder
+ */
+gint dbus_get_folder_count(gchar *);
+
+/**
  * Voicemail - get the list of all voicemail found in a specified folder
  * @param gchar* the voicemail folder's name
  * @return gchar** the list fo voicemails
  */
-gchar** dbus_get_list_voicemails(gchar *);
+gchar** dbus_get_list_mails(gchar *);
 
 /**
  * Voicemail - get the number of voicemail included in a folder
@@ -444,7 +451,6 @@ gchar** dbus_get_list_errors(void);
  * @return GHashTable the most important information about a voicemail
  */
 GHashTable * dbus_get_voicemail(gchar *, gchar *);
-
 
 /**
  * Voicemail - get information about a voicemail

@@ -22,8 +22,10 @@
 #include <string.h>
 #include <gtk/gtk.h>
 #include <libintl.h>
+#include <glib/gprintf.h>
 
 #include "dbus.h"
+#include "mainwindow.h"
 #include "sflphone_const.h"
 #include "mail.h"
 #include "voicemailwindow.h"
@@ -92,8 +94,7 @@ gboolean
 isItemSelected(void)
 {
 	GtkTreeSelection *selection;
-	GtkTreeModel     *model;
-
+	
 	selection = gtk_tree_view_get_selection(GTK_TREE_VIEW(voicemailInbox->treeview));
 	return gtk_tree_selection_get_selected(GTK_TREE_SELECTION(selection), NULL, NULL);
 }
@@ -464,7 +465,7 @@ update_tree(gchar * markup_text, gchar * text)
 {
 	GtkTreeIter iter;
 	GdkPixbuf   *pixbuf;
-
+	
 	//pixbuf = gdk_pixbuf_new_from_file( ICONS_DIR "/folder.svg", NULL/*error*/ );
 	pixbuf = gdk_pixbuf_new_from_file_at_scale(ICONS_DIR "/folder.svg", 20/*width*/, -1/*height*/, TRUE/*preserve_ratio*/, NULL/*error*/);
 	/* New line creation */
@@ -489,13 +490,12 @@ update_tree_complete(gchar **voicemails, int numline)
 	GtkTreeIter iterParent;
 	GtkTreeIter iterChild;
 	GdkPixbuf   *pixBuf;
-	gchar       *line;
+	gchar       line;
 	gchar       **list;
 	
 	/** Gets the nth line to append voicemails */
-	g_sprintf(line, "%i\0", numline);
-	gtk_tree_model_get_iter_from_string(GTK_TREE_MODEL(voicemailInbox->treestore), &iterParent, line);
-	g_free(line);
+	g_sprintf(&line, "%i", numline);
+	gtk_tree_model_get_iter_from_string(GTK_TREE_MODEL(voicemailInbox->treestore), &iterParent, &line);
 	pixBuf = gdk_pixbuf_new_from_file(ICONS_DIR "/play.svg", NULL/*error*/);
 	
 	for( list = voicemails ; *voicemails ; voicemails++ ) {
@@ -689,7 +689,6 @@ show_voicemail_window(void)
 			gchar **tab   = g_strsplit(folder, "|", 2);
 			update_tree(tab[0], tab[1]);
 			gint count = dbus_get_folder_count(tab[1]);
-			g_print(" {{ count : %i - '%s' - '%s' }}\n", count, tab[0], tab[1]);
 			if( count != 0 )
 			{
 				gchar ** voicemails = (gchar **)dbus_get_list_mails(tab[1]);

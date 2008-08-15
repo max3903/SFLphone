@@ -206,7 +206,7 @@ VMViewer::~VMViewer() {
 }
 
 const string VMViewer::createRequest(const string& command) {
-	string s(isHttpsEnabled() ? "https://" : "https://"); // HTTPS or HTTP ?
+	string s(isHttpsEnabled() ? "https://" : "http://"); // HTTPS or HTTP ?
 	s.append(getContext()); // user's asterisk context
 	s.append("-");
 	s.append(getLogVMail()); // user's login/voicemail #
@@ -234,8 +234,6 @@ bool VMViewer::execAndParse(const string& command) {
 	SoupMessage *msg;
 	guint       status;
 
-	std::cout << "execAndParse(" << command << ")  ==>  " << createRequest(command) << std::endl;
-	
 	session = soup_session_sync_new();
 	msg     = soup_message_new("GET", createRequest(command).c_str());
 	status  = soup_session_send_message(session, msg);
@@ -324,9 +322,7 @@ VoicemailSound * VMViewer::getSoundByExt(const string& extension) {
 
 
 void VMViewer::addVMS(VoicemailSound * vms) {
-	std::cout << "VMViewer::addVMS";
 	_lst_sounds.push_back(vms);
-	std::cout << " - size : " << _lst_sounds.size() << std::endl;
 }
 
 int VMViewer::getFolderCount(const string& folder) {
