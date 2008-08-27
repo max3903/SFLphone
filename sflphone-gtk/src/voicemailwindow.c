@@ -196,12 +196,11 @@ on_play(void)
 static void
 on_delete(void)
 {
-	GtkTreeIter iter;
-	GtkWidget   *dialog;
-	gchar       *message;
-	
 	if( isItemSelected() )
 	{
+		GtkWidget   *dialog;
+		gchar       *message;
+
 		/** It's a voicemail */
 		if( isAValidItem() )
 			message = "Do you really want to delete this voicemail ?";
@@ -217,7 +216,16 @@ on_delete(void)
 		/** Dialog box with question and user's answer */
 		if( gtk_dialog_run(GTK_DIALOG(dialog)) == GTK_RESPONSE_OK )
 		{
+			GtkTreeIter iter;
+			mail_t *mail;
+			GValue val = { 0 , };
+
 			iter = getSelectedItem();
+			gtk_tree_model_get_value(GTK_TREE_MODEL(voicemailInbox->treestore), &iter, VMV_DATA_COLUMN, &val);
+			/** Gets the value of the selected voicemail */
+			mail = (mail_t *)g_value_get_pointer(&val);
+			g_value_unset(&val);
+			dbus_remove_voicemail(mail->folder, mail->name);
 			gtk_tree_store_remove(voicemailInbox->treestore, &iter);
 			currentPlay = "";
 		}

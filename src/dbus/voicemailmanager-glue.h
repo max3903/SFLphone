@@ -28,6 +28,8 @@ public:
         register_method(VoicemailManager, getVoicemail, _getVoicemail_stub);
         register_method(VoicemailManager, getVoicemailInfo, _getVoicemailInfo_stub);
         register_method(VoicemailManager, getListErrors, _getListErrors_stub);
+        register_method(VoicemailManager, removeVoicemail, _removeVoicemail_stub);
+        register_method(VoicemailManager, removeVoicemailFolder, _removeVoicemailFolder_stub);
         register_method(VoicemailManager, playVoicemail, _playVoicemail_stub);
         register_method(VoicemailManager, stopVoicemail, _stopVoicemail_stub);
         register_method(VoicemailManager, isVoicemailServerEnabled, _isVoicemailServerEnabled_stub);
@@ -88,6 +90,19 @@ public:
         static ::DBus::IntrospectedArgument getListErrors_args[] = 
         {
             { "list", "as", false },
+            { 0, 0, 0 }
+        };
+        static ::DBus::IntrospectedArgument removeVoicemail_args[] = 
+        {
+            { "folder", "s", true },
+            { "name", "s", true },
+            { "deleted", "b", false },
+            { 0, 0, 0 }
+        };
+        static ::DBus::IntrospectedArgument removeVoicemailFolder_args[] = 
+        {
+            { "folder", "s", true },
+            { "deleted", "b", false },
             { 0, 0, 0 }
         };
         static ::DBus::IntrospectedArgument playVoicemail_args[] = 
@@ -172,6 +187,8 @@ public:
             { "getVoicemail", getVoicemail_args },
             { "getVoicemailInfo", getVoicemailInfo_args },
             { "getListErrors", getListErrors_args },
+            { "removeVoicemail", removeVoicemail_args },
+            { "removeVoicemailFolder", removeVoicemailFolder_args },
             { "playVoicemail", playVoicemail_args },
             { "stopVoicemail", stopVoicemail_args },
             { "isVoicemailServerEnabled", isVoicemailServerEnabled_args },
@@ -226,6 +243,8 @@ public:
     virtual std::map< ::DBus::String, ::DBus::String > getVoicemail( const ::DBus::String& folder, const ::DBus::String& name ) = 0;
     virtual ::DBus::String getVoicemailInfo( const ::DBus::String& folder, const ::DBus::String& name ) = 0;
     virtual std::vector< ::DBus::String > getListErrors(  ) = 0;
+    virtual ::DBus::Bool removeVoicemail( const ::DBus::String& folder, const ::DBus::String& name ) = 0;
+    virtual ::DBus::Bool removeVoicemailFolder( const ::DBus::String& folder ) = 0;
     virtual void playVoicemail( const ::DBus::String& folderName, const ::DBus::String& voicemailName ) = 0;
     virtual void stopVoicemail(  ) = 0;
     virtual ::DBus::Bool isVoicemailServerEnabled(  ) = 0;
@@ -346,6 +365,29 @@ private:
         ::DBus::MessageIter ri = call.reader();
 
         std::vector< ::DBus::String > argout1 = getListErrors();
+        ::DBus::ReturnMessage reply(call);
+        ::DBus::MessageIter wi = reply.writer();
+        wi << argout1;
+        return reply;
+    }
+    ::DBus::Message _removeVoicemail_stub( const ::DBus::CallMessage& call )
+    {
+        ::DBus::MessageIter ri = call.reader();
+
+        ::DBus::String argin1; ri >> argin1;
+        ::DBus::String argin2; ri >> argin2;
+        ::DBus::Bool argout1 = removeVoicemail(argin1, argin2);
+        ::DBus::ReturnMessage reply(call);
+        ::DBus::MessageIter wi = reply.writer();
+        wi << argout1;
+        return reply;
+    }
+    ::DBus::Message _removeVoicemailFolder_stub( const ::DBus::CallMessage& call )
+    {
+        ::DBus::MessageIter ri = call.reader();
+
+        ::DBus::String argin1; ri >> argin1;
+        ::DBus::Bool argout1 = removeVoicemailFolder(argin1);
         ::DBus::ReturnMessage reply(call);
         ::DBus::MessageIter wi = reply.writer();
         wi << argout1;

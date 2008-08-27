@@ -22,8 +22,10 @@
 // DELETE A VOICEMAIL (TXT + SOUNDS)
 //
 // Exemple of use :
+// To delete a voicemail
 // http://default-6666:735@127.0.0.1/uml/index/INBOX/msg0000/del
-//
+// or, to delete an all complete voicemail folder
+// http://default-6666:735@127.0.0.1/uml/index/INBOX/del
 
 $arr = explode("/", substr($_SERVER['PATH_INFO'], 1));
 
@@ -37,7 +39,7 @@ if( count($arr) == 2 ) { // Delete a complete folder
 } else if( count($arr) == 3 ) { // Delete a voicemail
 	$agent->delete($arr[0], $arr[1]);
 } else {
-	echo "<error>No folder and no voicemail given</error>";
+	echo "<error>No folder and/or no voicemail given</error>";
 }
 echo "</deleted>\n";
 

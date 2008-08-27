@@ -71,7 +71,7 @@ $login   = substr( $_SERVER['PHP_AUTH_USER'],
 $pass    = $_SERVER['PHP_AUTH_PW'];
 
 $agent = new VMAgent($login, $pass, $context);
-$is_logged = $agent->login($login, $pass, $context);
+$is_logged = $agent->login();//$login, $pass, $context);
 
 if( $is_logged == FALSE ) {
 	echo "<error>Login or password incorrect, try again</error>\n";
@@ -92,10 +92,20 @@ if( $is_logged ) {
 		} else {
 			/** Gets Voicemail Folder */
 			if( count($arr) == 1 ) {
-				echo $agent->getVMFByName($arr[count($arr)-1])->toString();
+				$folder = $agent->getVMFByName($arr[count($arr)-1]);
+				if( $folder != NULL ) {
+					echo $folder->toString();
+				} else {
+					echo "<error>The folder ". $arr[count($arr)-1] ." doesn't exist</error>";
+				}
 			} else { /** Gets Voicemail */
 				echo "<directory name=\"". $arr[count($arr)-2] ."\">";
-				echo $agent->getVMByName($arr[count($arr)-2], $arr[count($arr)-1])->toString();
+				$voicemail = $agent->getVMByName($arr[count($arr)-2], $arr[count($arr)-1]);
+				if( $voicemail != NULL ) {
+					echo $voicemail->toString();
+				} else {
+					echo "<error>Voicemail ". $arr[count($arr)-1] ." doesn't exist</error>";
+				}
 				echo "</directory>";
 			}
 		}
@@ -109,7 +119,7 @@ if( $is_logged ) {
  * LOGOUT
  **********************************************************/
 if( $agent->logout() == FALSE ) {
-	echo "<logout>KO</logout>\n";
+	echo "<logout>Impossible to logout</logout>\n";
 }
 
 echo "</result>";

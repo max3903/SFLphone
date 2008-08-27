@@ -126,9 +126,6 @@ void endElement(void *userData, const XML_Char *name) {
 	else if( strcmp(name, "error") == 0 ) {
 		vmv->addError(eltValue);
 	}
-	else if( strcmp(name, "error-message") == 0 ) {
-		vmv->addError(eltValue);
-	}
 	else {
 		/** VOICEMAIL'S INFORMATIONS */
 		if( strcmp(name, "name") == 0 ) {
@@ -237,25 +234,22 @@ bool VMViewer::execAndParse(const string& command) {
 	session = soup_session_sync_new();
 	msg     = soup_message_new("GET", createRequest(command).c_str());
 	status  = soup_session_send_message(session, msg);
-	if( status == 200 ) {
-
+	if( status == 200 ) { // OK
 		// Creates parser for presence status provided in XML body
 		XML_Parser parser = XML_ParserCreate(NULL);
-
 		// Sets functions that will be called when parsing elements and character data
 		XML_SetElementHandler(parser, startElement, endElement);
 		XML_SetCharacterDataHandler(parser, character);
 		XML_SetUserData(parser, this);
-
 		// Parses the data
 		if( XML_Parse(parser, msg->response_body->data, strlen(msg->response_body->data), 0) == XML_STATUS_ERROR ) {
 			std::cout << " ERRORR reading file..." << std::endl;
 			std::cout << XML_ErrorString(XML_GetErrorCode(parser)) << std::endl;
 		}
-	
 		XML_ParserFree(parser);
 		return true;
 	} else {
+		addError(msg->reason_phrase);
 		return false;
 	}
 }
@@ -288,9 +282,9 @@ void VMViewer::addVMF(VoicemailFolder *vmf) {
 	}
 }
 
-//bool VMViewer::removeVMF(VoicemailFolder vmf) {
+bool VMViewer::removeVMF(VoicemailFolder * vmf) {
 //	return _lst_folders.erase(vmf);
-//}
+}
 
 vector<VoicemailSound *> VMViewer::getLstSounds() {
 	return _lst_sounds;
@@ -314,6 +308,8 @@ VoicemailSound * VMViewer::getSoundByExt(const string& extension) {
 		std::cout << "###  format : " << _lst_sounds[i]->getFormat() << std::endl;
 		if( _lst_sounds[i]->getFormat().compare(extension) == 0 ) {
 			std::cout << "#### found " << extension << std::endl;
+			std::cout << "#### file   : " << _lst_sounds[i]->getFile() << std::endl;
+			std::cout << "#### folder : " << _lst_sounds[i]->getFolder() << std::endl;
 			return _lst_sounds[i];
 		}
 	}
@@ -336,6 +332,10 @@ int VMViewer::getFolderCount(const string& folder) {
 
 void VMViewer::addError(const string& err) {
 	_error_list.push_back(err);
+}
+
+void VMViewer::clearErrors() {
+	_error_list.clear();
 }
 
 

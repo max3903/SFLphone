@@ -37,10 +37,8 @@ class VMAuthFile extends VMAuth {
 	* @param string file_configuration ("/etc/asterisk/voicemail.conf" by default)
 	*/
 	public function __construct($login="", $pass="", $context="default", $file="/etc/asterisk/voicemail.conf") {
-		$this->login   = $login;
-		$this->pass    = $pass;
-		$this->context = $context;
-		$this->file    = $file;
+		parent::__construct($login, $pass, $context);
+		$this->file = $file;
 	}
 
 	/**
@@ -106,7 +104,7 @@ class VMAuthFile extends VMAuth {
 		$fd = fopen($this->file, "r");
 		if( !$fd ) {
 			echo "<error>";
-			echo "Could not open the VOICEMAIL_CONF file : $VOICEMAIL_CONF\n"; 
+			echo "Could not open the VOICEMAIL_CONF file : $this->file\n"; 
 			echo "</error>\n";
 			return FALSE;
 		}
@@ -128,8 +126,7 @@ class VMAuthFile extends VMAuth {
 					$matches[1] == $this->login &&
 					$matches[2] == $this->pass ) {
 					$valid = TRUE;
-					fclose($fd);
-					return $valid;
+					break;
 				}
 			}
 		}

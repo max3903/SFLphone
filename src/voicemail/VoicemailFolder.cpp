@@ -42,19 +42,24 @@ std::vector<Voicemail *> VoicemailFolder::getLstVM() {
 
 void VoicemailFolder::addVM(Voicemail *vm) {
 	_lst_vm.push_back(vm);
-//	_count++;
 }
 
 bool VoicemailFolder::removeVM(Voicemail *vm) {
-//	_count--;
-	return true;
+	std::vector<Voicemail *>::iterator it;
+	for( it = _lst_vm.begin() ; it < _lst_vm.end() ; it++ ) {
+		if( *it == vm ) {
+			_lst_vm.erase(it);
+			return true;
+		}
+	}
+	return false;
 }
 
 Voicemail * VoicemailFolder::getVMAt(int i) {
 	if( i<0 || i>=getCount() ) {
 		return NULL;
 	} else {
-		return _lst_vm[i];
+		return _lst_vm.at(i);
 	}
 }
 

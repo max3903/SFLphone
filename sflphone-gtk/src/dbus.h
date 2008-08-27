@@ -472,6 +472,12 @@ void dbus_play_voicemail(gchar *, gchar *);
  */
 void dbus_stop_voicemail(void);
 
+
+gboolean dbus_remove_voicemail_folder(gchar *);
+
+gboolean dbus_remove_voicemail(gchar *, gchar *);
+
+
 //-------------------------
 // VOICEMAIL CONFIGURATION
 //-------------------------

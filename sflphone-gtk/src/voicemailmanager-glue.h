@@ -318,6 +318,82 @@ static
 inline
 #endif
 gboolean
+org_sflphone_SFLphone_VoicemailManager_remove_voicemail (DBusGProxy *proxy, const char * IN_folder, const char * IN_name, gboolean* OUT_deleted, GError **error)
+
+{
+  return dbus_g_proxy_call (proxy, "removeVoicemail", error, G_TYPE_STRING, IN_folder, G_TYPE_STRING, IN_name, G_TYPE_INVALID, G_TYPE_BOOLEAN, OUT_deleted, G_TYPE_INVALID);
+}
+
+typedef void (*org_sflphone_SFLphone_VoicemailManager_remove_voicemail_reply) (DBusGProxy *proxy, gboolean OUT_deleted, GError *error, gpointer userdata);
+
+static void
+org_sflphone_SFLphone_VoicemailManager_remove_voicemail_async_callback (DBusGProxy *proxy, DBusGProxyCall *call, void *user_data)
+{
+  DBusGAsyncData *data = (DBusGAsyncData*) user_data;
+  GError *error = NULL;
+  gboolean OUT_deleted;
+  dbus_g_proxy_end_call (proxy, call, &error, G_TYPE_BOOLEAN, &OUT_deleted, G_TYPE_INVALID);
+  (*(org_sflphone_SFLphone_VoicemailManager_remove_voicemail_reply)data->cb) (proxy, OUT_deleted, error, data->userdata);
+  return;
+}
+
+static
+#ifdef G_HAVE_INLINE
+inline
+#endif
+DBusGProxyCall*
+org_sflphone_SFLphone_VoicemailManager_remove_voicemail_async (DBusGProxy *proxy, const char * IN_folder, const char * IN_name, org_sflphone_SFLphone_VoicemailManager_remove_voicemail_reply callback, gpointer userdata)
+
+{
+  DBusGAsyncData *stuff;
+  stuff = g_new (DBusGAsyncData, 1);
+  stuff->cb = G_CALLBACK (callback);
+  stuff->userdata = userdata;
+  return dbus_g_proxy_begin_call (proxy, "removeVoicemail", org_sflphone_SFLphone_VoicemailManager_remove_voicemail_async_callback, stuff, g_free, G_TYPE_STRING, IN_folder, G_TYPE_STRING, IN_name, G_TYPE_INVALID);
+}
+static
+#ifdef G_HAVE_INLINE
+inline
+#endif
+gboolean
+org_sflphone_SFLphone_VoicemailManager_remove_voicemail_folder (DBusGProxy *proxy, const char * IN_folder, gboolean* OUT_deleted, GError **error)
+
+{
+  return dbus_g_proxy_call (proxy, "removeVoicemailFolder", error, G_TYPE_STRING, IN_folder, G_TYPE_INVALID, G_TYPE_BOOLEAN, OUT_deleted, G_TYPE_INVALID);
+}
+
+typedef void (*org_sflphone_SFLphone_VoicemailManager_remove_voicemail_folder_reply) (DBusGProxy *proxy, gboolean OUT_deleted, GError *error, gpointer userdata);
+
+static void
+org_sflphone_SFLphone_VoicemailManager_remove_voicemail_folder_async_callback (DBusGProxy *proxy, DBusGProxyCall *call, void *user_data)
+{
+  DBusGAsyncData *data = (DBusGAsyncData*) user_data;
+  GError *error = NULL;
+  gboolean OUT_deleted;
+  dbus_g_proxy_end_call (proxy, call, &error, G_TYPE_BOOLEAN, &OUT_deleted, G_TYPE_INVALID);
+  (*(org_sflphone_SFLphone_VoicemailManager_remove_voicemail_folder_reply)data->cb) (proxy, OUT_deleted, error, data->userdata);
+  return;
+}
+
+static
+#ifdef G_HAVE_INLINE
+inline
+#endif
+DBusGProxyCall*
+org_sflphone_SFLphone_VoicemailManager_remove_voicemail_folder_async (DBusGProxy *proxy, const char * IN_folder, org_sflphone_SFLphone_VoicemailManager_remove_voicemail_folder_reply callback, gpointer userdata)
+
+{
+  DBusGAsyncData *stuff;
+  stuff = g_new (DBusGAsyncData, 1);
+  stuff->cb = G_CALLBACK (callback);
+  stuff->userdata = userdata;
+  return dbus_g_proxy_begin_call (proxy, "removeVoicemailFolder", org_sflphone_SFLphone_VoicemailManager_remove_voicemail_folder_async_callback, stuff, g_free, G_TYPE_STRING, IN_folder, G_TYPE_INVALID);
+}
+static
+#ifdef G_HAVE_INLINE
+inline
+#endif
+gboolean
 org_sflphone_SFLphone_VoicemailManager_play_voicemail (DBusGProxy *proxy, const char * IN_folderName, const char * IN_voicemailName, GError **error)
 
 {

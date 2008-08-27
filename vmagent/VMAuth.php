@@ -27,26 +27,25 @@ require_once 'VMAgent.php';
 abstract class VMAuth {
 
 	/** Protected instance vars */
-	protected $context;
-	protected $login;
-	protected $pass;
+	protected $login;   // The user's login
+	protected $pass;    // The user's voicemail password
+	protected $context; // The user context
 
 	/**
-	* VMAuth -- Constructor
+	* Constructor
 	* @param string context
 	* @param string login
 	* @param string pass
 	*/
-	/*
-	public function __construct( $context , $login ,  $pass ) {
-		$this->context = $context;
+	public function __construct($login="", $pass="", $context="default") {
 		$this->login = $login;
 		$this->pass = $pass;
+		$this->context = $context;
+		echo "<VMAuth>__construct($login, $pass, $context)</VMAuth>";
 	}
-	*/
 	
 	/**
-	* VMAuth -- Destructor
+	* Destructor
 	*/
 	public function __destruct() {
 		

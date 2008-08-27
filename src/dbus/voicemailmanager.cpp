@@ -83,6 +83,15 @@ VoicemailManager::stopVoicemail(void) {
 	Manager::instance().stopVoicemail();
 }
 
+::DBus::Bool
+VoicemailManager::removeVoicemail(const ::DBus::String& folder, const ::DBus::String& name) {
+	Manager::instance().removeVoicemail(folder, name);
+}
+
+::DBus::Bool
+VoicemailManager::removeVoicemailFolder(const ::DBus::String& folder) {
+	Manager::instance().removeVoicemailFolder(folder);
+}
 
 /***************************************************/
 // VOICEMAIL CONFIGURATION 

@@ -1685,6 +1685,46 @@ dbus_stop_voicemail(void)
 		g_print("Called dbus_stop_voicemail\n");
 }
 
+gboolean
+dbus_remove_voicemail_folder(gchar * folder)
+{
+	GError* error = NULL;
+	gboolean deleted = FALSE;
+	org_sflphone_SFLphone_VoicemailManager_remove_voicemail_folder(
+			voicemailManagerProxy,
+			folder,
+			&deleted,
+			&error);
+	if(error)
+	{
+		g_error_free(error);
+	}
+	else
+		g_print("Called dbus_remove_voicemail_folder\n");
+	return deleted;
+}
+
+gboolean
+dbus_remove_voicemail(gchar * folder, gchar * name)
+{
+	GError* error = NULL;
+	gboolean deleted = FALSE;
+	g_print("Before (%s,%s) ", folder, name);
+	org_sflphone_SFLphone_VoicemailManager_remove_voicemail(
+			voicemailManagerProxy,
+			folder,
+			name,
+			&deleted,
+			&error);
+	if(error)
+	{
+		g_error_free(error);
+	}
+	else
+		g_print("Called dbus_remove_voicemail\n");
+	return deleted;
+}
+
 /********************
  * VOICEMAIL CONFIG *
  ********************/

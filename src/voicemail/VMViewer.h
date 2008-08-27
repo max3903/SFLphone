@@ -83,7 +83,7 @@ class VMViewer {
 		VoicemailFolder *         getFolderByName(const string&);
 		int                       getFolderCount(const string&);
 		void                      addVMF(VoicemailFolder *);
-//		bool                      removeVMF(VoicemailFolder *);
+		bool                      removeVMF(VoicemailFolder *);
 		
 		/** Manipulation of voicemail's sounds */
 		vector<VoicemailSound *> getLstSounds();
@@ -92,16 +92,17 @@ class VMViewer {
 		VoicemailSound *         getSoundByExt(const string&);
 		void                     addVMS(VoicemailSound *);
 		
-		void                     addError(const string&);
+		void addError(const string&);
+		void clearErrors();
 		
-		vector<string>       toArrayString();
-		vector<string>       toFolderArrayString(const string&);
-		string               getVoicemailInfo(const string&, const string&);
+		vector<string>      toArrayString();
+		vector<string>      toFolderArrayString(const string&);
+		string              getVoicemailInfo(const string&, const string&);
 		map<string, string> getVoicemail(const string&, const string&);
 		
 		int            getErrorCount();
 		vector<string> toErrorsArrayString();
-		void toString();
+		void           toString();
 		
 		/** Dealing with agent */
 		const string createRequest(const string&);

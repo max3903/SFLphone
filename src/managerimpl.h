@@ -854,14 +854,14 @@ class ManagerImpl {
 	
 	/**
 	 * Get the list of all voicemails included in a folder
-	 * @param ::DBus::String the name of the folder to search into
+	 * @param const ::DBus::String& the name of the folder to search into
 	 * @return vector<::DBus::String> the voicemail list (vector)
 	 */
 	std::vector< ::DBus::String > getListMails(const ::DBus::String&);
 	
 	/**
 	 * Get the number of folders found
-	 * @param ::DBus::String the name of a folder
+	 * @param const ::DBus::String& the name of a folder
 	 * @return int the number of folders
 	 */
 	int getFolderCount(const ::DBus::String&);
@@ -873,14 +873,20 @@ class ManagerImpl {
 	std::vector< ::DBus::String > getListErrors(void);
 	
 	/**
+	 * 
+	 * @param map<::DBus::String,::DBus::String>
+	 * @param const ::DBus::String& the name of the folder to search into
+	 * @param const ::DBus::String& the name of the voicemail to get information
+	 */
+	std::map< ::DBus::String, ::DBus::String > getVoicemail(const ::DBus::String&, const ::DBus::String&);
+	
+	/**
 	 * Get the informations about a voicemail
-	 * @param ::DBus::String the name of the folder to search into
-	 * @param ::DBus::String the name of the voicemail to get information
+	 * @param const ::DBus::String& the name of the folder to search into
+	 * @param const ::DBus::String& the name of the voicemail to get information
 	 * @return ::DBus::String all the informations about a voicemail in a string
 	 */
 	::DBus::String getVoicemailInfo(const ::DBus::String&, const ::DBus::String&);
-	
-	std::map< ::DBus::String, ::DBus::String > getVoicemail(const ::DBus::String&, const ::DBus::String&);
 	
 	/**
 	 * Get the current voicemail file to play with
@@ -888,14 +894,17 @@ class ManagerImpl {
 	 */
 	AudioMail * getVoicemailFile(void);
 	
+	::DBus::Bool removeVoicemail(const ::DBus::String&, const ::DBus::String&);
+	::DBus::Bool removeVoicemailFolder(const ::DBus::String&);
+	
 	/********************************************************/
 	// Playing and stopping voicemail sound files
 	/********************************************************/
 	
 	/**
 	 * Plays a voicemail sound file
-	 * @param ::DBus::String the name of the folder to search into
-	 * @param ::DBus::String the name of the voicemail to listen to
+	 * @param const ::DBus::String& the name of the folder to search into
+	 * @param const ::DBus::String& the name of the voicemail to listen to
 	 */
 	void playVoicemail(const ::DBus::String&, const ::DBus::String&);
 	/**
@@ -914,6 +923,7 @@ class ManagerImpl {
 	
 	/**
 	 * Signal to emit to GUI-client when finding an error (from web-agent)
+	 * @param const ::DBus::String& the message to display
 	 */
 	void throwError(const ::DBus::String&);
 	
@@ -940,7 +950,7 @@ class ManagerImpl {
 	::DBus::String getVoicemailConfigAddress(void);
 	/**
 	 * Set the IP address where the voicemail web-agent is
-	 * @param ::DBus::String the IP address (alphabetical or numerical allowed : "localhost" or "127.0.0.1")
+	 * @param const ::DBus::String& the IP address (alphabetical or numerical allowed : "localhost" or "127.0.0.1")
 	 */
 	void setVoicemailConfigAddress(const ::DBus::String&);
 	
@@ -952,7 +962,7 @@ class ManagerImpl {
 	/**
 	 * Set the path to the voicemail web-agent
 	 * For example : http://127.0.0.1/web-agent/index => the path is "web-agent/index"
-	 * @param ::DBus::String the path to find "index" file
+	 * @param const ::DBus::String& the path to find "index" file
 	 */
 	void setVoicemailConfigPath(const ::DBus::String&);
 	
@@ -969,7 +979,7 @@ class ManagerImpl {
 	/**
 	 * Set the appropriate port number to dialog with the voicemail web-agent
 	 * May be #80 (simple http) or #443 (for https)
-	 * @param ::DBus::Int32 the port number
+	 * @param const ::DBus::Int32& the port number
 	 */
 	void setVoicemailConfigPort(const ::DBus::Int32&);
 	
@@ -980,7 +990,7 @@ class ManagerImpl {
 	::DBus::Bool isVoicemailConfigHttpsEnabled(void);
 	/**
 	 * Set the HTPPS protocol active or not
-	 * @param ::DBus::Bool true to activate, false to deactivate
+	 * @param const ::DBus::Bool& true to activate, false to deactivate
 	 */
 	void setVoicemailConfigHttps(const ::DBus::Bool&);
 //#endif

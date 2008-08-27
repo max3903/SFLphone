@@ -5,11 +5,19 @@ html_parent_dir = .
 HTML_HEADER = 
 HTML_FOOTER = 
 
+#ifdef USE_VOICEMAIL
+WEBAGENT = web-doc
+#else
+#WEBAGENT = 
+#end
+
+DOXYGEN = /usr/bin/doxygen
+
 all: doxygen-trac
 	
 .PHONY: doxygen-trac
 
-doxygen-trac: clean core-doc-trac gtk-gui-doc-trac
+doxygen-trac: clean core-doc-trac gtk-gui-doc-trac $(WEBAGENT)
 
 %-doc-trac : %-doc
 	ln -s ${html_parent_dir}/$< ${html_parent_dir}/$</html

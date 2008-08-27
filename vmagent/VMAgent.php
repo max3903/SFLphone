@@ -41,8 +41,9 @@ class VMAgent {
 	private $vmStorage; // VMSotrage (abstract)
 	private $vmList;	// Voicemail's Folders list
 	
-	private $vmConfFile; // path to voicemail.conf file (default : /etc/asterisk/)
-	private $vmSpoolDir; // path to voicemail spool folder (default : /var/spool/asterisk/voicemail/)
+	private $asteriskDir; // Path to asterisk config files (defautl : /etc/asterisk/)
+	private $vmConfFile;  // Path to voicemail.conf file (default : /etc/asterisk/voicemail.conf)
+	private $vmSpoolDir;  // Path to voicemail spool folder (default : /var/spool/asterisk/voicemail/*)
 	
 	/**
 	 * VMAgent -- Constuctor
@@ -54,6 +55,7 @@ class VMAgent {
 		$this->autoDetectVoicemailFile();
 		$this->autoAuthentication($login, $pass, $context);
 		$this->checkStorage($login, $pass, $context);
+		echo "<VMAgent>__construct($login, $pass, $context)</VMAgent>";
 	}
 	
 	/**
@@ -76,19 +78,20 @@ class VMAgent {
 		foreach($tab_whereis as $val) {
 			$findSpool = exec("find ". $val ." -nowarn -name \"asterisk.conf\" -print");
 			if( $findSpool != "" ) {
-				$grep = exec("sudo grep astspooldir ". $findSpool ." | cut -d'>' -f2");
+				$grep = exec("grep astspooldir ". $findSpool ." | cut -d'>' -f2");
 				if( $grep != "" ) {
-					$this->vmSpoolDir = trim($grep) ."/voicemail";
+					$this->asteriskDir = $val;
+					$this->vmSpoolDir  = trim($grep) ."/voicemail";
 				}
 			}
-			$findConf = exec("find ". $val ." -nowarn -name \"voicemail.conf\" -print");
+			$findConf = exec("find ". $val ." -nowarn -name \"voicemail.conf\" -print -maxdepth 1");
 			if( $findConf != "" ) {
 				$this->vmConfFile = $findConf;
 			}
 		}
 		echo "<command>";
-		echo "<grep>vmSpoolDir : >$this->vmSpoolDir</grep>";
-		echo "<grep>vmConfFile : >$this->vmConfFile</grep>";
+		echo "<grep>vmSpoolDir : $this->vmSpoolDir</grep>";
+		echo "<grep>vmConfFile : $this->vmConfFile</grep>";
 		echo "</command>";
 	}
 	
@@ -103,25 +106,59 @@ class VMAgent {
 		$fd = @fopen($this->vmConfFile, "r");
 		if( !$fd ) {
 			echo "<error>";
-			echo "Could not open the VOICEMAIL_CONF file : $this->vmConfFile"; 
+			echo "Could not open the voicemail config file : $this->vmConfFile"; 
 			echo "</error>";
 			return FALSE;
 		}
-		$inDBpattern = '/^\s*searchcontexts=yes/';
-		$authDB = FALSE;
-		while( ! feof($fd) ) {
-			$buf = fgets($fd, 4096);
-			$line = trim($buf);
-			if( preg_match($inDBpattern, $line) ) {
-				$authDB = TRUE;
+		$inDBpattern    = "/^\s*searchcontexts\s*=\s*yes/"; // For Asterisk Realtime Architecture
+		$inMysqlPattern = array( "/^\s*dbuser\s*=\s*(.+)/" => "",
+								 "/^\s*dbpass\s*=\s*(.+)/" => "",
+								 "/^\s*dbhost\s*=\s*(.+)/" => "",
+								 "/^\s*dbname\s*=\s*(.+)/" => "" );
+		$inPgsqlPattern = "/^\s*dboption\s*=\s*(.*)dbname\s*=\s*(.+)\s*user\s*=\s*(.+)\s*password\s*=\s*(.+)/";
+		$authDB    = FALSE;
+		$authMysql = FALSE;
+		$authPgsql = FALSE;
+		if( filesize($this->vmConfFile) == 0 ) {
+			$authDB = TRUE;
+		} else {
+			while( ! feof($fd) ) {
+				$buf = fgets($fd, 4096);
+				$line = trim($buf);
+				if( preg_match($inDBpattern, $line) ) {
+					$authDB = TRUE;
+				}
+				foreach( $inMysqlPattern as $key => $val ) {
+					if( preg_match($key, $line, $matches) ) {
+						echo "<mysqlMatches>". print_r($matches) ."</mysqlMatches>";
+						$inMysqlPattern[$key] = $matches[1];
+					}
+				}
+				if( preg_match($inPgsqlPattern, $line) ) {
+					$authPgsql = TRUE;
+				}
 			}
 		}
 		fclose($fd);
-		if( $authDB ) {
-			$this->vmAuth = new VMAuthDB();// $login, $pass, $context );
+		foreach( $inMysqlPattern as $val ) {
+			if( empty($val) ) {
+				$authMysql = FALSE;
+			}
+		}
+		if( $authMysql ) {
+			echo "<typeAuth>mysql</typeAuth>";
+			$this->vmAuth = new VMAuthDB($login, $pass, $context, $this->asteriskDir);
+		} else if( $authPgsql ) {
+			echo "<typeAuth>pgsql</typeAuth>";
+			$this->vmAuth = new VMAuthDB($login, $pass, $context, $this->asteriskDir);
+/*		} else if( $authDB ) {
+			echo "<typeAuth>ara</typeAuth>";
+			$this->vmAuth = new VMAuthDB($login, $pass, $context, $this->asteriskDir);*/
 		} else {
+			echo "<typeAuth>file</typeAuth>";
 			$this->vmAuth = new VMAuthFile($login, $pass, $context);
 		}
+		
 	}
 	
 	/**
@@ -140,14 +177,12 @@ class VMAgent {
 		}
 		
 		$inODBCpattern = array( "/^\s*odbcstorage=(.*)/" => "",
-								"/^\s*odbctable=(.*)/" => "" );
+					"/^\s*odbctable=(.*)/" => "" );
 		$inIMAPpattern = array( "/^\s*imapserver=(.*)/" => "",
-								"/^\s*imapport=(.*)/" => "",
-								"/^\s*authuser=(.*)/" => "",
-								"/^\s*authpassword=(.*)/" => "",
-								"/^\s*imapfolder=(.*)/" => "" );
-		$authODBC = FALSE;
-		$authIMAP = FALSE;
+					"/^\s*imapport=(.*)/" => "",
+					"/^\s*authuser=(.*)/" => "",
+					"/^\s*authpassword=(.*)/" => "",
+					"/^\s*imapfolder=(.*)/" => "" );
 		while( ! feof($fd) ) {
 			$buf = fgets($fd, 4096);
 			$line = trim($buf);
@@ -165,21 +200,24 @@ class VMAgent {
 		fclose($fd);
 		$inODBC = TRUE;
 		$inIMAP = TRUE;
-		foreach( $inODBCpattern as $key => $val ) {
-				if( empty($val) ) {
+		foreach( $inODBCpattern as $val ) {
+			if( empty($val) ) {
 				$inODBC = FALSE;
 			}
 		}
-		foreach( $inIMAPpattern as $key => $val ) {
+		foreach( $inIMAPpattern as $val ) {
 			if( empty($val) ) {
 				$inIMAP = FALSE;
 			}
 		}
 		if( $inODBC ) {
-			$this->vmAuth = new VMStorageODBC();// $login, $pass, $context );
+			echo "inODBC";
+			$this->vmStorage = new VMStorageODBC();// $login, $pass, $context );
 		} else if( $inIMAP ) {
-			$this->vmAuth = new VMStorageIMAP($login, $pass, $context);
+			echo "inIMAP";
+			$this->vmStorage = new VMStorageIMAP($login, $pass, $context);
 		} else {
+			echo "file";
 			$this->vmStorage = new VMStorageFile($this->vmSpoolDir ."/". $context ."/". $login);
 		}
 	}
@@ -236,10 +274,10 @@ class VMAgent {
 	 * @param string context
 	 * @return TRUE if well registered, FALSE otherwise
 	 */
-	public function login($login, $pass, $context="default") {
-		$this->vmAuth->setLogin($login);
+	public function login() { //$login, $pass, $context="default") {
+/*		$this->vmAuth->setLogin($login);
 		$this->vmAuth->setPass($pass);
-		$this->vmAuth->setContext($context);
+		$this->vmAuth->setContext($context);*/
 		if( $this->vmAuth->login() ) {
 			return TRUE;
 		} else {
@@ -284,7 +322,7 @@ class VMAgent {
 	}
 	
 	/**
-	 * delete(a_voicemail_folder, a_voicemail_name)
+	 * delete(a_voicemail_folder)
 	 * @param string a_voicemail_folder
 	 * @param string a_voicemail_name
 	 * @return bool TRUE if all files (txt+sound) have been well deletes, FALSE otherwise

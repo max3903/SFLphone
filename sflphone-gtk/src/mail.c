@@ -22,7 +22,6 @@
 #include <string.h>
 #include <gtk/gtk.h>
 #include <gdk/gdk.h> // For pixmaps
-//#include <glib.h> // For GHashTable
 
 #include "dbus.h"
 #include "sflphone_const.h"
@@ -84,6 +83,23 @@ on_row_activated(GtkTreeView *tree_view, GtkTreePath *path, GtkTreeViewColumn *c
 	}
 }
 
+static void
+on_play(mail_t * mail)
+{
+	dbus_play_voicemail(mail->folder, mail->name);
+}
+
+static void
+on_stop()
+{
+	dbus_stop_voicemail();
+}
+
+static void
+on_delete()
+{
+	
+}
 
 /**
  * Receiving signal from server that listening to voicemail is started
@@ -190,10 +206,10 @@ show_popup_menu(GtkWidget *widget, GdkEventButton *event)
 		int       event_time;
 
 		menu = gtk_menu_new();
+		gtk_tree_model_get(model, &iter, VM_IMG_COLUMN, &pix, -1);
 		/** TODO : change it
 		 * Checks if there is an image on the selected item, if true, it's a voicemail
 		 */
-		gtk_tree_model_get(model, &iter, VM_IMG_COLUMN, &pix, -1);
 		if( pix != NULL )
 		{
 			GValue      val = { 0 , };
@@ -205,40 +221,41 @@ show_popup_menu(GtkWidget *widget, GdkEventButton *event)
 			if( ! mail->isPlaying )
 			{
 				menu_item = gtk_image_menu_item_new_from_stock("gtk-media-play", NULL);
-//				g_signal_connect(GTK_MENU_ITEM(menu_item), "button_press_event", G_CALLBACK(on_play), NULL);
+				g_signal_connect(GTK_MENU_ITEM(menu_item), "button_press_event", G_CALLBACK(on_play), mail);
 			}
 			else /** Else, displays a "stop" button" */
 			{
 				menu_item = gtk_image_menu_item_new_from_stock("gtk-media-stop", NULL);
-//				g_signal_connect(GTK_MENU_ITEM(menu_item), "button_press_event", G_CALLBACK(on_stop), NULL);
+				g_signal_connect(GTK_MENU_ITEM(menu_item), "button_press_event", G_CALLBACK(on_stop), NULL);
 			}
 			gtk_menu_shell_append(GTK_MENU_SHELL(menu), menu_item);
-		}
-		menu_item = gtk_image_menu_item_new_from_stock("gtk-delete", NULL);
-		gtk_menu_shell_append(GTK_MENU_SHELL(menu), menu_item);
-//		g_signal_connect(GTK_MENU_ITEM(menu_item), "button_press_event", G_CALLBACK(on_delete), NULL);
-		g_signal_connect(menu, "deactivate", G_CALLBACK(gtk_widget_destroy), NULL);
 
-		/** If the event comes from the mouse */
-		if( event )
-		{
-			button = event->button;
-			event_time = event->time;
+			menu_item = gtk_image_menu_item_new_from_stock("gtk-delete", NULL);
+			gtk_menu_shell_append(GTK_MENU_SHELL(menu), menu_item);
+//			g_signal_connect(GTK_MENU_ITEM(menu_item), "button_press_event", G_CALLBACK(on_delete), NULL);
+			g_signal_connect(menu, "deactivate", G_CALLBACK(gtk_widget_destroy), NULL);
+
+			/** If the event comes from the mouse */
+			if( event )
+			{
+				button = event->button;
+				event_time = event->time;
+			}
+			else /** Else, fills with rigth params */
+			{
+				button = 0;
+				event_time = gtk_get_current_event_time();
+			}
+			gtk_menu_attach_to_widget(GTK_MENU(menu), widget, NULL);
+			gtk_widget_show_all(menu);
+			gtk_menu_popup( GTK_MENU(menu),
+							NULL/*parent_menu_shell*/,
+							NULL/*parent_menu_item*/,
+							NULL/*function*/,
+							NULL/*data*/, 
+							button/*mouse_button*/,
+							event_time/*time*/ );
 		}
-		else /** Else, fills with rigth params */
-		{
-			button = 0;
-			event_time = gtk_get_current_event_time();
-		}
-		gtk_menu_attach_to_widget(GTK_MENU(menu), widget, NULL);
-		gtk_widget_show_all(menu);
-		gtk_menu_popup( GTK_MENU(menu),
-						NULL/*parent_menu_shell*/,
-						NULL/*parent_menu_item*/,
-						NULL/*function*/,
-						NULL/*data*/, 
-						button/*mouse_button*/,
-						event_time/*time*/ );
 	}
 }
 

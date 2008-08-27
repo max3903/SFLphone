@@ -61,7 +61,9 @@ class VoicemailManager :
 		void           setVoicemailConfigPort(const ::DBus::Int32&);
 		::DBus::Bool   isVoicemailConfigHttpsEnabled(void);
 		void           voicemailConfigHttpsEnable(const ::DBus::Bool&);
-
+		
+		::DBus::Bool removeVoicemail(const ::DBus::String&, const ::DBus::String&);
+		::DBus::Bool removeVoicemailFolder(const ::DBus::String&);
 };
 
 #endif // VOICEMAILMANAGER_H

@@ -42,6 +42,17 @@
       <arg type="as" name="list" direction="out"/>
     </method>
     
+    <method name="removeVoicemail">
+      <arg type="s" name="folder" direction="in"/>
+      <arg type="s" name="name" direction="in"/>
+      <arg type="b" name="deleted" direction="out"/>
+    </method>
+    
+    <method name="removeVoicemailFolder">
+      <arg type="s" name="folder" direction="in"/>
+      <arg type="b" name="deleted" direction="out"/>
+    </method>
+    
     <!--
      * GUI => sfkphoned
      * Asks to play a voicemail
