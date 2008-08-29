@@ -198,8 +198,9 @@ VMViewer::VMViewer( string logVM,
 };
 
 VMViewer::~VMViewer() {
-	removeAll();
+	std::cout << "~VMViewer begin" << std::endl;
 	g_thread_exit(NULL);
+	std::cout << "~VMViewer end" << std::endl;
 }
 
 const string VMViewer::createRequest(const string& command) {
@@ -398,26 +399,5 @@ int VMViewer::getErrorCount() {
 
 vector< string > VMViewer::toErrorsArrayString() {
 	return _error_list;
-}
-
-
-void VMViewer::toString() {
-	int i, j;
-	std::cout << "VMViewer" << std::endl;
-	if( getLstFolders().size() != 0 ) {
-		std::cout << " '-VOICEMAIL FOLDERS (" << getLstFolders().size() << ")" << std::endl;
-		for( i = 0 ; i <= getLstFolders().size()-1 ; i++ ) {
-			std::cout << "   '- " << getFolderAt(i)->toString() << " (" << getFolderAt(i)->getCount() << ")" << std::endl;
-//			for( j=0 ; j<=getFolderAt(i)->getCount()-1 ; j++ ) {
-//				std::cout << "      '- " << getFolderAt(i)->getVMAt(j)->toString() << std::endl;
-//			}
-		}
-	}
-/*	if( getLstSounds().size() != 0 ) {
-		std::cout << " '-VOICEMAIL SOUNDS" << std::endl;
-		for( i=0 ; i<=getLstSounds().size()-1 ; i++ ) {
-			std::cout << getSoundAt(i)->toString() << std::endl;
-		}
-	}*/
 }
 

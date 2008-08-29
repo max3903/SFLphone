@@ -73,25 +73,6 @@ void create_voicemail_window(void);
  */
 GtkWidget * getVoicemailWindow(void);
 
-/**
- * Creates the treeview and its model, doesn't fill it !
- */
-void create_tree(void);
-
-/**
- * Fills the treeview with all the folders
- * @param gchar* the 'markuped' name of the folder (example : '<b>INBOX</b>')
- * @param gchar* the single name of the folder     (example : 'INBOX')
- */
-void update_tree(gchar *, gchar *);
-
-/**
- * Fills the treeview with a list of voicemails according to a specified folder
- * @param gchar** the list of all the voicemail's name
- * @param int the number of the folder to fill voicemails in (example : Inbox = 0, Old = 1...)
- */
-void update_tree_complete(gchar **, int);
-
 
 //-------------------------------------
 // DBUS SIGNALS

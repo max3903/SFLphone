@@ -38,7 +38,7 @@ class VMStorageODBC extends VMStorage {
 	* @param string login
 	* @param string pass
 	*/
-	public function __construct($server, $login, $pass) {
+	public function __construct(/*$server, $login, $pass*/) {
 		
 	}
 	

@@ -65,6 +65,7 @@ There is NO WARRANTY, to the extent permitted by law.\n\n");
   #endif
 
     /* start the main loop */
+    g_print("---- main ----\n");
     gtk_main ();
   }
   return 0;

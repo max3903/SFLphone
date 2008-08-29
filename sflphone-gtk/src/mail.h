@@ -49,9 +49,14 @@ typedef struct {
 	mail_t *selectedMail;
 } mailtab_t;
 
-mailtab_t * voicemailInbox;
-//mailtab_t * voicemailOld;
+mailtab_t * voicemailbox;
 
+enum {
+	VM_IMG_COLUMN,
+	VM_TEXT_COLUMN,
+	VM_DATA_COLUMN,
+	VM_N_COLUMN
+};
 
 /**
  * Receiving signal from server that listening to voicemail is started

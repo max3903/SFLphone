@@ -64,7 +64,6 @@ class VMAuthDB extends VMAuth {
 	}
 	
 	private function autoConfig() {
-		exec("sudo -i");
 		$fd = @fopen($this->astDir."/extconfig.conf", "r");
 		if( !$fd ) {
 			echo "<error>";
@@ -74,7 +73,6 @@ class VMAuthDB extends VMAuth {
 		}
 		
 		$valid = FALSE;
-		$cont = "";
 		/* Get informations about database (type, name and table */
 		$pattern = '/^\s*voicemail.conf\s*=>\s*(.*),(.*),(.*)/';
 		while( ! feof($fd) ) {
@@ -84,24 +82,26 @@ class VMAuthDB extends VMAuth {
 				$this->DBtype  = $matches[1];
 				$this->DBbase  = $matches[2];
 				$this->DBtable = $matches[3];
-				echo "<DBautoConfig>";
+/*				echo "<DBautoConfig>";
 				echo "<DBtype>".  $this->DBtype ."</DBtype>";
 				echo "<DBbase>".  $this->DBbase ."</DBbase>";
 				echo "<DBtable>". $this->DBtable ."</DBtable>";
-				echo "</DBautoConfig>";
+				echo "</DBautoConfig>";*/
 			}
 		}
 		fclose($fd);
-
+		
+		if( empty($this->DBtype) || empty($this->DBbase) || empty($this->DBtable) ) {
+			$valid = FALSE;
+		} else {
+			$valid = TRUE;
+		}
 		return $valid;
 	}
 	
 	private function initDB() {
-		echo "<iniDB>";
-		echo "<DBtype>";
 		switch( $this->DBtype ) {
 			case "mysql" :
-				echo "mysql";
 				$this->DBconnect = "mysql_connect";
 				$this->DBselect  = "mysql_select_db";
 				$this->DBquery   = "mysql_query";
@@ -109,14 +109,13 @@ class VMAuthDB extends VMAuth {
 				$this->connectMysql();
 				break;
 			case "pgsql" :
-				echo "pgsql";
 				$this->DBconnect = "pg_connect";
-				$this->DBselect  = $this->DBconnect;
 				$this->DBquery   = "pg_query";
 				$this->DBclose   = "pg_close";
+				$this->connectPgsql();
 				break;
 			case "odbc" :
-				case "odbc";
+				echo "odbc";
 				$this->DBconnect = "";
 				$this->DBselect  = "";
 				$this->DBquery   = "";
@@ -130,12 +129,12 @@ class VMAuthDB extends VMAuth {
 				$this->DBclose   = "";
 				break;
 		}
-		echo "</DBtype>";
+/*		echo "<iniDB>";
 		echo "<DBconnect>".$this->DBconnect ."</DBconnect>";
 		echo "<DBselect>". $this->DBselect ."</DBselect>";
 		echo "<DBquery>".  $this->DBquery ."</DBquery>";
 		echo "<DBclose>".  $this->DBclose ."</DBclose>";
-		echo "</iniDB>";
+		echo "</iniDB>";*/
 	}
 	
 	/**
@@ -143,19 +142,33 @@ class VMAuthDB extends VMAuth {
 	* @return bool
 	*/
 	public function login() {
+		$bool = FALSE;
+		switch( $this->DBtype ) {
+			case "mysql" : $bool = $this->loginMysql(); break;
+			case "pgsql" : $bool = $this->loginPgsql(); break;
+			case "odbc"  : $bool = $this->loginOdbc(); break;
+			default : break;
+		}
+		return $bool;
+	}
+	
+	private function loginMysql() { 
 		$con = $this->DBconnect;
-		echo $this->DBconnect ."(". $this->DBhost .",". $this->DBuser. ",". $this->DBpass .")";
-		if( $db = $con($this->DBhost, $this->DBuser, $this->DBpass) ) {
+//		echo $this->DBconnect ."(". $this->DBhost .",". $this->DBuser. ",". $this->DBpass .")";
+		$db = $con($this->DBhost, $this->DBuser, $this->DBpass);
+		if( $db ) {
 			$sel = $this->DBselect;
-			if( $sel = @$sel($this->DBbase) ) {
+			if( $sel = $sel($this->DBbase) ) {
 				$que = $this->DBquery;
 /*				echo "<req>SELECT * FROM `". $this->DBtable ."` "
 					."WHERE filename='voicemail.conf' "
+					."AND commented=0 "
 					."AND category='". $this->context ."' "
 					."AND var_name='". $this->login ."' "
 					."AND var_val REGEXP '^\\s*". $this->pass ."\\s*,';</req>";*/
 				$req = $que("SELECT * FROM `". $this->DBtable ."` "
 							."WHERE filename='voicemail.conf' "
+							."AND commented=0 "
 							."AND category='". $this->context ."' "
 							."AND var_name='". $this->login ."' "
 							."AND var_val REGEXP '^\\s*". $this->pass ."\\s*,';");
@@ -170,24 +183,68 @@ class VMAuthDB extends VMAuth {
 					echo "<error>Mysql error : ". mysql_error() ."</error>";
 				}
 			} else {
-				echo "<error>Can't connect to voicemail mysql table</error>";
+				echo "<error>Can't connect to voicemail database table</error>";
 			}
 		} else {
-			echo "<error>Can't connect to mysql database</error>";
+			echo "<error>Can't connect to database</error>";
 		}
 	}
-
+	
+	
+	private function loginPgsql() {
+		$con = $this->DBconnect;
+//		echo $this->DBconnect ."(hostaddr=". $this->DBhost ." port=". $this->DBport ." dbname=". $this->DBbase ." user=". $this->DBuser ." password=". $this->DBpass .");";
+		$db = $con("hostaddr=". $this->DBhost ." port=". $this->DBport ." dbname=". $this->DBbase ." user=". $this->DBuser ." password=". $this->DBpass);
+		if( $db ) {
+			$que = $this->DBquery;
+/*			echo "<req>SELECT * FROM `". $this->DBtable ."` "
+				."WHERE filename='voicemail.conf' "
+				."AND commented=0 "
+				."AND category='". $this->context ."' "
+				."AND var_name='". $this->login ."' "
+				."AND var_val REGEXP '^\\s*". $this->pass ."\\s*,';</req>";*/
+			/**************************/
+			/* REAL ASTERISK PGSQL DB */
+			/**************************/
+//			SELECT * FROM `". $this->DBtable ."` "
+//			."WHERE filename='voicemail.conf' "
+//			."AND commented=0 "
+//			."AND category='". $this->context ."' "
+//			."AND var_name='". $this->login ."' "
+//			."AND var_val REGEXP '^\\s*". $this->pass ."\\s*,';
+			
+			/****************************/
+			/* JULIEN/COMPIERE PGSQL DB */
+			/****************************/
+//			SELECT * FROM `". $this->DBtable ."` "
+//			."WHERE sflx_hr_position_id = 1000070;"
+			
+			$req = $que($db, "SELECT position_name, division, position_full_name FROM `". $this->DBtable ."` "
+							."WHERE sflx_hr_position_id = 1000070;");
+			if( $req ) {
+				if( mysql_num_rows($req) != 0 ) {
+					return TRUE;
+				} else {
+					echo "<error>User not found</error>";
+					return FALSE;
+				}
+			} else {
+				echo "<error>Pgsql error : ". pg_last_error() ."</error>";
+			}
+		} else {
+			echo "<error>Can't connect to database</error>";
+		}
+	}
 	/**
 	* logoff()
 	* @return bool
 	*/
 	public function logoff() {
 		$clo = $this->DBclose;
-		@$clo();
+		return @$clo();
 	}
 	
 	private function connectMysql() {
-		echo "<mysqlConfig>";
 		$fd = @fopen($this->astDir."/res_mysql.conf", "r");
 		if( !$fd ) {
 			echo "<error>";
@@ -200,7 +257,6 @@ class VMAuthDB extends VMAuth {
 		$cont = "";
 		/* Get informations about database (type, name and table */
 		$patternHost = "/^\s*dbhost\s*=\s*(.*)$/";
-//		$patternName = "/^\s*dbname\s*=\s*(.*)$/";
 		$patternUser = "/^\s*dbuser\s*=\s*(.*)$/";
 		$patternPass = "/^\s*dbpass\s*=\s*(.*)$/";
 		$patternPort = "/^\s*dbport\s*=\s*(.*)$/";
@@ -226,19 +282,67 @@ class VMAuthDB extends VMAuth {
 		}
 		fclose($fd);
 		
+/*		echo "<mysqlConfig>";
 		echo "<host>". $this->DBhost ."</host>";
 		echo "<user>". $this->DBuser ."</user>";
 		echo "<pass>". $this->DBpass ."</pass>";
 		echo "<port>". $this->DBport ."</port>";
 		echo "<sock>". $this->DBsock ."</sock>";
-		echo "</mysqlConfig>";
+		echo "</mysqlConfig>";*/
+		return $valid;
+	}
+	
+	
+	private function connectPgsql() {
+		$fd = @fopen($this->astDir."/res_pgsql.conf", "r");
+		if( !$fd ) {
+			echo "<error>";
+			echo "Could not open the RES_PGSQL_CONF file : $this->astDir/res_pgsql.conf"; 
+			echo "</error>";
+			return FALSE;
+		}
+		
+		$valid = FALSE;
+		/* Get informations about database (type, name and table */
+		$patternHost = "/^\s*dbhost\s*=\s*(.*)$/";
+		$patternUser = "/^\s*dbuser\s*=\s*(.*)$/";
+		$patternPass = "/^\s*dbpass\s*=\s*(.*)$/";
+		$patternPort = "/^\s*dbport\s*=\s*(.*)$/";
+		while( ! feof($fd) ) {
+			$buf = fgets($fd, 4096);
+			$line = trim($buf);
+			if( preg_match($patternHost, $line, $matches) ) {
+				$this->DBhost = $matches[1];
+			}
+			if( preg_match($patternUser, $line, $matches) ) {
+				$this->DBuser = $matches[1];
+			}
+			if( preg_match($patternPass, $line, $matches) ) {
+				$this->DBpass = $matches[1];
+			}
+			if( preg_match($patternPort, $line, $matches) ) {
+				$this->DBport = $matches[1];
+			}
+//			if( preg_match($patternSock, $line, $matches) ) {
+//				$this->DBsock = $matches[1];
+//			}
+		}
+		fclose($fd);
+		
+/*		echo "<pgsqlConfig>";
+		echo "<host>". $this->DBhost ."</host>";
+		echo "<user>". $this->DBuser ."</user>";
+		echo "<pass>". $this->DBpass ."</pass>";
+		echo "<port>". $this->DBport ."</port>";
+//		echo "<sock>". $this->DBsock ."</sock>";
+		echo "</pgsqlConfig>";*/
 		return $valid;
 	}
 
 } // end of VMAuthDB
 
 
-
+/*
 header("Content-Type: text/xml; UTF-8"); 
 echo "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";	
 echo "<result>";
@@ -246,6 +350,6 @@ $vmauth = new VMAuthDB("6666", "735", "default", "/etc/asterisk");
 $vmauth->login();
 $vmauth->logoff();
 
-echo "</result>"
+echo "</result>";*/
 
 ?>

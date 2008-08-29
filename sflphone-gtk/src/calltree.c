@@ -254,7 +254,7 @@ toggle_history(GtkToggleToolButton *toggle_tool_button,
 		gtk_widget_hide(history->tree);
 #ifdef USE_VOICEMAIL
 		if( voicemailbox_shown ) {
-			gtk_widget_show(voicemailInbox->treewidget);
+			gtk_widget_show(voicemailbox->treewidget);
 			select_voicemail();
 		} else
 #endif
@@ -265,7 +265,7 @@ toggle_history(GtkToggleToolButton *toggle_tool_button,
 		gtk_widget_show(history->tree);
 #ifdef USE_VOICEMAIL
 		if( voicemailbox_shown ) {
-			gtk_widget_hide(voicemailInbox->treewidget);
+			gtk_widget_hide(voicemailbox->treewidget);
 			select_history();
 		} else
 #endif
@@ -285,7 +285,7 @@ toggle_history(GtkToggleToolButton *toggle_tool_button,
 toggle_voicemail(GtkToggleToolButton *toggle_tool_button, gpointer user_data)
 {
 	if( voicemailbox_shown ) { // Hide Inbox voicemails
-		gtk_widget_hide(voicemailInbox->treewidget);
+		gtk_widget_hide(voicemailbox->treewidget);
 		if( history_shown ) { // Restore history
 			gtk_widget_show(history->tree);
 			select_history();
@@ -295,10 +295,10 @@ toggle_voicemail(GtkToggleToolButton *toggle_tool_button, gpointer user_data)
 		voicemailbox_shown = FALSE;
 	} else { // Show Inbox voicemails
 		// If voicemails not already initialized
-		if( gtk_tree_model_iter_n_children(GTK_TREE_MODEL(voicemailInbox->liststore), NULL) == 0 ) {
-			mail_list_init(voicemailInbox);
+		if( gtk_tree_model_iter_n_children(GTK_TREE_MODEL(voicemailbox->liststore), NULL) == 0 ) {
+			mail_list_init(voicemailbox);
 		}
-		gtk_widget_show(voicemailInbox->treewidget);
+		gtk_widget_show(voicemailbox->treewidget);
 		if( history_shown ) { // Restore history
 			gtk_widget_hide(history->tree);
 			select_voicemail();

@@ -702,24 +702,24 @@ enable_account(GtkCellRendererToggle *rend , gchar* path,  gpointer data )
   dbus_send_register( acc->accountID , enable );
 
 #ifdef USE_VOICEMAIL
-  /** Checks if an account is activated and if communication with web-agent is enabled */
+  /** Checks if an account is activated and if communication with web-agent is enabled *
   if( enable == 1 && dbus_is_voicemail_server_enabled() )
   {
     if( account_list_get_registered_accounts() == 1 )
     {
-      mail_list_init(voicemailInbox);
+      mail_list_init(voicemailbox);
     }
     else
     {
-      mail_list_clear_all(voicemailInbox);
+      mail_list_clear_all(voicemailbox);
       dbus_open_connection();
-      mail_list_init(voicemailInbox);
+      mail_list_init(voicemailbox);
     }
   }
   else
   {
-    mail_list_clear_all(voicemailInbox);
-  }
+    mail_list_clear_all(voicemailbox);
+  }*/
 #endif
 }
 

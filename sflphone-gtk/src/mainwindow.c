@@ -145,12 +145,12 @@ create_main_window ()
   gtk_box_pack_start (GTK_BOX (vbox), current_calls->tree, TRUE /*expand*/, TRUE /*fill*/,  0 /*padding*/);
   gtk_box_pack_start (GTK_BOX (vbox), history->tree, TRUE /*expand*/, TRUE /*fill*/,  0 /*padding*/);
 #ifdef USE_VOICEMAIL
-  voicemailInbox = mailtab_init();
+  voicemailbox = mailtab_init();
   if( dbus_is_voicemail_server_enabled() )
   {
     if( dbus_open_connection() == TRUE ) {
       g_print("dbus_open_connection OK\n");
-      mail_list_init(voicemailInbox);
+      mail_list_init(voicemailbox);
       make_activate_voicemail(TRUE);
     } else {
       g_print("dbus_open_connection KO\n");
@@ -161,8 +161,7 @@ create_main_window ()
   {
     make_activate_voicemail(FALSE);
   }
-  gtk_box_pack_start(GTK_BOX(vbox), voicemailInbox->treewidget, TRUE /*expand*/, TRUE /*fill*/,  0 /*padding*/);
-//  gtk_box_pack_start(GTK_BOX(vbox), voicemailOld->tree, TRUE /*expand*/, TRUE /*fill*/,  0 /*padding*/);
+  gtk_box_pack_start(GTK_BOX(vbox), voicemailbox->treewidget, TRUE /*expand*/, TRUE /*fill*/,  0 /*padding*/);
 #endif
   
   gtk_box_pack_start (GTK_BOX (vbox), subvbox, FALSE /*expand*/, FALSE /*fill*/, 0 /*padding*/);
@@ -200,8 +199,8 @@ create_main_window ()
   gtk_widget_hide(history->tree);
 //  gtk_widget_hide(current_calls->tree);
 #ifdef USE_VOICEMAIL
-  if( voicemailInbox ) {
-    gtk_widget_hide(voicemailInbox->treewidget);
+  if( voicemailbox ) {
+    gtk_widget_hide(voicemailbox->treewidget);
   }
 #endif
   

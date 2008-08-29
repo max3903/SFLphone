@@ -41,7 +41,6 @@ abstract class VMAuth {
 		$this->login = $login;
 		$this->pass = $pass;
 		$this->context = $context;
-		echo "<VMAuth>__construct($login, $pass, $context)</VMAuth>";
 	}
 	
 	/**

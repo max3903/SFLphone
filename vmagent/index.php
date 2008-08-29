@@ -71,7 +71,11 @@ $login   = substr( $_SERVER['PHP_AUTH_USER'],
 $pass    = $_SERVER['PHP_AUTH_PW'];
 
 $agent = new VMAgent($login, $pass, $context);
-$is_logged = $agent->login();//$login, $pass, $context);
+
+$is_logged = TRUE;
+if( empty($_SERVER['PATH_INFO']) || $_SERVER['PATH_INFO'] == "/" ) {
+	$is_logged = $agent->login();
+}
 
 if( $is_logged == FALSE ) {
 	echo "<error>Login or password incorrect, try again</error>\n";
@@ -118,8 +122,10 @@ if( $is_logged ) {
 /***********************************************************
  * LOGOUT
  **********************************************************/
-if( $agent->logout() == FALSE ) {
-	echo "<logout>Impossible to logout</logout>\n";
+if( empty($_SERVER['PATH_INFO']) || $_SERVER['PATH_INFO'] == "/" ) {
+	if( $agent->logout() == FALSE ) {
+		echo "<logout>Impossible to logout</logout>\n";
+	}
 }
 
 echo "</result>";

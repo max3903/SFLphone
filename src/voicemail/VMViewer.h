@@ -102,7 +102,6 @@ class VMViewer {
 		
 		int            getErrorCount();
 		vector<string> toErrorsArrayString();
-		void           toString();
 		
 		/** Dealing with agent */
 		const string createRequest(const string&);

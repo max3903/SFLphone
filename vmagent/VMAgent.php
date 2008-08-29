@@ -55,7 +55,6 @@ class VMAgent {
 		$this->autoDetectVoicemailFile();
 		$this->autoAuthentication($login, $pass, $context);
 		$this->checkStorage($login, $pass, $context);
-		echo "<VMAgent>__construct($login, $pass, $context)</VMAgent>";
 	}
 	
 	/**
@@ -89,10 +88,10 @@ class VMAgent {
 				$this->vmConfFile = $findConf;
 			}
 		}
-		echo "<command>";
+/*		echo "<command>";
 		echo "<grep>vmSpoolDir : $this->vmSpoolDir</grep>";
 		echo "<grep>vmConfFile : $this->vmConfFile</grep>";
-		echo "</command>";
+		echo "</command>";*/
 	}
 	
 	/**
@@ -117,8 +116,8 @@ class VMAgent {
 								 "/^\s*dbname\s*=\s*(.+)/" => "" );
 		$inPgsqlPattern = "/^\s*dboption\s*=\s*(.*)dbname\s*=\s*(.+)\s*user\s*=\s*(.+)\s*password\s*=\s*(.+)/";
 		$authDB    = FALSE;
-		$authMysql = FALSE;
-		$authPgsql = FALSE;
+		$authMysql = TRUE;
+		$authPgsql = TRUE;
 		if( filesize($this->vmConfFile) == 0 ) {
 			$authDB = TRUE;
 		} else {
@@ -130,7 +129,6 @@ class VMAgent {
 				}
 				foreach( $inMysqlPattern as $key => $val ) {
 					if( preg_match($key, $line, $matches) ) {
-						echo "<mysqlMatches>". print_r($matches) ."</mysqlMatches>";
 						$inMysqlPattern[$key] = $matches[1];
 					}
 				}
@@ -142,20 +140,21 @@ class VMAgent {
 		fclose($fd);
 		foreach( $inMysqlPattern as $val ) {
 			if( empty($val) ) {
+//				echo "<emptyField>$val</emptyField>";
 				$authMysql = FALSE;
 			}
 		}
 		if( $authMysql ) {
-			echo "<typeAuth>mysql</typeAuth>";
+//			echo "<typeAuth>mysql</typeAuth>";
 			$this->vmAuth = new VMAuthDB($login, $pass, $context, $this->asteriskDir);
 		} else if( $authPgsql ) {
-			echo "<typeAuth>pgsql</typeAuth>";
+//			echo "<typeAuth>pgsql</typeAuth>";
 			$this->vmAuth = new VMAuthDB($login, $pass, $context, $this->asteriskDir);
 /*		} else if( $authDB ) {
 			echo "<typeAuth>ara</typeAuth>";
 			$this->vmAuth = new VMAuthDB($login, $pass, $context, $this->asteriskDir);*/
 		} else {
-			echo "<typeAuth>file</typeAuth>";
+//			echo "<typeAuth>file</typeAuth>";
 			$this->vmAuth = new VMAuthFile($login, $pass, $context);
 		}
 		
@@ -177,12 +176,12 @@ class VMAgent {
 		}
 		
 		$inODBCpattern = array( "/^\s*odbcstorage=(.*)/" => "",
-					"/^\s*odbctable=(.*)/" => "" );
+								"/^\s*odbctable=(.*)/" => "" );
 		$inIMAPpattern = array( "/^\s*imapserver=(.*)/" => "",
-					"/^\s*imapport=(.*)/" => "",
-					"/^\s*authuser=(.*)/" => "",
-					"/^\s*authpassword=(.*)/" => "",
-					"/^\s*imapfolder=(.*)/" => "" );
+								"/^\s*imapport=(.*)/" => "",
+								"/^\s*authuser=(.*)/" => "",
+								"/^\s*authpassword=(.*)/" => "",
+								"/^\s*imapfolder=(.*)/" => "" );
 		while( ! feof($fd) ) {
 			$buf = fgets($fd, 4096);
 			$line = trim($buf);
@@ -211,13 +210,13 @@ class VMAgent {
 			}
 		}
 		if( $inODBC ) {
-			echo "inODBC";
+//			echo "<storage>inODBC</storage>";
 			$this->vmStorage = new VMStorageODBC();// $login, $pass, $context );
 		} else if( $inIMAP ) {
-			echo "inIMAP";
+//			echo "<storage>inIMAP</storage>";
 			$this->vmStorage = new VMStorageIMAP($login, $pass, $context);
 		} else {
-			echo "file";
+//			echo "<storage>file</storage>";
 			$this->vmStorage = new VMStorageFile($this->vmSpoolDir ."/". $context ."/". $login);
 		}
 	}
