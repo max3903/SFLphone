@@ -16,6 +16,7 @@ libaudio_la_SOURCES = \
 		tonelist.cpp \
 		audiortp.cpp \
 		audiostream.cpp \
+		zrtpCallback.cpp \
 		dtmf.cpp \
 		tone.cpp \
 		alsalayer.cpp \
@@ -37,6 +38,7 @@ noinst_HEADERS = \
 		audiofile.h \
 	 	tonelist.h \
 		audiortp.h \
+		zrtpCallback.h \
 		audiolayer.h \
 		alsalayer.h \
 		pulselayer.h \

@@ -23,6 +23,7 @@
 
 #include <cstdio>
 #include <cstdlib>
+#include <cerrno>
 #include <ccrtp/rtp.h>
 #include <assert.h>
 #include <string>
@@ -40,6 +41,7 @@
 #include "ringbuffer.h"
 #include "../user_cfg.h"
 #include "../sipcall.h"
+#include "zrtpCallback.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 // AudioRtp                                                          
@@ -69,8 +71,14 @@ AudioRtp::createNewSession (SIPCall *ca) {
 
     // Start RTP Send/Receive threads
     _symmetric = Manager::instance().getConfigInt(SIGNALISATION,SYMMETRIC) ? true : false;
-    _RTXThread = new AudioRtpRTX (ca, _symmetric);
+    
     try {
+        if(Manager::instance().getConfigInt(SIGNALISATION,SRTP_KEY_EXCHANGE) == ZRTP) {
+            _RTXThread = new AudioRtpRTX (ca, true, true); // zrtp is only supported under symmetric mode
+        } else {
+            _RTXThread = new AudioRtpRTX (ca, _symmetric, false);
+        }
+        
         if (_RTXThread->start() != 0) {
             _debug("! ARTP Failure: unable to start RTX Thread\n");
             return -1;
@@ -117,9 +125,7 @@ AudioRtp::setRecording() {
 ////////////////////////////////////////////////////////////////////////////////
 // AudioRtpRTX Class                                                          //
 ////////////////////////////////////////////////////////////////////////////////
-AudioRtpRTX::AudioRtpRTX (SIPCall *sipcall, bool sym) : time(new ost::Time()), _ca(sipcall), _sessionSend(NULL), _sessionRecv(NULL), _session(NULL), _start(), 
-    _sym(sym), micData(NULL), micDataConverted(NULL), micDataEncoded(NULL), spkrDataDecoded(NULL), spkrDataConverted(NULL), 
-    converter(NULL), _layerSampleRate(),_codecSampleRate(), _layerFrameSize(), _audiocodec(NULL)
+AudioRtpRTX::AudioRtpRTX (SIPCall *sipcall, bool sym, bool zrtp) : time(new ost::Time()), _ca(sipcall), _sessionSend(NULL), _sessionRecv(NULL), _session(NULL), _zsession(NULL), _start(), _sym(sym), _zrtp(zrtp), micData(NULL), micDataConverted(NULL), micDataEncoded(NULL), spkrDataDecoded(NULL), spkrDataConverted(NULL), converter(NULL), _layerSampleRate(),_codecSampleRate(), _layerFrameSize(), _audiocodec(NULL)
 {
 
     setCancel(cancelDefault);
@@ -132,12 +138,49 @@ AudioRtpRTX::AudioRtpRTX (SIPCall *sipcall, bool sym) : time(new ost::Time()), _
         _sessionRecv = new ost::RTPSession(local_ip, _ca->getLocalAudioPort());
         _sessionSend = new ost::RTPSession(local_ip, _ca->getLocalAudioPort());
         _session = NULL;
+        _zsession = NULL;
     } else {
         _debug ("%i\n", _ca->getLocalAudioPort());
-        _session = new ost::SymmetricRTPSession (local_ip, _ca->getLocalAudioPort());
+        if(!_zrtp) {
+            _session = new ost::SymmetricRTPSession (local_ip, _ca->getLocalAudioPort());
+            _zsession = NULL;
+        } else {
+            _zsession = new ost::SymmetricZRTPSession (local_ip, _ca->getLocalAudioPort());
+            initializeZid();
+            _session = NULL;
+        }
         _sessionRecv = NULL;
         _sessionSend = NULL;
     }
+}
+
+void AudioRtpRTX::initializeZid(void) 
+{
+    std::string zidFile = std::string(HOMEDIR) + DIR_SEPARATOR_STR + "." + PROGDIR + "/" + std::string(Manager::instance().getConfigString(SIGNALISATION,ZRTP_ZIDFILE));
+    
+    if(_zsession->initialize(zidFile.c_str()) >= 0) {
+        return;
+    }   
+    
+    _debug("Initialization from ZID file failed. Trying to remove...\n");
+    
+    if(remove(zidFile.c_str())!=0) {
+        _debug("Failed to remove zid file because of: %s", strerror(errno));
+        throw ZrtpZidException();
+    }
+    
+    if(_zsession->initialize(zidFile.c_str()) < 0) {
+       _debug("ZRTP initialization failed\n");
+       throw ZrtpZidException();
+    } 
+    
+    //_debug("Hello hash: %s  , lenght %d\n", (_zsession->getHelloHash()).c_str(), (_zsession->getHelloHash()).lenght());
+    
+    _zsession->setUserCallback(new zrtpCallback());
+    
+    /*Everything is normal at that point*/
+    
+    return;
 }
 
 AudioRtpRTX::~AudioRtpRTX () {
@@ -154,7 +197,11 @@ AudioRtpRTX::~AudioRtpRTX () {
         delete _sessionRecv; _sessionRecv = NULL;
         delete _sessionSend; _sessionSend = NULL;
     } else {
-        delete _session;     _session = NULL;
+        if(!_zrtp) {
+            delete _session;     _session = NULL;
+        } else {
+            delete _zsession; _zsession = NULL;
+        }
     }
 
 
@@ -217,8 +264,13 @@ AudioRtpRTX::initAudioRtpSession (void)
             _sessionSend->setSchedulingTimeout(10000);
             _sessionSend->setExpireTimeout(1000000);
         } else {
-            _session->setSchedulingTimeout(10000);
-            _session->setExpireTimeout(1000000);
+            if(!_zrtp) {
+                _session->setSchedulingTimeout(10000);
+                _session->setExpireTimeout(1000000);
+            } else {
+                _zsession->setSchedulingTimeout(10000);
+                _zsession->setExpireTimeout(1000000);
+            }
         }
 
         if (!_sym) {
@@ -242,18 +294,36 @@ AudioRtpRTX::initAudioRtpSession (void)
             }
             _sessionSend->setMark(true);
         } else {
-
-            if (!_session->addDestination (remote_ip, (unsigned short)_ca->getLocalSDP()->get_remote_audio_port() )) {
-                return;
-            }
-
-            bool payloadIsSet = false;
-            if (_audiocodec) {
-                if (_audiocodec->hasDynamicPayload()) {
-                    payloadIsSet = _session->setPayloadFormat(ost::DynamicPayloadFormat((ost::PayloadType) _audiocodec->getPayload(), _audiocodec->getClockRate()));
-                } else {
-                    payloadIsSet = _session->setPayloadFormat(ost::StaticPayloadFormat((ost::StaticPayloadType) _audiocodec->getPayload()));
+    
+            if(!_zrtp)
+            {
+                if (!_session->addDestination (remote_ip, (unsigned short)_ca->getLocalSDP()->get_remote_audio_port() )) {
+                    return;
                 }
+
+                bool payloadIsSet = false;
+                if (_audiocodec) {
+                    if (_audiocodec->hasDynamicPayload()) {
+                        payloadIsSet = _session->setPayloadFormat(ost::DynamicPayloadFormat((ost::PayloadType) _audiocodec->getPayload(), _audiocodec->getClockRate()));
+                    } else {
+                        payloadIsSet = _session->setPayloadFormat(ost::StaticPayloadFormat((ost::StaticPayloadType) _audiocodec->getPayload()));
+                    }
+                }
+            } else {
+                 if (!_zsession->addDestination (remote_ip, (unsigned short)_ca->getLocalSDP()->get_remote_audio_port() )) {
+                    return;
+                }
+
+                bool payloadIsSet = false;
+                if (_audiocodec) {
+                    if (_audiocodec->hasDynamicPayload()) {
+                        payloadIsSet = _zsession->setPayloadFormat(ost::DynamicPayloadFormat((ost::PayloadType) _audiocodec->getPayload(), _audiocodec->getClockRate()));
+                    } else {
+                        payloadIsSet = _zsession->setPayloadFormat(ost::StaticPayloadFormat((ost::StaticPayloadType) _audiocodec->getPayload()));
+                    }
+                }  
+                
+                _zsession->startZrtp();         
             }
         }
 
@@ -330,23 +400,44 @@ AudioRtpRTX::sendSessionFromMic(int timestamp)
 
     }
 
+    send(timestamp, micDataEncoded, compSize);
+}
+
+    void
+AudioRtpRTX::send(uint32 timestamp, const unsigned char *micDataEncoded, size_t compSize)
+{
     // putData put the data on RTP queue, sendImmediate bypass this queue
     if (!_sym) {
         // _sessionSend->putData(timestamp, micDataEncoded, compSize);
         _sessionSend->sendImmediate(timestamp, micDataEncoded, compSize);
     } else {
         // _session->putData(timestamp, micDataEncoded, compSize);
-        _session->sendImmediate(timestamp, micDataEncoded, compSize);
+        if(!_zrtp) {    
+            _session->sendImmediate(timestamp, micDataEncoded, compSize);
+        } else {
+            _zsession->sendImmediate(timestamp, micDataEncoded, compSize);
+        }
     }
-    
 }
+
+    void
+AudioRtpRTX::receive(const ost::AppDataUnit* adu)
+{
+    if (!_sym) {
+        adu = _sessionRecv->getData(_sessionRecv->getFirstTimestamp());
+    } else {
+        if(!_zrtp) {    
+            adu = _session->getData(_session->getFirstTimestamp());
+        } else {
+            adu = _zsession->getData(_zsession->getFirstTimestamp());
+        }
+    }
+}
+
 
     void
 AudioRtpRTX::receiveSessionForSpkr (int& countTime)
 {
-
-
-
     if (_ca == 0) { return; }
     //try {
 
@@ -356,27 +447,19 @@ AudioRtpRTX::receiveSessionForSpkr (int& countTime)
     const ost::AppDataUnit* adu = NULL;
     // Get audio data stream
 
-
-    if (!_sym) {
-        adu = _sessionRecv->getData(_sessionRecv->getFirstTimestamp());
-    } else {
-        adu = _session->getData(_session->getFirstTimestamp());
-    }
+    receive(adu);
+    
     if (adu == NULL) {
         //_debug("No RTP audio stream\n");
         return;
     }
 
-    
-
     //int payload = adu->getType(); // codec type
     unsigned char* spkrData  = (unsigned char*)adu->getData(); // data in char
     unsigned int size = adu->getSize(); // size in char
 
-
     // Decode data with relevant codec
     unsigned int max = (unsigned int)(_codecSampleRate * _layerFrameSize / 1000);
-
 
     if (_audiocodec != NULL) {
 
@@ -457,7 +540,6 @@ AudioRtpRTX::run () {
     // Init the session
     initAudioRtpSession();
 
-
     // step = (int) (_layerFrameSize * _codecSampleRate / 1000);
     step = _codecFrameSize;
     // start running the packet queue scheduler.
@@ -466,7 +548,11 @@ AudioRtpRTX::run () {
         _sessionRecv->startRunning();
         _sessionSend->startRunning();
     } else {
-        _session->startRunning();
+        if(!_zrtp) {
+            _session->startRunning();
+        } else {
+            _zsession->startRunning();
+        }
         //_debug("Session is now: %d active\n", _session->isActive());
     }
 

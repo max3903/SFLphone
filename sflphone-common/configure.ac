@@ -190,6 +190,19 @@ PKG_CHECK_MODULES(CCRTP, libccrtp1 >= ${LIBCCRT_MIN_VERSION})
 AC_SUBST(CCRTP_LIBS)
 AC_SUBST(CCRTP_CFLAGS)
 
+dnl Check for libzrtpcpp, a ccRTP extension providing zrtp key exchange
+LIBZRTPCPP_MIN_VERSION=1.3.0
+PKG_CHECK_MODULES(ZRTPCPP, libzrtpcpp >= ${LIBZRTPCPP_MIN_VERSION})
+AC_SUBST(ZRTPCPP_LIBS)
+AC_SUBST(ZRTPCPP_CFLAGS)
+AC_CHECK_LIB(ZRTPCPP, main, 
+        [
+        AC_CHECK_HEADER(libzrtpcpp/ZrtpQueue.h, [],
+        [AC_MSG_ERROR([zrtp header files missing])])
+        AC_DEFINE(HAVE_ZRTP, 1, [Define to 1 if you have the <libzrtpcpp> library.])
+            LIBS="-lzrtpcpp $LIBS"
+        ], [have_zrtp="no"])
+
 dnl DBus-C++ detection (used to be in library own build system)
 DBUS_REQUIRED_VERSION=0.60
 PKG_CHECK_MODULES(dbus, [dbus-1 >= $DBUS_REQUIRED_VERSION],,

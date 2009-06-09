@@ -49,6 +49,9 @@ typedef unsigned long SOUND_FORMAT;
 const FILE_TYPE  FILE_RAW = 1;
 const FILE_TYPE  FILE_WAV = 2;
 
+enum SRTP_METHOD { ZRTP=1, SDES_TLS, SDES_SSL3 };
+
+
 static const SOUND_FORMAT INT16 = 0x2; // TODO shold change these symbols
 static const SOUND_FORMAT INT32 = 0x8;
 
@@ -57,6 +60,7 @@ static const SOUND_FORMAT INT32 = 0x8;
 #define ASSERT( expected , value)       if( value == expected ) return SUCCESS; \
                                         else return 1; 
 #define PIDFILE "sfl.pid"
+#define ZIDFILE "sfl.zid"
 
 #ifdef DATAFORMAT_IS_FLOAT
 #define SFLDataFormat float32

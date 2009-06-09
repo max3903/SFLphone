@@ -31,9 +31,20 @@
 #include "../global.h"
 // #include "plug-in/audiorecorder/audiorecord.h"
 #include "../samplerateconverter.h"
+#include <libzrtpcpp/zrtpccrtp.h>
+#include <libzrtpcpp/ZrtpQueue.h>
+#include <libzrtpcpp/ZrtpUserCallback.h>
 
 #define UP_SAMPLING 0
 #define DOWN_SAMPLING 1
+
+class ZrtpZidException: public std::exception
+{
+  virtual const char* what() const throw()
+  {
+    return "ZRTP init zid failed.";
+  }
+};
 
 /**
  * @file audiortp.h
@@ -53,7 +64,7 @@ class AudioRtpRTX : public ost::Thread, public ost::TimerPort {
      * @param sipcall The pointer on the SIP call
      * @param sym     Tells whether or not the voip links are symmetric
      */
-  AudioRtpRTX (SIPCall* sipcall, bool sym);
+     AudioRtpRTX (SIPCall* sipcall, bool sym, bool zrtp);
 
     /**
      * Destructor
@@ -93,12 +104,16 @@ class AudioRtpRTX : public ost::Thread, public ost::TimerPort {
 
     /** RTP symmetric session ( receive and send data in the same session ) */
     ost::SymmetricRTPSession *_session;
+    
+    ost::SymmetricZRTPSession *_zsession;
 
     /** Semaphore */
     ost::Semaphore _start;
 
     /** Is the session symmetric or not */
     bool _sym;
+    
+    bool _zrtp;
 
     /** Mic-data related buffers */
     SFLDataFormat* micData;
@@ -152,16 +167,32 @@ class AudioRtpRTX : public ost::Thread, public ost::TimerPort {
      */ 		 	
     void sendSessionFromMic(int timestamp);
     
+    /** 
+     * Helper function for sendSessionFromMic
+     */ 
+    void send(uint32 timestamp, const unsigned char *micDataEncoded, size_t compSize);
+    
     /**
      * Get the data from the RTP packets, decode it and send it to the sound card
      * @param countTime	To manage time and synchronizing
      */		 	
     void receiveSessionForSpkr(int& countTime);
 
+    /** 
+     * Helper function for receiveSessionForSpkr
+     */   
+    void receive(const ost::AppDataUnit* adu);
+    
     /**
      * Init the buffers used for processing sound data
      */ 
     void initBuffers(void);
+
+
+    /** 
+     * Initialize from ZID file
+     */
+    void initializeZid(void);
 
     /**
      * Call the appropriate function, up or downsampling
