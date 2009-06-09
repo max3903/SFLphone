@@ -181,7 +181,7 @@ class AudioRtpRTX : public ost::Thread, public ost::TimerPort {
     /** 
      * Helper function for receiveSessionForSpkr
      */   
-    void receive(const ost::AppDataUnit* adu);
+    void receive(const ost::AppDataUnit** adu);
     
     /**
      * Init the buffers used for processing sound data

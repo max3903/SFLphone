@@ -421,15 +421,15 @@ AudioRtpRTX::send(uint32 timestamp, const unsigned char *micDataEncoded, size_t 
 }
 
     void
-AudioRtpRTX::receive(const ost::AppDataUnit* adu)
+AudioRtpRTX::receive(const ost::AppDataUnit** adu)
 {
     if (!_sym) {
-        adu = _sessionRecv->getData(_sessionRecv->getFirstTimestamp());
+        *adu = _sessionRecv->getData(_sessionRecv->getFirstTimestamp());
     } else {
         if(!_zrtp) {    
-            adu = _session->getData(_session->getFirstTimestamp());
+            *adu = _session->getData(_session->getFirstTimestamp());
         } else {
-            adu = _zsession->getData(_zsession->getFirstTimestamp());
+            *adu = _zsession->getData(_zsession->getFirstTimestamp());
         }
     }
 }
@@ -447,7 +447,7 @@ AudioRtpRTX::receiveSessionForSpkr (int& countTime)
     const ost::AppDataUnit* adu = NULL;
     // Get audio data stream
 
-    receive(adu);
+    receive(&adu);
     
     if (adu == NULL) {
         //_debug("No RTP audio stream\n");
