@@ -56,6 +56,7 @@ pluginmanagerTester_LDADD = \
 		@CCEXT2_LIBS@ \
 		@CCGNU2_LIBS@ \
 		@CCRTP_LIBS@ \
+		@ZRTPCPP_LIBS@ \
 		@SAMPLERATE_LIBS@ \
 		$(PJSIP_LIBS) \
 		-luuid \

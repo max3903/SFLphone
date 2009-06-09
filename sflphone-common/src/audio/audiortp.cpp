@@ -75,8 +75,10 @@ AudioRtp::createNewSession (SIPCall *ca) {
     try {
         if(Manager::instance().getConfigInt(SIGNALISATION,SRTP_KEY_EXCHANGE) == ZRTP) {
             _RTXThread = new AudioRtpRTX (ca, true, true); // zrtp is only supported under symmetric mode
+            _debug("Starting in zrtp mode\n");
         } else {
             _RTXThread = new AudioRtpRTX (ca, _symmetric, false);
+            _debug("Starting in unencrypted rtp mode\n");
         }
         
         if (_RTXThread->start() != 0) {
@@ -159,6 +161,8 @@ void AudioRtpRTX::initializeZid(void)
     std::string zidFile = std::string(HOMEDIR) + DIR_SEPARATOR_STR + "." + PROGDIR + "/" + std::string(Manager::instance().getConfigString(SIGNALISATION,ZRTP_ZIDFILE));
     
     if(_zsession->initialize(zidFile.c_str()) >= 0) {
+        _debug("Register callbacks\n");
+        _zsession->setUserCallback(new zrtpCallback());
         return;
     }   
     
@@ -175,10 +179,6 @@ void AudioRtpRTX::initializeZid(void)
     } 
     
     //_debug("Hello hash: %s  , lenght %d\n", (_zsession->getHelloHash()).c_str(), (_zsession->getHelloHash()).lenght());
-    
-    _zsession->setUserCallback(new zrtpCallback());
-    
-    /*Everything is normal at that point*/
     
     return;
 }
@@ -583,8 +583,12 @@ AudioRtpRTX::run () {
       ////////////////////////////
       // Send session
       ////////////////////////////
-
-      sessionWaiting = _session->isWaiting();
+    
+      if(!_zrtp) {
+         sessionWaiting = _session->isWaiting();
+      } else {
+         sessionWaiting = _zsession->isWaiting();
+      }
 
       sendSessionFromMic(timestamp); 
       timestamp += step;
