@@ -47,6 +47,7 @@ sflphoned_LDADD = \
 		@CCEXT2_LIBS@ \
 		$(PJSIP_LIBS) \
 		@CCRTP_LIBS@ \
+		@ZRTPCPP_LIBS@ \
 		@ALSA_LIBS@ \
 		@PULSEAUDIO_LIBS@ \
 		@SAMPLERATE_LIBS@ 
