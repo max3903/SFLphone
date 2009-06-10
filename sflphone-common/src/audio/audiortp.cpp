@@ -123,6 +123,8 @@ AudioRtpRTX::AudioRtpRTX (SIPCall *sipcall, bool sym) : time(new ost::Time()), _
 {
 
     setCancel(cancelDefault);
+    std::string callid = _ca->getCallId();
+    _debug("\033[1m\033[31;4m New AudioRtpRTX thread created for callId %s \033[0m \n", callid.c_str());
     // AudioRtpRTX should be close if we change sample rate
     // TODO: Change bind address according to user settings.
     // TODO: this should be the local ip not the external (router) IP
@@ -142,7 +144,8 @@ AudioRtpRTX::AudioRtpRTX (SIPCall *sipcall, bool sym) : time(new ost::Time()), _
 
 AudioRtpRTX::~AudioRtpRTX () {
     _start.wait();
-
+     std::string callid = _ca->getCallId();
+    _debug("\033[1m\033[31;4m AudioRtpRTX thread deleted for callId %s \033[0m \n", callid.c_str());
     try {
         this->terminate();
     } catch(...) {
