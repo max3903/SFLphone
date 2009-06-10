@@ -199,6 +199,13 @@ class ManagerImpl {
     bool acceptEnrollment(const CallID& id, bool accepted);
     
     /**
+     * If the applications allows PBX enrollment then the ZRTP implementation
+     * honors the PBX enrollment flag in Confirm packets.
+     */
+     bool setPBXEnrollment(const CallID& id, bool yesNo);
+     
+    
+    /**
      * Functions which occur with a user's action
      * Refuse the call
      * @param id  The call identifier

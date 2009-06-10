@@ -601,6 +601,22 @@ ManagerImpl::acceptEnrollment(const CallID& id, bool accepted)
     return true;
 }
 
+    bool
+ManagerImpl::setPBXEnrollment(const CallID& id, bool yesNo)
+{
+    AccountID accountid;
+    accountid = getAccountFromCall(id);
+    if (accountid == AccountNULL) {
+        _debug("Call does not exist anymore\n");
+        return false;
+    }
+    
+    SIPVoIPLink* sipLink = dynamic_cast<SIPVoIPLink*>(getAccountLink(accountid));
+    AudioRtpRTX* currentRtpSession = sipLink->getRtpSession();
+    currentRtpSession->setPBXEnrollment(yesNo);
+    return true;
+}
+
 //THREAD=Main : Call:Incoming
   bool
 ManagerImpl::refuseCall (const CallID& id)

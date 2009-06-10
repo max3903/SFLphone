@@ -101,6 +101,11 @@
         <arg type="b" name="accepted" direction="in"/>
     </method>
     
+    <method name="setPBXEnrollment">
+        <arg type="s" name="callID" direction="in"/>
+        <arg type="b" name="yesNo" direction="in"/>
+    </method>
+    
     <signal name="currentSelectedCodec">
       <arg type="s" name="callID"  direction="out" />
       <arg type="s" name="codecName"  direction="out"/>

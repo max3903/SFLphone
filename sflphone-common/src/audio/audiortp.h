@@ -113,6 +113,11 @@ class AudioRtpRTX : public ost::Thread, public ost::TimerPort {
      */
     void acceptEnrollment(bool accepted);
     
+    /**
+     * Call this method to honor the PBX enrollment flag in Confirm packets
+     */
+    void setPBXEnrollment(bool yesNo);
+    
   private:
 
     // copy constructor

@@ -557,6 +557,14 @@ AudioRtpRTX::acceptEnrollment(bool accepted)
     }   
 }
 
+    void 
+AudioRtpRTX::setPBXEnrollment(bool yesNo) 
+{
+    if(_zrtp) {
+        _zsession->setPBXEnrollment(yesNo);
+    } 
+}
+
 void
 AudioRtpRTX::run () {
 

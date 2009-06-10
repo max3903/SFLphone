@@ -166,6 +166,12 @@ CallManager::acceptEnrollment(const std::string& callID, const bool& accepted) {
     Manager::instance().acceptEnrollment(callID, accepted);
 }
 
+void 
+CallManager::setPBXEnrollment(const std::string& callID, const bool& yesNo) {
+     _debug("CallManager::setPBXEnrollment received for account %s\n", callID.c_str());
+    Manager::instance().setPBXEnrollment(callID, yesNo);
+}
+
 std::string
 CallManager::getCurrentCodecName(const std::string& callID)
 { 
