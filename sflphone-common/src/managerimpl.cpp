@@ -521,6 +521,20 @@ void ManagerImpl::transferSucceded()
 
 }
 
+    bool
+ManagerImpl::setSASVerified(const CallID& id)
+{
+    AccountID accountid;
+    accountid = getAccountFromCall(id);
+    if (accountid == AccountNULL) {
+        _debug("Call does not exist anymore\n");
+        return false;
+    }
+    getAccountLink(accountid)->refuse(id);
+    
+    return true;
+}
+
 
 //THREAD=Main : Call:Incoming
   bool
