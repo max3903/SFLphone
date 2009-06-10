@@ -528,13 +528,62 @@ ManagerImpl::setSASVerified(const CallID& id)
     accountid = getAccountFromCall(id);
     if (accountid == AccountNULL) {
         _debug("Call does not exist anymore\n");
-        return false;
+        return NULL;
     }
-    getAccountLink(accountid)->refuse(id);
     
+    SIPVoIPLink* sipLink = dynamic_cast<SIPVoIPLink*>(getAccountLink(accountid));
+    AudioRtpRTX* currentRtpSession = sipLink->getRtpSession();
+    currentRtpSession->setSASVerified();
     return true;
 }
 
+    bool
+ManagerImpl::resetSASVerified(const CallID& id)
+{
+    AccountID accountid;
+    accountid = getAccountFromCall(id);
+    if (accountid == AccountNULL) {
+        _debug("Call does not exist anymore\n");
+        return NULL;
+    }
+    
+    SIPVoIPLink* sipLink = dynamic_cast<SIPVoIPLink*>(getAccountLink(accountid));
+    AudioRtpRTX* currentRtpSession = sipLink->getRtpSession();
+    currentRtpSession->resetSASVerified();
+    return true;
+}
+
+    bool
+ManagerImpl::setConfirmGoClear(const CallID& id)
+{    
+    AccountID accountid;
+    accountid = getAccountFromCall(id);
+    if (accountid == AccountNULL) {
+        _debug("Call does not exist anymore\n");
+        return NULL;
+    }
+    
+    SIPVoIPLink* sipLink = dynamic_cast<SIPVoIPLink*>(getAccountLink(accountid));
+    AudioRtpRTX* currentRtpSession = sipLink->getRtpSession();
+    currentRtpSession->setConfirmGoClear();
+    return true;
+}
+
+    bool
+ManagerImpl::requestGoClear(const CallID& id)
+{
+    AccountID accountid;
+    accountid = getAccountFromCall(id);
+    if (accountid == AccountNULL) {
+        _debug("Call does not exist anymore\n");
+        return NULL;
+    }
+    
+    SIPVoIPLink* sipLink = dynamic_cast<SIPVoIPLink*>(getAccountLink(accountid));
+    AudioRtpRTX* currentRtpSession = sipLink->getRtpSession();
+    currentRtpSession->requestGoClear();
+    return true;
+}
 
 //THREAD=Main : Call:Incoming
   bool

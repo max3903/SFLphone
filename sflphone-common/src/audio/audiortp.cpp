@@ -122,8 +122,6 @@ AudioRtp::setRecording() {
 
 }
 
-
-
 ////////////////////////////////////////////////////////////////////////////////
 // AudioRtpRTX Class                                                          //
 ////////////////////////////////////////////////////////////////////////////////
@@ -519,7 +517,45 @@ AudioRtpRTX::reSampleData(int sampleRate_codec, int nbSamples, int status)
         return 0;
 }
 
+    void
+AudioRtpRTX::setSASVerified(void)
+{
+    if(_zrtp) {
+        _zsession->SASVerified();
+    }   
+}
 
+    void
+AudioRtpRTX::resetSASVerified(void)
+{
+    if(_zrtp) {
+        _zsession->resetSASVerified();
+    }   
+}
+
+    void
+AudioRtpRTX::setConfirmGoClear(void)
+{
+    if(_zrtp) {
+        _zsession->goClearOk();
+    }   
+}
+
+    void
+AudioRtpRTX::requestGoClear(void)
+{
+    if(_zrtp) {
+        _zsession->requestGoClear();
+    }   
+}
+
+    void
+AudioRtpRTX::acceptEnrollment(bool accepted)
+{
+    if(_zrtp) {
+        _zsession->acceptEnrollment(accepted);
+    }   
+}
 
 void
 AudioRtpRTX::run () {

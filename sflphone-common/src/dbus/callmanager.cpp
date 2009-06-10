@@ -135,26 +135,29 @@ CallManager::getIsRecording(const std::string& callID)
 void
 CallManager::setSASVerified(const std::string& callID)
 {
-    _debug("CallManager::setSASVerified received\n");
+    _debug("CallManager::setSASVerified received for account %s\n", callID.c_str());
     Manager::instance().setSASVerified(callID);
 }
 
 void
 CallManager::resetSASVerified(const std::string& callID)
 {
-    _debug("CallManager::resetSASVerified received for account %s\n", callID);
+    _debug("CallManager::resetSASVerified received for account %s\n", callID.c_str());
+    Manager::instance().resetSASVerified(callID);
 }
 
 void
 CallManager::setConfirmGoClear(const std::string& callID)
 {
-    _debug("CallManager::setConfirmGoClear received for account %s\n", callID);
+    _debug("CallManager::setConfirmGoClear received for account %s\n", callID.c_str());
+    Manager::instance().setConfirmGoClear(callID);
 }
 
 void
 CallManager::requestGoClear(const std::string& callID)
 {
-    _debug("CallManager::requestGoClear received for account %s\n", callID);
+    _debug("CallManager::requestGoClear received for account %s\n", callID.c_str());
+    Manager::instance().requestGoClear(callID);
 }
 
 std::string

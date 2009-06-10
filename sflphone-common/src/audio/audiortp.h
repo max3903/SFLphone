@@ -88,6 +88,31 @@ class AudioRtpRTX : public ost::Thread, public ost::TimerPort {
     
     friend class RtpTest;
 
+    /**
+     * The application may call this method if the user confirmed
+     * (verified) the Short Authentication String (SAS) with the peer.
+     */
+    void setSASVerified(void);
+    
+    /**
+     * Reset the SAS verfied flag for the current user's retained secrets.
+     */
+    void resetSASVerified(void);
+    
+    /**
+     * Call this method if the user confirmed a go clear (secure mode off).
+     */
+    void setConfirmGoClear(void);
+    
+    /**
+     * Call this method is the user itself wants to switch off secure mode (go clear).
+     */
+    void requestGoClear(void);
+    /**
+     * Call this method if a PBX service asks to enroll the MiTM key and user accepts/does not accept
+     */
+    void acceptEnrollment(bool accepted);
+    
   private:
 
     // copy constructor
@@ -241,6 +266,10 @@ class AudioRtp {
      */
     void setRecording ();
 
+    /**
+     * Returns a pointer to the current RTP session.
+     */
+    AudioRtpRTX* getCurrentRTPSession(void) { return _RTXThread; }
 
   private:
     // copy constructor

@@ -23,7 +23,6 @@
 #include "eventthread.h"
 #include "sipcall.h"
 #include "sipaccount.h"
-#include "audio/audiortp.h"
 
 #include <netinet/in.h>
 #include <arpa/nameser.h>

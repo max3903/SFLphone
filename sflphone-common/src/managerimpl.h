@@ -169,10 +169,40 @@ class ManagerImpl {
     void transferFailed();
 
     /**
-     * Reach the given RTP thread and calls its setSASVerified 
+     * Reach the given RTP thread and calls its setSASVerified method.
      */
     bool setSASVerified(const CallID& id);
+            
+    /**
+     * Reach the given RTP thread and calls its resetSASVerified method.
+     */
+    bool resetSASVerified(const CallID& id);
+    
+    /**
+     * Reach the given RTP thread and calls its setConfirmGoClear method.
+     * Call this method if the user confirmed a go clear (secure mode off).
+     */
+    bool setConfirmGoClear(const CallID& id);
+    
+    /**
+     * Reach the given RTP thread and calls its setConfirmGoClear method.
+     * Request to switch off secure mode.
+     */
+ 
+    /**
+     * Reach the given RTP thread and calls its setConfirmGoClear method.
+     * Request to switch off secure mode.
+     */    
+    bool requestGoClear(const CallID& id);
+        
+    /** 
+    * If a PBX service asks to enroll the MiTM key and the user accepts this
+    * requtes, for example by pressing an OK button, the client application
+    * shall call this method and set the parameter <code>accepted</code> to
+    * true.
+    */
      
+    
     /**
      * Functions which occur with a user's action
      * Refuse the call
