@@ -132,6 +132,30 @@ CallManager::getIsRecording(const std::string& callID)
     return Manager::instance().isRecording(callID);
 }
 
+void
+CallManager::setSASVerified(const std::string& callID)
+{
+    _debug("CallManager::setSASVerified received\n");
+    Manager::instance().setSASVerified(callID);
+}
+
+void
+CallManager::resetSASVerified(const std::string& callID)
+{
+    _debug("CallManager::resetSASVerified received for account %s\n", callID);
+}
+
+void
+CallManager::setConfirmGoClear(const std::string& callID)
+{
+    _debug("CallManager::setConfirmGoClear received for account %s\n", callID);
+}
+
+void
+CallManager::requestGoClear(const std::string& callID)
+{
+    _debug("CallManager::requestGoClear received for account %s\n", callID);
+}
 
 std::string
 CallManager::getCurrentCodecName(const std::string& callID)

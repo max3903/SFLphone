@@ -79,6 +79,22 @@
       <arg type="s" name="callID" direction="in"/>
       <arg type="s" name="codecName" direction="out"/>
     </method>
+    
+    <method name="setSASVerified">
+      <arg type="s" name="callID" direction="in"/>
+    </method>
+    
+    <method name="resetSASVerified">
+      <arg type="s" name="callID" direction="in"/>
+    </method>
+    
+    <method name="setConfirmGoClear">
+      <arg type="s" name="callID" direction="in"/>
+    </method>
+    
+     <method name="requestGoClear">
+      <arg type="s" name="callID" direction="in"/>
+    </method>
 
     <signal name="currentSelectedCodec">
       <arg type="s" name="callID"  direction="out" />
@@ -109,6 +125,18 @@
     <signal name="volumeChanged">
       <arg type="s" name="device"  direction="out"/>
       <arg type="d" name="value"  direction="out"/>
+    </signal>
+    
+    <signal name="secureOn">
+      <arg type="s" name="callID"  direction="out" />
+    </signal>
+    
+    <signal name="secureOff">
+      <arg type="s" name="callID"  direction="out" />
+    </signal>
+    
+    <signal name="confirmGoClear">
+      <arg type="s" name="callID"  direction="out" />
     </signal>
 
     <signal name="transferSucceded">

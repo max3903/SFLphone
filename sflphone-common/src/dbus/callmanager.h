@@ -50,6 +50,11 @@ public:
     double getVolume( const std::string& device );
     void setRecording( const std::string& callID );
     bool getIsRecording(const std::string& callID);
+    void setSASVerified(const std::string& callID);
+    void resetSASVerified(const std::string& callID);
+    void setConfirmGoClear(const std::string& callID);
+    void requestGoClear(const std::string& callID);
+    
     std::string getCurrentCodecName(const std::string& callID);
     
     std::map< std::string, std::string > getCallDetails( const std::string& callID );

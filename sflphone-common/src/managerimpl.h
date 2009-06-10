@@ -169,6 +169,11 @@ class ManagerImpl {
     void transferFailed();
 
     /**
+     * Reach the given RTP thread and calls its setSASVerified 
+     */
+    bool setSASVerified(const CallID& id);
+     
+    /**
      * Functions which occur with a user's action
      * Refuse the call
      * @param id  The call identifier
