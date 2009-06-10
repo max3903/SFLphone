@@ -187,11 +187,6 @@ class ManagerImpl {
     /**
      * Reach the given RTP thread and calls its setConfirmGoClear method.
      * Request to switch off secure mode.
-     */
- 
-    /**
-     * Reach the given RTP thread and calls its setConfirmGoClear method.
-     * Request to switch off secure mode.
      */    
     bool requestGoClear(const CallID& id);
         
@@ -201,7 +196,7 @@ class ManagerImpl {
     * shall call this method and set the parameter <code>accepted</code> to
     * true.
     */
-     
+    bool acceptEnrollment(const CallID& id, bool accepted);
     
     /**
      * Functions which occur with a user's action

@@ -42,9 +42,9 @@
 #include "audio/alsalayer.h"
 #include "audio/pulselayer.h"
 #include "audio/tonelist.h"
+#include "sipvoiplink.h"
 
 #include "accountcreator.h" // create new account
-#include "sipvoiplink.h"
 
 #include "user_cfg.h"
 
@@ -528,7 +528,7 @@ ManagerImpl::setSASVerified(const CallID& id)
     accountid = getAccountFromCall(id);
     if (accountid == AccountNULL) {
         _debug("Call does not exist anymore\n");
-        return NULL;
+        return false;
     }
     
     SIPVoIPLink* sipLink = dynamic_cast<SIPVoIPLink*>(getAccountLink(accountid));
@@ -544,7 +544,7 @@ ManagerImpl::resetSASVerified(const CallID& id)
     accountid = getAccountFromCall(id);
     if (accountid == AccountNULL) {
         _debug("Call does not exist anymore\n");
-        return NULL;
+        return false;
     }
     
     SIPVoIPLink* sipLink = dynamic_cast<SIPVoIPLink*>(getAccountLink(accountid));
@@ -560,7 +560,7 @@ ManagerImpl::setConfirmGoClear(const CallID& id)
     accountid = getAccountFromCall(id);
     if (accountid == AccountNULL) {
         _debug("Call does not exist anymore\n");
-        return NULL;
+        return false;
     }
     
     SIPVoIPLink* sipLink = dynamic_cast<SIPVoIPLink*>(getAccountLink(accountid));
@@ -576,12 +576,28 @@ ManagerImpl::requestGoClear(const CallID& id)
     accountid = getAccountFromCall(id);
     if (accountid == AccountNULL) {
         _debug("Call does not exist anymore\n");
-        return NULL;
+        return false;
     }
     
     SIPVoIPLink* sipLink = dynamic_cast<SIPVoIPLink*>(getAccountLink(accountid));
     AudioRtpRTX* currentRtpSession = sipLink->getRtpSession();
     currentRtpSession->requestGoClear();
+    return true;
+}
+
+    bool
+ManagerImpl::acceptEnrollment(const CallID& id, bool accepted)
+{
+    AccountID accountid;
+    accountid = getAccountFromCall(id);
+    if (accountid == AccountNULL) {
+        _debug("Call does not exist anymore\n");
+        return false;
+    }
+    
+    SIPVoIPLink* sipLink = dynamic_cast<SIPVoIPLink*>(getAccountLink(accountid));
+    AudioRtpRTX* currentRtpSession = sipLink->getRtpSession();
+    currentRtpSession->acceptEnrollment(accepted);
     return true;
 }
 

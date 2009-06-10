@@ -160,6 +160,12 @@ CallManager::requestGoClear(const std::string& callID)
     Manager::instance().requestGoClear(callID);
 }
 
+void 
+CallManager::acceptEnrollment(const std::string& callID, const bool& accepted) {
+     _debug("CallManager::acceptEnrollment received for account %s\n", callID.c_str());
+    Manager::instance().acceptEnrollment(callID, accepted);
+}
+
 std::string
 CallManager::getCurrentCodecName(const std::string& callID)
 { 
