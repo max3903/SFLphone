@@ -160,6 +160,7 @@ void AudioRtpRTX::initializeZid(void)
     
     if(_zsession->initialize(zidFile.c_str()) >= 0) {
         _debug("Register callbacks\n");
+        _zsession->setEnableZrtp(true);
         _zsession->setUserCallback(new zrtpCallback());
         return;
     }   
