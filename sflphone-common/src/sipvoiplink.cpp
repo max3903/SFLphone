@@ -1163,7 +1163,8 @@ void
 SIPVoIPLink::SIPCallClosed ( SIPCall *call )
 {
 
-
+     std::string callid = call->getCallId();
+    _debug("\033[1m\033[31;4m SIPCallClosed for callId %s \033[0m \n", callid.c_str());
 	// it was without did before
 	//SIPCall* call = findSIPCallWithCid(event->cid);
 	if ( !call ) { return; }
@@ -1871,7 +1872,7 @@ void SIPVoIPLink::handle_reinvite ( SIPCall *call )
 
 void call_on_state_changed ( pjsip_inv_session *inv, pjsip_event *e )
 {
-
+    _debug("\033[1m\033[31;4m call_on_state_changed \033[0m \n");
 	SIPCall *call;
 	AccountID accId;
 	SIPVoIPLink *link;
@@ -1880,9 +1881,11 @@ void call_on_state_changed ( pjsip_inv_session *inv, pjsip_event *e )
 	/* Retrieve the call information */
 	call = reinterpret_cast<SIPCall*> ( inv->mod_data[_mod_ua.id] );
 	if ( !call )
+	{
+	    _debug("\033[1m\033[31;4m call is 0 \033[0m \n");
 		return;
-
-	//Retrieve the body message
+    }
+    //Retrieve the body message
 	rdata = e->body.tsx_state.src.rdata;
 
 
@@ -1891,6 +1894,7 @@ void call_on_state_changed ( pjsip_inv_session *inv, pjsip_event *e )
 	 */
 	if ( call->getXferSub() && e->type==PJSIP_EVENT_TSX_STATE )
 	{
+	    _debug("\033[1m\033[31;4m PJSIP_EVENT_TSX_STATE \033[0m \n");
 		int st_code = -1;
 		pjsip_evsub_state ev_state = PJSIP_EVSUB_STATE_ACTIVE;
 
@@ -1951,6 +1955,8 @@ void call_on_state_changed ( pjsip_inv_session *inv, pjsip_event *e )
 	}
 	else
 	{
+	
+		_debug("\033[1m\033[31;4m ELSE PJSIP_EVENT_TSX_STATE \033[0m \n");
 
 		// The call is ringing - We need to handle this case only on outgoing call
 		if ( inv->state == PJSIP_INV_STATE_EARLY && e->body.tsx_state.tsx->role == PJSIP_ROLE_UAC )
