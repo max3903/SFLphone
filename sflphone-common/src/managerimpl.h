@@ -169,10 +169,42 @@ class ManagerImpl {
     void transferFailed();
 
     /**
-     * Reach the given RTP thread and calls its setSASVerified 
+     * Reach the given RTP thread and calls its setSASVerified method.
      */
     bool setSASVerified(const CallID& id);
+            
+    /**
+     * Reach the given RTP thread and calls its resetSASVerified method.
+     */
+    bool resetSASVerified(const CallID& id);
+    
+    /**
+     * Reach the given RTP thread and calls its setConfirmGoClear method.
+     * Call this method if the user confirmed a go clear (secure mode off).
+     */
+    bool setConfirmGoClear(const CallID& id);
+    
+    /**
+     * Reach the given RTP thread and calls its setConfirmGoClear method.
+     * Request to switch off secure mode.
+     */    
+    bool requestGoClear(const CallID& id);
+        
+    /** 
+    * If a PBX service asks to enroll the MiTM key and the user accepts this
+    * requtes, for example by pressing an OK button, the client application
+    * shall call this method and set the parameter <code>accepted</code> to
+    * true.
+    */
+    bool acceptEnrollment(const CallID& id, bool accepted);
+    
+    /**
+     * If the applications allows PBX enrollment then the ZRTP implementation
+     * honors the PBX enrollment flag in Confirm packets.
+     */
+     bool setPBXEnrollment(const CallID& id, bool yesNo);
      
+    
     /**
      * Functions which occur with a user's action
      * Refuse the call
@@ -233,6 +265,45 @@ class ManagerImpl {
      */
     void stopTone(bool stopAudio);
 
+    /**
+     * Notify the UI that both the sender and the receiver are in secure mode now.
+     * @param id  The call identifier
+     */
+    void secureOn(const CallID& id, const std::string& cipher);
+    
+    /**
+     * Inform user interface that security is not active any more.
+     * @param id  The call identifier
+     */
+    void secureOff(const CallID& id);
+    
+    /**
+     * Inform the user that ZRTP received "go clear" message from its peer.
+     * @param id  The call identifier
+     */
+    void confirmGoClear(const CallID& id);
+    
+    /**
+     * ZRTP calls this method to display the SAS and inform about the SAS verification status.
+     * @param id  The call identifier
+     * @param sas The SAS to display
+     * @param verified set to true if verified by both parties during a previous call
+     */
+    void showSAS(const CallID& id, const std::string& sas, const bool& verified);
+    
+    /**
+     * ZRTPQueue calls this method in case ZRTP negotiation failed.
+     * @param id  The call identifier
+     * @param reason The SAS to display
+     */
+    void zrtpNegotiationFailed(const CallID& id, const std::string& reason, const std::string& severity);
+    
+    /**
+     * ZRTPQueue calls this method if the other side does not support ZRTP.
+     * @param id  The call identifier
+     */
+    void zrtpNotSuppOther(const CallID& id);
+    
     /**
      * When receiving a new incoming call, add it to the callaccount map
      * and notify user

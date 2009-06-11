@@ -71,9 +71,12 @@ AudioRtp::createNewSession (SIPCall *ca) {
 
     // Start RTP Send/Receive threads
     _symmetric = Manager::instance().getConfigInt(SIGNALISATION,SYMMETRIC) ? true : false;
+    AccountID account_id = Manager::instance().getAccountFromCall (ca->getCallId());
+    int srtpEnable = Manager::instance().getConfigInt(account_id, SRTP_ENABLE);
+    int keyExchange = Manager::instance().getConfigInt(account_id, SRTP_KEY_EXCHANGE);
     
     try {
-        if(Manager::instance().getConfigInt(SIGNALISATION,SRTP_KEY_EXCHANGE) == ZRTP) {
+        if(srtpEnable) {
             _RTXThread = new AudioRtpRTX (ca, true, true); // zrtp is only supported under symmetric mode
             _debug("Starting in zrtp mode\n");
         } else {
@@ -122,8 +125,6 @@ AudioRtp::setRecording() {
 
 }
 
-
-
 ////////////////////////////////////////////////////////////////////////////////
 // AudioRtpRTX Class                                                          //
 ////////////////////////////////////////////////////////////////////////////////
@@ -162,7 +163,8 @@ void AudioRtpRTX::initializeZid(void)
     
     if(_zsession->initialize(zidFile.c_str()) >= 0) {
         _debug("Register callbacks\n");
-        _zsession->setUserCallback(new zrtpCallback());
+        _zsession->setEnableZrtp(true);
+        _zsession->setUserCallback(new zrtpCallback(_ca));
         return;
     }   
     
@@ -519,7 +521,53 @@ AudioRtpRTX::reSampleData(int sampleRate_codec, int nbSamples, int status)
         return 0;
 }
 
+    void
+AudioRtpRTX::setSASVerified(void)
+{
+    if(_zrtp) {
+        _zsession->SASVerified();
+    }   
+}
 
+    void
+AudioRtpRTX::resetSASVerified(void)
+{
+    if(_zrtp) {
+        _zsession->resetSASVerified();
+    }   
+}
+
+    void
+AudioRtpRTX::setConfirmGoClear(void)
+{
+    if(_zrtp) {
+        _zsession->goClearOk();
+    }   
+}
+
+    void
+AudioRtpRTX::requestGoClear(void)
+{
+    if(_zrtp) {
+        _zsession->requestGoClear();
+    }   
+}
+
+    void
+AudioRtpRTX::acceptEnrollment(bool accepted)
+{
+    if(_zrtp) {
+        _zsession->acceptEnrollment(accepted);
+    }   
+}
+
+    void 
+AudioRtpRTX::setPBXEnrollment(bool yesNo) 
+{
+    if(_zrtp) {
+        _zsession->setPBXEnrollment(yesNo);
+    } 
+}
 
 void
 AudioRtpRTX::run () {

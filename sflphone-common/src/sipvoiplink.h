@@ -24,6 +24,7 @@
 
 #include "voiplink.h"
 #include "hooks/urlhook.h"
+#include "audio/audiortp.h"
 
 //////////////////////////////
 /* PJSIP imports */
@@ -316,6 +317,11 @@ class SIPVoIPLink : public VoIPLink
         bool new_ip_to_ip_call (const CallID& id, const std::string& to);
 
         std::string get_useragent_name (void);
+        
+        /**
+         * Return a pointer to the RTP thread 
+         */
+         AudioRtpRTX* getRtpSession(void) { return _audiortp->getCurrentRTPSession(); }
 
     private:
         /**

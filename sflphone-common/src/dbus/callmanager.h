@@ -54,7 +54,9 @@ public:
     void resetSASVerified(const std::string& callID);
     void setConfirmGoClear(const std::string& callID);
     void requestGoClear(const std::string& callID);
-    
+    void acceptEnrollment(const std::string& callID, const bool& accepted);
+    void setPBXEnrollment(const std::string& callID, const bool& yesNo);
+        
     std::string getCurrentCodecName(const std::string& callID);
     
     std::map< std::string, std::string > getCallDetails( const std::string& callID );

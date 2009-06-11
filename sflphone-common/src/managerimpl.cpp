@@ -42,9 +42,9 @@
 #include "audio/alsalayer.h"
 #include "audio/pulselayer.h"
 #include "audio/tonelist.h"
+#include "sipvoiplink.h"
 
 #include "accountcreator.h" // create new account
-#include "sipvoiplink.h"
 
 #include "user_cfg.h"
 
@@ -530,11 +530,92 @@ ManagerImpl::setSASVerified(const CallID& id)
         _debug("Call does not exist anymore\n");
         return false;
     }
-    getAccountLink(accountid)->refuse(id);
     
+    SIPVoIPLink* sipLink = dynamic_cast<SIPVoIPLink*>(getAccountLink(accountid));
+    AudioRtpRTX* currentRtpSession = sipLink->getRtpSession();
+    currentRtpSession->setSASVerified();
     return true;
 }
 
+    bool
+ManagerImpl::resetSASVerified(const CallID& id)
+{
+    AccountID accountid;
+    accountid = getAccountFromCall(id);
+    if (accountid == AccountNULL) {
+        _debug("Call does not exist anymore\n");
+        return false;
+    }
+    
+    SIPVoIPLink* sipLink = dynamic_cast<SIPVoIPLink*>(getAccountLink(accountid));
+    AudioRtpRTX* currentRtpSession = sipLink->getRtpSession();
+    currentRtpSession->resetSASVerified();
+    return true;
+}
+
+    bool
+ManagerImpl::setConfirmGoClear(const CallID& id)
+{    
+    AccountID accountid;
+    accountid = getAccountFromCall(id);
+    if (accountid == AccountNULL) {
+        _debug("Call does not exist anymore\n");
+        return false;
+    }
+    
+    SIPVoIPLink* sipLink = dynamic_cast<SIPVoIPLink*>(getAccountLink(accountid));
+    AudioRtpRTX* currentRtpSession = sipLink->getRtpSession();
+    currentRtpSession->setConfirmGoClear();
+    return true;
+}
+
+    bool
+ManagerImpl::requestGoClear(const CallID& id)
+{
+    AccountID accountid;
+    accountid = getAccountFromCall(id);
+    if (accountid == AccountNULL) {
+        _debug("Call does not exist anymore\n");
+        return false;
+    }
+    
+    SIPVoIPLink* sipLink = dynamic_cast<SIPVoIPLink*>(getAccountLink(accountid));
+    AudioRtpRTX* currentRtpSession = sipLink->getRtpSession();
+    currentRtpSession->requestGoClear();
+    return true;
+}
+
+    bool
+ManagerImpl::acceptEnrollment(const CallID& id, bool accepted)
+{
+    AccountID accountid;
+    accountid = getAccountFromCall(id);
+    if (accountid == AccountNULL) {
+        _debug("Call does not exist anymore\n");
+        return false;
+    }
+    
+    SIPVoIPLink* sipLink = dynamic_cast<SIPVoIPLink*>(getAccountLink(accountid));
+    AudioRtpRTX* currentRtpSession = sipLink->getRtpSession();
+    currentRtpSession->acceptEnrollment(accepted);
+    return true;
+}
+
+    bool
+ManagerImpl::setPBXEnrollment(const CallID& id, bool yesNo)
+{
+    AccountID accountid;
+    accountid = getAccountFromCall(id);
+    if (accountid == AccountNULL) {
+        _debug("Call does not exist anymore\n");
+        return false;
+    }
+    
+    SIPVoIPLink* sipLink = dynamic_cast<SIPVoIPLink*>(getAccountLink(accountid));
+    AudioRtpRTX* currentRtpSession = sipLink->getRtpSession();
+    currentRtpSession->setPBXEnrollment(yesNo);
+    return true;
+}
 
 //THREAD=Main : Call:Incoming
   bool
@@ -815,6 +896,55 @@ ManagerImpl::incomingMessage(const AccountID& accountId, const std::string& mess
   }
 }
 
+
+  void 
+ManagerImpl::secureOn(const CallID& id, const std::string& cipher)
+{
+  if (_dbus) {
+    _dbus->getCallManager()->secureOn(id, cipher);
+  }
+}
+
+  void 
+ManagerImpl::secureOff(const CallID& id)
+{
+  if (_dbus) {
+    _dbus->getCallManager()->secureOff(id);
+  }
+}
+
+  void 
+ManagerImpl::confirmGoClear(const CallID& id)
+{
+  if (_dbus) {
+    _dbus->getCallManager()->confirmGoClear(id);
+  }
+}
+
+    void
+ManagerImpl::showSAS(const CallID& id, const std::string& sas, const bool& verified)
+{
+  if (_dbus) {
+    _dbus->getCallManager()->showSAS(id,sas,verified);
+  }
+}
+
+    void
+ManagerImpl::zrtpNegotiationFailed(const CallID& id, const std::string& reason, const std::string& severity)
+{
+  if (_dbus) {
+    _dbus->getCallManager()->zrtpNegotiationFailed(id,reason, severity);
+  }
+}
+    
+  void 
+ManagerImpl::zrtpNotSuppOther(const CallID& id)
+{
+  if (_dbus) {
+    _dbus->getCallManager()->zrtpNotSuppOther(id);
+  }
+}
+ 
 //THREAD=VoIP CALL=Outgoing
   void
 ManagerImpl::peerAnsweredCall(const CallID& id)
