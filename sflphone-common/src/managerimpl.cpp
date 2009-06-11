@@ -928,8 +928,23 @@ ManagerImpl::showSAS(const CallID& id, const std::string& sas, const bool& verif
     _dbus->getCallManager()->showSAS(id,sas,verified);
   }
 }
+
+    void
+ManagerImpl::zrtpNegotiationFailed(const CallID& id, const std::string& reason, const std::string& severity)
+{
+  if (_dbus) {
+    _dbus->getCallManager()->zrtpNegotiationFailed(id,reason, severity);
+  }
+}
     
-    
+  void 
+ManagerImpl::zrtpNotSuppOther(const CallID& id)
+{
+  if (_dbus) {
+    _dbus->getCallManager()->zrtpNotSuppOther(id);
+  }
+}
+ 
 //THREAD=VoIP CALL=Outgoing
   void
 ManagerImpl::peerAnsweredCall(const CallID& id)

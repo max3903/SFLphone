@@ -150,6 +150,16 @@
       <arg type="s" name="callID"  direction="out" />
     </signal>
     
+    <signal name="zrtpNegotiationFailed">
+      <arg type="s" name="callID"  direction="out" />
+      <arg type="s" name="reason"  direction="out" />
+      <arg type="s" name="severity"  direction="out" />
+    </signal>
+    
+    <signal name="zrtpNotSuppOther">
+      <arg type="s" name="callID"  direction="out" />
+    </signal>
+    
      <signal name="showSAS">
       <arg type="s" name="callID"  direction="out" />
       <arg type="s" name="sas"  direction="out" />

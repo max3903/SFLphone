@@ -292,6 +292,19 @@ class ManagerImpl {
     void showSAS(const CallID& id, const std::string& sas, const bool& verified);
     
     /**
+     * ZRTPQueue calls this method in case ZRTP negotiation failed.
+     * @param id  The call identifier
+     * @param reason The SAS to display
+     */
+    void zrtpNegotiationFailed(const CallID& id, const std::string& reason, const std::string& severity);
+    
+    /**
+     * ZRTPQueue calls this method if the other side does not support ZRTP.
+     * @param id  The call identifier
+     */
+    void zrtpNotSuppOther(const CallID& id);
+    
+    /**
      * When receiving a new incoming call, add it to the callaccount map
      * and notify user
      * @param call A call pointer
