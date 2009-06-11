@@ -88,10 +88,6 @@
 #define URLHOOK_IAX2_ENABLED            "Hooks.iax2_enabled"
 #define PHONE_NUMBER_HOOK_ENABLED               "Hooks.phone_number_enabled"    
 #define PHONE_NUMBER_HOOK_ADD_PREFIX                      "Hooks.phone_number_add_prefix"
-#define SRTP_ENCRYPTION_ALGO    "SRTP.encryptionAlgorithm" /* Provided by ccRTP,1=NULL,2=AESCM,3=AESF8 */
-#define SRTP_KEY_EXCHANGE    "SRTP.keyExchange" /* 1=ZRTP, 2=SDES-TLS, 3=SDES-SSL3 */
-#define SRTP_ENABLE    "SRTP.enable"
-#define ZRTP_ZIDFILE    "ZRTP.zidFile"
 
 #define EMPTY_FIELD		""			/** Default value for empty field */
 #define DFT_STUN_SERVER 	"stun.sflphone.org"	/** Default STUN server address */
@@ -114,6 +110,7 @@
 #define DFT_SIP_PORT            "5060"
 #define DFT_STUN_ENABLE         "0"
 #define DFT_RECORD_PATH         HOMEDIR
+#define ZRTP_ZIDFILE    "ZRTP.zidFile"
 
 #ifdef USE_ZEROCONF
 #define CONFIG_ZEROCONF_DEFAULT_STR "1"			/** Default Zero configuration networking module value */

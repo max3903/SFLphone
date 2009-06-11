@@ -68,6 +68,11 @@ typedef enum RegistrationState {
 #define SIP_USE_STUN          "STUN.enable"
 #define SIP_STUN_PORT         "STUN.port"
 
+// SRTP specific parameters
+#define SRTP_ENABLE    "SRTP.enable"
+#define SRTP_KEY_EXCHANGE    "SRTP.keyExchange" /* 1=ZRTP, 2=SDES-TLS, 3=SDES-SSL3 */
+#define SRTP_ENCRYPTION_ALGO    "SRTP.encryptionAlgorithm" /* Provided by ccRTP,0=NULL,1=AESCM,2=AESF8 */
+
 class Account{
 
     public:

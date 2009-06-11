@@ -71,9 +71,12 @@ AudioRtp::createNewSession (SIPCall *ca) {
 
     // Start RTP Send/Receive threads
     _symmetric = Manager::instance().getConfigInt(SIGNALISATION,SYMMETRIC) ? true : false;
+    AccountID account_id = Manager::instance().getAccountFromCall (ca->getCallId());
+    int srtpEnable = Manager::instance().getConfigInt(account_id, SRTP_ENABLE);
+    int keyExchange = Manager::instance().getConfigInt(account_id, SRTP_KEY_EXCHANGE);
     
     try {
-        if(Manager::instance().getConfigInt(SIGNALISATION,SRTP_KEY_EXCHANGE) == ZRTP) {
+        if(srtpEnable) {
             _RTXThread = new AudioRtpRTX (ca, true, true); // zrtp is only supported under symmetric mode
             _debug("Starting in zrtp mode\n");
         } else {
