@@ -896,6 +896,40 @@ ManagerImpl::incomingMessage(const AccountID& accountId, const std::string& mess
   }
 }
 
+
+  void 
+ManagerImpl::secureOn(const CallID& id, const std::string& cipher)
+{
+  if (_dbus) {
+    _dbus->getCallManager()->secureOn(id, cipher);
+  }
+}
+
+  void 
+ManagerImpl::secureOff(const CallID& id)
+{
+  if (_dbus) {
+    _dbus->getCallManager()->secureOff(id);
+  }
+}
+
+  void 
+ManagerImpl::confirmGoClear(const CallID& id)
+{
+  if (_dbus) {
+    _dbus->getCallManager()->confirmGoClear(id);
+  }
+}
+
+    void
+ManagerImpl::showSAS(const CallID& id, const std::string& sas, const bool& verified)
+{
+  if (_dbus) {
+    _dbus->getCallManager()->showSAS(id,sas,verified);
+  }
+}
+    
+    
 //THREAD=VoIP CALL=Outgoing
   void
 ManagerImpl::peerAnsweredCall(const CallID& id)

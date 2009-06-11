@@ -139,6 +139,7 @@
     
     <signal name="secureOn">
       <arg type="s" name="callID"  direction="out" />
+      <arg type="s" name="cipher"  direction="out" />
     </signal>
     
     <signal name="secureOff">
@@ -147,6 +148,12 @@
     
     <signal name="confirmGoClear">
       <arg type="s" name="callID"  direction="out" />
+    </signal>
+    
+     <signal name="showSAS">
+      <arg type="s" name="callID"  direction="out" />
+      <arg type="s" name="sas"  direction="out" />
+      <arg type="b" name="verified"  direction="out" />
     </signal>
 
     <signal name="transferSucceded">

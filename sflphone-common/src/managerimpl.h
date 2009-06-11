@@ -266,6 +266,32 @@ class ManagerImpl {
     void stopTone(bool stopAudio);
 
     /**
+     * Notify the UI that both the sender and the receiver are in secure mode now.
+     * @param id  The call identifier
+     */
+    void secureOn(const CallID& id, const std::string& cipher);
+    
+    /**
+     * Inform user interface that security is not active any more.
+     * @param id  The call identifier
+     */
+    void secureOff(const CallID& id);
+    
+    /**
+     * Inform the user that ZRTP received "go clear" message from its peer.
+     * @param id  The call identifier
+     */
+    void confirmGoClear(const CallID& id);
+    
+    /**
+     * ZRTP calls this method to display the SAS and inform about the SAS verification status.
+     * @param id  The call identifier
+     * @param sas The SAS to display
+     * @param verified set to true if verified by both parties during a previous call
+     */
+    void showSAS(const CallID& id, const std::string& sas, const bool& verified);
+    
+    /**
      * When receiving a new incoming call, add it to the callaccount map
      * and notify user
      * @param call A call pointer
