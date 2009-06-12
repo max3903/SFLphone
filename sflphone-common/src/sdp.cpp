@@ -21,7 +21,7 @@
 #include "sdp.h"
 #include "global.h"
 #include "manager.h"
-
+#include <pjmedia/sdp.h>
 
 static const pj_str_t STR_AUDIO = { (char*)"audio", 5};
 static const pj_str_t STR_VIDEO = { (char*)"video", 5};
@@ -31,6 +31,7 @@ static const pj_str_t STR_IP6 = { (char*)"IP6", 3};
 static const pj_str_t STR_RTP_AVP = { (char*)"RTP/AVP", 7 };
 static const pj_str_t STR_SDP_NAME = { (char*)"sflphone", 8 };
 static const pj_str_t STR_SENDRECV = { (char*)"sendrecv", 8 };
+
 
 Sdp::Sdp( pj_pool_t *pool ) 
     : _local_media_cap(), _session_media(0),  _ip_addr( "" ), _local_offer( NULL ), _negociated_offer(NULL), _negociator(NULL), _pool(NULL), _local_extern_audio_port(0) 
@@ -126,7 +127,6 @@ int Sdp::create_local_offer (){
     sdp_add_session_name();
     sdp_add_connection_info();
     sdp_add_timing();
-    //sdp_addAttributes( _pool );
     sdp_add_media_description( );
 
     //toString ();
@@ -227,6 +227,7 @@ void Sdp::sdp_add_timing( void ){
     this->_local_offer->time.start = this->_local_offer->time.stop = 0;
 }
 
+// TODO: To remove because unused at the moment
 void Sdp::sdp_add_attributes( ){
     pjmedia_sdp_attr *a;
     this->_local_offer->attr_count = 1;
@@ -235,6 +236,29 @@ void Sdp::sdp_add_attributes( ){
     _local_offer->attr[0] = a;
 }
 
+void Sdp::sdp_add_new_attribute(std::string& name, std::string& value) 
+{
+    pj_str_t attributeStringName;
+    attributeStringName.ptr = const_cast<char *> (name.c_str());
+    attributeStringName.slen = name.length();
+    
+    pj_str_t attributeStringValue;
+    attributeStringValue.ptr = const_cast<char *> (value.c_str());
+    attributeStringValue.slen = value.length();
+    
+    pjmedia_sdp_attr *attribute;
+    attribute = PJ_POOL_ZALLOC_T(_pool, pjmedia_sdp_attr);
+    attribute->name = attributeStringName;
+    attribute->value = attributeStringValue;
+    
+    unsigned& numberAttributes = this->_local_offer->attr_count;
+    if(numberAttributes == PJMEDIA_MAX_SDP_ATTR - 1) {
+        _debug("Cannot add any more attribute to SDP session\n");
+        throw sdpException();
+    }
+    numberAttributes += 1;
+    _local_offer->attr[numberAttributes] = attribute;
+}
 
 void Sdp::sdp_add_media_description( ){
     pjmedia_sdp_media* med;

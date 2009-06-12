@@ -27,9 +27,19 @@
 #include <pjlib.h>
 #include <pj/pool.h>
 #include <pj/assert.h>
+#include <exception>
 
 #include "audio/codecDescriptor.h"
 #include "sdpmedia.h"
+
+class sdpException: public std::exception
+{
+  virtual const char* what() const throw()
+  {
+    return "An sdpException Occured";
+  }
+};
+
 
 class Sdp {
 
@@ -291,6 +301,12 @@ class Sdp {
          */
         void sdp_add_attributes( );
 
+        /** 
+         * Adds a new sdp attribute with given name and value
+         *
+         */
+        void sdp_add_new_attribute(std::string& name, std::string& value);
+        
         /*
          * Mandatory field: Media descriptions ("m=")
          */

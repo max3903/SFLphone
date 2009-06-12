@@ -68,11 +68,21 @@ AudioRtp::createNewSession (SIPCall *ca) {
         _debug("**********************************************************\n");
         delete _RTXThread; _RTXThread = 0;
     }
-
+    
+    int srtpEnable = 0;
+    
     // Start RTP Send/Receive threads
     _symmetric = Manager::instance().getConfigInt(SIGNALISATION,SYMMETRIC) ? true : false;
     AccountID account_id = Manager::instance().getAccountFromCall (ca->getCallId());
-    int srtpEnable = Manager::instance().getConfigInt(account_id, SRTP_ENABLE);
+    // This might be an IP-to-IP call
+    if(account_id == AccountNULL) {
+        srtpEnable = Manager::instance().getConfigInt(SIGNALISATION, ZRTP_IP2IP_ENABLE);
+        _debug("\033[31;4m Ip-to-ip profile \033[0m\n");
+        srtpEnable = 0;
+    } else {
+        srtpEnable = Manager::instance().getConfigInt(account_id, SRTP_ENABLE);
+        _debug("\033[31;4m AccountID %s with SRTP_ENABLE %d\033[0m\n", account_id.c_str(), srtpEnable);
+    }
     int keyExchange = Manager::instance().getConfigInt(account_id, SRTP_KEY_EXCHANGE);
     
     try {
@@ -81,7 +91,7 @@ AudioRtp::createNewSession (SIPCall *ca) {
             _debug("Starting in zrtp mode\n");
         } else {
             _RTXThread = new AudioRtpRTX (ca, _symmetric, false);
-            _debug("Starting in unencrypted rtp mode\n");
+            _debug("Starting unencrypted rtp session\n");
         }
         
         if (_RTXThread->start() != 0) {
@@ -484,7 +494,7 @@ AudioRtpRTX::send(uint32 timestamp, const unsigned char *micDataEncoded, size_t 
         if(!_zrtp) {    
             _session->sendImmediate(timestamp, micDataEncoded, compSize);
         } else {
-            _zsession->sendImmediate(timestamp, micDataEncoded, compSize);
+            _zsession->putData(timestamp, micDataEncoded, compSize);
         }
     }
 }
