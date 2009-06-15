@@ -1308,7 +1308,7 @@ bool SIPVoIPLink::new_ip_to_ip_call ( const CallID& id, const std::string& to )
 
 	/* Create the call */
 	call = new SIPCall ( id, Call::Outgoing, _pool );
-
+    _debug("creating new ip_to_ip call\n");
 	if ( call )
 	{
 
@@ -1330,6 +1330,13 @@ bool SIPVoIPLink::new_ip_to_ip_call ( const CallID& id, const std::string& to )
 
 		// Building the local SDP offer
 		call->getLocalSDP()->set_ip_address ( getLocalIP() );
+		
+	    try {
+             _audiortp->createNewSession (call);
+        } catch (...) {
+	    	_debug ( "! SIP Failure: Unable to create RTP Session  in SIPVoIPLink::new_ip_to_ip_call (%s:%d)\n", __FILE__, __LINE__ );
+        }
+    
 		call->getLocalSDP()->create_initial_offer();
 
 		// Generate the contact URI
@@ -2037,7 +2044,7 @@ void call_on_state_changed ( pjsip_inv_session *inv, pjsip_event *e )
 					break;
 
 				default:
-					_debug ( "sipvoiplink.cpp - line 1635 : Unhandled call state. This is probably a bug.\n" );
+					_debug ( "%s - line %d : Unhandled call state. This is probably a bug.\n",__FILE__, __LINE__ );
 					break;
 			}
 		}
