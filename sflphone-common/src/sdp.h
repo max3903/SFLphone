@@ -189,7 +189,7 @@ class Sdp {
          * have to set the correct zrtp-hash value in the corresponding media section.
          * @param hash The hello hash of a rtp session. (Only audio at the moment)
          */
-        void set_zrtp_hash(std::string hash) { _zrtp_audio_rtp_hash = hash; }
+        void set_zrtp_hash(std::string hash) { _zrtp_audio_rtp_hash = hash; _debug("Zrtp hash set with %s\n", hash.c_str()); }
 
         /** 
          * Return audio port at destination [mutex protected] 
@@ -313,10 +313,10 @@ class Sdp {
         void sdp_add_attributes( );
 
         /** 
-         * Adds a new sdp attribute with given name and value to a media section
+         * Adds a new zrtp-hash attribute to the given media section
          *
          */
-        void sdp_add_new_attribute_to_media(pjmedia_sdp_media* media, std::string name, std::string value);
+        void sdp_add_zrtp_attribute(pjmedia_sdp_media* media, std::string hash);
         
         /*
          * Mandatory field: Media descriptions ("m=")

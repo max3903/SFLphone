@@ -82,7 +82,7 @@ void Sdp::set_media_descriptor_line( sdpMedia *media, pjmedia_sdp_media** p_med 
     for(i=0; i<count; i++){
         codec = media->get_media_codec_list()[i];
         tmp = this->convert_int_to_string (codec->getPayload ()); 
-        _debug ("%s\n", tmp.c_str());
+        _debug ("Payload %s\n", tmp.c_str());
         pj_strdup2( _pool, &med->desc.fmt[i], tmp.c_str());
 
         // Add a rtpmap field for each codec
@@ -108,14 +108,14 @@ void Sdp::set_media_descriptor_line( sdpMedia *media, pjmedia_sdp_media** p_med 
 
     // Add security attributes (zrtp, sdes, ... , mutually exclusive)
     if(!_zrtp_audio_rtp_hash.empty()) {
-        std::string value;
-        value = std::string(":") + ZRTP_VERSION + std::string(" ") + _zrtp_audio_rtp_hash;
         try {
-           sdp_add_new_attribute_to_media(med, std::string("zrtp-hash"), value); 
+            sdp_add_zrtp_attribute(med,_zrtp_audio_rtp_hash);
         } catch (...) {
           throw;
         }
-    }
+    } else { _debug("No hash specified\n"); }
+    //_debug("Number attributes %d\n", med->attr_count);
+    //_debug("Last attribute %s %s\n", med->attr[med->attr_count]->name.ptr, med->attr[med->attr_count]->value.ptr );
     *p_med = med;
 }
 
@@ -140,7 +140,7 @@ int Sdp::create_local_offer (){
     sdp_add_timing();
     sdp_add_media_description( );
 
-    //toString ();
+    toString ();
 
     // Validate the sdp session
     status = pjmedia_sdp_validate( this->_local_offer );
@@ -247,28 +247,32 @@ void Sdp::sdp_add_attributes( ){
     _local_offer->attr[0] = a;
 }
 
-void Sdp::sdp_add_new_attribute_to_media(pjmedia_sdp_media* media, std::string name, std::string value) 
+void Sdp::sdp_add_zrtp_attribute(pjmedia_sdp_media* media, std::string hash) 
 {
-    pj_str_t attributeStringName;
-    attributeStringName.ptr = const_cast<char *> (name.c_str());
-    attributeStringName.slen = name.length();
+    pjmedia_sdp_attr *attribute;    
+    char tempbuf[256];
+    int len;
+        
+    attribute = (pjmedia_sdp_attr*)pj_pool_zalloc( _pool, sizeof(pjmedia_sdp_attr) );
+
+    attribute->name.ptr = "zrtp-hash";
+    attribute->name.slen = 9;
+
+    /* Format: ":version value" */
+    len = pj_ansi_snprintf(tempbuf, sizeof(tempbuf),
+                            "%.*s %.*s",
+                            4,
+                            ZRTP_VERSION,
+                            hash.size(),
+                            hash.c_str());
+
+    attribute->value.slen = len;
+    attribute->value.ptr = (char*) pj_pool_alloc(_pool, attribute->value.slen+1);
+    pj_memcpy(attribute->value.ptr, tempbuf, attribute->value.slen+1);
     
-    pj_str_t attributeStringValue;
-    attributeStringValue.ptr = const_cast<char *> (value.c_str());
-    attributeStringValue.slen = value.length();
-    
-    pjmedia_sdp_attr *attribute;
-    attribute = PJ_POOL_ZALLOC_T(_pool, pjmedia_sdp_attr);
-    attribute->name = attributeStringName;
-    attribute->value = attributeStringValue;
-    
-    unsigned& numberAttributes = media->attr_count;
-    if(numberAttributes == PJMEDIA_MAX_SDP_ATTR - 1) {
-        _debug("Cannot add any more attribute to SDP session\n");
+    if(pjmedia_sdp_media_add_attr(media, attribute) != PJ_SUCCESS) {
         throw sdpException();
     }
-    numberAttributes += 1;
-    media->attr[numberAttributes] = attribute;
 }
 
 void Sdp::sdp_add_media_description( ){
@@ -347,7 +351,7 @@ AudioCodec* Sdp::get_session_media( void ){
     AudioCodec *codec = NULL;
     std::vector<sdpMedia*> media_list;
 
-    _debug ("sdp line 314 - get_session_media ()\n");
+    _debug ("sdp line %d in %s - get_session_media ()\n", __LINE__, __FILE__);
 
     media_list = get_session_media_list ();
     nb_media = media_list.size();
