@@ -41,7 +41,7 @@ class SIPCall : public Call
      * @param type  The type of the call. Could be Incoming
      *						 Outgoing
      */
-    SIPCall(const CallID& id, Call::CallType type, pj_pool_t *pool );
+    SIPCall(const CallID& id, Call::CallType type, pj_pool_t *pool);
 
     /**
      * Destructor

@@ -22,6 +22,7 @@
 #include "global.h"
 #include "manager.h"
 #include <pjmedia/sdp.h>
+#define ZRTP_VERSION "1.10"
 
 static const pj_str_t STR_AUDIO = { (char*)"audio", 5};
 static const pj_str_t STR_VIDEO = { (char*)"video", 5};
@@ -33,7 +34,7 @@ static const pj_str_t STR_SDP_NAME = { (char*)"sflphone", 8 };
 static const pj_str_t STR_SENDRECV = { (char*)"sendrecv", 8 };
 
 
-Sdp::Sdp( pj_pool_t *pool ) 
+Sdp::Sdp( pj_pool_t *pool) 
     : _local_media_cap(), _session_media(0),  _ip_addr( "" ), _local_offer( NULL ), _negociated_offer(NULL), _negociator(NULL), _pool(NULL), _local_extern_audio_port(0) 
 {
     _pool = pool;
@@ -105,6 +106,16 @@ void Sdp::set_media_descriptor_line( sdpMedia *media, pjmedia_sdp_media** p_med 
     pj_strdup2( _pool, &attr->name, media->get_stream_direction_str().c_str());
     med->attr[ med->attr_count++] = attr;
 
+    // Add security attributes (zrtp, sdes, ... , mutually exclusive)
+    if(!_zrtp_audio_rtp_hash.empty()) {
+        std::string value;
+        value = std::string(":") + ZRTP_VERSION + std::string(" ") + _zrtp_audio_rtp_hash;
+        try {
+           sdp_add_new_attribute_to_media(med, std::string("zrtp-hash"), value); 
+        } catch (...) {
+          throw;
+        }
+    }
     *p_med = med;
 }
 
@@ -236,7 +247,7 @@ void Sdp::sdp_add_attributes( ){
     _local_offer->attr[0] = a;
 }
 
-void Sdp::sdp_add_new_attribute(std::string& name, std::string& value) 
+void Sdp::sdp_add_new_attribute_to_media(pjmedia_sdp_media* media, std::string name, std::string value) 
 {
     pj_str_t attributeStringName;
     attributeStringName.ptr = const_cast<char *> (name.c_str());
@@ -251,13 +262,13 @@ void Sdp::sdp_add_new_attribute(std::string& name, std::string& value)
     attribute->name = attributeStringName;
     attribute->value = attributeStringValue;
     
-    unsigned& numberAttributes = this->_local_offer->attr_count;
+    unsigned& numberAttributes = media->attr_count;
     if(numberAttributes == PJMEDIA_MAX_SDP_ATTR - 1) {
         _debug("Cannot add any more attribute to SDP session\n");
         throw sdpException();
     }
     numberAttributes += 1;
-    _local_offer->attr[numberAttributes] = attribute;
+    media->attr[numberAttributes] = attribute;
 }
 
 void Sdp::sdp_add_media_description( ){

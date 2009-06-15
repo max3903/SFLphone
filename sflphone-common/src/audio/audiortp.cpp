@@ -54,7 +54,7 @@ AudioRtp::~AudioRtp (void) {
     delete _RTXThread; _RTXThread = 0;
 }
 
-int 
+void
 AudioRtp::createNewSession (SIPCall *ca) {
 
     ost::MutexLock m(_threadMutex);
@@ -94,6 +94,21 @@ AudioRtp::createNewSession (SIPCall *ca) {
             _debug("Starting unencrypted rtp session\n");
         }
         
+    } catch(...) {
+        _debugException("! ARTP Failure: when trying to create AudioRtpRTX thread");
+        throw;
+    }
+}
+
+int
+AudioRtp::start(void)
+{
+    if(_RTXThread == 0) {
+        _debug("! ARTP Failure: Cannot start audiortp thread since not yet created\n");
+        throw AudioRtpException();
+    }
+    
+    try {
         if (_RTXThread->start() != 0) {
             _debug("! ARTP Failure: unable to start RTX Thread\n");
             return -1;
@@ -102,10 +117,7 @@ AudioRtp::createNewSession (SIPCall *ca) {
         _debugException("! ARTP Failure: when trying to start a thread");
         throw;
     }
-
-    return 0;
 }
-
 
 bool
 AudioRtp::closeRtpSession () {
@@ -145,6 +157,7 @@ AudioRtpRTX::AudioRtpRTX (SIPCall *sipcall, bool sym, bool zrtp) : time(new ost:
     // AudioRtpRTX should be close if we change sample rate
     // TODO: Change bind address according to user settings.
     // TODO: this should be the local ip not the external (router) IP
+
     std::string localipConfig = _ca->getLocalIp(); // _ca->getLocalIp();
     ost::InetHostAddress local_ip(localipConfig.c_str());
     if (!_sym) {
@@ -153,7 +166,7 @@ AudioRtpRTX::AudioRtpRTX (SIPCall *sipcall, bool sym, bool zrtp) : time(new ost:
         _session = NULL;
         _zsession = NULL;
     } else {
-        _debug ("%i\n", _ca->getLocalAudioPort());
+        _debug ("Local audio port: %i\n", _ca->getLocalAudioPort());
         if(!_zrtp) {
             _session = new ost::SymmetricRTPSession (local_ip, _ca->getLocalAudioPort());
             _zsession = NULL;
@@ -229,8 +242,6 @@ AudioRtpRTX::~AudioRtpRTX () {
     delete converter; converter = NULL;
 
 }
-
-
 
     void
 AudioRtpRTX::initBuffers()
@@ -447,7 +458,8 @@ AudioRtpRTX::initAudioRtpSession (void)
                     }
                 }  
                 
-                _zsession->startZrtp();         
+                _zsession->startZrtp(); 
+                _ca->getLocalSDP()->set_zrtp_hash(_zsession->getHelloHash());
             }
         }
 
