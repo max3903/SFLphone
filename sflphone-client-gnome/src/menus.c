@@ -426,7 +426,7 @@ edit_copy ( void * foo UNUSED)
                 no = selectedCall->_peer_number;
                 break;
         }
-
+	DEBUG("Clipboard number: %s\n", no);
         gtk_clipboard_set_text (clip, no, strlen(no) );
     }
 
@@ -448,15 +448,14 @@ edit_paste ( void * foo UNUSED)
             case CALL_STATE_DIALING:
                 // Add the text to the number
                 {
-                    gchar * before = selectedCall->_peer_number;
-                    selectedCall->_peer_number = g_strconcat(selectedCall->_peer_number, no, NULL);
-                    g_free(before);
-                    DEBUG("TO: %s", selectedCall->_peer_number);
+		    gchar * before;
+		    before = selectedCall->_peer_number;
+		    DEBUG("TO: %s\n", before);
+                    selectedCall->_peer_number = g_strconcat(before, no, NULL);
 
                     if(selectedCall->_state == CALL_STATE_DIALING)
                     {
-                        g_free(selectedCall->_peer_number);
-                        selectedCall->_peer_info = g_strconcat("\"\" <", selectedCall->_peer_number, ">", NULL);
+                        selectedCall->_peer_info = g_strconcat("\"\" <", selectedCall->_peer_number, ">", NULL);	        		
                     }
                     calltree_update_call(current_calls, selectedCall);
                 }
@@ -471,10 +470,8 @@ edit_paste ( void * foo UNUSED)
 
                     gchar * before = selectedCall->_peer_number;
                     selectedCall->_peer_number = g_strconcat(selectedCall->_peer_number, no, NULL);
-                    g_free(before);
                     DEBUG("TO: %s", selectedCall->_peer_number);
 
-                    g_free(selectedCall->_peer_info);
                     selectedCall->_peer_info = g_strconcat("\"\" <", selectedCall->_peer_number, ">", NULL);
 
                     calltree_update_call(current_calls, selectedCall);
@@ -492,7 +489,7 @@ edit_paste ( void * foo UNUSED)
 
                         gchar * temp = g_strconcat(selectedCall->_peer_number, oneNo, NULL);
                         selectedCall->_peer_info = get_peer_info (temp, selectedCall->_peer_name);
-                        g_free(temp);
+                        // g_free(temp);
                         calltree_update_call(current_calls, selectedCall);
 
                     }
@@ -552,7 +549,7 @@ create_edit_menu()
     menu_items = gtk_separator_menu_item_new ();
     gtk_menu_shell_append (GTK_MENU_SHELL (menu), menu_items);
 
-    menu_items = gtk_image_menu_item_new_with_mnemonic(_("_Clear history"));
+    menu_items = gtk_image_menu_item_new_with_mnemonic(_("Clear _history"));
     image = gtk_image_new_from_stock( GTK_STOCK_CLEAR , GTK_ICON_SIZE_MENU );
     gtk_image_menu_item_set_image( GTK_IMAGE_MENU_ITEM ( menu_items ), image );
     gtk_menu_shell_append (GTK_MENU_SHELL (menu), menu_items);
@@ -571,7 +568,7 @@ create_edit_menu()
             NULL);
     gtk_widget_show (menu_items);
 
-    menu_items = gtk_image_menu_item_new_from_stock( GTK_STOCK_PREFERENCES, get_accel_group());
+    menu_items = gtk_image_menu_item_new_from_stock( GTK_STOCK_PREFERENCES, NULL);
     gtk_menu_shell_append (GTK_MENU_SHELL (menu), menu_items);
     g_signal_connect_swapped (G_OBJECT (menu_items), "activate",
             G_CALLBACK (edit_preferences),

@@ -165,6 +165,7 @@ call_state_cb (DBusGProxy *proxy UNUSED,
         {
             callable_obj_t *new_call;
             GHashTable *call_details;
+            gchar *type;
 
             DEBUG ("New ringing call! accountID: %s", callID);
 
@@ -174,8 +175,26 @@ call_state_cb (DBusGProxy *proxy UNUSED,
 
             // Restore the callID to be synchronous with the daemon
             new_call->_callID = g_strdup(callID);
+            type = g_hash_table_lookup (call_details, "CALL_TYPE");
 
-            sflphone_incoming_call (new_call);
+            if (g_strcasecmp (type, "0") == 0)
+            {
+                g_print ("incoming\n");
+                new_call->_history_state = INCOMING;
+            }
+            else
+            {
+                g_print ("outgoing\n");
+                new_call->_history_state = OUTGOING;
+            }
+
+            calllist_add (current_calls, new_call);
+            calllist_add (history, new_call);
+            calltree_add_call (current_calls, new_call);
+            update_menus ();
+            calltree_display (current_calls);
+
+            //sflphone_incoming_call (new_call);
         }
     }
 }
@@ -200,7 +219,7 @@ transfer_succeded_cb (DBusGProxy *proxy UNUSED,
         void * foo  UNUSED )
 {
     DEBUG ("Transfer succeded\n");
-    sflphone_display_transfer_status("Transfer successfull\n");
+    sflphone_display_transfer_status("Transfer successfull");
 }
 
 
@@ -209,7 +228,7 @@ transfer_failed_cb (DBusGProxy *proxy UNUSED,
         void * foo  UNUSED )
 {
     DEBUG ("Transfer failed\n");
-    sflphone_display_transfer_status("Transfer failed\n");
+    sflphone_display_transfer_status("Transfer failed");
 }
 
 
@@ -425,7 +444,7 @@ dbus_hang_up (const callable_obj_t * c)
 dbus_transfert (const callable_obj_t * c)
 {
     GError *error = NULL;
-    org_sflphone_SFLphone_CallManager_transfert ( callManagerProxy, c->_callID, c->_peer_number, &error);
+    org_sflphone_SFLphone_CallManager_transfert ( callManagerProxy, c->_callID, c->_trsft_to, &error);
     if (error)
     {
         ERROR ("Failed to call transfert() on CallManager: %s",
@@ -1263,13 +1282,12 @@ dbus_get_record_path(void)
     return path;
 }
 
-    void
-dbus_set_max_calls( const guint calls  )
+void dbus_set_history_limit (const guint days)
 {
     GError* error = NULL;
-    org_sflphone_SFLphone_ConfigurationManager_set_max_calls(
+    org_sflphone_SFLphone_ConfigurationManager_set_history_limit(
             configurationManagerProxy,
-            calls,
+            days,
             &error);
     if(error)
     {
@@ -1277,20 +1295,48 @@ dbus_set_max_calls( const guint calls  )
     }
 }
 
-    guint
-dbus_get_max_calls( void )
+void dbus_set_history_enabled ()
 {
     GError* error = NULL;
-    gint calls;
-    org_sflphone_SFLphone_ConfigurationManager_get_max_calls(
+    org_sflphone_SFLphone_ConfigurationManager_set_history_enabled(
             configurationManagerProxy,
-            &calls,
             &error);
     if(error)
     {
         g_error_free(error);
     }
-    return (guint)calls;
+}
+
+int dbus_get_history_enabled ()
+{
+    int state; 
+    GError* error = NULL;
+    org_sflphone_SFLphone_ConfigurationManager_get_history_enabled(
+            configurationManagerProxy,
+            &state,
+            &error);
+    if(error)
+    {
+        g_error_free(error);
+    }
+    return state;
+}
+
+
+
+guint dbus_get_history_limit (void)
+{
+    GError* error = NULL;
+    gint days=30;
+    org_sflphone_SFLphone_ConfigurationManager_get_history_limit(
+            configurationManagerProxy,
+            &days,
+            &error);
+    if(error)
+    {
+        g_error_free(error);
+    }
+    return (guint)days;
 }
 
     void

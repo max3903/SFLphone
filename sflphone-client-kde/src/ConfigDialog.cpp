@@ -70,17 +70,17 @@ ConfigurationDialog::ConfigurationDialog(sflphone_kdeView *parent) : QDialog(par
 	connect(&configurationManager, SIGNAL(accountsChanged()),
 	        this,                  SLOT(on1_accountsChanged()));
 	
-	connect(edit1_alias,           SIGNAL(textChanged(const QString &)),
+	connect(edit1_alias,           SIGNAL(textEdited(const QString &)),
 	        this,                  SLOT(changedAccountList()));
 	connect(edit2_protocol,        SIGNAL(currentIndexChanged(int)),
 	        this,                  SLOT(changedAccountList()));
-	connect(edit3_server,          SIGNAL(textChanged(const QString &)),
+	connect(edit3_server,          SIGNAL(textEdited(const QString &)),
 	        this,                  SLOT(changedAccountList()));
-	connect(edit4_user,            SIGNAL(textChanged(const QString &)),
+	connect(edit4_user,            SIGNAL(textEdited(const QString &)),
 	        this,                  SLOT(changedAccountList()));
-	connect(edit5_password,        SIGNAL(textChanged(const QString &)),
+	connect(edit5_password,        SIGNAL(textEdited(const QString &)),
 	        this,                  SLOT(changedAccountList()));
-	connect(edit6_mailbox,         SIGNAL(textChanged(const QString &)),
+	connect(edit6_mailbox,         SIGNAL(textEdited(const QString &)),
 	        this,                  SLOT(changedAccountList()));
 	connect(button_accountUp,      SIGNAL(clicked()),
 	        this,                  SLOT(changedAccountList()));
@@ -496,18 +496,27 @@ void ConfigurationDialog::loadCodecs()
 	ConfigurationManagerInterface & configurationManager = ConfigurationManagerInterfaceSingleton::getInstance();
 	QStringList codecList = configurationManager.getCodecList();
 	QStringList activeCodecList = configurationManager.getActiveCodecList();
-	qDebug() << codecList;
-	qDebug() << activeCodecList;
+	QStringList codecListToDisplay = configurationManager.getActiveCodecList();
+	for (int i=0 ; i<codecList.size() ; i++)
+	{
+		if(! activeCodecList.contains(codecList[i]))
+		{
+			codecListToDisplay << codecList[i];
+		}
+	}
+	qDebug() << "codecList = " << codecList;
+	qDebug() << "activeCodecList" << activeCodecList;
+	qDebug() << "codecListToDisplay" << codecListToDisplay;
 	tableWidget_codecs->setRowCount(0);
 	codecPayloads->clear();
-	for(int i=0 ; i<codecList.size() ; i++)
+	for(int i=0 ; i<codecListToDisplay.size() ; i++)
 	{
 		bool ok;
-		qDebug() << codecList[i];
-		QString payloadStr = QString(codecList[i]);
+		qDebug() << codecListToDisplay[i];
+		QString payloadStr = QString(codecListToDisplay[i]);
 		int payload = payloadStr.toInt(&ok);
 		if(!ok)	
-			qDebug() << "The codec's payload sent by the configurationManager is not a number : " << codecList[i];
+			qDebug() << "The codec's payload sent by the configurationManager is not a number : " << codecListToDisplay[i];
 		else
 		{
 			QStringList details = configurationManager.getCodecDetails(payload);
@@ -674,7 +683,7 @@ void ConfigurationDialog::on_button_accountUp_clicked()
 	listWidget_accountList->insertItem(currentRow - 1 , item);
 	listWidget_accountList->setItemWidget(item, widget);
 	listWidget_accountList->setCurrentItem(item);
-	changedAccountList();
+// 	changedAccountList();
 }
 
 void ConfigurationDialog::on_button_accountDown_clicked()
@@ -691,7 +700,7 @@ void ConfigurationDialog::on_button_accountDown_clicked()
 	listWidget_accountList->insertItem(currentRow + 1 , item);
 	listWidget_accountList->setItemWidget(item, widget);
 	listWidget_accountList->setCurrentItem(item);
-	changedAccountList();
+// 	changedAccountList();
 }
 
 void ConfigurationDialog::on_button_accountAdd_clicked()
@@ -706,7 +715,7 @@ void ConfigurationDialog::on_button_accountAdd_clicked()
 		listWidget_accountList->setCurrentRow(r);
 		frame2_editAccounts->setEnabled(true);
 	}
-	changedAccountList();
+// 	changedAccountList();
 }
 
 void ConfigurationDialog::on_button_accountRemove_clicked()
@@ -716,7 +725,7 @@ void ConfigurationDialog::on_button_accountRemove_clicked()
 	QListWidgetItem * item = listWidget_accountList->takeItem(r);
 	accountList->removeAccount(item);
 	listWidget_accountList->setCurrentRow( (r >= listWidget_accountList->count()) ? r-1 : r );
-	changedAccountList();
+// 	changedAccountList();
 }
 
 void ConfigurationDialog::on_toolButton_accountsApply_clicked()
@@ -782,10 +791,10 @@ void ConfigurationDialog::on1_accountsChanged()
 // 	loadAccountList();
 // 	connect(&configurationManager, SIGNAL(accountsChanged()),
 // 	        this,                  SLOT(on1_accountsChanged()));
-	if(isVisible() && accountsChangedEnableWarning)
-	{
-		errorWindow->showMessage(tr2i18n("Accounts changed : another client may be changing accounts or an account is unstable. \nIf another client is changing the settings, you may cancel your changes to avoid overwriting one's changes."));
-	}
+// 	if(isVisible() && accountsChangedEnableWarning)
+// 	{
+// 		errorWindow->showMessage(tr2i18n("Accounts changed : another client may be changing accounts or an account is unstable. \nIf another client is changing the settings, you may cancel your changes to avoid overwriting one's changes."));
+// 	}
 	if(! isVisible())
 	{
 		loadAccountList();

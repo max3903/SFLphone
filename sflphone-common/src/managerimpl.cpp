@@ -143,11 +143,11 @@ ManagerImpl::init()
     }
 
     if (audiolayer == 0)
-      audiolayer->stopStream();
+        audiolayer->stopStream();
 
 
     // Load the history
-    _history->load_history ();
+    _history->load_history (getConfigInt (PREFERENCES, CONFIG_HISTORY_LIMIT));
 }
 
 void ManagerImpl::terminate()
@@ -326,7 +326,14 @@ ManagerImpl::hangupCall(const CallID& id)
 
     _debug("Stop audio stream\n");
     audiolayer = getAudioDriver();
-    audiolayer->stopStream();
+
+    int nbCalls = getCallList().size();
+
+    _debug("nbCalls %i \n", nbCalls);
+
+    // stop stream 
+    if (!(nbCalls > 1))
+        audiolayer->stopStream();
 
     /* Direct IP to IP call */
     if (getConfigFromCall (id) == Call::IPtoIP) {
@@ -1096,11 +1103,12 @@ void ManagerImpl::stopTone (bool stopAudio=true)
     hasToPlayTone = getConfigInt(SIGNALISATION, PLAY_TONES);
     if (!hasToPlayTone)
         return;
-
-    if (stopAudio) {
-        audiolayer = getAudioDriver();
-        if (audiolayer) audiolayer->stopStream();
-    }
+    
+    // if (stopAudio) {
+    //    audiolayer = getAudioDriver();
+    //    if (audiolayer) audiolayer->stopStream();
+    // }
+    
 
     _toneMutex.enterMutex();
     if (_telephoneTone != 0) {
@@ -1378,7 +1386,8 @@ ManagerImpl::initConfigFile (bool load_user_value, std::string alternate)
   fill_config_int(CONFIG_NOTIFY , YES_STR);
   fill_config_int(CONFIG_MAIL_NOTIFY , NO_STR);
   fill_config_int(CONFIG_VOLUME , YES_STR);
-  fill_config_int(CONFIG_HISTORY , DFT_MAX_CALLS);
+  fill_config_int(CONFIG_HISTORY_LIMIT, DFT_HISTORY_LIMIT);
+  fill_config_int(CONFIG_HISTORY_ENABLED, YES_STR);
   fill_config_int(REGISTRATION_EXPIRE , DFT_EXPIRE_VALUE);
   fill_config_int(CONFIG_AUDIO , DFT_AUDIO_MANAGER);
   fill_config_int(CONFIG_PA_VOLUME_CTRL , YES_STR);
@@ -1873,17 +1882,24 @@ ManagerImpl::switchPopupMode( void )
   ( getConfigInt( PREFERENCES , CONFIG_POPUP ) ==  WINDOW_POPUP)? setConfig(PREFERENCES , CONFIG_POPUP , NO_STR ) : setConfig( PREFERENCES , CONFIG_POPUP , YES_STR );
 }
 
-void
-ManagerImpl::setMaxCalls( const int& calls )
+void ManagerImpl::setHistoryLimit (const int& days)
 {
-  setConfig( PREFERENCES , CONFIG_HISTORY , calls );
+    setConfig (PREFERENCES, CONFIG_HISTORY_LIMIT, days);
 }
 
-int
-ManagerImpl::getMaxCalls( void )
+int ManagerImpl::getHistoryLimit (void)
 {
-  _debug("Max calls =  %i\n" , getConfigInt( PREFERENCES , CONFIG_HISTORY ));
-  return getConfigInt( PREFERENCES , CONFIG_HISTORY );
+    return getConfigInt (PREFERENCES , CONFIG_HISTORY_LIMIT);
+}
+
+int ManagerImpl::getHistoryEnabled (void)
+{
+    return getConfigInt (PREFERENCES, CONFIG_HISTORY_ENABLED);
+}
+
+void ManagerImpl::setHistoryEnabled (void)
+{
+  ( getConfigInt (PREFERENCES, CONFIG_HISTORY_ENABLED) == 1) ? setConfig (PREFERENCES, CONFIG_HISTORY_ENABLED, NO_STR) : setConfig(PREFERENCES, CONFIG_HISTORY_ENABLED, YES_STR);
 }
 
 int
@@ -2990,6 +3006,8 @@ std::map< std::string, std::string > ManagerImpl::getCallDetails(const CallID& c
     Account *account;
     VoIPLink *link;
     Call *call;
+    std::stringstream type;
+
 
     // We need here to retrieve the call information attached to the call ID
     // To achieve that, we need to get the voip link attached to the call
@@ -3010,10 +3028,13 @@ std::map< std::string, std::string > ManagerImpl::getCallDetails(const CallID& c
 
     if (call) 
     {
+        type << call->getCallType () << std::endl;
+
         call_details.insert (std::pair<std::string, std::string> ("ACCOUNTID", accountid));
         call_details.insert (std::pair<std::string, std::string> ("PEER_NUMBER", call->getPeerNumber ()));
         call_details.insert (std::pair<std::string, std::string> ("PEER_NAME", call->getPeerName ()));
         call_details.insert (std::pair<std::string, std::string> ("CALL_STATE", call->getStateStr (call->getState())));
+        call_details.insert (std::pair<std::string, std::string> ("CALL_TYPE", type.str ()));
     }
     else 
     {
@@ -3022,6 +3043,7 @@ std::map< std::string, std::string > ManagerImpl::getCallDetails(const CallID& c
         call_details.insert (std::pair<std::string, std::string> ("PEER_NUMBER", "Unknown"));
         call_details.insert (std::pair<std::string, std::string> ("PEER_NAME", "Unknown"));
         call_details.insert (std::pair<std::string, std::string> ("CALL_STATE", "FAILURE"));
+        call_details.insert (std::pair<std::string, std::string> ("CALL_TYPE", "0"));
     }
 
     return call_details;
@@ -3035,7 +3057,7 @@ std::map<std::string, std::string> ManagerImpl::send_history_to_client (void)
     
 void ManagerImpl::receive_history_from_client (std::map<std::string, std::string> history)
 {
-    _history->set_serialized_history (history);
+    _history->set_serialized_history (history, Manager::instance().getConfigInt (PREFERENCES, CONFIG_HISTORY_LIMIT));
     _history->save_history ();
 }
 

@@ -147,7 +147,6 @@ void sflphone_kdeView::loadWindow()
 	updateVolumeControls();
 	updateDialpad();
 	updateSearchHistory();
-	updateSearchAddressBook();
 }
 
 QString sflphone_kdeView::firstAccountId()
@@ -380,7 +379,10 @@ void sflphone_kdeView::enter()
 			stackedWidget_screen->setCurrentWidget(page_callList);
 			
 			Call * pastCall = callList->findCallByHistoryItem(item);
-			if (!pastCall) qDebug() << "pastCall null";
+			if (!pastCall)
+			{
+				qDebug() << "pastCall null";
+			}
 			Call * call = callList->addDialingCall(pastCall->getPeerName(), pastCall->getAccountId());
 			call->appendItemText(pastCall->getPeerPhoneNumber());
 			addCallToCallList(call);
@@ -458,7 +460,7 @@ void sflphone_kdeView::updateWindowCallState()
 	bool recordActivated = false;
 	//tells whether the call can be recorded in the state it is right now
 	bool recordEnabled = false;
-	enabledActions[5] = ! firstRegisteredAccount()->getAccountDetail(ACCOUNT_MAILBOX).isEmpty();
+	enabledActions[5] = firstRegisteredAccount() && ! firstRegisteredAccount()->getAccountDetail(ACCOUNT_MAILBOX).isEmpty();
 	if(stackedWidget_screen->currentWidget() == page_callList)
 	{
 		item = listWidget_callList->currentItem();
@@ -631,11 +633,6 @@ void sflphone_kdeView::updateSearchHistory()
 	lineEdit_searchHistory->setVisible(!lineEdit_searchHistory->text().isEmpty());
 }
 
-void sflphone_kdeView::updateSearchAddressBook()
-{
-	qDebug() << "updateAddressBookSearch";
-	lineEdit_addressBook->setVisible(!lineEdit_addressBook->text().isEmpty());
-}
 
 void sflphone_kdeView::updateCallHistory()
 {
@@ -909,7 +906,6 @@ void sflphone_kdeView::on_lineEdit_searchHistory_textChanged()
 void sflphone_kdeView::on_lineEdit_addressBook_textChanged()
 {
 	qDebug() << "on_lineEdit_addressBook_textEdited";
-	updateSearchAddressBook();
 	updateAddressBook();
 	updateWindowCallState();
 }
@@ -1049,17 +1045,17 @@ void sflphone_kdeView::on_stackedWidget_screen_currentChanged(int index)
 	{
 		case 0:
 			qDebug() << "Switched to call list screen.";
-			window->setWindowTitle("SFLPhone - Main screen");
+			window->setWindowTitle(tr2i18n("SFLPhone") + " - " + tr2i18n("Main screen"));
 			break;
 		case 1:
 			qDebug() << "Switched to call history screen.";
 			updateCallHistory();
-			window->setWindowTitle("SFLPhone - Call history");
+			window->setWindowTitle(tr2i18n("SFLPhone") + " - " + tr2i18n("Call history"));
 			break;
 		case 2:
 			qDebug() << "Switched to address book screen.";
 			updateAddressBook();
-			window->setWindowTitle("SFLPhone - Address book");
+			window->setWindowTitle(tr2i18n("SFLPhone") + " - " + tr2i18n("Address book"));
 			break;
 		default:
 			qDebug() << "Error : reached an unknown index \"" << index << "\" with stackedWidget_screen.";
@@ -1073,7 +1069,7 @@ void sflphone_kdeView::contextMenuEvent(QContextMenuEvent *event)
 	if(stackedWidget_screen->currentWidget() == page_callHistory || stackedWidget_screen->currentWidget() == page_addressBook)
 	{
 		QAction * action_edit = new QAction(&menu);
-		action_edit->setText(tr2i18n("Edit before call", 0));
+		action_edit->setText(tr2i18n("Edit before call"));
 		connect(action_edit, SIGNAL(triggered()),
 		        this  , SLOT(editBeforeCall()));
 		menu.addAction(action_edit);
@@ -1129,7 +1125,7 @@ void sflphone_kdeView::editBeforeCall()
 			number = w->getContactNumber();
 		}
 	}
-	QString newNumber = QInputDialog::getText(this, tr2i18n("Edit before call", 0), QString(), QLineEdit::Normal, number);
+	QString newNumber = QInputDialog::getText(this, tr2i18n("Edit before call"), QString(), QLineEdit::Normal, number);
 	
 	action_history->setChecked(false);
 	action_addressBook->setChecked(false);
@@ -1328,9 +1324,10 @@ void sflphone_kdeView::on_action_addressBook_triggered(bool checked)
 {
 	if(checked == true)
 	{
-	
 		action_history->setChecked(false);
 		stackedWidget_screen->setCurrentWidget(page_addressBook);
+		if(lineEdit_addressBook->text().isEmpty())
+		{	lineEdit_addressBook->setFocus(Qt::OtherFocusReason);	}
 	}
 	else
 	{

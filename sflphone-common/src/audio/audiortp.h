@@ -83,7 +83,7 @@ class AudioRtpRTX : public ost::Thread, public ost::TimerPort {
     // AudioRecord recAudio;
 
     /** A SIP call */
-    SIPCall* _ca;    
+    SIPCall* _ca;
 
     
     friend class RtpTest;
@@ -291,6 +291,8 @@ class AudioRtp {
      * Returns a pointer to the current RTP session.
      */
     AudioRtpRTX* getCurrentRTPSession(void) { return _RTXThread; }
+
+    friend class RtpTest; 
 
   private:
     // copy constructor

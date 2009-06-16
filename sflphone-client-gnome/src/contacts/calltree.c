@@ -24,7 +24,7 @@
 #include <calllist.h>
 #include <toolbar.h>
 #include <mainwindow.h>
-
+#include <history.h>
 
 GtkWidget *sw;
 GtkCellRenderer *rend;
@@ -170,7 +170,7 @@ focus_on_calltree_in(){
 }
 
     void
-calltree_create (calltab_t* tab, gchar* searchbar_type)
+calltree_create (calltab_t* tab, gboolean searchbar_type)
 {
     // GtkWidget *sw;
     // GtkCellRenderer *rend;
@@ -246,19 +246,13 @@ calltree_create (calltab_t* tab, gchar* searchbar_type)
 
     gtk_box_pack_start(GTK_BOX(tab->tree), sw, TRUE, TRUE, 0);
 
-    // no search bar if tab is either "history" or "addressbook"
+    // search bar if tab is either "history" or "addressbook"
     if(searchbar_type){
-        calltab_create_searchbar(tab,searchbar_type);
+        calltab_create_searchbar (tab);
         gtk_box_pack_start(GTK_BOX(tab->tree), tab->searchbar, FALSE, TRUE, 0);
     }
 
     gtk_widget_show(tab->tree);
-
-
-    // gtk_widget_show(tab->searchbar);
-
-    //toolbar_update_buttons();
-
 }
 
     void
@@ -322,9 +316,10 @@ calltree_update_call (calltab_t* tab, callable_obj_t * c)
                 gchar * duration="";
                 if(c->_state == CALL_STATE_TRANSFERT)
                 {
-                    description = g_markup_printf_escaped("<b>%s</b> <i>%s</i>\n<i>Transfert to:</i> ",
+                    description = g_markup_printf_escaped("<b>%s</b> <i>%s</i>\n<i>Transfert to:%s</i> ",
                             c->_peer_number,
-                            c->_peer_name
+                            c->_peer_name,
+                            c->_trsft_to
                             );
                 }
                 else
@@ -417,7 +412,8 @@ calltree_update_call (calltab_t* tab, callable_obj_t * c)
 
 void calltree_add_history_entry (callable_obj_t * c)
 {
-    if( calllist_get_size (history) > dbus_get_max_calls ())
+
+    if (dbus_get_history_enabled () == 0)
         return;
 
     GdkPixbuf *pixbuf=NULL;
@@ -469,6 +465,8 @@ void calltree_add_history_entry (callable_obj_t * c)
         g_object_unref(G_OBJECT(pixbuf));
 
     gtk_tree_view_set_model (GTK_TREE_VIEW(history->view), GTK_TREE_MODEL(history->store));
+    
+    history_reinit(history);
 }
 
 void calltree_add_call (calltab_t* tab, callable_obj_t * c)
@@ -553,7 +551,16 @@ void calltree_add_call (calltab_t* tab, callable_obj_t * c)
         g_object_unref(G_OBJECT(pixbuf));
 
 
+    // history_reinit (tab);
+
+    // sel = gtk_tree_view_get_selection(GTK_TREE_VIEW(tab->view));
+    // gtk_tree_selection_select_iter(GTK_TREE_SELECTION(sel), &iter);
+
+    // history_reinit (tab);
+
     gtk_tree_view_set_model(GTK_TREE_VIEW(tab->view), GTK_TREE_MODEL(tab->store));
+
+    // gtk_tree_view_set_model (GTK_TREE_VIEW (tab->view), GTK_TREE_MODEL (history_filter));
 
     gtk_tree_selection_select_iter(gtk_tree_view_get_selection(GTK_TREE_VIEW(tab->view)), &iter);
 

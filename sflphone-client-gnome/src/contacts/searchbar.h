@@ -43,11 +43,17 @@
 
 GdkPixbuf *waitingPixOff;
 
+SearchType HistorySearchType;
+
 /**
  * Create a new search bar with "type" passed in
  * parameter
  */
-GtkWidget* searchbar_new(gchar*);
+GtkWidget* history_searchbar_new (void);
+GtkWidget* contacts_searchbar_new (void);
+
+SearchType get_current_history_search_type (void);
+
 
 /**
  * Initialize a specific search bar
