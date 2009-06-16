@@ -54,7 +54,7 @@ AudioRtp::~AudioRtp (void) {
     delete _RTXThread; _RTXThread = 0;
 }
 
-int 
+void
 AudioRtp::createNewSession (SIPCall *ca) {
 
     ost::MutexLock m(_threadMutex);
@@ -68,11 +68,20 @@ AudioRtp::createNewSession (SIPCall *ca) {
         _debug("**********************************************************\n");
         delete _RTXThread; _RTXThread = 0;
     }
-
+    
+    int srtpEnable = 0;
+    
     // Start RTP Send/Receive threads
     _symmetric = Manager::instance().getConfigInt(SIGNALISATION,SYMMETRIC) ? true : false;
     AccountID account_id = Manager::instance().getAccountFromCall (ca->getCallId());
-    int srtpEnable = Manager::instance().getConfigInt(account_id, SRTP_ENABLE);
+    // This might be an IP-to-IP call
+    if(account_id == AccountNULL) {
+        srtpEnable = Manager::instance().getConfigInt(SIGNALISATION, ZRTP_IP2IP_ENABLE);
+        _debug("\033[31;4m Ip-to-ip profile \033[0m\n");
+    } else {
+        srtpEnable = Manager::instance().getConfigInt(account_id, SRTP_ENABLE);
+        _debug("\033[31;4m AccountID %s with SRTP_ENABLE %d\033[0m\n", account_id.c_str(), srtpEnable);
+    }
     int keyExchange = Manager::instance().getConfigInt(account_id, SRTP_KEY_EXCHANGE);
     
     try {
@@ -81,9 +90,24 @@ AudioRtp::createNewSession (SIPCall *ca) {
             _debug("Starting in zrtp mode\n");
         } else {
             _RTXThread = new AudioRtpRTX (ca, _symmetric, false);
-            _debug("Starting in unencrypted rtp mode\n");
+            _debug("Starting unencrypted rtp session\n");
         }
         
+    } catch(...) {
+        _debugException("! ARTP Failure: when trying to create AudioRtpRTX thread");
+        throw;
+    }
+}
+
+int
+AudioRtp::start(void)
+{
+    if(_RTXThread == 0) {
+        _debug("! ARTP Failure: Cannot start audiortp thread since not yet created\n");
+        throw AudioRtpException();
+    }
+    
+    try {
         if (_RTXThread->start() != 0) {
             _debug("! ARTP Failure: unable to start RTX Thread\n");
             return -1;
@@ -92,10 +116,7 @@ AudioRtp::createNewSession (SIPCall *ca) {
         _debugException("! ARTP Failure: when trying to start a thread");
         throw;
     }
-
-    return 0;
 }
-
 
 bool
 AudioRtp::closeRtpSession () {
@@ -132,24 +153,30 @@ AudioRtpRTX::AudioRtpRTX (SIPCall *sipcall, bool sym, bool zrtp) : time(new ost:
 {
 
     setCancel(cancelDefault);
+    _debug("RTPRTX constructor called\n");
     // AudioRtpRTX should be close if we change sample rate
     // TODO: Change bind address according to user settings.
     // TODO: this should be the local ip not the external (router) IP
+
     std::string localipConfig = _ca->getLocalIp(); // _ca->getLocalIp();
     ost::InetHostAddress local_ip(localipConfig.c_str());
     if (!_sym) {
+        _debug ("Starting non-symmetric session\n");
         _sessionRecv = new ost::RTPSession(local_ip, _ca->getLocalAudioPort());
         _sessionSend = new ost::RTPSession(local_ip, _ca->getLocalAudioPort());
         _session = NULL;
         _zsession = NULL;
     } else {
-        _debug ("%i\n", _ca->getLocalAudioPort());
+        _debug ("Local audio port: %i\n", _ca->getLocalAudioPort());
         if(!_zrtp) {
             _session = new ost::SymmetricRTPSession (local_ip, _ca->getLocalAudioPort());
             _zsession = NULL;
         } else {
             _zsession = new ost::SymmetricZRTPSession (local_ip, _ca->getLocalAudioPort());
             initializeZid();
+            _zsession->startZrtp(); 
+            _ca->getLocalSDP()->set_zrtp_hash(_zsession->getHelloHash());
+            _debug("\033[34;4m Zrtp_hash computed\033[0m\n");  
             _session = NULL;
         }
         _sessionRecv = NULL;
@@ -219,7 +246,6 @@ AudioRtpRTX::~AudioRtpRTX () {
     delete converter; converter = NULL;
 
 }
-
 
     void
 AudioRtpRTX::initBuffers()
@@ -356,14 +382,14 @@ AudioRtpRTX::initAudioRtpSession (void)
         if (_ca == 0) { return; }
         _audiocodec = _ca->getLocalSDP()->get_session_media ();
 
-        if (_audiocodec == NULL) { return; }
+        if (_audiocodec == NULL) { _debug("\033[31;0m _audiocodec is null\n \033[0m"); return; }
 
         _codecSampleRate = _audiocodec->getClockRate();
         _codecFrameSize = _audiocodec->getFrameSize();
         
 
         ost::InetHostAddress remote_ip(_ca->getLocalSDP()->get_remote_ip().c_str());
-        _debug("Init audio RTP session %s\n", _ca->getLocalSDP()->get_remote_ip().data());
+        _debug("\033[32;4m Init audio RTP session with remote SDP: %s\n \033[0m", _ca->getLocalSDP()->get_remote_ip().data());
         if (!remote_ip) {
             _debug("! ARTP Thread Error: Target IP address [%s] is not correct!\n", _ca->getLocalSDP()->get_remote_ip().data());
             return;
@@ -436,7 +462,6 @@ AudioRtpRTX::initAudioRtpSession (void)
                     }
                 }  
                 
-                _zsession->startZrtp();         
             }
         }
 
@@ -473,7 +498,7 @@ AudioRtpRTX::send(uint32 timestamp, const unsigned char *micDataEncoded, size_t 
         if(!_zrtp) {    
             _session->sendImmediate(timestamp, micDataEncoded, compSize);
         } else {
-            _zsession->sendImmediate(timestamp, micDataEncoded, compSize);
+            _zsession->putData(timestamp, micDataEncoded, compSize);
         }
     }
 }
@@ -745,16 +770,12 @@ AudioRtpRTX::run () {
   _layerFrameSize = audiolayer->getFrameSize(); // en ms
   _layerSampleRate = audiolayer->getSampleRate();
   
-  initBuffers();
   int step; 
-
+  initBuffers();
   int sessionWaiting;
-
+   
   //try {
-
-    // Init the session
-    initAudioRtpSession();
-
+    initAudioRtpSession();   
     // step = (int) (_layerFrameSize * _codecSampleRate / 1000);
     step = _codecFrameSize;
     // start running the packet queue scheduler.

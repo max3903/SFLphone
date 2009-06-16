@@ -489,7 +489,6 @@ SIPVoIPLink::newOutgoingCall ( const CallID& id, const std::string& toUrl )
 
 	SIPCall* call = new SIPCall ( id, Call::Outgoing, _pool );
 
-
 	if ( call )
 	{
 		account = dynamic_cast<SIPAccount *> ( Manager::instance().getAccount ( Manager::instance().getAccountFromCall ( id ) ) );
@@ -504,11 +503,19 @@ SIPVoIPLink::newOutgoingCall ( const CallID& id, const std::string& toUrl )
 
 		call->setPeerNumber ( getSipTo ( toUrl, account->getHostname() ) );
 		setCallAudioLocal ( call, getLocalIPAddress(), useStun(), getStunServer() );
+		
+		try {
+            _audiortp->createNewSession (call);
+        } catch (...) {
+            _debug("Failed to create rtp thread from newOutGoingCall\n");
+        }
 
 		call->initRecFileName();
 
 		_debug ( "Try to make a call to: %s with call ID: %s\n", toUrl.data(), id.data() );
 		// Building the local SDP offer
+		// audiortptx thread will add it's own media attribute before that
+		// if zrtp is chosen by the user.
 		call->getLocalSDP()->set_ip_address ( getLocalIP() );
 		status = call->getLocalSDP()->create_initial_offer();
 		if ( status != PJ_SUCCESS )
@@ -553,6 +560,13 @@ SIPVoIPLink::answer ( const CallID& id )
 	}
 
 	local_sdp = call->getLocalSDP();
+
+	try {
+         _audiortp->createNewSession (call);
+    } catch (...) {
+        _debug("Failed to create rtp thread from SIPVoIPLink::answer");
+    }
+    
 	inv_session = call->getInvSession();
 	status = local_sdp->start_negociation ();
 
@@ -567,7 +581,7 @@ SIPVoIPLink::answer ( const CallID& id )
 
 		// Start the RTP sessions
 		_debug ( "SIPVoIPLink::answer: Starting AudioRTP when answering : call %s \n", call->getCallId().c_str() );
-		if ( _audiortp->createNewSession ( call ) >= 0 )
+		if ( _audiortp->start() >= 0 )
 		{
 			call->setAudioStart ( true );
 			call->setConnectionState ( Call::Connected );
@@ -773,6 +787,12 @@ SIPVoIPLink::offhold ( const CallID& id )
 		return false;
 	}
 
+	try {
+         _audiortp->createNewSession (call);
+    } catch (...) {
+		_debug ( "! SIP Failure: Unable to create RTP Session (%s:%d)\n", __FILE__, __LINE__ );
+    }
+    
 	/* Create re-INVITE with new offer */
 	status = inv_session_reinvite ( call, "sendrecv" );
 	if ( status != PJ_SUCCESS )
@@ -782,7 +802,7 @@ SIPVoIPLink::offhold ( const CallID& id )
 	_debug ( "* SIP Info: Starting AudioRTP when offhold\n" );
 	call->setState ( Call::Active );
 	// it's sure that this is the current call id...
-	if ( _audiortp->createNewSession ( call ) < 0 )
+	if ( _audiortp->start() < 0 )
 	{
 		_debug ( "! SIP Failure: Unable to start sound (%s:%d)\n", __FILE__, __LINE__ );
 		return false;
@@ -1231,7 +1251,7 @@ SIPVoIPLink::SIPCallAnswered ( SIPCall *call, pjsip_rx_data *rdata )
 		if ( Manager::instance().isCurrentCall ( call->getCallId() ) )
 		{
 			_debug ( "* SIP Info: Starting AudioRTP when answering\n" );
-			if ( _audiortp->createNewSession ( call ) < 0 )
+			if ( _audiortp->start() < 0 )
 			{
 				_debug ( "RTP Failure: unable to create new session\n" );
 			}
@@ -1288,7 +1308,7 @@ bool SIPVoIPLink::new_ip_to_ip_call ( const CallID& id, const std::string& to )
 
 	/* Create the call */
 	call = new SIPCall ( id, Call::Outgoing, _pool );
-
+    _debug("creating new ip_to_ip call\n");
 	if ( call )
 	{
 
@@ -1310,6 +1330,13 @@ bool SIPVoIPLink::new_ip_to_ip_call ( const CallID& id, const std::string& to )
 
 		// Building the local SDP offer
 		call->getLocalSDP()->set_ip_address ( getLocalIP() );
+		
+	    try {
+             _audiortp->createNewSession (call);
+        } catch (...) {
+	    	_debug ( "! SIP Failure: Unable to create RTP Session  in SIPVoIPLink::new_ip_to_ip_call (%s:%d)\n", __FILE__, __LINE__ );
+        }
+    
 		call->getLocalSDP()->create_initial_offer();
 
 		// Generate the contact URI
@@ -1859,7 +1886,13 @@ void SIPVoIPLink::handle_reinvite ( SIPCall *call )
 
 	_debug("create new rtp session from handle_reinvite \n");
 	// Create a new one with new info
-	if ( _audiortp->createNewSession ( call ) >= 0 )
+	try {
+         _audiortp->createNewSession (call);
+    } catch (...) {
+		_debug ( "! SIP Failure: Unable to create RTP Session (%s:%d)\n", __FILE__, __LINE__ );
+    }
+    
+	if ( _audiortp->start() >= 0 )
 	{
 		call->setAudioStart ( true );
 	}
@@ -2003,6 +2036,7 @@ void call_on_state_changed ( pjsip_inv_session *inv, pjsip_event *e )
 				case PJSIP_SC_NOT_ACCEPTABLE_ANYWHERE:
 				case PJSIP_SC_UNSUPPORTED_MEDIA_TYPE:
 				case PJSIP_SC_UNAUTHORIZED:
+				    _debug("Unauthorized\n");
 					accId = Manager::instance().getAccountFromCall ( call->getCallId() );
 					link = dynamic_cast<SIPVoIPLink *> ( Manager::instance().getAccountLink ( accId ) );
 					if ( link )
@@ -2012,7 +2046,7 @@ void call_on_state_changed ( pjsip_inv_session *inv, pjsip_event *e )
 					break;
 
 				default:
-					_debug ( "sipvoiplink.cpp - line 1635 : Unhandled call state. This is probably a bug.\n" );
+					_debug ( "%s - line %d : Unhandled call state. This is probably a bug.\n",__FILE__, __LINE__ );
 					break;
 			}
 		}

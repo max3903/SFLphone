@@ -112,7 +112,7 @@
 #define DFT_STUN_ENABLE         "0"
 #define DFT_RECORD_PATH         HOMEDIR
 #define ZRTP_ZIDFILE    "ZRTP.zidFile"
-
+#define ZRTP_IP2IP_ENABLE "IP2IP.zrtp"
 #ifdef USE_ZEROCONF
 #define CONFIG_ZEROCONF_DEFAULT_STR "1"			/** Default Zero configuration networking module value */
 #else

@@ -27,9 +27,19 @@
 #include <pjlib.h>
 #include <pj/pool.h>
 #include <pj/assert.h>
+#include <exception>
 
 #include "audio/codecDescriptor.h"
 #include "sdpmedia.h"
+
+class sdpException: public std::exception
+{
+  virtual const char* what() const throw()
+  {
+    return "An sdpException Occured";
+  }
+};
+
 
 class Sdp {
 
@@ -172,6 +182,14 @@ class Sdp {
          * @param port  The remote audio port
          */
         void set_remote_audio_port(unsigned int port) { _remote_audio_port = port; }
+        
+        /**
+         * Set the zrtp hash that was previously calculated from the hello message in the zrtp layer.
+         * This hash value is unique at the media level. Therefore, if video support is added, one would
+         * have to set the correct zrtp-hash value in the corresponding media section.
+         * @param hash The hello hash of a rtp session. (Only audio at the moment)
+         */
+        void set_zrtp_hash(std::string hash) { _zrtp_audio_rtp_hash = hash; _debug("Zrtp hash set with %s\n", hash.c_str()); }
 
         /** 
          * Return audio port at destination [mutex protected] 
@@ -184,6 +202,9 @@ class Sdp {
         std::vector<sdpMedia*> get_session_media_list (void) { return _session_media; }
 
     private:
+        /** Hello hash for audio rtp session */
+        std::string _zrtp_audio_rtp_hash;
+        
         /** Codec Map */
         std::vector<sdpMedia*> _local_media_cap;
 
@@ -291,6 +312,12 @@ class Sdp {
          */
         void sdp_add_attributes( );
 
+        /** 
+         * Adds a new zrtp-hash attribute to the given media section
+         *
+         */
+        void sdp_add_zrtp_attribute(pjmedia_sdp_media* media, std::string hash);
+        
         /*
          * Mandatory field: Media descriptions ("m=")
          */

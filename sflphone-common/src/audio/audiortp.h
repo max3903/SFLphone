@@ -46,6 +46,14 @@ class ZrtpZidException: public std::exception
   }
 };
 
+class AudioRtpException: public std::exception
+{
+  virtual const char* what() const throw()
+  {
+    return "AudioRtpException occured";
+  }
+};
+
 /**
  * @file audiortp.h
  * @brief Manage the real-time data transport in a SIP call
@@ -275,7 +283,12 @@ class AudioRtp {
      * Create a brand new RTP session by calling the AudioRtpRTX constructor
      * @param ca A pointer on a SIP call
      */
-    int createNewSession (SIPCall *ca);
+    void createNewSession (SIPCall *ca);
+    
+    /**
+     * Start the AudioRtpRTX thread created with createNewSession
+     */
+    int start(void);
     
     /**
      * Close a RTP session and kills the remaining threads
