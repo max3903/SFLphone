@@ -46,6 +46,7 @@ GtkWidget * entryID;
 GtkWidget * entryAlias;
 GtkWidget * entryProtocol;
 GtkWidget * entryEnabled;
+GtkWidget * enableSRTP;
 GtkWidget * entryUsername;
 GtkWidget * entryHostname;
 GtkWidget * entryPassword;
@@ -126,7 +127,7 @@ show_account_window (account_t * a)
     gtk_box_pack_start(GTK_BOX(dialog->vbox), frame, FALSE, FALSE, 0);
     gtk_widget_show(frame);
 
-    table = gtk_table_new ( 8, 2  ,  FALSE/* homogeneous */);
+    table = gtk_table_new ( 9, 2  ,  FALSE/* homogeneous */);
     gtk_table_set_row_spacings( GTK_TABLE(table), 10);
     gtk_table_set_col_spacings( GTK_TABLE(table), 10);
     gtk_widget_show(table);
@@ -150,6 +151,12 @@ show_account_window (account_t * a)
     gtk_table_attach ( GTK_TABLE( table ), entryEnabled, 0, 2, 1, 2, GTK_EXPAND | GTK_FILL, GTK_EXPAND | GTK_FILL, 0, 0);
     gtk_widget_set_sensitive( GTK_WIDGET( entryEnabled ) , TRUE );
 
+    enableSRTP = gtk_check_button_new_with_mnemonic(_("Enable _SRTP"));
+    gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(entryEnabled),
+            g_strcasecmp(curAccountEnabled,"TRUE") == 0 ? TRUE: FALSE);
+    gtk_table_attach ( GTK_TABLE( table ), enableSRTP, 0, 2, 2, 3, GTK_EXPAND | GTK_FILL, GTK_EXPAND | GTK_FILL, 0, 0);
+    gtk_widget_set_sensitive( GTK_WIDGET( enableSRTP ) , TRUE );
+    
     label = gtk_label_new_with_mnemonic (_("_Alias"));
     gtk_table_attach ( GTK_TABLE( table ), label, 0, 1, 3, 4, GTK_EXPAND | GTK_FILL, GTK_EXPAND | GTK_FILL, 0, 0);
     gtk_misc_set_alignment(GTK_MISC (label), 0, 0.5);
