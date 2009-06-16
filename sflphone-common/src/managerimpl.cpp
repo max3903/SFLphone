@@ -2439,6 +2439,8 @@ std::map< std::string, std::string > ManagerImpl::getAccountDetails(const Accoun
   a.insert( std::pair<std::string, std::string>( PASSWORD, getConfigString(accountID, PASSWORD) ) );
   a.insert( std::pair<std::string, std::string>( HOSTNAME, getConfigString(accountID, HOSTNAME) ) );
   a.insert( std::pair<std::string, std::string>( CONFIG_ACCOUNT_MAILBOX, getConfigString(accountID, CONFIG_ACCOUNT_MAILBOX)) );
+  a.insert( std::pair<std::string, std::string>( SRTP_KEY_EXCHANGE, getConfigString(accountID, SRTP_KEY_EXCHANGE) ) );
+  a.insert( std::pair<std::string, std::string>( SRTP_ENABLE, getConfigString(accountID, SRTP_ENABLE) == "1" ? "TRUE": "FALSE"));
 
   return a;
 }
@@ -2459,7 +2461,9 @@ void ManagerImpl::setAccountDetails( const std::string& accountID, const std::ma
     setConfig(accountID, PASSWORD, (*details.find(PASSWORD)).second);
     setConfig(accountID, HOSTNAME, (*details.find(HOSTNAME)).second);
     setConfig(accountID, CONFIG_ACCOUNT_MAILBOX,(*details.find(CONFIG_ACCOUNT_MAILBOX)).second);
-
+    setConfig(accountID, SRTP_KEY_EXCHANGE,(*details.find(SRTP_KEY_EXCHANGE)).second);
+    setConfig(accountID, SRTP_ENABLE,(*details.find(SRTP_ENABLE)).second);
+        
     saveConfig();
 
     acc = getAccount(accountID);

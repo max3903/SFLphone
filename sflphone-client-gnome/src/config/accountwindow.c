@@ -45,12 +45,17 @@ GtkWidget * label;
 GtkWidget * entryID;
 GtkWidget * entryAlias;
 GtkWidget * entryProtocol;
-GtkWidget * entryEnabled;
-GtkWidget * enableSRTP;
+GtkWidget * keyExchangeCombo;
 GtkWidget * entryUsername;
 GtkWidget * entryHostname;
 GtkWidget * entryPassword;
 GtkWidget * entryMailbox;
+GtkWidget * expander;
+GtkWidget * entryEnabled;
+GtkWidget * tableSRTP;
+GtkWidget * enableSRTP;
+GtkWidget * enableHelloHash;
+GtkWidget * enableSASConfirm;
 
 /* Signal to entryProtocol 'changed' */
     void
@@ -80,6 +85,8 @@ show_account_window (account_t * a)
     gchar * curAccountID = "";
     gchar * curAccountEnabled = "TRUE";
     gchar * curAccountType = "SIP";
+    gchar * curKeyExchange = ZRTP;
+    gchar * curSRTPEnabled = "FALSE";
     gchar * curAlias = "";
     gchar * curUsername = "";
     gchar * curHostname = "";
@@ -98,6 +105,8 @@ show_account_window (account_t * a)
         curAccountID = a->accountID;
         curAccountType = g_hash_table_lookup(currentAccount->properties, ACCOUNT_TYPE);
         curAccountEnabled = g_hash_table_lookup(currentAccount->properties, ACCOUNT_ENABLED);
+        curKeyExchange = g_hash_table_lookup(currentAccount->properties, ACCOUNT_KEY_EXCHANGE);
+        curSRTPEnabled = g_hash_table_lookup(currentAccount->properties, ACCOUNT_SRTP_ENABLED);
         curAlias = g_hash_table_lookup(currentAccount->properties, ACCOUNT_ALIAS);
         curHostname = g_hash_table_lookup(currentAccount->properties, ACCOUNT_HOSTNAME);
         curPassword = g_hash_table_lookup(currentAccount->properties, ACCOUNT_PASSWORD);
@@ -127,7 +136,7 @@ show_account_window (account_t * a)
     gtk_box_pack_start(GTK_BOX(dialog->vbox), frame, FALSE, FALSE, 0);
     gtk_widget_show(frame);
 
-    table = gtk_table_new ( 9, 2  ,  FALSE/* homogeneous */);
+    table = gtk_table_new ( 10, 2  ,  FALSE/* homogeneous */);
     gtk_table_set_row_spacings( GTK_TABLE(table), 10);
     gtk_table_set_col_spacings( GTK_TABLE(table), 10);
     gtk_widget_show(table);
@@ -150,12 +159,6 @@ show_account_window (account_t * a)
             g_strcasecmp(curAccountEnabled,"TRUE") == 0 ? TRUE: FALSE);
     gtk_table_attach ( GTK_TABLE( table ), entryEnabled, 0, 2, 1, 2, GTK_EXPAND | GTK_FILL, GTK_EXPAND | GTK_FILL, 0, 0);
     gtk_widget_set_sensitive( GTK_WIDGET( entryEnabled ) , TRUE );
-
-    enableSRTP = gtk_check_button_new_with_mnemonic(_("Enable _SRTP"));
-    gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(entryEnabled),
-            g_strcasecmp(curAccountEnabled,"TRUE") == 0 ? TRUE: FALSE);
-    gtk_table_attach ( GTK_TABLE( table ), enableSRTP, 0, 2, 2, 3, GTK_EXPAND | GTK_FILL, GTK_EXPAND | GTK_FILL, 0, 0);
-    gtk_widget_set_sensitive( GTK_WIDGET( enableSRTP ) , TRUE );
     
     label = gtk_label_new_with_mnemonic (_("_Alias"));
     gtk_table_attach ( GTK_TABLE( table ), label, 0, 1, 3, 4, GTK_EXPAND | GTK_FILL, GTK_EXPAND | GTK_FILL, 0, 0);
@@ -240,6 +243,59 @@ show_account_window (account_t * a)
     gtk_entry_set_text(GTK_ENTRY(entryMailbox), curMailbox);
     gtk_table_attach ( GTK_TABLE( table ), entryMailbox, 1, 2, 8, 9, GTK_EXPAND | GTK_FILL, GTK_EXPAND | GTK_FILL, 0, 0);
 
+    /* SRTP Options */
+    label = g_strdup_printf ("<b>%s</b>", _("_SRTP Options"));
+    expander = gtk_expander_new_with_mnemonic (label);
+    gtk_expander_set_use_markup (GTK_EXPANDER (expander), TRUE);
+    gtk_expander_set_spacing (expander, 10);
+    gtk_table_attach ( GTK_TABLE( table ), expander, 0, 2, 9, 10, GTK_EXPAND | GTK_FILL, GTK_EXPAND | GTK_FILL, 0, 0);
+    gtk_widget_show (expander);
+    
+    tableSRTP = gtk_table_new ( 5, 2  ,  FALSE/* homogeneous */);
+    gtk_table_set_row_spacings( GTK_TABLE(tableSRTP), 10);
+    gtk_table_set_col_spacings( GTK_TABLE(tableSRTP), 10);
+    gtk_widget_show(tableSRTP);
+    gtk_container_add( GTK_EXPANDER(expander) , tableSRTP );
+
+    enableSRTP = gtk_check_button_new_with_mnemonic(_("Use _SRTP"));
+    gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(enableSRTP),
+            g_strcasecmp(curSRTPEnabled,"TRUE") == 0 ? TRUE: FALSE);
+    gtk_table_attach ( GTK_TABLE(tableSRTP), enableSRTP, 0, 1, 0, 1, GTK_EXPAND | GTK_FILL, GTK_EXPAND | GTK_FILL, 0, 0);
+    gtk_widget_set_sensitive( GTK_WIDGET( enableSRTP ) , TRUE );
+                 
+    label = gtk_label_new_with_mnemonic (_("_Key Exchange"));
+    gtk_table_attach ( GTK_TABLE( tableSRTP ), label, 0, 1, 1, 2, GTK_EXPAND | GTK_FILL, GTK_EXPAND | GTK_FILL, 0, 0);
+    gtk_misc_set_alignment(GTK_MISC (label), 0, 0.5);
+    keyExchangeCombo = gtk_combo_box_new_text();
+    gtk_label_set_mnemonic_widget (GTK_LABEL (label), keyExchangeCombo);
+    gtk_combo_box_append_text(GTK_COMBO_BOX(keyExchangeCombo), "ZRTP (draft-zimmermann-avt-zrtp-15)");
+    gtk_combo_box_append_text(GTK_COMBO_BOX(keyExchangeCombo), "SDES (RFC4568)");
+        
+    if(strcmp(curKeyExchange, ZRTP) == 0)
+    {
+        gtk_combo_box_set_active(GTK_COMBO_BOX(keyExchangeCombo),0);
+    }
+    else if(strcmp(curKeyExchange, "sdes") == 0)
+    {
+        gtk_combo_box_set_active(GTK_COMBO_BOX(keyExchangeCombo),1);
+    }
+    else
+    {
+        gtk_combo_box_append_text(GTK_COMBO_BOX(keyExchangeCombo), _("Unknown"));
+        gtk_combo_box_set_active(GTK_COMBO_BOX(keyExchangeCombo),2);
+    }
+    
+    gtk_table_attach ( GTK_TABLE( tableSRTP ), keyExchangeCombo, 1, 2, 1, 2, GTK_EXPAND | GTK_FILL, GTK_EXPAND | GTK_FILL, 0, 0);    
+        
+    enableHelloHash = gtk_check_button_new_with_mnemonic(_("S_end Hello hash in SDP"));
+    gtk_table_attach ( GTK_TABLE(tableSRTP), enableHelloHash, 0, 1, 2, 3, GTK_EXPAND | GTK_FILL, GTK_EXPAND | GTK_FILL, 0, 0);
+    gtk_widget_set_sensitive( GTK_WIDGET( enableHelloHash ) , TRUE );
+        
+    enableSASConfirm = gtk_check_button_new_with_mnemonic(_("Ask user to _confirm SAS"));
+    gtk_table_attach ( GTK_TABLE(tableSRTP), enableSASConfirm, 0, 1, 3, 4, GTK_EXPAND | GTK_FILL, GTK_EXPAND | GTK_FILL, 0, 0);
+    gtk_widget_set_sensitive( GTK_WIDGET( enableSASConfirm ) , TRUE ); 
+      
+    /* Display main table */
     gtk_widget_show_all( table );
     gtk_container_set_border_width (GTK_CONTAINER(table), 10);
 

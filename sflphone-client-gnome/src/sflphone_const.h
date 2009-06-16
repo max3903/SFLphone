@@ -43,15 +43,18 @@
 
 #define UNUSED  __attribute__((__unused__))
 
-#define ACCOUNT_TYPE               "Account.type"
-#define ACCOUNT_ALIAS		   "Account.alias"
-#define ACCOUNT_ENABLED		   "Account.enable"
-#define ACCOUNT_MAILBOX		   "Account.mailbox"
+#define ACCOUNT_TYPE          "Account.type"
+#define ACCOUNT_ALIAS		  "Account.alias"
+#define ACCOUNT_ENABLED		  "Account.enable"
+#define ACCOUNT_MAILBOX		  "Account.mailbox"
 #define ACCOUNT_HOSTNAME      "hostname"
 #define ACCOUNT_USERNAME      "username"
-#define ACCOUNT_PASSWORD       "password"
+#define ACCOUNT_PASSWORD      "password"
 #define ACCOUNT_SIP_STUN_SERVER	   "STUN.server"
 #define ACCOUNT_SIP_STUN_ENABLED   "STUN.enable"
+#define ACCOUNT_KEY_EXCHANGE "SRTP.keyExchange"
+#define ACCOUNT_SRTP_ENABLED   "SRTP.enable"
+#define ZRTP "1"
 
 /**
  * Global logger
