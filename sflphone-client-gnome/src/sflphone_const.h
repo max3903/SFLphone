@@ -54,6 +54,8 @@
 #define ACCOUNT_SIP_STUN_ENABLED   "STUN.enable"
 #define ACCOUNT_KEY_EXCHANGE "SRTP.keyExchange"
 #define ACCOUNT_SRTP_ENABLED   "SRTP.enable"
+#define ACCOUNT_ZRTP_DISPLAY_SAS "ZRTP.displaySAS"
+#define ACCOUNT_ZRTP_HELLO_HASH "ZRTP.helloHashEnable"
 #define ZRTP "1"
 #define SDES_TLS "2"
 

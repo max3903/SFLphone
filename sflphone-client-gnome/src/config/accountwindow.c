@@ -64,6 +64,18 @@ change_protocol (account_t * currentAccount UNUSED)
     (gchar *)gtk_combo_box_get_active_text(GTK_COMBO_BOX(entryProtocol));
 }
 
+    void
+key_exchange_changed (account_t * currentAccount UNUSED)
+{
+    gchar *keyExchange = (gchar *)gtk_combo_box_get_active_text(GTK_COMBO_BOX(keyExchangeCombo));
+    if(strncmp(keyExchange, "ZRTP", 4) == 0) {
+        gtk_widget_set_sensitive( GTK_WIDGET( enableSASConfirm ) , TRUE );
+        gtk_widget_set_sensitive( GTK_WIDGET( enableHelloHash ) , TRUE );
+    } else {
+        gtk_widget_set_sensitive( GTK_WIDGET( enableSASConfirm ) , FALSE );
+        gtk_widget_set_sensitive( GTK_WIDGET( enableHelloHash ) , FALSE );
+    }
+}
     int
 is_iax_enabled(void)
 {
@@ -93,6 +105,9 @@ show_account_window (account_t * a)
     gchar * curPassword = "";
     /* TODO: add curProxy, and add boxes for Proxy support */
     gchar * curMailbox = "";
+    gchar * curSasConfirm = "TRUE";
+    gchar * curHelloEnabled = "TRUE";
+    
 
 #if GTK_CHECK_VERSION(2,16,0)
 #else
@@ -112,6 +127,8 @@ show_account_window (account_t * a)
         curPassword = g_hash_table_lookup(currentAccount->properties, ACCOUNT_PASSWORD);
         curUsername = g_hash_table_lookup(currentAccount->properties, ACCOUNT_USERNAME);
         curMailbox = g_hash_table_lookup(currentAccount->properties, ACCOUNT_MAILBOX);
+        curHelloEnabled = g_hash_table_lookup(currentAccount->properties, ACCOUNT_ZRTP_HELLO_HASH);
+        curSasConfirm = g_hash_table_lookup(currentAccount->properties, ACCOUNT_ZRTP_DISPLAY_SAS);
     }
     else
     {
@@ -128,7 +145,7 @@ show_account_window (account_t * a)
                 GTK_STOCK_CANCEL,
                 GTK_RESPONSE_CANCEL,
                 NULL));
-
+    gtk_window_set_policy( GTK_WINDOW(dialog), FALSE, FALSE, FALSE );
     gtk_dialog_set_has_separator(dialog, TRUE);
     gtk_container_set_border_width (GTK_CONTAINER(dialog), 0);
 
@@ -260,6 +277,8 @@ show_account_window (account_t * a)
     enableSRTP = gtk_check_button_new_with_mnemonic(_("Use _SRTP"));
     gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(enableSRTP),
             g_strcasecmp(curSRTPEnabled,"TRUE") == 0 ? TRUE: FALSE);
+    gtk_expander_set_expanded(GTK_EXPANDER(expander),g_strcasecmp(curSRTPEnabled,"TRUE") == 0 ? TRUE: FALSE );
+    
     gtk_table_attach ( GTK_TABLE(tableSRTP), enableSRTP, 0, 1, 0, 1, GTK_EXPAND | GTK_FILL, GTK_EXPAND | GTK_FILL, 0, 0);
     gtk_widget_set_sensitive( GTK_WIDGET( enableSRTP ) , TRUE );
                  
@@ -268,8 +287,8 @@ show_account_window (account_t * a)
     gtk_misc_set_alignment(GTK_MISC (label), 0, 0.5);
     keyExchangeCombo = gtk_combo_box_new_text();
     gtk_label_set_mnemonic_widget (GTK_LABEL (label), keyExchangeCombo);
-    gtk_combo_box_append_text(GTK_COMBO_BOX(keyExchangeCombo), "ZRTP (draft-zimmermann-avt-zrtp-15)");
-    gtk_combo_box_append_text(GTK_COMBO_BOX(keyExchangeCombo), "SDES (RFC4568)");
+    gtk_combo_box_append_text(GTK_COMBO_BOX(keyExchangeCombo), "ZRTP");
+    gtk_combo_box_append_text(GTK_COMBO_BOX(keyExchangeCombo), "SDES");
         
     if(strcmp(curKeyExchange, ZRTP) == 0)
     {
@@ -288,13 +307,22 @@ show_account_window (account_t * a)
     gtk_table_attach ( GTK_TABLE( tableSRTP ), keyExchangeCombo, 1, 2, 1, 2, GTK_EXPAND | GTK_FILL, GTK_EXPAND | GTK_FILL, 0, 0);    
         
     enableHelloHash = gtk_check_button_new_with_mnemonic(_("S_end Hello hash in SDP"));
+    gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(enableHelloHash),
+            g_strcasecmp(curHelloEnabled,"TRUE") == 0 ? TRUE: FALSE);
     gtk_table_attach ( GTK_TABLE(tableSRTP), enableHelloHash, 0, 1, 2, 3, GTK_EXPAND | GTK_FILL, GTK_EXPAND | GTK_FILL, 0, 0);
     gtk_widget_set_sensitive( GTK_WIDGET( enableHelloHash ) , TRUE );
         
     enableSASConfirm = gtk_check_button_new_with_mnemonic(_("Ask user to _confirm SAS"));
+    gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(enableSASConfirm),
+            g_strcasecmp(curSasConfirm,"TRUE") == 0 ? TRUE: FALSE);
     gtk_table_attach ( GTK_TABLE(tableSRTP), enableSASConfirm, 0, 1, 3, 4, GTK_EXPAND | GTK_FILL, GTK_EXPAND | GTK_FILL, 0, 0);
     gtk_widget_set_sensitive( GTK_WIDGET( enableSASConfirm ) , TRUE ); 
       
+    /* Link signal 'changed' */
+    g_signal_connect (G_OBJECT (GTK_COMBO_BOX(keyExchangeCombo)), "changed",
+            G_CALLBACK (key_exchange_changed),
+            currentAccount);
+            
     /* Display main table */
     gtk_widget_show_all( table );
     gtk_container_set_border_width (GTK_CONTAINER(table), 10);
@@ -328,6 +356,12 @@ show_account_window (account_t * a)
         g_hash_table_replace(currentAccount->properties,
                 g_strdup(ACCOUNT_SRTP_ENABLED),
                 g_strdup(gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(enableSRTP)) ? "TRUE": "FALSE"));
+        g_hash_table_replace(currentAccount->properties,
+                g_strdup(ACCOUNT_ZRTP_DISPLAY_SAS),
+                g_strdup(gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(enableSASConfirm)) ? "TRUE": "FALSE"));   
+        g_hash_table_replace(currentAccount->properties,
+                g_strdup(ACCOUNT_ZRTP_HELLO_HASH),
+                g_strdup(gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(enableHelloHash)) ? "TRUE": "FALSE"));        
         g_hash_table_replace(currentAccount->properties,
                 g_strdup(ACCOUNT_KEY_EXCHANGE),
                 (gchar *)gtk_combo_box_get_active_text(GTK_COMBO_BOX(keyExchangeCombo)));
