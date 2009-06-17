@@ -55,6 +55,7 @@
 #define ACCOUNT_KEY_EXCHANGE "SRTP.keyExchange"
 #define ACCOUNT_SRTP_ENABLED   "SRTP.enable"
 #define ZRTP "1"
+#define SDES_TLS "2"
 
 /**
  * Global logger

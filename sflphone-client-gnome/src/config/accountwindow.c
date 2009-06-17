@@ -275,7 +275,7 @@ show_account_window (account_t * a)
     {
         gtk_combo_box_set_active(GTK_COMBO_BOX(keyExchangeCombo),0);
     }
-    else if(strcmp(curKeyExchange, "sdes") == 0)
+    else if(strcmp(curKeyExchange, SDES_TLS) == 0)
     {
         gtk_combo_box_set_active(GTK_COMBO_BOX(keyExchangeCombo),1);
     }
@@ -325,7 +325,13 @@ show_account_window (account_t * a)
         g_hash_table_replace(currentAccount->properties,
                 g_strdup(ACCOUNT_MAILBOX),
                 g_strdup((gchar *)gtk_entry_get_text(GTK_ENTRY(entryMailbox))));
-
+        g_hash_table_replace(currentAccount->properties,
+                g_strdup(ACCOUNT_SRTP_ENABLED),
+                g_strdup(gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(enableSRTP)) ? "TRUE": "FALSE"));
+        g_hash_table_replace(currentAccount->properties,
+                g_strdup(ACCOUNT_KEY_EXCHANGE),
+                (gchar *)gtk_combo_box_get_active_text(GTK_COMBO_BOX(keyExchangeCombo)));
+                
         if (strcmp(proto, "SIP") == 0) {
             guint i, size;
             account_t * account;

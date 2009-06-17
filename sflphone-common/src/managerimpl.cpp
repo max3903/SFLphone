@@ -2461,8 +2461,14 @@ void ManagerImpl::setAccountDetails( const std::string& accountID, const std::ma
     setConfig(accountID, PASSWORD, (*details.find(PASSWORD)).second);
     setConfig(accountID, HOSTNAME, (*details.find(HOSTNAME)).second);
     setConfig(accountID, CONFIG_ACCOUNT_MAILBOX,(*details.find(CONFIG_ACCOUNT_MAILBOX)).second);
-    setConfig(accountID, SRTP_KEY_EXCHANGE,(*details.find(SRTP_KEY_EXCHANGE)).second);
-    setConfig(accountID, SRTP_ENABLE,(*details.find(SRTP_ENABLE)).second);
+    setConfig(accountID, SRTP_ENABLE, (*details.find(SRTP_ENABLE)).second == "TRUE" ? "1": "0" );
+    std::string keyExchange((*details.find(SRTP_KEY_EXCHANGE)).second);
+    _debug("keyExchange %d\n", keyExchange.find("ZRTP"));
+    if(keyExchange.find("ZRTP") == 0) { 
+       setConfig(accountID, SRTP_KEY_EXCHANGE, ZRTP);
+    } else {
+       setConfig(accountID, SRTP_KEY_EXCHANGE, SDES_TLS);
+    }
         
     saveConfig();
 
