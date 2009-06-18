@@ -236,6 +236,8 @@ calltree_create (calltab_t* tab, gboolean searchbar_type)
             rend,
             "pixbuf", COLUMN_ACCOUNT_STATE,
             NULL);
+    g_object_set(rend, "xalign", (gfloat) 1.0, NULL);
+    g_object_set(rend, "yalign", (gfloat) 0.0, NULL);
     gtk_tree_view_append_column (GTK_TREE_VIEW(tab->view), col);
 
     rend = gtk_cell_renderer_text_new();
@@ -252,6 +254,7 @@ calltree_create (calltab_t* tab, gboolean searchbar_type)
             "pixbuf", COLUMN_ACCOUNT_SECURITY,
             NULL);
     g_object_set(rend, "xalign", (gfloat) 1.0, NULL);
+    g_object_set(rend, "yalign", (gfloat) 0.0, NULL);
     gtk_tree_view_append_column (GTK_TREE_VIEW(tab->view), col);
 
     
@@ -334,6 +337,7 @@ calltree_update_call (calltab_t* tab, callable_obj_t * c)
                 gchar * description;
                 gchar * date="";
                 gchar * duration="";
+                
                 if(c->_state == CALL_STATE_TRANSFERT)
                 {
                     description = g_markup_printf_escaped("<b>%s</b> <i>%s</i>\n<i>Transfert to:%s</i> ",
@@ -344,12 +348,20 @@ calltree_update_call (calltab_t* tab, callable_obj_t * c)
                 }
                 else
                 {
-                    description = g_markup_printf_escaped("<b>%s</b> <i>%s</i>",
+                    if(c->_sas != NULL) {
+                        description = g_markup_printf_escaped("<b>%s</b> <i>%s</i>\n<i>Confirm SAS <b>%s</b> ?</i> ",
+                            c->_peer_number,
+                            c->_peer_name,
+                            c->_sas
+                            );
+                    } else {
+                        description = g_markup_printf_escaped("<b>%s</b> <i>%s</i>",
                             c->_peer_number,
                             c->_peer_name );
-
+                    }
                 }
 
+                
                 if( tab == current_calls )
                 {
                     switch(c->_state)
@@ -385,19 +397,20 @@ calltree_update_call (calltab_t* tab, callable_obj_t * c)
                     switch(c->_srtp_state)
                     {
                         case SRTP_STATE_SAS_UNCONFIRMED:
-                            fprintf(stderr,"Secure is ON\n");
+                            DEBUG("Secure is ON");
                             pixbuf_security = gdk_pixbuf_new_from_file(ICONS_DIR "/lock_unconfirmed.svg", NULL);
+                            if(c->_sas != NULL) { DEBUG("SAS is ready with value %s", c->_sas); }
                             break;
                         case SRTP_STATE_SAS_CONFIRMED:
-                            fprintf(stderr,"SAS is confirmed\n");
+                            DEBUG("SAS is confirmed");
                             pixbuf_security = gdk_pixbuf_new_from_file(ICONS_DIR "/lock_confirmed.svg", NULL);   
                             break;
                         case SRTP_STATE_SAS_SIGNED:   
-                            fprintf(stderr,"Secure is ON with SAS signed and verified\n");
+                            DEBUG("Secure is ON with SAS signed and verified");
                             pixbuf_security = gdk_pixbuf_new_from_file(ICONS_DIR "/lock_certified.svg", NULL);
                             break;
                         case SRTP_STATE_UNLOCKED:  
-                            fprintf(stderr,"Secure is off\n");
+                            DEBUG("Secure is off");
                             pixbuf_security = gdk_pixbuf_new_from_file(ICONS_DIR "/lock_off.svg", NULL); 
                             break;
                         default:
@@ -430,6 +443,7 @@ calltree_update_call (calltab_t* tab, callable_obj_t * c)
                     duration = g_strconcat( date , duration , NULL);
                     description = g_strconcat( description , duration, NULL);
                 }
+                
                 //Resize it
                 if(pixbuf != NULL)
                 {

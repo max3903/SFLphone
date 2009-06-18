@@ -98,7 +98,8 @@ typedef struct  {
     time_t _time_start;             // The timestamp the call was initiating
     time_t _time_stop;              // The timestamp the call was over
     history_state_t _history_state; // The history state if necessary
-
+    gchar* _sas;                    // The Short Authentication String that should be displayed
+    
     /**
      * The information about the person we are talking
      */

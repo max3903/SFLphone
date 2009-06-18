@@ -179,6 +179,7 @@ void free_callable_obj_t (callable_obj_t *c)
     g_free (c->_peer_name);
     g_free (c->_peer_number);
     g_free (c->_peer_info);
+    g_free (c->_sas);
     g_free (c);
 }
 

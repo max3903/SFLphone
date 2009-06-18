@@ -130,6 +130,20 @@ secure_off_cb (DBusGProxy *proxy UNUSED,
 }
 
     static void
+show_sas_cb (DBusGProxy *proxy UNUSED,
+        const gchar* callID,
+        const gchar* sas,
+        const gboolean* verified,
+        void * foo  UNUSED )
+{
+    DEBUG ("Showing SAS");
+    callable_obj_t * c = calllist_get(current_calls, callID);
+    if(c) {
+        sflphone_srtp_show_sas (c, sas, verified);
+    }
+}
+
+    static void
 call_state_cb (DBusGProxy *proxy UNUSED,
         const gchar* callID,
         const gchar* state,
@@ -395,8 +409,15 @@ dbus_connect ()
             "transferFailed", G_TYPE_INVALID);
     dbus_g_proxy_connect_signal (callManagerProxy,
             "transferFailed", G_CALLBACK(transfer_failed_cb), NULL, NULL);
-
-
+            
+    /* Register a marshaller for STRING,STRING,BOOL */
+    dbus_g_object_register_marshaller(g_cclosure_user_marshal_VOID__STRING_STRING_BOOL,
+            G_TYPE_NONE, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_BOOLEAN, G_TYPE_INVALID);
+    dbus_g_proxy_add_signal (callManagerProxy,
+            "showSAS", G_TYPE_STRING, G_TYPE_STRING, G_TYPE_BOOLEAN, G_TYPE_INVALID);
+    dbus_g_proxy_connect_signal (callManagerProxy,
+            "showSAS", G_CALLBACK(show_sas_cb), NULL, NULL);  
+                
     configurationManagerProxy = dbus_g_proxy_new_for_name (connection, 
             "org.sflphone.SFLphone",
             "/org/sflphone/SFLphone/ConfigurationManager",

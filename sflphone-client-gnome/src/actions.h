@@ -122,6 +122,14 @@ void sflphone_srtp_on( callable_obj_t * c );
  */
 void sflphone_srtp_off( callable_obj_t * c );
 
+/** Called when the sas has been computed
+ * and is ready to be displayed.
+ * @param c* The current call
+ * @param sas* The Short Authentication String
+ * @param verified* Weather the SAS was confirmed or not.
+ */
+void sflphone_srtp_show_sas( callable_obj_t * c, const gchar* sas, const gboolean* verified);
+
 /**
  * Put the call in Failure state
  * @param c* The current call

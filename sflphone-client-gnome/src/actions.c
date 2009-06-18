@@ -408,6 +408,20 @@ sflphone_srtp_off( callable_obj_t * c )
 }
 
     void
+sflphone_srtp_show_sas( callable_obj_t * c, const gchar* sas, const gboolean* verified)
+{
+    c->_sas = g_strdup(sas);
+    if(&verified == TRUE) {
+        c->_srtp_state = SRTP_STATE_SAS_CONFIRMED;
+    } else {
+        c->_srtp_state = SRTP_STATE_SAS_UNCONFIRMED;
+    }
+    calltree_update_call(current_calls, c);
+    update_menus();
+}
+
+
+    void
 sflphone_fail( callable_obj_t * c )
 {
     c->_state = CALL_STATE_FAILURE;
