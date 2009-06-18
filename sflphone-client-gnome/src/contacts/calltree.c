@@ -234,14 +234,14 @@ calltree_create (calltab_t* tab, gboolean searchbar_type)
     rend = gtk_cell_renderer_pixbuf_new();
     col = gtk_tree_view_column_new_with_attributes ("Icon",
             rend,
-            "pixbuf", 0,
+            "pixbuf", COLUMN_ACCOUNT_STATE,
             NULL);
     gtk_tree_view_append_column (GTK_TREE_VIEW(tab->view), col);
 
     rend = gtk_cell_renderer_text_new();
     col = gtk_tree_view_column_new_with_attributes ("Description",
             rend,
-            "markup", 1,
+            "markup", COLUMN_ACCOUNT_DESC,
             NULL);
     gtk_tree_view_append_column (GTK_TREE_VIEW(tab->view), col);
 
@@ -249,9 +249,11 @@ calltree_create (calltab_t* tab, gboolean searchbar_type)
     rend = gtk_cell_renderer_pixbuf_new();
     col = gtk_tree_view_column_new_with_attributes ("Icon",
             rend,
-            "pixbuf", 2,
+            "pixbuf", COLUMN_ACCOUNT_SECURITY,
             NULL);
+    g_object_set(rend, "xalign", (gfloat) 1.0, NULL);
     gtk_tree_view_append_column (GTK_TREE_VIEW(tab->view), col);
+
     
     g_object_unref(G_OBJECT(tab->store));
     gtk_container_add(GTK_CONTAINER(sw), tab->view);
