@@ -76,6 +76,13 @@ typedef enum
    CALL_STATE_RECORD
 } call_state_t;
 
+typedef enum
+{
+   SRTP_STATE_SAS_CONFIRMED = 1,
+   SRTP_STATE_SAS_UNCONFIRMED,
+   SRTP_STATE_SAS_SIGNED,
+   SRTP_STATE_UNLOCKED 
+} srtp_state_t;
 
 /** @struct callable_obj_t
   * @brief Call information.
@@ -84,12 +91,13 @@ typedef enum
 typedef struct  {
 
     callable_type_t _type;          // CALL - HISTORY ENTRY - CONTACT
-    call_state_t _state;             // The state of the call
+    call_state_t _state;            // The state of the call
+    srtp_state_t _srtp_state;       // The state of security on the call 
     gchar* _callID;                 // The call ID
     gchar* _accountID;              // The account the call is made with
-    time_t _time_start;              // The timestamp the call was initiating
+    time_t _time_start;             // The timestamp the call was initiating
     time_t _time_stop;              // The timestamp the call was over
-    history_state_t _history_state;  // The history state if necessary
+    history_state_t _history_state; // The history state if necessary
 
     /**
      * The information about the person we are talking

@@ -391,6 +391,21 @@ sflphone_off_hold ()
     }
 }
 
+    void
+sflphone_srtp_on( callable_obj_t * c )
+{
+    c->_srtp_state = SRTP_STATE_SAS_UNCONFIRMED;
+    calltree_update_call(current_calls, c);
+    update_menus();
+}
+
+    void
+sflphone_srtp_off( callable_obj_t * c )
+{
+    c->_srtp_state = SRTP_STATE_UNLOCKED;
+    calltree_update_call(current_calls, c);
+    update_menus();
+}
 
     void
 sflphone_fail( callable_obj_t * c )

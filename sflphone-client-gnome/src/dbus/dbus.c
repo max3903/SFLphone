@@ -105,6 +105,31 @@ incoming_message_cb (DBusGProxy *proxy UNUSED,
 }
 
     static void
+secure_on_cb (DBusGProxy *proxy UNUSED,
+        const gchar* callID,
+        const gchar* cipher,
+        void * foo  UNUSED )
+{
+    DEBUG ("SRTP is ON");
+    callable_obj_t * c = calllist_get(current_calls, callID);
+    if(c) {
+        sflphone_srtp_on (c);
+    }
+}
+
+    static void
+secure_off_cb (DBusGProxy *proxy UNUSED,
+        const gchar* callID,
+        void * foo  UNUSED )
+{
+    DEBUG ("SRTP is OFF");
+    callable_obj_t * c = calllist_get(current_calls, callID);
+    if(c) {
+        sflphone_srtp_off (c);
+    }
+}
+
+    static void
 call_state_cb (DBusGProxy *proxy UNUSED,
         const gchar* callID,
         const gchar* state,
@@ -321,6 +346,14 @@ dbus_connect ()
     dbus_g_proxy_connect_signal (callManagerProxy,
             "currentSelectedCodec", G_CALLBACK(curent_selected_codec), NULL, NULL);
 
+    /* Register a marshaller for STRING*/
+    dbus_g_object_register_marshaller(g_cclosure_user_marshal_VOID__STRING,
+            G_TYPE_NONE, G_TYPE_STRING, G_TYPE_INVALID);
+    dbus_g_proxy_add_signal (callManagerProxy,
+            "secureOff", G_TYPE_STRING, G_TYPE_STRING, G_TYPE_INVALID);
+    dbus_g_proxy_connect_signal (callManagerProxy,
+            "secureOff", G_CALLBACK(secure_off_cb), NULL, NULL);
+                    
     /* Register a marshaller for STRING,STRING */
     dbus_g_object_register_marshaller(g_cclosure_user_marshal_VOID__STRING_STRING,
             G_TYPE_NONE, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_INVALID);
@@ -329,6 +362,11 @@ dbus_connect ()
     dbus_g_proxy_connect_signal (callManagerProxy,
             "callStateChanged", G_CALLBACK(call_state_cb), NULL, NULL);
 
+    dbus_g_proxy_add_signal (callManagerProxy,
+            "secureOn", G_TYPE_STRING, G_TYPE_STRING, G_TYPE_INVALID);
+    dbus_g_proxy_connect_signal (callManagerProxy,
+            "secureOn", G_CALLBACK(secure_on_cb), NULL, NULL);
+            
     dbus_g_object_register_marshaller(g_cclosure_user_marshal_VOID__STRING_INT,
             G_TYPE_NONE, G_TYPE_STRING, G_TYPE_INT, G_TYPE_INVALID);
     dbus_g_proxy_add_signal (callManagerProxy,

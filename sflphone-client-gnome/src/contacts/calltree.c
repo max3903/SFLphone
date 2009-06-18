@@ -31,6 +31,13 @@ GtkCellRenderer *rend;
 GtkTreeViewColumn *col;
 GtkTreeSelection *sel;
 
+enum {
+    COLUMN_ACCOUNT_STATE = 0,
+    COLUMN_ACCOUNT_DESC,
+    COLUMN_ACCOUNT_SECURITY,
+    COLUMN_ACCOUNT_PTR,
+};
+
 
 /**
  * Show popup menu
@@ -55,7 +62,7 @@ selected(GtkTreeSelection *sel, void* data UNUSED )
         return;
 
     val.g_type = 0;
-    gtk_tree_model_get_value (model, &iter, 2, &val);
+    gtk_tree_model_get_value (model, &iter, COLUMN_ACCOUNT_PTR, &val);
 
     calltab_select_call(active_calltree, (callable_obj_t*) g_value_get_pointer(&val));
     g_value_unset(&val);
@@ -188,9 +195,10 @@ calltree_create (calltab_t* tab, gboolean searchbar_type)
     gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(sw), GTK_POLICY_NEVER, GTK_POLICY_AUTOMATIC);
     gtk_scrolled_window_set_shadow_type(GTK_SCROLLED_WINDOW(sw), GTK_SHADOW_IN);
 
-    tab->store = gtk_list_store_new (3,
+    tab->store = gtk_list_store_new (4,
             GDK_TYPE_PIXBUF,// Icon
             G_TYPE_STRING,  // Description
+            GDK_TYPE_PIXBUF,// Security Icon
             G_TYPE_POINTER  // Pointer to the Object
             );
 
@@ -222,6 +230,7 @@ calltree_create (calltab_t* tab, gboolean searchbar_type)
 
     gtk_widget_grab_focus(GTK_WIDGET(tab->view));
 
+    /* Call state icon */
     rend = gtk_cell_renderer_pixbuf_new();
     col = gtk_tree_view_column_new_with_attributes ("Icon",
             rend,
@@ -236,6 +245,14 @@ calltree_create (calltab_t* tab, gboolean searchbar_type)
             NULL);
     gtk_tree_view_append_column (GTK_TREE_VIEW(tab->view), col);
 
+    /* Security icon */
+    rend = gtk_cell_renderer_pixbuf_new();
+    col = gtk_tree_view_column_new_with_attributes ("Icon",
+            rend,
+            "pixbuf", 2,
+            NULL);
+    gtk_tree_view_append_column (GTK_TREE_VIEW(tab->view), col);
+    
     g_object_unref(G_OBJECT(tab->store));
     gtk_container_add(GTK_CONTAINER(sw), tab->view);
 
@@ -270,7 +287,7 @@ calltree_remove_call (calltab_t* tab, callable_obj_t * c)
         if(gtk_tree_model_iter_nth_child(GTK_TREE_MODEL(store), &iter, NULL, i))
         {
             val.g_type = 0;
-            gtk_tree_model_get_value (GTK_TREE_MODEL(store), &iter, 2, &val);
+            gtk_tree_model_get_value (GTK_TREE_MODEL(store), &iter, COLUMN_ACCOUNT_PTR, &val);
 
             iterCall = (callable_obj_t*) g_value_get_pointer(&val);
             g_value_unset(&val);
@@ -291,6 +308,7 @@ calltree_remove_call (calltab_t* tab, callable_obj_t * c)
 calltree_update_call (calltab_t* tab, callable_obj_t * c)
 {
     GdkPixbuf *pixbuf=NULL;
+    GdkPixbuf *pixbuf_security=NULL;
     GtkTreeIter iter;
     GValue val;
     callable_obj_t * iterCall;
@@ -303,7 +321,7 @@ calltree_update_call (calltab_t* tab, callable_obj_t * c)
         if(gtk_tree_model_iter_nth_child(GTK_TREE_MODEL(store), &iter, NULL, i))
         {
             val.g_type = 0;
-            gtk_tree_model_get_value (GTK_TREE_MODEL(store), &iter, 2, &val);
+            gtk_tree_model_get_value (GTK_TREE_MODEL(store), &iter, COLUMN_ACCOUNT_PTR, &val);
 
             iterCall = (callable_obj_t*) g_value_get_pointer(&val);
             g_value_unset(&val);
@@ -361,6 +379,29 @@ calltree_update_call (calltab_t* tab, callable_obj_t * c)
                         default:
                             WARN("Update calltree - Should not happen!");
                     }
+                    
+                    switch(c->_srtp_state)
+                    {
+                        case SRTP_STATE_SAS_UNCONFIRMED:
+                            fprintf(stderr,"Secure is ON\n");
+                            pixbuf_security = gdk_pixbuf_new_from_file(ICONS_DIR "/lock_unconfirmed.svg", NULL);
+                            break;
+                        case SRTP_STATE_SAS_CONFIRMED:
+                            fprintf(stderr,"SAS is confirmed\n");
+                            pixbuf_security = gdk_pixbuf_new_from_file(ICONS_DIR "/lock_confirmed.svg", NULL);   
+                            break;
+                        case SRTP_STATE_SAS_SIGNED:   
+                            fprintf(stderr,"Secure is ON with SAS signed and verified\n");
+                            pixbuf_security = gdk_pixbuf_new_from_file(ICONS_DIR "/lock_certified.svg", NULL);
+                            break;
+                        case SRTP_STATE_UNLOCKED:  
+                            fprintf(stderr,"Secure is off\n");
+                            pixbuf_security = gdk_pixbuf_new_from_file(ICONS_DIR "/lock_off.svg", NULL); 
+                            break;
+                        default:
+                            WARN("Update calltree srtp state #%d- Should not happen!", c->_srtp_state); 
+                            pixbuf_security = gdk_pixbuf_new_from_file(ICONS_DIR "/lock_off.svg", NULL);    
+                    }
                 }
                 else
                 {
@@ -388,20 +429,33 @@ calltree_update_call (calltab_t* tab, callable_obj_t * c)
                     description = g_strconcat( description , duration, NULL);
                 }
                 //Resize it
-                if(pixbuf)
+                if(pixbuf != NULL)
                 {
                     if(gdk_pixbuf_get_width(pixbuf) > 32 || gdk_pixbuf_get_height(pixbuf) > 32)
                     {
                         pixbuf =  gdk_pixbuf_scale_simple(pixbuf, 32, 32, GDK_INTERP_BILINEAR);
                     }
                 }
+                
+                if(pixbuf_security != NULL)
+                {
+                    if(gdk_pixbuf_get_width(pixbuf_security) > 32 || gdk_pixbuf_get_height(pixbuf_security) > 32)
+                    {
+                        pixbuf_security =  gdk_pixbuf_scale_simple(pixbuf_security, 32, 32, GDK_INTERP_BILINEAR);
+                    }
+                }
+                
                 gtk_list_store_set(store, &iter,
                         0, pixbuf, // Icon
                         1, description, // Description
+                        2, pixbuf_security, // Icon
                         -1);
 
                 if (pixbuf != NULL)
-                    g_object_unref(G_OBJECT(pixbuf));
+                    { g_object_unref(G_OBJECT(pixbuf)); }
+                    
+                if (pixbuf_security != NULL)
+                    { g_object_unref(G_OBJECT(pixbuf_security)); }
 
             }
         }
@@ -417,6 +471,7 @@ void calltree_add_history_entry (callable_obj_t * c)
         return;
 
     GdkPixbuf *pixbuf=NULL;
+    GdkPixbuf *pixbuf_security=NULL;
     GtkTreeIter iter;
 
     // New call in the list
@@ -442,28 +497,42 @@ void calltree_add_history_entry (callable_obj_t * c)
             WARN("History - Should not happen!");
     }
 
+    pixbuf_security = gdk_pixbuf_new_from_file(ICONS_DIR "/incoming.svg", NULL);
+
     date = get_formatted_start_timestamp (c);
     duration = get_call_duration (c);
     duration = g_strconcat( date , duration , NULL);
     description = g_strconcat( description , duration, NULL);
 
     //Resize it
-    if(pixbuf)
+    if(pixbuf != NULL)
     {
         if(gdk_pixbuf_get_width(pixbuf) > 32 || gdk_pixbuf_get_height(pixbuf) > 32)
         {
             pixbuf =  gdk_pixbuf_scale_simple(pixbuf, 32, 32, GDK_INTERP_BILINEAR);
         }
     }
+    
+    if(pixbuf_security != NULL)
+    {
+        if(gdk_pixbuf_get_width(pixbuf_security) > 32 || gdk_pixbuf_get_height(pixbuf_security) > 32)
+        {
+            pixbuf_security =  gdk_pixbuf_scale_simple(pixbuf_security, 32, 32, GDK_INTERP_BILINEAR);
+        }
+    }
+    
     gtk_list_store_set(history->store, &iter,
             0, pixbuf, // Icon
             1, description, // Description
-            2, c,      // Pointer
+            2, pixbuf_security, // Icon
+            3, c,      // Pointer
             -1);
 
     if (pixbuf != NULL)
-        g_object_unref(G_OBJECT(pixbuf));
-
+       { g_object_unref(G_OBJECT(pixbuf)); }
+    if (pixbuf_security != NULL)
+       { g_object_unref(G_OBJECT(pixbuf_security)); }
+       
     gtk_tree_view_set_model (GTK_TREE_VIEW(history->view), GTK_TREE_MODEL(history->store));
     
     history_reinit(history);
@@ -479,6 +548,7 @@ void calltree_add_call (calltab_t* tab, callable_obj_t * c)
     }
 
     GdkPixbuf *pixbuf=NULL;
+    GdkPixbuf *pixbuf_security=NULL;
     GtkTreeIter iter;
 
     // New call in the list
@@ -520,6 +590,8 @@ void calltree_add_call (calltab_t* tab, callable_obj_t * c)
             default:
                 WARN("Update calltree add - Should not happen!");
         }
+        
+        pixbuf_security = gdk_pixbuf_new_from_file(ICONS_DIR "/secure_off.svg", NULL);
     }
 
     else if (tab == contacts) {
@@ -540,16 +612,27 @@ void calltree_add_call (calltab_t* tab, callable_obj_t * c)
             pixbuf =  gdk_pixbuf_scale_simple(pixbuf, 32, 32, GDK_INTERP_BILINEAR);
         }
     }
+    
+    if(pixbuf_security)
+    {
+        if(gdk_pixbuf_get_width(pixbuf_security) > 32 || gdk_pixbuf_get_height(pixbuf_security) > 32)
+        {
+            pixbuf_security =  gdk_pixbuf_scale_simple(pixbuf_security, 32, 32, GDK_INTERP_BILINEAR);
+        }
+    }
+    
     gtk_list_store_set(tab->store, &iter,
             0, pixbuf, // Icon
             1, description, // Description
-            2, c,      // Pointer
+            2, pixbuf_security, // Informs user about the state of security
+            3, c,      // Pointer
             -1);
 
 
     if (pixbuf != NULL)
-        g_object_unref(G_OBJECT(pixbuf));
-
+       { g_object_unref(G_OBJECT(pixbuf)); }
+    if (pixbuf_security != NULL)
+       { g_object_unref(G_OBJECT(pixbuf)); }
 
     // history_reinit (tab);
 

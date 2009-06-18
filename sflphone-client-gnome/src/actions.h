@@ -110,6 +110,18 @@ void sflphone_ringing(callable_obj_t * c );
  */
 void sflphone_busy( callable_obj_t * c );
 
+/** Nofity that the communication is 
+ *  now secured.
+ * @param c* The current call
+ */
+void sflphone_srtp_on( callable_obj_t * c );
+
+/** Called when the RTP session goes
+ * unsecured.
+ * @param c* The current call
+ */
+void sflphone_srtp_off( callable_obj_t * c );
+
 /**
  * Put the call in Failure state
  * @param c* The current call
