@@ -85,6 +85,14 @@
       <arg type="s" name="codecName"  direction="out"/>
     </signal>
     
+    <method name="setSASVerified">
+      <arg type="s" name="callID" direction="in"/>
+    </method>
+    
+    <method name="resetSASVerified">
+      <arg type="s" name="callID" direction="in"/>
+    </method>
+    
     <signal name="incomingCall">
       <arg type="s" name="accountID" />
       <arg type="s" name="callID" />

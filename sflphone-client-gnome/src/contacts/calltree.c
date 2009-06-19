@@ -130,6 +130,43 @@ void  row_activated(GtkTreeView       *tree_view UNUSED,
     }
 }
 
+/* Catch cursor-activated signal. That is, when the entry is single clicked */
+void  row_single_click(GtkTreeView *tree_view UNUSED, void * data UNUSED)
+{
+    callable_obj_t* selectedCall;
+    callable_obj_t* new_call;
+    gchar *account_id;
+
+    DEBUG("single click action");
+
+    selectedCall = calltab_get_selected_call( active_calltree );
+
+    if (selectedCall)
+    {
+        /*  Make sure that we are not in the history tab since 
+         *  nothing is defined for it yet 
+         */
+        if( active_calltree == current_calls )
+        {
+            switch(selectedCall->_srtp_state)
+            {
+                case SRTP_STATE_SAS_UNCONFIRMED:
+                    selectedCall->_srtp_state = SRTP_STATE_SAS_CONFIRMED;
+                    dbus_confirm_sas(selectedCall);
+                    calltree_update_call(current_calls, selectedCall);
+                    break;
+                case SRTP_STATE_SAS_CONFIRMED:
+                    selectedCall->_srtp_state = SRTP_STATE_SAS_UNCONFIRMED;
+                    dbus_reset_sas(selectedCall);
+                    calltree_update_call(current_calls, selectedCall);
+                    break;
+                default:
+                    WARN("Single click but no action");
+                    break;
+            }
+        }
+    }
+}
     static gboolean
 button_pressed(GtkWidget* widget, GdkEventButton *event, gpointer user_data UNUSED)
 {
@@ -205,8 +242,12 @@ calltree_create (calltab_t* tab, gboolean searchbar_type)
     tab->view = gtk_tree_view_new_with_model (GTK_TREE_MODEL(tab->store));
     gtk_tree_view_set_enable_search( GTK_TREE_VIEW(tab->view), FALSE);
     gtk_tree_view_set_headers_visible (GTK_TREE_VIEW(tab->view), FALSE);
+    
     g_signal_connect (G_OBJECT (tab->view), "row-activated",
             G_CALLBACK (row_activated),
+            NULL);       
+    g_signal_connect (G_OBJECT (tab->view), "cursor-changed",
+            G_CALLBACK (row_single_click),
             NULL);
 
     GTK_WIDGET_SET_FLAGS (GTK_WIDGET(sw),GTK_CAN_FOCUS);
@@ -245,6 +286,7 @@ calltree_create (calltab_t* tab, gboolean searchbar_type)
             rend,
             "markup", COLUMN_ACCOUNT_DESC,
             NULL);
+    g_object_set(rend, "xalign", (gfloat) 0.5, NULL);
     gtk_tree_view_append_column (GTK_TREE_VIEW(tab->view), col);
 
     /* Security icon */
@@ -348,7 +390,7 @@ calltree_update_call (calltab_t* tab, callable_obj_t * c)
                 }
                 else
                 {
-                    if(c->_sas != NULL) {
+                    if((c->_sas != NULL) && (c->_srtp_state == SRTP_STATE_SAS_UNCONFIRMED)) {
                         description = g_markup_printf_escaped("<b>%s</b> <i>%s</i>\n<i>Confirm SAS <b>%s</b> ?</i> ",
                             c->_peer_number,
                             c->_peer_name,

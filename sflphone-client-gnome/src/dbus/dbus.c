@@ -359,14 +359,6 @@ dbus_connect ()
             "currentSelectedCodec", G_TYPE_STRING, G_TYPE_STRING, G_TYPE_INVALID);
     dbus_g_proxy_connect_signal (callManagerProxy,
             "currentSelectedCodec", G_CALLBACK(curent_selected_codec), NULL, NULL);
-
-    /* Register a marshaller for STRING*/
-    dbus_g_object_register_marshaller(g_cclosure_user_marshal_VOID__STRING,
-            G_TYPE_NONE, G_TYPE_STRING, G_TYPE_INVALID);
-    dbus_g_proxy_add_signal (callManagerProxy,
-            "secureOff", G_TYPE_STRING, G_TYPE_STRING, G_TYPE_INVALID);
-    dbus_g_proxy_connect_signal (callManagerProxy,
-            "secureOff", G_CALLBACK(secure_off_cb), NULL, NULL);
                     
     /* Register a marshaller for STRING,STRING */
     dbus_g_object_register_marshaller(g_cclosure_user_marshal_VOID__STRING_STRING,
@@ -375,11 +367,6 @@ dbus_connect ()
             "callStateChanged", G_TYPE_STRING, G_TYPE_STRING, G_TYPE_INVALID);
     dbus_g_proxy_connect_signal (callManagerProxy,
             "callStateChanged", G_CALLBACK(call_state_cb), NULL, NULL);
-
-    dbus_g_proxy_add_signal (callManagerProxy,
-            "secureOn", G_TYPE_STRING, G_TYPE_STRING, G_TYPE_INVALID);
-    dbus_g_proxy_connect_signal (callManagerProxy,
-            "secureOn", G_CALLBACK(secure_on_cb), NULL, NULL);
             
     dbus_g_object_register_marshaller(g_cclosure_user_marshal_VOID__STRING_INT,
             G_TYPE_NONE, G_TYPE_STRING, G_TYPE_INT, G_TYPE_INVALID);
@@ -417,7 +404,21 @@ dbus_connect ()
             "showSAS", G_TYPE_STRING, G_TYPE_STRING, G_TYPE_BOOLEAN, G_TYPE_INVALID);
     dbus_g_proxy_connect_signal (callManagerProxy,
             "showSAS", G_CALLBACK(show_sas_cb), NULL, NULL);  
-                
+  
+
+    dbus_g_proxy_add_signal (callManagerProxy,
+            "secureOn", G_TYPE_STRING, G_TYPE_STRING, G_TYPE_INVALID);
+    dbus_g_proxy_connect_signal (callManagerProxy,
+            "secureOn", G_CALLBACK(secure_on_cb), NULL, NULL);
+
+    /* Register a marshaller for STRING*/
+    dbus_g_object_register_marshaller(g_cclosure_user_marshal_VOID__STRING,
+            G_TYPE_NONE, G_TYPE_STRING, G_TYPE_INVALID);
+    dbus_g_proxy_add_signal (callManagerProxy,
+            "secureOff", G_TYPE_STRING, G_TYPE_STRING, G_TYPE_INVALID);
+    dbus_g_proxy_connect_signal (callManagerProxy,
+            "secureOff", G_CALLBACK(secure_off_cb), NULL, NULL);
+                                   
     configurationManagerProxy = dbus_g_proxy_new_for_name (connection, 
             "org.sflphone.SFLphone",
             "/org/sflphone/SFLphone/ConfigurationManager",
@@ -1809,6 +1810,32 @@ void dbus_set_history (GHashTable* entries)
     org_sflphone_SFLphone_ConfigurationManager_set_history (configurationManagerProxy, entries, &error);
     if (error){
         ERROR ("Error calling org_sflphone_SFLphone_CallManager_set_history");
+        g_error_free (error);
+    }
+}
+
+    void
+dbus_confirm_sas (const callable_obj_t * c)
+{
+    GError *error = NULL;
+    org_sflphone_SFLphone_CallManager_set_sa_sverified ( callManagerProxy, c->_callID, &error);
+    if (error)
+    {
+        ERROR ("Failed to call setSASVerified() on CallManager: %s",
+                error->message);
+        g_error_free (error);
+    }
+}
+
+    void
+dbus_reset_sas (const callable_obj_t * c)
+{
+    GError *error = NULL;
+    org_sflphone_SFLphone_CallManager_reset_sa_sverified ( callManagerProxy, c->_callID, &error);
+    if (error)
+    {
+        ERROR ("Failed to call resetSASVerified on CallManager: %s",
+                error->message);
         g_error_free (error);
     }
 }

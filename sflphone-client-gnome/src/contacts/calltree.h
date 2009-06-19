@@ -65,4 +65,9 @@ calltree_display (calltab_t *tab);
 void
 row_activated(GtkTreeView *, GtkTreePath *, GtkTreeViewColumn *, void *);
 
+/**
+ * Catch cursor-activated signal. That is, when the entry is single clicked 
+ */
+void  row_single_click(GtkTreeView *, void *);
+
 #endif

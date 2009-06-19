@@ -45,6 +45,20 @@ gboolean dbus_connect ();
 void dbus_clean ();
 
 /**
+ * CallManager - Confirm Short Authentication String 
+ * for a given callId
+ * @param c The call to confirm SAS
+ */
+void dbus_confirm_sas (const callable_obj_t * c);
+
+/**
+ * CallManager - Reset Short Authentication String 
+ * for a given callId
+ * @param c The call to reset SAS
+ */
+void dbus_reset_sas (const callable_obj_t * c);
+
+/**
  * CallManager - Hold a call
  * @param c The call to hold
  */
