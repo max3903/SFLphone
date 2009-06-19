@@ -360,9 +360,19 @@ calltree_update_call (calltab_t* tab, callable_obj_t * c)
     GValue val;
     callable_obj_t * iterCall;
     GtkListStore* store = tab->store;
-
+    gchar* srtp_enabled="";
+    account_t* account_details=NULL;
+    
     int nbChild = gtk_tree_model_iter_n_children(GTK_TREE_MODEL(store), NULL);
     int i;
+    
+    if(c != NULL) {
+        account_details = account_list_get_by_id(c->_callID);
+        if(account_details != NULL) {
+            srtp_enabled = g_hash_table_lookup(account_details->properties, ACCOUNT_SRTP_ENABLED);
+        }
+    } 
+    
     for( i = 0; i < nbChild; i++)
     {
         if(gtk_tree_model_iter_nth_child(GTK_TREE_MODEL(store), &iter, NULL, i))
@@ -436,29 +446,32 @@ calltree_update_call (calltab_t* tab, callable_obj_t * c)
                             WARN("Update calltree - Should not happen!");
                     }
                     
-                    switch(c->_srtp_state)
-                    {
-                        case SRTP_STATE_SAS_UNCONFIRMED:
-                            DEBUG("Secure is ON");
-                            pixbuf_security = gdk_pixbuf_new_from_file(ICONS_DIR "/lock_unconfirmed.svg", NULL);
-                            if(c->_sas != NULL) { DEBUG("SAS is ready with value %s", c->_sas); }
-                            break;
-                        case SRTP_STATE_SAS_CONFIRMED:
-                            DEBUG("SAS is confirmed");
-                            pixbuf_security = gdk_pixbuf_new_from_file(ICONS_DIR "/lock_confirmed.svg", NULL);   
-                            break;
-                        case SRTP_STATE_SAS_SIGNED:   
-                            DEBUG("Secure is ON with SAS signed and verified");
-                            pixbuf_security = gdk_pixbuf_new_from_file(ICONS_DIR "/lock_certified.svg", NULL);
-                            break;
-                        case SRTP_STATE_UNLOCKED:  
-                            DEBUG("Secure is off");
-                            pixbuf_security = gdk_pixbuf_new_from_file(ICONS_DIR "/lock_off.svg", NULL); 
-                            break;
-                        default:
-                            WARN("Update calltree srtp state #%d- Should not happen!", c->_srtp_state); 
-                            pixbuf_security = gdk_pixbuf_new_from_file(ICONS_DIR "/lock_off.svg", NULL);    
-                    }
+
+                        switch(c->_srtp_state)
+                        {
+                            case SRTP_STATE_SAS_UNCONFIRMED:
+                                DEBUG("Secure is ON");
+                                pixbuf_security = gdk_pixbuf_new_from_file(ICONS_DIR "/lock_unconfirmed.svg", NULL);
+                                if(c->_sas != NULL) { DEBUG("SAS is ready with value %s", c->_sas); }
+                                break;
+                            case SRTP_STATE_SAS_CONFIRMED:
+                                DEBUG("SAS is confirmed");
+                                pixbuf_security = gdk_pixbuf_new_from_file(ICONS_DIR "/lock_confirmed.svg", NULL);   
+                                break;
+                            case SRTP_STATE_SAS_SIGNED:   
+                                DEBUG("Secure is ON with SAS signed and verified");
+                                pixbuf_security = gdk_pixbuf_new_from_file(ICONS_DIR "/lock_certified.svg", NULL);
+                                break;
+                            case SRTP_STATE_UNLOCKED:  
+                                DEBUG("Secure is off");
+                                pixbuf_security = gdk_pixbuf_new_from_file(ICONS_DIR "/lock_off.svg", NULL); 
+                                break;
+                            default:
+                                WARN("Update calltree srtp state #%d- Should not happen!", c->_srtp_state); 
+                                if(g_strcasecmp(srtp_enabled,"TRUE") == 0) {
+                                    pixbuf_security = gdk_pixbuf_new_from_file(ICONS_DIR "/lock_off.svg", NULL);    
+                                }
+                        }
                 }
                 else
                 {
@@ -604,11 +617,14 @@ void calltree_add_call (calltab_t* tab, callable_obj_t * c)
         calltree_add_history_entry (c);
         return;
     }
+    account_t* account_details=NULL;
 
     GdkPixbuf *pixbuf=NULL;
     GdkPixbuf *pixbuf_security=NULL;
     GtkTreeIter iter;
-
+    gchar* key_exchange="";
+    gchar* srtp_enabled="";
+    
     // New call in the list
     gchar * description;
     gchar * date="";
@@ -619,7 +635,14 @@ void calltree_add_call (calltab_t* tab, callable_obj_t * c)
 
     gtk_list_store_prepend (tab->store, &iter);
 
-
+    if(c != NULL) {
+        account_details = account_list_get_by_id(c->_callID);
+        if(account_details != NULL) {
+            srtp_enabled = g_hash_table_lookup(account_details->properties, ACCOUNT_SRTP_ENABLED);
+            key_exchange = g_hash_table_lookup(account_details->properties, ACCOUNT_KEY_EXCHANGE);
+        }
+    } 
+        
     if( tab == current_calls )
     {
         switch(c->_state)
@@ -649,7 +672,9 @@ void calltree_add_call (calltab_t* tab, callable_obj_t * c)
                 WARN("Update calltree add - Should not happen!");
         }
         
-        pixbuf_security = gdk_pixbuf_new_from_file(ICONS_DIR "/secure_off.svg", NULL);
+        if(g_strcasecmp(srtp_enabled,"TRUE") == 0) {
+            pixbuf_security = gdk_pixbuf_new_from_file(ICONS_DIR "/secure_off.svg", NULL);
+        }
     }
 
     else if (tab == contacts) {
