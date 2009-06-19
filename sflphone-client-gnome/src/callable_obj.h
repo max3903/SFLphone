@@ -81,7 +81,7 @@ typedef enum
    SRTP_STATE_SAS_CONFIRMED = 1,
    SRTP_STATE_SAS_UNCONFIRMED,
    SRTP_STATE_SAS_SIGNED,
-   SRTP_STATE_UNLOCKED 
+   SRTP_STATE_UNLOCKED
 } srtp_state_t;
 
 /** @struct callable_obj_t
@@ -93,6 +93,7 @@ typedef struct  {
     callable_type_t _type;          // CALL - HISTORY ENTRY - CONTACT
     call_state_t _state;            // The state of the call
     srtp_state_t _srtp_state;       // The state of security on the call 
+    gchar* _srtp_cipher;            // Cipher used for the srtp session
     gchar* _callID;                 // The call ID
     gchar* _accountID;              // The account the call is made with
     time_t _time_start;             // The timestamp the call was initiating

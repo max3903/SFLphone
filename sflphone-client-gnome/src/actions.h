@@ -114,7 +114,7 @@ void sflphone_busy( callable_obj_t * c );
  *  now secured.
  * @param c* The current call
  */
-void sflphone_srtp_on( callable_obj_t * c );
+void sflphone_srtp_on( callable_obj_t * c);
 
 /** Called when the RTP session goes
  * unsecured.

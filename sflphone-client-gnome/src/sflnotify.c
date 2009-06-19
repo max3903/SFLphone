@@ -31,7 +31,7 @@ void create_new_gnome_notification (gchar *title, gchar *body, NotifyUrgency urg
 
         notify_init ("SFLphone");
 
-        // Set struct fields
+        // Set struct fieldst
         _notif->notification = notify_notification_new (title, body, NULL, NULL);
         //_notif->icon = gdk_pixbuf_new_from_file_at_size (LOGO, 120, 120, NULL);
         _notif->icon = gdk_pixbuf_new_from_file (LOGO_SMALL, NULL);
@@ -74,6 +74,36 @@ notify_incoming_call (callable_obj_t* c)
         }
         callerid = g_markup_printf_escaped(_("<i>From:</i> %s") , c->_peer_number);
 
+        create_new_gnome_notification (title,
+                                        callerid, 
+                                        NOTIFY_URGENCY_CRITICAL, 
+                                        (g_strcasecmp(__TIMEOUT_MODE, "default") == 0 )? __TIMEOUT_TIME : NOTIFY_EXPIRES_NEVER,
+                                        &_gnome_notification); 
+}
+
+    void
+notify_secure_on (callable_obj_t* c)
+{
+
+        gchar* callerid;
+        gchar* title;
+        title = g_markup_printf_escaped ("Secure mode on.");
+        callerid = g_markup_printf_escaped(_("<i>With:</i> %s \nusing %s") , c->_peer_number, c->_srtp_cipher);
+        create_new_gnome_notification (title,
+                                        callerid, 
+                                        NOTIFY_URGENCY_CRITICAL, 
+                                        (g_strcasecmp(__TIMEOUT_MODE, "default") == 0 )? __TIMEOUT_TIME : NOTIFY_EXPIRES_NEVER,
+                                        &_gnome_notification); 
+}
+
+    void
+notify_secure_off (callable_obj_t* c)
+{
+
+        gchar* callerid;
+        gchar* title;
+        title = g_markup_printf_escaped ("Secure mode is off.");
+        callerid = g_markup_printf_escaped(_("<i>With:</i> %s") , c->_peer_number);
         create_new_gnome_notification (title,
                                         callerid, 
                                         NOTIFY_URGENCY_CRITICAL, 

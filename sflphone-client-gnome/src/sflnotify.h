@@ -76,6 +76,16 @@ void notify_no_accounts( );
 void notify_no_registered_accounts(  );
 
 /**
+ * Notify that the RTP session is secured
+ */
+void notify_secure_on (callable_obj_t* c);
+
+/**
+ * Notify that the RTP session is now more secured
+ */
+void notify_secure_off (callable_obj_t* c);
+
+/**
  * Stop and close the current notification if an action occured before the timeout
  */
 void stop_notification( void );

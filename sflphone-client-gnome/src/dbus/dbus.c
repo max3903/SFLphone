@@ -113,7 +113,9 @@ secure_on_cb (DBusGProxy *proxy UNUSED,
     DEBUG ("SRTP is ON");
     callable_obj_t * c = calllist_get(current_calls, callID);
     if(c) {
+        c->_srtp_cipher = g_strdup(cipher);
         sflphone_srtp_on (c);
+        notify_secure_on(c);
     }
 }
 
@@ -126,6 +128,7 @@ secure_off_cb (DBusGProxy *proxy UNUSED,
     callable_obj_t * c = calllist_get(current_calls, callID);
     if(c) {
         sflphone_srtp_off (c);
+        notify_secure_off (c);
     }
 }
 

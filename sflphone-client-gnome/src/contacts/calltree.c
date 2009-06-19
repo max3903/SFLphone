@@ -134,8 +134,6 @@ void  row_activated(GtkTreeView       *tree_view UNUSED,
 void  row_single_click(GtkTreeView *tree_view UNUSED, void * data UNUSED)
 {
     callable_obj_t* selectedCall;
-    callable_obj_t* new_call;
-    gchar *account_id;
 
     DEBUG("single click action");
 

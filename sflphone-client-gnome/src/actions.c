@@ -392,7 +392,7 @@ sflphone_off_hold ()
 }
 
     void
-sflphone_srtp_on( callable_obj_t * c )
+sflphone_srtp_on( callable_obj_t * c)
 {
     c->_srtp_state = SRTP_STATE_SAS_UNCONFIRMED;
     calltree_update_call(current_calls, c);
