@@ -130,6 +130,11 @@ void sflphone_srtp_off( callable_obj_t * c );
  */
 void sflphone_srtp_show_sas( callable_obj_t * c, const gchar* sas, const gboolean* verified);
 
+/** Called when the remote peer does not support ZRTP
+ * @param c* The current call
+ */
+void sflphone_zrtp_not_supported( callable_obj_t * c );
+
 /**
  * Put the call in Failure state
  * @param c* The current call

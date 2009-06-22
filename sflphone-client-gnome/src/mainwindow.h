@@ -77,6 +77,9 @@ void main_window_warning_message(gchar * markup);
  */
 void main_window_info_message(gchar * markup);
 
+
+void main_window_zrtp_not_supported(void);
+
 /**
  * Push a message on the statusbar stack
  * @param message The message to display

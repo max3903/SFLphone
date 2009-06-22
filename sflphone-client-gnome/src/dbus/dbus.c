@@ -147,6 +147,18 @@ show_sas_cb (DBusGProxy *proxy UNUSED,
 }
 
     static void
+zrtp_not_supported_cb (DBusGProxy *proxy UNUSED,
+        const gchar* callID,
+        void * foo  UNUSED )
+{
+    DEBUG ("ZRTP not supported on the other end");
+    callable_obj_t * c = calllist_get(current_calls, callID);
+    if(c) {
+        sflphone_zrtp_not_supported (c);
+    }
+}
+
+    static void
 call_state_cb (DBusGProxy *proxy UNUSED,
         const gchar* callID,
         const gchar* state,
@@ -418,9 +430,14 @@ dbus_connect ()
     dbus_g_object_register_marshaller(g_cclosure_user_marshal_VOID__STRING,
             G_TYPE_NONE, G_TYPE_STRING, G_TYPE_INVALID);
     dbus_g_proxy_add_signal (callManagerProxy,
-            "secureOff", G_TYPE_STRING, G_TYPE_STRING, G_TYPE_INVALID);
+            "secureOff", G_TYPE_STRING, G_TYPE_INVALID);
     dbus_g_proxy_connect_signal (callManagerProxy,
             "secureOff", G_CALLBACK(secure_off_cb), NULL, NULL);
+    dbus_g_proxy_add_signal (callManagerProxy,
+            "zrtpNotSuppOther", G_TYPE_STRING, G_TYPE_INVALID);
+    dbus_g_proxy_connect_signal (callManagerProxy,
+            "zrtpNotSuppOther", G_CALLBACK(zrtp_not_supported_cb), NULL, NULL);
+                   
                                    
     configurationManagerProxy = dbus_g_proxy_new_for_name (connection, 
             "org.sflphone.SFLphone",

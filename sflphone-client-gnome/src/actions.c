@@ -420,6 +420,12 @@ sflphone_srtp_show_sas( callable_obj_t * c, const gchar* sas, const gboolean* ve
     update_menus();
 }
 
+    void 
+sflphone_zrtp_not_supported( callable_obj_t * c )
+{
+    DEBUG("Not supported");
+    main_window_zrtp_not_supported();
+}
 
     void
 sflphone_fail( callable_obj_t * c )

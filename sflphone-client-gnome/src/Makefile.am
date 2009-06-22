@@ -22,13 +22,15 @@ sflphone_client_gnome_SOURCES = \
   actions.c \
   accountlist.c \
   sliders.c \
+  minidialog.c \
+  gtkscrollbook.c \
   statusicon.c \
   codeclist.c \
   reqaccount.c
 
 noinst_HEADERS =  actions.h sflnotify.h mainwindow.h dialpad.h codeclist.h \
                   assistant.h reqaccount.h errors.h sflphone_const.h \
-                  menus.h accountlist.h sliders.h statusicon.h callable_obj.h toolbar.h
+                  menus.h accountlist.h sliders.h minidialog.h gtkscrollbook.h statusicon.h callable_obj.h toolbar.h
 
 
 sflphone_client_gnome_LDADD = $(DEPS_LIBS) $(NOTIFY_LIBS) $(SFLPHONEGTK_LIBS) $(LIBSEXY_LIBS) $(LOG4C)

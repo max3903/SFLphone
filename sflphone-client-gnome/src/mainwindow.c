@@ -2,6 +2,7 @@
  *  Copyright (C) 2007 Savoir-Faire Linux inc.
  *  Author: Emmanuel Milou <emmanuel.milou@savoirfairelinux.com>
  *  Author: Pierre-Luc Beaudoin <pierre-luc.beaudoin@savoirfairelinux.com>
+ *  Author: Pierre-Luc Bacon <pierre-luc.bacon@savoirfairelinux.com>
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -30,7 +31,8 @@
 #include <sliders.h>
 #include <contacts/searchbar.h>
 #include <assistant.h>
-
+#include <minidialog.h>
+#include <gtkscrollbook.h>
 #include <gtk/gtk.h>
 
 /** Local variables */
@@ -39,10 +41,12 @@ GtkWidget * window    = NULL;
 GtkWidget * subvbox   = NULL;
 GtkWidget * vbox   = NULL;
 GtkWidget * dialpad   = NULL;
+GtkWidget * popup   = NULL;
 GtkWidget * speaker_control = NULL;
 GtkWidget * mic_control = NULL;
 GtkWidget * statusBar = NULL;
 GtkWidget * filterEntry = NULL;
+PidginScrollBook *embedded_error_notebook;
 
 /**
  * Minimize the main window.
@@ -210,7 +214,10 @@ create_main_window ()
   //   gtk_widget_show_all ( filterEntry );
   // }
 
-
+    embedded_error_notebook = PIDGIN_SCROLL_BOOK(pidgin_scroll_book_new());
+	gtk_box_pack_start(GTK_BOX(subvbox),
+		GTK_WIDGET(embedded_error_notebook), FALSE, FALSE, 0);
+		
  if( SHOW_VOLUME ){
     speaker_control = create_slider("speaker");
     gtk_box_pack_end (GTK_BOX (subvbox), speaker_control, FALSE /*expand*/, TRUE /*fill*/, 0 /*padding*/);
@@ -328,6 +335,23 @@ main_window_dialpad( gboolean *state ){
     gtk_container_remove(GTK_CONTAINER (subvbox), dialpad);
     *state = FALSE;
   }
+}
+
+static void
+add_error_dialog(GtkWidget *dialog)
+{
+   	gtk_container_add(GTK_CONTAINER(embedded_error_notebook), dialog); 
+}
+
+void
+main_window_zrtp_not_supported(void)
+{
+    PidginMiniDialog *mini_dialog;
+    mini_dialog = pidgin_mini_dialog_new(_("ZRTP Error"), _("ZRTP is not supported by remote end"), GTK_STOCK_STOP);
+    pidgin_mini_dialog_add_button(mini_dialog, _("Continue"), NULL, NULL);
+    pidgin_mini_dialog_add_button(mini_dialog, _("Stop Call"), sflphone_hang_up, NULL);
+    
+    add_error_dialog(mini_dialog);
 }
 
 void
