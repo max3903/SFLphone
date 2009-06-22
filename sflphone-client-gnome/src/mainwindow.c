@@ -344,11 +344,24 @@ add_error_dialog(GtkWidget *dialog)
 }
 
 void
-main_window_zrtp_not_supported(void)
+main_window_zrtp_not_supported(callable_obj_t * c)
 {
     PidginMiniDialog *mini_dialog;
-    mini_dialog = pidgin_mini_dialog_new(_("ZRTP Error"), _("ZRTP is not supported by remote end"), GTK_STOCK_STOP);
+    gchar *desc = g_markup_printf_escaped(_("ZRTP is not supported by peer %s\n"), c->_peer_number);
+    mini_dialog = pidgin_mini_dialog_new(_("ZRTP Error"), desc, GTK_STOCK_STOP);
     pidgin_mini_dialog_add_button(mini_dialog, _("Continue"), NULL, NULL);
+    pidgin_mini_dialog_add_button(mini_dialog, _("Stop Call"), sflphone_hang_up, NULL);
+    
+    add_error_dialog(mini_dialog);
+}
+
+void
+main_window_confirm_go_clear(callable_obj_t * c)
+{
+    PidginMiniDialog *mini_dialog;
+    gchar *desc = g_markup_printf_escaped(_("%s wants to stop using secure communication. Confirm will resume conversation without SRTP.\n"), c->_peer_number);
+    mini_dialog = pidgin_mini_dialog_new(_("Confirm Go Clear"), desc, GTK_STOCK_STOP);
+    pidgin_mini_dialog_add_button(mini_dialog, _("Confirm"), sflphone_set_confirm_go_clear, NULL);
     pidgin_mini_dialog_add_button(mini_dialog, _("Stop Call"), sflphone_hang_up, NULL);
     
     add_error_dialog(mini_dialog);

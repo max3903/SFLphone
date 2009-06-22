@@ -117,6 +117,7 @@ help_about ( void * foo UNUSED)
     "Julien Plissonneau Duquene <julien.plissonneau.duquene@savoirfairelinux.com>",
     "Alexandre Bourget <alexandre.bourget@savoirfairelinux.com>",
     "Pierre-Luc Beaudoin <pierre-luc.beaudoin@savoirfairelinux.com>",
+    "Pierre-Luc Bacon <pierre-luc.bacon@savoirfairelinux.com>",
     "Emmanuel Milou <emmanuel.milou@savoirfairelinux.com>",
     "Yun Liu <yun.liu@savoirfairelinux.com>",
     "Alexandre Savard <alexandre.savard@savoirfairelinux.com>",
@@ -244,6 +245,12 @@ call_hang_up ( void * foo UNUSED)
 call_record ( void * foo UNUSED)
 {
     sflphone_rec_call();
+}
+
+    static void
+call_request_go_clear ()
+{
+    sflphone_request_go_clear();
 }
 
     static void
@@ -810,6 +817,20 @@ show_popup_menu (GtkWidget *my_widget, GdkEventButton *event)
         g_signal_connect (G_OBJECT (menu_items), "activate",
                 G_CALLBACK (call_hang_up),
                 NULL);
+        gtk_widget_show (menu_items);
+    }
+    
+    DEBUG("menu srtp state %d\n", selectedCall->_srtp_state);
+    
+    if(selectedCall->_srtp_state) 
+    {
+        menu_items = gtk_image_menu_item_new_with_mnemonic(_("Request Go _Clear"));
+        image = gtk_image_new_from_file( ICONS_DIR "/lock_off.svg");
+        gtk_image_menu_item_set_image(GTK_IMAGE_MENU_ITEM(menu_items), image);
+        gtk_menu_shell_append (GTK_MENU_SHELL (menu), menu_items);
+        g_signal_connect (G_OBJECT (menu_items), "activate",
+                G_CALLBACK (call_request_go_clear),
+                 NULL);
         gtk_widget_show (menu_items);
     }
 

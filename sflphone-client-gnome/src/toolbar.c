@@ -157,21 +157,14 @@ GtkWidget *create_toolbar ()
 {
     GtkWidget *ret;
     GtkWidget *image;
-    GdkPixbuf *icon;
-	GtkIconTheme *theme;
-	gint size;
-	
+
     ret = gtk_toolbar_new();
     toolbar = ret;
 
     gtk_toolbar_set_orientation(GTK_TOOLBAR(ret), GTK_ORIENTATION_HORIZONTAL);
     gtk_toolbar_set_style(GTK_TOOLBAR(ret), GTK_TOOLBAR_ICONS);
 
-    theme = gtk_icon_theme_get_default ();
-    
-	gtk_icon_size_lookup (GTK_ICON_SIZE_BUTTON, &size, NULL);
-	icon = gtk_icon_theme_load_icon (theme, "call-start", size, 0, NULL);
-    image = gtk_image_new_from_pixbuf(icon);
+    image = gtk_image_new_from_file( ICONS_DIR "/call.svg");
     callButton = gtk_tool_button_new (image, _("Place a call"));
 #if GTK_CHECK_VERSION(2,12,0)
     gtk_widget_set_tooltip_text(GTK_WIDGET(callButton), _("Place a call"));
@@ -179,7 +172,6 @@ GtkWidget *create_toolbar ()
     g_signal_connect (G_OBJECT (callButton), "clicked",
             G_CALLBACK (call_button), NULL);
     gtk_toolbar_insert(GTK_TOOLBAR(ret), GTK_TOOL_ITEM(callButton), -1);
-
 
     image = gtk_image_new_from_file( ICONS_DIR "/accept.svg");
     pickupButton = gtk_tool_button_new(image, _("Pick up"));
@@ -191,9 +183,7 @@ GtkWidget *create_toolbar ()
             G_CALLBACK (call_button), NULL);
     gtk_widget_show_all(GTK_WIDGET(pickupButton));
 
-
-	icon = gtk_icon_theme_load_icon (theme, "call-stop", size, 0, NULL);
-    image = gtk_image_new_from_pixbuf(icon);
+    image = gtk_image_new_from_file( ICONS_DIR "/hang_up.svg");
     hangupButton = gtk_tool_button_new (image, _("Hang up"));
 #if GTK_CHECK_VERSION(2,12,0)
     gtk_widget_set_tooltip_text(GTK_WIDGET(hangupButton), _("Hang up"));
@@ -202,7 +192,6 @@ GtkWidget *create_toolbar ()
     g_signal_connect (G_OBJECT (hangupButton), "clicked",
             G_CALLBACK (hang_up), NULL);
     gtk_toolbar_insert(GTK_TOOLBAR(ret), GTK_TOOL_ITEM(hangupButton), -1);
-
 
     image = gtk_image_new_from_file( ICONS_DIR "/unhold.svg");
     unholdButton = gtk_tool_button_new (image, _("Off Hold"));
@@ -215,9 +204,7 @@ GtkWidget *create_toolbar ()
     //gtk_toolbar_insert(GTK_TOOLBAR(ret), GTK_TOOL_ITEM(unholdButton), -1);
     gtk_widget_show_all(GTK_WIDGET(unholdButton));
 
-
-	icon = gtk_icon_theme_load_icon (theme, "appointment-soon", size, 0, NULL);
-    image = gtk_image_new_from_pixbuf(icon);
+    image = gtk_image_new_from_file( ICONS_DIR "/hold.svg");
     holdButton =  gtk_tool_button_new (image, _("On Hold"));
 #if GTK_CHECK_VERSION(2,12,0)
     gtk_widget_set_tooltip_text(GTK_WIDGET(holdButton), _("On Hold"));
@@ -227,8 +214,7 @@ GtkWidget *create_toolbar ()
             G_CALLBACK (hold), NULL);
     gtk_toolbar_insert(GTK_TOOLBAR(ret), GTK_TOOL_ITEM(holdButton), -1);
 
-
-    image = gtk_image_new_from_stock(GTK_STOCK_GO_FORWARD, GTK_ICON_SIZE_BUTTON);
+    image = gtk_image_new_from_file( ICONS_DIR "/transfert.svg");
     transfertButton = gtk_toggle_tool_button_new ();
     gtk_tool_button_set_icon_widget(GTK_TOOL_BUTTON(transfertButton), image);
 #if GTK_CHECK_VERSION(2,12,0)
@@ -240,9 +226,7 @@ GtkWidget *create_toolbar ()
             G_CALLBACK (transfert), NULL);
     gtk_toolbar_insert(GTK_TOOLBAR(ret), GTK_TOOL_ITEM(transfertButton), -1);
 
-
-	icon = gtk_icon_theme_load_icon (theme, "logviewer", size, 0, NULL);
-    image = gtk_image_new_from_pixbuf(icon);
+    image = gtk_image_new_from_file( ICONS_DIR "/history2.svg");
     historyButton = gtk_toggle_tool_button_new();
     gtk_tool_button_set_icon_widget (GTK_TOOL_BUTTON (historyButton), image);
 #if GTK_CHECK_VERSION(2,12,0)
@@ -253,9 +237,7 @@ GtkWidget *create_toolbar ()
     gtk_toolbar_insert(GTK_TOOLBAR(ret), GTK_TOOL_ITEM(historyButton), -1);
     active_calltree = current_calls;
 
-
-	icon = gtk_icon_theme_load_icon (theme, "x-office-address-book", size, 0, NULL);
-    image = gtk_image_new_from_pixbuf(icon);
+    image = gtk_image_new_from_file( ICONS_DIR "/addressbook.svg");
     contactButton = gtk_toggle_tool_button_new();
     gtk_tool_button_set_icon_widget (GTK_TOOL_BUTTON (contactButton), image);
 #if GTK_CHECK_VERSION(2,12,0)
@@ -266,9 +248,7 @@ GtkWidget *create_toolbar ()
     g_signal_connect (G_OBJECT (contactButton), "toggled", G_CALLBACK (toggle_button_cb), contacts);
     gtk_toolbar_insert(GTK_TOOLBAR(ret), GTK_TOOL_ITEM(contactButton), -1);
 
-
-	icon = gtk_icon_theme_load_icon (theme, "mail-read", size, 0, NULL);
-    image = gtk_image_new_from_pixbuf(icon);
+    image = gtk_image_new_from_file( ICONS_DIR "/mailbox.svg");
     mailboxButton = gtk_tool_button_new( image , _("Voicemail"));
     gtk_tool_button_set_icon_widget(GTK_TOOL_BUTTON(mailboxButton), image);
     if( account_list_get_size() ==0 ) gtk_widget_set_state( GTK_WIDGET(mailboxButton), GTK_STATE_INSENSITIVE );
@@ -278,7 +258,6 @@ GtkWidget *create_toolbar ()
     g_signal_connect (G_OBJECT (mailboxButton), "clicked",
             G_CALLBACK (call_mailbox), NULL);
     gtk_toolbar_insert(GTK_TOOLBAR(ret), GTK_TOOL_ITEM(mailboxButton), -1);
-
 
     recButton = gtk_tool_button_new_from_stock (GTK_STOCK_MEDIA_RECORD);
 #if GTK_CHECK_VERSION(2,12,0)

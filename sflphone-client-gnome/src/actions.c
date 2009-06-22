@@ -423,8 +423,31 @@ sflphone_srtp_show_sas( callable_obj_t * c, const gchar* sas, const gboolean* ve
     void 
 sflphone_zrtp_not_supported( callable_obj_t * c )
 {
-    DEBUG("Not supported");
-    main_window_zrtp_not_supported();
+    DEBUG("ZRTP not supported");
+    main_window_zrtp_not_supported(c);
+}
+
+/* Method on sflphoned */
+    void 
+sflphone_set_confirm_go_clear( callable_obj_t * c )
+{
+   dbus_set_confirm_go_clear(c);
+}
+
+ void 
+sflphone_request_go_clear(void)
+{
+    callable_obj_t * selectedCall = calltab_get_selected_call(current_calls);
+    if(selectedCall) {
+        dbus_request_go_clear(selectedCall);
+    }
+}
+
+/* Signal sent by sflphoned */
+    void 
+sflphone_confirm_go_clear( callable_obj_t * c )
+{
+    main_window_confirm_go_clear(c);
 }
 
     void

@@ -59,6 +59,20 @@ void dbus_confirm_sas (const callable_obj_t * c);
 void dbus_reset_sas (const callable_obj_t * c);
 
 /**
+ * CallManager - Request Go Clear in the ZRTP Protocol 
+ * for a given callId
+ * @param c The call that we want to go clear
+ */
+void dbus_request_go_clear (const callable_obj_t * c);
+
+/**
+ * CallManager - Accept Go Clear request from remote
+ * for a given callId
+ * @param c The call to confirm
+ */
+void dbus_set_confirm_go_clear (const callable_obj_t * c);
+
+/**
  * CallManager - Hold a call
  * @param c The call to hold
  */

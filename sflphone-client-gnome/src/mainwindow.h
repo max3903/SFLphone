@@ -78,7 +78,7 @@ void main_window_warning_message(gchar * markup);
 void main_window_info_message(gchar * markup);
 
 
-void main_window_zrtp_not_supported(void);
+void main_window_zrtp_not_supported(callable_obj_t * c);
 
 /**
  * Push a message on the statusbar stack

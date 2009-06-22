@@ -78,10 +78,10 @@ typedef enum
 
 typedef enum
 {
-   SRTP_STATE_SAS_CONFIRMED = 1,
+   SRTP_STATE_UNLOCKED = 0,
+   SRTP_STATE_SAS_CONFIRMED,
    SRTP_STATE_SAS_UNCONFIRMED,
    SRTP_STATE_SAS_SIGNED,
-   SRTP_STATE_UNLOCKED
 } srtp_state_t;
 
 /** @struct callable_obj_t

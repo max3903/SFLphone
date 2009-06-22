@@ -147,6 +147,18 @@ show_sas_cb (DBusGProxy *proxy UNUSED,
 }
 
     static void
+confirm_go_clear_cb (DBusGProxy *proxy UNUSED,
+        const gchar* callID,
+        void * foo  UNUSED )
+{
+    DEBUG ("Confirm Go Clear request");
+    callable_obj_t * c = calllist_get(current_calls, callID);
+    if(c) {
+        sflphone_confirm_go_clear (c);
+    }
+}
+
+    static void
 zrtp_not_supported_cb (DBusGProxy *proxy UNUSED,
         const gchar* callID,
         void * foo  UNUSED )
@@ -155,6 +167,7 @@ zrtp_not_supported_cb (DBusGProxy *proxy UNUSED,
     callable_obj_t * c = calllist_get(current_calls, callID);
     if(c) {
         sflphone_zrtp_not_supported (c);
+        notify_zrtp_not_supported(c);
     }
 }
 
@@ -437,7 +450,10 @@ dbus_connect ()
             "zrtpNotSuppOther", G_TYPE_STRING, G_TYPE_INVALID);
     dbus_g_proxy_connect_signal (callManagerProxy,
             "zrtpNotSuppOther", G_CALLBACK(zrtp_not_supported_cb), NULL, NULL);
-                   
+    dbus_g_proxy_add_signal (callManagerProxy,
+            "confirmGoClear", G_TYPE_STRING, G_TYPE_INVALID);
+    dbus_g_proxy_connect_signal (callManagerProxy,
+            "confirmGoClear", G_CALLBACK(confirm_go_clear_cb), NULL, NULL);               
                                    
     configurationManagerProxy = dbus_g_proxy_new_for_name (connection, 
             "org.sflphone.SFLphone",
@@ -1855,6 +1871,32 @@ dbus_reset_sas (const callable_obj_t * c)
     if (error)
     {
         ERROR ("Failed to call resetSASVerified on CallManager: %s",
+                error->message);
+        g_error_free (error);
+    }
+}
+
+    void
+dbus_set_confirm_go_clear (const callable_obj_t * c)
+{
+    GError *error = NULL;
+    org_sflphone_SFLphone_CallManager_set_confirm_go_clear( callManagerProxy, c->_callID, &error);
+    if (error)
+    {
+        ERROR ("Failed to call set_confirm_go_clear on CallManager: %s",
+                error->message);
+        g_error_free (error);
+    }
+}
+
+    void
+dbus_request_go_clear (const callable_obj_t * c)
+{
+    GError *error = NULL;
+    org_sflphone_SFLphone_CallManager_request_go_clear( callManagerProxy, c->_callID, &error);
+    if (error)
+    {
+        ERROR ("Failed to call request_go_clear on CallManager: %s",
                 error->message);
         g_error_free (error);
     }

@@ -135,6 +135,21 @@ void sflphone_srtp_show_sas( callable_obj_t * c, const gchar* sas, const gboolea
  */
 void sflphone_zrtp_not_supported( callable_obj_t * c );
 
+/** Called when user wants to confirm go clear request.
+ * @param c* The call to confirm the go clear request.
+ */
+void sflphone_set_confirm_go_clear( callable_obj_t * c );
+
+/** Called when user wants to confirm go clear request.
+ * @param c* The call to confirm the go clear request.
+ */
+void sflphone_confirm_go_clear( callable_obj_t * c );
+
+/** Called when user wants to clear.
+ * @param c* The call on which to go clear
+ */
+void sflphone_request_go_clear(void);
+
 /**
  * Put the call in Failure state
  * @param c* The current call

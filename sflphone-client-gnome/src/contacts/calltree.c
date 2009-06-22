@@ -462,7 +462,9 @@ calltree_update_call (calltab_t* tab, callable_obj_t * c)
                                 break;
                             case SRTP_STATE_UNLOCKED:  
                                 DEBUG("Secure is off");
-                                pixbuf_security = gdk_pixbuf_new_from_file(ICONS_DIR "/lock_off.svg", NULL); 
+                                if(g_strcasecmp(srtp_enabled,"TRUE") == 0) {
+                                    pixbuf_security = gdk_pixbuf_new_from_file(ICONS_DIR "/lock_off.svg", NULL); 
+                                }
                                 break;
                             default:
                                 WARN("Update calltree srtp state #%d- Should not happen!", c->_srtp_state); 

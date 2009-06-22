@@ -92,6 +92,14 @@
     <method name="resetSASVerified">
       <arg type="s" name="callID" direction="in"/>
     </method>
+        
+    <method name="setConfirmGoClear">
+        <arg type="s" name="callID" direction="in"/>
+    </method>
+    
+    <method name="requestGoClear">
+        <arg type="s" name="callID" direction="in"/>
+    </method>
     
     <signal name="incomingCall">
       <arg type="s" name="accountID" />
@@ -128,11 +136,14 @@
       <arg type="s" name="callID"  direction="out" />
     </signal>
     
+     <signal name="confirmGoClear">
+      <arg type="s" name="callID"  direction="out" />
+    </signal>
+    
     <signal name="voiceMailNotify">
       <arg type="s" name="accountID"  direction="out"/>
       <arg type="i" name="count"  direction="out"/>
     </signal>
-    
     
     <signal name="volumeChanged">
       <arg type="s" name="device"  direction="out"/>
