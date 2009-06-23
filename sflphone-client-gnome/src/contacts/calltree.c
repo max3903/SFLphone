@@ -133,14 +133,19 @@ void  row_activated(GtkTreeView       *tree_view UNUSED,
 /* Catch cursor-activated signal. That is, when the entry is single clicked */
 void  row_single_click(GtkTreeView *tree_view UNUSED, void * data UNUSED)
 {
-    callable_obj_t* selectedCall;
-
     DEBUG("single click action");
-
+    callable_obj_t * selectedCall=NULL;
+    account_t * account_details=NULL;
+    gchar * displaySasOnce="";
+    
     selectedCall = calltab_get_selected_call( active_calltree );
 
-    if (selectedCall)
+    if (selectedCall != NULL)
     {
+        account_details = account_list_get_by_id(selectedCall->_accountID);
+        if(account_details != NULL) {
+            displaySasOnce = g_hash_table_lookup(account_details->properties, ACCOUNT_DISPLAY_SAS_ONCE);
+        }
         /*  Make sure that we are not in the history tab since 
          *  nothing is defined for it yet 
          */
@@ -150,7 +155,9 @@ void  row_single_click(GtkTreeView *tree_view UNUSED, void * data UNUSED)
             {
                 case SRTP_STATE_SAS_UNCONFIRMED:
                     selectedCall->_srtp_state = SRTP_STATE_SAS_CONFIRMED;
-                    selectedCall->_zrtp_confirmed = TRUE;
+                    if(g_strcasecmp(displaySasOnce,"TRUE") == 0) {
+                        selectedCall->_zrtp_confirmed = TRUE;
+                    }
                     dbus_confirm_sas(selectedCall);
                     calltree_update_call(current_calls, selectedCall);
                     break;

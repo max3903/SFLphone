@@ -57,6 +57,7 @@ GtkWidget * enableSRTP;
 GtkWidget * enableHelloHash;
 GtkWidget * enableSASConfirm;
 GtkWidget * enableZrtpNotSuppOther;
+GtkWidget * displaySasOnce;
 
 /* Signal to entryProtocol 'changed' */
     void
@@ -109,6 +110,7 @@ show_account_window (account_t * a)
     gchar * curSasConfirm = "TRUE";
     gchar * curHelloEnabled = "TRUE";
     gchar * curZrtpNotSuppOther = "TRUE";
+    gchar * curDisplaySasOnce = "FALSE";
 
 #if GTK_CHECK_VERSION(2,16,0)
 #else
@@ -131,6 +133,7 @@ show_account_window (account_t * a)
         curHelloEnabled = g_hash_table_lookup(currentAccount->properties, ACCOUNT_ZRTP_HELLO_HASH);
         curSasConfirm = g_hash_table_lookup(currentAccount->properties, ACCOUNT_ZRTP_DISPLAY_SAS);
         curZrtpNotSuppOther = g_hash_table_lookup(currentAccount->properties, ACCOUNT_ZRTP_NOT_SUPP_WARNING);
+        curDisplaySasOnce = g_hash_table_lookup(currentAccount->properties, ACCOUNT_DISPLAY_SAS_ONCE);
     }
     else
     {
@@ -270,7 +273,7 @@ show_account_window (account_t * a)
     gtk_table_attach ( GTK_TABLE( table ), expander, 0, 2, 9, 10, GTK_EXPAND | GTK_FILL, GTK_EXPAND | GTK_FILL, 0, 0);
     gtk_widget_show (expander);
     
-    tableSRTP = gtk_table_new ( 5, 2  ,  FALSE/* homogeneous */);
+    tableSRTP = gtk_table_new ( 6, 2  ,  FALSE/* homogeneous */);
     gtk_table_set_row_spacings( GTK_TABLE(tableSRTP), 10);
     gtk_table_set_col_spacings( GTK_TABLE(tableSRTP), 10);
     gtk_widget_show(tableSRTP);
@@ -320,12 +323,18 @@ show_account_window (account_t * a)
     gtk_table_attach ( GTK_TABLE(tableSRTP), enableSASConfirm, 0, 1, 3, 4, GTK_EXPAND | GTK_FILL, GTK_EXPAND | GTK_FILL, 0, 0);
     gtk_widget_set_sensitive( GTK_WIDGET( enableSASConfirm ) , TRUE ); 
   
-    enableZrtpNotSuppOther = gtk_check_button_new_with_mnemonic(_("Warning if ZRTP not supported"));
+    enableZrtpNotSuppOther = gtk_check_button_new_with_mnemonic(_("_Warn if ZRTP not supported"));
     gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(enableZrtpNotSuppOther),
             g_strcasecmp(curZrtpNotSuppOther,"TRUE") == 0 ? TRUE: FALSE);
     gtk_table_attach ( GTK_TABLE(tableSRTP), enableZrtpNotSuppOther, 0, 1, 4, 5, GTK_EXPAND | GTK_FILL, GTK_EXPAND | GTK_FILL, 0, 0);
     gtk_widget_set_sensitive( GTK_WIDGET( enableZrtpNotSuppOther ) , TRUE );
-        
+  
+    displaySasOnce = gtk_check_button_new_with_mnemonic(_("Display SAS once for hold events"));
+    gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(displaySasOnce),
+            g_strcasecmp(curDisplaySasOnce,"TRUE") == 0 ? TRUE: FALSE);
+    gtk_table_attach ( GTK_TABLE(tableSRTP), displaySasOnce, 0, 1, 5, 6, GTK_EXPAND | GTK_FILL, GTK_EXPAND | GTK_FILL, 0, 0);
+    gtk_widget_set_sensitive( GTK_WIDGET( displaySasOnce ) , TRUE );
+          
     /* Link signal 'changed' */
     g_signal_connect (G_OBJECT (GTK_COMBO_BOX(keyExchangeCombo)), "changed",
             G_CALLBACK (key_exchange_changed),
@@ -361,18 +370,27 @@ show_account_window (account_t * a)
         g_hash_table_replace(currentAccount->properties,
                 g_strdup(ACCOUNT_MAILBOX),
                 g_strdup((gchar *)gtk_entry_get_text(GTK_ENTRY(entryMailbox))));
+                
         g_hash_table_replace(currentAccount->properties,
                 g_strdup(ACCOUNT_SRTP_ENABLED),
                 g_strdup(gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(enableSRTP)) ? "TRUE": "FALSE"));
+                
         g_hash_table_replace(currentAccount->properties,
                 g_strdup(ACCOUNT_ZRTP_DISPLAY_SAS),
                 g_strdup(gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(enableSASConfirm)) ? "TRUE": "FALSE"));   
+                
+         g_hash_table_replace(currentAccount->properties,
+                g_strdup(ACCOUNT_DISPLAY_SAS_ONCE),
+                g_strdup(gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(displaySasOnce)) ? "TRUE": "FALSE")); 
+                
         g_hash_table_replace(currentAccount->properties,
                 g_strdup(ACCOUNT_ZRTP_HELLO_HASH),
                 g_strdup(gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(enableHelloHash)) ? "TRUE": "FALSE"));
+                
         g_hash_table_replace(currentAccount->properties,
                 g_strdup(ACCOUNT_ZRTP_NOT_SUPP_WARNING),
-                g_strdup(gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(enableZrtpNotSuppOther)) ? "TRUE": "FALSE"));              
+                g_strdup(gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(enableZrtpNotSuppOther)) ? "TRUE": "FALSE"));                
+                
         g_hash_table_replace(currentAccount->properties,
                 g_strdup(ACCOUNT_KEY_EXCHANGE),
                 (gchar *)gtk_combo_box_get_active_text(GTK_COMBO_BOX(keyExchangeCombo)));

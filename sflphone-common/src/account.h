@@ -75,6 +75,7 @@ typedef enum RegistrationState {
 #define ZRTP_HELLO_HASH "ZRTP.helloHashEnable"
 #define ZRTP_DISPLAY_SAS "ZRTP.displaySAS"
 #define ZRTP_NOT_SUPP_WARNING "ZRTP.notSuppWarning"
+#define ZRTP_DISPLAY_SAS_ONCE "ZRTP.displaySasOnce"
 
 enum SRTP_METHOD { ZRTP=1, SDES_TLS, SDES_SSL3 };
 
