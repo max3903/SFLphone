@@ -110,7 +110,7 @@ secure_on_cb (DBusGProxy *proxy UNUSED,
         const gchar* cipher,
         void * foo  UNUSED )
 {
-    DEBUG ("SRTP is ON");
+    DEBUG ("SRTP is ON secure_on_cb");
     callable_obj_t * c = calllist_get(current_calls, callID);
     if(c) {
         c->_srtp_cipher = g_strdup(cipher);

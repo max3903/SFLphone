@@ -150,6 +150,7 @@ void  row_single_click(GtkTreeView *tree_view UNUSED, void * data UNUSED)
             {
                 case SRTP_STATE_SAS_UNCONFIRMED:
                     selectedCall->_srtp_state = SRTP_STATE_SAS_CONFIRMED;
+                    selectedCall->_zrtp_confirmed = TRUE;
                     dbus_confirm_sas(selectedCall);
                     calltree_update_call(current_calls, selectedCall);
                     break;
@@ -398,7 +399,8 @@ calltree_update_call (calltab_t* tab, callable_obj_t * c)
                 }
                 else
                 {
-                    if((c->_sas != NULL) && (c->_srtp_state == SRTP_STATE_SAS_UNCONFIRMED)) {
+                        // c->_zrtp_confirmed == FALSE : Hack explained in callable_obj.h
+                    if((c->_sas != NULL) && (c->_srtp_state == SRTP_STATE_SAS_UNCONFIRMED) && (c->_zrtp_confirmed == FALSE)) {
                         description = g_markup_printf_escaped("<b>%s</b> <i>%s</i>\n<i>Confirm SAS <b>%s</b> ?</i> ",
                             c->_peer_number,
                             c->_peer_name,
@@ -461,7 +463,7 @@ calltree_update_call (calltab_t* tab, callable_obj_t * c)
                                 pixbuf_security = gdk_pixbuf_new_from_file(ICONS_DIR "/lock_certified.svg", NULL);
                                 break;
                             case SRTP_STATE_UNLOCKED:  
-                                DEBUG("Secure is off");
+                                DEBUG("Secure is off calltree %d", c->_state);
                                 if(g_strcasecmp(srtp_enabled,"TRUE") == 0) {
                                     pixbuf_security = gdk_pixbuf_new_from_file(ICONS_DIR "/lock_off.svg", NULL); 
                                 }
