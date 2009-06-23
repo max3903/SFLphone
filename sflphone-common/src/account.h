@@ -74,6 +74,7 @@ typedef enum RegistrationState {
 #define SRTP_ENCRYPTION_ALGO    "SRTP.encryptionAlgorithm" /* Provided by ccRTP,0=NULL,1=AESCM,2=AESF8 */
 #define ZRTP_HELLO_HASH "ZRTP.helloHashEnable"
 #define ZRTP_DISPLAY_SAS "ZRTP.displaySAS"
+#define ZRTP_NOT_SUPP_WARNING "ZRTP.notSuppWarning"
 
 enum SRTP_METHOD { ZRTP=1, SDES_TLS, SDES_SSL3 };
 

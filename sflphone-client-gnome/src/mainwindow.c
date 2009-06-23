@@ -346,13 +346,26 @@ add_error_dialog(GtkWidget *dialog)
 void
 main_window_zrtp_not_supported(callable_obj_t * c)
 {
-    PidginMiniDialog *mini_dialog;
-    gchar *desc = g_markup_printf_escaped(_("ZRTP is not supported by peer %s\n"), c->_peer_number);
-    mini_dialog = pidgin_mini_dialog_new(_("ZRTP Error"), desc, GTK_STOCK_STOP);
-    pidgin_mini_dialog_add_button(mini_dialog, _("Continue"), NULL, NULL);
-    pidgin_mini_dialog_add_button(mini_dialog, _("Stop Call"), sflphone_hang_up, NULL);
+    account_t* account_details=NULL;
+    gchar* warning_enabled="";
     
-    add_error_dialog(mini_dialog);
+    account_details = account_list_get_by_id(c->_accountID);
+    if(account_details != NULL) {
+        warning_enabled = g_hash_table_lookup(account_details->properties, ACCOUNT_ZRTP_NOT_SUPP_WARNING);
+        DEBUG("Warning Enabled %s", warning_enabled);
+    } else {
+        DEBUG("Account is null callID %s", c->_callID);
+    }
+    
+    if(g_strcasecmp(warning_enabled,"TRUE") == 0) {
+        PidginMiniDialog *mini_dialog;
+        gchar *desc = g_markup_printf_escaped(_("ZRTP is not supported by peer %s\n"), c->_peer_number);
+        mini_dialog = pidgin_mini_dialog_new(_("Secure Communication Unavailable"), desc, GTK_STOCK_DIALOG_WARNING);
+        pidgin_mini_dialog_add_button(mini_dialog, _("Continue"), NULL, NULL);
+        pidgin_mini_dialog_add_button(mini_dialog, _("Stop Call"), sflphone_hang_up, NULL);
+       
+        add_error_dialog(mini_dialog);
+    }
 }
 
 void

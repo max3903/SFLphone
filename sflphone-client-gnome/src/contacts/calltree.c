@@ -365,7 +365,7 @@ calltree_update_call (calltab_t* tab, callable_obj_t * c)
     int i;
     
     if(c != NULL) {
-        account_details = account_list_get_by_id(c->_callID);
+        account_details = account_list_get_by_id(c->_accountID);
         if(account_details != NULL) {
             srtp_enabled = g_hash_table_lookup(account_details->properties, ACCOUNT_SRTP_ENABLED);
         }

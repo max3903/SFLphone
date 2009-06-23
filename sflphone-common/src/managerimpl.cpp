@@ -2443,6 +2443,7 @@ std::map< std::string, std::string > ManagerImpl::getAccountDetails(const Accoun
   a.insert( std::pair<std::string, std::string>( SRTP_ENABLE, getConfigString(accountID, SRTP_ENABLE) == "1" ? "TRUE": "FALSE"));
   a.insert( std::pair<std::string, std::string>( ZRTP_DISPLAY_SAS, getConfigString(accountID, ZRTP_DISPLAY_SAS) == "1" ? "TRUE": "FALSE") );
   a.insert( std::pair<std::string, std::string>( ZRTP_HELLO_HASH, getConfigString(accountID, ZRTP_HELLO_HASH) == "1" ? "TRUE": "FALSE") );
+  a.insert( std::pair<std::string, std::string>( ZRTP_NOT_SUPP_WARNING, getConfigString(accountID, ZRTP_NOT_SUPP_WARNING) == "1" ? "TRUE": "FALSE") );
 
   return a;
 }
@@ -2465,6 +2466,7 @@ void ManagerImpl::setAccountDetails( const std::string& accountID, const std::ma
     setConfig(accountID, CONFIG_ACCOUNT_MAILBOX,(*details.find(CONFIG_ACCOUNT_MAILBOX)).second);
     setConfig(accountID, SRTP_ENABLE, (*details.find(SRTP_ENABLE)).second == "TRUE" ? "1": "0" );
     setConfig(accountID, ZRTP_DISPLAY_SAS, (*details.find(ZRTP_DISPLAY_SAS)).second == "TRUE" ? "1": "0" );
+    setConfig(accountID, ZRTP_NOT_SUPP_WARNING, (*details.find(ZRTP_NOT_SUPP_WARNING)).second == "TRUE" ? "1": "0" );  
     setConfig(accountID, ZRTP_HELLO_HASH, (*details.find(ZRTP_HELLO_HASH)).second == "TRUE" ? "1": "0" );
     std::string keyExchange((*details.find(SRTP_KEY_EXCHANGE)).second);
     _debug("keyExchange %d\n", keyExchange.find("ZRTP"));
