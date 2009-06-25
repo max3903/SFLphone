@@ -123,6 +123,8 @@ public:
     std::map <std::string, std::string> getHistory (void);
     void setHistory (const std::map <std::string, std::string>& entries);
 
+	std::map< std::string, std::string > getIp2IpDetails(void);
+    void setIp2IpDetails(const std::map< std::string, std::string >& details );
 };
 
 

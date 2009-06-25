@@ -624,7 +624,7 @@ GHashTable* dbus_account_details(gchar * accountID)
 {
     GError *error = NULL;
     GHashTable * details;
-
+    DEBUG("accountID requested %s", accountID);
     if(!org_sflphone_SFLphone_ConfigurationManager_get_account_details( configurationManagerProxy, accountID, &details, &error))
     {
         if(error->domain == DBUS_GERROR && error->code == DBUS_GERROR_REMOTE_EXCEPTION)
@@ -640,6 +640,44 @@ GHashTable* dbus_account_details(gchar * accountID)
     }
     else{
         return details;
+    }
+}
+
+GHashTable* dbus_get_ip2_ip_details(void)
+{
+    GError *error = NULL;
+    GHashTable * details;
+    if(!org_sflphone_SFLphone_ConfigurationManager_get_ip2_ip_details( configurationManagerProxy, &details, &error))
+    {
+        if(error->domain == DBUS_GERROR && error->code == DBUS_GERROR_REMOTE_EXCEPTION)
+        {
+            ERROR ("Caught remote method (get_account_details) exception  %s: %s", dbus_g_error_get_name(error), error->message);
+        }
+        else
+        {
+            ERROR("Error while calling get_account_details: %s", error->message);
+        }
+        g_error_free (error);
+        return NULL;
+    }
+    else{
+        return details;
+    }
+}
+
+    void
+dbus_set_ip2_ip_details(account_t *a)
+{
+    GError *error = NULL;
+    org_sflphone_SFLphone_ConfigurationManager_set_ip2_ip_details (
+            configurationManagerProxy,
+            a->properties,
+            &error);
+    if (error)
+    {
+        ERROR ("Failed to call set_account_details() on ConfigurationManager: %s",
+                error->message);
+        g_error_free (error);
     }
 }
 

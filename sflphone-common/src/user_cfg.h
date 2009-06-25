@@ -64,11 +64,12 @@
 #define CONFIG_SIP_PORT         "SIP.portNum"
 #define CONFIG_ACCOUNTS_ORDER    "Accounts.order"            /** To restore account order */
 
-#define SIGNALISATION		"VoIPLink"	      /** Section Signalisation */
+#define SIGNALISATION   "VoIPLink"	          /** Section Signalisation */
+#define IP2IP_PROFILE   "IP2IP"                   /** Ip to Ip profile */
 #define PLAY_DTMF		"DTMF.playDtmf"	      /** Whether or not should play dtmf */
 #define PLAY_TONES		"DTMF.playTones"      /** Whether or not should play tones */
-#define PULSE_LENGTH		"DTMF.pulseLength"    /** Length of the DTMF in millisecond */
-#define SEND_DTMF_AS		"DTMF.sendDTMFas"     /** DTMF send mode */
+#define PULSE_LENGTH    "DTMF.pulseLength"    /** Length of the DTMF in millisecond */
+#define SEND_DTMF_AS	"DTMF.sendDTMFas"     /** DTMF send mode */
 #define SYMMETRIC		"VoIPLink.symmetric"  /** VoIP link type */
 #define STUN_ENABLE     "STUN.enable"
 #define STUN_SERVER     "STUN.server"
@@ -112,7 +113,7 @@
 #define DFT_STUN_ENABLE         "0"
 #define DFT_RECORD_PATH         HOMEDIR
 #define ZRTP_ZIDFILE    "ZRTP.zidFile"
-#define ZRTP_IP2IP_ENABLE "IP2IP.zrtp"
+
 #ifdef USE_ZEROCONF
 #define CONFIG_ZEROCONF_DEFAULT_STR "1"			/** Default Zero configuration networking module value */
 #else

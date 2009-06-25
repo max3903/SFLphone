@@ -43,6 +43,16 @@
 gboolean sflphone_init ( ) ;
 
 /**
+ * Fetch the ip2ip profile through dbus
+ */
+void sflphone_fill_ip2ip_profile(void);
+
+/**
+ * Returns the hash table that we got with the above function
+ */
+GHashTable * sflphone_get_ip2ip_properties(void);
+
+/**
  * Steps when closing the application.  Will ask for confirmation if a call is in progress.
  * @return TRUE if the user wants to quit, FALSE otherwise.
  */

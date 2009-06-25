@@ -76,9 +76,8 @@ AudioRtp::createNewSession (SIPCall *ca) {
     AccountID account_id = Manager::instance().getAccountFromCall (ca->getCallId());
     // This might be an IP-to-IP call
     if(account_id == AccountNULL) {
-        srtpEnable = Manager::instance().getConfigInt(SIGNALISATION, ZRTP_IP2IP_ENABLE);
+        srtpEnable = Manager::instance().getConfigInt(IP2IP_PROFILE, SRTP_KEY_EXCHANGE);
         _debug("\033[31;4m Ip-to-ip profile with zrtp = %d\033[0m\n",srtpEnable);
-        srtpEnable = true;
     } else {
         srtpEnable = Manager::instance().getConfigInt(account_id, SRTP_ENABLE);
         _debug("\033[31;4m AccountID %s with SRTP_ENABLE %d\033[0m\n", account_id.c_str(), srtpEnable);

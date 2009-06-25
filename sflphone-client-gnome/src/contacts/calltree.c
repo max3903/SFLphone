@@ -143,9 +143,18 @@ void  row_single_click(GtkTreeView *tree_view UNUSED, void * data UNUSED)
     if (selectedCall != NULL)
     {
         account_details = account_list_get_by_id(selectedCall->_accountID);
+        DEBUG("AccountID %s", selectedCall->_accountID);
+
         if(account_details != NULL) {
             displaySasOnce = g_hash_table_lookup(account_details->properties, ACCOUNT_DISPLAY_SAS_ONCE);
+            DEBUG("Display SAS once %s", displaySasOnce);
+        } else {
+            GHashTable * properties = NULL;
+            properties = sflphone_get_ip2ip_properties();
+            if(properties != NULL)
+              { displaySasOnce = g_hash_table_lookup(properties, ACCOUNT_DISPLAY_SAS_ONCE); DEBUG("IP2IP displaysasonce %s", displaySasOnce); }
         }
+                    
         /*  Make sure that we are not in the history tab since 
          *  nothing is defined for it yet 
          */

@@ -128,11 +128,16 @@ gchar ** dbus_account_list();
  */
 GHashTable * dbus_account_details(gchar * accountID);
 
+GHashTable * dbus_get_ip2_ip_details(void);
+
 /**
  * ConfigurationManager - Set the details of a specific account
  * @param a The account to update
  */
 void dbus_set_account_details(account_t *a);
+
+    void
+dbus_set_ip2_ip_details(account_t *a);
 
 /**
  * ConfigurationManager - Send registration request

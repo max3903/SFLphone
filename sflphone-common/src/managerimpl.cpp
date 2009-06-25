@@ -2404,7 +2404,7 @@ ManagerImpl::getAccountList()
 
         
     }
-   
+       
     return v;
 }
 
@@ -2414,6 +2414,7 @@ std::map< std::string, std::string > ManagerImpl::getAccountDetails(const Accoun
   std::map<std::string, std::string> a;
   std::string accountType;
   RegistrationState state;
+  _debug("Get account details for %s\n", accountID.c_str());
 
   state = _accountMap[accountID]->getRegistrationState();
   accountType = getConfigString(accountID, CONFIG_ACCOUNT_TYPE);
@@ -2489,6 +2490,42 @@ void ManagerImpl::setAccountDetails( const std::string& accountID, const std::ma
     else
         acc->unregisterVoIPLink();
 
+    // Update account details to the client side
+    if (_dbus) _dbus->getConfigurationManager()->accountsChanged();
+
+}
+
+std::map< std::string, std::string > ManagerImpl::getIp2IpDetails(void)
+{
+
+  std::map<std::string, std::string> a;
+  a.insert( std::pair<std::string, std::string>( SRTP_KEY_EXCHANGE, getConfigString(IP2IP_PROFILE, SRTP_KEY_EXCHANGE) ) );
+  a.insert( std::pair<std::string, std::string>( SRTP_ENABLE, getConfigString(IP2IP_PROFILE, SRTP_ENABLE) == "1" ? "TRUE": "FALSE"));
+  a.insert( std::pair<std::string, std::string>( ZRTP_DISPLAY_SAS, getConfigString(IP2IP_PROFILE, ZRTP_DISPLAY_SAS) == "1" ? "TRUE": "FALSE") );
+  a.insert( std::pair<std::string, std::string>( ZRTP_HELLO_HASH, getConfigString(IP2IP_PROFILE, ZRTP_HELLO_HASH) == "1" ? "TRUE": "FALSE") );
+  a.insert( std::pair<std::string, std::string>( ZRTP_NOT_SUPP_WARNING, getConfigString(IP2IP_PROFILE, ZRTP_NOT_SUPP_WARNING) == "1" ? "TRUE": "FALSE") );
+  a.insert( std::pair<std::string, std::string>( ZRTP_DISPLAY_SAS_ONCE, getConfigString(IP2IP_PROFILE, ZRTP_DISPLAY_SAS_ONCE) == "1" ? "TRUE": "FALSE") );
+  
+  return a;
+}
+
+void ManagerImpl::setIp2IpDetails(const std::map< std::string, std::string >& details )
+{
+    setConfig(IP2IP_PROFILE, SRTP_ENABLE, (*details.find(SRTP_ENABLE)).second == "TRUE" ? "1": "0" );
+    setConfig(IP2IP_PROFILE, ZRTP_DISPLAY_SAS, (*details.find(ZRTP_DISPLAY_SAS)).second == "TRUE" ? "1": "0" );
+    setConfig(IP2IP_PROFILE, ZRTP_NOT_SUPP_WARNING, (*details.find(ZRTP_NOT_SUPP_WARNING)).second == "TRUE" ? "1": "0" );  
+    setConfig(IP2IP_PROFILE, ZRTP_HELLO_HASH, (*details.find(ZRTP_HELLO_HASH)).second == "TRUE" ? "1": "0" );
+    setConfig(IP2IP_PROFILE, ZRTP_DISPLAY_SAS_ONCE, (*details.find(ZRTP_DISPLAY_SAS_ONCE)).second == "TRUE" ? "1": "0" );
+    std::string keyExchange((*details.find(SRTP_KEY_EXCHANGE)).second);
+    _debug("keyExchange %d\n", keyExchange.find("ZRTP"));
+    if(keyExchange.find("ZRTP") == 0) { 
+       setConfig(IP2IP_PROFILE, SRTP_KEY_EXCHANGE, ZRTP);
+    } else {
+       setConfig(IP2IP_PROFILE, SRTP_KEY_EXCHANGE, SDES_TLS);
+    }
+        
+    saveConfig();
+    
     // Update account details to the client side
     if (_dbus) _dbus->getConfigurationManager()->accountsChanged();
 

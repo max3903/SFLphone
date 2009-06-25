@@ -388,6 +388,23 @@ class ManagerImpl {
      */
     std::map< std::string, std::string > getCallDetails(const CallID& callID);
 
+
+    /**
+     * Retrieve details about a given account
+     * @param accountID	  The account identifier
+     * @return std::map< std::string, std::string > The account details
+     */
+    std::map< std::string, std::string > getIp2IpDetails(void);
+    
+    /**
+     * Save the details of an existing account, given the account ID
+     * This will load the configuration map with the given data.
+     * It will also register/unregister links where the 'Enabled' switched.
+     * @param accountID	  The account identifier
+     * @param details	  The account parameters
+     */
+    void setIp2IpDetails(const std::map< std::string, std::string >& details );
+
     /**
      * Get call list
      * @return std::vector<std::string> A list of call IDs

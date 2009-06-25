@@ -49,6 +49,20 @@ ConfigurationManager::setAccountDetails( const std::string& accountID,
 	Manager::instance().setAccountDetails(accountID, details);
 }
 
+	std::map< std::string, std::string >
+ConfigurationManager::getIp2IpDetails()
+{
+        _debug("ConfigurationManager::getIp2IpDetails\n");
+	return Manager::instance().getIp2IpDetails();
+}
+
+	void
+ConfigurationManager::setIp2IpDetails(const std::map< std::string, std::string >& details )
+{
+	_debug("ConfigurationManager::setIp2IpDetails received\n");
+	Manager::instance().setIp2IpDetails(details);
+}
+
 	void
 ConfigurationManager::sendRegister( const std::string& accountID, const int32_t& expire )
 {

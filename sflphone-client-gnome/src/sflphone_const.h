@@ -58,6 +58,7 @@
 #define ACCOUNT_ZRTP_NOT_SUPP_WARNING "ZRTP.notSuppWarning"
 #define ACCOUNT_ZRTP_HELLO_HASH "ZRTP.helloHashEnable"
 #define ACCOUNT_DISPLAY_SAS_ONCE "ZRTP.displaySasOnce"
+#define IP2IP_PROFILE "Ip2Ip"
 #define ZRTP "1"
 #define SDES_TLS "2"
 
