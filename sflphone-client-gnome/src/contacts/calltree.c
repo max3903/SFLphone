@@ -375,7 +375,8 @@ calltree_update_call (calltab_t* tab, callable_obj_t * c)
     GValue val;
     callable_obj_t * iterCall;
     GtkListStore* store = tab->store;
-    gchar* srtp_enabled="";
+    gchar* srtp_enabled = "";
+    gboolean display_sas = TRUE;
     account_t* account_details=NULL;
     
     int nbChild = gtk_tree_model_iter_n_children(GTK_TREE_MODEL(store), NULL);
@@ -385,6 +386,15 @@ calltree_update_call (calltab_t* tab, callable_obj_t * c)
         account_details = account_list_get_by_id(c->_accountID);
         if(account_details != NULL) {
             srtp_enabled = g_hash_table_lookup(account_details->properties, ACCOUNT_SRTP_ENABLED);
+            if(g_strcasecmp(g_hash_table_lookup(account_details->properties, ACCOUNT_ZRTP_DISPLAY_SAS),"FALSE") == 0) 
+                { display_sas = FALSE; }
+        } else {
+            GHashTable * properties = NULL;
+            properties = sflphone_get_ip2ip_properties();
+            if(properties != NULL) {
+                if(g_strcasecmp(g_hash_table_lookup(properties, ACCOUNT_ZRTP_DISPLAY_SAS),"FALSE") == 0) 
+                { display_sas = FALSE; }
+            }
         }
     } 
     
@@ -415,8 +425,9 @@ calltree_update_call (calltab_t* tab, callable_obj_t * c)
                 }
                 else
                 {
+                
                         // c->_zrtp_confirmed == FALSE : Hack explained in callable_obj.h
-                    if((c->_sas != NULL) && (c->_srtp_state == SRTP_STATE_SAS_UNCONFIRMED) && (c->_zrtp_confirmed == FALSE)) {
+                    if((c->_sas != NULL) && (display_sas == TRUE) && (c->_srtp_state == SRTP_STATE_SAS_UNCONFIRMED) && (c->_zrtp_confirmed == FALSE)) {
                         description = g_markup_printf_escaped("<b>%s</b> <i>%s</i>\n<i>Confirm SAS <b>%s</b> ?</i> ",
                             c->_peer_number,
                             c->_peer_name,
