@@ -188,6 +188,7 @@ call_state_cb (DBusGProxy *proxy UNUSED,
                 // peer hung up, the conversation was established, so _start has been initialized with the current time value
                 DEBUG("call state current");
                 set_timestamp (&c->_time_start);
+                call_remove_all_errors(c);
                 calltree_update_call( history, c );
             }
             stop_notification();

@@ -338,9 +338,16 @@ main_window_dialpad( gboolean *state ){
 }
 
 static void
-add_error_dialog(GtkWidget *dialog)
+add_error_dialog(GtkWidget *dialog, callable_obj_t * call)
 {
    	gtk_container_add(GTK_CONTAINER(embedded_error_notebook), dialog); 
+   	call_add_error(call, dialog);
+}
+
+static void
+destroy_error_dialog_cb(GtkObject *dialog, callable_obj_t * call)
+{
+    call_remove_error(call, dialog);
 }
 
 void
@@ -368,7 +375,9 @@ main_window_zrtp_not_supported(callable_obj_t * c)
         pidgin_mini_dialog_add_button(mini_dialog, _("Continue"), NULL, NULL);
         pidgin_mini_dialog_add_button(mini_dialog, _("Stop Call"), sflphone_hang_up, NULL);
        
-        add_error_dialog(mini_dialog);
+        g_signal_connect_after(mini_dialog, "destroy", (GCallback) destroy_error_dialog_cb, c);
+		
+        add_error_dialog(GTK_WIDGET(mini_dialog), c);
     }
 }
 
@@ -381,7 +390,7 @@ main_window_confirm_go_clear(callable_obj_t * c)
     pidgin_mini_dialog_add_button(mini_dialog, _("Confirm"), sflphone_set_confirm_go_clear, NULL);
     pidgin_mini_dialog_add_button(mini_dialog, _("Stop Call"), sflphone_hang_up, NULL);
     
-    add_error_dialog(mini_dialog);
+    add_error_dialog(GTK_WIDGET(mini_dialog), c);
 }
 
 void

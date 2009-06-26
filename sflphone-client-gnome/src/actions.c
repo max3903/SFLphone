@@ -140,6 +140,7 @@ sflphone_hung_up( callable_obj_t * c)
     calllist_remove( current_calls, c->_callID);
     calltree_remove_call(current_calls, c);
     c->_state = CALL_STATE_DIALING;
+    call_remove_all_errors(c);
     update_menus();
 #if GTK_CHECK_VERSION(2,10,0)
     status_tray_icon_blink( FALSE );
@@ -280,6 +281,7 @@ sflphone_hang_up()
                 break;
             case CALL_STATE_RINGING:
                 dbus_hang_up (selectedCall);
+                call_remove_all_errors(selectedCall);
                 selectedCall->_state = CALL_STATE_DIALING;
                 //selectedCall->_stop = 0;
                 break;
@@ -288,20 +290,24 @@ sflphone_hang_up()
             case CALL_STATE_BUSY:
             case CALL_STATE_RECORD:
                 dbus_hang_up (selectedCall);
+                call_remove_all_errors(selectedCall);
                 selectedCall->_state = CALL_STATE_DIALING;
                 set_timestamp (&selectedCall->_time_stop);
                 break;
             case CALL_STATE_FAILURE:
                 dbus_hang_up (selectedCall);
+                call_remove_all_errors(selectedCall);
                 selectedCall->_state = CALL_STATE_DIALING;
                 break;
             case CALL_STATE_INCOMING:
                 dbus_refuse (selectedCall);
+                call_remove_all_errors(selectedCall);
                 selectedCall->_state = CALL_STATE_DIALING;
                 DEBUG("from sflphone_hang_up : "); stop_notification();
                 break;
             case CALL_STATE_TRANSFERT:
                 dbus_hang_up (selectedCall);
+                call_remove_all_errors(selectedCall);
                 set_timestamp (&selectedCall->_time_stop);
                 break;
             default:

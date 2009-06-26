@@ -176,7 +176,7 @@ void  row_single_click(GtkTreeView *tree_view UNUSED, void * data UNUSED)
                     calltree_update_call(current_calls, selectedCall);
                     break;
                 default:
-                    WARN("Single click but no action");
+                    DEBUG("Single click but no action");
                     break;
             }
         }
