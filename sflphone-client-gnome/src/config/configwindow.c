@@ -64,8 +64,9 @@ GtkWidget *history_value;
 
 GtkWidget* status;
 
-GtkWidget * enableSRTP;
-GtkWidget * keyExchangeCombo;
+GtkWidget * enable_srtp_ip2ip;
+GtkWidget * key_exchange_ip2ip;
+GtkWidget * advancedButton;
     
 static int history_limit;
 static gboolean history_enabled = TRUE;
@@ -524,13 +525,19 @@ void update_registration( void )
     gtk_widget_set_sensitive(GTK_WIDGET( applyButton ) , FALSE );
 }
 
+
+void enable_srtp_toggled (GtkToggleButton *togglebutton, gpointer user_data)
+{
+    gtk_widget_set_sensitive( GTK_WIDGET( key_exchange_ip2ip ), gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(enable_srtp_ip2ip)));
+    gtk_widget_set_sensitive( GTK_WIDGET( advancedButton ), gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(enable_srtp_ip2ip)));
+}
+
 GtkWidget* create_ip2ip_tab()
 {   
     GtkWidget * securityFrame;
     GtkWidget * tableIp2Ip;
     GtkWidget * label;
-    GtkWidget * advancedButton;
-    
+        
     gchar * curKeyExchange = ZRTP;
     gchar * curSRTPEnabled = "FALSE";
     
@@ -546,47 +553,53 @@ GtkWidget* create_ip2ip_tab()
     gtk_table_set_row_spacings( GTK_TABLE(tableIp2Ip), 10);
     gtk_table_set_col_spacings( GTK_TABLE(tableIp2Ip), 10);        
     
-    enableSRTP = gtk_check_button_new_with_mnemonic(_("Use _SRTP"));
-    gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(enableSRTP),
+    enable_srtp_ip2ip = gtk_check_button_new_with_mnemonic(_("Use _SRTP"));
+    gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(enable_srtp_ip2ip),
             g_strcasecmp(curSRTPEnabled,"TRUE") == 0 ? TRUE: FALSE);
     
-    gtk_table_attach ( GTK_TABLE(tableIp2Ip), enableSRTP, 0, 1, 0, 1, GTK_EXPAND | GTK_FILL, GTK_EXPAND | GTK_FILL, 0, 0);
+    gtk_table_attach ( GTK_TABLE(tableIp2Ip), enable_srtp_ip2ip, 0, 1, 0, 1, GTK_EXPAND | GTK_FILL, GTK_EXPAND | GTK_FILL, 0, 0);
+    g_signal_connect (G_OBJECT (enable_srtp_ip2ip), "toggled",
+            G_CALLBACK (enable_srtp_toggled),
+            NULL);
     gtk_widget_set_sensitive( GTK_WIDGET( tableIp2Ip ) , TRUE );
                  
     label = gtk_label_new_with_mnemonic (_("_Key Exchange"));
     gtk_table_attach ( GTK_TABLE( tableIp2Ip ), label, 0, 1, 1, 2, GTK_EXPAND | GTK_FILL, GTK_EXPAND | GTK_FILL, 0, 0);
     gtk_misc_set_alignment(GTK_MISC (label), 0, 0.5);
-    keyExchangeCombo = gtk_combo_box_new_text();
-    gtk_label_set_mnemonic_widget (GTK_LABEL (label), keyExchangeCombo);
-    gtk_combo_box_append_text(GTK_COMBO_BOX(keyExchangeCombo), "ZRTP");
-    gtk_combo_box_append_text(GTK_COMBO_BOX(keyExchangeCombo), "SDES");
-        
+    key_exchange_ip2ip = gtk_combo_box_new_text();
+    gtk_label_set_mnemonic_widget (GTK_LABEL (label), key_exchange_ip2ip);
+    gtk_combo_box_append_text(GTK_COMBO_BOX(key_exchange_ip2ip), "ZRTP");
+    //gtk_combo_box_append_text(GTK_COMBO_BOX(key_exchange_ip2ip), "SDES");
+    gtk_widget_set_sensitive(GTK_WIDGET(key_exchange_ip2ip),  gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(enable_srtp_ip2ip)));
+       
     DEBUG("curkeyExchange %s", curKeyExchange);
     if(strcmp(curKeyExchange, ZRTP) == 0)
     {
-        gtk_combo_box_set_active(GTK_COMBO_BOX(keyExchangeCombo),0);
+        gtk_combo_box_set_active(GTK_COMBO_BOX(key_exchange_ip2ip),0);
     }
     else if(strcmp(curKeyExchange, SDES_TLS) == 0)
     {
-        gtk_combo_box_set_active(GTK_COMBO_BOX(keyExchangeCombo),1);
+        gtk_combo_box_set_active(GTK_COMBO_BOX(key_exchange_ip2ip),0);
     }
     else
     {
-        gtk_combo_box_append_text(GTK_COMBO_BOX(keyExchangeCombo), _("Unknown"));
-        gtk_combo_box_set_active(GTK_COMBO_BOX(keyExchangeCombo),2);
+        gtk_combo_box_append_text(GTK_COMBO_BOX(key_exchange_ip2ip), _("Unknown"));
+        gtk_combo_box_set_active(GTK_COMBO_BOX(key_exchange_ip2ip),2);
     }
-    //gtk_widget_set_size_request(GTK_WIDGET(keyExchangeCombo), 225, -1);
-    gtk_table_attach ( GTK_TABLE( tableIp2Ip ), keyExchangeCombo, 1, 2, 1, 2, GTK_EXPAND | GTK_FILL, GTK_EXPAND | GTK_FILL, 0, 0);    
-    
+    //gtk_widget_set_size_request(GTK_WIDGET(key_exchange_ip2ip), 225, -1);
+    gtk_table_attach ( GTK_TABLE( tableIp2Ip ), key_exchange_ip2ip, 1, 2, 1, 2, GTK_EXPAND | GTK_FILL, GTK_EXPAND | GTK_FILL, 0, 0);    
+                
     advancedButton = gtk_button_new_with_label(_("Advanced Options..."));
     g_signal_connect_swapped(G_OBJECT(advancedButton), "clicked",
             G_CALLBACK(advanced_options), NULL);
     gtk_table_attach ( GTK_TABLE( tableIp2Ip ), advancedButton, 0, 1, 2, 3, GTK_EXPAND | GTK_FILL, GTK_EXPAND | GTK_FILL, 0, 0);
+    gtk_widget_set_sensitive(GTK_WIDGET(advancedButton),  gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(enable_srtp_ip2ip)));
     gtk_widget_show(advancedButton);
         
     gtk_widget_show_all(tableIp2Ip);
     gtk_container_set_border_width (GTK_CONTAINER(tableIp2Ip), 15);
     gtk_container_add(GTK_CONTAINER(securityFrame), tableIp2Ip);
+
     return securityFrame;
     
 }
@@ -954,10 +967,10 @@ show_accounts_window( void )
     if(gtk_dialog_run(GTK_DIALOG(dialog)) == GTK_RESPONSE_ACCEPT) {    
         g_hash_table_replace(properties,
                 g_strdup(ACCOUNT_SRTP_ENABLED),
-                g_strdup(gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(enableSRTP)) ? "TRUE": "FALSE"));
+                g_strdup(gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(enable_srtp_ip2ip)) ? "TRUE": "FALSE"));
         g_hash_table_replace(properties,
                 g_strdup(ACCOUNT_KEY_EXCHANGE),
-                (gchar *)gtk_combo_box_get_active_text(GTK_COMBO_BOX(keyExchangeCombo)));  
+                (gchar *)gtk_combo_box_get_active_text(GTK_COMBO_BOX(key_exchange_ip2ip)));  
         dbus_set_ip2_ip_details(properties);      
     }
         

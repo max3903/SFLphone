@@ -293,7 +293,7 @@ show_account_window (account_t * a)
     keyExchangeCombo = gtk_combo_box_new_text();
     gtk_label_set_mnemonic_widget (GTK_LABEL (label), keyExchangeCombo);
     gtk_combo_box_append_text(GTK_COMBO_BOX(keyExchangeCombo), "ZRTP");
-    gtk_combo_box_append_text(GTK_COMBO_BOX(keyExchangeCombo), "SDES");
+    //gtk_combo_box_append_text(GTK_COMBO_BOX(keyExchangeCombo), "SDES");
         
     if(strcmp(curKeyExchange, ZRTP) == 0)
     {
