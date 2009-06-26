@@ -23,6 +23,7 @@
 
 #include <accountlist.h>
 #include <accountwindow.h>
+#include <ip2ipwindows.h>
 #include <actions.h>
 #include <config.h>
 #include <toolbar.h>
@@ -63,11 +64,16 @@ GtkWidget *history_value;
 
 GtkWidget* status;
 
+GtkWidget * enableSRTP;
+GtkWidget * keyExchangeCombo;
+    
 static int history_limit;
 static gboolean history_enabled = TRUE;
 
 account_t *selectedAccount;
 
+GHashTable * properties = NULL;
+    
 // Account properties
 enum {
     COLUMN_ACCOUNT_ALIAS,
@@ -144,6 +150,13 @@ edit_account(GtkWidget *widget UNUSED, gpointer data UNUSED)
     {
         show_account_window(selectedAccount);
     }
+}
+
+    static void
+advanced_options(GtkWidget *widget UNUSED, gpointer data UNUSED)
+{
+    DEBUG("Advanced options");
+    show_advanced_ip2ip_zrtp_options();
 }
 
 /**
@@ -511,6 +524,73 @@ void update_registration( void )
     gtk_widget_set_sensitive(GTK_WIDGET( applyButton ) , FALSE );
 }
 
+GtkWidget* create_ip2ip_tab()
+{   
+    GtkWidget * securityFrame;
+    GtkWidget * tableIp2Ip;
+    GtkWidget * label;
+    GtkWidget * advancedButton;
+    
+    gchar * curKeyExchange = ZRTP;
+    gchar * curSRTPEnabled = "FALSE";
+    
+    properties = sflphone_get_ip2ip_properties();
+    if(properties != NULL) {
+        curKeyExchange = g_hash_table_lookup(properties, ACCOUNT_KEY_EXCHANGE);
+        curSRTPEnabled = g_hash_table_lookup(properties, ACCOUNT_SRTP_ENABLED);
+    }
+    
+    securityFrame = gtk_frame_new(_("Security"));
+    
+    tableIp2Ip = gtk_table_new (3, 2  , FALSE/* homogeneous */);  
+    gtk_table_set_row_spacings( GTK_TABLE(tableIp2Ip), 10);
+    gtk_table_set_col_spacings( GTK_TABLE(tableIp2Ip), 10);        
+    
+    enableSRTP = gtk_check_button_new_with_mnemonic(_("Use _SRTP"));
+    gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(enableSRTP),
+            g_strcasecmp(curSRTPEnabled,"TRUE") == 0 ? TRUE: FALSE);
+    
+    gtk_table_attach ( GTK_TABLE(tableIp2Ip), enableSRTP, 0, 1, 0, 1, GTK_EXPAND | GTK_FILL, GTK_EXPAND | GTK_FILL, 0, 0);
+    gtk_widget_set_sensitive( GTK_WIDGET( tableIp2Ip ) , TRUE );
+                 
+    label = gtk_label_new_with_mnemonic (_("_Key Exchange"));
+    gtk_table_attach ( GTK_TABLE( tableIp2Ip ), label, 0, 1, 1, 2, GTK_EXPAND | GTK_FILL, GTK_EXPAND | GTK_FILL, 0, 0);
+    gtk_misc_set_alignment(GTK_MISC (label), 0, 0.5);
+    keyExchangeCombo = gtk_combo_box_new_text();
+    gtk_label_set_mnemonic_widget (GTK_LABEL (label), keyExchangeCombo);
+    gtk_combo_box_append_text(GTK_COMBO_BOX(keyExchangeCombo), "ZRTP");
+    gtk_combo_box_append_text(GTK_COMBO_BOX(keyExchangeCombo), "SDES");
+        
+    DEBUG("curkeyExchange %s", curKeyExchange);
+    if(strcmp(curKeyExchange, ZRTP) == 0)
+    {
+        gtk_combo_box_set_active(GTK_COMBO_BOX(keyExchangeCombo),0);
+    }
+    else if(strcmp(curKeyExchange, SDES_TLS) == 0)
+    {
+        gtk_combo_box_set_active(GTK_COMBO_BOX(keyExchangeCombo),1);
+    }
+    else
+    {
+        gtk_combo_box_append_text(GTK_COMBO_BOX(keyExchangeCombo), _("Unknown"));
+        gtk_combo_box_set_active(GTK_COMBO_BOX(keyExchangeCombo),2);
+    }
+    //gtk_widget_set_size_request(GTK_WIDGET(keyExchangeCombo), 225, -1);
+    gtk_table_attach ( GTK_TABLE( tableIp2Ip ), keyExchangeCombo, 1, 2, 1, 2, GTK_EXPAND | GTK_FILL, GTK_EXPAND | GTK_FILL, 0, 0);    
+    
+    advancedButton = gtk_button_new_with_label(_("Advanced Options..."));
+    g_signal_connect_swapped(G_OBJECT(advancedButton), "clicked",
+            G_CALLBACK(advanced_options), NULL);
+    gtk_table_attach ( GTK_TABLE( tableIp2Ip ), advancedButton, 0, 1, 2, 3, GTK_EXPAND | GTK_FILL, GTK_EXPAND | GTK_FILL, 0, 0);
+    gtk_widget_show(advancedButton);
+        
+    gtk_widget_show_all(tableIp2Ip);
+    gtk_container_set_border_width (GTK_CONTAINER(tableIp2Ip), 15);
+    gtk_container_add(GTK_CONTAINER(securityFrame), tableIp2Ip);
+    return securityFrame;
+    
+}
+
 GtkWidget* create_stun_tab()
 {
     GtkWidget * tableNat;
@@ -825,6 +905,7 @@ show_accounts_window( void )
 {
     GtkDialog * dialog;
     GtkWidget * accountFrame;
+    GtkWidget * ip2ipFrame;
     GtkWidget * tab;
 
     accDialogOpen = TRUE;
@@ -863,13 +944,25 @@ show_accounts_window( void )
     {
         gtk_widget_set_sensitive(GTK_WIDGET(stunFrame), FALSE);
     }
-
-    gtk_dialog_run( dialog );
-
+   
+    // Stun Frame, displayed only if at least 1 SIP account is configured
+    ip2ipFrame = create_ip2ip_tab();
+    gtk_box_pack_start( GTK_BOX( dialog->vbox ), ip2ipFrame , TRUE, TRUE, 0);
+    gtk_container_set_border_width(GTK_CONTAINER(ip2ipFrame), 10);
+    gtk_widget_show(ip2ipFrame);
+    
+    if(gtk_dialog_run(GTK_DIALOG(dialog)) == GTK_RESPONSE_ACCEPT) {    
+        g_hash_table_replace(properties,
+                g_strdup(ACCOUNT_SRTP_ENABLED),
+                g_strdup(gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(enableSRTP)) ? "TRUE": "FALSE"));
+        g_hash_table_replace(properties,
+                g_strdup(ACCOUNT_KEY_EXCHANGE),
+                (gchar *)gtk_combo_box_get_active_text(GTK_COMBO_BOX(keyExchangeCombo)));  
+        dbus_set_ip2_ip_details(properties);      
+    }
+        
     status_bar_display_account ();
-
     accDialogOpen=FALSE;
-
     gtk_widget_destroy(GTK_WIDGET(dialog));
     toolbar_update_buttons();
 }

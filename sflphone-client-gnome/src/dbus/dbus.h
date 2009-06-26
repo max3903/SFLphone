@@ -137,7 +137,7 @@ GHashTable * dbus_get_ip2_ip_details(void);
 void dbus_set_account_details(account_t *a);
 
     void
-dbus_set_ip2_ip_details(account_t *a);
+dbus_set_ip2_ip_details(GHashTable * properties);
 
 /**
  * ConfigurationManager - Send registration request

@@ -6,6 +6,7 @@ libconfig_la_SOURCES = \
   addressbook-config.c \
   configwindow.c \
   accountwindow.c \
+  ip2ipwindows.c \
   hooks-config.c \
   audioconf.c \
   utils.c

@@ -273,6 +273,7 @@ accounts_changed_cb (DBusGProxy *proxy UNUSED,
 {
     DEBUG ("Accounts changed");
     sflphone_fill_account_list(TRUE);
+    sflphone_fill_ip2ip_profile();
     config_window_fill_account_list();
 
     // Update the status bar in case something happened
@@ -651,11 +652,11 @@ GHashTable* dbus_get_ip2_ip_details(void)
     {
         if(error->domain == DBUS_GERROR && error->code == DBUS_GERROR_REMOTE_EXCEPTION)
         {
-            ERROR ("Caught remote method (get_account_details) exception  %s: %s", dbus_g_error_get_name(error), error->message);
+            ERROR ("Caught remote method (get_ip2_ip_details) exception  %s: %s", dbus_g_error_get_name(error), error->message);
         }
         else
         {
-            ERROR("Error while calling get_account_details: %s", error->message);
+            ERROR("Error while calling get_ip2_ip_details: %s", error->message);
         }
         g_error_free (error);
         return NULL;
@@ -666,16 +667,16 @@ GHashTable* dbus_get_ip2_ip_details(void)
 }
 
     void
-dbus_set_ip2_ip_details(account_t *a)
+dbus_set_ip2_ip_details(GHashTable * properties)
 {
     GError *error = NULL;
     org_sflphone_SFLphone_ConfigurationManager_set_ip2_ip_details (
             configurationManagerProxy,
-            a->properties,
+            properties,
             &error);
     if (error)
     {
-        ERROR ("Failed to call set_account_details() on ConfigurationManager: %s",
+        ERROR ("Failed to call set_ip_2ip_details() on ConfigurationManager: %s",
                 error->message);
         g_error_free (error);
     }
