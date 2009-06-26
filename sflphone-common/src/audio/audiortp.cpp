@@ -43,6 +43,7 @@
 #include "../sipcall.h"
 #include "zrtpCallback.h"
 
+
 ////////////////////////////////////////////////////////////////////////////////
 // AudioRtp                                                          
 ////////////////////////////////////////////////////////////////////////////////
@@ -70,6 +71,7 @@ AudioRtp::createNewSession (SIPCall *ca) {
     }
     
     int srtpEnable = 0;
+    int helloHashEnable = 1;
     
     // Start RTP Send/Receive threads
     _symmetric = Manager::instance().getConfigInt(SIGNALISATION,SYMMETRIC) ? true : false;
@@ -78,18 +80,26 @@ AudioRtp::createNewSession (SIPCall *ca) {
     if(account_id == AccountNULL) {
         srtpEnable = Manager::instance().getConfigInt(IP2IP_PROFILE, SRTP_KEY_EXCHANGE);
         _debug("\033[31;4m Ip-to-ip profile with zrtp = %d\033[0m\n",srtpEnable);
+        helloHashEnable = Manager::instance().getConfigInt(IP2IP_PROFILE, ZRTP_HELLO_HASH);
     } else {
         srtpEnable = Manager::instance().getConfigInt(account_id, SRTP_ENABLE);
         _debug("\033[31;4m AccountID %s with SRTP_ENABLE %d\033[0m\n", account_id.c_str(), srtpEnable);
+        helloHashEnable = Manager::instance().getConfigInt(account_id, ZRTP_HELLO_HASH);
     }
     int keyExchange = Manager::instance().getConfigInt(account_id, SRTP_KEY_EXCHANGE);
-    
+    rtpConnection * conn = new rtpConnection();
     try {
         if(srtpEnable) {
-            _RTXThread = new AudioRtpRTX (ca, true, true); // zrtp is only supported under symmetric mode
+            conn->sym = true;
+            conn->zrtp = true;
+            conn->helloHash = helloHashEnable;
+            _RTXThread = new AudioRtpRTX (ca, conn); // zrtp is only supported under symmetric mode
             _debug("Starting in zrtp mode\n");
         } else {
-            _RTXThread = new AudioRtpRTX (ca, _symmetric, false);
+            conn->sym = _symmetric;
+            conn->zrtp = false;
+            conn->helloHash = false;
+            _RTXThread = new AudioRtpRTX (ca, conn);
             _debug("Starting unencrypted rtp session\n");
         }
         
@@ -149,7 +159,27 @@ AudioRtp::setRecording() {
 ////////////////////////////////////////////////////////////////////////////////
 // AudioRtpRTX Class                                                          //
 ////////////////////////////////////////////////////////////////////////////////
-AudioRtpRTX::AudioRtpRTX (SIPCall *sipcall, bool sym, bool zrtp) : time(new ost::Time()), _ca(sipcall), _sessionSend(NULL), _sessionRecv(NULL), _session(NULL), _zsession(NULL), _start(), _sym(sym), _zrtp(zrtp), micData(NULL), micDataConverted(NULL), micDataEncoded(NULL), spkrDataDecoded(NULL), spkrDataConverted(NULL), converter(NULL), _layerSampleRate(),_codecSampleRate(), _layerFrameSize(), _audiocodec(NULL)
+//
+AudioRtpRTX::AudioRtpRTX (SIPCall * sipcall, rtpConnection * connection) : time(new ost::Time()), 
+_ca(sipcall), 
+_sessionSend(NULL),
+_sessionRecv(NULL), 
+_session(NULL), 
+_zsession(NULL), 
+_start(), 
+_sym(connection->sym), 
+_zrtp(connection->zrtp), 
+_layerSampleRate(),
+_codecSampleRate(), 
+_layerFrameSize(), 
+_audiocodec(NULL), 
+_helloHash(connection->helloHash),
+micData(NULL), 
+micDataConverted(NULL), 
+micDataEncoded(NULL), 
+spkrDataDecoded(NULL), 
+spkrDataConverted(NULL), 
+converter(NULL)
 {
 
     setCancel(cancelDefault);
@@ -175,8 +205,10 @@ AudioRtpRTX::AudioRtpRTX (SIPCall *sipcall, bool sym, bool zrtp) : time(new ost:
             _zsession = new ost::SymmetricZRTPSession (local_ip, _ca->getLocalAudioPort());
             initializeZid();
             _zsession->startZrtp(); 
-            _ca->getLocalSDP()->set_zrtp_hash(_zsession->getHelloHash());
-            _debug("\033[34;4m Zrtp_hash computed\033[0m\n");  
+            if(_helloHash) {
+                _ca->getLocalSDP()->set_zrtp_hash(_zsession->getHelloHash());
+                _debug("\033[34;4m Zrtp_hash computed\033[0m\n");  
+            }
             _session = NULL;
         }
         _sessionRecv = NULL;

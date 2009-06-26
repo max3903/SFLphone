@@ -540,8 +540,8 @@ GtkWidget* create_ip2ip_tab()
         curSRTPEnabled = g_hash_table_lookup(properties, ACCOUNT_SRTP_ENABLED);
     }
     
-    securityFrame = gtk_frame_new(_("Security"));
-    
+    gnome_main_section_new (_("Direct Call Settings"), &securityFrame);
+        
     tableIp2Ip = gtk_table_new (3, 2  , FALSE/* homogeneous */);  
     gtk_table_set_row_spacings( GTK_TABLE(tableIp2Ip), 10);
     gtk_table_set_col_spacings( GTK_TABLE(tableIp2Ip), 10);        

@@ -1364,6 +1364,14 @@ ManagerImpl::initConfigFile (bool load_user_value, std::string alternate)
   fill_config_int(STUN_ENABLE, DFT_STUN_ENABLE);
   fill_config_int(STUN_SERVER, DFT_STUN_SERVER);
 
+  section = IP2IP_PROFILE;
+  fill_config_int(SRTP_ENABLE, NO_STR);
+  fill_config_int(SRTP_KEY_EXCHANGE, YES_STR);
+  fill_config_int(ZRTP_HELLO_HASH, YES_STR);
+  fill_config_int(ZRTP_DISPLAY_SAS, YES_STR);
+  fill_config_int(ZRTP_DISPLAY_SAS_ONCE, NO_STR);
+  fill_config_int(ZRTP_NOT_SUPP_WARNING, YES_STR);
+  
   section = AUDIO;
   fill_config_int(ALSA_CARD_ID_IN, ALSA_DFT_CARD);
   fill_config_int(ALSA_CARD_ID_OUT, ALSA_DFT_CARD);

@@ -54,6 +54,12 @@ class AudioRtpException: public std::exception
   }
 };
 
+struct rtpConnection {
+    bool sym;
+    bool zrtp;
+    bool helloHash;
+};
+
 /**
  * @file audiortp.h
  * @brief Manage the real-time data transport in a SIP call
@@ -72,7 +78,7 @@ class AudioRtpRTX : public ost::Thread, public ost::TimerPort {
      * @param sipcall The pointer on the SIP call
      * @param sym     Tells whether or not the voip links are symmetric
      */
-     AudioRtpRTX (SIPCall* sipcall, bool sym, bool zrtp);
+     AudioRtpRTX (SIPCall* sipcall, rtpConnection * connection);
 
     /**
      * Destructor
@@ -153,6 +159,9 @@ class AudioRtpRTX : public ost::Thread, public ost::TimerPort {
     
     bool _zrtp;
 
+    /** SDP property defined in ZRTP*/
+    bool _helloHash; 
+    
     /** Mic-data related buffers */
     SFLDataFormat* micData;
     SFLDataFormat* micDataConverted;

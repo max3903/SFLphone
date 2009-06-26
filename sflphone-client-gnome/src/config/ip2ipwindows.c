@@ -61,13 +61,11 @@ void show_advanced_ip2ip_zrtp_options(void)
     gtk_dialog_set_has_separator(securityDialog, TRUE);
     gtk_container_set_border_width (GTK_CONTAINER(securityDialog), 0);
 
-    gnome_main_section_new (_("Advanced Options for ZRTP"), &zrtpFrame);
-    gtk_box_pack_start(GTK_BOX(securityDialog->vbox), zrtpFrame, FALSE, FALSE, 0);
-    gtk_widget_show(zrtpFrame);
     
     tableZrtp = gtk_table_new (4, 2  , FALSE/* homogeneous */);  
     gtk_table_set_row_spacings( GTK_TABLE(tableZrtp), 10);
-    gtk_table_set_col_spacings( GTK_TABLE(tableZrtp), 10);   
+    gtk_table_set_col_spacings( GTK_TABLE(tableZrtp), 10); 
+        gtk_box_pack_start(GTK_BOX(securityDialog->vbox), tableZrtp, FALSE, FALSE, 0);  
     gtk_widget_show(tableZrtp);
     
     enableHelloHash = gtk_check_button_new_with_mnemonic(_("Send Hello Hash in S_DP"));
@@ -96,8 +94,6 @@ void show_advanced_ip2ip_zrtp_options(void)
     
     gtk_widget_show_all(tableZrtp);
     gtk_container_set_border_width (GTK_CONTAINER(tableZrtp), 15);
-    gtk_container_add(GTK_CONTAINER(zrtpFrame), tableZrtp);
-    gtk_widget_show(zrtpFrame);
         
     if(gtk_dialog_run(GTK_DIALOG(securityDialog)) == GTK_RESPONSE_ACCEPT) {        
         g_hash_table_replace(properties,
