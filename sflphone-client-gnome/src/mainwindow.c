@@ -355,6 +355,10 @@ main_window_zrtp_not_supported(callable_obj_t * c)
         DEBUG("Warning Enabled %s", warning_enabled);
     } else {
         DEBUG("Account is null callID %s", c->_callID);
+            GHashTable * properties = NULL;
+            properties = sflphone_get_ip2ip_properties();
+            if(properties != NULL)
+              { warning_enabled = g_hash_table_lookup(properties, ACCOUNT_ZRTP_NOT_SUPP_WARNING); }
     }
     
     if(g_strcasecmp(warning_enabled,"TRUE") == 0) {
