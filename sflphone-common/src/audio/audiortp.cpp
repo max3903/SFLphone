@@ -218,7 +218,12 @@ converter(NULL)
 
 void AudioRtpRTX::initializeZid(void) 
 {
-    std::string zidFile = std::string(HOMEDIR) + DIR_SEPARATOR_STR + "." + PROGDIR + "/" + std::string(Manager::instance().getConfigString(SIGNALISATION,ZRTP_ZIDFILE));
+    std::string fileName(Manager::instance().getConfigString(SIGNALISATION,ZRTP_ZIDFILE));
+    if(fileName.empty()) {
+        fileName = ZIDFILE; 
+    }
+    _debug("filename %s\n", fileName.c_str());
+    std::string zidFile = std::string(HOMEDIR) + DIR_SEPARATOR_STR + "." + PROGDIR + "/" + fileName;
     
     if(_zsession->initialize(zidFile.c_str()) >= 0) {
         _debug("Register callbacks\n");
@@ -552,7 +557,7 @@ AudioRtpRTX::receiveSessionForSpkr (int& countTime)
     receive(&adu);
     
     if (adu == NULL) {
-        _debug("No RTP audio stream\n");
+        //_debug("No RTP audio stream\n");
         return;
     }
 

@@ -301,7 +301,8 @@ calltree_create (calltab_t* tab, gboolean searchbar_type)
             rend,
             "markup", COLUMN_ACCOUNT_DESC,
             NULL);
-    g_object_set(rend, "xalign", (gfloat) 0.5, NULL);
+    g_object_set(rend, "xalign", (gfloat) 1.0, NULL);
+    g_object_set(rend, "yalign", (gfloat) 0.0, NULL);
     gtk_tree_view_append_column (GTK_TREE_VIEW(tab->view), col);
 
     /* Security icon */

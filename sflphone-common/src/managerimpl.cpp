@@ -1363,6 +1363,7 @@ ManagerImpl::initConfigFile (bool load_user_value, std::string alternate)
   fill_config_int(SEND_DTMF_AS, SIP_INFO_STR);
   fill_config_int(STUN_ENABLE, DFT_STUN_ENABLE);
   fill_config_int(STUN_SERVER, DFT_STUN_SERVER);
+  fill_config_int(ZRTP_ZIDFILE, ZIDFILE);
 
   section = IP2IP_PROFILE;
   fill_config_int(SRTP_ENABLE, NO_STR);
@@ -2818,7 +2819,7 @@ ManagerImpl::getAccountIdFromNameAndServer(const std::string& userName, const st
     if ( account != NULL ) {
     	if(account->userMatch(userName))
     	{
-    	      _debug("userMatch\n");
+    	      _debug("userMatch with %s\n", userName.c_str());
       		return iter->first;
       }
     }
