@@ -138,7 +138,7 @@ void sflphone_srtp_off( callable_obj_t * c );
  * @param sas* The Short Authentication String
  * @param verified* Weather the SAS was confirmed or not.
  */
-void sflphone_srtp_show_sas( callable_obj_t * c, const gchar* sas, const gboolean* verified);
+void sflphone_srtp_show_sas( callable_obj_t * c, const gchar* sas, const gboolean verified);
 
 /** Called when the remote peer does not support ZRTP
  * @param c* The current call

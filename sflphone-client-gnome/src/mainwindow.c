@@ -155,7 +155,7 @@ create_main_window ()
   window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
   gtk_container_set_border_width (GTK_CONTAINER (window), 0);
   gtk_window_set_title (GTK_WINDOW (window), PACKAGE);
-  gtk_window_set_default_size (GTK_WINDOW (window), 300, 320);
+  gtk_window_set_default_size (GTK_WINDOW (window), MAIN_WINDOW_WIDTH, MAIN_WINDOW_HEIGHT);
   gtk_window_set_default_icon_from_file (LOGO,
                                           NULL);
   gtk_window_set_position( GTK_WINDOW( window ) , GTK_WIN_POS_MOUSE);

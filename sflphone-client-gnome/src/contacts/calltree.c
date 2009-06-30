@@ -238,8 +238,7 @@ calltree_create (calltab_t* tab, gboolean searchbar_type)
 
     tab->tree = gtk_vbox_new(FALSE, 10);
 
-    // Fix bug #708 (resize)
-    gtk_widget_set_usize(tab->tree,100,80);
+    gtk_widget_set_size_request(tab->tree,100,80);
 
     gtk_container_set_border_width (GTK_CONTAINER (tab->tree), 0);
 
@@ -303,6 +302,8 @@ calltree_create (calltab_t* tab, gboolean searchbar_type)
             NULL);
     g_object_set(rend, "xalign", (gfloat) 1.0, NULL);
     g_object_set(rend, "yalign", (gfloat) 0.0, NULL);
+    g_object_set(rend, "wrap-mode", (PangoWrapMode) PANGO_WRAP_WORD_CHAR, NULL);
+    g_object_set(rend, "wrap-width", (gint) CALLTREE_TEXT_WIDTH, NULL);
     gtk_tree_view_append_column (GTK_TREE_VIEW(tab->view), col);
 
     /* Security icon */
@@ -810,7 +811,7 @@ void calltree_display (calltab_t *tab) {
     }
 
     else
-        ERROR ("calltree.c line 1050 . This is probably a bug in the application");
+        ERROR ("calltree.c line %d . This is probably a bug in the application", __LINE__);
 
 
     gtk_widget_hide (active_calltree->tree);

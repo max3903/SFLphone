@@ -23,6 +23,9 @@
 #include <calllist.h>
 #include <calltree.h>
 
+#define MAIN_WINDOW_WIDTH 300
+#define MAIN_WINDOW_HEIGHT 320
+
 /** @file mainwindow.h
   * @brief The main window of the client.
   */
@@ -94,6 +97,8 @@ void statusbar_push_message( const gchar* message , guint id );
 void statusbar_pop_message( guint id );
 
 void main_window_searchbar( gboolean *state );
+
+void main_window_confirm_go_clear(callable_obj_t * c);
 
 //static gboolean
 //on_key_released (GtkWidget *widget, GdkEventKey *event,

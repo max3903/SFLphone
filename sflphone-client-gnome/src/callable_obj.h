@@ -146,6 +146,8 @@ void call_add_error(callable_obj_t * call, gpointer dialog);
 
 void call_remove_error(callable_obj_t * call, gpointer dialog);
 
+void call_remove_all_errors(callable_obj_t * call);
+
 /* 
  * GCompareFunc to compare a callID (gchar* and a callable_obj_t) 
  */
