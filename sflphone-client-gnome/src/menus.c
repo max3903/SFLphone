@@ -820,7 +820,7 @@ show_popup_menu (GtkWidget *my_widget, GdkEventButton *event)
         gtk_widget_show (menu_items);
     }
     
-    DEBUG("menu srtp state %d\n", selectedCall->_srtp_state);
+    if(selectedCall != NULL) { DEBUG("menu srtp state %d\n", selectedCall->_srtp_state); }
     
     if(selectedCall->_srtp_state) 
     {

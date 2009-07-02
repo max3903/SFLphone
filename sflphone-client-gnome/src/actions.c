@@ -845,7 +845,7 @@ static int _place_registered_call(callable_obj_t * c) {
     }
     
     current = account_list_get_by_id(c->_accountID);
-    if(current != NULL) { 
+    if(current == NULL) { 
         DEBUG("Unexpected condition: account_t is NULL in %s at %d", __FILE__, __LINE__);
         return -1;
     }   
