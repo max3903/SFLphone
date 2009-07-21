@@ -47,29 +47,41 @@ DlgAccounts::DlgAccounts(KConfigDialog *parent)
 		combo_keyExchange->insertItem(i, keyExchangesNames[i]);
 	}
 	
-	connect(edit1_alias,           SIGNAL(textEdited(const QString &)),
-	        this,                  SLOT(changedAccountList()));
-	connect(edit2_protocol,        SIGNAL(currentIndexChanged(int)),
-	        this,                  SLOT(changedAccountList()));
-	connect(edit3_server,          SIGNAL(textEdited(const QString &)),
-	        this,                  SLOT(changedAccountList()));
-	connect(edit4_user,            SIGNAL(textEdited(const QString &)),
-	        this,                  SLOT(changedAccountList()));
-	connect(edit5_password,        SIGNAL(textEdited(const QString &)),
-	        this,                  SLOT(changedAccountList()));
-	connect(edit6_mailbox,         SIGNAL(textEdited(const QString &)),
-	        this,                  SLOT(changedAccountList()));
-	connect(button_accountUp,      SIGNAL(clicked()),
-	        this,                  SLOT(changedAccountList()));
-	connect(button_accountDown,    SIGNAL(clicked()),
-	        this,                  SLOT(changedAccountList()));
-	connect(button_accountAdd,     SIGNAL(clicked()),
-	        this,                  SLOT(changedAccountList()));
-	connect(button_accountRemove,  SIGNAL(clicked()),
-	        this,                  SLOT(changedAccountList()));
+	connect(edit1_alias,             SIGNAL(textEdited(const QString &)),
+	        this,                    SLOT(changedAccountList()));
+	connect(edit2_protocol,          SIGNAL(currentIndexChanged(int)),
+	        this,                    SLOT(changedAccountList()));
+	connect(edit3_server,            SIGNAL(textEdited(const QString &)),
+	        this,                    SLOT(changedAccountList()));
+	connect(edit4_user,              SIGNAL(textEdited(const QString &)),
+	        this,                    SLOT(changedAccountList()));
+	connect(edit5_password,          SIGNAL(textEdited(const QString &)),
+	        this,                    SLOT(changedAccountList()));
+	connect(edit6_mailbox,           SIGNAL(textEdited(const QString &)),
+	        this,                    SLOT(changedAccountList()));
+	connect(checkBox_useSRTP,        SIGNAL(stateChanged(int)),
+	        this,                    SLOT(changedAccountList()));
+	connect(combo_keyExchange,       SIGNAL(activated(int)),
+	        this,                    SLOT(changedAccountList()));
+	connect(checkBox_helloSDP,       SIGNAL(stateChanged(int)),
+	        this,                    SLOT(changedAccountList()));
+	connect(checkBox_confirmSAS,     SIGNAL(stateChanged(int)),
+	        this,                    SLOT(changedAccountList()));
+	connect(checkBox_warnZRTP,       SIGNAL(stateChanged(int)),
+	        this,                    SLOT(changedAccountList()));
+	connect(checkBox_displaySASOnce, SIGNAL(stateChanged(int)),
+	        this,                    SLOT(changedAccountList()));
+	connect(button_accountUp,        SIGNAL(clicked()),
+	        this,                    SLOT(changedAccountList()));
+	connect(button_accountDown,      SIGNAL(clicked()),
+	        this,                    SLOT(changedAccountList()));
+	connect(button_accountAdd,       SIGNAL(clicked()),
+	        this,                    SLOT(changedAccountList()));
+	connect(button_accountRemove,    SIGNAL(clicked()),
+	        this,                    SLOT(changedAccountList()));
 	        
-	connect(&configurationManager, SIGNAL(accountsChanged()),
-	        this,                  SLOT(updateAccountStates()));
+	connect(&configurationManager,   SIGNAL(accountsChanged()),
+	        this,                    SLOT(updateAccountStates()));
 	        
 	
 	connect(this,     SIGNAL(updateButtons()), parent, SLOT(updateButtons()));
