@@ -41,6 +41,11 @@ DlgAccounts::DlgAccounts(KConfigDialog *parent)
 	loadAccountList();
 	accountListHasChanged = false;
 	toolButton_accountsApply->setEnabled(false);
+	QString keyExchangesNames[] = ACCOUNT_KEY_EXCH_NAMES;
+	for(int i = 0 ; i < ACCOUNT_KEY_EXCH_NUMBER ; i++)
+	{
+		combo_keyExchange->insertItem(i, keyExchangesNames[i]);
+	}
 	
 	connect(edit1_alias,           SIGNAL(textEdited(const QString &)),
 	        this,                  SLOT(changedAccountList()));
@@ -77,6 +82,7 @@ DlgAccounts::~DlgAccounts()
 
 void DlgAccounts::saveAccountList()
 {
+	qDebug() << "saveAccountList";
 	ConfigurationManagerInterface & configurationManager = ConfigurationManagerInterfaceSingleton::getInstance();
 	disconnectAccountsChangedSignal();
 	//save the account being edited
@@ -84,7 +90,8 @@ void DlgAccounts::saveAccountList()
 		saveAccount(listWidget_accountList->currentItem());
 	QStringList accountIds= QStringList(configurationManager.getAccountList().value());
 	//create or update each account from accountList
-	for (int i = 0; i < accountList->size(); i++){
+	for (int i = 0; i < accountList->size(); i++)
+	{
 		Account * current = (*accountList)[i];
 		QString currentId;
 		//if the account has no instanciated id, it has just been created in the client
@@ -146,12 +153,22 @@ void DlgAccounts::saveAccount(QListWidgetItem * item)
 
 	account->setAccountDetail(ACCOUNT_ALIAS, edit1_alias->text());
 	QString protocolsTab[] = ACCOUNT_TYPES_TAB;
+	QString keyExchangesCodes[] = ACCOUNT_KEY_EXCH_CODES;
 	account->setAccountDetail(ACCOUNT_TYPE, protocolsTab[edit2_protocol->currentIndex()]);
 	account->setAccountDetail(ACCOUNT_HOSTNAME, edit3_server->text());
 	account->setAccountDetail(ACCOUNT_USERNAME, edit4_user->text());
 	account->setAccountDetail(ACCOUNT_PASSWORD, edit5_password->text());
 	account->setAccountDetail(ACCOUNT_MAILBOX, edit6_mailbox->text());
 	account->setAccountDetail(ACCOUNT_ENABLED, account->isChecked() ? ACCOUNT_ENABLED_TRUE : ACCOUNT_ENABLED_FALSE);
+	
+	account->setAccountDetail(ACCOUNT_SRTP_ENABLE, checkBox_useSRTP->checkState() ? "TRUE" : "FALSE");
+	account->setAccountDetail(ACCOUNT_SRTP_KEY_EXCHANGE, keyExchangesCodes[combo_keyExchange->currentIndex()]);
+	account->setAccountDetail(ACCOUNT_ZRTP_HELLO_HASH, checkBox_helloSDP->checkState() ? "TRUE" : "FALSE");
+	account->setAccountDetail(ACCOUNT_ZRTP_DISPLAY_SAS, checkBox_confirmSAS->checkState() ? "TRUE" : "FALSE");
+	account->setAccountDetail(ACCOUNT_ZRTP_NOT_SUPP_WARNING, checkBox_warnZRTP->checkState() ? "TRUE" : "FALSE");
+	account->setAccountDetail(ACCOUNT_ZRTP_DISPLAY_SAS_ONCE, checkBox_displaySASOnce->checkState() ? "TRUE" : "FALSE");
+	
+	qDebug() << "save " << keyExchangesCodes[combo_keyExchange->currentIndex()];
 }
 
 void DlgAccounts::loadAccount(QListWidgetItem * item)
@@ -164,14 +181,25 @@ void DlgAccounts::loadAccount(QListWidgetItem * item)
 	edit1_alias->setText( account->getAccountDetail(ACCOUNT_ALIAS));
 	
 	QString protocolsTab[] = ACCOUNT_TYPES_TAB;
-	QList<QString> * protocolsList = new QList<QString>();
+	QStringList protocolsList;
 	for(int i = 0 ; i < (int) (sizeof(protocolsTab) / sizeof(QString)) ; i++)
 	{ 
-		protocolsList->append(protocolsTab[i]);
+		protocolsList.append(protocolsTab[i]);
 	}
 	QString accountName = account->getAccountDetail(ACCOUNT_TYPE);
-	int protocolIndex = protocolsList->indexOf(accountName);
-	delete protocolsList;
+	int protocolIndex = protocolsList.indexOf(accountName);
+	
+	
+	QString keyExchangesDetails[] = ACCOUNT_KEY_EXCH_CODES;
+	QStringList keyExchangesList;
+	for(int i = 0 ; i < ACCOUNT_KEY_EXCH_NUMBER ; i++)
+	{ 
+		keyExchangesList.append(keyExchangesDetails[i]);
+	}
+	QString keyExchangeCode = account->getAccountDetail(ACCOUNT_SRTP_KEY_EXCHANGE);
+	
+	qDebug() << "load " << keyExchangeCode;
+	int keyExchangeIndex = keyExchangesList.indexOf(keyExchangeCode);
 	
 	edit2_protocol->setCurrentIndex( (protocolIndex < 0) ? 0 : protocolIndex );
 	edit3_server->setText( account->getAccountDetail(ACCOUNT_HOSTNAME));
@@ -181,6 +209,13 @@ void DlgAccounts::loadAccount(QListWidgetItem * item)
 	QString status = account->getAccountDetail(ACCOUNT_STATUS);
 	edit7_state->setText( "<FONT COLOR=\"" + account->getStateColorName() + "\">" + status + "</FONT>" );
 	frame2_editAccounts->setEnabled(true);
+	
+	checkBox_useSRTP->setCheckState((account->getAccountDetail(ACCOUNT_SRTP_ENABLE) == "TRUE") ? Qt::Checked : Qt::Unchecked);
+	combo_keyExchange->setCurrentIndex( (keyExchangeIndex < 0) ? 0 : keyExchangeIndex );
+	checkBox_helloSDP->setCheckState((account->getAccountDetail(ACCOUNT_ZRTP_HELLO_HASH) == "TRUE") ? Qt::Checked : Qt::Unchecked);
+	checkBox_confirmSAS->setCheckState((account->getAccountDetail(ACCOUNT_ZRTP_DISPLAY_SAS) == "TRUE") ? Qt::Checked : Qt::Unchecked);
+	checkBox_warnZRTP->setCheckState((account->getAccountDetail(ACCOUNT_ZRTP_NOT_SUPP_WARNING) == "TRUE") ? Qt::Checked : Qt::Unchecked);
+	checkBox_displaySASOnce->setCheckState((account->getAccountDetail(ACCOUNT_ZRTP_DISPLAY_SAS_ONCE) == "TRUE") ? Qt::Checked : Qt::Unchecked);
 }
 
 void DlgAccounts::loadAccountList()
@@ -340,12 +375,15 @@ void DlgAccounts::updateAccountListCommands()
 void DlgAccounts::updateAccountStates()
 {
 	qDebug() << "updateAccountStates";
-	qDebug() << accountList->size();
 	for (int i = 0; i < accountList->size(); i++)
 	{
 		Account * current = accountList->getAccountAt(i);
 		current->updateState();
 	}
+	QListWidgetItem * item = listWidget_accountList->currentItem();
+	Account * account = accountList->getAccountByItem(item);
+	QString status = account->getAccountDetail(ACCOUNT_STATUS);
+	edit7_state->setText( "<FONT COLOR=\"" + account->getStateColorName() + "\">" + status + "</FONT>" );
 	qDebug() << accountList->size();
 }
 

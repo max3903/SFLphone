@@ -128,6 +128,24 @@
 #define ACCOUNT_TYPE_IAX                  "IAX"
 #define ACCOUNT_TYPES_TAB                 {QString(ACCOUNT_TYPE_SIP), QString(ACCOUNT_TYPE_IAX)}
 
+// SRTP specific parameters
+#define ACCOUNT_SRTP_ENABLE               "SRTP.enable"
+#define ACCOUNT_SRTP_KEY_EXCHANGE         "SRTP.keyExchange"   /* 1=ZRTP, 2=SDES-TLS, 3=SDES-SSL3 */
+#define ACCOUNT_SRTP_ENCRYPTION_ALGO      "SRTP.encryptionAlgorithm" /* Provided by ccRTP,0=NULL,1=AESCM,2=AESF8 */
+#define ACCOUNT_ZRTP_HELLO_HASH           "ZRTP.helloHashEnable"
+#define ACCOUNT_ZRTP_DISPLAY_SAS          "ZRTP.displaySAS"
+#define ACCOUNT_ZRTP_NOT_SUPP_WARNING     "ZRTP.notSuppWarning"
+#define ACCOUNT_ZRTP_DISPLAY_SAS_ONCE     "ZRTP.displaySasOnce"
+
+#define ACCOUNT_KEY_EXCH_NAME_ZRTP        "ZRTP"
+#define ACCOUNT_KEY_EXCH_NAME_SDES_TLS    "SDES-TLS"
+#define ACCOUNT_KEY_EXCH_NAME_SDES_SSL3   "SDES-SSL3"
+#define ACCOUNT_KEY_EXCH_NAMES            {"ZRTP", "SDES-TLS", "SDES-SSL3"}
+#define ACCOUNT_KEY_EXCH_CODES            {QString("1"), QString("2"), QString("3")}
+#define ACCOUNT_KEY_EXCH_NUMBER           3
+
+#define ACCOUNT_TYPES_TAB                 {QString(ACCOUNT_TYPE_SIP), QString(ACCOUNT_TYPE_IAX)}
+
 /** Constant variables */
 #define ACCOUNT_MAILBOX_DEFAULT_VALUE     "888"
 
