@@ -28,6 +28,8 @@
 #include <QtGui/QListWidgetItem>
 #include <QtGui/QLabel>
 #include <QtGui/QWidget>
+#include <QtGui/QToolButton>
+#include <KArrowButton>
 
 #include "Contact.h"
 
@@ -159,6 +161,7 @@ private:
 	QLabel * labelCallNumber;
 	QLabel * labelTransferPrefix;
 	QLabel * labelTransferNumber;
+	KArrowButton * buttonSecurityIcon;
 	
 	QListWidgetItem * historyItem;
 	QWidget * historyItemWidget;

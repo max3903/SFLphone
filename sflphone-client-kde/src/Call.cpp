@@ -118,6 +118,8 @@ void Call::initCallItemWidget()
 	labelCallNumber = new QLabel(peerPhoneNumber);
 	labelTransferPrefix = new QLabel(i18n("Transfer to : "));
 	labelTransferNumber = new QLabel();
+	buttonSecurityIcon = new KArrowButton();
+// 	buttonSecurityIcon->setFlat(true);
 	QSpacerItem * horizontalSpacer = new QSpacerItem(16777215, 20, QSizePolicy::Preferred, QSizePolicy::Minimum);
 	
 	QHBoxLayout * mainLayout = new QHBoxLayout();
@@ -141,7 +143,7 @@ void Call::initCallItemWidget()
 	descr->addLayout(transfer);
 	mainLayout->addLayout(descr);
 	mainLayout->addItem(horizontalSpacer);
-
+	mainLayout->addWidget(buttonSecurityIcon);
 	itemWidget->setLayout(mainLayout);
 }
 
