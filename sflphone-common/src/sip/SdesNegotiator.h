@@ -50,31 +50,89 @@ namespace sfl {
         // url, maybe at some point
     };
     
-    struct CryptoSuiteDefinition {
-        char * name;
-        int masterKeyLength;
-        int masterSaltLength;
-        int srtpLifetime;
-        int srtcpLifetime;
-        CipherMode cipher;
-        int encryptionKeyLength;
-        MACMode mac;
-        int srtpAuthTagLength;
-        int srtcpAuthTagLength;
-        int srtpAuthKeyLength;
-        int srtcpAuthKeyLen;
+    class CryptoSuiteDefinition {
+		public: 
+			std::string name;
+			int masterKeyLength;
+			int masterSaltLength;
+			int srtpLifetime;
+			int srtcpLifetime;
+			CipherMode cipher;
+			int encryptionKeyLength;
+			MACMode mac;
+			int srtpAuthTagLength;
+			int srtcpAuthTagLength;
+			int srtpAuthKeyLength;
+			int srtcpAuthKeyLength;
+			
+			CryptoSuiteDefinition();
+			~CryptoSuiteDefinition();		
     };
-    
-    /** 
-    * List of accepted Crypto-Suites
-    * as defined in RFC4568 (6.2)
-    */
-    const CryptoSuiteDefinition CryptoSuites[3] = { 
-          {"AES_CM_128_HMAC_SHA1_80", 128, 112, 48, 31, AESCounterMode, 128, HMACSHA1, 80, 80, 160, 160 },
-          {"AES_CM_128_HMAC_SHA1_32", 128, 112, 48, 31, AESCounterMode, 128, HMACSHA1, 32, 80, 160, 160 },
-          {"F8_128_HMAC_SHA1_80", 128, 112, 48, 31, AESF8Mode, 128, HMACSHA1, 80, 80, 160, 160 } };   
-        
+	
+	class AesCm128HmacSha180CryptoSuite : public CryptoSuiteDefinition 
+	{
+		public:
+		AesCm128HmacSha180CryptoSuite() {
+			name = "AES_CM_128_HMAC_SHA1_80";
+			masterKeyLength = 128;
+			masterSaltLength = 112;
+			srtpLifetime = 48;
+			srtcpLifetime = 31;
+			cipher = AESCounterMode;
+			encryptionKeyLength = 128;
+			mac = HMACSHA1;
+			srtpAuthTagLength = 80;
+			srtcpAuthTagLength = 80;
+			srtpAuthKeyLength = 160;
+			srtcpAuthKeyLength = 160;
+		}
 
+			
+		~AesCm128HmacSha180CryptoSuite();
+	};
+	
+	class AesCm128HmacSha132CryptoSuite : public CryptoSuiteDefinition 
+	{
+		public: 
+		AesCm128HmacSha132CryptoSuite() {
+			name = "AES_CM_128_HMAC_SHA1_32";
+			masterKeyLength = 128;
+			masterSaltLength = 112;
+			srtpLifetime = 48;
+			srtcpLifetime = 31;
+			cipher = AESCounterMode;
+			encryptionKeyLength = 128;
+			mac = HMACSHA1;
+			srtpAuthTagLength = 32;
+			srtcpAuthTagLength = 80;
+			srtpAuthKeyLength = 160;
+			srtcpAuthKeyLength = 160;
+		}
+			
+		~AesCm128HmacSha132CryptoSuite();
+	};	
+    
+	class F8128HmacSha180CryptoSuite : public CryptoSuiteDefinition 
+	{
+		public: 
+		F8128HmacSha180CryptoSuite() {
+			name = "F8_128_HMAC_SHA1_80"; 
+			masterKeyLength = 128;
+			masterSaltLength = 112;
+			srtpLifetime = 48;
+			srtcpLifetime = 31;
+			cipher = AESF8Mode;
+			encryptionKeyLength = 128;
+			mac = HMACSHA1;
+			srtpAuthTagLength = 80;
+			srtcpAuthTagLength = 80;
+			srtpAuthKeyLength = 160;
+			srtcpAuthKeyLength = 160;
+		}
+			
+		~F8128HmacSha180CryptoSuite();
+	};	
+	
 	class CryptoAttribute {
 	
 		public:
