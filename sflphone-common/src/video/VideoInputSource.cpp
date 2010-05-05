@@ -2,6 +2,12 @@
 	
 namespace sfl
 {
+	VideoInputSource::VideoInputSource() : 
+		frameMutex(),
+		currentFrame(NULL),
+		currentDevice(NULL)
+	{
+	}
 	
 	void VideoInputSource::addVideoFrameObserver(VideoFrameObserver* observer)
 	{
@@ -18,14 +24,14 @@ namespace sfl
 	
 	void VideoInputSource::setCurrentFrame(GstBuffer * currentFrame)
 	{
-		// TODO make this thread safe.
-		memcpy (currentFrame, GST_BUFFER_DATA (currentFrame), GST_BUFFER_SIZE (currentFrame));
+		frameMutex.enterMutex();
+			memcpy (currentFrame, GST_BUFFER_DATA (currentFrame), GST_BUFFER_SIZE (currentFrame));
+		frameMutex.leaveMutex();
 	}
 	
 	uint8_t * VideoInputSource::getCurrentFrame()
 	{	
-		// TODO make this thread safe.
-		return currentFrame;
+		return currentFrame;	
 	}	
 	
 }

@@ -64,18 +64,7 @@ namespace sfl
 	 		void grabFrame();
 	 		 
 			static std::string APPSINK_NAME;
-			
-			/**
-			 * @return The current frame.
-			 */
-			uint8_t* getCurrentFrame();
-			
-		protected:
-			/**
-			 * @param buffer The buffer to copy from.
-			 */
-			void setCurrentFrame(GstBuffer * buffer);
-			
+				
 		private:
 			std::vector<GstVideoDetectedDevice*> getXimageSource() throw(MissingGstPluginException);		
 			std::vector<GstVideoDetectedDevice*> getVideoTestSource() throw(MissingGstPluginException);
@@ -89,7 +78,6 @@ namespace sfl
 			void ensurePluginAvailability(std::vector<std::string>& plugins) throw(MissingGstPluginException);
 			
     		GstElement * pipeline;
-    		uint8_t * currentFrame;
 	};
 	
 	std::string VideoInputSourceGst::APPSINK_NAME = std::string("sflphone_sink");

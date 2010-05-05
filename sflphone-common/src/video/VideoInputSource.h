@@ -120,6 +120,13 @@ class VideoInputSource : public ost::Thread
 		inline void setDevice(VideoDevice* device) { currentDevice = device; }
 		
 		/**
+		 * Destructor.
+		 */
+		virtual ~VideoInputSource();
+		
+		VideoInputSource();
+		
+		/**
 		 * @return the current device that is being used. 
 		 */
 		inline VideoDevice* getDevice() { return currentDevice; }
@@ -148,9 +155,9 @@ class VideoInputSource : public ost::Thread
 		void setCurrentFrame(GstBuffer* frame);	
 						 			
 	private:
-		VideoDevice* currentDevice; 
-		uint8_t * currentFrame;
-		
+		ost::Mutex frameMutex;	
+		uint8_t * currentFrame;		
+		VideoDevice* currentDevice;		
 		std::vector<VideoFrameObserver*> videoFrameObservers;
 };
 

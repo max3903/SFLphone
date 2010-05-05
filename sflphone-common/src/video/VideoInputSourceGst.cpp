@@ -9,7 +9,8 @@
 namespace sfl 
 {
 	
-	VideoInputSourceGst::VideoInputSourceGst()
+	VideoInputSourceGst::VideoInputSourceGst() :
+		pipeline(NULL),
 	{
 	}
 
@@ -118,14 +119,14 @@ namespace sfl
 		GstElement* sink = NULL;	
 		sink = gst_bin_get_by_name (GST_BIN (pipeline), APPSINK_NAME.c_str());
 		if (sink == NULL) {
-			// throw VideoSourceIOException
+			throw new VideoDeviceIOException("While grabing frame on " + getDevice()->getName()); 	
 		}
 	
 		// Get the raw data
 		GstBuffer* buffer = NULL;		
 		buffer = gst_app_sink_pull_buffer(GST_APP_SINK (sink));
 		if (buffer == NULL) {
-			// throw VideoSourceIOException
+			throw new VideoDeviceIOException("While grabing frame on " + getDevice()->getName()); 	
 		}
 		g_object_unref (sink);
 		
