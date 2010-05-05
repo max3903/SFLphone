@@ -79,14 +79,14 @@ namespace sfl
 	/**
 	 * @Override
 	 */
-	std::vector<VideoDevice*> VideoInputSourceGst::enumerateDevices(void)
+	std::vector<std::auto_ptr<VideoDevice>> VideoInputSourceGst::enumerateDevices(void)
 	{
-		std::vector<VideoDevice*> detectedDevices;
+		std::vector<std::auto_ptr<VideoDevice>> detectedDevices;
 
-		std::vector<GstVideoDetectedDevice*> v4l2Devices = getV4l2Devices();
-		std::vector<GstVideoDetectedDevice*> dv1394Devices = getDv1394();
-		std::vector<GstVideoDetectedDevice*> ximageDevices = getXimageSource();		
-		std::vector<GstVideoDetectedDevice*> videoTestSourceDevices = getVideoTestSource();
+		std::vector<std::auto_ptr<GstVideoDevice>> v4l2Devices = getV4l2Devices();
+		std::vector<std::auto_ptr<GstVideoDevice>> dv1394Devices = getDv1394();
+		std::vector<std::auto_ptr<GstVideoDevice>> ximageDevices = getXimageSource();		
+		std::vector<std::auto_ptr<GstVideoDevice>> videoTestSourceDevices = getVideoTestSource();
 		
 		detectedDevices.insert(detectedDevices.end(), v4l2Devices.begin(), v4l2Devices.end());
 		detectedDevices.insert(detectedDevices.end(), dv1394Devices.begin(), dv1394Devices.end());
@@ -149,21 +149,21 @@ namespace sfl
 		}
 	}
 	
-	std::vector<GstVideoDetectedDevice*> VideoInputSourceGst::getVideoTestSource() throw(MissingGstPluginException)
+	std::vector<std::auto_ptr<GstVideoDetectedDevice>> VideoInputSourceGst::getVideoTestSource() throw(MissingGstPluginException)
 	{
 		GstElement* element = NULL;
 		element = gst_element_factory_make ("videotestsrc", "videotestsrcpresencetest");
 	
 		std::vector<GstVideoDetectedDevice*> detectedDevices;
 		if (element != NULL) {
-			detectedDevices.push_back(new GstVideoDetectedDevice(TEST, "videotestsrc", "videotestsrc"));
+			detectedDevices.push_back(std::auto_ptr<GstVideoDetectedDevice>(new GstVideoDetectedDevice(TEST, "videotestsrc", "videotestsrc")));
 	    	gst_object_unref (GST_OBJECT (element));
 	  	}
 	  	
 	  	return detectedDevices;
 	}
 	
-	std::vector<GstVideoDetectedDevice*> VideoInputSourceGst::getXimageSource() throw(MissingGstPluginException)
+	std::vector<std::auto_ptr<GstVideoDetectedDevice>> VideoInputSourceGst::getXimageSource() throw(MissingGstPluginException)
 	{
 		std::vector<std::string> neededPlugins;
 		neededPlugins.push_back("ximagesrc");
@@ -173,12 +173,12 @@ namespace sfl
 
     	std::string description = "ximagesrc ! videoscale ! ffmpegcolorspace";
   		std::vector<GstVideoDetectedDevice*> detectedDevices;
-  		detectedDevices.push_back(new GstVideoDetectedDevice(XIMAGE, "ximagesrc", description));
+  		detectedDevices.push_back(std::auto_ptr<GstVideoDetectedDevice>(new GstVideoDetectedDevice(XIMAGE, "ximagesrc", description)));
   		
   		return detectedDevices;
 	}
 	
-	std::vector<GstVideoDetectedDevice*> VideoInputSourceGst::getV4l2Devices() throw(MissingGstPluginException)
+	std::vector<std::auto_ptr<GstVideoDetectedDevice>> VideoInputSourceGst::getV4l2Devices() throw(MissingGstPluginException)
 	{
 		std::vector<std::string> neededPlugins;
 		neededPlugins.push_back("videoscale");
@@ -218,7 +218,7 @@ namespace sfl
 					
 					// Add to vector
 					GstVideoDetectedDevice * gstDevice = new GstVideoDetectedDevice(V4L2, name, descr);
-					detectedDevices.push_back(gstDevice);
+					detectedDevices.push_back(std::auto_ptr<GstVideoDetectedDevice>(gstDevice));
 					
 		  			g_free (name);
 					g_free (descr);
@@ -234,7 +234,7 @@ namespace sfl
 		return detectedDevices;
 	}
 	
-	std::vector<GstVideoDetectedDevice*> VideoInputSourceGst::getDv1394() throw(MissingGstPluginException)
+	std::vector<std::auto_ptr<GstVideoDetectedDevice>> VideoInputSourceGst::getDv1394() throw(MissingGstPluginException)
 	{
 	
 		std::vector<std::string> neededPlugins;
@@ -278,7 +278,7 @@ namespace sfl
 						 
 					if (name != 0) {
 						GstVideoDetectedDevice * gstDevice = new GstVideoDetectedDevice(DV1394, name, descr);
-						detectedDevices.push_back(gstDevice);
+						detectedDevices.push_back(std::auto_ptr<GstVideoDetectedDevice>(gstDevice));
 						g_free (name);
 					}
 			

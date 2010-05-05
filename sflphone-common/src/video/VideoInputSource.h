@@ -3,6 +3,7 @@
 
 #include <vector> 
 #include <string> 
+#include <memory>
 #include <stdexcept>
 #include <stdint.h>
 #include <cc++/thread.h>
@@ -84,7 +85,7 @@ class VideoInputSource : public ost::Thread
 		/**
 		 * @return a vector containing the name of all the video devices available from this source.
 		 */
-		virtual std::vector<VideoDevice*> enumerateDevices(void) = 0;
+		virtual std::vector<std::auto_ptr<VideoDevice> > enumerateDevices(void) = 0;
 		
 		/**
 		 * Open the specified video device. Frame grabbing will be started on request, either via start(), 
@@ -99,7 +100,7 @@ class VideoInputSource : public ost::Thread
 		 * Close the currently opened device.
 		 * @precondition The device should have been opened prior to that call.
 		 */
-		virtual void close() = 0;
+		virtual void close() throw(VideoDeviceIOException) = 0;
 		
 		/**
 		 * Grab a frame from the specified capture device.

@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <string>
+#include <memory>
 #include <stdexcept> 
 #include <stdint.h>
 #include <gst/gstelement.h>
@@ -45,7 +46,8 @@ namespace sfl
 			/**
 	 		 * @Override
 	 		 */
-			std::vector<VideoDevice*> enumerateDevices(void);		
+			std::vector<std::auto_ptr<VideoDevice> > enumerateDevices(void);
+					
 			/**
 	 		 * @Override
 	 		 */
@@ -53,7 +55,7 @@ namespace sfl
 			/**
 	 		 * @Override
 	 		 */
-			void close();
+			void close() throw(VideoDeviceIOException);
 			/**
 	 		 * @Override
 	 		 */
@@ -66,10 +68,10 @@ namespace sfl
 			static std::string APPSINK_NAME;
 				
 		private:
-			std::vector<GstVideoDetectedDevice*> getXimageSource() throw(MissingGstPluginException);		
-			std::vector<GstVideoDetectedDevice*> getVideoTestSource() throw(MissingGstPluginException);
-			std::vector<GstVideoDetectedDevice*> getV4l2Devices() throw(MissingGstPluginException);
-			std::vector<GstVideoDetectedDevice*> getDv1394() throw(MissingGstPluginException);
+			std::vector<std::auto_ptr<GstVideoDetectedDevice> > getXimageSource() throw(MissingGstPluginException);		
+			std::vector<std::auto_ptr<GstVideoDetectedDevice> > getVideoTestSource() throw(MissingGstPluginException);
+			std::vector<std::auto_ptr<GstVideoDetectedDevice> > getV4l2Devices() throw(MissingGstPluginException);
+			std::vector<std::auto_ptr<GstVideoDetectedDevice> > getDv1394() throw(MissingGstPluginException);
 			
 			/**
 			 * Make sure that all the plugins are available in gstreamer.
