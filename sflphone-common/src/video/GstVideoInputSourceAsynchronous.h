@@ -20,7 +20,7 @@ namespace sfl
  	/**
  	 * Representation of a given gstreamer video device.
  	 */
- 	class GstVideoDetectedDevice : VideoDevice
+ 	class GstVideoDetectedDevice : public VideoDevice
 	{
 		public:
 		   /**
@@ -42,7 +42,7 @@ namespace sfl
 			/**
 	 		 * @Override
 	 		 */
-			std::vector<VideoDevice> enumerateDevices(void);		
+			std::vector<VideoDevice*> enumerateDevices(void);		
 		private:
 			std::vector<GstVideoDetectedDevice*> getXimageSource() throw(MissingGstPluginException);		
 			std::vector<GstVideoDetectedDevice*> getVideoTestSource() throw(MissingGstPluginException);

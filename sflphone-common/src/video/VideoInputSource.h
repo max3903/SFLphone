@@ -57,7 +57,7 @@ class VideoInputSource
 		/**
 		 * @return a vector containing the name of all the video devices available from this source.
 		 */
-		virtual std::vector<VideoDevice> enumerateDevices(void) = 0;
+		virtual std::vector<VideoDevice*> enumerateDevices(void) = 0;
 		
 		/**
 		 * @param device The device to use.

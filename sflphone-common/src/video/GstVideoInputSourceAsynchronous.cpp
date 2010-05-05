@@ -20,9 +20,21 @@ namespace sfl
 	/**
 	 * @Override
 	 */
-	std::vector<VideoDevice> GstVideoInputSourceAsynchronous::enumerateDevices(void)
+	std::vector<VideoDevice*> GstVideoInputSourceAsynchronous::enumerateDevices(void)
 	{
+		std::vector<VideoDevice*> detectedDevices;
+
+		std::vector<GstVideoDetectedDevice*> v4l2Devices = getV4l2Devices();
+		std::vector<GstVideoDetectedDevice*> dv1394Devices = getDv1394();
+		std::vector<GstVideoDetectedDevice*> ximageDevices = getXimageSource();		
+		std::vector<GstVideoDetectedDevice*> videoTestSourceDevices = getVideoTestSource();
 		
+		detectedDevices.insert(detectedDevices.end(), v4l2Devices.begin(), v4l2Devices.end());
+		detectedDevices.insert(detectedDevices.end(), dv1394Devices.begin(), dv1394Devices.end());
+		detectedDevices.insert(detectedDevices.end(), ximageDevices.begin(), ximageDevices.end());
+		detectedDevices.insert(detectedDevices.end(), videoTestSourceDevices.begin(), videoTestSourceDevices.end());
+		
+		return detectedDevices;
 	}
 		
 	void GstVideoInputSourceAsynchronous::ensurePluginAvailability(std::vector<std::string>& plugins) throw(MissingGstPluginException)
