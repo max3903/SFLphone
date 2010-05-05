@@ -3,6 +3,7 @@
 
 #include <vector> 
 #include <string> 
+#include <stdexcept>
 
 namespace sfl 
 {
@@ -12,6 +13,14 @@ namespace sfl
 */	
 enum VideoSourceType { V4L, V4L2, DV1394, XIMAGE, IMAGE, TEST, NONE };
 
+/**
+ * This exception is thrown when an IO operation fails for a given video device.
+ */
+class VideoDeviceIOException : public std::runtime_error {
+	public:
+		VideoDeviceIOException(const std::string& msg) : std::runtime_error(msg) {}
+};
+ 	
 /**
  * Representation of a given gstreamer video device.
  */
@@ -60,17 +69,32 @@ class VideoInputSource
 		virtual std::vector<VideoDevice*> enumerateDevices(void) = 0;
 		
 		/**
+		 * Open the specified video device. Frame grabbing will be started on request, either via start(), 
+		 * or getFrame() (in the synchronous case).
+		 * @param widht The desired width.
+		 * @param height The desired height.
+		 * @param fps The desired frame rate.
+		 */
+		virtual void open(int width, int height, int fps) = 0;
+		
+		/**
+		 * Close the currently opened device.
+		 * @precondition The device should be opened prior to that call.
+		 */
+		virtual void close() = 0;
+		
+		/**
 		 * @param device The device to use.
 		 */
-		inline void setDevice(const std::string& device) { currentDevice = device; }
+		inline void setDevice(VideoDevice* device) { currentDevice = device; }
 		
 		/**
 		 * @return the current device that is being used. 
 		 */
-		inline std::string getDevice() { return currentDevice; }
+		inline VideoDevice* getDevice() { return currentDevice; }
 					 			
 	private:
-		std::string currentDevice; 
+		VideoDevice* currentDevice; 
 };
 
 }

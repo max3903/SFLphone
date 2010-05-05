@@ -20,6 +20,64 @@ namespace sfl
 	/**
 	 * @Override
 	 */
+	void GstVideoInputSourceAsynchronous::open(int width, int height, int fps) throw(VideoDeviceIOException)
+	{
+		// Build the GST graph based on the chosen device.
+		gchar* command = NULL;
+		command = g_strdup_printf(
+			"%s ! appsink max_buffers=2 drop=true caps=video/x-raw-yuv"
+		    ",format=(fourcc)I420"
+		    ",width=%d"
+		    ",height=%d"
+		    ",framerate=(fraction)%d/1 name=%s",
+		    getDevice()->getDescription().c_str(),
+			width, height, fps, APPSINK_NAME.c_str());
+		
+		GError* error = NULL;   
+		pipeline = gst_parse_launch (command, &error);
+		
+		if (error != NULL) {
+			g_error_free(error);
+			g_free(command);
+			throw new VideoDeviceIOException("while opening device " + getDevice()->getName()); 	
+		}
+
+		// Start the pipeline
+		(void)gst_element_set_state (pipeline, GST_STATE_PLAYING);
+		
+		// Make sure that it is indeed playing
+		GstState actualState;
+		(void)gst_element_get_state (pipeline, &actualState, NULL, GST_SECOND);
+
+    	if (actualState != GST_STATE_PLAYING) {
+      		gst_element_set_state (pipeline, GST_STATE_NULL);
+      		gst_object_unref (GST_OBJECT (pipeline));
+      		pipeline = NULL;
+      		
+      		g_free (command);
+			throw new VideoDeviceIOException("while opening device " + getDevice()->getName()); 	
+    	} else {
+			// notify observers for the opening event
+    	}
+
+ 		g_free (command);
+	}
+	
+	/**
+	 * @Override
+	 */
+	void GstVideoInputSourceAsynchronous::close()
+	{
+		if (pipeline != NULL) {
+			// Notify observers that the device is now closed.
+    		g_object_unref (pipeline);
+	    	pipeline = NULL;
+  		}
+	}
+			
+	/**
+	 * @Override
+	 */
 	std::vector<VideoDevice*> GstVideoInputSourceAsynchronous::enumerateDevices(void)
 	{
 		std::vector<VideoDevice*> detectedDevices;

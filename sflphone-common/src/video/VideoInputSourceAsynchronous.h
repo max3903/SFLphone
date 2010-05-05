@@ -27,7 +27,7 @@ namespace sfl
 	/**
 	 * Base abstract class for every asynchronous video input source type.
 	 */
-	class VideoInputSourceAsynchronous : VideoInputSource, ost::Thread
+	class VideoInputSourceAsynchronous : public VideoInputSource, public ost::Thread
 	{
 		public:				
 			/**

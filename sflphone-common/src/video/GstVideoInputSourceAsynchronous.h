@@ -5,6 +5,8 @@
 #include <string>
 #include <stdexcept> 
 
+#include <gst/gstelement.h>
+
 #include "VideoInputSourceAsynchronous.h"
 
 namespace sfl 
@@ -30,19 +32,30 @@ namespace sfl
 		 	*/
 			GstVideoDetectedDevice(VideoSourceType type, std::string name, std::string description) : VideoDevice(type, name, description) {} 			
 	};
-	
+		
  	/**
  	 * This class captures video frames asynchronously via Gstreamer.
  	 */
-	class GstVideoInputSourceAsynchronous : VideoInputSourceAsynchronous
+	class GstVideoInputSourceAsynchronous : public VideoInputSourceAsynchronous
 	{
 		public:
 			GstVideoInputSourceAsynchronous();
 			virtual ~GstVideoInputSourceAsynchronous();
+			
 			/**
 	 		 * @Override
 	 		 */
 			std::vector<VideoDevice*> enumerateDevices(void);		
+			/**
+	 		 * @Override
+	 		 */
+			void open(int width, int height, int fps) throw(VideoDeviceIOException);
+			/**
+	 		 * @Override
+	 		 */
+			void close();
+			
+			static std::string APPSINK_NAME;
 		private:
 			std::vector<GstVideoDetectedDevice*> getXimageSource() throw(MissingGstPluginException);		
 			std::vector<GstVideoDetectedDevice*> getVideoTestSource() throw(MissingGstPluginException);
@@ -55,7 +68,10 @@ namespace sfl
 			 */
 			void ensurePluginAvailability(std::vector<std::string>& plugins) throw(MissingGstPluginException);
 			
+    		GstElement * pipeline;
 	};
+	
+	std::string GstVideoInputSourceAsynchronous::APPSINK_NAME = std::string("sflphone_sink");
 
 }
 #endif /*GSTVIDEOINPUTSOURCEASYNCHRONOUS_H_*/
