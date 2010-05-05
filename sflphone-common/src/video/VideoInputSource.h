@@ -93,7 +93,7 @@ class VideoInputSource : public ost::Thread
 		 * @param height The desired height.
 		 * @param fps The desired frame rate.
 		 */
-		virtual void open(int width, int height, int fps) = 0;
+		virtual void open(int width, int height, int fps) throw(VideoDeviceIOException) = 0;
 		
 		/**
 		 * Close the currently opened device.
@@ -106,7 +106,7 @@ class VideoInputSource : public ost::Thread
 		 * @precondition The device should have been opened prior to that call.
 		 * @postcondition getCurrentFrame() will return the frame that was captured.
 		 */
-		virtual void grabFrame() = 0;
+		virtual void grabFrame() throw(VideoDeviceIOException) = 0;
 		
 		/**
 		 * Reminder : Must override this method such that frames are grabbed within this method.

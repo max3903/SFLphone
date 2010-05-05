@@ -61,7 +61,7 @@ namespace sfl
 			/**
 	 		 * @Override
 	 		 */
-	 		void grabFrame();
+	 		void grabFrame() throw(VideoDeviceIOException);
 	 		 
 			static std::string APPSINK_NAME;
 				
