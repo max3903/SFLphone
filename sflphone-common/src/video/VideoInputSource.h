@@ -6,7 +6,10 @@
 #include <memory>
 #include <stdexcept>
 #include <stdint.h>
+
 #include <cc++/thread.h>
+#include <cc++/exception.h>
+
 #include <gst/gst.h>
 
 namespace sfl 
@@ -20,9 +23,9 @@ enum VideoSourceType { V4L, V4L2, DV1394, XIMAGE, IMAGE, TEST, NONE };
 /**
  * This exception is thrown when an IO operation fails for a given video device.
  */
-class VideoDeviceIOException : public std::runtime_error {
+class VideoDeviceIOException : public ost::IOException {
 	public:
-		VideoDeviceIOException(const std::string& msg) : std::runtime_error(msg) {}
+		VideoDeviceIOException(const std::string& msg) : ost::IOException(msg) {}
 };
  	
 /**
