@@ -5,6 +5,8 @@
 #include <string> 
 #include <stdexcept>
 #include <stdint.h>
+#include <cc++/thread.h>
+#include <gst/gst.h>
 
 namespace sfl 
 {
@@ -59,9 +61,24 @@ class VideoDevice
 };
 	
 /**
- * Base abstract class for every asynchronous or synchronous video input source type.
+ * Interface for those objects which want
+ * to be notified uppon the arrival of new
+ * frames for a specified video input source.
  */
-class VideoInputSource
+class VideoFrameObserver
+{
+	public:
+		/**
+		 * @param frame The new frame in whichever format it was requested.
+		 */
+		virtual void onNewFrame(const uint8_t* frame) = 0;
+};
+
+		
+/**
+ * Base abstract class for asynchronous or synchronous access to a video capture device.
+ */
+class VideoInputSource : public ost::Thread
 {
 	public:			
 		/**
@@ -92,6 +109,12 @@ class VideoInputSource
 		virtual void grabFrame() = 0;
 		
 		/**
+		 * Reminder : Must override this method such that frames are grabbed within this method.
+		 * Once the thread is started, run() will get called.
+		 */
+		virtual void run(void) = 0;		
+		
+		/**
 		 * @param device The device to use.
 		 */
 		inline void setDevice(VideoDevice* device) { currentDevice = device; }
@@ -100,10 +123,35 @@ class VideoInputSource
 		 * @return the current device that is being used. 
 		 */
 		inline VideoDevice* getDevice() { return currentDevice; }
-					 			
+		
+		/**
+		 * Register a new video frame observer.
+		 * The observer will get called when a frame becomes available.
+		 * @param observer The video frame observer.
+		 */
+		void addVideoFrameObserver(VideoFrameObserver* observer);
+		
+	   /**
+		* @return The current frame.
+		*/
+		uint8_t* getCurrentFrame();		
+				
+	protected:
+		/**
+		 * Call every observers with the given frame as an argument.
+		 */
+		void notifyAllFrameObserver(const uint8_t* frame);
+		
+		/**
+		 * @param the current frame. 
+		 */
+		void setCurrentFrame(GstBuffer* frame);	
+						 			
 	private:
 		VideoDevice* currentDevice; 
 		uint8_t * currentFrame;
+		
+		std::vector<VideoFrameObserver*> videoFrameObservers;
 };
 
 }
