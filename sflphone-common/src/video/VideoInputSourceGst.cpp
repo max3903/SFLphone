@@ -6,6 +6,8 @@
 #include <gst/interfaces/propertyprobe.h>
 #include <gst/app/gstappsink.h>
 
+#include "../logger.h"
+
 namespace sfl 
 {
 	
@@ -83,15 +85,20 @@ namespace sfl
 	{
 		std::vector<std::auto_ptr<VideoDevice>> detectedDevices;
 
-		std::vector<std::auto_ptr<GstVideoDevice>> v4l2Devices = getV4l2Devices();
-		std::vector<std::auto_ptr<GstVideoDevice>> dv1394Devices = getDv1394();
-		std::vector<std::auto_ptr<GstVideoDevice>> ximageDevices = getXimageSource();		
-		std::vector<std::auto_ptr<GstVideoDevice>> videoTestSourceDevices = getVideoTestSource();
+		try {
+			std::vector<std::auto_ptr<GstVideoDevice>> v4l2Devices = getV4l2Devices();
+			std::vector<std::auto_ptr<GstVideoDevice>> dv1394Devices = getDv1394();
+			std::vector<std::auto_ptr<GstVideoDevice>> ximageDevices = getXimageSource();		
+			std::vector<std::auto_ptr<GstVideoDevice>> videoTestSourceDevices = getVideoTestSource();
 		
-		detectedDevices.insert(detectedDevices.end(), v4l2Devices.begin(), v4l2Devices.end());
-		detectedDevices.insert(detectedDevices.end(), dv1394Devices.begin(), dv1394Devices.end());
-		detectedDevices.insert(detectedDevices.end(), ximageDevices.begin(), ximageDevices.end());
-		detectedDevices.insert(detectedDevices.end(), videoTestSourceDevices.begin(), videoTestSourceDevices.end());
+			detectedDevices.insert(detectedDevices.end(), v4l2Devices.begin(), v4l2Devices.end());
+			detectedDevices.insert(detectedDevices.end(), dv1394Devices.begin(), dv1394Devices.end());
+			detectedDevices.insert(detectedDevices.end(), ximageDevices.begin(), ximageDevices.end());
+			detectedDevices.insert(detectedDevices.end(), videoTestSourceDevices.begin(), videoTestSourceDevices.end());
+		} catch (MissingPluginException e) {
+			// TODO We might want to pop something up to the user in the GUI.
+			_warn("A plugin is missing : " + e.what());
+		}
 		
 		return detectedDevices;
 	}
