@@ -31,7 +31,7 @@ namespace sfl
 	{
 		public:				
 			/**
-			 * Must override this method such that frames are grabbed within this method.
+			 * Reminder : Must override this method such that frames are grabbed within this method.
 			 * Once the thread is started, run() will get called.
 			 */
 			virtual void run(void) = 0;
@@ -51,6 +51,11 @@ namespace sfl
 			 * Call every observers with the given frame as an argument.
 			 */
 			void notifyAllFrameObserver(const uint8_t* frame);
+			
+			/**
+			 * @param the current frame. 
+			 */
+			void setCurrentFrame(uint8_t* frame);
 		
 		private:
 			std::vector<VideoFrameObserver*> videoFrameObservers;	

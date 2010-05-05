@@ -94,7 +94,63 @@ namespace sfl
 		
 		return detectedDevices;
 	}
+	
+	/**
+	 * @Override
+	 */
+	void GstVideoInputSourceAsynchronous::run()
+	{
+		while(testCancel() == false) {
+			grabFrame();
+			
+			notifyAllFrameObserver(getCurrentFrame());
+			
+			yield();
+		}
+	}
+	
+	/**
+	 * @Override
+	 */
+	void GstVideoInputSourceAsynchronous::setCurrentFrame(GstBuffer * currentFrame)
+	{
+		// TODO make this thread safe.
+		memcpy (currentFrame, GST_BUFFER_DATA (currentFrame), GST_BUFFER_SIZE (currentFrame));
+	}
+	
+	/**
+	 * @Override 
+	 */
+	uint8_t * GstVideoInputSourceAsynchronous::getCurrentFrame()
+	{	
+		// TODO make this thread safe.
+		return currentFrame;
+	}
+	
+	/**
+	 * @Override
+	 */
+	void GstVideoInputSourceAsynchronous::grabFrame()
+	{		
+		// Retreive the bin
+		GstElement* sink = NULL;	
+		sink = gst_bin_get_by_name (GST_BIN (pipeline), APPSINK_NAME.c_str());
+		if (sink == NULL) {
+			// throw VideoSourceIOException
+		}
+	
+		// Get the raw data
+		GstBuffer* buffer = NULL;		
+		buffer = gst_app_sink_pull_buffer(GST_APP_SINK (sink));
+		if (buffer == NULL) {
+			// throw VideoSourceIOException
+		}
+		g_object_unref (sink);
 		
+		setCurrentFrame(buffer);  		
+  		gst_buffer_unref (buffer);
+ 	}
+ 		
 	void GstVideoInputSourceAsynchronous::ensurePluginAvailability(std::vector<std::string>& plugins) throw(MissingGstPluginException)
 	{
 		std::vector<std::string>::iterator it;

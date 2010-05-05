@@ -4,6 +4,7 @@
 #include <vector> 
 #include <string> 
 #include <stdexcept>
+#include <stdint.h>
 
 namespace sfl 
 {
@@ -79,9 +80,16 @@ class VideoInputSource
 		
 		/**
 		 * Close the currently opened device.
-		 * @precondition The device should be opened prior to that call.
+		 * @precondition The device should have been opened prior to that call.
 		 */
 		virtual void close() = 0;
+		
+		/**
+		 * Grab a frame from the specified capture device.
+		 * @precondition The device should have been opened prior to that call.
+		 * @postcondition getCurrentFrame() will return the frame that was captured.
+		 */
+		virtual void grabFrame() = 0;
 		
 		/**
 		 * @param device The device to use.
@@ -95,6 +103,7 @@ class VideoInputSource
 					 			
 	private:
 		VideoDevice* currentDevice; 
+		uint8_t * currentFrame;
 };
 
 }
