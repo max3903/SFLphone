@@ -28,6 +28,8 @@
 #include <fcntl.h>
 #include <assert.h>
 
+#include "../../logger.h" 
+
 namespace sfl
 {
 
@@ -56,9 +58,14 @@ SharedMemoryPosix::SharedMemoryPosix(const std::string& name, bool exclusive, st
 
 SharedMemoryPosix::~SharedMemoryPosix()
 {
-	unmap();
-	this->close();
-	this->unlink();
+	try {
+		unmap();
+		this->close();
+		this->unlink();
+	} catch (SharedMemoryException e) {
+		_error((std::string("An unrecoverable exception has occured : ") + e.what()).c_str());
+	}
+	
 }
 
 void SharedMemoryPosix::truncate()
