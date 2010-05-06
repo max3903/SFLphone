@@ -106,7 +106,7 @@ class VideoInputSource : public ost::Thread
 		/**
 		 * @return a vector containing the name of all the video devices available from this source.
 		 */
-		virtual std::vector<std::auto_ptr<VideoDevice> > enumerateDevices(void) = 0;
+		virtual std::vector<VideoDevice*>  enumerateDevices(void) = 0;
 		
 		/**
 		 * Open the specified video device. Frame grabbing will be started on request, either via start(), 

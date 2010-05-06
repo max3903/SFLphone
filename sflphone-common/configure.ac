@@ -59,6 +59,8 @@ AC_CONFIG_FILES([Makefile])
 			src/audio/alsa/Makefile \
 			src/audio/sound/Makefile \
 			src/audio/codecs/Makefile \
+			src/video/Makefile \
+			src/util/Makefile \
 			src/config/Makefile \
 			src/dbus/Makefile \
 			src/plug-in/audiorecorder/Makefile \
@@ -164,65 +166,72 @@ AC_CHECK_TYPES([ptrdiff_t])
 	dnl Check for uuid development package - name: uuid-dev 
 	dnl PKG_CHECK_MODULES(UUID, uuid >= ${UUID_MIN_VERSION})
 	dnl AC_SUBST(UUID_CFLAGS)
-dnl AC_SUBST(UUID_LIBS)
+	dnl AC_SUBST(UUID_LIBS)
 	UUID_MIN_VERSION=1.0
 	PKG_CHECK_MODULES(UUID, uuid >= ${UUID_MIN_VERSION}, HAVE_UUID=true, HAVE_UUID=false);
 	AC_SUBST(UUID_CFLAGS)
-AC_SUBST(UUID_LIBS)
+	AC_SUBST(UUID_LIBS)
 
 	dnl Check for alsa development package - name: libasound2-dev 
 	LIBASOUND2_MIN_VERSION=1.0
 	PKG_CHECK_MODULES(ALSA, alsa >= ${LIBASOUND2_MIN_VERSION})
 	AC_SUBST(ALSA_CFLAGS)
-AC_SUBST(ALSA_LIBS)
+	AC_SUBST(ALSA_LIBS)
 
 	dnl Check for pulseaudio development package - name: libpulse-dev 
 	LIBPULSE_MIN_VERSION=0.9.6
 	PKG_CHECK_MODULES(PULSEAUDIO, libpulse >= ${LIBPULSE_MIN_VERSION})
 	AC_SUBST(PULSEAUDIO_LIBS)
-AC_SUBST(PULSEAUDIO_CFLAGS)
+	AC_SUBST(PULSEAUDIO_CFLAGS)
 
 	dnl Check for the samplerate development package - name: libsamplerate0-dev
 	LIBSAMPLERATE_MIN_VERSION=0.1.2
 	PKG_CHECK_MODULES(SAMPLERATE, samplerate >= ${LIBSAMPLERATE_MIN_VERSION})
 	AC_SUBST(SAMPLERATE_LIBS)
-AC_SUBST(SAMPLERATE_CFLAGS)
+	AC_SUBST(SAMPLERATE_CFLAGS)
 
 	LIBCCGNU2_MIN_VERSION=1.3.1
 	PKG_CHECK_MODULES(CCGNU2, libccgnu2 >= ${LIBCCGNU2_MIN_VERSION})
 	AC_SUBST(CCGNU2_LIBS)
-AC_SUBST(CCGNU2_FLAGS)
+	AC_SUBST(CCGNU2_FLAGS)
 
 	LIBCCEXT2_MIN_VERSION=1.3.1
 	PKG_CHECK_MODULES(CCEXT2, libccext2 >= ${LIBCCEXT2_MIN_VERSION})
 	AC_SUBST(CCEXT2_LIBS)
-AC_SUBST(CCEXT2_CFLAGS)
+	AC_SUBST(CCEXT2_CFLAGS)
 
 	LIBCCRT_MIN_VERSION=1.3.0
 	PKG_CHECK_MODULES(CCRTP, libccrtp1 >= ${LIBCCRT_MIN_VERSION})
 	AC_SUBST(CCRTP_LIBS)
-AC_SUBST(CCRTP_CFLAGS)
+	AC_SUBST(CCRTP_CFLAGS)
 
 	dnl Check for OpenSSL to link against pjsip and provide SIPS TLS support
 	PKG_CHECK_MODULES([libssl], libssl, , AC_MSG_ERROR([libssl is required]))
 	AC_SUBST(libssl_CFLAGS)
-AC_SUBST(libssl_LIBS)
+	AC_SUBST(libssl_LIBS)
 
 	dnl Check for libzrtpcpp, a ccRTP extension providing zrtp key exchange
 	LIBZRTPCPP_MIN_VERSION=1.3.0
 	PKG_CHECK_MODULES(ZRTPCPP, libzrtpcpp >= ${LIBZRTPCPP_MIN_VERSION})
 	AC_SUBST(ZRTPCPP_LIBS)
-AC_SUBST(ZRTPCPP_CFLAGS)
+	AC_SUBST(ZRTPCPP_CFLAGS)
 
+	dnl ###############################
+	dnl    GStreamer Support
+	dnl ###############################
+  	PKG_CHECK_MODULES(GSTREAMER, [gstreamer-plugins-base-0.10 >= 0.10.21.3 gstreamer-interfaces-0.10])
+  	AC_SUBST(GSTREAMER_CFLAGS)
+  	GSTREAMER_LIBS="$GSTREAMER_LIBS -lgstapp-0.10"  	
+  	AC_SUBST(GSTREAMER_LIBS)
 
-dnl DBus-C++ detection (used to be in library own build system)
+	dnl DBus-C++ detection (used to be in library own build system)
 	DBUS_REQUIRED_VERSION=0.60
 	PKG_CHECK_MODULES(dbus, [dbus-1 >= $DBUS_REQUIRED_VERSION],,
 			AC_MSG_ERROR([You need the DBus libraries (version 0.6 or better)]
 				[http://gitorious.org/dbus-cplusplus])
 			)
 	AC_SUBST(dbus_CFLAGS)
-AC_SUBST(dbus_LIBS)
+	AC_SUBST(dbus_LIBS)
 
 	DBUS_API_STABLE_VERSION=1.0.0
 	PKG_CHECK_EXISTS([dbus-1 < $DBUS_API_STABLE_VERSION],

@@ -19,21 +19,7 @@ namespace sfl
  		public:
    			MissingGstPluginException(const std::string& msg) : std::runtime_error(msg) {}
  	};
- 
- 	/**
- 	 * Representation of a given gstreamer video device.
- 	 */
- 	class GstVideoDetectedDevice : public VideoDevice
-	{
-		public:
-		   /**
-			* @param type One of the available source type (eg. V4L2)
-			* @param name The representative, and unique name of this device.
-		 	* @param description A description, additional info.
-		 	*/
-			GstVideoDetectedDevice(VideoSourceType type, std::string name, std::string description) : VideoDevice(type, name, description) {} 			
-	};
-		
+ 		
  	/**
  	 * This class captures video frames asynchronously via Gstreamer.
  	 */
@@ -46,7 +32,7 @@ namespace sfl
 			/**
 	 		 * @Override
 	 		 */
-			std::vector<std::auto_ptr<VideoDevice> > enumerateDevices(void);
+			std::vector<VideoDevice*> enumerateDevices(void);
 					
 			/**
 	 		 * @Override
@@ -68,10 +54,10 @@ namespace sfl
 			static std::string APPSINK_NAME;
 				
 		private:
-			std::vector<std::auto_ptr<GstVideoDetectedDevice> > getXimageSource() throw(MissingGstPluginException);		
-			std::vector<std::auto_ptr<GstVideoDetectedDevice> > getVideoTestSource() throw(MissingGstPluginException);
-			std::vector<std::auto_ptr<GstVideoDetectedDevice> > getV4l2Devices() throw(MissingGstPluginException);
-			std::vector<std::auto_ptr<GstVideoDetectedDevice> > getDv1394() throw(MissingGstPluginException);
+			std::vector<VideoDevice*> getXimageSource() throw(MissingGstPluginException);		
+			std::vector<VideoDevice*> getVideoTestSource() throw(MissingGstPluginException);
+			std::vector<VideoDevice*> getV4l2Devices() throw(MissingGstPluginException);
+			std::vector<VideoDevice*> getDv1394() throw(MissingGstPluginException);
 			
 			/**
 			 * Make sure that all the plugins are available in gstreamer.
