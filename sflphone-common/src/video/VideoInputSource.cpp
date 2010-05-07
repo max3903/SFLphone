@@ -5,6 +5,7 @@ namespace sfl
 	VideoInputSource::VideoInputSource() : 
 		frameMutex(),
 		currentFrame(NULL),
+		currentFrameSize(0),
 		currentDevice(NULL)
 	{
 	}
@@ -26,16 +27,29 @@ namespace sfl
   		}
 	}
 	
-	void VideoInputSource::setCurrentFrame(GstBuffer * currentFrame)
+	void VideoInputSource::notifyAllFrameObserver()
+	{
+  		std::vector<VideoFrameObserver*>::iterator it;
+  		for (it = videoFrameObservers.begin(); it < videoFrameObservers.end(); it++ ) {
+  		 	(*it)->onNewFrame(currentFrame);
+  		}
+	}
+
+	void VideoInputSource::setCurrentFrame(const uint8_t* frame, size_t size)
 	{
 		frameMutex.enterMutex();
-			memcpy (currentFrame, GST_BUFFER_DATA (currentFrame), GST_BUFFER_SIZE (currentFrame));
+			if (currentFrameSize != size) {
+				free(currentFrame);
+				currentFrame = (uint8_t *) malloc(size);
+			}
+
+			memcpy (currentFrame, frame, size);
 		frameMutex.leaveMutex();
 	}
-	
+
 	uint8_t * VideoInputSource::getCurrentFrame()
-	{	
-		return currentFrame;	
+	{
+		return currentFrame;
 	}	
-	
+
 }

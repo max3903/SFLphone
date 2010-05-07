@@ -26,20 +26,6 @@
 #include <cppunit/extensions/TestFactoryRegistry.h>
 #include <cppunit/ui/text/TextTestRunner.h>
 
-// TODO: Why some header cannot be included ?
-// Ans : Probably because of circular includes in headers.
-
-//#include "accounttest.h"
-//#include "audiolayertest.h"
-//#include "configurationtest.h"
-////#include "historytest.h"
-////#include "hookmanagertest.h"
-//#include "mainbuffertest.h"
-//#include "numbercleanertest.h"
-////#include "pluginmanagertest.h"
-////#include "rtptest.h"
-//#include "sdesnegotiatortest.h"
-
 int main(int argc, char* argv[]) {
 
 	printf("\nSFLphone Daemon Test Suite, by Savoir-Faire Linux 2004-2010\n\n");

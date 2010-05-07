@@ -7,14 +7,21 @@
 #include <cppunit/TestSuite.h>
 
 #include <assert.h>
+#include <stdint.h>
 
-namespace sfl {
-	class VideoInputSourceGst;
-}
+#include "video/VideoInputSource.h"
+#include "video/VideoInputSourceGst.h"
+
+//namespace sfl {
+//	class VideoInputSourceGst;
+//}
+
 class VideoCaptureTest: public CppUnit::TestFixture 
 {
 	CPPUNIT_TEST_SUITE( VideoCaptureTest );
+		CPPUNIT_TEST( testEnumerateDevices );
 		CPPUNIT_TEST( testOpenClose );
+		CPPUNIT_TEST( testFrameObserver );
 	CPPUNIT_TEST_SUITE_END();
 
 	public:
@@ -32,8 +39,25 @@ class VideoCaptureTest: public CppUnit::TestFixture
 		 */
 		void testOpenClose();
 		
+		/**
+		 * Enumerates visible devices to GST.
+		 */
+		void testEnumerateDevices();
+
+		/**
+		 * Make sure that the observers are called and receiving frames.
+		 */
+		void testFrameObserver();
+
 	private:
 		sfl::VideoInputSourceGst* videoInput;	 
+
+		class VideoFrameObserverTest : public sfl::VideoFrameObserver {
+		public:
+			int i;
+			VideoFrameObserverTest() : i(0){}
+			void onNewFrame(const uint8_t* frame) { std::cout << "OBSERVER BEING CALLED\n"; i++; }
+		};
 };
 
 /* Register our test module */

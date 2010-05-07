@@ -20,18 +20,70 @@
 
 #include "logger.h"
 #include "video/VideoInputSourceGst.h"
+#include "video/VideoInputSource.h"
 
 void VideoCaptureTest::setUp() 
 {
+	std::cout << "Setting up..." << std::endl;
+
 	videoInput = new sfl::VideoInputSourceGst();
 }
 
 void VideoCaptureTest::tearDown() 
 {
+	std::cout << "Tearing down..." << std::endl;
 	delete videoInput;
 }
 
 void VideoCaptureTest::testOpenClose() 
 {
-	
+	std::cout << "Testing open/close" << std::endl;
+
+	// Pick the first device (should be videotestsrc or ximage, and tries to open it
+	std::vector<sfl::VideoDevice*> devices = videoInput->enumerateDevices();
+	videoInput->setDevice(devices.at(0));
+
+	 CPPUNIT_ASSERT_NO_THROW(videoInput->open(320, 240, 30));
+	 CPPUNIT_ASSERT_NO_THROW(videoInput->close());
 }
+
+void VideoCaptureTest::testEnumerateDevices() 
+{
+	std::cout << "Testing device enumeration" << std::endl;
+
+	// Expecting that the container is at least not empty
+	// ximagesrc and videotestsrc should minimally be available.
+
+	std::vector<sfl::VideoDevice*> devices = videoInput->enumerateDevices();
+	std::vector<sfl::VideoDevice*>::iterator it;
+	for (it = devices.begin(); it < devices.end(); it++) {
+		std::cout << "Name: " + (*it)->getName() << std::endl;
+		std::cout << "Description: " + (*it)->getDescription() << std::endl;
+	}
+
+	CPPUNIT_ASSERT(devices.size() > 0);
+}
+
+void VideoCaptureTest::testFrameObserver()
+{
+	std::cout << "Testing frame observer pattern" << std::endl;
+
+	// Define a new observer
+	VideoFrameObserverTest observer;
+
+	std::vector<sfl::VideoDevice*> devices = videoInput->enumerateDevices();
+
+	videoInput->setDevice(devices.at(0));
+
+	videoInput->addVideoFrameObserver(&observer);
+
+	videoInput->open(320, 240, 30);
+
+	// Let some frames be captured.
+	sleep(2);
+
+	videoInput->close();
+
+	CPPUNIT_ASSERT(observer.i > 0);
+}
+

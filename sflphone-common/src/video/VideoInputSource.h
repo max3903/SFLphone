@@ -84,7 +84,7 @@ class VideoDevice
 	
 /**
  * Interface for those objects which want
- * to be notified uppon the arrival of new
+ * to be notified upon the arrival of new
  * frames for a specified video input source.
  */
 class VideoFrameObserver
@@ -100,7 +100,7 @@ class VideoFrameObserver
 /**
  * Base abstract class for asynchronous or synchronous access to a video capture device.
  */
-class VideoInputSource : public ost::Thread
+class VideoInputSource
 {
 	public:			
 		/**
@@ -129,25 +129,12 @@ class VideoInputSource : public ost::Thread
 		 * @postcondition getCurrentFrame() will return the frame that was captured.
 		 */
 		virtual void grabFrame() throw(VideoDeviceIOException) = 0;
-		
-		/**
-		 * Reminder : Must override this method such that frames are grabbed within this method.
-		 * Once the thread is started, run() will get called.
-		 */
-		virtual void run(void) = 0;		
-		
+
 		/**
 		 * @param device The device to use.
 		 */
 		inline void setDevice(VideoDevice* device) { currentDevice = device; }
-		
-		/**
-		 * Destructor.
-		 */
-		virtual ~VideoInputSource();
-		
-		VideoInputSource();
-		
+
 		/**
 		 * @return the current device that is being used. 
 		 */
@@ -163,22 +150,37 @@ class VideoInputSource : public ost::Thread
 	   /**
 		* @return The current frame.
 		*/
-		uint8_t* getCurrentFrame();		
+		uint8_t* getCurrentFrame();
+
+		/**
+		 * Destructor.
+		 */
+		virtual ~VideoInputSource();
+
+		VideoInputSource();
 				
 	protected:
 		/**
 		 * Call every observers with the given frame as an argument.
+		 * @param Frame The frame to announce.
 		 */
 		void notifyAllFrameObserver(const uint8_t* frame);
 		
 		/**
-		 * @param the current frame. 
+		 * Call every observers with the current frame as an argument.
 		 */
-		void setCurrentFrame(GstBuffer* frame);	
-						 			
+		void notifyAllFrameObserver();
+
+		/**
+		 * @param frame The current frame.
+		 * @param size The buffer size.
+		 */
+		void setCurrentFrame(const uint8_t* frame, size_t size);
+
 	private:
-		ost::Mutex frameMutex;	
-		uint8_t * currentFrame;		
+		ost::Mutex frameMutex;
+		uint8_t * currentFrame;
+		size_t currentFrameSize;
 		VideoDevice* currentDevice;		
 		std::vector<VideoFrameObserver*> videoFrameObservers;
 };
