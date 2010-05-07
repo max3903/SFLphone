@@ -18,6 +18,7 @@
  */
 #include "SharedMemoryPosixTest.h"
 #include <string.h>
+#include "trycatch.h"
 
 void SharedMemoryPosixTest::tearDown() {
 	delete shm;
@@ -42,8 +43,7 @@ void SharedMemoryPosixTest::testTruncate() {
 	CPPUNIT_ASSERT_EQUAL((off_t)testData.length(), shm->getSize());
 }
 
-void SharedMemoryPosixTest::testWrite()
-{
+void SharedMemoryPosixTest::testWrite() {
 	std::cout << "\nTesting write...\n" << std::endl;
 
 	char* region = (char*) shm->getRegion();
@@ -54,10 +54,23 @@ void SharedMemoryPosixTest::testWrite()
 	CPPUNIT_ASSERT(strncmp(region, testData.c_str(), testData.length()) == 0);
 }
 
-void SharedMemoryPosixTest::testAccessModes()
-{
+void SharedMemoryPosixTest::testAccessModes() {
 	std::cout << "\nTesting access modes...\n" << std::endl;
 
 	// The segment should already exists.
-	sfl::SharedMemoryPosix * readOnlyShm = new sfl::SharedMemoryPosix("/org.sflphone.video", false, std::ios_base::out);
+	sfl::SharedMemoryPosix * readOnlyShm = new sfl::SharedMemoryPosix(
+			"/org.sflphone.video", false, std::ios_base::out);
+
+	char * region = (char*) readOnlyShm->getRegion();
+	std::cout << region << std::endl;
+
+	// Special macro for catching signals
+	TRY(SIGSEGV) {
+		// This would throw a segmentation fault.
+		memset(region, 'F', 10);
+	} CATCH(SIGSEGV) {
+		return;
+	}
+
+	CPPUNIT_FAIL("Was expecting SIGSEGV by writing into the RDONLY region, but didn't not happen.");
 }
