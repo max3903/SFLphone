@@ -87,3 +87,19 @@ void VideoCaptureTest::testFrameObserver()
 	CPPUNIT_ASSERT(observer.i > 0);
 }
 
+void VideoCaptureTest::testGrabFrame()
+{
+	std::cout << "Testing grabFrame()" << std::endl;
+
+	std::vector<sfl::VideoDevice*> devices = videoInput->enumerateDevices();
+	videoInput->setDevice(devices.at(0));
+
+	videoInput->open(320, 240, 30);
+
+	CPPUNIT_ASSERT_NO_THROW(videoInput->grabFrame());
+	uint8_t* frame = videoInput->getCurrentFrame();
+	CPPUNIT_ASSERT(frame != NULL);
+
+	videoInput->close();
+}
+
