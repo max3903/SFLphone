@@ -31,7 +31,9 @@ test_SOURCES =\
 	sdesnegotiatortest.h \
 	sdesnegotiatortest.cpp \
 	VideoCaptureTest.h \
-	VideoCaptureTest.cpp
+	VideoCaptureTest.cpp \
+	SharedMemoryPosixTest.h \
+	SharedMemoryPosixTest.cpp
 
 LLIBS=$(CPPUNIT_LIBS) \
 	../src/libsflphone.la  \
@@ -70,4 +72,5 @@ LLIBS=$(CPPUNIT_LIBS) \
 	../src/plug-in/audiorecorder/audiorecord.o \
 	../src/audio/samplerateconverter.o \
     ../src/history/historymanager.o \
-    ../src/video/libvideo.la
+    ../src/video/libvideo.la \
+    ../src/util/libutil.la

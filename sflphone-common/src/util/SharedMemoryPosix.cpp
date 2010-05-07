@@ -20,7 +20,11 @@
 #include "SharedMemoryPosix.h"
 
 #include <iostream>
+
 #include <sys/mman.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+
 #include <unistd.h>
 #include <errno.h>
 #include <string.h>
@@ -42,42 +46,48 @@ SharedMemoryPosix::SharedMemoryPosix(const std::string& name, bool exclusive, st
 	mode(mode)
 {
 	int oflags = getOflags(mode);
-	if (exclusive) {
-		oflags |= O_CREAT | O_EXCL;
+
+	if (exclusive == true) {
+		oflags |= O_CREAT | O_EXCL; //  If O_EXCL is set and O_CREAT is not set, the result is undefined.
 	} else {
 		oflags |= O_CREAT;
 	}
 	
-	if ((fd = shm_open(name.c_str(), oflags, 0)) < 0) {
+	if ((fd = shm_open(name.c_str(), oflags, 0666)) < 0) {
 		throw SharedMemoryException(std::string("shm_open(): ") + strerror(errno));
 	}
 	
-	this->truncate();
-	this->map();
+	if ((mode & std::ios::in) || (mode & std::ios::trunc)) {
+		this->truncate();
+	} else {
+		// We are in read-only mode and we need to figure out the existing size of the shm before mmap().
+		this->size = getSize();
+	}
+
+	this->attach();
 }
 
 SharedMemoryPosix::~SharedMemoryPosix()
 {
 	try {
-		unmap();
+		release();
 		this->close();
-		this->unlink();
 	} catch (SharedMemoryException e) {
 		_error((std::string("An unrecoverable exception has occured : ") + e.what()).c_str());
 	}
 	
 }
 
-void SharedMemoryPosix::truncate()
+void SharedMemoryPosix::truncate() throw(SharedMemoryException)
 {
 	int pageSize = sysconf(_SC_PAGE_SIZE);
 	truncate (pageSize);
 }
 
-void SharedMemoryPosix::truncate(off_t size)
+void SharedMemoryPosix::truncate(off_t size) throw(SharedMemoryException)
 {
 	assert(fd);
-	
+
 	if (ftruncate(fd, size) < 0) {
 		throw SharedMemoryException(std::string("Truncate: ") + strerror(errno));
 	}
@@ -85,26 +95,37 @@ void SharedMemoryPosix::truncate(off_t size)
 	this->size = size;
 }
 
-void SharedMemoryPosix::map() throw(SharedMemoryException)
+off_t SharedMemoryPosix::getSize() throw(SharedMemoryException)
 {
 	assert(fd);
-	
-	int prot = getProtFlags(mode);
-	
-	mappedAddr = mmap(NULL, (size_t) size, prot, MAP_SHARED, fd, 0);
+
+	struct stat buffer;
+	if (fstat(fd, &buffer) < 0) {
+		throw SharedMemoryException(std::string("Getsize: ") + strerror(errno));
+	}
+
+	return buffer.st_size;
+}
+
+void SharedMemoryPosix::attach() throw(SharedMemoryException)
+{
+	assert(fd);
+	std::cout << "Size :\n";
+	std::cout << size << std::endl;
+
+	mappedAddr = mmap(NULL, (size_t) size, getProtFlags(mode), MAP_SHARED, fd, (off_t) 0);
 	if (mappedAddr == MAP_FAILED) {
 		this->close();
-		this->unlink();		
 		throw SharedMemoryException(std::string("mmap(): ") + strerror(errno));
 	}
 }
 
-void SharedMemoryPosix::unmap() throw(SharedMemoryException)
+void SharedMemoryPosix::release() throw(SharedMemoryException)
 {
 	assert(mappedAddr);
 	
 	if (munmap(mappedAddr, size) < 0) {
-		throw SharedMemoryException(std::string("mumap(): ") + strerror(errno));
+		throw SharedMemoryException(std::string("munmap(): ") + strerror(errno));
 	}
 	
 	mappedAddr = NULL;
@@ -122,24 +143,26 @@ void SharedMemoryPosix::close() throw(SharedMemoryException)
 	fd = 0;
 }
 
-void SharedMemoryPosix::unlink() throw(SharedMemoryException)
+void SharedMemoryPosix::remove() throw(SharedMemoryException)
 {
 	if (shm_unlink(name.c_str()) < 0) {
-		throw SharedMemoryException(std::string("unlink(): ") + strerror(errno));
+		throw SharedMemoryException(std::string("shm_unlink(): ") + strerror(errno));
 	}
 }
 
 int SharedMemoryPosix::getOflags(std::ios_base::openmode mode)
 {
 	int oflags = 0;
+
+	// From the spec : "Applications specify exactly one of the first two values".
 	if ((mode & std::ios::in) && (mode & std::ios::out)) {
-		oflags |= O_RDWR;
-	} else if (mode & std::ios::in){
-		oflags |= O_RDONLY;
+		oflags = O_RDWR;
+	} else if (mode & std::ios::out){
+		oflags = O_RDONLY;
 	}
 	
 	if (mode & std::ios::trunc) {
-		oflags |= O_TRUNC;
+		oflags |= O_TRUNC;  // The result of using O_TRUNC with O_RDONLY is undefined.
 	}
 	
 	return oflags;
@@ -147,16 +170,16 @@ int SharedMemoryPosix::getOflags(std::ios_base::openmode mode)
 
 int SharedMemoryPosix::getProtFlags(std::ios_base::openmode mode)
 {
-	int prot = PROT_NONE;
-	
+	int prot = 0;
+
 	if (mode & std::ios::in) {
-		prot = PROT_READ | PROT_EXEC;
+		prot = PROT_WRITE;
 	}
-	
+
 	if (mode & std::ios::out) {
-		prot |= PROT_WRITE | PROT_EXEC;
+		prot |= PROT_READ;
 	}
-	
+
 	return prot;
 }
 
