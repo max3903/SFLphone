@@ -1,5 +1,5 @@
-#ifndef _VIDEOCAPTURE_TEST_
-#define _VIDEOCAPTURE_TEST_
+#ifndef _SHAREDMEMORYPOSIX_TEST_
+#define _SHAREDMEMORYPOSIX_TEST_
 
 #include <cppunit/extensions/HelperMacros.h>
 #include <cppunit/TestCaller.h>

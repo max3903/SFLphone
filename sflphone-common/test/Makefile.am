@@ -35,7 +35,9 @@ test_SOURCES =\
 	trycatch.h \
 	trycatch.c \
 	SharedMemoryPosixTest.h \
-	SharedMemoryPosixTest.cpp 
+	SharedMemoryPosixTest.cpp \
+	SemaphorePosixTest.h \
+	SemaphorePosixTest.cpp
 
 LLIBS=$(CPPUNIT_LIBS) \
 	../src/libsflphone.la  \
