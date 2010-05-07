@@ -117,8 +117,6 @@ void Dialpad::fillButtons()
    }
 }
 
-
-
 void Dialpad::on_pushButton_1_clicked()      { emit typed("1"); }
 void Dialpad::on_pushButton_2_clicked()      { emit typed("2"); }
 void Dialpad::on_pushButton_3_clicked()      { emit typed("3"); }

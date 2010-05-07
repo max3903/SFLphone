@@ -1,4 +1,3 @@
-
 /***************************************************************************
  *   Copyright (C) 2009-2010 by Savoir-Faire Linux                         *
  *   Author : Jérémy Quentin <jeremy.quentin@savoirfairelinux.com>         *
@@ -38,35 +37,33 @@
 #include <kabc/stdaddressbook.h>
 #include <kabc/addresseelist.h>
 
-#include "sflphone_const.h"
+#include "lib/sflphone_const.h"
 #include "conf/ConfigurationSkeleton.h"
-#include "configurationmanager_interface_singleton.h"
-#include "callmanager_interface_singleton.h"
-#include "instance_interface_singleton.h"
+#include "lib/configurationmanager_interface_singleton.h"
+#include "lib/callmanager_interface_singleton.h"
+#include "lib/instance_interface_singleton.h"
 #include "ActionSetAccountFirst.h"
-#include "ContactItemWidget.h"
+#include "lib/ContactItemWidget.h"
 #include "SFLPhone.h"
-#include "typedefs.h"
+#include "lib/typedefs.h"
 #include "Dialpad.h"
-#include "CallTreeItem.h"
+#include "lib/CallTreeItem.h"
 
 
 using namespace KABC;
 
-ConfigurationDialog * SFLPhoneView::configDialog;
-AccountList * SFLPhoneView::accountList;
-QString SFLPhoneView::priorAccountId;
+//ConfigurationDialog* SFLPhoneView::configDialog;
 
 SFLPhoneView::SFLPhoneView(QWidget *parent)
    : QWidget(parent),
-     callTreeModel(CallModel::ActiveCall),
-     historyTreeModel(CallModel::History),
-     addressBookTree(CallModel::Address)
+     addressBookTree(CallView::Address),
+     callTreeModel(CallView::ActiveCall),
+     historyTreeModel(CallView::History)
 {
    setupUi(this);
    
-   ConfigurationManagerInterface & configurationManager = ConfigurationManagerInterfaceSingleton::getInstance();
-   CallManagerInterface & callManager = CallManagerInterfaceSingleton::getInstance();
+   ConfigurationManagerInterface& configurationManager = ConfigurationManagerInterfaceSingleton::getInstance();
+   CallManagerInterface& callManager = CallManagerInterfaceSingleton::getInstance();
    
    errorWindow = new QErrorMessage(this);
 
@@ -94,12 +91,9 @@ SFLPhoneView::SFLPhoneView(QWidget *parent)
 //       }
 //    }
    
-   accountList = new AccountList(false);
-   accountList->updateAccounts();
-   
-   configDialog = new ConfigurationDialog(this);
-   configDialog->setObjectName("configDialog");
-   configDialog->setModal(true);
+   //ConfigurationDialog* configDialog = new ConfigurationDialog(this);
+   //configDialog->setObjectName("configDialog");
+   //configDialog->setModal(true);
    
    wizard = new AccountWizard(this);
    wizard->setModal(false);
@@ -128,7 +122,7 @@ SFLPhoneView::SFLPhoneView(QWidget *parent)
            this,         SLOT(on1_volumeChanged(const QString &, double)));
    
    connect(&configurationManager, SIGNAL(accountsChanged()),
-           accountList,           SLOT(updateAccounts()));
+           CallView::getAccountList(), SLOT(updateAccounts()));
 
    connect(&configurationManager, SIGNAL(audioManagerChanged()),
       this,         SLOT(on1_audioManagerChanged()));
@@ -136,12 +130,12 @@ SFLPhoneView::SFLPhoneView(QWidget *parent)
 //    connect(configDialog, SIGNAL(clearCallHistoryAsked()), //TODO restore
 //            &callTreeModel,     SLOT(clearHistory()));
            
-   connect(configDialog, SIGNAL(changesApplied()),
-           this,         SLOT(loadWindow()));
+   //connect(configDialog, SIGNAL(changesApplied()),
+           //this,         SLOT(loadWindow()));
            
-   connect(accountList, SIGNAL(accountListUpdated()),
+   connect(CallView::getAccountList(), SIGNAL(accountListUpdated()),
            this,        SLOT(updateStatusMessage()));
-   connect(accountList, SIGNAL(accountListUpdated()),
+   connect(CallView::getAccountList(), SIGNAL(accountListUpdated()),
            this,        SLOT(updateWindowCallState()));
 
    connect(callTreeModel.getWidget(),    SIGNAL(itemChanged()), //currentItemChanged
@@ -181,35 +175,6 @@ void SFLPhoneView::loadWindow()
    updateAddressBook();
    updateStatusMessage();
    qDebug() << "Finished loadWindow\n";
-}
-
-Account * SFLPhoneView::accountInUse()
-{
-   Account * priorAccount = accountList->getAccountById(priorAccountId);
-   if(priorAccount && priorAccount->getAccountDetail(ACCOUNT_STATUS) == ACCOUNT_STATE_REGISTERED ) {
-      return priorAccount;
-   }
-   else {
-      return accountList->firstRegisteredAccount();
-   }
-}
-
-QString SFLPhoneView::accountInUseId()
-{
-   Account * firstRegistered = accountInUse();
-   if(firstRegistered == NULL)
-   {
-      return QString();
-   }
-   else
-   {
-      return firstRegistered->getAccountId();
-   }
-}
-
-AccountList * SFLPhoneView::getAccountList()
-{
-   return accountList;
 }
 
 QErrorMessage * SFLPhoneView::getErrorWindow()
@@ -401,7 +366,7 @@ void SFLPhoneView::enter()
    }
 }
 
-void SFLPhoneView::action(Call * call, call_action action)
+void SFLPhoneView::action(Call* call, call_action action)
 {
    if(! call) {
       qDebug() << "Error : action " << action << "applied on null object call. Should not happen.";
@@ -437,7 +402,7 @@ void SFLPhoneView::updateWindowCallState()
    bool transfer = false;
    bool recordActivated = false;    //tells whether the call is in recording position
 
-   enabledActions[SFLPhone::Mailbox] = accountInUse() && ! accountInUse()->getAccountDetail(ACCOUNT_MAILBOX).isEmpty();
+   enabledActions[SFLPhone::Mailbox] = CallView::getCurrentAccount() && ! CallView::getCurrentAccount()->getAccountDetail(ACCOUNT_MAILBOX).isEmpty();
 
 
    if(stackedWidget_screen->currentWidget() == page_callList) {
@@ -814,7 +779,7 @@ void SFLPhoneView::updateDialpad()
 void SFLPhoneView::updateStatusMessage()
 {
    qDebug() << "updateStatusMessage";
-   Account * account = accountInUse();
+   Account * account = CallView::getCurrentAccount();
 
    if(account == NULL) {
       emit statusMessageChangeAsked(i18n("No registered accounts"));
@@ -947,7 +912,6 @@ void SFLPhoneView::on_toolButton_sndVol_clicked(bool checked)
    updateVolumeButton();
 }
 
-#include <unistd.h>
 void SFLPhoneView::on_callTree_currentItemChanged()
 {
    qDebug() << "on_callTree_currentItemChanged";
@@ -962,7 +926,10 @@ void SFLPhoneView::on_callTree_itemChanged()
 
 void SFLPhoneView::on_callTree_itemDoubleClicked(QTreeWidgetItem* call, int column)
 {
+Q_UNUSED(call)
+Q_UNUSED(column)
    //TODO port
+   //TODO remove once the last regression is sorted out.
 //    qDebug() << "on_callTree_itemDoubleClicked";
 //    call_state state = call->getCurrentState();
 //    switch(state) {
@@ -989,8 +956,9 @@ void SFLPhoneView::on_listWidget_callHistory_itemDoubleClicked(Call* call)
 }
 
 
-void SFLPhoneView::on_listWidget_addressBook_itemDoubleClicked(CallTreeItem * item)
+void SFLPhoneView::on_listWidget_addressBook_itemDoubleClicked(CallTreeItem* item)
 {
+   Q_UNUSED(item)
    qDebug() << "on_listWidget_addressBook_itemDoubleClicked";
    changeScreen(SCREEN_MAIN);
 // TOFIX
@@ -1052,16 +1020,16 @@ void SFLPhoneView::contextMenuEvent(QContextMenuEvent *event)
    menu.addSeparator();
    
    QAction * action = new ActionSetAccountFirst(NULL, &menu);
-   action->setChecked(priorAccountId.isEmpty());
+   action->setChecked(CallView::getPriorAccoundId().isEmpty());
    connect(action,  SIGNAL(setFirst(Account *)),
            this  ,  SLOT(setAccountFirst(Account *)));
    menu.addAction(action);
    
-   QVector<Account *> accounts = accountList->registeredAccounts();
+   QVector<Account *> accounts = CallView::getAccountList()->registeredAccounts();
    for (int i = 0 ; i < accounts.size() ; i++) {
       Account * account = accounts.at(i);
       QAction * action = new ActionSetAccountFirst(account, &menu);
-      action->setChecked(account->getAccountId() == priorAccountId);
+      action->setChecked(account->getAccountId() == CallView::getPriorAccoundId());
       connect(action, SIGNAL(setFirst(Account *)),
               this  , SLOT(setAccountFirst(Account *)));
       menu.addAction(action);
@@ -1108,10 +1076,10 @@ void SFLPhoneView::setAccountFirst(Account * account)
 {
    qDebug() << "setAccountFirst : " << (account ? account->getAlias() : QString());
    if(account) {
-      priorAccountId = account->getAccountId();
+      CallView::setPriorAccountId(account->getAccountId());
    }
    else {
-      priorAccountId = QString();
+      CallView::setPriorAccountId(QString());
    }
    updateStatusMessage();
 }
@@ -1131,7 +1099,13 @@ void SFLPhoneView::on_listWidget_addressBook_currentItemChanged()
 
 void SFLPhoneView::configureSflPhone()
 {
-   configDialog->reload();
+   ConfigurationDialog* configDialog = new ConfigurationDialog(this);
+   configDialog->setModal(true);
+   
+   connect(configDialog, SIGNAL(changesApplied()),
+           this,         SLOT(loadWindow()));
+           
+   //configDialog->reload();
    configDialog->show();
 }
 
@@ -1147,7 +1121,7 @@ void SFLPhoneView::accept()
       Call* call = callTreeModel.getCurrentItem();
       if(!call) {
          qDebug() << "Calling when no item is selected. Opening an item.";
-         Call * newCall = callTreeModel.addDialingCall();
+         callTreeModel.addDialingCall();
          //callTreeModel.selectItem(addCallToCallList(newCall));
       }
       else {
@@ -1155,7 +1129,7 @@ void SFLPhoneView::accept()
          if(state == CALL_STATE_RINGING || state == CALL_STATE_CURRENT || state == CALL_STATE_HOLD || state == CALL_STATE_BUSY)
          {
             qDebug() << "Calling when item currently ringing, current, hold or busy. Opening an item.";
-            Call* newCall = callTreeModel.addDialingCall();
+            callTreeModel.addDialingCall();
             //callTreeModel.selectItem(addCallToCallList(newCall));
          }
          else {
@@ -1239,7 +1213,7 @@ void SFLPhoneView::record()
 
 void SFLPhoneView::mailBox()
 {
-   Account * account = accountInUse();
+   Account * account = CallView::getCurrentAccount();
    QString mailBoxNumber = account->getAccountDetail(ACCOUNT_MAILBOX);
    Call * call = callTreeModel.addDialingCall();
    call->appendText(mailBoxNumber);
@@ -1249,8 +1223,9 @@ void SFLPhoneView::mailBox()
 
 void SFLPhoneView::on1_callStateChanged(const QString &callID, const QString &state)
 {
+   //This code is part of the CallModel iterface too
    qDebug() << "Signal : Call State Changed for call  " << callID << " . New state : " << state;
-   Call * call = callTreeModel.findCallByCallId(callID);
+   Call* call = callTreeModel.findCallByCallId(callID);
    if(!call) {
       if(state == CALL_STATE_CHANGE_RINGING) {
          call = callTreeModel.addRingingCall(callID);

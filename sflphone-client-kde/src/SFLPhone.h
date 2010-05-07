@@ -37,7 +37,7 @@
 // #include "ui_SFLPhoneView_base.h"
 //#include "CallList.h"
 #include "AccountWizard.h"
-#include "Contact.h"
+#include "lib/Contact.h"
 #include "SFLPhoneView.h"
 #include "SFLPhoneTray.h"
 

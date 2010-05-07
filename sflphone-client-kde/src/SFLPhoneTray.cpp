@@ -25,8 +25,8 @@
 
 SFLPhoneTray::SFLPhoneTray(QIcon icon, QWidget *parent)
       : KSystemTrayIcon(icon, parent),
-         initialized_(false),
-         trayIconMenu(0)
+         trayIconMenu(0),
+         initialized_(false)
 {
 }
 
