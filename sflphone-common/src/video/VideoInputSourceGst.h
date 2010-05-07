@@ -1,5 +1,5 @@
-#ifndef GSTVIDEOINPUTSOURCEASYNCHRONOUS_H_
-#define GSTVIDEOINPUTSOURCEASYNCHRONOUS_H_
+#ifndef VIDEOINPUTSOURCEGST_H_
+#define VIDEOINPUTSOURCEGST_H_
 
 #include <vector>
 #include <string>
@@ -10,7 +10,7 @@
 
 #include "VideoInputSource.h"
 
-namespace sfl 
+namespace sfl
 {
 	/**
 	 * This exception is thrown when an expected plugin is missing from gstreamer.
@@ -67,8 +67,5 @@ namespace sfl
 			
     		GstElement * pipeline;
 	};
-	
-	std::string VideoInputSourceGst::APPSINK_NAME = std::string("sflphone_sink");
-
 }
-#endif /*GSTVIDEOINPUTSOURCEASYNCHRONOUS_H_*/
+#endif /*VIDEOINPUTSOURCEGST_H_*/

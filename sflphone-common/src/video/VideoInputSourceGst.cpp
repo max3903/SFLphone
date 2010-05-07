@@ -1,4 +1,5 @@
 #include "VideoInputSourceGst.h"
+#include "../logger.h"
 
 #include <vector>
 #include <string>
@@ -6,12 +7,11 @@
 #include <gst/interfaces/propertyprobe.h>
 #include <gst/app/gstappsink.h>
 
-#include "../logger.h"
-
-namespace sfl 
+namespace sfl
 {
 	
 	VideoInputSourceGst::VideoInputSourceGst() :
+		VideoInputSource(),
 		pipeline(NULL)
 	{
 	}
@@ -303,5 +303,7 @@ namespace sfl
 		
 		return detectedDevices;
 	}
+
+	std::string VideoInputSourceGst::APPSINK_NAME = std::string("sflphone_sink");
 
 }

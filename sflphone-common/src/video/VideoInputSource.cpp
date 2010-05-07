@@ -9,6 +9,10 @@ namespace sfl
 	{
 	}
 	
+	VideoInputSource::~VideoInputSource()
+	{
+	}
+	
 	void VideoInputSource::addVideoFrameObserver(VideoFrameObserver* observer)
 	{
 		videoFrameObservers.push_back(observer);

@@ -16,8 +16,8 @@
  *  along with this program; if not, write to the Free Software
  *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
-#ifndef ABSTRACTVIDEOINPUTSOURCE_H_
-#define ABSTRACTVIDEOINPUTSOURCE_H_
+#ifndef VIDEOINPUTSOURCE_H_
+#define VIDEOINPUTSOURCE_H_
 
 #include <vector> 
 #include <string> 
@@ -30,7 +30,7 @@
 
 #include <gst/gst.h>
 
-namespace sfl 
+namespace sfl
 {
 	
 /**
@@ -184,4 +184,4 @@ class VideoInputSource : public ost::Thread
 };
 
 }
-#endif /*ABSTRACTVIDEOINPUTSOURCE_H_*/
+#endif /*VIDEOINPUTSOURCE_H_*/

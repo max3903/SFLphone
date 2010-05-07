@@ -2,10 +2,12 @@ include ../globals.mak
 
 TESTS = test
 check_PROGRAMS = $(TESTS)
-test_CXXFLAGS = $(CPPUNIT_CFLAGS)
-test_LDADD = $(LLIBS)
+test_CXXFLAGS = $(CPPUNIT_CFLAGS) $(GSTREAMER_CFLAGS)
 test_LDFLAGS = -ldl
-test_SOURCES = main.cpp \
+test_LDADD = $(LLIBS)
+
+test_SOURCES =\ 
+	main.cpp \
 	validator.cpp \
 	validator.h \
 	accounttest.h \
@@ -27,14 +29,12 @@ test_SOURCES = main.cpp \
 	rtptest.h \
 	rtptest.cpp \
 	sdesnegotiatortest.h \
-	sdesnegotiatortest.cpp
-
-
-
+	sdesnegotiatortest.cpp \
+	VideoCaptureTest.h \
+	VideoCaptureTest.cpp
 
 LLIBS=$(CPPUNIT_LIBS) \
 	../src/libsflphone.la  \
-	$(ZEROCONFLIB) \
 	$(LIB_DNSSD) \
 	@ALSA_LIBS@ \
 	@PULSEAUDIO_LIBS@ \
@@ -43,6 +43,7 @@ LLIBS=$(CPPUNIT_LIBS) \
 	@CCGNU2_LIBS@ \
 	@CCRTP_LIBS@ \
 	@ZRTPCPP_LIBS@ \
+	@GSTREAMER_LIBS@ \
 	@libssl_LIBS@ \
 	@SAMPLERATE_LIBS@ \
 	$(PJSIP_LIBS) \
@@ -68,4 +69,5 @@ LLIBS=$(CPPUNIT_LIBS) \
 	../src/plug-in/pluginmanager.o \
 	../src/plug-in/audiorecorder/audiorecord.o \
 	../src/audio/samplerateconverter.o \
-    ../src/history/historymanager.o
+    ../src/history/historymanager.o \
+    ../src/video/libvideo.la
