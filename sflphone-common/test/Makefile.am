@@ -32,12 +32,10 @@ test_SOURCES =\
 	sdesnegotiatortest.cpp \
 	VideoCaptureTest.h \
 	VideoCaptureTest.cpp \
-	trycatch.h \
-	trycatch.c \
-	SharedMemoryPosixTest.h \
-	SharedMemoryPosixTest.cpp \
 	SemaphorePosixTest.h \
-	SemaphorePosixTest.cpp
+	SemaphorePosixTest.cpp \
+	VideoEndpointTest.h \
+	VideoEndpointTest.cpp
 
 LLIBS=$(CPPUNIT_LIBS) \
 	../src/libsflphone.la  \

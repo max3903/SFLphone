@@ -59,6 +59,8 @@ public:
 
 	/**
 	 * This causes the shared memory object to have size of length bytes.
+	 * The truncated shared memory file will be re-attached to the process'
+	 * address space.
 	 * @param length The new size for the shared memory object.
 	 */
 	void truncate(off_t length) throw (SharedMemoryException);
@@ -88,12 +90,8 @@ public:
 
 protected:
 	/**
-	 * Close the shared memory through its file descriptor.
-	 */
-	void close() throw (SharedMemoryException);
-
-	/**
 	 * Establish a mapping between a process' address space and a file and the shared memory object.
+	 * This cannot be done before truncation. Therefore it's up to the client to handle this manually.
 	 */
 	void attach() throw (SharedMemoryException);
 
@@ -101,6 +99,11 @@ protected:
 	 * Removes any mappings for those entire pages containing any part of the address space of the process.
 	 */
 	void release() throw (SharedMemoryException);
+
+	/**
+	 * Close the shared memory through its file descriptor.
+	 */
+	void close() throw (SharedMemoryException);
 
 	/**
 	 * @return The file status flags and file access modes of the open file description.

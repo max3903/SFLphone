@@ -58,7 +58,7 @@ class VideoCaptureTest: public CppUnit::TestFixture
 		public:
 			int i;
 			VideoFrameObserverTest() : i(0){}
-			void onNewFrame(const uint8_t* frame) { std::cout << "OBSERVER BEING CALLED\n"; i++; }
+			void onNewFrame(const sfl::VideoFrame * frame) { std::cout << "OBSERVER BEING CALLED\n"; i++; }
 		};
 };
 

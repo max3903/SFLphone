@@ -70,12 +70,13 @@ SharedMemoryPosix::SharedMemoryPosix(const std::string& name, bool exclusive, st
 SharedMemoryPosix::~SharedMemoryPosix()
 {
 	try {
+		_debug("Releasing ...");
 		release();
+		_debug("Closing ...");
 		this->close();
 	} catch (SharedMemoryException e) {
 		_error((std::string("An unrecoverable exception has occured : ") + e.what()).c_str());
 	}
-	
 }
 
 void SharedMemoryPosix::truncate() throw(SharedMemoryException)
@@ -92,7 +93,14 @@ void SharedMemoryPosix::truncate(off_t size) throw(SharedMemoryException)
 		throw SharedMemoryException(std::string("Truncate: ") + strerror(errno));
 	}
 	
+	// We have to re-attach for the new size, else we'll run into segfaults. Detach with old size.
+	if (mappedAddr != NULL) {
+		release();
+	}
+
+	// Update size, and attach with new size value.
 	this->size = size;
+	attach();
 }
 
 off_t SharedMemoryPosix::getSize() throw(SharedMemoryException)
@@ -110,8 +118,6 @@ off_t SharedMemoryPosix::getSize() throw(SharedMemoryException)
 void SharedMemoryPosix::attach() throw(SharedMemoryException)
 {
 	assert(fd);
-	std::cout << "Size :\n";
-	std::cout << size << std::endl;
 
 	mappedAddr = mmap(NULL, (size_t) size, getProtFlags(mode), MAP_SHARED, fd, (off_t) 0);
 	if (mappedAddr == MAP_FAILED) {

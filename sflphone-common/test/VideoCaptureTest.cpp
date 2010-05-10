@@ -97,7 +97,7 @@ void VideoCaptureTest::testGrabFrame()
 	videoInput->open(320, 240, 30);
 
 	CPPUNIT_ASSERT_NO_THROW(videoInput->grabFrame());
-	uint8_t* frame = videoInput->getCurrentFrame();
+	sfl::VideoFrame * frame = videoInput->getCurrentFrame();
 	CPPUNIT_ASSERT(frame != NULL);
 
 	videoInput->close();

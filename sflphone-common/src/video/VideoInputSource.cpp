@@ -1,55 +1,43 @@
 #include "VideoInputSource.h"
-	
-namespace sfl
-{
-	VideoInputSource::VideoInputSource() : 
-		frameMutex(),
-		currentFrame(NULL),
-		currentFrameSize(0),
-		currentDevice(NULL)
-	{
-	}
-	
-	VideoInputSource::~VideoInputSource()
-	{
-	}
-	
-	void VideoInputSource::addVideoFrameObserver(VideoFrameObserver* observer)
-	{
-		videoFrameObservers.push_back(observer);
-	}
-	
-	void VideoInputSource::notifyAllFrameObserver(const uint8_t* frame)
-	{
-  		std::vector<VideoFrameObserver*>::iterator it;
-  		for (it = videoFrameObservers.begin(); it < videoFrameObservers.end(); it++ ) {
-  		 	(*it)->onNewFrame(frame);
-  		}
-	}
-	
-	void VideoInputSource::notifyAllFrameObserver()
-	{
-  		std::vector<VideoFrameObserver*>::iterator it;
-  		for (it = videoFrameObservers.begin(); it < videoFrameObservers.end(); it++ ) {
-  		 	(*it)->onNewFrame(currentFrame);
-  		}
-	}
+#include <algorithm>
 
-	void VideoInputSource::setCurrentFrame(const uint8_t* frame, size_t size)
-	{
-		frameMutex.enterMutex();
-			if (currentFrameSize != size) {
-				free(currentFrame);
-				currentFrame = (uint8_t *) malloc(size);
-			}
+namespace sfl {
+VideoInputSource::VideoInputSource() :
+	frameMutex(), currentFrame(NULL), currentDevice(NULL), width(0), height(0) {
+}
 
-			memcpy (currentFrame, frame, size);
-		frameMutex.leaveMutex();
+VideoInputSource::~VideoInputSource() {
+	delete currentFrame;
+}
+
+void VideoInputSource::addVideoFrameObserver(VideoFrameObserver* observer) {
+	videoFrameObservers.push_back(observer);
+}
+
+void VideoInputSource::removeVideoFrameObserver(VideoFrameObserver* observer) {
+	std::vector<VideoFrameObserver*>::iterator it;
+	if ((it = std::find(videoFrameObservers.begin(), videoFrameObservers.end(),
+			observer)) != videoFrameObservers.end()) {
+		videoFrameObservers.erase(it);
 	}
+}
 
-	uint8_t * VideoInputSource::getCurrentFrame()
-	{
-		return currentFrame;
-	}	
+void VideoInputSource::notifyAllFrameObserver() {
+	std::vector<VideoFrameObserver*>::iterator it;
+	for (it = videoFrameObservers.begin(); it < videoFrameObservers.end(); it++) {
+		(*it)->onNewFrame(currentFrame);
+	}
+}
+
+void VideoInputSource::setCurrentFrame(const uint8_t* frame, size_t size) {
+	frameMutex.enterMutex();
+	delete currentFrame;
+	currentFrame = new VideoFrame(frame, size, getHeight(), getWidth());
+	frameMutex.leaveMutex();
+}
+
+VideoFrame * VideoInputSource::getCurrentFrame() {
+	return currentFrame;
+}
 
 }
