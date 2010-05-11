@@ -9,6 +9,7 @@
 #define VIDEOENDPOINT_H_
 
 #include "util/SharedMemoryPosix.h"
+#include "util/SemaphorePosix.h"
 #include "video/VideoInputSource.h"
 
 namespace sfl {
@@ -58,6 +59,7 @@ class VideoEndpoint : public VideoFrameObserver
 	private:
 		VideoInputSource* videoSource;
 		SharedMemoryPosix* shmVideoSource;
+		SemaphorePosix* semVideoSource;
 };
 
 }

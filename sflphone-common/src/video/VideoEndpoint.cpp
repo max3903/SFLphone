@@ -20,21 +20,19 @@ VideoEndpoint::VideoEndpoint(VideoInputSource* src) {
 
 	// Create a shared memory segment for video
 	_debug((std::string("Creating ") + std::string("/sflphone-shm-") + src->getDevice()->toString()).c_str());
-	shmVideoSource = new SharedMemoryPosix("/sflphone-shm-device1", false);
+	shmVideoSource = new SharedMemoryPosix("/sflphone-shm-" + src->getDevice()->toString(), false);
+	semVideoSource = new sfl::SemaphorePosix("/sflphone-sem-" + src->getDevice()->toString(), false, 0666, 1);
 }
 
 VideoEndpoint::~VideoEndpoint()
 {
 	videoSource->removeVideoFrameObserver(this);
 	shmVideoSource->remove();
+	semVideoSource->remove();
 }
 
 void VideoEndpoint::onNewFrame(const VideoFrame* frame)
 {
-	// TODO Encode, then sends over RTP
-
-	// Write in the shared memory segment
-
 	// Make sure that the shared memory is still big enough to hold the new frame
 	if (shmVideoSource->getSize() != frame->getSize()) {
 		_debug("Truncating to %d", frame->getSize());
@@ -42,10 +40,12 @@ void VideoEndpoint::onNewFrame(const VideoFrame* frame)
 		shmVideoSource->truncate(frame->getSize());
 	}
 
-	_debug("Actual size : %d", shmVideoSource->getSize());
-	_debug("Writing into shared memory ...");
+	// Write into the shared memory segment
+	semVideoSource->wait();
+		memcpy(shmVideoSource->getRegion(), frame->getFrame(), frame->getSize());
+	semVideoSource->post();
 
-	memcpy(shmVideoSource->getRegion(), frame->getFrame(), frame->getSize());
+	// TODO Encode, then sends over RTP
 }
 
 
