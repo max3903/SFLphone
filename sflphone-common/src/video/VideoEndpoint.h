@@ -8,6 +8,8 @@
 #ifndef VIDEOENDPOINT_H_
 #define VIDEOENDPOINT_H_
 
+#include <pthread.h>
+
 #include "util/SharedMemoryPosix.h"
 #include "util/SemaphorePosix.h"
 #include "video/VideoInputSource.h"
@@ -59,7 +61,9 @@ class VideoEndpoint : public VideoFrameObserver
 	private:
 		VideoInputSource* videoSource;
 		SharedMemoryPosix* shmVideoSource;
-		SemaphorePosix* semVideoSource;
+		SharedMemoryPosix* shmRwLockVideoSource;
+
+		pthread_rwlock_t readerWriterLock;
 };
 
 }
