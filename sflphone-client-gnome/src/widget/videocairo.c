@@ -18,7 +18,7 @@ video_cairo_expose (GtkWidget *cairo, GdkEventExpose *event);
 enum
 {
   PROP_SOURCE = 1, LAST_PROPERTY
-} HazeConnectionProperties;
+} VideoCairoProperties;
 
 static void
 video_cairo_set_property (GObject *object, guint property_id,

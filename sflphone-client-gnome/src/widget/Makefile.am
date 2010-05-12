@@ -5,8 +5,7 @@ noinst_LTLIBRARIES = libwidget.la
 libwidget_la_SOURCES = \
 		gtkscrollbook.c \
 		minidialog.c \
-		videocairo.c \
-		videopane.c
+		videocairo.c
 
 libwidget_la_LDFLAGS = @DEPS_LDFLAGS@
 					  
