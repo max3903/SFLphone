@@ -177,7 +177,7 @@ create_main_window ()
   gtk_window_set_position (GTK_WINDOW( window ), GTK_WIN_POS_MOUSE);
 
   /* Connect the destroy event of the window with our on_destroy function
-   * When the window is about to be destroyed we get a notificaiton and
+   * When the window is about to be destroyed we get a notification and
    * stop the main GTK loop
    */
   g_signal_connect (G_OBJECT (window), "delete-event",
@@ -207,30 +207,52 @@ create_main_window ()
 
   /* Create an accel group for window's shortcuts */
   gtk_window_add_accel_group (GTK_WINDOW(window),
-      gtk_ui_manager_get_accel_group (ui_manager));
+  gtk_ui_manager_get_accel_group (ui_manager));
 
   vbox = gtk_vbox_new (FALSE /*homogeneous*/, 0 /*spacing*/);
-  subvbox = gtk_vbox_new (FALSE /*homogeneous*/, 5 /*spacing*/);
+  subvbox = gtk_vbox_new (FALSE, 5);
+  GtkWidget* call_elements_vbox = gtk_vbox_new (FALSE, 0);
 
+  // Create menus and toolbars
   create_menus (ui_manager, &widget);
-  gtk_box_pack_start (GTK_BOX (vbox), widget, FALSE /*expand*/, TRUE /*fill*/,
-      0 /*padding*/);
+  gtk_box_pack_start (GTK_BOX (vbox), widget, FALSE, TRUE, 0);
 
   create_toolbar_actions (ui_manager, &widget);
-  // Do not override GNOME user settings
-  gtk_box_pack_start (GTK_BOX (vbox), widget, FALSE /*expand*/, TRUE /*fill*/,
-      0 /*padding*/);
+  gtk_box_pack_start (GTK_BOX (vbox), widget, FALSE, TRUE, 0);
 
-  gtk_box_pack_start (GTK_BOX (vbox), current_calls->tree, TRUE /*expand*/,
-      TRUE /*fill*/, 0 /*padding*/);
-  gtk_box_pack_start (GTK_BOX (vbox), history->tree, TRUE /*expand*/,
-      TRUE /*fill*/, 0 /*padding*/);
-  gtk_box_pack_start (GTK_BOX (vbox), contacts->tree, TRUE /*expand*/,
-      TRUE /*fill*/, 0 /*padding*/);
+  // Main vertical box for the window
+  GtkWidget* split_pane = gtk_hpaned_new();
 
-  gtk_box_pack_start (GTK_BOX (vbox), subvbox, FALSE /*expand*/,
-      FALSE /*fill*/, 0 /*padding*/);
+  gtk_box_pack_start (GTK_BOX (call_elements_vbox), current_calls->tree, TRUE, TRUE, 0);
+  gtk_box_pack_start (GTK_BOX (call_elements_vbox), history->tree, TRUE, TRUE, 0);
+  gtk_box_pack_start (GTK_BOX (call_elements_vbox), contacts->tree, TRUE, TRUE, 0);
+  gtk_widget_show_all (call_elements_vbox);
 
+  gtk_paned_add1(GTK_PANED(split_pane), call_elements_vbox);
+
+  // TODO Make a widget out of that
+  GtkWidget* video_vbox = gtk_vbox_new(FALSE, 0);
+  GdkPixbuf* video_pixbuf = gdk_pixbuf_new(GDK_COLORSPACE_RGB, FALSE, 8, 320, 240);
+  gdk_pixbuf_fill(video_pixbuf, 0xff000000);
+  GtkWidget* video_image = gtk_image_new_from_pixbuf(video_pixbuf);
+  GtkWidget* capture_button = gtk_button_new_with_label("Capture");
+
+  GtkWidget* clock = video_cairo_new("/dev/shm");
+  gtk_widget_show(clock);
+
+  //gtk_box_pack_start(GTK_BOX(video_vbox), video_image, TRUE, TRUE, 0);
+  //gtk_box_pack_start(GTK_BOX(video_vbox), capture_button, TRUE, TRUE, 0);
+  gtk_box_pack_start(GTK_BOX(video_vbox), clock, TRUE, TRUE, 0);
+
+  gtk_widget_show_all(video_vbox);
+
+  gtk_paned_add2(GTK_PANED(split_pane), GTK_WIDGET(video_vbox));
+
+  gtk_widget_show_all(split_pane);
+  gtk_box_pack_start (GTK_BOX (vbox), split_pane, TRUE, TRUE, 0);
+
+  // Embedded error window at the bottom
+  gtk_box_pack_start (GTK_BOX (vbox), subvbox, FALSE, FALSE, 0);
   embedded_error_notebook = PIDGIN_SCROLL_BOOK(pidgin_scroll_book_new());
   gtk_box_pack_start (GTK_BOX(subvbox), GTK_WIDGET(embedded_error_notebook),
       FALSE, FALSE, 0);
