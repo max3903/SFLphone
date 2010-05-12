@@ -29,7 +29,6 @@ typedef struct _VideoCairoClass       VideoCairoClass;
 struct _VideoCairo
 {
         GtkDrawingArea parent;
-        gpointer priv;
 };
 
 struct _VideoCairoClass

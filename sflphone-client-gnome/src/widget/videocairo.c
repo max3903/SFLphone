@@ -79,8 +79,6 @@ video_cairo_finalize (GObject *object)
   g_free(priv->source);
   g_free (priv);
 
-  self->priv = NULL;
-
   G_OBJECT_CLASS (video_cairo_parent_class)->finalize (object);
 }
 
