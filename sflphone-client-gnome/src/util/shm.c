@@ -104,7 +104,7 @@ sflphone_shm_open (sflphone_shm_t* shm)
 
   // Attach
   shm->fd = shm_fd;
-  shm->size = sflphone_shm_get_size (shm->fd);
+  shm->size = sflphone_shm_get_size (shm);
   if (attach (shm) < 0)
     {
       return -1;

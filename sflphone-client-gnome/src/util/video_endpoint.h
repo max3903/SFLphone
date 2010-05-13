@@ -74,11 +74,22 @@ int sflphone_video_close(sflphone_video_endpoint_t* endpt);
 int sflphone_video_add_observer(sflphone_video_endpoint_t* endpt, frame_observer obs);
 
 /**
+ * Remove an observer from the observer list.
+ * @postcondition The observer that was previously registered won't get notified of new frames.
+ */
+int sflphone_video_remove_observer(sflphone_video_endpoint_t* endpt, frame_observer obs);
+
+/**
  * Start capturing frames in a non blocking way. Registered observers
  * will get notified when new frames arrive.
+ * @param endpt An existing sflphone_video_endpoint type of object.
  */
 int sflphone_video_start_async(sflphone_video_endpoint_t* endpt);
 
+/**
+ * Stop capturing frames.
+ * @param endpt An existing sflphone_video_endpoint type of object.
+ */
 int sflphone_video_stop_async(sflphone_video_endpoint_t* endpt);
 
 #endif

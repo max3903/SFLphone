@@ -71,6 +71,11 @@ int sflphone_video_add_observer(sflphone_video_endpoint_t* endpt, frame_observer
   endpt->observers = g_slist_append(endpt->observers, obs);
 }
 
+int sflphone_video_remove_observer(sflphone_video_endpoint_t* endpt, frame_observer obs)
+{
+  endpt->observers = g_slist_remove(endpt->observers, obs);
+}
+
 static void notify_observer(gpointer data, gpointer user_data)
 {
   uint8_t* frame = (uint8_t*) user_data;
