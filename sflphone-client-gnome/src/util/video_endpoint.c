@@ -36,6 +36,8 @@ sflphone_video_endpoint_t* sflphone_video_init(gchar * device)
 
   endpt->shm_frame = sflphone_shm_new(device); // FIXME
   endpt->shm_lock = sflphone_shm_new(device); // FIXME
+
+  endpt->frame = NULL;
 }
 
 int sflphone_video_free(sflphone_video_endpoint_t* endpt)
@@ -51,13 +53,17 @@ int sflphone_video_open(sflphone_video_endpoint_t* endpt)
 {
   sflphone_shm_open(endpt->shm_frame);
   sflphone_shm_open(endpt->shm_lock);
+
   endpt->lock = (pthread_rwlock_t*) sflphone_shm_get_addr(endpt->shm_lock);
+  endpt->frame = (uint8_t*) malloc(sflphone_shm_get_size(endpt->shm_lock));
 }
 
 int sflphone_video_close(sflphone_video_endpoint_t* endpt)
 {
   sflphone_shm_close(endpt->shm_frame);
   sflphone_shm_close(endpt->shm_frame);
+
+  free(endpt->frame);
 }
 
 int sflphone_video_add_observer(sflphone_video_endpoint_t* endpt, frame_observer obs)
@@ -65,13 +71,33 @@ int sflphone_video_add_observer(sflphone_video_endpoint_t* endpt, frame_observer
   endpt->observers = g_slist_append(endpt->observers, obs);
 }
 
+static void notify_observer(gpointer data, gpointer user_data)
+{
+  uint8_t* frame = (uint8_t*) user_data;
+  frame_observer obs = (frame_observer) data;
+  obs(frame);
+}
+
+static notify_all_observers(sflphone_video_endpoint_t* endpt, uint8_t* frame)
+{
+  g_slist_foreach(endpt->observers, (GFunc)notify_observer, (gpointer) frame);
+}
+
 static void* capturing_thread(void* params)
 {
-  sflphone_video_endpoint_t* endpt;
+  sflphone_video_endpoint_t* endpt = (sflphone_video_endpoint_t*) params;
+  while (1) {
 
-  pthread_rwlock_rdlock(endpt->lock);
-    //mempcy (data, shm->addr, shm->size); // FIXME
-  pthread_rwlock_unlock(endpt->lock);
+    // Quickly release the lock
+    pthread_rwlock_rdlock(endpt->lock);
+      mempcy (endpt->frame, sflphone_shm_get_addr(endpt->shm_frame), sflphone_shm_get_size(endpt->shm_frame));
+    pthread_rwlock_unlock(endpt->lock);
+
+    // Notify all observers
+    notify_all_observers(endpt, endpt->frame);
+
+    pthread_testcancel(); // Might not work
+  }
 }
 
 int sflphone_video_start_async(sflphone_video_endpoint_t* endpt)
@@ -81,5 +107,5 @@ int sflphone_video_start_async(sflphone_video_endpoint_t* endpt)
 
 int sflphone_video_stop_async(sflphone_video_endpoint_t* endpt)
 {
-  pthread_cancel(*endpt->thread); // TODO the signal handling.
+  pthread_cancel(*endpt->thread);
 }

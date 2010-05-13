@@ -16,6 +16,7 @@
  *  along with this program; if not, write to the Free Software
  *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
+
 #ifndef __SHM_H__
 #define __SHM_H__
 
@@ -60,5 +61,11 @@ int sflphone_shm_close(sflphone_shm_t* shm);
  * @return The address in the process' address space for this shared memory segment.
  */
 void * sflphone_shm_get_addr(sflphone_shm_t* shm);
+
+/**
+ * @param An existing shared memory segment structure.
+ * @return The size in bytes of the file with file descriptor fd.
+ */
+off_t sflphone_shm_get_size(sflphone_shm_t* shm);
 
 #endif

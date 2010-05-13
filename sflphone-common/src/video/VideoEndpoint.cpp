@@ -40,7 +40,6 @@ VideoEndpoint::~VideoEndpoint()
 {
 	videoSource->removeVideoFrameObserver(this);
 	shmVideoSource->remove();
-
 }
 
 void VideoEndpoint::onNewFrame(const VideoFrame* frame)

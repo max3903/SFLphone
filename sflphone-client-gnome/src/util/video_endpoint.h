@@ -16,6 +16,7 @@
  *  along with this program; if not, write to the Free Software
  *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
+
 #ifndef __VIDEO_ENDPOINT_H__
 #define __VIDEO_ENDPOINT_H__
 
@@ -36,6 +37,7 @@ typedef struct {
   GSList* observers;
   gchar* device;
   pthread_t * thread;
+  uint8_t * frame;
 
   // This below should be opaque.
   sflphone_shm_t* shm_frame;
