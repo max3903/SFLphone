@@ -1,14 +1,3 @@
-/**
- * cairo.h
- *
- * A GTK+ widget that implements a cairo face
- *
- * (c) 2005, Davyd Madeley
- *
- * Authors:
- *   Davyd Madeley  <davyd@madeley.id.au>
- */
-
 #ifndef __VIDEO_CAIRO_H__
 #define __VIDEO_CAIRO_H__
 
