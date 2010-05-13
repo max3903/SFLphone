@@ -9,7 +9,7 @@
 #include <fcntl.h>
 #include <string.h>
 
-sflphone_shm_t* sflphone_new_video_shm_type(char* location)
+sflphone_shm_t* sflphone_shm_new(char* location)
 {
   sflphone_shm_t* shm = (sflphone_shm_t*) malloc(sizeof(sflphone_shm_t));
   if (shm == NULL) {
@@ -25,7 +25,7 @@ sflphone_shm_t* sflphone_new_video_shm_type(char* location)
   return shm;
 }
 
-int sflphone_free_video_shm_type(sflphone_shm_t* shm)
+int sflphone_shm_free(sflphone_shm_t* shm)
 {
   free(shm->path);
   free(shm);
@@ -79,7 +79,7 @@ static int release(sflphone_shm_t* shm)
     return 0;
 }
 
-int sflphone_open_video_shm (sflphone_shm_t* shm)
+int sflphone_shm_open (sflphone_shm_t* shm)
 {
   // Open
   int shm_fd;
@@ -104,7 +104,7 @@ int sflphone_open_video_shm (sflphone_shm_t* shm)
   return 0;
 }
 
-int sflphone_close_video_shm(sflphone_shm_t* shm)
+int sflphone_shm_close(sflphone_shm_t* shm)
 {
   if (close(shm->fd) < 0) {
     ERROR ("cannot close shm fd : (%s)", strerror(errno));
@@ -115,7 +115,7 @@ int sflphone_close_video_shm(sflphone_shm_t* shm)
   return release(shm);
 }
 
-void * sflphone_get_video_shm_addr(sflphone_shm_t* shm)
+void * sflphone_shm_get_addr(sflphone_shm_t* shm)
 {
   return shm->addr;
 }

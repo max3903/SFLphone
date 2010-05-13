@@ -16,6 +16,9 @@
  *  along with this program; if not, write to the Free Software
  *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
+#ifndef __SHM_H__
+#define __SHM_H__
+
 #include <stdlib.h>
 #include <errno.h>
 
@@ -31,29 +34,31 @@ typedef struct {
  * @param location The location for the shm (eg /dev/shm/sflphone)
  * @return The new structure, or NULL.
  */
-sflphone_shm_t* sflphone_new_video_shm_type(char* location);
+sflphone_shm_t* sflphone_shm_new(char* location);
 
 /**
  * @param shm The sflphone_shm_t structure to free.
  * @return 0 on success, <0 on failure.
  */
-int sflphone_free_video_shm_type(sflphone_shm_t* shm);
+int sflphone_shm_free(sflphone_shm_t* shm);
 
 /**
  * Open and attach to a existing shared memory segment.
  * @param An existing shared memory segment structure that reprents the shm to open.
  * @return 0 on success, <0 on failure.
  */
-int sflphone_open_video_shm (sflphone_shm_t* shm);
+int sflphone_shm_open (sflphone_shm_t* shm);
 
 /**
  * Close a previously opened shared memory segment.
  * @param An existing shared memory segment structure that reprents the shm to close.
  * @return 0 on success, <0 on failure.
  */
-int sflphone_close_video_shm(sflphone_shm_t* shm);
+int sflphone_shm_close(sflphone_shm_t* shm);
 
 /**
  * @return The address in the process' address space for this shared memory segment.
  */
-void * sflphone_get_video_shm_addr(sflphone_shm_t* shm);
+void * sflphone_shm_get_addr(sflphone_shm_t* shm);
+
+#endif
