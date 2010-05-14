@@ -13,5 +13,5 @@ noinst_HEADERS = \
 		VideoInputSource.h \
 		VideoInputSourceGst.h \
 		VideoEndpoint.h
-		
+			
 libvideo_la_LDFLAGS = $(GSTREAMER_LIBS)

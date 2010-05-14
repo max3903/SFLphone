@@ -95,7 +95,8 @@ libsflphone_la_LIBADD = \
 	./plug-in/libplugin.la \
 	./plug-in/audiorecorder/libaudiorecorder.la \
 	./hooks/libhooks.la \
-	./history/libhistory.la
+	./history/libhistory.la \
+	./util/libutil.la
 
 libsflphone_la_SOURCES =
 

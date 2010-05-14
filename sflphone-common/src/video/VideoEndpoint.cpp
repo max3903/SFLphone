@@ -36,6 +36,16 @@ VideoEndpoint::VideoEndpoint(VideoInputSource* src) {
 	memcpy(shmRwLockVideoSource->getRegion(), &readerWriterLock, sizeof(pthread_rwlock_t));
 }
 
+std::string VideoEndpoint::getShmName()
+{
+	return shmVideoSource->getName();
+}
+
+VideoInputSource* VideoEndpoint::getVideoInputSource()
+{
+	return videoSource;
+}
+
 VideoEndpoint::~VideoEndpoint()
 {
 	videoSource->removeVideoFrameObserver(this);

@@ -27,7 +27,7 @@
 			  </tp:docstring>
 			</arg>
 			
-			<arg type="s" name="path" direction="out">
+			<arg type="s" name="list" direction="out">
 			  <tp:docstring>
 			  A path to the shared memory segment.
 			  </tp:docstring>

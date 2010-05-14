@@ -23,6 +23,12 @@
 #include "videomanager-glue.h"
 #include <dbus-c++/dbus.h>
 
+#include <map>
+
+namespace sfl {
+	class VideoEndpoint;
+}
+
 class VideoManager: public org::sflphone::SFLphone::VideoManager_adaptor,
 		public DBus::IntrospectableAdaptor,
 		public DBus::ObjectAdaptor {
@@ -31,6 +37,7 @@ public:
 	VideoManager(DBus::Connection& connection);
 
 	static const char* SERVER_PATH;
+    static const char* SHM_ERROR_PATH;
 
 	/**
 	 * @return A list containing the names of all the available capture devices.
@@ -39,8 +46,13 @@ public:
 
 	/**
 	 * @param device The device to start capturing from.
+	 * @return The shared memory segment where the data can be obtained or /dev/null if a problem has occurred.
 	 */
-	void capture(const std::string& device);
+	std::string startLocalCapture(const std::string& device);
+
+private :
+	// Key : device name Value : Corresponding VideoEndpoint
+	std::map<std::string, sfl::VideoEndpoint*> videoEndpoints;
 };
 
 #endif//CONTACTMANAGER_H

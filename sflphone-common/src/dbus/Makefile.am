@@ -30,7 +30,9 @@ endif
 
 libdbus_la_CXXFLAGS = -DPREFIX=\"$(prefix)\" -DPROGSHAREDIR=\"${datadir}/sflphone\" $(NETWORKMANAGER) $(GSTREAMER_CFLAGS)
 libdbus_la_LDFLAGS = $(GSTREAMER_LIBS)
-libdbus_la_LIBADD = $(top_srcdir)/libs/dbus-c++/src/libdbus-c++-1.la $(top_srcdir)/src/video/libvideo.la
+# libdbus_la_LIBADD = $(top_srcdir)/libs/dbus-c++/src/libdbus-c++-1.la $(top_srcdir)/src/video/libvideo.la
+libdbus_la_LIBADD = $(top_srcdir)/libs/dbus-c++/src/libdbus-c++-1.la
+
 
 noinst_HEADERS =            \
     callmanager.h           \

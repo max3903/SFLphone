@@ -79,6 +79,13 @@ public:
 	}
 
 	/**
+	 * @return The shared memory name.
+	 */
+	std::string getName() {
+		return name;
+	}
+
+	/**
 	 * @return The size of the current shared memory region in bytes.
 	 */
 	off_t getSize() throw(SharedMemoryException);

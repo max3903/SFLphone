@@ -29,8 +29,10 @@
 #include <sliders.h>
 #include <contacts/searchbar.h>
 #include <assistant.h>
+
 #include <widget/gtkscrollbook.h>
 #include <widget/minidialog.h>
+#include <widget/videopane.h>
 
 #include <gtk/gtk.h>
 
@@ -230,24 +232,11 @@ create_main_window ()
 
   gtk_paned_add1(GTK_PANED(split_pane), call_elements_vbox);
 
-  // TODO Make a widget out of that
-  GtkWidget* video_vbox = gtk_vbox_new(FALSE, 0);
-  GdkPixbuf* video_pixbuf = gdk_pixbuf_new(GDK_COLORSPACE_RGB, FALSE, 8, 320, 240);
-  gdk_pixbuf_fill(video_pixbuf, 0xff000000);
-  GtkWidget* video_image = gtk_image_new_from_pixbuf(video_pixbuf);
-  GtkWidget* capture_button = gtk_button_new_with_label("Capture");
+  // Video Widget
+  GtkWidget* video_pane = video_pane_new();
+  gtk_widget_show(video_pane);
 
-  GtkWidget* clock = video_cairo_new("/dev/shm");
-  gtk_widget_show(clock);
-
-  //gtk_box_pack_start(GTK_BOX(video_vbox), video_image, TRUE, TRUE, 0);
-  //gtk_box_pack_start(GTK_BOX(video_vbox), capture_button, TRUE, TRUE, 0);
-  gtk_box_pack_start(GTK_BOX(video_vbox), clock, TRUE, TRUE, 0);
-
-  gtk_widget_show_all(video_vbox);
-
-  gtk_paned_add2(GTK_PANED(split_pane), GTK_WIDGET(video_vbox));
-
+  gtk_paned_add2(GTK_PANED(split_pane), GTK_WIDGET(video_pane));
   gtk_widget_show_all(split_pane);
   gtk_box_pack_start (GTK_BOX (vbox), split_pane, TRUE, TRUE, 0);
 

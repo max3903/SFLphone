@@ -71,7 +71,7 @@ void VideoInputSourceGst::open(int width, int height, int fps)
 		g_error_free(error);
 		g_free(command);
 		pipelineRunning = false;
-		throw new VideoDeviceIOException("while opening device "
+		throw VideoDeviceIOException("while opening device "
 				+ getDevice()->getName());
 	}
 
@@ -98,7 +98,7 @@ void VideoInputSourceGst::open(int width, int height, int fps)
 		g_free(command);
 
 		pipelineRunning = false;
-		throw new VideoDeviceIOException("Failed to start the video capture pipeline.");
+		throw VideoDeviceIOException("Failed to start the video capture pipeline.");
 	}
 
 	g_free(command);
@@ -152,7 +152,7 @@ void VideoInputSourceGst::grabFrame() throw (VideoDeviceIOException) {
 	GstElement* sink = NULL;
 	sink = gst_bin_get_by_name(GST_BIN(pipeline), APPSINK_NAME.c_str());
 	if (sink == NULL) {
-		throw new VideoDeviceIOException("While grabbing frame on "
+		throw  VideoDeviceIOException("While grabbing frame on "
 				+ getDevice()->getName());
 	}
 
@@ -160,7 +160,7 @@ void VideoInputSourceGst::grabFrame() throw (VideoDeviceIOException) {
 	GstBuffer* buffer = NULL;
 	buffer = gst_app_sink_pull_buffer(GST_APP_SINK(sink));
 	if (buffer == NULL) {
-		throw new VideoDeviceIOException("While grabbing frame on "
+		throw VideoDeviceIOException("While grabbing frame on "
 				+ getDevice()->getName());
 	}
 	g_object_unref(sink);
@@ -178,7 +178,7 @@ void VideoInputSourceGst::ensurePluginAvailability(
 		element = gst_element_factory_make((*it).c_str(), ((*it) + std::string(
 				"presencetest")).c_str());
 		if (element == NULL) {
-			throw new MissingGstPluginException((*it) + std::string(
+			throw MissingGstPluginException((*it) + std::string(
 					" gstreamer pluging is missing."));
 		} else {
 			gst_object_unref(element);
@@ -231,7 +231,7 @@ std::vector<VideoDevice*> VideoInputSourceGst::getV4l2Devices()
 	GstElement* element = NULL;
 	element = gst_element_factory_make("v4l2src", "v4l2srcpresencetest");
 	if (element == NULL) {
-		throw new MissingGstPluginException("Missing v4l2src plugin.");
+		throw  MissingGstPluginException("Missing v4l2src plugin.");
 	} else {
 		GstPropertyProbe* probe = NULL;
 		const GParamSpec* pspec = NULL;
@@ -292,7 +292,7 @@ std::vector<VideoDevice*> VideoInputSourceGst::getDv1394()
 	element = gst_element_factory_make("dv1394src", "dv1394srcpresencetest");
 
 	if (element == NULL) {
-		throw new MissingGstPluginException("Missing dv1394src plugin.");
+		throw  MissingGstPluginException("Missing dv1394src plugin.");
 	} else {
 		GstPropertyProbe* probe = NULL;
 		const GParamSpec* pspec = NULL;

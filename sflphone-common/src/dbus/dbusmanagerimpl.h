@@ -25,6 +25,7 @@
 class ConfigurationManager;
 class CallManager;
 class NetworkManager;
+class VideoManager;
 
 class DBusManagerImpl {
     public:
@@ -37,6 +38,7 @@ class DBusManagerImpl {
     private:
         CallManager*          _callManager;
         ConfigurationManager* _configurationManager;
+        VideoManager*		  _videoManager;
         Instance*             _instanceManager;
         DBus::BusDispatcher   _dispatcher;
 	NetworkManager* _networkManager;

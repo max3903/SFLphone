@@ -51,6 +51,16 @@ public:
 };
 
 /**
+ * This exception is thrown when the specified video device could not be found.
+ */
+class UnknownVideoDeviceException: public std::runtime_error {
+public:
+	UnknownVideoDeviceException(const std::string& msg) :
+		std::runtime_error(msg) {
+	}
+};
+
+/**
  * Representation of a given gstreamer video device.
  */
 class VideoDevice {
@@ -215,6 +225,12 @@ public:
 	inline void setDevice(VideoDevice* device) {
 		currentDevice = device;
 	}
+
+	/**
+	 * Try to find a device name with the provided name, and set it as the source device.
+	 * @param device The descriptive name for this device.
+	 */
+	void setDevice(const std::string& device) throw(UnknownVideoDeviceException);
 
 	/**
 	 * @return the current device that is being used.

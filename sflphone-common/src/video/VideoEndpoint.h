@@ -35,6 +35,11 @@ class VideoEndpoint : public VideoFrameObserver
 		VideoEndpoint(VideoInputSource* src);
 
 		/**
+		 * @return The video input source for this endpoint.
+		 */
+		VideoInputSource* getVideoInputSource();
+
+		/**
 		 * Sends the VideoInputSource to the remote RTP peer.
 		 */
 		void sendRtpData();
@@ -49,6 +54,11 @@ class VideoEndpoint : public VideoFrameObserver
 		 * in a shared memory segment.
 		 */
 		void capture();
+
+		/**
+		 * @return The name for the shared memory allocated for frames capture.
+		 */
+		std::string getShmName();
 
 		/**
 		 * @Override

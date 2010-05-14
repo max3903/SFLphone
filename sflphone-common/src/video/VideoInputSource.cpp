@@ -1,5 +1,6 @@
 #include "VideoInputSource.h"
 #include <algorithm>
+#include "logger.h"
 
 namespace sfl {
 VideoInputSource::VideoInputSource() :
@@ -8,6 +9,22 @@ VideoInputSource::VideoInputSource() :
 
 VideoInputSource::~VideoInputSource() {
 	delete currentFrame;
+}
+
+void VideoInputSource::setDevice(const std::string& device) throw(UnknownVideoDeviceException)
+{
+	std::vector<sfl::VideoDevice*> devices = enumerateDevices();
+	std::vector<sfl::VideoDevice*>::iterator it;
+
+	// Search for that name
+	for (it = devices.begin(); it < devices.end(); it++) {
+		if ((*it)->getName() == device) {
+			setDevice((*it));
+			return;
+		}
+	}
+
+	throw  UnknownVideoDeviceException("Device " + device + " could not be found");
 }
 
 void VideoInputSource::addVideoFrameObserver(VideoFrameObserver* observer) {

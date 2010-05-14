@@ -1,5 +1,6 @@
-#Fri Feb 26 15:32:40 EST 2010
+#Tue May 04 17:26:54 EDT 2010
 eclipse.preferences.version=1
+indexerId=org.eclipse.cdt.core.fastIndexer
 org.eclipse.cdt.core.formatter.alignment_for_arguments_in_method_invocation=16
 org.eclipse.cdt.core.formatter.alignment_for_base_clause_in_type_declaration=80
 org.eclipse.cdt.core.formatter.alignment_for_compact_if=0

@@ -19,13 +19,18 @@
 
 #include <videomanager.h>
 #include "video/VideoInputSourceGst.h"
+#include "video/VideoEndpoint.h"
+#include "logger.h"
 
 #include <vector>
 
 const char* VideoManager::SERVER_PATH = "/org/sflphone/SFLphone/VideoManager";
+const char* VideoManager::SHM_ERROR_PATH = "/dev/null";
 
 VideoManager::VideoManager(DBus::Connection& connection) :
-	DBus::ObjectAdaptor(connection, SERVER_PATH) {
+	DBus::ObjectAdaptor(connection, SERVER_PATH)
+{
+
 }
 
 std::vector<std::string> VideoManager::enumerateDevices()
@@ -40,6 +45,37 @@ std::vector<std::string> VideoManager::enumerateDevices()
 		outputVector.push_back((*it)->getName());
 	}
 
+	_debug("Enumerating devices");
+
 	return outputVector;
+}
+
+std::string VideoManager::startLocalCapture(const std::string& device)
+{
+	_debug("Starting local capture on %s", device.c_str());
+
+	// Do nothing if already capturing
+	std::map<std::string, sfl::VideoEndpoint*>::iterator it = videoEndpoints.find(device);
+	if (it != videoEndpoints.end()) {
+		_debug((std::string("Device ") + std::string("is already opened.")).c_str());
+		return SHM_ERROR_PATH;
+	}
+
+	// Create a new end point.
+	sfl::VideoInputSourceGst* videoSource = new sfl::VideoInputSourceGst();
+	videoSource->setDevice(device);
+
+	// Start capturing
+	try {
+		videoSource->open(320, 240, 30);
+	} catch (sfl::VideoDeviceIOException& e) {
+		_debug ("Caught exception : %s", e.what());
+		return SHM_ERROR_PATH;
+	}
+
+	sfl::VideoEndpoint* endpoint = new sfl::VideoEndpoint(videoSource);
+	videoEndpoints.insert(std::pair<std::string, sfl::VideoEndpoint*>(device, endpoint));
+
+	return endpoint->getShmName();
 }
 

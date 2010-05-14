@@ -612,4 +612,17 @@ void dbus_set_shortcuts(GHashTable * shortcuts);
 void dbus_enable_status_icon (const gchar*);
 gchar* dbus_is_status_icon_enabled (void);
 
+/**
+ * Retrieve a printable list of all the video capture devices that are available.
+ * @return The list of all the video capture devices that are available.
+ */
+gchar** dbus_video_enumerate_devices();
+
+/**
+ * Start capturing frames from a specified video device and write to shared memory.
+ * @param device The video device to start capturing from.
+ * @return A path to the shared memory segment.
+ */
+gchar* dbus_video_start_local_capture(gchar * device);
+
 #endif
