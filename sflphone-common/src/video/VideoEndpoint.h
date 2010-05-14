@@ -20,7 +20,7 @@ namespace sfl {
  * This class is receiving video frames over RTP, writing them in
  * a dedicated shared memory segment, sending local frames from the VideoInputSource to
  * the remote RTP party as well as writing them in a shared memory segment for
- * display in the GUI.
+ * displaying in the GUI.
  *
  * A video endpoint is unique to a given video source. In other words, only one source
  * can be defined in every instance, but multiple targets can be tied to it.
@@ -37,12 +37,12 @@ class VideoEndpoint : public VideoFrameObserver
 		/**
 		 * Sends the VideoInputSource to the remote RTP peer.
 		 */
-		void sendTo();
+		void sendRtpData();
 
 		/**
 		 * Receive video from remote RTP peer.
 		 */
-		void receiveFrom();
+		void receiveRtpData();
 
 		/**
 		 * Capture from the local video device and write frames
@@ -60,6 +60,7 @@ class VideoEndpoint : public VideoFrameObserver
 
 	private:
 		VideoInputSource* videoSource;
+
 		SharedMemoryPosix* shmVideoSource;
 		SharedMemoryPosix* shmRwLockVideoSource;
 

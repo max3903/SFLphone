@@ -51,8 +51,7 @@ public:
 	void placeCall(const std::string& accountID, const std::string& callID,
 			const std::string& to);
 	void
-			placeCallFirstAccount(const std::string& callID,
-					const std::string& to);
+	placeCallFirstAccount(const std::string& callID, const std::string& to);
 
 	void refuse(const std::string& callID);
 	void accept(const std::string& callID);

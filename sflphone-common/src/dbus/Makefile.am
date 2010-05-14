@@ -7,18 +7,20 @@ noinst_LTLIBRARIES = libdbus.la
 BUILT_SOURCES=                      \
     callmanager-glue.h              \
     configurationmanager-glue.h     \
-    instance-glue.h
+    instance-glue.h 				\
+    videomanager-glue.h
 
 # Rule to generate the binding headers
 %-glue.h: %-introspec.xml Makefile.am
-	$(DBUSXX) $< --adaptor=$@
+	$(DBUSXX) $< --adaptor=$@s
 
 libdbus_la_SOURCES = \
     callmanager.cpp \
     configurationmanager.cpp  \
     instance.cpp  \
     dbusmanagerimpl.cpp  \
-    networkmanager.cpp
+    networkmanager.cpp \
+    videomanager.cpp
 
 if USE_NETWORKMANAGER
 NETWORKMANAGER=-DUSE_NETWORKMANAGER
@@ -26,9 +28,9 @@ else
 NETWORKMANAGER=
 endif
 
-libdbus_la_CXXFLAGS = -DPREFIX=\"$(prefix)\" -DPROGSHAREDIR=\"${datadir}/sflphone\" $(NETWORKMANAGER)
-
-libdbus_la_LIBADD = $(top_srcdir)/libs/dbus-c++/src/libdbus-c++-1.la
+libdbus_la_CXXFLAGS = -DPREFIX=\"$(prefix)\" -DPROGSHAREDIR=\"${datadir}/sflphone\" $(NETWORKMANAGER) $(GSTREAMER_CFLAGS)
+libdbus_la_LDFLAGS = $(GSTREAMER_LIBS)
+libdbus_la_LIBADD = $(top_srcdir)/libs/dbus-c++/src/libdbus-c++-1.la $(top_srcdir)/src/video/libvideo.la
 
 noinst_HEADERS =            \
     callmanager.h           \
@@ -38,6 +40,7 @@ noinst_HEADERS =            \
     dbusmanagerimpl.h       \
     networkmanager_proxy.h  \
     networkmanager.h        \
+    videomanager.h			\
     $(BUILT_SOURCES)
 
 # Dbus service file

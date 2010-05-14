@@ -1,0 +1,19 @@
+<?xml version="1.0" ?>
+<node name="/org/sflphone/SFLphone">
+  <interface name="org.sflphone.SFLphone.VideoManager">
+      
+		<method name="enumerateDevices" tp:name-for-bindings="enumerateDevices">
+			<tp:added version="0.9.9"/>
+			<tp:docstring>
+			Retreive a printable list of all the video capture devices that are available.
+			</tp:docstring>
+			
+			<arg type="as" name="list" direction="out">
+			  <tp:docstring>
+			    The list of all the video capture devices that are available.
+			  </tp:docstring>
+			</arg>
+		</method>
+    
+  </interface>
+</node>
