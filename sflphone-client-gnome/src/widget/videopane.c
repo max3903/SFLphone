@@ -44,8 +44,9 @@ void capture_cb(GtkWidget *widget, gpointer data)
   gchar * device = gtk_combo_box_get_active_text(priv->devices_combo);
 
   DEBUG("Starting capture on %s", device);
-  gchar * path = dbus_video_start_local_capture(device);
-  DEBUG("Path : %s", path);
+
+  video_cairo_set_source(priv->video_cairo, device);
+  video_cairo_start(priv->video_cairo);
 }
 
 static void
@@ -58,7 +59,7 @@ video_pane_init (VideoPane *self)
   gtk_signal_connect(GTK_OBJECT (priv->capture_button), "clicked", GTK_SIGNAL_FUNC (capture_cb), (gpointer) self);
 
   // Cairo video
-  priv->video_cairo = video_cairo_new("/dev/shm");
+  priv->video_cairo = video_cairo_new();
 
   // Device list
   gchar** available_devices = NULL;

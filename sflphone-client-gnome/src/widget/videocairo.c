@@ -1,5 +1,8 @@
 #include <gtk/gtk.h>
+
 #include "videocairo.h"
+#include "util/video_endpoint.h"
+#include "sflphone_const.h"
 
 #define VIDEO_CAIRO_GET_PRIVATE(obj) (G_TYPE_INSTANCE_GET_PRIVATE ((obj), VIDEO_TYPE_CAIRO, VideoCairoPrivate))
 
@@ -8,12 +11,13 @@ struct _VideoCairoPrivate
 {
   cairo_surface_t* image;
   gchar* source;
+  sflphone_video_endpoint_t* endpt;
 };
 
-G_DEFINE_TYPE (VideoCairo, video_cairo, GTK_TYPE_DRAWING_AREA)
-;
 static gboolean
 video_cairo_expose (GtkWidget *cairo, GdkEventExpose *event);
+
+static gpointer video_cairo_parent_class = NULL;
 
 enum
 {
@@ -27,10 +31,14 @@ video_cairo_set_property (GObject *object, guint property_id,
   VideoCairo *self = VIDEO_CAIRO(object);
   VideoCairoPrivate *priv = VIDEO_CAIRO_GET_PRIVATE(self);
 
+  DEBUG("Setting property.");
+
   switch (property_id)
     {
   case PROP_SOURCE:
+    DEBUG("Setting source %s", g_value_get_string (value));
     priv->source = g_strdup (g_value_get_string (value));
+    sflphone_video_set_device(priv->endpt, priv->source);
     break;
   default:
     G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);
@@ -55,9 +63,16 @@ video_cairo_get_property (GObject *object, guint property_id, GValue *value,
 }
 
 void
-video_cairo_set_source (VideoCairo * video_cairo, const char *source)
+video_cairo_set_source(VideoCairo* video_cairo, gchar* source)
 {
+  DEBUG("In video_cairo_set_source (%s)\n", source);
   g_object_set (G_OBJECT(video_cairo), "source", source, NULL);
+}
+
+static void
+on_new_frame_cb (uint8_t* frame)
+{
+  DEBUG("Got frame");
 }
 
 static void
@@ -68,6 +83,9 @@ video_cairo_init (VideoCairo *self)
   priv->image
       = cairo_image_surface_create_from_png (
           "/home/pierre-luc/workspace/sflphone/sflphone-client-gnome/src/widget/image.png");
+
+  priv->endpt = sflphone_video_init_ ();
+  sflphone_video_add_observer (priv->endpt, &on_new_frame_cb);
 }
 
 static void
@@ -76,7 +94,7 @@ video_cairo_finalize (GObject *object)
   VideoCairo *self = VIDEO_CAIRO(object);
   VideoCairoPrivate *priv = VIDEO_CAIRO_GET_PRIVATE(self);
 
-  g_free(priv->source);
+  g_free (priv->source);
   g_free (priv);
 
   G_OBJECT_CLASS (video_cairo_parent_class)->finalize (object);
@@ -103,7 +121,7 @@ video_cairo_class_init (VideoCairoClass *class)
           | G_PARAM_READWRITE);
   g_object_class_install_property (obj_class, PROP_SOURCE, param_spec);
 
-  g_type_class_add_private (obj_class, sizeof (VideoCairoPrivate));
+  g_type_class_add_private (obj_class, sizeof(VideoCairoPrivate));
 
 }
 
@@ -125,8 +143,56 @@ video_cairo_expose (GtkWidget *cairo, GdkEventExpose *event)
   return FALSE;
 }
 
-GtkWidget *
-video_cairo_new (const gchar *source)
+static void
+video_cairo_class_intern_init (gpointer klass)
 {
+  video_cairo_parent_class = g_type_class_peek_parent (klass);
+  video_cairo_class_init ((VideoCairoClass*) klass);
+}
+
+GType
+video_cairo_get_type (void)
+{
+  static GType g_define_type_id = 0;
+  if (g_define_type_id == 0)
+    {
+      static const GTypeInfo g_define_type_info =
+        { sizeof(VideoCairoClass), (GBaseInitFunc) NULL,
+            (GBaseFinalizeFunc) NULL,
+            (GClassInitFunc) video_cairo_class_intern_init,
+            (GClassFinalizeFunc) NULL, NULL, /* class_data */
+            sizeof(VideoCairo), 0, /* n_preallocs */
+            (GInstanceInitFunc) video_cairo_init, NULL, };
+      g_define_type_id = g_type_register_static (GTK_TYPE_DRAWING_AREA,
+          "VideoCairo", &g_define_type_info, 0);
+    }
+  return g_define_type_id;
+}
+
+VideoCairo *
+video_cairo_new_with_source (const gchar *source)
+{
+  DEBUG("Creating new ...");
   return g_object_new (VIDEO_TYPE_CAIRO, "source", source, NULL);
 }
+
+VideoCairo*
+video_cairo_new ()
+{
+  return video_cairo_new_with_source("");
+}
+
+int video_cairo_start(VideoCairo* self)
+{
+  VideoCairoPrivate* priv = VIDEO_CAIRO_GET_PRIVATE(self);
+  sflphone_video_open(priv->endpt);
+  sflphone_video_start_async(priv->endpt);
+}
+
+int video_cairo_stop(VideoCairo* self)
+{
+  VideoCairoPrivate* priv = VIDEO_CAIRO_GET_PRIVATE(self);
+  sflphone_video_stop_async(priv->endpt);
+  sflphone_video_close(priv->endpt);
+}
+

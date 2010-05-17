@@ -20,10 +20,11 @@
 #ifndef __VIDEO_ENDPOINT_H__
 #define __VIDEO_ENDPOINT_H__
 
-#include <stdint.h>
-#include <glib.h>
-
 #include "shm.h"
+
+#include <glib.h>
+#include <pthread.h>
+#include <stdint.h>
 
 /**
  * Callback type for the arrival of new frames.
@@ -36,19 +37,33 @@ typedef void(*frame_observer)(uint8_t*);
 typedef struct {
   GSList* observers;
   gchar* device;
-  pthread_t * thread;
   uint8_t * frame;
 
   // This below should be opaque.
   sflphone_shm_t* shm_frame;
   sflphone_shm_t* shm_lock;
+
+  pthread_t thread;
   pthread_rwlock_t* lock;
 } sflphone_video_endpoint_t;
 
 /**
  * @return A new sflphone_video_endpoint type of object.
  */
-sflphone_video_endpoint_t* sflphone_video_init(gchar * device);
+sflphone_video_endpoint_t* sflphone_video_init_();
+
+/**
+ * @return A new sflphone_video_endpoint type of object.
+ * @param device The name of the device.
+ */
+sflphone_video_endpoint_t* sflphone_video_init_with_device(gchar* device);
+
+/**
+ * Set the device name and only that.
+ * @param endpt An existing sflphone_video_endpoint type of object.
+ * @param device The name of the device.
+ */
+int sflphone_video_set_device(sflphone_video_endpoint_t* endpt, gchar* device);
 
 /**
  * @param endpt An existing sflphone_video_endpoint type of object.

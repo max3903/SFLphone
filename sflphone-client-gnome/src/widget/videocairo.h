@@ -25,7 +25,36 @@ struct _VideoCairoClass
         GtkDrawingAreaClass parent_class;
 };
 
-GtkWidget *video_cairo_new (const gchar *source);
+GType video_cairo_get_type (void);
+
+/**
+ * @return A new video cairo widget, unbound to any source.
+ */
+VideoCairo* video_cairo_new();
+
+/**
+ * @param source The video source to connect to.
+ * @return A new video cairo widget, bound to the given source.
+ */
+VideoCairo* video_cairo_new_with_source(const gchar* source);
+
+/**
+ * @param video_cairo The VideoCairo widget to set the source.
+ * @param source The video source to connect to.
+ */
+void video_cairo_set_source(VideoCairo* video_cairo, gchar* source);
+
+/**
+ * @param video_cairo The VideoCairo widget on which to start video display.
+ * @precondition The source should have been specified.
+ */
+int video_cairo_start(VideoCairo* video_cairo);
+
+/**
+ * @param video_cairo The VideoCairo widget on which to stop video display.
+ * @precondition Video streaming must be active.
+ */
+int video_cairo_stop(VideoCairo* video_cairo);
 
 G_END_DECLS
 

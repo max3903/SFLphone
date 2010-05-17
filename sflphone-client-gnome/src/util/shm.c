@@ -1,4 +1,5 @@
 #include "shm.h"
+#include "sflphone_const.h"
 
 #include <sys/mman.h>
 #include <sys/stat.h>
@@ -9,8 +10,13 @@
 #include <fcntl.h>
 #include <string.h>
 
+sflphone_shm_t* sflphone_shm_new()
+{
+  return sflphone_shm_new_with_path("");
+}
+
 sflphone_shm_t*
-sflphone_shm_new (char* location)
+sflphone_shm_new_with_path (char* location)
 {
   sflphone_shm_t* shm = (sflphone_shm_t*) malloc (sizeof(sflphone_shm_t));
   if (shm == NULL)
@@ -25,6 +31,12 @@ sflphone_shm_new (char* location)
   shm->size = 0;
 
   return shm;
+}
+
+int sflphone_shm_set_path(sflphone_shm_t* shm, char* path)
+{
+  free(shm->path);
+  shm->path = strdup(path);
 }
 
 int
@@ -89,6 +101,8 @@ release (sflphone_shm_t* shm)
 int
 sflphone_shm_open (sflphone_shm_t* shm)
 {
+  DEBUG("Opening shared memory segment (%s)", shm->path);
+
   // Open
   int shm_fd;
   if ((shm_fd = shm_open (shm->path, O_RDWR, 0666)) < 0)

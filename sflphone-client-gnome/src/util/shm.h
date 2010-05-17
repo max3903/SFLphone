@@ -32,10 +32,23 @@ typedef struct {
 
 /**
  * Create a new sflphone_shm_t structure.
- * @param location The location for the shm (eg /dev/shm/sflphone)
  * @return The new structure, or NULL.
  */
-sflphone_shm_t* sflphone_shm_new(char* location);
+sflphone_shm_t* sflphone_shm_new();
+
+/**
+ * Create a new sflphone_shm_t structure.
+ * @param path The location for the shm (eg /dev/shm/sflphone)
+ * @return The new structure, or NULL.
+ */
+sflphone_shm_t* sflphone_shm_new_with_path(char* path);
+
+/**
+ * Set the path and only that.
+ * @param shm The sflphone_shm_t structure in which to set the path attribute.
+ * @param path The path for the shm (eg /dev/shm/sflphone)
+ */
+int sflphone_shm_set_path(sflphone_shm_t* shm, char* path);
 
 /**
  * @param shm The sflphone_shm_t structure to free.

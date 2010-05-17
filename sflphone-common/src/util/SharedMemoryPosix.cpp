@@ -57,6 +57,8 @@ SharedMemoryPosix::SharedMemoryPosix(const std::string& name, bool exclusive, st
 		throw SharedMemoryException(std::string("shm_open(): ") + strerror(errno));
 	}
 	
+	_debug("fd is %d", fd);
+
 	if ((mode & std::ios::in) || (mode & std::ios::trunc)) {
 		this->truncate();
 	} else {
@@ -105,6 +107,7 @@ void SharedMemoryPosix::truncate(off_t size) throw(SharedMemoryException)
 
 off_t SharedMemoryPosix::getSize() throw(SharedMemoryException)
 {
+	_debug("fd is %d in getsize", fd);
 	assert(fd);
 
 	struct stat buffer;

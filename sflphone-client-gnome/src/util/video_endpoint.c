@@ -18,13 +18,20 @@
  */
 
 #include "video_endpoint.h"
-#include "shm.h"
+#include "sflphone_const.h"
 
 #include <glib.h>
 #include <pthread.h>
-#include <stdlib.h>
+#include <string.h>
 
-sflphone_video_endpoint_t* sflphone_video_init(gchar * device)
+#include "dbus/dbus.h"
+
+sflphone_video_endpoint_t* sflphone_video_init_()
+{
+  return sflphone_video_init_with_device("");
+}
+
+sflphone_video_endpoint_t* sflphone_video_init_with_device(gchar * device)
 {
   sflphone_video_endpoint_t* endpt = (sflphone_video_endpoint_t*) malloc(sizeof(sflphone_video_endpoint_t));
   if (endpt == NULL) {
@@ -32,12 +39,14 @@ sflphone_video_endpoint_t* sflphone_video_init(gchar * device)
   }
 
   endpt->device = g_strdup(device);
-  endpt->observers = g_slist_alloc();
+  endpt->observers = NULL;
 
-  endpt->shm_frame = sflphone_shm_new(device); // FIXME
-  endpt->shm_lock = sflphone_shm_new(device); // FIXME
+  endpt->shm_frame = sflphone_shm_new(device);
+  endpt->shm_lock = sflphone_shm_new(device);
 
   endpt->frame = NULL;
+
+  return endpt;
 }
 
 int sflphone_video_free(sflphone_video_endpoint_t* endpt)
@@ -49,8 +58,27 @@ int sflphone_video_free(sflphone_video_endpoint_t* endpt)
   g_free(endpt->device);
 }
 
+int sflphone_video_set_device(sflphone_video_endpoint_t * endpt, gchar * device)
+{
+  g_free(endpt->device);
+  endpt->device = g_strdup(device);
+}
+
 int sflphone_video_open(sflphone_video_endpoint_t* endpt)
 {
+  // Instruct the deamon to start video capture
+  gchar* path = dbus_video_start_local_capture(endpt->device); // FIXME Check return value
+  if (g_strcmp0(path, "") == 0) {
+    return -1;
+  }
+
+  gchar* lock_path = g_strconcat(path, "-rwlock", NULL); // FIXME This is implicit. Should not rely on it like that.
+
+  sflphone_shm_set_path(endpt->shm_frame, path);
+  sflphone_shm_set_path(endpt->shm_lock, lock_path);
+
+  g_free(lock_path);
+
   sflphone_shm_open(endpt->shm_frame);
   sflphone_shm_open(endpt->shm_lock);
 
@@ -95,7 +123,7 @@ static void* capturing_thread(void* params)
 
     // Quickly release the lock
     pthread_rwlock_rdlock(endpt->lock);
-      mempcy (endpt->frame, sflphone_shm_get_addr(endpt->shm_frame), sflphone_shm_get_size(endpt->shm_frame));
+      memcpy (endpt->frame, sflphone_shm_get_addr(endpt->shm_frame), sflphone_shm_get_size(endpt->shm_frame));
     pthread_rwlock_unlock(endpt->lock);
 
     // Notify all observers
@@ -107,10 +135,10 @@ static void* capturing_thread(void* params)
 
 int sflphone_video_start_async(sflphone_video_endpoint_t* endpt)
 {
-  int rc = pthread_create(endpt->thread, NULL, capturing_thread, endpt);
+  int rc = pthread_create(&endpt->thread, NULL, &capturing_thread, (void*) endpt);
 }
 
 int sflphone_video_stop_async(sflphone_video_endpoint_t* endpt)
 {
-  pthread_cancel(*endpt->thread);
+  pthread_cancel(endpt->thread);
 }

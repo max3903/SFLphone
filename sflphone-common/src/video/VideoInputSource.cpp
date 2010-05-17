@@ -16,15 +16,18 @@ void VideoInputSource::setDevice(const std::string& device) throw(UnknownVideoDe
 	std::vector<sfl::VideoDevice*> devices = enumerateDevices();
 	std::vector<sfl::VideoDevice*>::iterator it;
 
+	_debug("Searching for device (%s) to set", device.c_str());
+
 	// Search for that name
 	for (it = devices.begin(); it < devices.end(); it++) {
+		_debug("Device %s", (*it)->getName().c_str());
 		if ((*it)->getName() == device) {
 			setDevice((*it));
 			return;
 		}
 	}
 
-	throw  UnknownVideoDeviceException("Device " + device + " could not be found");
+	throw  UnknownVideoDeviceException("Device (" + device + ") could not be found");
 }
 
 void VideoInputSource::addVideoFrameObserver(VideoFrameObserver* observer) {

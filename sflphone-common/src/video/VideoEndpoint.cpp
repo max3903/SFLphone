@@ -31,7 +31,7 @@ VideoEndpoint::VideoEndpoint(VideoInputSource* src) {
 	shmVideoSource = new SharedMemoryPosix("/sflphone-shm-" + src->getDevice()->toString(), false);
 
 	// Create a shared memory segment for the lock alone (easier than placing it in the same segment)
-	shmRwLockVideoSource = new SharedMemoryPosix("/sflphone-rwlock-shm-" + src->getDevice()->toString(), false);
+	shmRwLockVideoSource = new SharedMemoryPosix("/sflphone-shm-" + src->getDevice()->toString() + "-rwlock", false); //TODO Either move the lock within the shm in a struct, or add dbus binding to get the path to the lock.
 	shmRwLockVideoSource->truncate(sizeof(pthread_rwlock_t));
 	memcpy(shmRwLockVideoSource->getRegion(), &readerWriterLock, sizeof(pthread_rwlock_t));
 }
