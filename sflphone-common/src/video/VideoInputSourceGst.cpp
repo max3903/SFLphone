@@ -3,9 +3,10 @@
 
 #include <vector>
 #include <string>
-
 #include <gst/interfaces/propertyprobe.h>
 #include <gst/app/gstappsink.h>
+
+#include "logger.h"
 
 namespace sfl {
 
@@ -30,6 +31,7 @@ void VideoInputSourceGst::dispatchEvent()
 	sink = gst_bin_get_by_name(GST_BIN(pipeline), APPSINK_NAME.c_str());
 
 	if (sink == NULL) {
+		_error("Sink is NULL");
 		return; //TODO : do something
 	}
 
@@ -37,6 +39,7 @@ void VideoInputSourceGst::dispatchEvent()
     buffer = gst_app_sink_pull_buffer(GST_APP_SINK(sink));
 
 	if (buffer == NULL) {
+		_error("GST buffer is NULL");
 		return; //TODO : do something
 	}
 

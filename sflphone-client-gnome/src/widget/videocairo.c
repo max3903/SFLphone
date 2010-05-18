@@ -65,7 +65,7 @@ video_cairo_get_property (GObject *object, guint property_id, GValue *value,
 void
 video_cairo_set_source(VideoCairo* video_cairo, gchar* source)
 {
-  DEBUG("In video_cairo_set_source (%s)\n", source);
+  DEBUG("video_cairo_set_source (%s)", source);
   g_object_set (G_OBJECT(video_cairo), "source", source, NULL);
 }
 
@@ -80,12 +80,18 @@ video_cairo_init (VideoCairo *self)
 {
   VideoCairoPrivate *priv = VIDEO_CAIRO_GET_PRIVATE(self);
 
+  DEBUG("********************** VIDEO Cairo init");
+
   priv->image
       = cairo_image_surface_create_from_png (
           "/home/pierre-luc/workspace/sflphone/sflphone-client-gnome/src/widget/image.png");
 
-  priv->endpt = sflphone_video_init_ ();
+  priv->endpt = sflphone_video_init ();
+
+  DEBUG("Video endpoint initialized");
+
   sflphone_video_add_observer (priv->endpt, &on_new_frame_cb);
+  DEBUG("Registered as an observer");
 }
 
 static void
@@ -172,7 +178,7 @@ video_cairo_get_type (void)
 VideoCairo *
 video_cairo_new_with_source (const gchar *source)
 {
-  DEBUG("Creating new ...");
+  DEBUG("Creating new VideoCairo.");
   return g_object_new (VIDEO_TYPE_CAIRO, "source", source, NULL);
 }
 

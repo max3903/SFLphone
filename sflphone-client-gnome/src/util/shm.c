@@ -10,9 +10,10 @@
 #include <fcntl.h>
 #include <string.h>
 
-sflphone_shm_t* sflphone_shm_new()
+sflphone_shm_t*
+sflphone_shm_new ()
 {
-  return sflphone_shm_new_with_path("");
+  return sflphone_shm_new_with_path ("");
 }
 
 sflphone_shm_t*
@@ -33,10 +34,11 @@ sflphone_shm_new_with_path (char* location)
   return shm;
 }
 
-int sflphone_shm_set_path(sflphone_shm_t* shm, char* path)
+int
+sflphone_shm_set_path (sflphone_shm_t* shm, char* path)
 {
-  free(shm->path);
-  shm->path = strdup(path);
+  free (shm->path);
+  shm->path = strdup (path);
 }
 
 int
@@ -48,12 +50,8 @@ sflphone_shm_free (sflphone_shm_t* shm)
   return 0;
 }
 
-/**
- * @param fd The file descriptor.
- * @return The size in bytes of the file with file descriptor fd.
- */
 off_t
-sflphone_shm_get_size (sflphone_shm_t* shm)
+sflphone_shm_get_file_size (sflphone_shm_t* shm)
 {
   struct stat buffer;
   if (fstat (shm->fd, &buffer) < 0)
@@ -61,7 +59,14 @@ sflphone_shm_get_size (sflphone_shm_t* shm)
       ERROR ("Cannot get size: (%s)", strerror (errno));
     }
 
+  DEBUG("shm (%s) is %d bytes long.", shm->path, buffer.st_size);
   return buffer.st_size;
+}
+
+off_t
+sflphone_shm_get_size (sflphone_shm_t* shm)
+{
+  return shm->size;
 }
 
 /**
@@ -71,8 +76,9 @@ sflphone_shm_get_size (sflphone_shm_t* shm)
 static int
 attach (sflphone_shm_t* shm)
 {
-  if ((shm->addr = mmap (0, shm->size, PROT_READ, MAP_SHARED, shm->fd, 0))
-      == MAP_FAILED)
+  DEBUG("Attaching in read only mode to segment %s for %d bytes", shm->path, shm->size);
+
+  if ((shm->addr = mmap (NULL, shm->size, PROT_READ, MAP_SHARED, shm->fd, (off_t) 0)) == MAP_FAILED)
     {
       ERROR ("cannot mmap shm segment (%s)", strerror (errno));
       close (shm->fd);
@@ -118,9 +124,10 @@ sflphone_shm_open (sflphone_shm_t* shm)
 
   // Attach
   shm->fd = shm_fd;
-  shm->size = sflphone_shm_get_size (shm);
+  shm->size = sflphone_shm_get_file_size (shm);
   if (attach (shm) < 0)
     {
+      ERROR("attach() failed in sflphone_shm_open");
       return -1;
     }
 

@@ -79,6 +79,11 @@ void * sflphone_shm_get_addr(sflphone_shm_t* shm);
  * @param An existing shared memory segment structure.
  * @return The size in bytes of the file with file descriptor fd.
  */
-off_t sflphone_shm_get_size(sflphone_shm_t* shm);
+off_t sflphone_shm_file_size(sflphone_shm_t* shm);
 
+/**
+ * @param An existing shared memory segment structure.
+ * @return The current size in bytes for the shared memory segment.
+ */
+off_t sflphone_shm_get_size(sflphone_shm_t* shm);
 #endif

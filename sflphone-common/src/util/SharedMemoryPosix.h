@@ -86,9 +86,14 @@ public:
 	}
 
 	/**
+	 * @return The size of the current shared memory region in bytes, as seen from fstat.
+	 */
+	off_t getFileSize() throw(SharedMemoryException);
+
+	/**
 	 * @return The size of the current shared memory region in bytes.
 	 */
-	off_t getSize() throw(SharedMemoryException);
+	off_t getSize();
 
 	/**
 	 * Remove the shared memory object.

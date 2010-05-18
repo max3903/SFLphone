@@ -50,7 +50,7 @@ typedef struct {
 /**
  * @return A new sflphone_video_endpoint type of object.
  */
-sflphone_video_endpoint_t* sflphone_video_init_();
+sflphone_video_endpoint_t* sflphone_video_init();
 
 /**
  * @return A new sflphone_video_endpoint type of object.

@@ -73,8 +73,6 @@ class VideoEndpoint : public VideoFrameObserver
 
 		SharedMemoryPosix* shmVideoSource;
 		SharedMemoryPosix* shmRwLockVideoSource;
-
-		pthread_rwlock_t readerWriterLock;
 };
 
 }

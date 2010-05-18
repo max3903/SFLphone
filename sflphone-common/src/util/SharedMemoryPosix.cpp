@@ -57,13 +57,11 @@ SharedMemoryPosix::SharedMemoryPosix(const std::string& name, bool exclusive, st
 		throw SharedMemoryException(std::string("shm_open(): ") + strerror(errno));
 	}
 	
-	_debug("fd is %d", fd);
-
 	if ((mode & std::ios::in) || (mode & std::ios::trunc)) {
 		this->truncate();
 	} else {
 		// We are in read-only mode and we need to figure out the existing size of the shm before mmap().
-		this->size = getSize();
+		this->size = getFileSize();
 	}
 
 	this->attach();
@@ -105,17 +103,22 @@ void SharedMemoryPosix::truncate(off_t size) throw(SharedMemoryException)
 	attach();
 }
 
-off_t SharedMemoryPosix::getSize() throw(SharedMemoryException)
+off_t SharedMemoryPosix::getFileSize() throw(SharedMemoryException)
 {
-	_debug("fd is %d in getsize", fd);
 	assert(fd);
 
 	struct stat buffer;
 	if (fstat(fd, &buffer) < 0) {
-		throw SharedMemoryException(std::string("Getsize: ") + strerror(errno));
+		throw SharedMemoryException(std::string("getFileSize: ") + strerror(errno));
 	}
 
+	_debug("shm (%s) is %d bytes long", name.c_str(), buffer.st_size);
 	return buffer.st_size;
+}
+
+off_t SharedMemoryPosix::getSize()
+{
+	return size;
 }
 
 void SharedMemoryPosix::attach() throw(SharedMemoryException)

@@ -41,11 +41,13 @@ video_pane_class_init (VideoPaneClass *klass)
 void capture_cb(GtkWidget *widget, gpointer data)
 {
   VideoPanePrivate* priv = GET_PRIVATE((VideoPane *) data);
-  gchar * device = gtk_combo_box_get_active_text(priv->devices_combo);
+  gchar * device = gtk_combo_box_get_active_text((GtkComboBox*) priv->devices_combo);
 
-  DEBUG("Starting capture on %s", device);
+  DEBUG("Setting capture on %s", device);
 
   video_cairo_set_source(priv->video_cairo, device);
+
+  DEBUG("Starting capture ...")
   video_cairo_start(priv->video_cairo);
 }
 
