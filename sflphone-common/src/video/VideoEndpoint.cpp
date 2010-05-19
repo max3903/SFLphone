@@ -16,9 +16,6 @@ namespace sfl
 VideoEndpoint::VideoEndpoint(VideoInputSource* src) {
 	videoSource = src;
 
-	// Register this object as a frame observer
-	videoSource->addVideoFrameObserver(this);
-
 	// Create a Reader-Writer lock in shared memory
 	pthread_rwlockattr_t readerWriterAttributes;
 	pthread_rwlockattr_init(&readerWriterAttributes);
@@ -38,6 +35,9 @@ VideoEndpoint::VideoEndpoint(VideoInputSource* src) {
 	memcpy(shmRwLockVideoSource->getRegion(), &readerWriterLock, sizeof(readerWriterLock));
 
 	_debug("Lock written to shared memory. %d bytes long.", shmRwLockVideoSource->getSize());
+
+	// Register this object as a frame observer
+	videoSource->addVideoFrameObserver(this);
 }
 
 std::string VideoEndpoint::getShmName()
