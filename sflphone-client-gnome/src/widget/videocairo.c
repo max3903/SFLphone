@@ -9,7 +9,9 @@
 typedef struct _VideoCairoPrivate VideoCairoPrivate;
 struct _VideoCairoPrivate
 {
-  cairo_surface_t* image;
+  cairo_surface_t* surface;
+  unsigned char* image_data;
+  int image_stride;
   gchar* source;
   sflphone_video_endpoint_t* endpt;
 };
@@ -36,9 +38,10 @@ video_cairo_set_property (GObject *object, guint property_id,
   switch (property_id)
     {
   case PROP_SOURCE:
-    DEBUG("Setting source %s", g_value_get_string (value));
+    DEBUG("Setting source %s", g_value_get_string (value))
+    ;
     priv->source = g_strdup (g_value_get_string (value));
-    sflphone_video_set_device(priv->endpt, priv->source);
+    sflphone_video_set_device (priv->endpt, priv->source);
     break;
   default:
     G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);
@@ -63,16 +66,70 @@ video_cairo_get_property (GObject *object, guint property_id, GValue *value,
 }
 
 void
-video_cairo_set_source(VideoCairo* video_cairo, gchar* source)
+video_cairo_set_source (VideoCairo* video_cairo, gchar* source)
 {
   DEBUG("video_cairo_set_source (%s)", source);
   g_object_set (G_OBJECT(video_cairo), "source", source, NULL);
 }
 
+static char*
+get_timestamp ()
+{
+  time_t rawtime;
+  time (&rawtime);
+
+  struct tm* timeinfo = localtime (&rawtime);
+
+  char* output = (char*) malloc(sizeof(char)*80);
+  strftime (output, 80, "%d-%m-%Y-%H-%M-%S", timeinfo);
+
+  return output;
+}
+
 static void
-on_new_frame_cb (uint8_t* frame)
+cairo_dump_buffer (guchar* pucPixelBuffer, /* pointer to image-data */
+gint iWidth, /* width of image        */
+gint iHeight /* height of image       */)
+{
+  cairo_surface_t* pSurface = NULL;
+  cairo_status_t status = CAIRO_STATUS_SUCCESS;
+
+  /* sanity check */
+  g_assert (pucPixelBuffer != NULL);
+  g_assert (iHeight != 0);
+
+  /* create surface from supplied texture-data */
+  pSurface = cairo_image_surface_create_for_data (pucPixelBuffer,
+      CAIRO_FORMAT_A8, iWidth, iHeight, iWidth);
+  /* check for errors */
+  status = cairo_surface_status (pSurface);
+  if (status != CAIRO_STATUS_SUCCESS)
+    {
+      ERROR("While creating cairo surface for dumping image to png : (%s)", cairo_status_to_string (status));
+      return;
+    }
+
+  gchar* timestamp = get_timestamp();
+  gchar* filename = g_strconcat("buffer-dump-", timestamp, ".png", NULL);
+  free(timestamp);
+  DEBUG("Writing filename : %s", filename);
+  cairo_surface_write_to_png (pSurface, filename);
+  g_free(filename);
+
+
+  cairo_surface_destroy (pSurface);
+
+}
+
+static void
+on_new_frame_cb (uint8_t* frame, void* widget)
 {
   DEBUG("Got frame");
+
+  VideoCairoPrivate* priv = VIDEO_CAIRO_GET_PRIVATE((VideoCairo*) widget);
+
+  // gtk_widget_queue_draw(GTK_WIDGET(widget));
+  cairo_dump_buffer (frame, 320, 240);
 }
 
 static void
@@ -80,17 +137,22 @@ video_cairo_init (VideoCairo *self)
 {
   VideoCairoPrivate *priv = VIDEO_CAIRO_GET_PRIVATE(self);
 
-  DEBUG("********************** VIDEO Cairo init");
+  DEBUG("********************** VIDEO Cairo init **********************");
 
-  priv->image
-      = cairo_image_surface_create_from_png (
-          "/home/pierre-luc/workspace/sflphone/sflphone-client-gnome/src/widget/image.png");
+  //priv->surface
+  //    = cairo_image_surface_create_from_png (
+  //        "/home/pierre-luc/workspace/sflphone/sflphone-client-gnome/src/widget/image.png");
+
+  priv->image_stride = cairo_format_stride_for_width (CAIRO_FORMAT_RGB24, 320);
+  priv->image_data = (unsigned char*) malloc (priv->image_stride * 240);
+  priv->surface = cairo_image_surface_create_for_data (priv->image_data,
+      CAIRO_FORMAT_RGB24, 320, 240, priv->image_stride);
 
   priv->endpt = sflphone_video_init ();
 
   DEBUG("Video endpoint initialized");
 
-  sflphone_video_add_observer (priv->endpt, &on_new_frame_cb);
+  sflphone_video_add_observer (priv->endpt, &on_new_frame_cb, self);
   DEBUG("Registered as an observer");
 }
 
@@ -100,6 +162,8 @@ video_cairo_finalize (GObject *object)
   VideoCairo *self = VIDEO_CAIRO(object);
   VideoCairoPrivate *priv = VIDEO_CAIRO_GET_PRIVATE(self);
 
+  free (priv->image_data);
+  cairo_surface_destroy (priv->surface);
   g_free (priv->source);
   g_free (priv);
 
@@ -142,7 +206,8 @@ video_cairo_expose (GtkWidget *cairo, GdkEventExpose *event)
   VideoCairoPrivate *priv;
   priv = VIDEO_CAIRO_GET_PRIVATE (cairo);
 
-  cairo_set_source_surface (cr, priv->image, event->area.x, event->area.y);
+  DEBUG("Expose event for video cairo widget invalidate %d %d", event->area.x, event->area.y);
+  cairo_set_source_surface (cr, priv->surface, event->area.x, event->area.y);
   cairo_paint (cr);
   cairo_destroy (cr);
 
@@ -185,20 +250,22 @@ video_cairo_new_with_source (const gchar *source)
 VideoCairo*
 video_cairo_new ()
 {
-  return video_cairo_new_with_source("");
+  return video_cairo_new_with_source ("");
 }
 
-int video_cairo_start(VideoCairo* self)
+int
+video_cairo_start (VideoCairo* self)
 {
   VideoCairoPrivate* priv = VIDEO_CAIRO_GET_PRIVATE(self);
-  sflphone_video_open(priv->endpt);
-  sflphone_video_start_async(priv->endpt);
+  sflphone_video_open (priv->endpt);
+  sflphone_video_start_async (priv->endpt);
 }
 
-int video_cairo_stop(VideoCairo* self)
+int
+video_cairo_stop (VideoCairo* self)
 {
   VideoCairoPrivate* priv = VIDEO_CAIRO_GET_PRIVATE(self);
-  sflphone_video_stop_async(priv->endpt);
-  sflphone_video_close(priv->endpt);
+  sflphone_video_stop_async (priv->endpt);
+  sflphone_video_close (priv->endpt);
 }
 

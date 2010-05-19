@@ -60,7 +60,6 @@ void VideoInputSourceGst::open(int width, int height, int fps)
 	gchar* command = NULL;
 	command = g_strdup_printf(
 			"%s ! appsink max_buffers=2 drop=true caps=video/x-raw-yuv"
-				",format=(fourcc)I420"
 				",width=%d"
 				",height=%d"
 				",framerate=(fraction)%d/1 name=%s",

@@ -28,8 +28,10 @@
 
 /**
  * Callback type for the arrival of new frames.
+ * @param frame The frame that was captured.
+ * @param user_data User supplied data to be passed to the callback function.
  */
-typedef void(*frame_observer)(uint8_t*);
+typedef void(*frame_observer)(uint8_t* frame, void* user_data);
 
 /**
  * Opaque structure. Do not manipulate directly.
@@ -85,8 +87,11 @@ int sflphone_video_close(sflphone_video_endpoint_t* endpt);
 /**
  * Register a callback function for asynchronous notification upon
  * the arrival of new video frames.
+ * @param endpt An existing sflphone_video_endpoint type of object.
+ * @param obs The callback function.
+ * @param data User supplied data to be passed to the callback function.
  */
-int sflphone_video_add_observer(sflphone_video_endpoint_t* endpt, frame_observer obs);
+int sflphone_video_add_observer(sflphone_video_endpoint_t* endpt, frame_observer obs, void* data);
 
 /**
  * Remove an observer from the observer list.

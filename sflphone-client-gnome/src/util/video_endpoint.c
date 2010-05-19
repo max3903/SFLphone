@@ -26,6 +26,11 @@
 
 #include "dbus/dbus.h"
 
+typedef struct {
+  frame_observer cb;
+  void * data;
+} observer_t;
+
 sflphone_video_endpoint_t* sflphone_video_init()
 {
   return sflphone_video_init_with_device("");
@@ -94,25 +99,32 @@ int sflphone_video_close(sflphone_video_endpoint_t* endpt)
   free(endpt->frame);
 }
 
-int sflphone_video_add_observer(sflphone_video_endpoint_t* endpt, frame_observer obs)
+int sflphone_video_add_observer(sflphone_video_endpoint_t* endpt, frame_observer obs, void* data)
 {
-  DEBUG("Trying to call observer");
+  observer_t* observer_context = (observer_t*) malloc(sizeof(observer_t));
+  if (observer_context == NULL) {
+    return -1;
+  }
 
-  obs(NULL);
+  observer_context->cb = obs;
+  observer_context->data = data;
 
-  endpt->observers = g_slist_append(endpt->observers, (gpointer) obs);
+  endpt->observers = g_slist_append(endpt->observers, (gpointer) observer_context);
 }
 
 int sflphone_video_remove_observer(sflphone_video_endpoint_t* endpt, frame_observer obs)
 {
+  // FIXME free the structure correctly.
   endpt->observers = g_slist_remove(endpt->observers, (gpointer) obs);
 }
 
 static void notify_observer(gpointer obs, gpointer frame)
 {
-  frame_observer observer_cb = (frame_observer) obs;
+  observer_t* observer_ctx = (observer_t*) obs;
+  frame_observer frame_cb = observer_ctx->cb;
+  void * data = observer_ctx->data;
 
-  observer_cb((uint8_t*) frame);
+  frame_cb((uint8_t*) frame, data);
 }
 
 static notify_all_observers(sflphone_video_endpoint_t* endpt, uint8_t* frame)
