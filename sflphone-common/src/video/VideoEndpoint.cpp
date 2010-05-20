@@ -16,23 +16,21 @@ namespace sfl
 VideoEndpoint::VideoEndpoint(VideoInputSource* src) {
 	videoSource = src;
 
-	// Create a Reader-Writer lock in shared memory
-	pthread_rwlockattr_t readerWriterAttributes;
-	pthread_rwlockattr_init(&readerWriterAttributes);
-	pthread_rwlockattr_setpshared(&readerWriterAttributes, PTHREAD_PROCESS_SHARED);
-
-	pthread_rwlock_t readerWriterLock;
-	pthread_rwlock_init(&readerWriterLock, &readerWriterAttributes);
-	pthread_rwlockattr_destroy(&readerWriterAttributes);
-
 	// Create a shared memory segment for video
 	_debug((std::string("Creating ") + std::string("/sflphone-shm-") + src->getDevice()->toString()).c_str());
 	shmVideoSource = new SharedMemoryPosix("/sflphone-shm-" + src->getDevice()->toString(), false);
 
 	// Create a shared memory segment for the lock alone (easier than placing it in the same segment)
 	shmRwLockVideoSource = new SharedMemoryPosix("/sflphone-shm-" + src->getDevice()->toString() + "-rwlock", false); //TODO Either move the lock within the shm in a struct, or add dbus binding to get the path to the lock.
-	shmRwLockVideoSource->truncate(sizeof(readerWriterLock));
-	memcpy(shmRwLockVideoSource->getRegion(), &readerWriterLock, sizeof(readerWriterLock));
+	shmRwLockVideoSource->truncate(sizeof(pthread_rwlock_t));
+
+	// Create a Reader-Writer lock in shared memory
+	pthread_rwlockattr_t readerWriterAttributes;
+	pthread_rwlockattr_init(&readerWriterAttributes);
+	pthread_rwlockattr_setpshared(&readerWriterAttributes, PTHREAD_PROCESS_SHARED);
+
+	pthread_rwlock_init((pthread_rwlock_t*)shmRwLockVideoSource->getRegion(), &readerWriterAttributes);
+	pthread_rwlockattr_destroy(&readerWriterAttributes);
 
 	_debug("Lock written to shared memory. %d bytes long.", shmRwLockVideoSource->getSize());
 

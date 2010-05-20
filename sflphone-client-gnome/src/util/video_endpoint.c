@@ -23,6 +23,7 @@
 #include <glib.h>
 #include <pthread.h>
 #include <string.h>
+#include <assert.h>
 
 #include "dbus/dbus.h"
 
@@ -45,11 +46,9 @@ sflphone_video_endpoint_t* sflphone_video_init_with_device(gchar * device)
 
   endpt->device = g_strdup(device);
   endpt->observers = NULL;
-
-  endpt->shm_frame = sflphone_shm_new(device);
-  endpt->shm_lock = sflphone_shm_new(device);
-
   endpt->frame = NULL;
+  endpt->shm_frame = sflphone_shm_new();
+  endpt->shm_lock = sflphone_shm_new();
 
   return endpt;
 }
@@ -77,11 +76,10 @@ int sflphone_video_open(sflphone_video_endpoint_t* endpt)
     return -1;
   }
 
-  gchar* lock_path = g_strconcat(path, "-rwlock", NULL); // FIXME This is implicit. Should not rely on it like that.
-
+  // Set path to the shm device. We can only know at that point.
   sflphone_shm_set_path(endpt->shm_frame, path);
+  gchar* lock_path = g_strconcat(path, "-rwlock", NULL); // FIXME This is implicit. Should not rely on it like that.
   sflphone_shm_set_path(endpt->shm_lock, lock_path);
-
   g_free(lock_path);
 
   sflphone_shm_open(endpt->shm_frame);
@@ -143,18 +141,13 @@ static void* capturing_thread(void* params)
 {
   sflphone_video_endpoint_t* endpt = (sflphone_video_endpoint_t*) params;
   while (1) {
-    // Quickly release the lock
-    // pthread_rwlock_rdlock(endpt->lock);
     DEBUG("Sleeping for 1 ...");
     sleep(1);
-      memcpy (endpt->frame, sflphone_shm_get_addr(endpt->shm_frame), sflphone_shm_get_size(endpt->shm_frame));
-    // pthread_rwlock_unlock(endpt->lock);
+    memcpy (endpt->frame, sflphone_shm_get_addr(endpt->shm_frame), sflphone_shm_get_size(endpt->shm_frame));
 
     // Notify all observers
     DEBUG("Notifying observers.")
     notify_all_observers(endpt, endpt->frame);
-
-    pthread_testcancel(); // Might not work
   }
 }
 

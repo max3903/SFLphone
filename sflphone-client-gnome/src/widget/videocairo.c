@@ -80,7 +80,7 @@ get_timestamp ()
 
   struct tm* timeinfo = localtime (&rawtime);
 
-  char* output = (char*) malloc(sizeof(char)*80);
+  static char output[80];
   strftime (output, 80, "%d-%m-%Y-%H-%M-%S", timeinfo);
 
   return output;
@@ -109,13 +109,11 @@ gint iHeight /* height of image       */)
       return;
     }
 
-  gchar* timestamp = get_timestamp();
-  gchar* filename = g_strconcat("buffer-dump-", timestamp, ".png", NULL);
-  free(timestamp);
+  gchar* filename =
+      g_strconcat ("buffer-dump-", get_timestamp (), ".png", NULL);
   DEBUG("Writing filename : %s", filename);
   cairo_surface_write_to_png (pSurface, filename);
-  g_free(filename);
-
+  g_free (filename);
 
   cairo_surface_destroy (pSurface);
 
@@ -128,29 +126,22 @@ on_new_frame_cb (uint8_t* frame, void* widget)
 
   VideoCairoPrivate* priv = VIDEO_CAIRO_GET_PRIVATE((VideoCairo*) widget);
 
-  // gtk_widget_queue_draw(GTK_WIDGET(widget));
-  cairo_dump_buffer (frame, 320, 240);
+  // Copy the frame into the image surface
+  memcpy (priv->image_data, frame, 320 * 240);
+
+  gtk_widget_queue_draw (GTK_WIDGET(widget));
+  // cairo_dump_buffer (frame, 320, 240);
 }
 
 static void
 video_cairo_init (VideoCairo *self)
 {
   VideoCairoPrivate *priv = VIDEO_CAIRO_GET_PRIVATE(self);
-
-  DEBUG("********************** VIDEO Cairo init **********************");
-
-  //priv->surface
-  //    = cairo_image_surface_create_from_png (
-  //        "/home/pierre-luc/workspace/sflphone/sflphone-client-gnome/src/widget/image.png");
-
-  priv->image_stride = cairo_format_stride_for_width (CAIRO_FORMAT_RGB24, 320);
-  priv->image_data = (unsigned char*) malloc (priv->image_stride * 240);
-  priv->surface = cairo_image_surface_create_for_data (priv->image_data,
-      CAIRO_FORMAT_RGB24, 320, 240, priv->image_stride);
-
   priv->endpt = sflphone_video_init ();
 
-  DEBUG("Video endpoint initialized");
+  priv->image_data = malloc (320 * 240);
+  priv->surface = cairo_image_surface_create_for_data (priv->image_data,
+      CAIRO_FORMAT_A8, 320, 240, 320);
 
   sflphone_video_add_observer (priv->endpt, &on_new_frame_cb, self);
   DEBUG("Registered as an observer");
@@ -196,20 +187,19 @@ video_cairo_class_init (VideoCairoClass *class)
 }
 
 static gboolean
-video_cairo_expose (GtkWidget *cairo, GdkEventExpose *event)
+video_cairo_expose (GtkWidget* cairo_video, GdkEventExpose* event)
 {
   // Redraw on every expose event.
-  cairo_t *cr;
-
-  cr = gdk_cairo_create (cairo->window);
+  cairo_t* cairo_context = gdk_cairo_create (cairo_video->window);
 
   VideoCairoPrivate *priv;
-  priv = VIDEO_CAIRO_GET_PRIVATE (cairo);
+  priv = VIDEO_CAIRO_GET_PRIVATE (cairo_video);
 
   DEBUG("Expose event for video cairo widget invalidate %d %d", event->area.x, event->area.y);
-  cairo_set_source_surface (cr, priv->surface, event->area.x, event->area.y);
-  cairo_paint (cr);
-  cairo_destroy (cr);
+  cairo_set_source_surface (cairo_context, priv->surface, event->area.x,
+      event->area.y);
+  cairo_paint (cairo_context);
+  cairo_destroy (cairo_context);
 
   return FALSE;
 }
