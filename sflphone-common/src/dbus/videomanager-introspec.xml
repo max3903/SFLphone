@@ -32,7 +32,6 @@
 			  A path to the shared memory segment.
 			  </tp:docstring>
 			</arg>
-		</method>
-    
+		</method>    
   </interface>
 </node>

@@ -21,8 +21,9 @@
 #define _SFL_VIDEO_MANAGER_H_
 
 #include "videomanager-glue.h"
-#include <dbus-c++/dbus.h>
+#include "video/VideoInputSource.h"
 
+#include <dbus-c++/dbus.h>
 #include <map>
 
 namespace sfl {
@@ -51,6 +52,12 @@ public:
 	std::string startLocalCapture(const std::string& device);
 
 private :
+	/**
+	 * @param device The device corresponding to the VideoEndpoint
+	 * @return The video endpoint corresponding to the given device.
+	 */
+	sfl::VideoEndpoint* getVideoEndpoint(const std::string& device) throw(sfl::UnknownVideoDeviceException);
+
 	// Key : device name Value : Corresponding VideoEndpoint
 	std::map<std::string, sfl::VideoEndpoint*> videoEndpoints;
 };

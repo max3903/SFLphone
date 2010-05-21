@@ -43,10 +43,8 @@ typedef struct {
 
   // This below should be opaque.
   sflphone_shm_t* shm_frame;
-  sflphone_shm_t* shm_lock;
 
   pthread_t thread;
-  pthread_rwlock_t* lock;
 } sflphone_video_endpoint_t;
 
 /**

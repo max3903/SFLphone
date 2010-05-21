@@ -4,7 +4,8 @@ noinst_LTLIBRARIES = libutil.la
 
 libutil_la_SOURCES = \
 		shm.c \
-		video_endpoint.c 
+		video_endpoint.c \
+		video_event.c
 
 libutil_la_LDFLAGS = @DEPS_LDFLAGS@
 					  

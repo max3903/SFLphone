@@ -79,3 +79,11 @@ std::string VideoManager::startLocalCapture(const std::string& device)
 	return endpoint->getShmName();
 }
 
+sfl::VideoEndpoint* VideoManager::getVideoEndpoint(const std::string& device) throw(sfl::UnknownVideoDeviceException)
+{
+	std::map<std::string, sfl::VideoEndpoint*>::iterator it = videoEndpoints.find(device);
+	if (it == videoEndpoints.end()) {
+		throw sfl::UnknownVideoDeviceException("Could not find device " + device + " in getVideoEndpoint");
+	}
+	return it->second;
+}

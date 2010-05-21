@@ -48,7 +48,6 @@ sflphone_video_endpoint_t* sflphone_video_init_with_device(gchar * device)
   endpt->observers = NULL;
   endpt->frame = NULL;
   endpt->shm_frame = sflphone_shm_new();
-  endpt->shm_lock = sflphone_shm_new();
 
   return endpt;
 }
@@ -56,7 +55,6 @@ sflphone_video_endpoint_t* sflphone_video_init_with_device(gchar * device)
 int sflphone_video_free(sflphone_video_endpoint_t* endpt)
 {
   sflphone_shm_free(endpt->shm_frame);
-  sflphone_shm_free(endpt->shm_lock);
 
   g_slist_free(endpt->observers);
   g_free(endpt->device);
@@ -70,30 +68,24 @@ int sflphone_video_set_device(sflphone_video_endpoint_t * endpt, gchar * device)
 
 int sflphone_video_open(sflphone_video_endpoint_t* endpt)
 {
-  // Instruct the deamon to start video capture
+  // Instruct the daemon to start video capture, if its not already doing it.
   gchar* path = dbus_video_start_local_capture(endpt->device); // FIXME Check return value
   if (g_strcmp0(path, "") == 0) {
     return -1;
   }
 
-  // Set path to the shm device. We can only know at that point.
+  // Subscribe to frame events
+  // sflphone_eventfd_subscribe(fdpasser)
+
+  // Set path to the shm device. We can only know until that point.
   sflphone_shm_set_path(endpt->shm_frame, path);
-  gchar* lock_path = g_strconcat(path, "-rwlock", NULL); // FIXME This is implicit. Should not rely on it like that.
-  sflphone_shm_set_path(endpt->shm_lock, lock_path);
-  g_free(lock_path);
-
   sflphone_shm_open(endpt->shm_frame);
-  sflphone_shm_open(endpt->shm_lock);
-
-  endpt->lock = (pthread_rwlock_t*) sflphone_shm_get_addr(endpt->shm_lock);
   endpt->frame = (uint8_t*) malloc(sflphone_shm_get_size(endpt->shm_frame));
 }
 
 int sflphone_video_close(sflphone_video_endpoint_t* endpt)
 {
   sflphone_shm_close(endpt->shm_frame);
-  sflphone_shm_close(endpt->shm_frame);
-
   free(endpt->frame);
 }
 
