@@ -51,6 +51,7 @@ VideoEndpoint::VideoEndpoint(VideoInputSource* src) :
 
 VideoEndpoint::~VideoEndpoint() {
 	videoSource->removeVideoFrameObserver(this);
+	close(eventFileDescriptor);
 	shmVideoSource->remove();
 }
 
@@ -61,6 +62,11 @@ VideoInputSource* VideoEndpoint::getVideoInputSource() {
 std::string VideoEndpoint::getShmName() {
 	return shmVideoSource->getName();
 }
+
+std::string VideoEndpoint::getFdPasserName() {
+	return sourceEventFdPasser->getAbstractNamespace();
+}
+
 
 void VideoEndpoint::onNewFrame(const VideoFrame* frame) {
 	if (!frame) {
@@ -84,6 +90,7 @@ void VideoEndpoint::onNewFrame(const VideoFrame* frame) {
 }
 
 void VideoEndpoint::brodcastSourceEvent() {
+	_debug("Broadcasting NEW_FRAME_EVENT");
 	eventfd_write(eventFileDescriptor, NEW_FRAME_EVENT);
 }
 

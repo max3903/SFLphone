@@ -1,8 +1,11 @@
 #include "FileDescriptorPasser.h"
+#include "logger.h"
 
 #include <stdio.h>
+#include <string.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <errno.h>
 
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -51,26 +54,38 @@ void FileDescriptorPasser::initial() {
 	int len = sizeof(server_address.sun_family) + strlen(
 			path.c_str()) + 1;
 
-	bind(serverSocket, (struct sockaddr *) &server_address, len);
-	listen(serverSocket, 1);
+	if (bind(serverSocket, (struct sockaddr *) &server_address, len) < 0) {
+		_error("Failed to bind() %s:%d: %s", __FILE__, __LINE__, strerror(errno));
+	}
+
+	if (listen(serverSocket, 1) < 0) {
+		_error("Failed to listen() %s:%d: %s", __FILE__, __LINE__, strerror(errno));
+	}
 }
 
 void FileDescriptorPasser::run() {
+
+	_debug("Starting FD passer %s", path.c_str());
 
 	while (isRunning()) {
 		struct sockaddr_un clientAddress;
 		socklen_t clientAddressLength = sizeof clientAddress;
 
+		_debug("Accepting ...");
 		int clientConnection = accept(serverSocket,
 				(struct sockaddr *) &clientAddress, &clientAddressLength);
+		_debug("Client accepted.");
 
-		sendmsg(clientConnection, &message, 0);
+		if (sendmsg(clientConnection, &message, 0) < 0) {
+			_error("Failed to sendmsg() %s:%d: %s", __FILE__, __LINE__, strerror(errno));
+		}
 
 		::close(clientConnection);
 
 		yield();
 	}
 
+	_debug ("FD passer thread exited.");
 }
 
 void FileDescriptorPasser::final() {

@@ -21,6 +21,7 @@
 #define __VIDEO_ENDPOINT_H__
 
 #include "shm.h"
+#include "video_event.h"
 
 #include <glib.h>
 #include <pthread.h>
@@ -37,14 +38,13 @@ typedef void(*frame_observer)(uint8_t* frame, void* user_data);
  * Opaque structure. Do not manipulate directly.
  */
 typedef struct {
+  uint8_t * frame;
   GSList* observers;
   gchar* device;
-  uint8_t * frame;
-
-  // This below should be opaque.
-  sflphone_shm_t* shm_frame;
-
   pthread_t thread;
+  sflphone_shm_t* shm_frame;
+  sflphone_event_listener_t* event_listener;
+
 } sflphone_video_endpoint_t;
 
 /**

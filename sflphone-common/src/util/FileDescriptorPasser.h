@@ -36,6 +36,11 @@ public:
 	 */
 	FileDescriptorPasser(const std::string& abstractNamespace, int fd);
 
+	/**
+	 * @return The namespace for that running instance.
+	 */
+	std::string getAbstractNamespace() { return path; };
+
 	virtual ~FileDescriptorPasser() {};
 
 protected:

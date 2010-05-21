@@ -2717,7 +2717,7 @@ gchar*
 dbus_video_start_local_capture(gchar * device)
 {
   GError *error = NULL;
-  char *shm = NULL;
+  gchar *shm = NULL;
 
   org_sflphone_SFLphone_VideoManager_start_local_capture(videoManagerProxy, device, &shm, &error);
   if(error != NULL) {
@@ -2726,4 +2726,19 @@ dbus_video_start_local_capture(gchar * device)
   }
 
   return shm;
+}
+
+gchar*
+dbus_video_get_fd_passer_namespace(gchar * device)
+{
+  GError *error = NULL;
+  gchar *fdpasser = NULL;
+
+  org_sflphone_SFLphone_VideoManager_get_event_fd_passer_namespace(videoManagerProxy, device, &fdpasser, &error);
+  if(error != NULL) {
+    ERROR ("Caught remote method (startLocalCapture) exception  %s: %s", dbus_g_error_get_name(error), error->message);
+    g_error_free(error);
+  }
+
+  return fdpasser;
 }

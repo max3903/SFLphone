@@ -51,6 +51,12 @@ public:
 	 */
 	std::string startLocalCapture(const std::string& device);
 
+	/**
+	 * @param device The device of interest for event notifications (frame capture).
+	 * @return The namespace of a running instance of a file descriptor passer for the corresponding device.
+	 */
+	std::string getEventFdPasserNamespace(const std::string& device);
+
 private :
 	/**
 	 * @param device The device corresponding to the VideoEndpoint

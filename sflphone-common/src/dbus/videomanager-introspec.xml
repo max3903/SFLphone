@@ -32,6 +32,28 @@
 			  A path to the shared memory segment.
 			  </tp:docstring>
 			</arg>
-		</method>    
+		</method>  
+		
+		<method name="getEventFdPasserNamespace" tp:name-for-bindings="getEventFdPasserNamespace">
+			<tp:added version="0.9.9"/>
+			<tp:docstring>
+			Retreive the namespace of a running instance of a file descriptor passer in the UNIX domain. This so-called file descriptor passer
+			is only used for passing the fd corresponding to an eventfd() source. It would be possible with DBUS alone, but only 
+			starting from 1.3.
+			</tp:docstring>
+			
+			<arg type="s" name="device" direction="in">
+			  <tp:docstring>
+			   The device of interest for event notifications (frame capture).
+			  </tp:docstring>
+			</arg>
+			
+			<arg type="s" name="path" direction="out">
+			  <tp:docstring>
+			  The namespace of a running instance of a file descriptor passer for the corresponding device.
+			  </tp:docstring>
+			</arg>
+		</method>   
+				  
   </interface>
 </node>

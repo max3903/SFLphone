@@ -18,6 +18,7 @@
  */
 
 #include "video_endpoint.h"
+#include "video_event.h"
 #include "sflphone_const.h"
 
 #include <glib.h>
@@ -48,7 +49,7 @@ sflphone_video_endpoint_t* sflphone_video_init_with_device(gchar * device)
   endpt->observers = NULL;
   endpt->frame = NULL;
   endpt->shm_frame = sflphone_shm_new();
-
+  endpt->event_listener = NULL;
   return endpt;
 }
 
@@ -68,14 +69,17 @@ int sflphone_video_set_device(sflphone_video_endpoint_t * endpt, gchar * device)
 
 int sflphone_video_open(sflphone_video_endpoint_t* endpt)
 {
-  // Instruct the daemon to start video capture, if its not already doing it.
+  // Instruct the daemon to start video capture, if it's not already doing so.
   gchar* path = dbus_video_start_local_capture(endpt->device); // FIXME Check return value
   if (g_strcmp0(path, "") == 0) {
     return -1;
   }
 
-  // Subscribe to frame events
-  // sflphone_eventfd_subscribe(fdpasser)
+  // Initialise event notification for frame capture.
+  endpt->event_listener = sflphone_eventfd_init(endpt->device);
+  if (endpt->event_listener) {
+    return -1;
+  }
 
   // Set path to the shm device. We can only know until that point.
   sflphone_shm_set_path(endpt->shm_frame, path);
@@ -85,6 +89,7 @@ int sflphone_video_open(sflphone_video_endpoint_t* endpt)
 
 int sflphone_video_close(sflphone_video_endpoint_t* endpt)
 {
+  sflphone_eventfd_free(endpt->event_listener);
   sflphone_shm_close(endpt->shm_frame);
   free(endpt->frame);
 }
@@ -132,9 +137,12 @@ static notify_all_observers(sflphone_video_endpoint_t* endpt, uint8_t* frame)
 static void* capturing_thread(void* params)
 {
   sflphone_video_endpoint_t* endpt = (sflphone_video_endpoint_t*) params;
+
   while (1) {
-    DEBUG("Sleeping for 1 ...");
-    sleep(1);
+    // Blocking call
+    sflphone_eventfd_catch(endpt->event_listener); // TODO We assume that the only event is NEW_FRAME. This might change if we ever have new events.
+
+    // Go get the frame as fast as possible
     memcpy (endpt->frame, sflphone_shm_get_addr(endpt->shm_frame), sflphone_shm_get_size(endpt->shm_frame));
 
     // Notify all observers

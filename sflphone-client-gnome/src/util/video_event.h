@@ -11,12 +11,13 @@ typedef enum {
 
 /**
  * Initialize an event listener.
- * @param fd_passer The abstract namespace representing a running instance of a "file descriptor passer" in the UNIX domain.
+ * The abstract namespace representing a running instance of a "file descriptor passer" in the UNIX domain is obtained through DBUS.
  * This one will be used only once to transfer the file descriptor for the eventfd() channel.
  * @return A new instance of a sflphone_event_listener_t object. It's up to the user to free the object once finished.
  * NULL is returned in case of an error.
+ * @param device The device for which to receive notifications.
  */
-sflphone_event_listener_t* sflphone_eventfd_init(const char* fd_passer);
+sflphone_event_listener_t* sflphone_eventfd_init(const char* device);
 
 /**
  * Blocking call for capturing new event.

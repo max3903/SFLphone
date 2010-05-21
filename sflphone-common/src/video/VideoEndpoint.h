@@ -74,6 +74,11 @@ class VideoEndpoint : public VideoFrameObserver
 		std::string getShmName();
 
 		/**
+		 * @return The name for the fd passer.
+		 */
+		std::string getFdPasserName();
+
+		/**
 		 * @Override
 		 */
 		void onNewFrame(const VideoFrame* frame);

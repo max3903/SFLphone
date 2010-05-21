@@ -79,6 +79,20 @@ std::string VideoManager::startLocalCapture(const std::string& device)
 	return endpoint->getShmName();
 }
 
+std::string VideoManager::getEventFdPasserNamespace(const std::string& device)
+{
+	sfl::VideoEndpoint* endpt;
+	try {
+		endpt = getVideoEndpoint(device);
+	} catch (sfl::UnknownVideoDeviceException e) {
+		_debug("%s", e.what());
+	}
+
+	_debug("**************** Returning passer namespace %s", endpt->getFdPasserName().c_str());
+	return endpt->getFdPasserName();
+}
+
+
 sfl::VideoEndpoint* VideoManager::getVideoEndpoint(const std::string& device) throw(sfl::UnknownVideoDeviceException)
 {
 	std::map<std::string, sfl::VideoEndpoint*>::iterator it = videoEndpoints.find(device);
