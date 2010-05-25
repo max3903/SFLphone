@@ -647,18 +647,17 @@ connect_to_call_manager (DBusGConnection * connection)
 static DBusGProxy *
 connect_to_instance_proxy (DBusGConnection * connection)
 {
-
   DBusGProxy* instance = dbus_g_proxy_new_for_name (connection,
-        "org.sflphone.SFLphone", "/org/sflphone/SFLphone/Instance",
-        "org.sflphone.SFLphone.Instance");
-    if (instance == NULL)
-      {
-        ERROR ("Failed to get proxy to Instance");
-        return NULL;
-      }
-    DEBUG ("DBus connected to Instance");
+      "org.sflphone.SFLphone", "/org/sflphone/SFLphone/Instance",
+      "org.sflphone.SFLphone.Instance");
+  if (instance == NULL)
+    {
+      ERROR ("Failed to get proxy to Instance");
+      return NULL;
+    }
+  DEBUG ("DBus connected to Instance");
 
-    return instance;
+  return instance;
 }
 
 /**
@@ -691,35 +690,40 @@ dbus_connect ()
   g_type_init ();
 
   connection = dbus_g_bus_get (DBUS_BUS_SESSION, &error);
-  if (error) {
-    ERROR ("Failed to open connection to bus: %s", error->message);
-    g_error_free (error);
-    return FALSE;
-  }
+  if (error)
+    {
+      ERROR ("Failed to open connection to bus: %s", error->message);
+      g_error_free (error);
+      return FALSE;
+    }
 
   /* Create a proxy object for the "bus driver" (name "org.freedesktop.DBus") */
-  instanceProxy = connect_to_instance_proxy(connection);
-  if (instanceProxy == NULL) {
-    return FALSE;
-  }
+  instanceProxy = connect_to_instance_proxy (connection);
+  if (instanceProxy == NULL)
+    {
+      return FALSE;
+    }
 
   /* Connect to the call manager */
   callManagerProxy = connect_to_call_manager (connection);
-  if (callManagerProxy == NULL) {
-    return FALSE;
-  }
+  if (callManagerProxy == NULL)
+    {
+      return FALSE;
+    }
 
   /* Connect to the configuration manager */
   configurationManagerProxy = connect_to_configuration_manager (connection);
-  if (configurationManagerProxy == NULL) {
-    return FALSE;
-  }
+  if (configurationManagerProxy == NULL)
+    {
+      return FALSE;
+    }
 
   /* Connect to the video manager */
   videoManagerProxy = connect_to_video_manager (connection);
-  if (videoManagerProxy == NULL) {
-    return FALSE;
-  }
+  if (videoManagerProxy == NULL)
+    {
+      return FALSE;
+    }
 
   /* Defines a default timeout for the proxies */
 #if HAVE_DBUS_G_PROXY_SET_DEFAULT_TIMEOUT
@@ -2698,47 +2702,53 @@ dbus_is_status_icon_enabled (void)
 }
 
 gchar**
-dbus_video_enumerate_devices(void)
+dbus_video_enumerate_devices (void)
 {
 
   GError *error = NULL;
   char ** array = NULL;
 
-  org_sflphone_SFLphone_VideoManager_enumerate_devices(videoManagerProxy, &array, &error);
-  if (error != NULL) {
-     ERROR("Failed to enumerate devices over dbus.");
-     g_error_free (error);
-  }
+  org_sflphone_SFLphone_VideoManager_enumerate_devices (videoManagerProxy,
+      &array, &error);
+  if (error != NULL)
+    {
+      ERROR("Failed to enumerate devices over dbus.");
+      g_error_free (error);
+    }
 
   return array;
 }
 
 gchar*
-dbus_video_start_local_capture(gchar * device)
+dbus_video_start_local_capture (gchar * device)
 {
   GError *error = NULL;
   gchar *shm = NULL;
 
-  org_sflphone_SFLphone_VideoManager_start_local_capture(videoManagerProxy, device, &shm, &error);
-  if(error != NULL) {
-    ERROR ("Caught remote method (startLocalCapture) exception  %s: %s", dbus_g_error_get_name(error), error->message);
-    g_error_free(error);
-  }
+  org_sflphone_SFLphone_VideoManager_start_local_capture (videoManagerProxy,
+      device, &shm, &error);
+  if (error != NULL)
+    {
+      ERROR ("Caught remote method (startLocalCapture) exception  %s: %s", dbus_g_error_get_name(error), error->message);
+      g_error_free (error);
+    }
 
   return shm;
 }
 
 gchar*
-dbus_video_get_fd_passer_namespace(gchar * device)
+dbus_video_get_fd_passer_namespace (gchar * device)
 {
   GError *error = NULL;
   gchar *fdpasser = NULL;
 
-  org_sflphone_SFLphone_VideoManager_get_event_fd_passer_namespace(videoManagerProxy, device, &fdpasser, &error);
-  if(error != NULL) {
-    ERROR ("Caught remote method (startLocalCapture) exception  %s: %s", dbus_g_error_get_name(error), error->message);
-    g_error_free(error);
-  }
+  org_sflphone_SFLphone_VideoManager_get_event_fd_passer_namespace (
+      videoManagerProxy, device, &fdpasser, &error);
+  if (error != NULL)
+    {
+      ERROR ("Caught remote method (startLocalCapture) exception  %s: %s", dbus_g_error_get_name(error), error->message);
+      g_error_free (error);
+    }
 
   return fdpasser;
 }

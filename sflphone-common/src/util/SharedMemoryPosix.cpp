@@ -58,13 +58,13 @@ SharedMemoryPosix::SharedMemoryPosix(const std::string& name, bool exclusive, st
 	}
 	
 	if ((mode & std::ios::in) || (mode & std::ios::trunc)) {
-		this->truncate();
+		// this->truncate();
 	} else {
 		// We are in read-only mode and we need to figure out the existing size of the shm before mmap().
 		this->size = getFileSize();
 	}
 
-	this->attach();
+	// this->attach();
 }
 
 SharedMemoryPosix::~SharedMemoryPosix()

@@ -25,8 +25,12 @@
 #include <pthread.h>
 #include <string.h>
 #include <assert.h>
+#include <unistd.h>
 
 #include "dbus/dbus.h"
+
+#define MAX_WAIT_SHM_NON_ZERO 2000
+#define WAIT_SHM_TIME 500
 
 typedef struct {
   frame_observer cb;
@@ -71,20 +75,31 @@ int sflphone_video_open(sflphone_video_endpoint_t* endpt)
 {
   // Instruct the daemon to start video capture, if it's not already doing so.
   gchar* path = dbus_video_start_local_capture(endpt->device); // FIXME Check return value
-  if (g_strcmp0(path, "") == 0) {
-    return -1;
-  }
-
-  // Initialise event notification for frame capture.
-  endpt->event_listener = sflphone_eventfd_init(endpt->device);
-  if (endpt->event_listener == NULL) {
+  if (g_strcmp0(path, "/dev/null") == 0) {
     return -1;
   }
 
   // Set path to the shm device. We can only know until that point.
   sflphone_shm_set_path(endpt->shm_frame, path);
   sflphone_shm_open(endpt->shm_frame);
+
+  // Make sure that the shm is non-zero.
+  useconds_t time = 0;
+  while((sflphone_shm_get_size(endpt->shm_frame) == 0)) {
+    usleep(WAIT_SHM_TIME);
+    time += WAIT_SHM_TIME;
+    if ((time > MAX_WAIT_SHM_NON_ZERO)) {
+      ERROR("After %d usec, shm was still 0", MAX_WAIT_SHM_NON_ZERO);
+      return -1;
+    }
+  }
   endpt->frame = (uint8_t*) malloc(sflphone_shm_get_size(endpt->shm_frame));
+
+  // Initialise event notification for frame capture.
+  endpt->event_listener = sflphone_eventfd_init(endpt->device);
+  if (endpt->event_listener == NULL) {
+    return -1;
+  }
 }
 
 int sflphone_video_close(sflphone_video_endpoint_t* endpt)
@@ -124,7 +139,7 @@ static void notify_observer(gpointer obs, gpointer frame)
 
 static notify_all_observers(sflphone_video_endpoint_t* endpt, uint8_t* frame)
 {
-  DEBUG("Notifying all %d observers", g_slist_length(endpt->observers));
+  // DEBUG("Notifying all %d observers", g_slist_length(endpt->observers));
 
   // g_slist_foreach(endpt->observers, notify_observer, (gpointer) frame);
   GSList* obs;
@@ -144,14 +159,13 @@ static void* capturing_thread(void* params)
     sflphone_eventfd_catch(endpt->event_listener);
 
     // Go get the frame as fast as possible
-    DEBUG("Size %d", sflphone_shm_get_size(endpt->shm_frame))
+    // DEBUG("Size %d", sflphone_shm_get_size(endpt->shm_frame))
     memcpy (endpt->frame, sflphone_shm_get_addr(endpt->shm_frame), sflphone_shm_get_size(endpt->shm_frame));
 
     // Notify all observers
     if (endpt->frame == NULL) {
       ERROR("Frame is null in capturing_thread %s:%d", __FILE__, __LINE__);
     } else {
-      DEBUG("Notifying observers.")
       notify_all_observers(endpt, endpt->frame);
     }
 

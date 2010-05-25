@@ -100,7 +100,7 @@ gint iHeight /* height of image       */)
 
   /* create surface from supplied texture-data */
   pSurface = cairo_image_surface_create_for_data (pucPixelBuffer,
-      CAIRO_FORMAT_A8, iWidth, iHeight, iWidth);
+      CAIRO_FORMAT_RGB24, iWidth, iHeight, iWidth);
   /* check for errors */
   status = cairo_surface_status (pSurface);
   if (status != CAIRO_STATUS_SUCCESS)
@@ -116,21 +116,21 @@ gint iHeight /* height of image       */)
   g_free (filename);
 
   cairo_surface_destroy (pSurface);
-
 }
 
 static void
 on_new_frame_cb (uint8_t* frame, void* widget)
 {
-  DEBUG("Got frame");
+  // DEBUG("Got frame");
 
   VideoCairoPrivate* priv = VIDEO_CAIRO_GET_PRIVATE((VideoCairo*) widget);
 
   // Copy the frame into the image surface
-  memcpy (priv->image_data, frame, 320 * 240);
+  memcpy (priv->image_data, frame, 320 * 240 * 4); // FIXME Hard-coding !
+
+  // DEBUG("Status : %s", cairo_status_to_string(cairo_surface_status(priv->surface)));
 
   gtk_widget_queue_draw (GTK_WIDGET(widget));
-  // cairo_dump_buffer (frame, 320, 240);
 }
 
 static void
@@ -139,9 +139,14 @@ video_cairo_init (VideoCairo *self)
   VideoCairoPrivate *priv = VIDEO_CAIRO_GET_PRIVATE(self);
   priv->endpt = sflphone_video_init ();
 
-  priv->image_data = malloc (320 * 240);
+  priv->image_data = malloc (320 * 240 * 4); // FIXME Hard-coding !
+
+  priv->image_stride = cairo_format_stride_for_width (CAIRO_FORMAT_ARGB32, 320);
+  DEBUG("Cairo says %d for stride", priv->image_stride);
+
+  memset (priv->image_data, 0, 320 * 240 * 4); // FIXME Hard-coding !
   priv->surface = cairo_image_surface_create_for_data (priv->image_data,
-      CAIRO_FORMAT_A8, 320, 240, 320);
+      CAIRO_FORMAT_ARGB32, 320, 240, priv->image_stride);
 
   sflphone_video_add_observer (priv->endpt, &on_new_frame_cb, self);
   DEBUG("Registered as an observer");
@@ -181,9 +186,7 @@ video_cairo_class_init (VideoCairoClass *class)
       G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB
           | G_PARAM_READWRITE);
   g_object_class_install_property (obj_class, PROP_SOURCE, param_spec);
-
   g_type_class_add_private (obj_class, sizeof(VideoCairoPrivate));
-
 }
 
 static gboolean
@@ -247,15 +250,17 @@ int
 video_cairo_start (VideoCairo* self)
 {
   VideoCairoPrivate* priv = VIDEO_CAIRO_GET_PRIVATE(self);
-  if (sflphone_video_open (priv->endpt) < 0) {
-    ERROR("Failed to start video %s:%d", __FILE__, __LINE__);
-    return -1;
-  }
+  if (sflphone_video_open (priv->endpt) < 0)
+    {
+      ERROR("Failed to start video %s:%d", __FILE__, __LINE__);
+      return -1;
+    }
 
-  if (sflphone_video_start_async (priv->endpt) < 0) {
-    ERROR("Failed to start video %s:%d", __FILE__, __LINE__);
-    return -1;
-  }
+  if (sflphone_video_start_async (priv->endpt) < 0)
+    {
+      ERROR("Failed to start video %s:%d", __FILE__, __LINE__);
+      return -1;
+    }
 }
 
 int
@@ -265,4 +270,3 @@ video_cairo_stop (VideoCairo* self)
   sflphone_video_stop_async (priv->endpt);
   sflphone_video_close (priv->endpt);
 }
-

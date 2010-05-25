@@ -20,14 +20,15 @@ void VideoInputSource::setDevice(const std::string& device) throw(UnknownVideoDe
 
 	// Search for that name
 	for (it = devices.begin(); it < devices.end(); it++) {
-		_debug("Device %s", (*it)->getName().c_str());
-		if ((*it)->getName() == device) {
+		_debug("Device (%s)", (*it)->getName().c_str());
+		if (device.compare((*it)->getName()) == 0) {
 			setDevice((*it));
+			_debug("Device set");
 			return;
 		}
 	}
 
-	throw  UnknownVideoDeviceException("Device (" + device + ") could not be found");
+	throw UnknownVideoDeviceException("Device (" + device + ") could not be found");
 }
 
 void VideoInputSource::addVideoFrameObserver(VideoFrameObserver* observer) {
@@ -52,7 +53,7 @@ void VideoInputSource::notifyAllFrameObserver() {
 void VideoInputSource::setCurrentFrame(const uint8_t* frame, size_t size) {
 	frameMutex.enterMutex();
 	delete currentFrame;
-	currentFrame = new VideoFrame(frame, size, getHeight(), getWidth());
+	currentFrame = new VideoFrame(frame, size, getDepth(), getHeight(), getWidth());
 	frameMutex.leaveMutex();
 }
 

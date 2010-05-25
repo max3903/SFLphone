@@ -12,6 +12,8 @@
 #include "VideoInputSourceGst.h"
 #include "util/FileDescriptorPasser.h"
 #include "util/SharedMemoryPosix.h"
+#include "dbus/dbusmanager.h"
+#include "dbus/videomanager.h"
 
 namespace sfl {
 
@@ -45,14 +47,9 @@ VideoEndpoint::VideoEndpoint(VideoInputSource* src) :
 			eventFileDescriptor);
 	sourceEventFdPasser->detach();
 
-	_debug("Thread is ready : %d", sourceEventFdPasser->isReady());
-
-	while(!sourceEventFdPasser->isReady()) {
+	while (!sourceEventFdPasser->isReady()) {
 		usleep(BUSY_WAIT_TIME);
 	}
-
-	_debug("After 2 sec : Thread is ready : %d", sourceEventFdPasser->isReady());
-
 
 	// Register this object as a frame observer
 	videoSource->addVideoFrameObserver(this);
@@ -76,7 +73,6 @@ std::string VideoEndpoint::getFdPasserName() {
 	return sourceEventFdPasser->getAbstractNamespace();
 }
 
-
 void VideoEndpoint::onNewFrame(const VideoFrame* frame) {
 	if (!frame) {
 		_error("Null frame in VideoEndpoint"); // FIXME Should not happen.
@@ -84,6 +80,7 @@ void VideoEndpoint::onNewFrame(const VideoFrame* frame) {
 	}
 
 	// Make sure that the shared memory is still big enough to hold the new frame
+	// Should be required once.
 	if (shmVideoSource->getSize() != frame->getSize()) {
 		_debug("Truncating to %d", frame->getSize());
 		shmVideoSource->truncate(frame->getSize());
@@ -93,12 +90,12 @@ void VideoEndpoint::onNewFrame(const VideoFrame* frame) {
 	memcpy(shmVideoSource->getRegion(), frame->getFrame(), frame->getSize());
 
 	// Notify other processes
-	brodcastSourceEvent();
+	broadcastNewFrameEvent();
 
 	// TODO Encode, then sends over RTP
 }
 
-void VideoEndpoint::brodcastSourceEvent() {
+void VideoEndpoint::broadcastNewFrameEvent() {
 	_debug("Broadcasting NEW_FRAME_EVENT");
 	eventfd_write(eventFileDescriptor, NEW_FRAME_EVENT);
 }

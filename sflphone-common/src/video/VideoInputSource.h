@@ -119,7 +119,7 @@ public:
 	 * @param height The frame height.
 	 * @param width The frame width.
 	 */
-	VideoFrame(const uint8_t* frame, const size_t size, unsigned int height,
+	VideoFrame(const uint8_t* frame, const size_t size, unsigned int depth, unsigned int height,
 			unsigned int width) {
 
 		std::cout << "Creating new frame of size ";
@@ -131,6 +131,7 @@ public:
 		this->size = size;
 		this->height = height;
 		this->width = width;
+		this->depth = depth;
 	}
 
 	~VideoFrame()
@@ -159,6 +160,13 @@ public:
 	}
 
 	/**
+	 * @return The frame depth in bytes (eg: 3 bytes)
+	 */
+	unsigned int getDepth() const {
+		return depth;
+	}
+
+	/**
 	 * @return The buffer size.
 	 */
 	size_t getSize() const {
@@ -170,6 +178,7 @@ private:
 	size_t size;
 	unsigned int height;
 	unsigned int width;
+	unsigned int depth;
 };
 
 /**
@@ -269,6 +278,11 @@ public:
 	unsigned int getHeight() { return this->height; }
 
 	/**
+	 * @return The current depth.
+	 */
+	unsigned int getDepth() { return this->depth; }
+
+	/**
 	 * Destructor.
 	 */
 	virtual ~VideoInputSource();
@@ -297,6 +311,11 @@ protected:
 	 */
 	void setHeight(unsigned int height) { this->height = height; }
 
+	/**
+	 * @param depth The current depth.
+	 */
+	void setDepth(unsigned int depth) { this->depth = depth; }
+
 private:
 	ost::Mutex frameMutex;
 	VideoFrame* currentFrame;
@@ -304,6 +323,7 @@ private:
 	std::vector<VideoFrameObserver*> videoFrameObservers;
 	unsigned int width;
 	unsigned int height;
+	unsigned int depth;
 };
 
 }

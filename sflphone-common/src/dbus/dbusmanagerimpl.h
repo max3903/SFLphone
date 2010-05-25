@@ -29,8 +29,10 @@ class VideoManager;
 
 class DBusManagerImpl {
     public:
-        CallManager * getCallManager(){ return _callManager; };
+        CallManager* getCallManager(){ return _callManager; };
+        VideoManager* getVideoManager() { return _videoManager; };
         ConfigurationManager * getConfigurationManager(){ return _configurationManager; };
+
         int exec();
         void exit();
         static const char* SERVER_NAME;

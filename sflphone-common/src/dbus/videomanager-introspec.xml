@@ -54,6 +54,58 @@
 			  </tp:docstring>
 			</arg>
 		</method>   
-				  
+				
+		<signal name="frameAttributesChanged" tp:name-for-bindings="frameAttributesChanged">
+			<tp:docstring>
+			Unused. This signal is being sent when one or multiple frame attributes have changed.
+			</tp:docstring>
+			<arg type="s" name="segment">
+				<tp:docstring>
+				A path to the shared memory segment.
+				</tp:docstring>
+			</arg>	
+			<arg type="u" name="size">
+				<tp:docstring>
+				The new size.
+				</tp:docstring>
+			</arg>
+			<arg type="u" name="depth">
+				<tp:docstring>
+				The new depth.
+				</tp:docstring>
+			</arg>			
+			<arg type="u" name="height">
+				<tp:docstring>
+				The new height.
+				</tp:docstring>
+			</arg>			
+			<arg type="u" name="width">
+				<tp:docstring>
+				The new width.
+				</tp:docstring>
+			</arg>			
+		</signal>
+			
+		<signal name="videoStarted" tp:name-for-bindings="videoStarted">
+			<tp:docstring>
+			This signal is being sent when video capture has started and client can therefore expect to be able to read frames.
+			</tp:docstring>
+			<arg type="s" name="segment">
+				<tp:docstring>
+				A path to the shared memory segment in which this event occurred.
+				</tp:docstring>
+			</arg>			
+		</signal>		
+		
+		<signal name="videoStopped" tp:name-for-bindings="videoStopped">
+			<tp:docstring>
+			This signal is being sent when video capture has stopped and client can therefore expect to be able to read frames.
+			</tp:docstring>
+			<arg type="s" name="segment">
+				<tp:docstring>
+				A path to the shared memory segment in which this event occurred.
+				</tp:docstring>
+			</arg>			
+		</signal>							  
   </interface>
 </node>

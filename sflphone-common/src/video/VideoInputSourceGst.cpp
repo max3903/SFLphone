@@ -59,7 +59,9 @@ void VideoInputSourceGst::open(int width, int height, int fps)
 	// Build the GST graph based on the chosen device.
 	gchar* command = NULL;
 	command = g_strdup_printf(
-			"%s ! appsink max_buffers=2 drop=true caps=video/x-raw-yuv"
+			"%s ! appsink max_buffers=2 drop=true caps=video/x-raw-rgb"
+				",bpp=(int)32"
+				",depth=(int)32"
 				",width=%d"
 				",height=%d"
 				",framerate=(fraction)%d/1 name=%s",
@@ -105,6 +107,9 @@ void VideoInputSourceGst::open(int width, int height, int fps)
 
 	g_free(command);
 	pipelineRunning = true;
+	setWidth(width);
+	setHeight(height);
+	setDepth(32); // FIXME Make this a constant
 }
 
 /**
@@ -233,6 +238,7 @@ std::vector<VideoDevice*> VideoInputSourceGst::getV4l2Devices()
 	GstElement* element = NULL;
 	element = gst_element_factory_make("v4l2src", "v4l2srcpresencetest");
 	if (element == NULL) {
+		_error("V4L2 plugin is missing");
 		throw  MissingGstPluginException("Missing v4l2src plugin.");
 	} else {
 		GstPropertyProbe* probe = NULL;

@@ -87,6 +87,7 @@ class VideoEndpoint : public VideoFrameObserver
 		 * eventfd() constant that represents the arrival of a new frame.
 		 */
 		static const eventfd_t NEW_FRAME_EVENT = 1;
+
 		/**
 		 * Set to "org.sflphone.event" by default.
 		 */
@@ -99,7 +100,8 @@ class VideoEndpoint : public VideoFrameObserver
 		/**
 		 * Broadcast a video event belonging to the source device.
 		 */
-		void brodcastSourceEvent();
+		void broadcastNewFrameEvent();
+
 		/**
 		 * Compute a hash digest for the given name.
 		 */
