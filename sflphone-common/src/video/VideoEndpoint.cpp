@@ -46,7 +46,11 @@ VideoEndpoint::VideoEndpoint(VideoInputSource* src) :
 	sourceEventFdPasser->detach();
 
 	_debug("Thread is ready : %d", sourceEventFdPasser->isReady());
-	sleep(2);
+
+	while(!sourceEventFdPasser->isReady()) {
+		usleep(BUSY_WAIT_TIME);
+	}
+
 	_debug("After 2 sec : Thread is ready : %d", sourceEventFdPasser->isReady());
 
 

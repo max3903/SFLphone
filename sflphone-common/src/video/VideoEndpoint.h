@@ -105,6 +105,8 @@ class VideoEndpoint : public VideoFrameObserver
 		 */
 		std::string getDigest(const std::string& name);
 
+		static const useconds_t BUSY_WAIT_TIME = 500;
+
 		VideoInputSource* videoSource;
 		FileDescriptorPasser* sourceEventFdPasser;
 		SharedMemoryPosix* shmVideoSource;
