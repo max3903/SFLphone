@@ -107,7 +107,7 @@ release (sflphone_shm_t* shm)
 int
 sflphone_shm_open (sflphone_shm_t* shm)
 {
-  DEBUG("Opening shared memory segment (%s)", shm->path);
+  DEBUG("************************* Opening shared memory segment (%s)", shm->path);
 
   // Open
   int shm_fd;
@@ -125,6 +125,7 @@ sflphone_shm_open (sflphone_shm_t* shm)
   // Attach
   shm->fd = shm_fd;
   shm->size = sflphone_shm_get_file_size (shm);
+  DEBUG("In sflphone_shm_open, file size is %d", shm->size);
   if (attach (shm) < 0)
     {
       ERROR("attach() failed in sflphone_shm_open");

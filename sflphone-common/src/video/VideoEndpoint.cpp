@@ -43,7 +43,12 @@ VideoEndpoint::VideoEndpoint(VideoInputSource* src) :
 
 	sourceEventFdPasser = new FileDescriptorPasser(EVENT_NAMESPACE + hash,
 			eventFileDescriptor);
-	sourceEventFdPasser->start();
+	sourceEventFdPasser->detach();
+
+	_debug("Thread is ready : %d", sourceEventFdPasser->isReady());
+	sleep(2);
+	_debug("After 2 sec : Thread is ready : %d", sourceEventFdPasser->isReady());
+
 
 	// Register this object as a frame observer
 	videoSource->addVideoFrameObserver(this);

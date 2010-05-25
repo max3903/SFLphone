@@ -247,8 +247,15 @@ int
 video_cairo_start (VideoCairo* self)
 {
   VideoCairoPrivate* priv = VIDEO_CAIRO_GET_PRIVATE(self);
-  sflphone_video_open (priv->endpt);
-  sflphone_video_start_async (priv->endpt);
+  if (sflphone_video_open (priv->endpt) < 0) {
+    ERROR("Failed to start video %s:%d", __FILE__, __LINE__);
+    return -1;
+  }
+
+  if (sflphone_video_start_async (priv->endpt) < 0) {
+    ERROR("Failed to start video %s:%d", __FILE__, __LINE__);
+    return -1;
+  }
 }
 
 int

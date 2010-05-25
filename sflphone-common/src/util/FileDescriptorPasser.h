@@ -41,6 +41,8 @@ public:
 	 */
 	std::string getAbstractNamespace() { return path; };
 
+	bool isReady() { return ready; };
+
 	virtual ~FileDescriptorPasser() {};
 
 protected:
@@ -57,22 +59,12 @@ protected:
 	 */
 	void final();
 private:
-	/**
-	 * Initialize the message header structure.
-	 */
-	void initMessage();
-
-	int serverSocket;
-	int passedFd;
-
-	struct msghdr message;
-	struct cmsghdr * cmessage;
-	struct iovec pingVec;
-
-	int fileDescriptors[1];
-	char messageControlBuffer[CMSG_SPACE(sizeof fileDescriptors)];
+	int sendFd(int clientFd);
 
 	std::string path;
+	int serverSocket;
+	int fdPassed;
+	bool ready;
 };
 }
 #endif

@@ -77,7 +77,7 @@ int sflphone_video_open(sflphone_video_endpoint_t* endpt)
 
   // Initialise event notification for frame capture.
   endpt->event_listener = sflphone_eventfd_init(endpt->device);
-  if (endpt->event_listener) {
+  if (endpt->event_listener == NULL) {
     return -1;
   }
 
@@ -140,15 +140,25 @@ static void* capturing_thread(void* params)
 
   while (1) {
     // Blocking call
-    sflphone_eventfd_catch(endpt->event_listener); // TODO We assume that the only event is NEW_FRAME. This might change if we ever have new events.
+    // TODO We assume that the only event is NEW_FRAME. This might change if we ever have new events.
+    sflphone_eventfd_catch(endpt->event_listener);
 
     // Go get the frame as fast as possible
+    DEBUG("Size %d", sflphone_shm_get_size(endpt->shm_frame))
     memcpy (endpt->frame, sflphone_shm_get_addr(endpt->shm_frame), sflphone_shm_get_size(endpt->shm_frame));
 
     // Notify all observers
-    DEBUG("Notifying observers.")
-    notify_all_observers(endpt, endpt->frame);
+    if (endpt->frame == NULL) {
+      ERROR("Frame is null in capturing_thread %s:%d", __FILE__, __LINE__);
+    } else {
+      DEBUG("Notifying observers.")
+      notify_all_observers(endpt, endpt->frame);
+    }
+
+    pthread_testcancel();
   }
+
+  DEBUG("Exiting capturing thread");
 }
 
 int sflphone_video_start_async(sflphone_video_endpoint_t* endpt)

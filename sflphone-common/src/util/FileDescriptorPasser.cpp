@@ -12,55 +12,65 @@
 #include <sys/un.h>
 #include <sys/eventfd.h>
 
+#define ANCIL_FD_BUFFER(n) \
+    struct { \
+	struct cmsghdr h; \
+	int fd[n]; \
+    }
+
 namespace sfl {
 FileDescriptorPasser::FileDescriptorPasser(
 		const std::string& abstractNamespace, int fd) :
-	serverSocket(0), passedFd(fd), path(abstractNamespace) {
-	initMessage();
-}
-
-void FileDescriptorPasser::initMessage() {
-	fileDescriptors[0] = passedFd;
-
-	message.msg_control = messageControlBuffer;
-	message.msg_controllen = sizeof messageControlBuffer;
-
-	cmessage = CMSG_FIRSTHDR(&message);
-	cmessage->cmsg_level = SOL_SOCKET;
-	cmessage->cmsg_type = SCM_RIGHTS;
-	cmessage->cmsg_len = CMSG_LEN(sizeof fileDescriptors);
-	message.msg_controllen = cmessage->cmsg_len;
-
-	char ping = 23;
-	pingVec.iov_base = &ping;
-	pingVec.iov_len = sizeof ping;
-
-	message.msg_iov = &pingVec;
-	message.msg_iovlen = 1;
-
-	memcpy(CMSG_DATA(cmessage), fileDescriptors, sizeof fileDescriptors);
+	serverSocket(0), fdPassed(fd), path(abstractNamespace), ready(false) {
 }
 
 void FileDescriptorPasser::initial() {
+	_debug("Initializing thread %s", __FILE__);
+
 	serverSocket = socket(PF_UNIX, SOCK_STREAM, 0);
 
-	char * sun_path = (char *) malloc(strlen(path.c_str()) + 1);
-	sprintf(sun_path, "%c%s", '\0', path.c_str());
+	struct sockaddr_un server_address = { AF_UNIX, "\0org.sflphone.eventfd" };
 
-	struct sockaddr_un server_address;
-	server_address.sun_family = AF_UNIX;
-	strcpy(server_address.sun_path, sun_path);
-
-	int len = sizeof(server_address.sun_family) + strlen(
-			path.c_str()) + 1;
-
-	if (bind(serverSocket, (struct sockaddr *) &server_address, len) < 0) {
+	if (bind(serverSocket, (struct sockaddr *) &server_address,
+			sizeof server_address) < 0) {
 		_error("Failed to bind() %s:%d: %s", __FILE__, __LINE__, strerror(errno));
 	}
 
 	if (listen(serverSocket, 1) < 0) {
 		_error("Failed to listen() %s:%d: %s", __FILE__, __LINE__, strerror(errno));
 	}
+
+	ready = true;
+}
+
+int FileDescriptorPasser::sendFd(int clientfd) {
+	struct msghdr msg;
+	struct cmsghdr *cmsg;
+	union {
+		struct cmsghdr hdr;
+		unsigned char buf[CMSG_SPACE(sizeof(int))];
+	} cmsgbuf;
+
+	memset(&msg, 0, sizeof(msg));
+	msg.msg_name = NULL;
+	msg.msg_namelen = 0;
+	msg.msg_control = &cmsgbuf.buf;
+	msg.msg_controllen = sizeof(cmsgbuf.buf);
+
+	struct iovec nothing_ptr;
+	char nothing;
+	nothing_ptr.iov_base = &nothing;
+	nothing_ptr.iov_len = 1;
+	msg.msg_iov = &nothing_ptr;
+	msg.msg_iovlen = 1;
+
+	cmsg = CMSG_FIRSTHDR(&msg);
+	cmsg->cmsg_len = CMSG_LEN(sizeof(int));
+	cmsg->cmsg_level = SOL_SOCKET;
+	cmsg->cmsg_type = SCM_RIGHTS;
+	*(int *) CMSG_DATA(cmsg) = fdPassed;
+
+	return sendmsg(clientfd, &msg, 0);
 }
 
 void FileDescriptorPasser::run() {
@@ -76,8 +86,8 @@ void FileDescriptorPasser::run() {
 				(struct sockaddr *) &clientAddress, &clientAddressLength);
 		_debug("Client accepted.");
 
-		if (sendmsg(clientConnection, &message, 0) < 0) {
-			_error("Failed to sendmsg() %s:%d: %s", __FILE__, __LINE__, strerror(errno));
+		if (sendFd(clientConnection) < 0) {
+			_error("Failed to sendFd() %s:%d: %s", __FILE__, __LINE__, strerror(errno));
 		}
 
 		::close(clientConnection);
@@ -90,6 +100,7 @@ void FileDescriptorPasser::run() {
 
 void FileDescriptorPasser::final() {
 	::close(serverSocket);
+	ready = false;
 }
 
 }
