@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2009 Savoir-Faire Linux inc.
+ *  Copyright (C) 2004, 2005, 2006, 2009, 2008, 2009, 2010 Savoir-Faire Linux Inc.
  *  Author: Alexandre Savard <alexandre.savard@savoirfairelinux.com>
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -15,42 +15,80 @@
  *  You should have received a copy of the GNU General Public License
  *  along with this program; if not, write to the Free Software
  *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ *
+ *  Additional permission under GNU GPL version 3 section 7:
+ *
+ *  If you modify this program, or any covered work, by linking or
+ *  combining it with the OpenSSL project's OpenSSL library (or a
+ *  modified version of that library), containing parts covered by the
+ *  terms of the OpenSSL or SSLeay licenses, Savoir-Faire Linux Inc.
+ *  grants you additional permission to convey the resulting work.
+ *  Corresponding Source for a non-source form of such a combination
+ *  shall include the source code for the parts of OpenSSL used as well
+ *  as that of the covered work.
  */
-
-
 
 #include "dcblocker.h"
 
-DcBlocker::DcBlocker()
+FirFilter::FirFilter(std::vector<double> ir) : _impulseResponse(ir), 
+					       _length(ir.size()),
+					       _count(0)
+{}
+
+FirFilter::~FirFilter() {}
+
+int FirFilter::getOutputSample(int inputSample) 
 {
+  _delayLine[_count] = (double)inputSample;
+  double result = 0.0;
+  int index = _count;
+  for(int i = 0; i < _length; i++) {
+    result = result + _impulseResponse[i] * _delayLine[index--];
+    if(index < 0)
+      index = _length-1;
+  }
+  _count++;
+  if(_count >= _length)
+    _count = 0;
 
-    y = 0;
-    x = 0;
-    xm1 = 0;
-    ym1 = 0;
-
+  return (int)result;
 }
 
-DcBlocker::~DcBlocker()
+
+DcBlocker::DcBlocker() : _y(0), _x(0), _xm1(0), _ym1(0) {}
+
+DcBlocker::~DcBlocker() {}
+
+void DcBlocker::reset()
 {
-
-
+  _y = 0;
+  _x = 0;
+  _xm1 = 0;
+  _ym1 = 0;
 }
 
-void DcBlocker::filter_signal (SFLDataFormat* audio_data, int length)
+void DcBlocker::putData(SFLDataFormat *inputData, int nbBytes) {}
+
+int DcBlocker::getData(SFLDataFormat *outputData) { return 0; }
+
+void DcBlocker::process (SFLDataFormat *data, int nbBytes)
 {
     // y(n) = x(n) - x(n-1) + R y(n-1) , R = 0.9999
 
-    for (int i = 0; i < length; i++) {
+    int nbSamples = nbBytes / sizeof(SFLDataFormat); 
+    for (int i = 0; i < nbSamples; i++) {
 
-        x = audio_data[i];
+        _x = data[i];
 
-        y = (SFLDataFormat) ( (float) x - (float) xm1 + 0.9999 * (float) ym1);
-        xm1 = x;
-        ym1 = y;
+        _y = (SFLDataFormat) ( (float) _x - (float) _xm1 + 0.9999 * (float) _ym1);
+        _xm1 = _x;
+        _ym1 = _y;
 
-        audio_data[i] = y;
+        data[i] = _y;
 
     }
-
 }
+
+int DcBlocker::process(SFLDataFormat *inputData, SFLDataFormat *outputData, int nbBytes) { return 0;}
+
+void DcBlocker::process(SFLDataFormat *micData, SFLDataFormat *spkrData, SFLDataFormat *outputData, int nbBytes) {}

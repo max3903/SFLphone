@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2009 Savoir-Faire Linux inc.
+ *  Copyright (C) 2004, 2005, 2006, 2009, 2008, 2009, 2010 Savoir-Faire Linux Inc.
  *  Author : Alexandre Savard <alexandre.savard@savoirfairelinux.com>
  *
  *
@@ -16,14 +16,24 @@
  *  You should have received a copy of the GNU General Public License
  *  along with this program; if not, write to the Free Software
  *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ *
+ *  Additional permission under GNU GPL version 3 section 7:
+ *
+ *  If you modify this program, or any covered work, by linking or
+ *  combining it with the OpenSSL project's OpenSSL library (or a
+ *  modified version of that library), containing parts covered by the
+ *  terms of the OpenSSL or SSLeay licenses, Savoir-Faire Linux Inc.
+ *  grants you additional permission to convey the resulting work.
+ *  Corresponding Source for a non-source form of such a combination
+ *  shall include the source code for the parts of OpenSSL used as well
+ *  as that of the covered work.
  */
 
 #include "mainbuffer.h"
 
-#include "audioprocessing.h"
+#include "manager.h"
 
-
-MainBuffer::MainBuffer() : _internalSamplingRate (0)
+MainBuffer::MainBuffer() : _internalSamplingRate (8000)
 {
     mixBuffer = new SFLDataFormat[STATIC_BUFSIZE];
 }
@@ -38,13 +48,15 @@ MainBuffer::~MainBuffer()
 
 void MainBuffer::setInternalSamplingRate (int sr)
 {
-    ost::MutexLock guard (_mutex);
+  // ost::MutexLock guard (_mutex);
 
     if (sr != _internalSamplingRate) {
 
         _internalSamplingRate = sr;
 
         flushAllBuffers();
+
+	Manager::instance().audioSamplingRateChanged();
 
     }
 }
@@ -164,7 +176,7 @@ bool MainBuffer::removeRingBuffer (CallID call_id)
 void MainBuffer::bindCallID (CallID call_id1, CallID call_id2)
 {
 
-    ost::MutexLock guard (_mutex);
+  // ost::MutexLock guard (_mutex);
 
     RingBuffer* ring_buffer;
     CallIDSet* callid_set;
@@ -195,7 +207,7 @@ void MainBuffer::bindCallID (CallID call_id1, CallID call_id2)
 void MainBuffer::unBindCallID (CallID call_id1, CallID call_id2)
 {
 
-    ost::MutexLock guard (_mutex);
+  // ost::MutexLock guard (_mutex);
 
     removeCallIDfromSet (call_id1, call_id2);
     removeCallIDfromSet (call_id2, call_id1);
@@ -232,7 +244,7 @@ void MainBuffer::unBindCallID (CallID call_id1, CallID call_id2)
 void MainBuffer::unBindAll (CallID call_id)
 {
 
-    ost::MutexLock guard (_mutex);
+    // ost::MutexLock guard (_mutex);
 
     CallIDSet* callid_set = getCallIDSet (call_id);
 
@@ -259,7 +271,7 @@ void MainBuffer::unBindAll (CallID call_id)
 int MainBuffer::putData (void *buffer, int toCopy, unsigned short volume, CallID call_id)
 {
 
-    ost::MutexLock guard (_mutex);
+    // ost::MutexLock guard (_mutex);
 
     RingBuffer* ring_buffer = getRingBuffer (call_id);
 
@@ -286,7 +298,7 @@ int MainBuffer::putData (void *buffer, int toCopy, unsigned short volume, CallID
 int MainBuffer::availForPut (CallID call_id)
 {
 
-    ost::MutexLock guard (_mutex);
+    // ost::MutexLock guard (_mutex);
 
     RingBuffer* ringbuffer = getRingBuffer (call_id);
 
@@ -300,7 +312,7 @@ int MainBuffer::availForPut (CallID call_id)
 
 int MainBuffer::getData (void *buffer, int toCopy, unsigned short volume, CallID call_id)
 {
-    ost::MutexLock guard (_mutex);
+  // ost::MutexLock guard (_mutex);
 
     CallIDSet* callid_set = getCallIDSet (call_id);
 
@@ -365,7 +377,7 @@ int MainBuffer::getDataByID (void *buffer, int toCopy, unsigned short volume, Ca
 int MainBuffer::availForGet (CallID call_id)
 {
 
-    ost::MutexLock guard (_mutex);
+  // ost::MutexLock guard (_mutex);
 
     CallIDSet* callid_set = getCallIDSet (call_id);
 
@@ -427,7 +439,7 @@ int MainBuffer::discard (int toDiscard, CallID call_id)
 {
     // _debug("MainBuffer::discard");
 
-    ost::MutexLock guard (_mutex);
+    // ost::MutexLock guard (_mutex);
 
     CallIDSet* callid_set = getCallIDSet (call_id);
 
@@ -476,7 +488,7 @@ int MainBuffer::discardByID (int toDiscard, CallID call_id, CallID reader_id)
 
 void MainBuffer::flush (CallID call_id)
 {
-    ost::MutexLock guard (_mutex);
+  // ost::MutexLock guard (_mutex);
 
     CallIDSet* callid_set = getCallIDSet (call_id);
 
@@ -503,7 +515,7 @@ void MainBuffer::flush (CallID call_id)
 
 void MainBuffer::flushDefault()
 {
-    ost::MutexLock guard (_mutex);
+  // ost::MutexLock guard (_mutex);
 
     flushByID (default_id, default_id);
 
