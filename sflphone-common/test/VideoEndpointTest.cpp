@@ -20,32 +20,32 @@
 
 void VideoEndpointTest::setUp()
 {
-	std::cout << "Setting up..." << std::endl;
-
-	// Define the input source
-	videoSource = new sfl::VideoInputSourceGst();
-	std::vector<sfl::VideoDevice*> devices = videoSource->enumerateDevices();
-	videoSource->setDevice(devices.at(0));
-
-	videoEndpoint = new sfl::VideoEndpoint(videoSource);
+//	std::cout << "Setting up..." << std::endl;
+//
+//	// Define the input source
+//	videoSource = new sfl::VideoInputSourceGst();
+//	std::vector<sfl::VideoDevice*> devices = videoSource->enumerateDevices();
+//	videoSource->setDevice(devices.at(0));
+//
+//	videoEndpoint = new sfl::VideoEndpoint(videoSource);
 }
 
 void VideoEndpointTest::tearDown()
 {
-	std::cout << "Tearing down..." << std::endl;
-	delete videoEndpoint;
+//	std::cout << "Tearing down..." << std::endl;
+//	delete videoEndpoint;
 }
 
 void VideoEndpointTest::shmWriteTest()
 {
-	std::cout << "Writing frames for few seconds ..." << std::endl;
-
-	videoSource->open(320, 240, 30);
-
-	// Some frames should be grabbed and written into shm ...
-	sleep(3);
-
-	videoSource->close();
+//	std::cout << "Writing frames for few seconds ..." << std::endl;
+//
+//	videoSource->open(320, 240, 30);
+//
+//	// Some frames should be grabbed and written into shm ...
+//	sleep(3);
+//
+//	videoSource->close();
 }
 
 

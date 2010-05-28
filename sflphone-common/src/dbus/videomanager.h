@@ -20,8 +20,8 @@
 #ifndef _SFL_VIDEO_MANAGER_H_
 #define _SFL_VIDEO_MANAGER_H_
 
-#include "videomanager-glue.h"
 #include "video/VideoInputSource.h"
+#include "videomanager-glue.h"
 
 #include <dbus-c++/dbus.h>
 #include <map>

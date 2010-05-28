@@ -16,37 +16,34 @@
  *  along with this program; if not, write to the Free Software
  *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
-#ifndef VIDEOINPUTSOURCE_H_
-#define VIDEOINPUTSOURCE_H_
+#ifndef __SFL_VIDEO_INPUT_SOURCE_H___
+#define __SFL_VIDEO_INPUT_SOURCE_H___
+
+#include "VideoDevice.h"
+
+#include <cc++/exception.h>
 
 #include <vector> 
 #include <string>
-#include <ostream>
-#include <memory>
 #include <stdexcept>
+
 #include <stdint.h>
 
-#include <cc++/thread.h>
-#include <cc++/exception.h>
-
-#include <gst/gst.h>
+namespace ost {
+class Mutex;
+}
 
 namespace sfl {
 
-/**
- * Video source types that might be supported.
- */
-enum VideoSourceType {
-	V4L, V4L2, DV1394, XIMAGE, IMAGE, TEST, NONE
-};
+class VideoFrame;
 
 /**
  * This exception is thrown when an IO operation fails for a given video device.
  */
-class VideoDeviceIOException: public ost::IOException {
+class VideoDeviceIOException: public std::runtime_error {
 public:
 	VideoDeviceIOException(const std::string& msg) :
-		ost::IOException(msg) {
+		std::runtime_error(msg) {
 	}
 };
 
@@ -61,124 +58,13 @@ public:
 };
 
 /**
- * Representation of a given gstreamer video device.
+ * This exception is thrown when no video device is available when attempting an operation.
  */
-class VideoDevice {
+class NoVideoDeviceAvailableException: public std::runtime_error {
 public:
-	/**
-	 * @param type One of the available source type (eg. V4L2)
-	 * @param name The representative, and unique name of this device.
-	 * @param description A description, additional info.
-	 */
-	VideoDevice(VideoSourceType type, std::string name, std::string description) {
-		this->type = type;
-		this->name = name;
-		this->description = description;
+	NoVideoDeviceAvailableException(const std::string& msg) :
+		std::runtime_error(msg) {
 	}
-
-	/**
-	 * @return The video source type (eg. V4L2)
-	 */
-	VideoSourceType getType() {
-		return type;
-	}
-	/**
-	 * @return The representative, and unique name of this device.
-	 */
-	std::string getName() {
-		return name;
-	}
-	/**
-	 * @return A description, additional info.
-	 */
-	std::string getDescription() {
-		return description;
-	}
-
-	/**
-	 * The string representation for this device.
-	 */
-	std::string toString() {
-		return name;
-	}
-
-private:
-	VideoSourceType type;
-	std::string name;
-	std::string description;
-};
-
-/**
- * This class represents a captured frame.
- */
-class VideoFrame {
-public:
-	/**
-	 * @param frame The frame data.
-	 * @param size The frame size.
-	 * @param height The frame height.
-	 * @param width The frame width.
-	 */
-	VideoFrame(const uint8_t* frame, const size_t size, unsigned int depth, unsigned int height,
-			unsigned int width) {
-
-		std::cout << "Creating new frame of size ";
-		std::cout << size << std::endl;
-
-		this->frame = (uint8_t*) malloc(size);
-		memcpy(this->frame, frame, size);
-
-		this->size = size;
-		this->height = height;
-		this->width = width;
-		this->depth = depth;
-	}
-
-	~VideoFrame()
-	{
-		free(frame);
-	}
-
-	/**
-	 * @return The frame data.
-	 */
-	const uint8_t *getFrame() const {
-		return frame;
-	}
-	/**
-	 * @return The frame height.
-	 */
-	unsigned int getHeight() const {
-		return height;
-	}
-
-	/**
-	 * @return The frame width.
-	 */
-	unsigned int getWidth() const {
-		return width;
-	}
-
-	/**
-	 * @return The frame depth in bytes (eg: 3 bytes)
-	 */
-	unsigned int getDepth() const {
-		return depth;
-	}
-
-	/**
-	 * @return The buffer size.
-	 */
-	size_t getSize() const {
-		return size;
-	}
-
-private:
-	uint8_t* frame;
-	size_t size;
-	unsigned int height;
-	unsigned int width;
-	unsigned int depth;
 };
 
 /**
@@ -203,17 +89,25 @@ public:
 	/**
 	 * @return a vector containing the name of all the video devices available from this source.
 	 */
-	virtual std::vector<VideoDevice*> enumerateDevices(void) = 0;
+	virtual std::vector<VideoDevice> enumerateDevices(void) = 0;
 
 	/**
-	 * Open the specified video device. Frame grabbing will be started on request, either via start(),
-	 * or getFrame() (in the synchronous case).
-	 * @param widht The desired width.
-	 * @param height The desired height.
-	 * @param fps The desired frame rate.
+	 * Open the specified video device. If no device was specified in prior calls, this function
+	 * will attempt to handle it by picking up the first available device.
+	 * @throws VideoDeviceIOException if case a general IO error occurs.
+	 * @throws NoVideoDeviceAvailableException if no video device can be found.
+	 * @see VideoInputSource#setDevice
+	 * @see VideoInputSource#open(VideoDevice device)
 	 */
-	virtual void open(int width, int height, int fps)
-			throw (VideoDeviceIOException) = 0;
+	void open() throw (VideoDeviceIOException, NoVideoDeviceAvailableException);
+
+	/**
+	 * Set and open a video device.
+	 * @param device The video device to set and open.
+	 * @postcondition The video stream will be opened, and the current device will be set to the specified one.
+	 * @see VideoInputSource#open()
+	 */
+	virtual void open(VideoDevice device) throw (VideoDeviceIOException) = 0;
 
 	/**
 	 * Close the currently opened device.
@@ -231,22 +125,64 @@ public:
 	/**
 	 * @param device The device to use.
 	 */
-	inline void setDevice(VideoDevice* device) {
-		currentDevice = device;
-	}
+	void setDevice(VideoDevice device);
 
 	/**
 	 * Try to find a device name with the provided name, and set it as the source device.
 	 * @param device The descriptive name for this device.
 	 */
-	void setDevice(const std::string& device) throw(UnknownVideoDeviceException);
+	void setDevice(const std::string& device)
+			throw (UnknownVideoDeviceException);
 
 	/**
 	 * @return the current device that is being used.
 	 */
-	inline VideoDevice* getDevice() {
-		return currentDevice;
+	inline VideoDevice getDevice() {
+		return (*currentDevice);
 	}
+
+	/**
+	 * The user can choose to specify different height than what the device is actually offering.
+	 * @return the current scaled height.
+	 */
+	inline int getScaledHeight() {
+		return scaledHeight;
+	}
+
+	/**
+	 * @return the current scaled width.
+	 */
+	inline int getScaledWidth() {
+		return scaledWidth;
+	}
+
+	/**
+	 * @return the current depth after reformatting.
+	 */
+	inline int getReformattedDepth() {
+		return reformattedDepth;
+	}
+
+	/**
+	 * @param width The desired width after scaling.
+	 */
+	inline void setScaledWidth(int width) {
+		scaledWidth = width;
+	}
+
+	/**
+	 * @param height The desired width after scaling.
+	 */
+	inline void setScaledHeight(int height) {
+		scaledHeight = height;
+	}
+
+	/**
+	 * @param depth The desired width after scaling.
+	 */
+ 	inline void setReformattedDepth(int depth) {
+ 		reformattedDepth = depth;
+ 	}
 
 	/**
 	 * Register a new video frame observer.
@@ -268,25 +204,14 @@ public:
 	VideoFrame* getCurrentFrame();
 
 	/**
-	 * @return The current width.
-	 */
-	unsigned int getWidth() { return this->width; }
-
-	/**
-	 * @return The current height.
-	 */
-	unsigned int getHeight() { return this->height; }
-
-	/**
-	 * @return The current depth.
-	 */
-	unsigned int getDepth() { return this->depth; }
-
-	/**
 	 * Destructor.
 	 */
-	virtual ~VideoInputSource();
+	~VideoInputSource();
 
+	/**
+	 * Constructor. The user must then enumerateDevices() and set the device to use.
+	 * @see sfl::VideoInputSource#enumerateDevices()
+	 */
 	VideoInputSource();
 
 protected:
@@ -301,29 +226,15 @@ protected:
 	 */
 	void setCurrentFrame(const uint8_t* frame, size_t size);
 
-	/**
-	 * @param width The current width.
-	 */
-	void setWidth(unsigned int width) { this->width = width; }
-
-	/**
-	 * @param height The current height.
-	 */
-	void setHeight(unsigned int height) { this->height = height; }
-
-	/**
-	 * @param depth The current depth.
-	 */
-	void setDepth(unsigned int depth) { this->depth = depth; }
-
-private:
-	ost::Mutex frameMutex;
-	VideoFrame* currentFrame;
 	VideoDevice* currentDevice;
+private:
+	ost::Mutex* frameMutex;
+	VideoFrame* currentFrame;
 	std::vector<VideoFrameObserver*> videoFrameObservers;
-	unsigned int width;
-	unsigned int height;
-	unsigned int depth;
+
+	int scaledWidth;
+	int scaledHeight;
+	int reformattedDepth;
 };
 
 }

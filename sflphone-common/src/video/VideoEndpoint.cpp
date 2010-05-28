@@ -1,4 +1,11 @@
 #include "VideoEndpoint.h"
+#include "VideoInputSourceGst.h"
+#include "VideoFrame.h"
+#include "util/FileDescriptorPasser.h"
+#include "util/SharedMemoryPosix.h"
+#include "dbus/dbusmanager.h"
+#include "dbus/videomanager.h"
+#include "logger.h"
 
 #include <iostream>
 #include <sstream>
@@ -8,13 +15,6 @@
 #include <errno.h>
 #include <assert.h>
 
-#include "logger.h"
-#include "VideoInputSourceGst.h"
-#include "util/FileDescriptorPasser.h"
-#include "util/SharedMemoryPosix.h"
-#include "dbus/dbusmanager.h"
-#include "dbus/videomanager.h"
-
 namespace sfl {
 
 const std::string VideoEndpoint::EVENT_NAMESPACE = "org.sflphone.eventfd.";
@@ -23,9 +23,9 @@ VideoEndpoint::VideoEndpoint(VideoInputSource* src) :
 	videoSource(src) {
 	// Compute a simple CRC16 hash digest for this device. We want that to limit the
 	// length of possible device/path names and offer consistent syntax.
-	std::string hash = getDigest(src->getDevice()->getName());
+	std::string hash = getDigest(src->getDevice().getName());
 
-	_debug("Device %s gets hashed to %s ", src->getDevice()->getName().c_str(), hash.c_str());
+	_debug("Device %s gets hashed to %s ", src->getDevice().getName().c_str(), hash.c_str());
 
 	// Create a shared memory segment for video
 	shmVideoSource = new SharedMemoryPosix("/sflphone-shm-" + hash, false);

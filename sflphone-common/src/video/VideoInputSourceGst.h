@@ -1,27 +1,59 @@
-#ifndef VIDEOINPUTSOURCEGST_H_
-#define VIDEOINPUTSOURCEGST_H_
+/*
+ *  Copyright (C) 2010 Savoir-Faire Linux inc.
+ *  Author: Pierre-Luc Bacon <pierre-luc.bacon@savoirfairelinux.com>
+ *
+ *  This program is free software; you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation; either version 3 of the License, or
+ *  (at your option) any later version.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with this program; if not, write to the Free Software
+ *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ */
+
+#ifndef __SFL_VIDEO_INPUT_SOURCE_GST_H__
+#define __SFL_VIDEO_INPUT_SOURCE_GST_H__
+
+#include "VideoInputSource.h"
+#include "FrameFormat.h"
+#include "GstVideoDevice.h"
 
 #include <vector>
 #include <string>
-#include <memory>
 #include <stdexcept> 
 #include <stdint.h>
 
 #include <gst/gstelement.h>
 #include <gst/app/gstappsink.h>
 
-#include "VideoInputSource.h"
-
 namespace sfl {
+
 /**
- * This exception is thrown when an expected plugin is missing from gstreamer.
+ * This exception is thrown when a gstreamer exception occurs.
  */
-class MissingGstPluginException: public std::runtime_error {
+class GstException: public std::runtime_error {
 public:
-	MissingGstPluginException(const std::string& msg) :
+	GstException(const std::string& msg) :
 		std::runtime_error(msg) {
 	}
 };
+
+/**
+ * This exception is thrown when an expected plugin is missing from gstreamer.
+ */
+class MissingGstPluginException: public GstException {
+public:
+	MissingGstPluginException(const std::string& msg) :
+		GstException(msg) {
+	}
+};
+
 
 /**
  * This class captures video frames asynchronously via Gstreamer.
@@ -29,17 +61,23 @@ public:
 class VideoInputSourceGst: public VideoInputSource {
 public:
 	VideoInputSourceGst();
-	virtual ~VideoInputSourceGst();
+	~VideoInputSourceGst();
 
 	/**
 	 * @Override
 	 */
-	std::vector<VideoDevice*> enumerateDevices(void);
+	std::vector<VideoDevice> enumerateDevices(void);
+
+	/**
+	 * Shadowing phenomenon. Must be kept in order to hint the compiler.
+	 */
+	using VideoInputSource::open;
 
 	/**
 	 * @Override
 	 */
-	void open(int width, int height, int fps) throw (VideoDeviceIOException);
+	void open(VideoDevice device) throw (VideoDeviceIOException);
+
 	/**
 	 * @Override
 	 */
@@ -56,8 +94,11 @@ public:
 	 */
 	bool isRunning() { return pipelineRunning; }
 
-	static std::string APPSINK_NAME;
-
+	static const char* APPSINK_NAME;
+	static const char* APPSINK_MIMETYPE;
+	static const int APPSINK_BPP = 32;
+	static const int APPSINK_DEPTH = 32;
+	static const int DEVICE_DETECT_MAX_WAIT = 10;
 private:
 	/**
 	 * Make sure that all the plugins are available in gstreamer.
@@ -82,16 +123,50 @@ private:
 	 */
 	static GstFlowReturn onNewBuffer(GstAppSink * sink, gpointer data);
 
+	/**
+	 * Inspect the device and find its capabilities such as the framerate and supported resolutions.
+	 * This code is adapted from Cheese, in cheese-webcam.c
+	 * @param source The gst video source. Eg : v4l2source
+	 * @param device The video device for that source. Eg : /dev/video0
+	 * @return The frame formats supported for this device. The information contained in every of those objects will include
+	 * the resolution, mimetype and framerate.
+	 * @throws GstException if a gstreamer error occurs.
+	 */
+	std::vector<FrameFormat> getWebcamCapabilities(VideoSourceType type, const std::string& device) throw(GstException);
+
+	/**
+	 * This methods figures out the : mimitype, resolution, and frame rate informations.
+	 * This code is adapted from Cheese, in cheese-webcam.c
+	 * Submethod used in getWebcamCapabilities.
+	 * @param caps The GstCaps for a given device.
+	 */
+	std::vector<FrameFormat> getSupportedFormats(GstCaps* caps);
+
+	/**
+	 * Find the supported framerates for a specified video format.
+	 * This code is adapted from Cheese, in cheese-webcam.c
+	 * Submethod used in getWebcamCapabilities.
+	 * @param structure A GstStructure, as obtained in the implementation of getSupportedFormats.
+	 * @return A vector containing all the supported framerates for the given device.
+	 */
+	std::vector<FrameRate> getSupportedFramerates(GstStructure* structure);
+
 	std::vector<VideoDevice*> getXimageSource()
 			throw (MissingGstPluginException);
 	std::vector<VideoDevice*> getVideoTestSource()
 			throw (MissingGstPluginException);
-	std::vector<VideoDevice*> getV4l2Devices()
+	std::vector<VideoDevice> getV4l2Devices()
 			throw (MissingGstPluginException);
-	std::vector<VideoDevice*> getDv1394() throw (MissingGstPluginException);
+
+	/**
+	 * Functor for faciliting conversion from video type enum to string.
+	 * @param type The enum type.
+	 */
+	VideoSourceTypeToGstSourceString videoTypeToString;
 
 	GstElement * pipeline;
 	bool pipelineRunning;
+
 };
 }
-#endif /*VIDEOINPUTSOURCEGST_H_*/
+#endif

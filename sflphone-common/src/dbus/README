@@ -5,6 +5,8 @@ To build a new dbus interface:
 3. Inheritate from that glue.h class in your code.
 
 Examples:
+dbusxx-xml2cpp instance-introspec.xml --adaptor=instance-glue.h
 dbusxx-xml2cpp callmanager-introspec.xml --adaptor=callmanager-glue.h
 dbusxx-xml2cpp configurationmanager-introspec.xml --adaptor=configurationmanager-glue.h
 dbusxx-xml2cpp contactmanager-introspec.xml --adaptor=contactmanager-glue.h
+dbusxx-xml2cpp videomanager-introspec.xml --adaptor=videomanager-glue.h

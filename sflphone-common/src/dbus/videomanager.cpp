@@ -17,9 +17,11 @@
  *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
-#include <videomanager.h>
+#include "videomanager.h"
+#include "video/VideoInputSource.h"
 #include "video/VideoInputSourceGst.h"
 #include "video/VideoEndpoint.h"
+
 #include "logger.h"
 
 #include <vector>
@@ -39,10 +41,10 @@ std::vector<std::string> VideoManager::enumerateDevices()
 
 	std::vector<std::string> outputVector;
 
-	std::vector<sfl::VideoDevice*> devices = videoInputSource->enumerateDevices();
-	std::vector<sfl::VideoDevice*>::iterator it;
+	std::vector<sfl::VideoDevice> devices = videoInputSource->enumerateDevices();
+	std::vector<sfl::VideoDevice>::iterator it;
 	for (it = devices.begin(); it < devices.end(); it++) {
-		outputVector.push_back((*it)->getName());
+		outputVector.push_back((*it).getName());
 	}
 
 	_debug("Enumerating devices");
@@ -67,7 +69,7 @@ std::string VideoManager::startLocalCapture(const std::string& device)
 
 	// Start capturing
 	try {
-		videoSource->open(320, 240, 30);
+		videoSource->open();
 	} catch (sfl::VideoDeviceIOException& e) {
 		_debug ("Caught exception : %s", e.what());
 		return SHM_ERROR_PATH;

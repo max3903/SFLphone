@@ -17,8 +17,8 @@
  *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
-#ifndef VIDEOENDPOINT_H_
-#define VIDEOENDPOINT_H_
+#ifndef __SFL_VIDEO_ENDPOINT_H___
+#define __SFL_VIDEO_ENDPOINT_H___
 
 #include <sys/eventfd.h>
 #include "video/VideoInputSource.h"
