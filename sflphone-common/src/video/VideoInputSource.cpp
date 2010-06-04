@@ -8,21 +8,25 @@
 #include <cc++/exception.h>
 
 namespace sfl {
-VideoInputSource::VideoInputSource() : currentDevice(), currentFrame(NULL), scaledWidth(0), scaledHeight(0), reformattedDepth(0){
-	frameMutex = new ost::Mutex();
+
+VideoInputSource::VideoInputSource() :
+	frameMutex(new ost::Mutex()), currentFrame(NULL), scaledWidth(1),
+			scaledHeight(1), reformattedDepth(0) {
+
 }
 
 VideoInputSource::~VideoInputSource() {
 	delete currentFrame;
 }
 
-void VideoInputSource::open() throw (VideoDeviceIOException, NoVideoDeviceAvailableException)
-{
+void VideoInputSource::open() throw (VideoDeviceIOException,
+		NoVideoDeviceAvailableException) {
 	// If no device has been specified, handle this automatically and set it to the first available one.
 	if (currentDevice == NULL) {
 		std::vector<VideoDevicePtr> devices = enumerateDevices();
 		if (devices.size() == 0) {
-			throw NoVideoDeviceAvailableException("No video device can be found.");
+			throw NoVideoDeviceAvailableException(
+					"No video device can be found.");
 		}
 
 		open(devices.at(0));
@@ -32,13 +36,12 @@ void VideoInputSource::open() throw (VideoDeviceIOException, NoVideoDeviceAvaila
 	}
 }
 
-void VideoInputSource::setDevice(VideoDevicePtr device)
-{
+void VideoInputSource::setDevice(VideoDevicePtr device) {
 	currentDevice = VideoDevicePtr(new VideoDevice((*device))); // We want get a copy, so that the object cannot be mutated.
 }
 
-void VideoInputSource::setDevice(const std::string& device) throw(UnknownVideoDeviceException)
-{
+void VideoInputSource::setDevice(const std::string& device)
+		throw (UnknownVideoDeviceException) {
 	std::vector<sfl::VideoDevicePtr> devices = enumerateDevices();
 	std::vector<sfl::VideoDevicePtr>::iterator it;
 
@@ -54,14 +57,16 @@ void VideoInputSource::setDevice(const std::string& device) throw(UnknownVideoDe
 		}
 	}
 
-	throw UnknownVideoDeviceException("Device (" + device + ") could not be found");
+	throw UnknownVideoDeviceException("Device (" + device
+			+ ") could not be found");
 }
 
 void VideoInputSource::setCurrentFrame(const uint8_t* frame, size_t size) {
 	frameMutex->enterMutex();
 	{
 		delete currentFrame;
-		currentFrame = new VideoFrame(frame, size, getReformattedDepth(), getScaledHeight(), getScaledWidth());
+		currentFrame = new VideoFrame(frame, size, getReformattedDepth(),
+				getScaledHeight(), getScaledWidth());
 	}
 	frameMutex->leaveMutex();
 }
