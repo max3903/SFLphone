@@ -102,7 +102,6 @@ void VideoInputSourceGst::open(VideoDevicePtr device)
 	pipelineRunning = true;
 
 	// These are the width and height at the sink. They might be different from the source. For eg: 320x240 displayed in 1024x800
-	setDevice(device);
 	setScaledWidth(gstDevice->getPreferredWidth());
 	setScaledHeight(gstDevice->getPreferredHeight());
 	setReformattedDepth(APPSINK_DEPTH);

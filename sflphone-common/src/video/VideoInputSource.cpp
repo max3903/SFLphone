@@ -26,6 +26,7 @@ void VideoInputSource::open() throw (VideoDeviceIOException, NoVideoDeviceAvaila
 		}
 
 		open(devices.at(0));
+		setDevice(devices.at(0));
 	} else {
 		open(currentDevice);
 	}
