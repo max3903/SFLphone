@@ -123,8 +123,14 @@ public:
 	virtual void grabFrame() throw (VideoDeviceIOException) = 0;
 
 	/**
+	 * Set the device to use to the first available one.
+	 * @see VideoInputSource#enumerateDevices()
+	 * @throws NoVideoDeviceAvailableException
+	 */
+	void setDevice();
+
+	/**
 	 * @param device The device to use.
-	 * @postcondition A copy of device will be used internally.
 	 */
 	void setDevice(VideoDevicePtr device);
 
@@ -139,7 +145,7 @@ public:
 	 * @return the current device that is being used.
 	 */
 	inline VideoDevicePtr getDevice() {
-		return VideoDevicePtr(new VideoDevice((*currentDevice))); // Pass a copy. We don't want the class to be mutable.
+		return currentDevice;
 	}
 
 	/**

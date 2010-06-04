@@ -42,7 +42,6 @@ VideoEndpoint::VideoEndpoint(VideoInputSource* src) :
 	// between different processes. Note that the client only has to do it once for each event source, and does
 	// *NOT* need permanent connection. It is only needed for passing the FD. At the time this was written, FD_TYPE
 	// is available in DBUS 1.3, but this one is not yet stable.
-
 	sourceEventFdPasser = new FileDescriptorPasser(EVENT_NAMESPACE + hash,
 			eventFileDescriptor);
 	sourceEventFdPasser->detach();

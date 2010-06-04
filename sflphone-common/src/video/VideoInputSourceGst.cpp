@@ -86,7 +86,7 @@ void VideoInputSourceGst::open(VideoDevicePtr device)
 
 	// Make sure that we are in the correct state
 	GstState state;
-	gst_element_get_state(pipeline, &state, NULL, GST_SECOND);
+	gst_element_get_state(pipeline, &state, NULL, STATE_CHANGE_MAX_WAIT * GST_SECOND);
 
 	if (state != GST_STATE_PLAYING) {
 		gst_element_set_state(pipeline, GST_STATE_NULL);
@@ -163,7 +163,7 @@ void VideoInputSourceGst::close() throw (VideoDeviceIOException) {
 
 	// Wait at most 10 sec to ensure that the device is correctly closed
 	GstStateChangeReturn ret = gst_element_get_state(pipeline, NULL, NULL,
-			DEVICE_DETECT_MAX_WAIT * GST_SECOND);
+			STATE_CHANGE_MAX_WAIT * GST_SECOND);
 
 	if (ret == GST_STATE_CHANGE_ASYNC) {
 		throw VideoDeviceIOException("Device " + currentDevice->getName()
@@ -201,7 +201,7 @@ std::vector<FrameFormat> VideoInputSourceGst::getWebcamCapabilities(
 		/* Start the pipeline and wait for max. 10 seconds for it to start up */
 		gst_element_set_state(pipeline, GST_STATE_PLAYING);
 		ret = gst_element_get_state(pipeline, NULL, NULL,
-				DEVICE_DETECT_MAX_WAIT * GST_SECOND);
+				STATE_CHANGE_MAX_WAIT * GST_SECOND);
 
 		// Check if any error messages were posted on the bus
 		bus = gst_element_get_bus(pipeline);

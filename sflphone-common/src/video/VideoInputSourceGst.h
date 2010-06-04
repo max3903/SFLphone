@@ -98,7 +98,7 @@ public:
 	static const char* APPSINK_MIMETYPE;
 	static const int APPSINK_BPP = 32;
 	static const int APPSINK_DEPTH = 32;
-	static const int DEVICE_DETECT_MAX_WAIT = 10;
+	static const int STATE_CHANGE_MAX_WAIT = 10;
 private:
 	/**
 	 * Make sure that all the plugins are available in gstreamer.

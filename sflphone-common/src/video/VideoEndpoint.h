@@ -44,6 +44,8 @@ class VideoEndpoint : public VideoFrameObserver
 		/**
 		 * Constructor for a video endpoint.
 		 * @param src The mandatory video input source for this endpoint.
+		 * @precondition The VideoInputSource must be configured to an existing video device.
+		 * @see VideoInputSource#setDevice()
 		 */
 		VideoEndpoint(VideoInputSource* src);
 

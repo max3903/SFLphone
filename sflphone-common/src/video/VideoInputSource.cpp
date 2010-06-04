@@ -32,12 +32,24 @@ void VideoInputSource::open() throw (VideoDeviceIOException,
 		open(devices.at(0));
 		setDevice(devices.at(0));
 	} else {
+		_debug("Opening current device %s", currentDevice->getName().c_str());
 		open(currentDevice);
 	}
 }
 
+void VideoInputSource::setDevice()
+{
+	std::vector<VideoDevicePtr> devices = enumerateDevices();
+	if (devices.size() == 0) {
+		throw NoVideoDeviceAvailableException(
+				"No video device can be found.");
+	}
+
+	setDevice(devices.at(0));
+}
+
 void VideoInputSource::setDevice(VideoDevicePtr device) {
-	currentDevice = VideoDevicePtr(new VideoDevice((*device))); // We want get a copy, so that the object cannot be mutated.
+	currentDevice = device;
 }
 
 void VideoInputSource::setDevice(const std::string& device)
