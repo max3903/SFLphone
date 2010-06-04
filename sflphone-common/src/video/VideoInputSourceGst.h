@@ -20,9 +20,9 @@
 #ifndef __SFL_VIDEO_INPUT_SOURCE_GST_H__
 #define __SFL_VIDEO_INPUT_SOURCE_GST_H__
 
-#include "VideoInputSource.h"
 #include "FrameFormat.h"
 #include "GstVideoDevice.h"
+#include "VideoInputSource.h"
 
 #include <vector>
 #include <string>
@@ -66,7 +66,7 @@ public:
 	/**
 	 * @Override
 	 */
-	std::vector<VideoDevice> enumerateDevices(void);
+	std::vector<VideoDevicePtr> enumerateDevices(void);
 
 	/**
 	 * Shadowing phenomenon. Must be kept in order to hint the compiler.
@@ -76,7 +76,7 @@ public:
 	/**
 	 * @Override
 	 */
-	void open(VideoDevice device) throw (VideoDeviceIOException);
+	void open(VideoDevicePtr device) throw (VideoDeviceIOException);
 
 	/**
 	 * @Override
@@ -151,15 +151,16 @@ private:
 	 */
 	std::vector<FrameRate> getSupportedFramerates(GstStructure* structure);
 
-	std::vector<VideoDevice*> getXimageSource()
+	std::vector<VideoDevice*> getXimageSource() // TODO Re-integrate
 			throw (MissingGstPluginException);
-	std::vector<VideoDevice*> getVideoTestSource()
+	std::vector<VideoDevice*> getVideoTestSource() // TODO Re-integrate
 			throw (MissingGstPluginException);
-	std::vector<VideoDevice> getV4l2Devices()
+
+	std::vector<VideoDevicePtr> getV4l2Devices()
 			throw (MissingGstPluginException);
 
 	/**
-	 * Functor for faciliting conversion from video type enum to string.
+	 * Functor to ease conversion from video type enum to string.
 	 * @param type The enum type.
 	 */
 	VideoSourceTypeToGstSourceString videoTypeToString;

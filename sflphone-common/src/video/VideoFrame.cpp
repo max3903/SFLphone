@@ -7,8 +7,6 @@ namespace sfl {
 VideoFrame::VideoFrame(const uint8_t* frame, const size_t size,
 		unsigned int depth, unsigned int height, unsigned int width) {
 
-	_debug("Creating new frame of size %d", size);
-
 	this->frame = (uint8_t*) malloc(size);
 	memcpy(this->frame, frame, size);
 

@@ -89,7 +89,7 @@ public:
 	/**
 	 * @return a vector containing the name of all the video devices available from this source.
 	 */
-	virtual std::vector<VideoDevice> enumerateDevices(void) = 0;
+	virtual std::vector<VideoDevicePtr> enumerateDevices(void) = 0;
 
 	/**
 	 * Open the specified video device. If no device was specified in prior calls, this function
@@ -107,7 +107,7 @@ public:
 	 * @postcondition The video stream will be opened, and the current device will be set to the specified one.
 	 * @see VideoInputSource#open()
 	 */
-	virtual void open(VideoDevice device) throw (VideoDeviceIOException) = 0;
+	virtual void open(VideoDevicePtr device) throw (VideoDeviceIOException) = 0;
 
 	/**
 	 * Close the currently opened device.
@@ -124,8 +124,9 @@ public:
 
 	/**
 	 * @param device The device to use.
+	 * @postcondition A copy of device will be used internally.
 	 */
-	void setDevice(VideoDevice device);
+	void setDevice(VideoDevicePtr device);
 
 	/**
 	 * Try to find a device name with the provided name, and set it as the source device.
@@ -137,8 +138,8 @@ public:
 	/**
 	 * @return the current device that is being used.
 	 */
-	inline VideoDevice getDevice() {
-		return (*currentDevice);
+	inline VideoDevicePtr getDevice() {
+		return VideoDevicePtr(new VideoDevice((*currentDevice))); // Pass a copy. We don't want the class to be mutable.
 	}
 
 	/**
@@ -226,7 +227,7 @@ protected:
 	 */
 	void setCurrentFrame(const uint8_t* frame, size_t size);
 
-	VideoDevice* currentDevice;
+	VideoDevicePtr currentDevice;
 private:
 	ost::Mutex* frameMutex;
 	VideoFrame* currentFrame;

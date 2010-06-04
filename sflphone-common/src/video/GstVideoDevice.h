@@ -26,6 +26,7 @@
 #include <vector>
 #include <string>
 #include <functional>
+#include "../logger.h"
 
 namespace sfl {
 
@@ -70,10 +71,19 @@ public:
 	 */
 	GstVideoDevice(VideoSourceType type, std::vector<FrameFormat> formats,
 			const std::string& device, const std::string& name);
+
+	/**
+	 * Copy constructor.
+	 * @param other The object to copy from.
+	 */
+	GstVideoDevice(const GstVideoDevice& other);
+
+	~GstVideoDevice() {}
+
 	/**
 	 * @return The string representation of the Gstreamer pipeline needed to access this device.
 	 */
-	std::string getGstPipeline();
+	std::string getGstPipeline() const;
 
 	/**
 	 * @param pipeline A string that represents the GST graph.
@@ -96,5 +106,10 @@ private:
 	std::string gstreamerPipeline;
 	VideoSourceTypeToGstSourceString typeToSource;
 };
+
+/**
+ * Video devices are returned as std::shared_ptr in std::vector.
+ */
+typedef std::shared_ptr<GstVideoDevice> GstVideoDevicePtr;
 }
 #endif

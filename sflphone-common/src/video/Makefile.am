@@ -24,4 +24,5 @@ noinst_HEADERS = \
 		VideoDevice.h \
 		GstVideoDevice.h
 			
-libvideo_la_LDFLAGS = $(GSTREAMER_LIBS)
+libvideo_la_LDFLAGS = $(GSTREAMER_LIBS) $(LIBS)
+

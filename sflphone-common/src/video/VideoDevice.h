@@ -24,6 +24,7 @@
 
 #include <vector>
 #include <string>
+#include <tr1/memory>
 
 namespace sfl {
 /**
@@ -58,6 +59,12 @@ public:
 	 */
 	VideoDevice(VideoSourceType type, std::vector<FrameFormat> formats,
 			const std::string& device, const std::string& name) throw(InvalidVideoDeviceException);
+
+	/**
+	 * Copy constructor.
+	 * @param other The object to copy from.
+	 */
+	VideoDevice(const VideoDevice& other);
 
 	/**
 	 * @return The video source type (eg. V4L2)
@@ -123,6 +130,12 @@ protected:
 	std::string device;
 	std::string name;
 };
+
+/**
+ * Video devices are returned as std::shared_ptr in std::vector.
+ */
+typedef std::shared_ptr<VideoDevice> VideoDevicePtr;
+
 }
 
 #endif

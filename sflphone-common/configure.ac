@@ -5,7 +5,7 @@ dnl
 	AC_PREREQ(2.59)
 	AC_INIT([sflphone],[0.9.8~rc1],[sflphoneteam@savoirfairelinux.com],[sflphone])
 	AC_COPYRIGHT([[Copyright (c) Savoir-Faire Linux 2004, 2005, 2006, 2007, 2008, 2009, 2010]])
-AC_REVISION([$Revision$])
+	AC_REVISION([$Revision$])
 
 	AC_CANONICAL_SYSTEM
 
@@ -13,13 +13,13 @@ AC_REVISION([$Revision$])
 	VERSION=`cat VERSION`
 
 	AM_INIT_AUTOMAKE($NAME, $VERSION)
-AM_CONFIG_HEADER([config.h])
+	AM_CONFIG_HEADER([config.h])
 
-# Silent build by default. Use make V=1 to increase verbosity
-m4_ifdef([AM_SILENT_RULES],[AM_SILENT_RULES([yes])])
+	# Silent build by default. Use make V=1 to increase verbosity
+	m4_ifdef([AM_SILENT_RULES],[AM_SILENT_RULES([yes])])
 
 	dnl Use this variable in the program
-AC_SUBST(PACKAGE_VERSION)
+	AC_SUBST(PACKAGE_VERSION)
 
 	AM_PROG_LIBTOOL
 
@@ -35,11 +35,11 @@ AC_SUBST(PACKAGE_VERSION)
 
 	dnl Where to find configure files
 	dnl AC_CONFIG_SRCDIR([config.h.in])
-AC_CONFIG_MACRO_DIR([m4])
+	AC_CONFIG_MACRO_DIR([m4])
 
 	dnl What to generate
 	dnl AC_CONFIG_FILES([stamp-h], [echo timestamp > stamp-h])
-AC_CONFIG_FILES([Makefile])
+	AC_CONFIG_FILES([Makefile])
 	AC_CONFIG_FILES([libs/Makefile \
 			libs/utilspp/Makefile \
 			libs/utilspp/functor/Makefile \
@@ -69,12 +69,12 @@ AC_CONFIG_FILES([Makefile])
 			src/hooks/Makefile \
 			src/history/Makefile]) 
 
-	dnl Unitary test section
-AC_CONFIG_FILES([test/Makefile])
+	dnl Unit test section
+	AC_CONFIG_FILES([test/Makefile])
 
-AC_CONFIG_FILES([ringtones/Makefile])
+	AC_CONFIG_FILES([ringtones/Makefile])
 
-AC_CONFIG_FILES([man/Makefile])
+	AC_CONFIG_FILES([man/Makefile])
 
 	AC_CONFIG_FILES([doc/Makefile \
 					doc/dbus-api/Makefile \
@@ -84,7 +84,7 @@ AC_CONFIG_FILES([man/Makefile])
 dnl AM_CONFIG_HEADER(config.h)
 
 	dnl Settings need Standard C++ Library
-	LIBS="$LIBS -lstdc++"
+	LIBS="$LIBS -lstdc++ -std=c++0x"
 
 	dnl Solaris pkgadd support definitions
 	PKGADD_PKG="SFLphone"
@@ -92,7 +92,7 @@ dnl AM_CONFIG_HEADER(config.h)
 	PKGADD_VENDOR="http://www.sflphone.org/"
 	AC_SUBST(PKGADD_PKG)
 	AC_SUBST(PKGADD_NAME)
-AC_SUBST(PKGADD_VENDOR)
+	AC_SUBST(PKGADD_VENDOR)
 
 	dnl Check for programs
 	AC_PROG_CC
@@ -105,10 +105,10 @@ AC_SUBST(PKGADD_VENDOR)
 	AC_PROG_LIBTOOL
 
 	dnl Define C++ as default language
-AC_LANG(C++)
+	AC_LANG(C++)
 
 	dnl Setup C++ compiler flags
-	CXXFLAGS="$CXXFLAGS $USE_EXCEPTIONS $USER_INCLUDES -g -Wno-return-type"
+	CXXFLAGS="$CXXFLAGS $USE_EXCEPTIONS $USER_INCLUDES -g -Wno-return-type -std=c++0x"
 	dnl CXXFLAGS="$USE_EXCEPTIONS $USER_INCLUDES -O0 -g -Wno-return-type"
 
 	dnl Check for header files
@@ -127,7 +127,7 @@ AC_LANG(C++)
 	AC_TYPE_SIZE_T
 	AC_HEADER_TIME
 	AC_C_VOLATILE
-AC_CHECK_TYPES([ptrdiff_t])
+	AC_CHECK_TYPES([ptrdiff_t])
 
 	dnl ********************************
 	dnl Check for needed functions
@@ -258,9 +258,9 @@ AC_CHECK_TYPES([ptrdiff_t])
 			[with_debug=no]
 			)
 	if test "x$with_debug" = "xfull" -o "x$with_debug" = "xyes"; then
-	CXXFLAGS="$USE_EXCEPTIONS $USER_INCLUDES -g -O0 -Wno-return-type"
+	CXXFLAGS="$USE_EXCEPTIONS $USER_INCLUDES -g -O0 -Wno-return-type -std=c++0x"
 	else
-	CXXFLAGS="-g -Wall -O2"
+	CXXFLAGS="-g -Wall -O2 -std=c++0x"
 	fi
 
 AC_CHECK_LIB([expat], XML_ParserCreate_MM,

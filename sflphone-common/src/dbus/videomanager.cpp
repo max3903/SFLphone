@@ -41,10 +41,10 @@ std::vector<std::string> VideoManager::enumerateDevices()
 
 	std::vector<std::string> outputVector;
 
-	std::vector<sfl::VideoDevice> devices = videoInputSource->enumerateDevices();
-	std::vector<sfl::VideoDevice>::iterator it;
+	std::vector<sfl::VideoDevicePtr> devices = videoInputSource->enumerateDevices();
+	std::vector<sfl::VideoDevicePtr>::iterator it;
 	for (it = devices.begin(); it < devices.end(); it++) {
-		outputVector.push_back((*it).getName());
+		outputVector.push_back((*it)->getName());
 	}
 
 	_debug("Enumerating devices");

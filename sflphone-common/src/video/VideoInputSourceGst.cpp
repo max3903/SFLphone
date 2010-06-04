@@ -7,6 +7,7 @@
 
 #include <gst/interfaces/propertyprobe.h>
 #include <gst/app/gstappsink.h>
+#include <memory>
 
 namespace sfl {
 
@@ -31,22 +32,22 @@ GstFlowReturn VideoInputSourceGst::onNewBuffer(GstAppSink * sink, gpointer data)
 /**
  * @Override
  */
-void VideoInputSourceGst::open(VideoDevice device)
+void VideoInputSourceGst::open(VideoDevicePtr device)
 		throw (VideoDeviceIOException) {
 
-	GstVideoDevice* gstDevice = static_cast<GstVideoDevice*> (&device);
-
-	_debug("Pipeline for device %s: %s",  gstDevice->getName().c_str(), gstDevice->getGstPipeline().c_str());
+	GstVideoDevicePtr gstDevice = std::static_pointer_cast<GstVideoDevice,
+			VideoDevice>(device);
+	_debug("Pipeline for device %s: %s", gstDevice->getName().c_str(), gstDevice->getGstPipeline().c_str());
 
 	// Build the GST graph based on the chosen device.
 	gchar* command = NULL;
 	command = g_strdup_printf("%s ! appsink max_buffers=2 drop=true caps=%s"
-		",bpp=(int)%d"
-		",depth=(int)%d"
+		",bpp=%d"
+		",depth=%d"
 		",width=%d"
 		",height=%d"
-		",framerate=(fraction)%d/%d name=%s",
-			gstDevice->getGstPipeline().c_str(), APPSINK_MIMETYPE,
+		",framerate=%d/%d name=%s", gstDevice->getGstPipeline().c_str(),
+			APPSINK_MIMETYPE,
 			APPSINK_BPP,
 			APPSINK_DEPTH,
 			gstDevice->getPreferredWidth(), // TODO offer the ability to videoscale the output
@@ -54,17 +55,20 @@ void VideoInputSourceGst::open(VideoDevice device)
 			gstDevice->getPreferredFrameRateNumerator(),
 			gstDevice->getPreferredFrameRateDenominator(), APPSINK_NAME);
 
-	_debug("Opening gstreamer with pipeline : %s", command);
+	_debug("Opening Gstreamer with pipeline : %s", command);
 
 	GError* error = NULL;
 	pipeline = gst_parse_launch(command, &error);
 
 	if (error != NULL) {
+		std::string errorMessage = std::string("While opening device ")
+				+ gstDevice->getName() + std::string(" error : ")
+				+ std::string(error->message);
+
 		g_error_free(error);
 		g_free(command);
 		pipelineRunning = false;
-		throw VideoDeviceIOException("while opening device "
-				+ gstDevice->getName());
+		throw VideoDeviceIOException(errorMessage);
 	}
 
 	// Set internal callbacks
@@ -156,11 +160,22 @@ void VideoInputSourceGst::grabFrame() throw (VideoDeviceIOException) {
 }
 
 void VideoInputSourceGst::close() throw (VideoDeviceIOException) {
-	if (!isRunning()) {
-		gst_element_set_state(pipeline, GST_STATE_NULL);
-		gst_object_unref(GST_OBJECT(pipeline));
-		pipelineRunning = false;
+	gst_element_set_state(pipeline, GST_STATE_NULL);
+
+	// Wait at most 10 sec to ensure that the device is correctly closed
+	GstStateChangeReturn ret = gst_element_get_state(pipeline, NULL, NULL,
+			DEVICE_DETECT_MAX_WAIT * GST_SECOND);
+
+	if (ret == GST_STATE_CHANGE_ASYNC) {
+		throw VideoDeviceIOException("Device " + currentDevice->getName()
+				+ " is still closing.");
+	} else if (ret == GST_STATE_CHANGE_FAILURE) {
+		throw VideoDeviceIOException("Device " + currentDevice->getName()
+				+ " failed to get closed.");
 	}
+
+	gst_object_unref(GST_OBJECT(pipeline));
+	pipelineRunning = false;
 }
 
 /**
@@ -209,7 +224,7 @@ std::vector<FrameFormat> VideoInputSourceGst::getWebcamCapabilities(
 			if (name == NULL) {
 				name = "Unknown";
 			}
-			_debug("Device: %s (%s)", name, device.c_str());
+			_debug("Getting capabilities for device: %s (%s)", name, device.c_str());
 
 			pad = gst_element_get_pad(src, "src");
 			caps = gst_pad_get_caps(pad);
@@ -432,7 +447,7 @@ std::vector<VideoDevice*> VideoInputSourceGst::getXimageSource()
 	return detectedDevices;
 }
 
-std::vector<VideoDevice> VideoInputSourceGst::getV4l2Devices()
+std::vector<VideoDevicePtr> VideoInputSourceGst::getV4l2Devices()
 		throw (MissingGstPluginException) {
 
 	std::vector<std::string> neededPlugins;
@@ -440,7 +455,7 @@ std::vector<VideoDevice> VideoInputSourceGst::getV4l2Devices()
 	ensurePluginAvailability(neededPlugins);
 
 	// Retreive the list of devices and their details.
-	std::vector<VideoDevice> detectedDevices;
+	std::vector<VideoDevicePtr> detectedDevices;
 	GstElement* element = NULL;
 	element = gst_element_factory_make("v4l2src", "v4l2srcpresencetest");
 	if (element == NULL) {
@@ -467,9 +482,9 @@ std::vector<VideoDevice> VideoInputSourceGst::getV4l2Devices()
 				// Add to vector
 				std::vector<FrameFormat> formats = getWebcamCapabilities(V4L2,
 						g_value_get_string(device));
-				GstVideoDevice gstDevice(V4L2, formats, g_value_get_string(
-						device), name);
-				detectedDevices.push_back(gstDevice);
+
+				detectedDevices.push_back(VideoDevicePtr(new GstVideoDevice(
+						V4L2, formats, g_value_get_string(device), name)));
 
 				g_free(name);
 			}
@@ -484,20 +499,14 @@ std::vector<VideoDevice> VideoInputSourceGst::getV4l2Devices()
 	return detectedDevices;
 }
 
-std::vector<VideoDevice> VideoInputSourceGst::enumerateDevices(void) {
-	std::vector<VideoDevice> detectedDevices;
+std::vector<VideoDevicePtr> VideoInputSourceGst::enumerateDevices(void) {
+	std::vector<VideoDevicePtr> detectedDevices;
 
 	try {
-		std::vector<VideoDevice> v4l2Devices = getV4l2Devices();
-		//std::vector<VideoDevice*> ximageDevices = getXimageSource();
-		//std::vector<VideoDevice*> videoTestSourceDevices = getVideoTestSource();
-
+		std::vector<VideoDevicePtr> v4l2Devices = getV4l2Devices();
 		detectedDevices.insert(detectedDevices.end(), v4l2Devices.begin(),
 				v4l2Devices.end());
-		//detectedDevices.insert(detectedDevices.end(), ximageDevices.begin(),
-		//		ximageDevices.end());
-		//detectedDevices.insert(detectedDevices.end(),
-		//		videoTestSourceDevices.begin(), videoTestSourceDevices.end());
+
 	} catch (MissingGstPluginException e) {
 		// TODO We might want to pop something up to the user in the GUI.
 		_warn((std::string("A plugin is missing : ") + e.what()).c_str());

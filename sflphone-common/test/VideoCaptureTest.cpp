@@ -50,21 +50,16 @@ void VideoCaptureTest::testEnumerateDevices() {
 	// Expecting that the container is at least not empty
 	// ximagesrc and videotestsrc should minimally be available.
 
-	std::vector<sfl::VideoDevice> devices = videoInput->enumerateDevices();
-	std::vector<sfl::VideoDevice>::iterator itDevice;
+	std::vector<sfl::VideoDevicePtr> devices = videoInput->enumerateDevices();
+	std::vector<sfl::VideoDevicePtr>::iterator itDevice;
 	for (itDevice = devices.begin(); itDevice < devices.end(); itDevice++) {
-		std::cout << "Name: " + (*itDevice).getName() << std::endl;
-		std::cout << "Device: " + (*itDevice).getDevice() << std::endl;
+		std::cout << "Name: " + (*itDevice)->getName() << std::endl;
+		std::cout << "Device: " + (*itDevice)->getDevice() << std::endl;
 
-//		std::cout << "Preferred Width: " + (*itDevice).getPreferredWidth() << std::endl;
-//		std::cout << "Preferred Height: " + (*itDevice).getPreferredHeight() << std::endl;
-//		std::cout << "Preferred Numerator: " + (*itDevice).getPreferredFrameRateNumerator() << std::endl;
-//		std::cout << "Preferred Denominator: " + (*itDevice).getPreferredFrameRateDenominator() << std::endl;
-
-		std::cout << "Preferred Frame Format: " << (*itDevice).getPreferredFormat().toString() << std::endl;
+		std::cout << "Preferred Frame Format: " << (*itDevice)->getPreferredFormat().toString() << std::endl;
 		std::cout << "Supported Frame Formats:" << std::endl;
 
-		std::vector<sfl::FrameFormat> formats = (*itDevice).getSupportedFormats();
+		std::vector<sfl::FrameFormat> formats = (*itDevice)->getSupportedFormats();
 		std::vector<sfl::FrameFormat>::iterator itFormat;
 		for (itFormat = formats.begin(); itFormat < formats.end(); itFormat++) {
 			std::cout << "	- " << (*itFormat).toString() << std::endl;
@@ -82,39 +77,20 @@ void VideoCaptureTest::testEnumerateDevices() {
 }
 
 void VideoCaptureTest::testFrameObserver() {
-//	std::cout << "Testing frame observer pattern" << std::endl;
-//
-//	// Define a new observer
-//	VideoFrameObserverTest observer;
-//
-//	std::vector<sfl::VideoDevice*> devices = videoInput->enumerateDevices();
-//
-//	videoInput->setDevice(devices.at(0));
-//
-//	videoInput->addVideoFrameObserver(&observer);
-//
-//	videoInput->open(320, 240, 30);
-//
-//	// Let some frames be captured.
-//	sleep(2);
-//
-//	videoInput->close();
-//
-//	CPPUNIT_ASSERT(observer.i > 0);
-}
+	std::cout << "Testing frame observer pattern" << std::endl;
 
-void VideoCaptureTest::testGrabFrame() {
-//	std::cout << "Testing grabFrame()" << std::endl;
-//
-//	std::vector<sfl::VideoDevice*> devices = videoInput->enumerateDevices();
-//	videoInput->setDevice(devices.at(0));
-//
-//	videoInput->open(320, 240, 30);
-//
-//	CPPUNIT_ASSERT_NO_THROW(videoInput->grabFrame());
-//	sfl::VideoFrame * frame = videoInput->getCurrentFrame();
-//	CPPUNIT_ASSERT(frame != NULL);
-//
-//	videoInput->close();
-}
+	// Define a new observer
+	VideoFrameObserverTest observer;
 
+	std::vector<sfl::VideoDevicePtr> devices = videoInput->enumerateDevices();
+
+	videoInput->addVideoFrameObserver(&observer);
+	videoInput->open();
+
+	// Let some frames be captured.
+	sleep(2);
+
+	videoInput->close();
+
+	CPPUNIT_ASSERT(observer.i > 0);
+}

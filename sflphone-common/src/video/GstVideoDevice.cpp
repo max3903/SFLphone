@@ -7,17 +7,21 @@ namespace sfl {
 GstVideoDevice::GstVideoDevice(VideoSourceType type,
 		std::vector<FrameFormat> formats, const std::string& device,
 		const std::string& name) :
-	VideoDevice(type, formats, device, name), gstreamerPipeline("") {
+	VideoDevice(type, formats, device, name) {
 	setGstPipelineFromFormat();
 }
 
-std::string GstVideoDevice::getGstPipeline() {
+GstVideoDevice::GstVideoDevice(const GstVideoDevice& other) :
+	VideoDevice(other.getType(), other.getSupportedFormats(),
+			other.getDevice(), other.getName()), gstreamerPipeline(other.getGstPipeline()) {
+}
+
+std::string GstVideoDevice::getGstPipeline() const {
 	return gstreamerPipeline;
 }
 
 void GstVideoDevice::setGstPipeline(const std::string& pipeline) {
 	gstreamerPipeline = pipeline;
-	_debug("Setting pipeline to %s", gstreamerPipeline.c_str());
 }
 
 void GstVideoDevice::setPreferredFormat(const FrameFormat& format) {
@@ -39,7 +43,7 @@ void GstVideoDevice::setGstPipelineFromFormat() {
 			<< ",height=" << preferredFormat.getHeight() << ",framerate="
 			<< preferredFormat.getPreferredFrameRate().getNumerator() << "/"
 			<< preferredFormat.getPreferredFrameRate().getDenominator()
-			<< " ! identity";
+			<< " ! identity ! ffmpegcolorspace ";
 
 	setGstPipeline(pipelineString.str());
 }

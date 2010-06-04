@@ -8,46 +8,45 @@
 #include <cc++/exception.h>
 
 namespace sfl {
-VideoInputSource::VideoInputSource() : currentDevice(NULL), currentFrame(NULL), scaledWidth(0), scaledHeight(0), reformattedDepth(0){
+VideoInputSource::VideoInputSource() : currentDevice(), currentFrame(NULL), scaledWidth(0), scaledHeight(0), reformattedDepth(0){
 	frameMutex = new ost::Mutex();
 }
 
 VideoInputSource::~VideoInputSource() {
 	delete currentFrame;
-	delete currentDevice;
 }
 
 void VideoInputSource::open() throw (VideoDeviceIOException, NoVideoDeviceAvailableException)
 {
 	// If no device has been specified, handle this automatically and set it to the first available one.
 	if (currentDevice == NULL) {
-		std::vector<VideoDevice> devices = enumerateDevices();
+		std::vector<VideoDevicePtr> devices = enumerateDevices();
 		if (devices.size() == 0) {
 			throw NoVideoDeviceAvailableException("No video device can be found.");
 		}
 
 		open(devices.at(0));
 	} else {
-		open((*currentDevice));
+		open(currentDevice);
 	}
 }
 
-void VideoInputSource::setDevice(VideoDevice device)
+void VideoInputSource::setDevice(VideoDevicePtr device)
 {
-	currentDevice = new VideoDevice(device);
+	currentDevice = VideoDevicePtr(new VideoDevice((*device))); // We want get a copy, so that the object cannot be mutated.
 }
 
 void VideoInputSource::setDevice(const std::string& device) throw(UnknownVideoDeviceException)
 {
-	std::vector<sfl::VideoDevice> devices = enumerateDevices();
-	std::vector<sfl::VideoDevice>::iterator it;
+	std::vector<sfl::VideoDevicePtr> devices = enumerateDevices();
+	std::vector<sfl::VideoDevicePtr>::iterator it;
 
 	_debug("Searching for device (%s) to set", device.c_str());
 
 	// Search for that name
 	for (it = devices.begin(); it < devices.end(); it++) {
-		_debug("Device (%s)", (*it).getName().c_str());
-		if (device.compare((*it).getName()) == 0) {
+		_debug("Device (%s)", (*it)->getName().c_str());
+		if (device.compare((*it)->getName()) == 0) {
 			setDevice((*it));
 			_debug("Device set");
 			return;

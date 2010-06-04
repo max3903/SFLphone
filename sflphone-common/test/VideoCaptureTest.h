@@ -18,7 +18,6 @@ class VideoCaptureTest: public CppUnit::TestFixture
 		CPPUNIT_TEST( testEnumerateDevices );
 		CPPUNIT_TEST( testOpenClose );
 		CPPUNIT_TEST( testFrameObserver );
-		CPPUNIT_TEST( testGrabFrame );
 	CPPUNIT_TEST_SUITE_END();
 
 	public:
@@ -45,11 +44,6 @@ class VideoCaptureTest: public CppUnit::TestFixture
 		 * Make sure that the observers are called and receiving frames.
 		 */
 		void testFrameObserver();
-
-		/**
-		 * Tries to get a frame.
-		 */
-		void testGrabFrame();
 
 	private:
 		sfl::VideoInputSourceGst* videoInput;	 
