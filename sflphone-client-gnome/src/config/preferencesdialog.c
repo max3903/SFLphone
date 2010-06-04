@@ -68,6 +68,24 @@ GtkWidget *starthidden;
 GtkWidget *popupwindow;
 GtkWidget *neverpopupwindow;
 
+GtkWidget *treeView;
+GtkCellRenderer *renderer;
+GtkTreeViewColumn *column;
+GtkTreeSelection *selection;
+GtkWidget * notebook;
+
+enum {
+    PIXBUF_COL,
+    TEXT_COL,
+    PAGE_NUMBER
+};
+
+typedef struct {
+  gchar* icon_descr;
+  gchar* icon_name;
+  gint page_number;
+} browser_t;
+
 static int history_limit;
 static gboolean history_enabled = TRUE;
 
@@ -266,6 +284,66 @@ history_load_configuration ()
     history_enabled = FALSE;
 }
 
+GtkTreeModel* createModel() {
+    browser_t browser_entries[6] = {
+        {_("General"), "emblem-generic", 0},
+        {_("Audio"), "audio-card", 1},
+        {_("Video"), "camera-web", 2},
+        {_("Address Book"), "stock_addressbook", 3},
+        {_("Shortcuts"), "input-keyboard", 4},
+        {_("Hooks"), "gnome-globe", 5}
+    };
+
+    GdkPixbuf *pixbuf;
+    GtkTreeIter iter;
+    GtkListStore *store;
+    GError *error = NULL;
+    gint i;
+
+    store = gtk_list_store_new(3, GDK_TYPE_PIXBUF, G_TYPE_STRING, G_TYPE_INT);
+    GtkIconTheme* theme = gtk_icon_theme_get_default();
+
+    for(i = 0; i < 6; i++) {
+        gtk_list_store_append(store, &iter);
+
+        pixbuf = gtk_icon_theme_load_icon(theme, browser_entries[i].icon_name, 48, 0, &error);
+
+        gtk_list_store_set(store, &iter,
+                           PIXBUF_COL, pixbuf,
+                           TEXT_COL, browser_entries[i].icon_descr,
+                           PAGE_NUMBER, browser_entries[i].page_number,
+                           -1);
+
+        if (pixbuf != NULL) {
+          gdk_pixbuf_unref (pixbuf);
+        } else {
+          DEBUG("Couldn't load icon: %s", error->message);
+          g_error_free (error);
+        }
+    }
+
+    return GTK_TREE_MODEL(store);
+}
+
+gboolean selection_changed_cb(GtkTreeSelection *selection, gpointer value) {
+    GtkTreeView *treeView;
+    GtkTreeModel *model;
+    GtkTreeIter iter;
+
+    treeView = gtk_tree_selection_get_tree_view(selection);
+    model = gtk_tree_view_get_model(treeView);
+    gtk_tree_selection_get_selected(selection, &model, &iter);
+
+    gchar *text;
+    gtk_tree_model_get(model, &iter, TEXT_COL, &text, -1);
+
+    gint page;
+    gtk_tree_model_get(model, &iter, PAGE_NUMBER, &page, -1);
+    DEBUG("%s clicked on page %d", text, page);
+
+    gtk_notebook_set_current_page(GTK_NOTEBOOK(notebook), page);
+}
+
 /**
  * Show configuration window with tabs
  */
@@ -273,8 +351,9 @@ void
 show_preferences_dialog ()
 {
   GtkDialog * dialog;
-  GtkWidget * notebook;
   GtkWidget * tab;
+  GtkWidget * hbox;
+
   guint result;
 
   dialogOpen = TRUE;
@@ -291,9 +370,37 @@ show_preferences_dialog ()
   gtk_window_set_default_size (GTK_WINDOW(dialog), 600, 400);
   gtk_container_set_border_width (GTK_CONTAINER(dialog), 0);
 
+  hbox = gtk_hbox_new(FALSE, 10);
+
+  // Create tree view
+  treeView = gtk_tree_view_new_with_model(createModel());
+  gtk_tree_view_set_headers_visible (GTK_TREE_VIEW(treeView), FALSE);
+
+  renderer = gtk_cell_renderer_pixbuf_new();
+  column = gtk_tree_view_column_new_with_attributes(
+                   NULL, renderer,
+                   "pixbuf", PIXBUF_COL,
+                    NULL);
+  gtk_tree_view_append_column(GTK_TREE_VIEW (treeView), column);
+
+  renderer = gtk_cell_renderer_text_new();
+  column = gtk_tree_view_column_new_with_attributes(
+                   NULL, renderer,
+                   "text", TEXT_COL,
+                    NULL);
+  gtk_tree_view_append_column(GTK_TREE_VIEW (treeView), column);
+
+  selection = gtk_tree_view_get_selection(GTK_TREE_VIEW(treeView));
+  g_signal_connect(G_OBJECT(selection), "changed",
+                   G_CALLBACK(selection_changed_cb), NULL);
+  gtk_box_pack_start (GTK_BOX (hbox), treeView, TRUE, TRUE, 0);
+
   // Create tabs container
   notebook = gtk_notebook_new ();
-  gtk_box_pack_start (GTK_BOX (dialog->vbox), notebook, TRUE, TRUE, 0);
+  gtk_notebook_set_show_tabs(GTK_NOTEBOOK(notebook), FALSE);
+  gtk_box_pack_end (GTK_BOX (hbox), notebook, TRUE, TRUE, 0);
+  gtk_box_pack_start (GTK_BOX (dialog->vbox), hbox, TRUE, TRUE, 0);
+  gtk_widget_show_all(dialog->vbox);
   gtk_container_set_border_width (GTK_CONTAINER(notebook), 10);
   gtk_widget_show (notebook);
 

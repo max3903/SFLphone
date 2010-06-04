@@ -78,6 +78,8 @@ video_pane_init (VideoPane *self)
         }
     }
 
+  gtk_combo_box_set_active(priv->devices_combo, 0);
+
   gtk_box_pack_start(GTK_BOX(self), priv->video_cairo, TRUE, TRUE, 0);
   gtk_box_pack_start(GTK_BOX(self), priv->devices_combo, TRUE, FALSE, 0);
   gtk_box_pack_start(GTK_BOX(self), priv->capture_button, TRUE, FALSE, 0);
