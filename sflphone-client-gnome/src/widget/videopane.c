@@ -38,7 +38,7 @@ video_pane_class_init (VideoPaneClass *klass)
   object_class->finalize = video_pane_finalize;
 }
 
-void capture_cb(GtkWidget *widget, gpointer data)
+static void capture_cb(GtkWidget *widget, gpointer data)
 {
   VideoPanePrivate* priv = GET_PRIVATE((VideoPane *) data);
   gchar * device = gtk_combo_box_get_active_text((GtkComboBox*) priv->devices_combo);

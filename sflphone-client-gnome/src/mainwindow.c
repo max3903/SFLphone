@@ -231,7 +231,10 @@ create_main_window ()
   gtk_box_pack_start (GTK_BOX (vbox), widget, FALSE, TRUE, 0);
 
   create_toolbar_actions (ui_manager, &widget);
-  gtk_box_pack_start (GTK_BOX (vbox), widget, FALSE, TRUE, 0);
+  gtk_widget_show_all(widget);
+  GtkWidget* handlebox_toolbar = gtk_handle_box_new();
+  gtk_container_add(GTK_CONTAINER(handlebox_toolbar), GTK_WIDGET(widget));
+  gtk_box_pack_start (GTK_BOX (vbox), handlebox_toolbar, FALSE, TRUE, 0);
 
   // Main vertical box for the window
   GtkWidget* split_pane = gtk_hpaned_new();
@@ -247,7 +250,7 @@ create_main_window ()
   GtkWidget* video_pane = video_pane_new();
   gtk_widget_show(video_pane);
 
-  gtk_paned_add2(GTK_PANED(split_pane), GTK_WIDGET(video_pane));
+  gtk_paned_add2(GTK_PANED(split_pane), video_pane);
   gtk_widget_show_all(split_pane);
   gtk_box_pack_start (GTK_BOX (vbox), split_pane, TRUE, TRUE, 0);
 

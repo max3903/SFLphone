@@ -15,6 +15,25 @@
 			</arg>
 		</method>
 		
+		<method name="getResolutionForDevice" tp:name-for-bindings="getResolutionForDevice">
+			<tp:added version="0.9.9"/>
+			<tp:docstring>
+			Find out what resolutions are supported for this device.
+			</tp:docstring>
+			
+			<arg type="s" name="device" direction="in">
+			  <tp:docstring>
+			   The video device.
+			  </tp:docstring>
+			</arg>
+						
+			<arg type="as" name="list" direction="out">
+			  <tp:docstring>
+			  The list of supported resolutions.
+			  </tp:docstring>
+			</arg>
+		</method>
+		
 		<method name="startLocalCapture" tp:name-for-bindings="startLocalCapture">
 			<tp:added version="0.9.9"/>
 			<tp:docstring>

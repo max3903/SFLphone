@@ -1,5 +1,5 @@
-#ifndef _VIDEO_PANE
-#define _VIDEO_PANE
+#ifndef _VIDEO_PANE_H__
+#define _VIDEO_PANE_H__
 
 #include <glib-object.h>
 #include <gtk/gtk.h>

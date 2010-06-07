@@ -22,6 +22,7 @@
 
 #include "video/VideoInputSource.h"
 #include "videomanager-glue.h"
+#include "video/VideoInputSource.h"
 
 #include <dbus-c++/dbus.h>
 #include <map>
@@ -46,6 +47,12 @@ public:
 	std::vector<std::string> enumerateDevices();
 
 	/**
+	 * @param device The device for which to get this information.
+	 * @return The list of supported resolutions for the device.
+	 */
+	std::vector<std::string> getResolutionForDevice(const std::string& device);
+
+	/**
 	 * @param device The device to start capturing from.
 	 * @return The shared memory segment where the data can be obtained or /dev/null if a problem has occurred.
 	 */
@@ -64,8 +71,11 @@ private :
 	 */
 	sfl::VideoEndpoint* getVideoEndpoint(const std::string& device) throw(sfl::UnknownVideoDeviceException);
 
-	// Key : device name Value : Corresponding VideoEndpoint
+	// Key : device name. Value : Corresponding VideoEndpoint
 	std::map<std::string, sfl::VideoEndpoint*> videoEndpoints;
+
+	// Key : device id. Value : Corresponding VideoDevice
+	std::map<std::string, sfl::VideoDevicePtr> videoDevices;
 };
 
 #endif//CONTACTMANAGER_H

@@ -15,6 +15,25 @@
 			</arg>
 		</method>
 		
+		<method name="getResolutionForDevice" tp:name-for-bindings="getResolutionForDevice">
+			<tp:added version="0.9.9"/>
+			<tp:docstring>
+			Find out what resolutions are supported for this device.
+			</tp:docstring>
+			
+			<arg type="s" name="device" direction="in">
+			  <tp:docstring>
+			   The video device.
+			  </tp:docstring>
+			</arg>
+						
+			<arg type="as" name="list" direction="out">
+			  <tp:docstring>
+			  The list of supported resolutions.
+			  </tp:docstring>
+			</arg>
+		</method>
+		
 		<method name="startLocalCapture" tp:name-for-bindings="startLocalCapture">
 			<tp:added version="0.9.9"/>
 			<tp:docstring>
@@ -33,7 +52,7 @@
 			  </tp:docstring>
 			</arg>
 		</method>  
-		
+				
 		<method name="getEventFdPasserNamespace" tp:name-for-bindings="getEventFdPasserNamespace">
 			<tp:added version="0.9.9"/>
 			<tp:docstring>
@@ -88,7 +107,7 @@
 			
 		<signal name="videoStarted" tp:name-for-bindings="videoStarted">
 			<tp:docstring>
-			This signal is being sent when video capture has started and client can therefore expect to be able to read frames.
+			Unused. This signal is being sent when video capture has started and client can therefore expect to be able to read frames.
 			</tp:docstring>
 			<arg type="s" name="segment">
 				<tp:docstring>
@@ -99,7 +118,7 @@
 		
 		<signal name="videoStopped" tp:name-for-bindings="videoStopped">
 			<tp:docstring>
-			This signal is being sent when video capture has stopped and client can therefore expect to be able to read frames.
+			Unused. This signal is being sent when video capture has stopped and client can therefore expect to be able to read frames.
 			</tp:docstring>
 			<arg type="s" name="segment">
 				<tp:docstring>

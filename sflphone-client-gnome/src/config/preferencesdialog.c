@@ -375,6 +375,7 @@ show_preferences_dialog ()
 
   // Create tree view
   treeView = gtk_tree_view_new_with_model(createModel());
+
   gtk_tree_view_set_headers_visible (GTK_TREE_VIEW(treeView), FALSE);
 
   renderer = gtk_cell_renderer_pixbuf_new();
@@ -417,7 +418,7 @@ show_preferences_dialog ()
       _("Audio")));
   gtk_notebook_page_num (GTK_NOTEBOOK(notebook), tab);
 
-  tab = create_video_configuration ();
+  tab = video_conf_new ();
   gtk_notebook_append_page (GTK_NOTEBOOK(notebook), tab, gtk_label_new (
       _("Video")));
   gtk_notebook_page_num (GTK_NOTEBOOK(notebook), tab);
@@ -428,16 +429,16 @@ show_preferences_dialog ()
       _("Address Book")));
   gtk_notebook_page_num (GTK_NOTEBOOK(notebook), tab);
 
+  // Shortcuts tab
+  tab = create_shortcuts_settings();
+  gtk_notebook_append_page(GTK_NOTEBOOK(notebook), tab, gtk_label_new(_("Shortcuts")));
+  gtk_notebook_page_num(GTK_NOTEBOOK(notebook), tab);
+
   // Hooks tab
   tab = create_hooks_settings ();
   gtk_notebook_append_page (GTK_NOTEBOOK(notebook), tab, gtk_label_new (
       _("Hooks")));
   gtk_notebook_page_num (GTK_NOTEBOOK(notebook), tab);
-
-  // Shortcuts tab
-  tab = create_shortcuts_settings();
-  gtk_notebook_append_page(GTK_NOTEBOOK(notebook), tab, gtk_label_new(_("Shortcuts")));
-  gtk_notebook_page_num(GTK_NOTEBOOK(notebook), tab);
 
   gtk_notebook_set_current_page (GTK_NOTEBOOK (notebook), 0);
 

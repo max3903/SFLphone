@@ -1374,12 +1374,12 @@ dbus_set_active_codec_list (const gchar** list, const gchar *accountID)
  * Get a list of output supported audio plugins
  */
 gchar**
-dbus_get_audio_plugin_list()
+dbus_get_audio_plugin_list ()
 {
   gchar** array;
   GError* error = NULL;
 
-  if (!org_sflphone_SFLphone_ConfigurationManager_get_audio_plugin_list(
+  if (!org_sflphone_SFLphone_ConfigurationManager_get_audio_plugin_list (
       configurationManagerProxy, &array, &error))
     {
       if (error->domain == DBUS_GERROR && error->code
@@ -1464,15 +1464,15 @@ dbus_set_audio_output_device (const int index)
  * Set audio input device from its index
  */
 void
-dbus_set_audio_input_device(const int index)
+dbus_set_audio_input_device (const int index)
 {
   GError* error = NULL;
-  org_sflphone_SFLphone_ConfigurationManager_set_audio_input_device(
+  org_sflphone_SFLphone_ConfigurationManager_set_audio_input_device (
       configurationManagerProxy, index, &error);
   if (error)
     {
       ERROR("Failed to call set_audio_input_device() on ConfigurationManager: %s", error->message);
-      g_error_free(error);
+      g_error_free (error);
     }
 }
 
@@ -1480,15 +1480,15 @@ dbus_set_audio_input_device(const int index)
  * Set adio ringtone device from its index
  */
 void
-dbus_set_audio_ringtone_device(const int index) 
+dbus_set_audio_ringtone_device (const int index)
 {
   GError* error = NULL;
-  org_sflphone_SFLphone_ConfigurationManager_set_audio_ringtone_device(
+  org_sflphone_SFLphone_ConfigurationManager_set_audio_ringtone_device (
       configurationManagerProxy, index, &error);
-  if(error) 
+  if (error)
     {
       ERROR("Failed to call set_audio_ringtone_device() on ConfigurationManager: %s", error->message);
-      g_error_free(error);
+      g_error_free (error);
     }
 }
 
@@ -1496,16 +1496,16 @@ dbus_set_audio_ringtone_device(const int index)
  * Get all input devices index supported by current audio manager
  */
 gchar**
-dbus_get_audio_input_device_list()
+dbus_get_audio_input_device_list ()
 {
   gchar** array;
   GError* error = NULL;
-  org_sflphone_SFLphone_ConfigurationManager_get_audio_input_device_list(
+  org_sflphone_SFLphone_ConfigurationManager_get_audio_input_device_list (
       configurationManagerProxy, &array, &error);
   if (error)
     {
       ERROR("Failed to call get_audio_input_device_list() on ConfigurationManager: %s", error->message);
-      g_error_free(error);
+      g_error_free (error);
     }
   return array;
 }
@@ -1568,15 +1568,17 @@ dbus_get_current_audio_output_plugin ()
  * Get echo canceller state 
  */
 gchar*
-dbus_get_echo_cancel_state()
+dbus_get_echo_cancel_state ()
 {
   gchar* state = "";
   GError* error = NULL;
-  org_sflphone_SFLphone_ConfigurationManager_get_echo_cancel_state(configurationManagerProxy, &state, &error);
-  if(error) {
-    ERROR("DBus: Failed to call get_echo_cancel_state() on ConfigurationManager: %s", error->message);
-    g_error_free(error);
-  }
+  org_sflphone_SFLphone_ConfigurationManager_get_echo_cancel_state (
+      configurationManagerProxy, &state, &error);
+  if (error)
+    {
+      ERROR("DBus: Failed to call get_echo_cancel_state() on ConfigurationManager: %s", error->message);
+      g_error_free (error);
+    }
   return state;
 }
 
@@ -1584,32 +1586,33 @@ dbus_get_echo_cancel_state()
  * Set echo canceller state
  */
 void
-dbus_set_echo_cancel_state(gchar* state)
+dbus_set_echo_cancel_state (gchar* state)
 {
   GError* error = NULL;
-  org_sflphone_SFLphone_ConfigurationManager_set_echo_cancel_state(
+  org_sflphone_SFLphone_ConfigurationManager_set_echo_cancel_state (
       configurationManagerProxy, state, &error);
   if (error)
     {
       ERROR("Failed to call set_echo_cancel_state() on ConfigurationManager: %s", error->message);
-      g_error_free(error);
+      g_error_free (error);
     }
 }
-
 
 /**
  * Get noise reduction state
  */
 gchar*
-dbus_get_noise_suppress_state()
+dbus_get_noise_suppress_state ()
 {
   gchar* state = "";
   GError* error = NULL;
-  org_sflphone_SFLphone_ConfigurationManager_get_noise_suppress_state(configurationManagerProxy, &state, &error);
-  if(error) {
-    ERROR("DBus: Failed to call get_noise_suppress_state() on ConfigurationManager: %s", error->message);
-    g_error_free(error);
-  }
+  org_sflphone_SFLphone_ConfigurationManager_get_noise_suppress_state (
+      configurationManagerProxy, &state, &error);
+  if (error)
+    {
+      ERROR("DBus: Failed to call get_noise_suppress_state() on ConfigurationManager: %s", error->message);
+      g_error_free (error);
+    }
   return state;
 }
 
@@ -1617,18 +1620,17 @@ dbus_get_noise_suppress_state()
  * Set echo canceller state
  */
 void
-dbus_set_noise_suppress_state(gchar* state)
+dbus_set_noise_suppress_state (gchar* state)
 {
   GError* error = NULL;
-  org_sflphone_SFLphone_ConfigurationManager_set_noise_suppress_state(
+  org_sflphone_SFLphone_ConfigurationManager_set_noise_suppress_state (
       configurationManagerProxy, state, &error);
   if (error)
     {
       ERROR("Failed to call set_noise_suppress_state() on ConfigurationManager: %s", error->message);
-      g_error_free(error);
+      g_error_free (error);
     }
 }
-
 
 gchar*
 dbus_get_ringtone_choice ()
@@ -2779,7 +2781,6 @@ dbus_is_status_icon_enabled (void)
 gchar**
 dbus_video_enumerate_devices (void)
 {
-
   GError *error = NULL;
   char ** array = NULL;
 
@@ -2788,6 +2789,23 @@ dbus_video_enumerate_devices (void)
   if (error != NULL)
     {
       ERROR("Failed to enumerate devices over dbus.");
+      g_error_free (error);
+    }
+
+  return array;
+}
+
+gchar**
+dbus_video_get_resolution_for_device (const char* device)
+{
+  GError *error = NULL;
+  char ** array = NULL;
+
+  org_sflphone_SFLphone_VideoManager_get_resolution_for_device (
+      videoManagerProxy, device, &array, &error);
+  if (error != NULL)
+    {
+      ERROR("Failed to get resolution for device over dbus.");
       g_error_free (error);
     }
 

@@ -18,7 +18,6 @@
  */
 
 #include "videomanager.h"
-#include "video/VideoInputSource.h"
 #include "video/VideoInputSourceGst.h"
 #include "video/VideoEndpoint.h"
 
@@ -30,34 +29,63 @@ const char* VideoManager::SERVER_PATH = "/org/sflphone/SFLphone/VideoManager";
 const char* VideoManager::SHM_ERROR_PATH = "/dev/null";
 
 VideoManager::VideoManager(DBus::Connection& connection) :
-	DBus::ObjectAdaptor(connection, SERVER_PATH)
-{
+	DBus::ObjectAdaptor(connection, SERVER_PATH) {
+	sfl::VideoInputSource* videoInputSource = new sfl::VideoInputSourceGst();
+	std::vector<sfl::VideoDevicePtr> devicesList =
+			videoInputSource->enumerateDevices();
 
+	// TODO make this refresh when device is disconnected.
+	std::vector<sfl::VideoDevicePtr>::iterator it;
+	for (it = devicesList.begin(); it < devicesList.end(); it++) {
+		videoDevices.insert(std::pair<std::string, sfl::VideoDevicePtr>(
+				(*it)->getName(), (*it)));
+	}
 }
 
-std::vector<std::string> VideoManager::enumerateDevices()
-{
-	sfl::VideoInputSource* videoInputSource = new sfl::VideoInputSourceGst();
-
-	std::vector<std::string> outputVector;
-
-	std::vector<sfl::VideoDevicePtr> devices = videoInputSource->enumerateDevices();
-	std::vector<sfl::VideoDevicePtr>::iterator it;
-	for (it = devices.begin(); it < devices.end(); it++) {
-		outputVector.push_back((*it)->getName());
-	}
-
+std::vector<std::string> VideoManager::enumerateDevices() {
 	_debug("Enumerating devices");
 
-	return outputVector;
+	std::vector<std::string> devices;
+
+	std::map<std::string, sfl::VideoDevicePtr>::iterator it;
+	for (it = videoDevices.begin(); it != videoDevices.end(); it++) {
+		devices.push_back(((*it).second)->getName());
+	}
+
+	return devices;
 }
 
-std::string VideoManager::startLocalCapture(const std::string& device)
-{
+std::vector<std::string> VideoManager::getResolutionForDevice(
+		const std::string& device) {
+
+	std::vector<std::string> resolutions;
+
+	std::map<std::string, sfl::VideoDevicePtr>::iterator itDevice =
+			videoDevices.find(device);
+
+	if (itDevice != videoDevices.end()) {
+		std::vector<sfl::FrameFormat> formats =
+				((*itDevice).second)->getSupportedFormats();
+
+		std::vector<sfl::FrameFormat>::iterator itFormat;
+		for (itFormat = formats.begin(); itFormat < formats.end(); itFormat++) {
+			std::ostringstream objectString;
+
+			objectString << (*itFormat).getWidth() << "x" << (*itFormat).getHeight();
+
+			resolutions.push_back(objectString.str());
+		}
+	}
+
+	return resolutions;
+}
+
+std::string VideoManager::startLocalCapture(const std::string& device) {
 	_debug("Starting local capture on %s", device.c_str());
 
 	// Do nothing if already capturing
-	std::map<std::string, sfl::VideoEndpoint*>::iterator it = videoEndpoints.find(device);
+	std::map<std::string, sfl::VideoEndpoint*>::iterator it =
+			videoEndpoints.find(device);
 	if (it != videoEndpoints.end()) {
 		_debug((std::string("Device ") + std::string("is already opened.")).c_str());
 		return SHM_ERROR_PATH;
@@ -75,14 +103,15 @@ std::string VideoManager::startLocalCapture(const std::string& device)
 		return SHM_ERROR_PATH;
 	}
 
+	// Keep the alive endpoint in our internal list.
 	sfl::VideoEndpoint* endpoint = new sfl::VideoEndpoint(videoSource);
-	videoEndpoints.insert(std::pair<std::string, sfl::VideoEndpoint*>(device, endpoint));
+	videoEndpoints.insert(std::pair<std::string, sfl::VideoEndpoint*>(device,
+			endpoint));
 
 	return endpoint->getShmName();
 }
 
-std::string VideoManager::getEventFdPasserNamespace(const std::string& device)
-{
+std::string VideoManager::getEventFdPasserNamespace(const std::string& device) {
 	sfl::VideoEndpoint* endpt;
 	try {
 		endpt = getVideoEndpoint(device);
@@ -94,12 +123,13 @@ std::string VideoManager::getEventFdPasserNamespace(const std::string& device)
 	return endpt->getFdPasserName();
 }
 
-
-sfl::VideoEndpoint* VideoManager::getVideoEndpoint(const std::string& device) throw(sfl::UnknownVideoDeviceException)
-{
-	std::map<std::string, sfl::VideoEndpoint*>::iterator it = videoEndpoints.find(device);
+sfl::VideoEndpoint* VideoManager::getVideoEndpoint(const std::string& device)
+		throw (sfl::UnknownVideoDeviceException) {
+	std::map<std::string, sfl::VideoEndpoint*>::iterator it =
+			videoEndpoints.find(device);
 	if (it == videoEndpoints.end()) {
-		throw sfl::UnknownVideoDeviceException("Could not find device " + device + " in getVideoEndpoint");
+		throw sfl::UnknownVideoDeviceException("Could not find device "
+				+ device + " in getVideoEndpoint");
 	}
 	return it->second;
 }

@@ -123,6 +123,14 @@ public:
 		return name;
 	}
 
+	inline bool operator==(const VideoDevice& device) const {
+		if (toString() == device.toString()) {
+			return true;
+		}
+
+		return false;
+	}
+
 protected:
 	VideoSourceType type;
 	std::vector<FrameFormat> formats;
