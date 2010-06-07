@@ -97,6 +97,8 @@ on_resolutions_combo_changed_cb (GtkWidget* widget, gpointer self)
       &iter);
   gtk_tree_model_get (model, &iter, 1, &resolution, -1);
 
+  gtk_list_store_clear (priv->framerates_store);
+
   gchar** framerates = NULL;
   framerates = dbus_video_get_framerates (device_name, resolution->width,
       resolution->height);
@@ -104,13 +106,19 @@ on_resolutions_combo_changed_cb (GtkWidget* widget, gpointer self)
   if (framerates != NULL)
     {
       gchar** framerate_ptr;
+      GtkTreeIter iter_framerate;
       for (framerate_ptr = framerates; *framerate_ptr; framerate_ptr++)
         {
           DEBUG("Appending text for framerate %s", *framerate_ptr);
-          gtk_combo_box_append_text (GTK_COMBO_BOX(priv->framerates_combo),
-              *framerate_ptr);
+
+          gtk_list_store_append (priv->framerates_store, &iter_framerate);
+          gtk_list_store_set (priv->framerates_store, &iter_framerate, 0,
+              *framerate_ptr, -1);
         }
     }
+
+  gtk_combo_box_set_active (GTK_COMBO_BOX(priv->framerates_combo), 0);
+
 }
 
 static void
@@ -160,7 +168,6 @@ on_devices_combo_changed_cb (GtkWidget* widget, gpointer self)
 
       g_free (device_name);
     }
-
 }
 
 static void
@@ -219,7 +226,16 @@ video_conf_init (VideoConf *self)
   gtk_combo_box_set_active (GTK_COMBO_BOX(priv->resolutions_combo), 0);
 
   // Framerate list
-  priv->framerates_combo = gtk_combo_box_new_text ();
+  priv->framerates_store = gtk_list_store_new (1, G_TYPE_STRING);
+  priv->framerates_combo = gtk_combo_box_new_with_model (
+        GTK_TREE_MODEL(priv->framerates_store));
+
+  renderer = gtk_cell_renderer_text_new ();
+  gtk_cell_layout_pack_start (GTK_CELL_LAYOUT(priv->framerates_combo),
+      renderer, TRUE);
+  gtk_cell_layout_set_attributes (GTK_CELL_LAYOUT(priv->framerates_combo),
+      renderer, "text", 0, NULL);
+
   GtkWidget* framerates_label = gtk_label_new ("Framerate");
   on_resolutions_combo_changed_cb (priv->resolutions_combo, self);
   gtk_combo_box_set_active (GTK_COMBO_BOX(priv->framerates_combo), 0);

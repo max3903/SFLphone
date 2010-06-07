@@ -93,11 +93,14 @@ std::vector<std::string> VideoManager::getFrameRates(const std::string& device, 
 			if (((*itFormat).getWidth() == width) && ((*itFormat).getHeight()
 					== height)) {
 
+				_debug("Found resolution %d x %d %s", (*itFormat).getWidth(), (*itFormat).getHeight(), (*itFormat).getMimetype().c_str());
 				std::vector<sfl::FrameRate> rates = (*itFormat).getFrameRates();
 				std::vector<sfl::FrameRate>::iterator itRate;
 				for (itRate = rates.begin(); itRate < rates.end(); itRate++) {
 					ratesList.push_back((*itRate).toString());
 				}
+
+				break;
 			}
 		}
 	}
