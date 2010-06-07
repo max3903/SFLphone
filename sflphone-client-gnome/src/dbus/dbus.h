@@ -41,6 +41,14 @@
 #include <conference_obj.h>
 #include <sflnotify.h>
 
+/**
+ * Utility structure for holding a video frame resolution.
+ */
+typedef struct {
+  gint width;
+  gint height;
+} resolution_t;
+
 /** @file dbus.h
   * @brief General DBus functions wrappers.
   */
@@ -647,6 +655,17 @@ gchar* dbus_is_status_icon_enabled (void);
  * @return The list of all the video capture devices that are available.
  */
 gchar** dbus_video_enumerate_devices();
+
+/**
+ * Find out what resolutions are supported for this device.
+ * @return A list of resolution_t structures.
+ */
+GList* dbus_video_get_resolution_for_device(const gchar* device);
+
+/**
+ * Find out what framerates are supported for a device under some resolution and device.
+ */
+gchar** dbus_video_get_framerates(const gchar* device, const gint width, const gint height);
 
 /**
  * Start capturing frames from a specified video device and write to shared memory.

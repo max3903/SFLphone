@@ -27,9 +27,40 @@
 			  </tp:docstring>
 			</arg>
 						
+			<arg type="a(ii)" name="list" direction="out">
+			  <tp:docstring>
+			  The list of supported resolutions. First field is width, the other is height.
+			  </tp:docstring>
+			</arg>
+		</method>
+		
+		<method name="getFrameRates" tp:name-for-bindings="getFrameRates">
+			<tp:added version="0.9.9"/>
+			<tp:docstring>
+			Find out what framerates are supported for a device under some resolution.
+			</tp:docstring>
+			
+			<arg type="s" name="device" direction="in">
+			  <tp:docstring>
+			   The video device.
+			  </tp:docstring>
+			</arg>
+			
+			<arg type="i" name="width" direction="in">
+			  <tp:docstring>
+			   The frame width.
+			  </tp:docstring>
+			</arg>
+			
+			<arg type="i" name="height" direction="in">
+			  <tp:docstring>
+			  The frame height.
+			  </tp:docstring>
+			</arg>
+					
 			<arg type="as" name="list" direction="out">
 			  <tp:docstring>
-			  The list of supported resolutions.
+			  The list of supported framerates.
 			  </tp:docstring>
 			</arg>
 		</method>

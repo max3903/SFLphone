@@ -55,10 +55,31 @@ std::vector<std::string> VideoManager::enumerateDevices() {
 	return devices;
 }
 
-std::vector<std::string> VideoManager::getResolutionForDevice(
-		const std::string& device) {
+std::vector< ::DBus::Struct< int32_t, int32_t > > VideoManager::getResolutionForDevice(const std::string& device)
+{
+	std::vector< ::DBus::Struct< int32_t, int32_t > > resolutions;
+	std::map<std::string, sfl::VideoDevicePtr>::iterator itDevice =
+			videoDevices.find(device);
 
-	std::vector<std::string> resolutions;
+	if (itDevice != videoDevices.end()) {
+		std::vector<sfl::FrameFormat> formats =
+				((*itDevice).second)->getSupportedFormats();
+
+		std::vector<sfl::FrameFormat>::iterator itFormat;
+		for (itFormat = formats.begin(); itFormat < formats.end(); itFormat++) {
+			::DBus::Struct< int32_t, int32_t > resolutionStruct;
+			resolutionStruct._1 = (*itFormat).getWidth();
+			resolutionStruct._2 = (*itFormat).getHeight();
+			resolutions.push_back(resolutionStruct);
+		}
+	}
+
+	return resolutions;
+}
+
+std::vector<std::string> VideoManager::getFrameRates(const std::string& device, const int32_t& width, const int32_t& height)
+{
+	std::vector<std::string> ratesList;
 
 	std::map<std::string, sfl::VideoDevicePtr>::iterator itDevice =
 			videoDevices.find(device);
@@ -69,15 +90,19 @@ std::vector<std::string> VideoManager::getResolutionForDevice(
 
 		std::vector<sfl::FrameFormat>::iterator itFormat;
 		for (itFormat = formats.begin(); itFormat < formats.end(); itFormat++) {
-			std::ostringstream objectString;
+			if (((*itFormat).getWidth() == width) && ((*itFormat).getHeight()
+					== height)) {
 
-			objectString << (*itFormat).getWidth() << "x" << (*itFormat).getHeight();
-
-			resolutions.push_back(objectString.str());
+				std::vector<sfl::FrameRate> rates = (*itFormat).getFrameRates();
+				std::vector<sfl::FrameRate>::iterator itRate;
+				for (itRate = rates.begin(); itRate < rates.end(); itRate++) {
+					ratesList.push_back((*itRate).toString());
+				}
+			}
 		}
 	}
 
-	return resolutions;
+	return ratesList;
 }
 
 std::string VideoManager::startLocalCapture(const std::string& device) {

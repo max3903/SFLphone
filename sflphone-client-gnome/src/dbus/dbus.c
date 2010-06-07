@@ -51,6 +51,8 @@
 
 #define DEFAULT_DBUS_TIMEOUT 30000
 
+#define DBUS_STRUCT_INT_INT (dbus_g_type_get_struct ("GValueArray", G_TYPE_INT, G_TYPE_INT, G_TYPE_INVALID))
+
 DBusGConnection * connection;
 DBusGProxy * callManagerProxy;
 DBusGProxy * configurationManagerProxy;
@@ -2795,14 +2797,53 @@ dbus_video_enumerate_devices (void)
   return array;
 }
 
+GList*
+dbus_video_get_resolution_for_device (const gchar* device)
+{
+  GError* error = NULL;
+  GPtrArray* resolutions = NULL;
+  GList* ret = NULL;
+
+  org_sflphone_SFLphone_VideoManager_get_resolution_for_device (
+      videoManagerProxy, device, &resolutions, &error);
+  if (error != NULL)
+    {
+      ERROR("Failed to get resolution for device over dbus.");
+      g_error_free (error);
+    }
+
+  int i;
+  for (i = 0; i < resolutions->len; i++)
+    {
+      GValue elem =
+        { 0 };
+      gint width;
+      gint height;
+
+      g_value_init (&elem, DBUS_STRUCT_INT_INT);
+      g_value_set_static_boxed (&elem, g_ptr_array_index(resolutions, i));
+
+      dbus_g_type_struct_get (&elem, 0, &width, 1, &height, G_MAXUINT);
+
+      resolution_t* resolution = malloc(sizeof (resolution_t));
+      resolution->width = width;
+      resolution->height = height;
+      ret = g_list_prepend (ret, resolution);
+    }
+
+  ret = g_list_reverse (ret);
+  return ret;
+}
+
 gchar**
-dbus_video_get_resolution_for_device (const char* device)
+dbus_video_get_framerates (const gchar* device, const gint width,
+    const gint height)
 {
   GError *error = NULL;
   char ** array = NULL;
 
-  org_sflphone_SFLphone_VideoManager_get_resolution_for_device (
-      videoManagerProxy, device, &array, &error);
+  org_sflphone_SFLphone_VideoManager_get_frame_rates (videoManagerProxy,
+      device, width, height, &array, &error);
   if (error != NULL)
     {
       ERROR("Failed to get resolution for device over dbus.");

@@ -50,7 +50,16 @@ public:
 	 * @param device The device for which to get this information.
 	 * @return The list of supported resolutions for the device.
 	 */
-	std::vector<std::string> getResolutionForDevice(const std::string& device);
+	std::vector< ::DBus::Struct< int32_t, int32_t > > getResolutionForDevice(const std::string& device);
+
+	/**
+	 * Find out what framerates are supported for a device under some resolution.
+	 * @param device The name for the video device.
+	 * @param width The corresponding width.
+	 * @param height The existing height.
+	 * @return The list of supported framerates for this resolution.
+	 */
+	std::vector<std::string> getFrameRates(const std::string& device, const int32_t& width, const int32_t& height);
 
 	/**
 	 * @param device The device to start capturing from.
