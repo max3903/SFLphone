@@ -2844,6 +2844,8 @@ dbus_video_get_framerates (const gchar* device, const gint width,
 
   org_sflphone_SFLphone_VideoManager_get_frame_rates (videoManagerProxy,
       device, width, height, &array, &error);
+
+  DEBUG("Requesting supported framerates for device %s under %d x %d", device, width, height);
   if (error != NULL)
     {
       ERROR("Failed to get resolution for device over dbus.");

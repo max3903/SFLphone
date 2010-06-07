@@ -76,41 +76,47 @@ video_conf_class_init (VideoConfClass *klass)
 }
 
 static void
-on_framerates_combo_changed_cb (GtkWidget* widget, gpointer value)
+on_resolutions_combo_changed_cb (GtkWidget* widget, gpointer self)
 {
-  VideoConfPrivate* priv = GET_PRIVATE((VideoConf*) value);
+  VideoConfPrivate* priv = GET_PRIVATE((VideoConf*) self);
 
-  DEBUG("Callback on_framerates_combo_changed_cb");
+  DEBUG("Callback on_resolutions_combo_changed_cb");
 
-  gchar* resolution = gtk_combo_box_get_active_text (
-      GTK_COMBO_BOX(priv->resolutions_combo));
-  gchar* device = gtk_combo_box_get_active_text (
+  gchar* device_name;
+  resolution_t* resolution;
+
+  GtkTreeModel* model = gtk_combo_box_get_model (
       GTK_COMBO_BOX(priv->devices_combo));
+  GtkTreeIter iter;
+  gtk_combo_box_get_active_iter (GTK_COMBO_BOX(priv->devices_combo),
+      &iter);
+  gtk_tree_model_get (model, &iter, 0, &device_name, -1);
 
-  if (resolution != NULL)
+  model = gtk_combo_box_get_model (GTK_COMBO_BOX(priv->resolutions_combo));
+  gtk_combo_box_get_active_iter (GTK_COMBO_BOX(priv->resolutions_combo),
+      &iter);
+  gtk_tree_model_get (model, &iter, 1, &resolution, -1);
+
+  gchar** framerates = NULL;
+  framerates = dbus_video_get_framerates (device_name, resolution->width,
+      resolution->height);
+
+  if (framerates != NULL)
     {
-      gchar** framerates = NULL;
-      // framerates = dbus_video_get_framerates(device);
-
-      if (framerates != NULL)
+      gchar** framerate_ptr;
+      for (framerate_ptr = framerates; *framerate_ptr; framerate_ptr++)
         {
-          gchar** framerate_ptr;
-          for (framerate_ptr = framerates; *framerate_ptr; framerate_ptr++)
-            {
-              DEBUG("Appending text for framerate %s", *framerate_ptr);
-              gtk_combo_box_append_text (GTK_COMBO_BOX(priv->framerates_combo),
-                  *framerate_ptr);
-            }
+          DEBUG("Appending text for framerate %s", *framerate_ptr);
+          gtk_combo_box_append_text (GTK_COMBO_BOX(priv->framerates_combo),
+              *framerate_ptr);
         }
-      g_free (resolution);
     }
-
 }
 
 static void
-on_devices_combo_changed_cb (GtkWidget* widget, gpointer value)
+on_devices_combo_changed_cb (GtkWidget* widget, gpointer self)
 {
-  VideoConfPrivate* priv = GET_PRIVATE((VideoConf*) value);
+  VideoConfPrivate* priv = GET_PRIVATE((VideoConf*) self);
 
   DEBUG("Callback on_devices_combo_changed_cb");
 
@@ -139,7 +145,6 @@ on_devices_combo_changed_cb (GtkWidget* widget, gpointer value)
           gchar* resolution_str = g_strdup_printf ("%d x %d",
               resolution->width, resolution->height);
 
-          DEBUG("Adding resolution %s", resolution_str);
           gtk_list_store_append (priv->resolutions_store, &iter_resolutions);
 
           gtk_list_store_set (priv->resolutions_store, &iter_resolutions, 0,
@@ -148,10 +153,8 @@ on_devices_combo_changed_cb (GtkWidget* widget, gpointer value)
           g_free (resolution_str);
         }
 
-      // Free data structures. The store will keep a copy of the data.
       if (resolutions != NULL)
         {
-          g_list_foreach (resolutions, (GFunc) g_free, NULL);
           g_list_free (resolutions);
         }
 
@@ -178,9 +181,10 @@ video_conf_init (VideoConf *self)
 
   GtkCellRenderer *renderer;
   renderer = gtk_cell_renderer_text_new ();
-  gtk_cell_layout_pack_start (GTK_CELL_LAYOUT(priv->devices_combo), renderer, TRUE);
-  gtk_cell_layout_set_attributes (GTK_CELL_LAYOUT(priv->devices_combo), renderer, "text", 0,
-      NULL);
+  gtk_cell_layout_pack_start (GTK_CELL_LAYOUT(priv->devices_combo), renderer,
+      TRUE);
+  gtk_cell_layout_set_attributes (GTK_CELL_LAYOUT(priv->devices_combo),
+      renderer, "text", 0, NULL);
 
   if (available_devices != NULL)
     {
@@ -206,9 +210,10 @@ video_conf_init (VideoConf *self)
   GtkWidget* resolutions_label = gtk_label_new ("Resolution");
 
   renderer = gtk_cell_renderer_text_new ();
-  gtk_cell_layout_pack_start (GTK_CELL_LAYOUT(priv->resolutions_combo), renderer, TRUE);
-  gtk_cell_layout_set_attributes (GTK_CELL_LAYOUT(priv->resolutions_combo), renderer, "text", 0,
-      NULL);
+  gtk_cell_layout_pack_start (GTK_CELL_LAYOUT(priv->resolutions_combo),
+      renderer, TRUE);
+  gtk_cell_layout_set_attributes (GTK_CELL_LAYOUT(priv->resolutions_combo),
+      renderer, "text", 0, NULL);
 
   on_devices_combo_changed_cb (priv->devices_combo, self);
   gtk_combo_box_set_active (GTK_COMBO_BOX(priv->resolutions_combo), 0);
@@ -216,6 +221,8 @@ video_conf_init (VideoConf *self)
   // Framerate list
   priv->framerates_combo = gtk_combo_box_new_text ();
   GtkWidget* framerates_label = gtk_label_new ("Framerate");
+  on_resolutions_combo_changed_cb (priv->resolutions_combo, self);
+  gtk_combo_box_set_active (GTK_COMBO_BOX(priv->framerates_combo), 0);
 
   // Pack everything up
   gtk_box_pack_start (GTK_BOX(self), priv->devices_combo, FALSE, FALSE, 10);
@@ -228,7 +235,8 @@ video_conf_init (VideoConf *self)
   gtk_box_pack_start (GTK_BOX(self), hbox, FALSE, FALSE, 10);
 
   // Connect signals
-  g_signal_connect(priv->devices_combo, "changed", G_CALLBACK(on_devices_combo_changed_cb), self);
+  g_signal_connect(G_OBJECT(priv->devices_combo), "changed", G_CALLBACK(on_devices_combo_changed_cb), self);
+  g_signal_connect(G_OBJECT(priv->resolutions_combo), "changed", G_CALLBACK(on_resolutions_combo_changed_cb), self);
 
   gtk_widget_show_all (GTK_WIDGET(self));
 }
