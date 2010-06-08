@@ -12,7 +12,6 @@
 namespace sfl {
 
 const char* VideoInputSourceGst::APPSINK_NAME = "sflphone_sink";
-const char* VideoInputSourceGst::APPSINK_MIMETYPE = "video/x-raw-rgb";
 
 VideoInputSourceGst::VideoInputSourceGst() :
 	pipeline(NULL), pipelineRunning(false) {
@@ -47,9 +46,9 @@ void VideoInputSourceGst::open(VideoDevicePtr device)
 		",width=%d"
 		",height=%d"
 		",framerate=%d/%d name=%s", gstDevice->getGstPipeline().c_str(),
-			APPSINK_MIMETYPE,
-			APPSINK_BPP,
-			APPSINK_DEPTH,
+			CLIENT_MIMETYPE,
+			CLIENT_BPP,
+			CLIENT_DEPTH,
 			gstDevice->getPreferredWidth(), // TODO offer the ability to videoscale the output
 			gstDevice->getPreferredHeight(),
 			gstDevice->getPreferredFrameRateNumerator(),
@@ -104,7 +103,7 @@ void VideoInputSourceGst::open(VideoDevicePtr device)
 	// These are the width and height at the sink. They might be different from the source. For eg: 320x240 displayed in 1024x800
 	setScaledWidth(gstDevice->getPreferredWidth());
 	setScaledHeight(gstDevice->getPreferredHeight());
-	setReformattedDepth(APPSINK_DEPTH);
+	setReformattedDepth(CLIENT_DEPTH);
 }
 
 /**
@@ -317,7 +316,6 @@ std::vector<FrameFormat> VideoInputSourceGst::getSupportedFormats(GstCaps *caps)
 				FrameFormat* format = new FrameFormat(gst_structure_get_name(
 						structure), cur_width, cur_height, framerates);
 				detectedFormats.push_back(*(format));
-
 				cur_width /= 2;
 				cur_height /= 2;
 			}

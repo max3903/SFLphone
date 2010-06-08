@@ -71,6 +71,20 @@ void VideoCaptureTest::testEnumerateDevices() {
 				std::cout << "		" << (*itRate).toString() << std::endl;
 			}
 		}
+
+		std::cout << "Filtered Frame Formats:" << std::endl;
+		std::vector<sfl::FrameFormat> filteredFormats = (*itDevice)->getFilteredFormats();
+		std::vector<sfl::FrameFormat>::iterator itFilteredFormat;
+		for (itFilteredFormat = filteredFormats.begin(); itFilteredFormat < filteredFormats.end(); itFilteredFormat++) {
+			std::cout << "	- " << (*itFilteredFormat).toString() << std::endl;
+			std::cout << "	All Supported Frame Rates: " << std::endl;
+
+			std::vector<sfl::FrameRate> rates = (*itFilteredFormat).getFrameRates();
+			std::vector<sfl::FrameRate>::iterator itRate;
+			for (itRate = rates.begin(); itRate < rates.end(); itRate++) {
+				std::cout << "		" << (*itRate).toString() << std::endl;
+			}
+		}
 	}
 
 	CPPUNIT_ASSERT(devices.size() > 0);

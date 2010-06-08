@@ -63,7 +63,7 @@ std::vector< ::DBus::Struct< int32_t, int32_t > > VideoManager::getResolutionFor
 
 	if (itDevice != videoDevices.end()) {
 		std::vector<sfl::FrameFormat> formats =
-				((*itDevice).second)->getSupportedFormats();
+				((*itDevice).second)->getFilteredFormats();
 
 		std::vector<sfl::FrameFormat>::iterator itFormat;
 		for (itFormat = formats.begin(); itFormat < formats.end(); itFormat++) {

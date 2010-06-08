@@ -9,6 +9,8 @@
 
 namespace sfl {
 
+const char* VideoInputSource::CLIENT_MIMETYPE = "video/x-raw-rgb";
+
 VideoInputSource::VideoInputSource() :
 	frameMutex(new ost::Mutex()), currentFrame(NULL), scaledWidth(1),
 			scaledHeight(1), reformattedDepth(0) {

@@ -221,6 +221,9 @@ public:
 	 */
 	VideoInputSource();
 
+	static const char* CLIENT_MIMETYPE;
+	static const int CLIENT_BPP = 32;
+	static const int CLIENT_DEPTH = 32;
 protected:
 	/**
 	 * Call every observers with the current frame as an argument.

@@ -99,21 +99,21 @@ public:
 	/**
 	 * @return The mimetype that corresponds to this video format. Eg: video/x-raw-rgb
 	 */
-	std::string getMimetype() {
+	std::string getMimetype() const {
 		return mimetype;
 	}
 
 	/**
 	 * @return The frame's width, in pixels.
 	 */
-	int getWidth() {
+	int getWidth() const {
 		return width;
 	}
 
 	/**
 	 * @return The frame's height, in pixels.
 	 */
-	int getHeight() {
+	int getHeight() const {
 		return height;
 	}
 
@@ -156,6 +156,17 @@ public:
 	 * @return the preferred framerate as set by the user, or the fastest one if none is specified.
 	 */
 	FrameRate getPreferredFrameRate();
+
+	/**
+	 * This interpretation of equality is needed in finding duplicates.
+	 */
+	inline bool operator==(const FrameFormat& other) const {
+		if ((getWidth() == other.getWidth()) && (getHeight() == other.getHeight())) {
+			return true;
+		}
+
+		return false;
+	}
 
 	static const char* DEFAULT_MIMETYPE;
 	static const int DEFAULT_WIDTH = 320;

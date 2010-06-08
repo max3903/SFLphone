@@ -87,6 +87,17 @@ public:
 	std::vector<FrameFormat> getSupportedFormats() const;
 
 	/**
+	 * @return the supported frame formats, formatted so that duplicate resolutions are removed.
+	 */
+	std::vector<FrameFormat> getFilteredFormats() const;
+
+	/**
+	 * @param mimetype The mimetype to be preferred over any other.
+	 * It is usually the one that is not requiring any transformation.
+	 */
+	void setPreferredMimetype(const std::string& mimetype);
+
+	/**
 	 * @param format The format to use on this device.
 	 */
 	void setPreferredFormat(const FrameFormat& format);
@@ -132,9 +143,18 @@ public:
 	}
 
 protected:
+	/**
+	 * From the list of frame formats passed in the constructor,
+	 * filter out all those frame resolutions that are identical and
+	 * only keep the one which does not require conversion.
+	 */
+	void filterFrameFormats();
+
 	VideoSourceType type;
 	std::vector<FrameFormat> formats;
+	std::vector<FrameFormat> filteredFormats;
 	FrameFormat preferredFormat;
+	std::string preferredMimetype;
 	std::string device;
 	std::string name;
 };

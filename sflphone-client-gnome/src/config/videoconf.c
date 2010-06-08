@@ -88,8 +88,10 @@ on_resolutions_combo_changed_cb (GtkWidget* widget, gpointer self)
   GtkTreeModel* model = gtk_combo_box_get_model (
       GTK_COMBO_BOX(priv->devices_combo));
   GtkTreeIter iter;
-  gtk_combo_box_get_active_iter (GTK_COMBO_BOX(priv->devices_combo),
-      &iter);
+  if (gtk_combo_box_get_active_iter (GTK_COMBO_BOX(priv->devices_combo),
+      &iter) != TRUE) {
+    return;
+  }
   gtk_tree_model_get (model, &iter, 0, &device_name, -1);
 
   model = gtk_combo_box_get_model (GTK_COMBO_BOX(priv->resolutions_combo));

@@ -95,9 +95,6 @@ public:
 	bool isRunning() { return pipelineRunning; }
 
 	static const char* APPSINK_NAME;
-	static const char* APPSINK_MIMETYPE;
-	static const int APPSINK_BPP = 32;
-	static const int APPSINK_DEPTH = 32;
 	static const int STATE_CHANGE_MAX_WAIT = 10;
 private:
 	/**
