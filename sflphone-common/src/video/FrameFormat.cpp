@@ -1,5 +1,9 @@
 #include "FrameFormat.h"
+
 #include <ostream>
+#include <stdlib.h>
+
+#include "logger.h"
 
 namespace sfl {
 
@@ -28,6 +32,32 @@ void FrameFormat::init(const std::string& mimetype, int width, int height,
 	this->height = height;
 	this->framerates = framerates;
 	preferredFramerate = framerates.at(0);
+}
+
+void FrameFormat::setWidth(const int& width)
+{
+	this->width = width;
+}
+
+void FrameFormat::setHeight(const int& height)
+{
+	this->height = height;
+}
+
+void FrameFormat::setFramerate(const int& numerator, const int& denominator)
+{
+	_debug("Setting framerate %d %d", numerator, denominator);
+	this->preferredFramerate = FrameRate(numerator, denominator);
+}
+
+void FrameFormat::setFramerate(const std::string& framerate)
+{
+	size_t pos = framerate.find("/");
+	std::string denominator = framerate.substr(pos+1);
+	std::string numerator = framerate.substr(0, pos-1);
+
+	// TODO Be a bit less naive about the proper syntax.
+	setFramerate(atoi(numerator.c_str()), atoi(denominator.c_str()));
 }
 
 void FrameFormat::addFramerate(int numerator, int denominator) {

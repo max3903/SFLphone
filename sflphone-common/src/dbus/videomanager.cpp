@@ -20,6 +20,7 @@
 #include "videomanager.h"
 #include "video/VideoInputSourceGst.h"
 #include "video/VideoEndpoint.h"
+#include "video/FrameFormat.h"
 
 #include "logger.h"
 
@@ -55,9 +56,9 @@ std::vector<std::string> VideoManager::enumerateDevices() {
 	return devices;
 }
 
-std::vector< ::DBus::Struct< int32_t, int32_t > > VideoManager::getResolutionForDevice(const std::string& device)
-{
-	std::vector< ::DBus::Struct< int32_t, int32_t > > resolutions;
+std::vector< ::DBus::Struct<int32_t, int32_t> > VideoManager::getResolutionForDevice(
+		const std::string& device) {
+	std::vector< ::DBus::Struct<int32_t, int32_t> > resolutions;
 	std::map<std::string, sfl::VideoDevicePtr>::iterator itDevice =
 			videoDevices.find(device);
 
@@ -67,7 +68,7 @@ std::vector< ::DBus::Struct< int32_t, int32_t > > VideoManager::getResolutionFor
 
 		std::vector<sfl::FrameFormat>::iterator itFormat;
 		for (itFormat = formats.begin(); itFormat < formats.end(); itFormat++) {
-			::DBus::Struct< int32_t, int32_t > resolutionStruct;
+			::DBus::Struct<int32_t, int32_t> resolutionStruct;
 			resolutionStruct._1 = (*itFormat).getWidth();
 			resolutionStruct._2 = (*itFormat).getHeight();
 			resolutions.push_back(resolutionStruct);
@@ -77,8 +78,8 @@ std::vector< ::DBus::Struct< int32_t, int32_t > > VideoManager::getResolutionFor
 	return resolutions;
 }
 
-std::vector<std::string> VideoManager::getFrameRates(const std::string& device, const int32_t& width, const int32_t& height)
-{
+std::vector<std::string> VideoManager::getFrameRates(const std::string& device,
+		const int32_t& width, const int32_t& height) {
 	std::vector<std::string> ratesList;
 
 	std::map<std::string, sfl::VideoDevicePtr>::iterator itDevice =
@@ -111,12 +112,12 @@ std::vector<std::string> VideoManager::getFrameRates(const std::string& device, 
 std::string VideoManager::startLocalCapture(const std::string& device) {
 	_debug("Starting local capture on %s", device.c_str());
 
-	// Do nothing if already capturing
+	// Return the SHM if already running.
 	std::map<std::string, sfl::VideoEndpoint*>::iterator it =
 			videoEndpoints.find(device);
 	if (it != videoEndpoints.end()) {
 		_debug((std::string("Device ") + std::string("is already opened.")).c_str());
-		return SHM_ERROR_PATH;
+		return (*it).second->getShmName();
 	}
 
 	// Create a new end point.
@@ -139,6 +140,50 @@ std::string VideoManager::startLocalCapture(const std::string& device) {
 	return endpoint->getShmName();
 }
 
+std::string VideoManager::startLocalCapture(const std::string& device, const int32_t& width,
+		const int32_t& height, const std::string& fps) {
+
+	// Return the SHM if already running.
+	std::map<std::string, sfl::VideoEndpoint*>::iterator it =
+			videoEndpoints.find(device);
+
+	if (it != videoEndpoints.end()) {
+		_debug((std::string("Device ") + std::string("is already opened.")).c_str());
+		return (*it).second->getShmName();
+	}
+
+	// Find the device
+	std::map<std::string, sfl::VideoDevicePtr>::iterator itDevice =
+			videoDevices.find(device);
+
+	// Set the desired properties.
+	sfl::FrameFormat format;
+	format.setWidth(width);
+	format.setHeight(height);
+	format.setFramerate(fps);
+	((*itDevice).second)->setPreferredFormat(format);
+
+	// Create a new video source for that device.
+	sfl::VideoInputSourceGst* videoSource = new sfl::VideoInputSourceGst();
+	videoSource->setDevice((*itDevice).second);
+
+	// Start capturing
+	try {
+		videoSource->open();
+	} catch (sfl::VideoDeviceIOException& e) {
+		_debug ("Caught exception : %s", e.what());
+		return SHM_ERROR_PATH;
+	}
+
+	// Keep the alive endpoint in our internal list.
+	sfl::VideoEndpoint* endpoint = new sfl::VideoEndpoint(videoSource);
+	videoEndpoints.insert(std::pair<std::string, sfl::VideoEndpoint*>(device,
+			endpoint));
+
+	return endpoint->getShmName();
+
+}
+
 std::string VideoManager::getEventFdPasserNamespace(const std::string& device) {
 	sfl::VideoEndpoint* endpt;
 	try {
@@ -147,7 +192,7 @@ std::string VideoManager::getEventFdPasserNamespace(const std::string& device) {
 		_debug("%s", e.what());
 	}
 
-	_debug("**************** Returning passer namespace %s", endpt->getFdPasserName().c_str());
+	_debug("Returning passer namespace %s", endpt->getFdPasserName().c_str());
 	return endpt->getFdPasserName();
 }
 

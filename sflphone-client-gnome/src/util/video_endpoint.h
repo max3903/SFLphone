@@ -41,6 +41,9 @@ typedef struct {
   uint8_t * frame;
   GSList* observers;
   gchar* device;
+  gchar* fps;
+  gint width;
+  gint height;
   pthread_t thread;
   sflphone_shm_t* shm_frame;
   sflphone_event_listener_t* event_listener;
@@ -64,6 +67,24 @@ sflphone_video_endpoint_t* sflphone_video_init_with_device(gchar* device);
  * @param device The name of the device.
  */
 int sflphone_video_set_device(sflphone_video_endpoint_t* endpt, gchar* device);
+
+/**
+ * @param endpt An existing sflphone_video_endpoint type of object.
+ * @param fps The framerate of the form "num/denom".
+ */
+int sflphone_video_set_framerate(sflphone_video_endpoint_t* endpt, gchar* fps);
+
+/**
+ * @param endpt An existing sflphone_video_endpoint type of object.
+ * @param height The desired and supported height.
+ */
+int sflphone_video_set_height(sflphone_video_endpoint_t* endpt, gint height);
+
+/**
+ * @param endpt An existing sflphone_video_endpoint type of object.
+ * @param width The desired and supported width.
+ */
+int sflphone_video_set_width(sflphone_video_endpoint_t* endpt, gint width);
 
 /**
  * @param endpt An existing sflphone_video_endpoint type of object.

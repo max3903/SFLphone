@@ -54,6 +54,9 @@ sflphone_video_endpoint_t* sflphone_video_init_with_device(gchar * device)
   endpt->frame = NULL;
   endpt->shm_frame = sflphone_shm_new();
   endpt->event_listener = NULL;
+  endpt->width = 0;
+  endpt->height = 0;
+  endpt->fps = NULL;
   return endpt;
 }
 
@@ -71,10 +74,26 @@ int sflphone_video_set_device(sflphone_video_endpoint_t * endpt, gchar * device)
   endpt->device = g_strdup(device);
 }
 
+int sflphone_video_set_framerate(sflphone_video_endpoint_t* endpt, gchar* fps)
+{
+  g_free(endpt->fps);
+  endpt->fps = g_strdup(fps);
+}
+
+int sflphone_video_set_height(sflphone_video_endpoint_t* endpt, gint height)
+{
+  endpt->height = height;
+}
+
+int sflphone_video_set_width(sflphone_video_endpoint_t* endpt, gint width)
+{
+  endpt->width = width;
+}
+
 int sflphone_video_open(sflphone_video_endpoint_t* endpt)
 {
   // Instruct the daemon to start video capture, if it's not already doing so.
-  gchar* path = dbus_video_start_local_capture(endpt->device); // FIXME Check return value
+  gchar* path = dbus_video_start_local_capture(endpt->device, endpt->width, endpt->height, endpt->fps); // FIXME Check return value
   if (g_strcmp0(path, "/dev/null") == 0) {
     return -1;
   }

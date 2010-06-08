@@ -22,8 +22,7 @@ VideoDevice::VideoDevice(VideoSourceType type,
 	}
 }
 
-void VideoDevice::setPreferredMimetype(const std::string& mimetype)
-{
+void VideoDevice::setPreferredMimetype(const std::string& mimetype) {
 	preferredMimetype = mimetype;
 }
 
@@ -78,7 +77,6 @@ std::vector<FrameFormat> VideoDevice::getSupportedFormats() const {
 std::vector<FrameFormat> VideoDevice::getFilteredFormats() const {
 	return filteredFormats;
 }
-
 
 void VideoDevice::setPreferredFormat(const FrameFormat& format) {
 	preferredFormat = format;

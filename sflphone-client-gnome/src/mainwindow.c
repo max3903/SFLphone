@@ -247,10 +247,10 @@ create_main_window ()
   gtk_paned_add1(GTK_PANED(split_pane), call_elements_vbox);
 
   // Video Widget
-  GtkWidget* video_pane = video_pane_new();
-  gtk_widget_show(video_pane);
+  //GtkWidget* video_pane = video_pane_new();
+  //gtk_widget_show(video_pane);
 
-  gtk_paned_add2(GTK_PANED(split_pane), video_pane);
+  //gtk_paned_add2(GTK_PANED(split_pane), video_pane);
   gtk_widget_show_all(split_pane);
   gtk_box_pack_start (GTK_BOX (vbox), split_pane, TRUE, TRUE, 0);
 

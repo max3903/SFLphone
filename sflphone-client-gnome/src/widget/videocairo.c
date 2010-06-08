@@ -1,4 +1,6 @@
 #include <gtk/gtk.h>
+#include <string.h>
+#include <stdlib.h>
 
 #include "videocairo.h"
 #include "util/video_endpoint.h"
@@ -13,6 +15,9 @@ struct _VideoCairoPrivate
   unsigned char* image_data;
   int image_stride;
   gchar* source;
+  gchar* fps;
+  gint width;
+  gint height;
   sflphone_video_endpoint_t* endpt;
 };
 
@@ -23,8 +28,13 @@ static gpointer video_cairo_parent_class = NULL;
 
 enum
 {
-  PROP_SOURCE = 1, LAST_PROPERTY
+  PROP_SOURCE = 1, PROP_WIDTH, PROP_HEIGHT, PROP_FPS, LAST_PROPERTY
 } VideoCairoProperties;
+
+static const int DEFAULT_NO_DEVICE_WIDTH = 320;
+static const int DEFAULT_NO_DEVICE_HEIGHT = 240;
+static const int DEFAULT_BPP = 4;
+static const int DEFAULT_FPS = 30;
 
 static void
 video_cairo_set_property (GObject *object, guint property_id,
@@ -43,6 +53,24 @@ video_cairo_set_property (GObject *object, guint property_id,
     priv->source = g_strdup (g_value_get_string (value));
     sflphone_video_set_device (priv->endpt, priv->source);
     break;
+  case PROP_WIDTH:
+    DEBUG("Setting width %d", g_value_get_int(value))
+    ;
+    priv->width = g_value_get_int (value);
+    sflphone_video_set_width(priv->endpt, priv->width);
+    break;
+  case PROP_HEIGHT:
+    DEBUG("Setting height %d", g_value_get_int(value))
+    ;
+    priv->height = g_value_get_int (value);
+    sflphone_video_set_width(priv->endpt, priv->height);
+    break;
+  case PROP_FPS:
+    DEBUG("Setting fps %s", g_value_get_string(value))
+    ;
+    priv->fps = g_strdup (g_value_get_string (value));
+    sflphone_video_set_width(priv->endpt, priv->fps);
+    break;
   default:
     G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);
     }
@@ -60,6 +88,15 @@ video_cairo_get_property (GObject *object, guint property_id, GValue *value,
   case PROP_SOURCE:
     g_value_set_string (value, priv->source);
     break;
+  case PROP_WIDTH:
+    g_value_set_int (value, priv->width);
+    break;
+  case PROP_HEIGHT:
+    g_value_set_int (value, priv->height);
+    break;
+  case PROP_FPS:
+    g_value_set_string (value, priv->fps);
+    break;
   default:
     G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);
     }
@@ -68,8 +105,29 @@ video_cairo_get_property (GObject *object, guint property_id, GValue *value,
 void
 video_cairo_set_source (VideoCairo* video_cairo, gchar* source)
 {
-  DEBUG("video_cairo_set_source (%s)", source);
+  DEBUG("Setting source (%s)", source);
   g_object_set (G_OBJECT(video_cairo), "source", source, NULL);
+}
+
+void
+video_cairo_set_capture_width (VideoCairo* video_cairo, gint width)
+{
+  DEBUG("Setting width (%d)", width);
+  g_object_set (G_OBJECT(video_cairo), "width", width, NULL);
+}
+
+void
+video_cairo_set_capture_height (VideoCairo* video_cairo, gint height)
+{
+  DEBUG("Setting width (%d)", height);
+  g_object_set (G_OBJECT(video_cairo), "height", height, NULL);
+}
+
+void
+video_cairo_set_capture_framerate (VideoCairo* video_cairo, gchar* fps)
+{
+  DEBUG("Setting frame rate (%s)", fps);
+  g_object_set (G_OBJECT(video_cairo), "fps", fps, NULL);
 }
 
 static char*
@@ -137,18 +195,23 @@ static void
 video_cairo_init (VideoCairo *self)
 {
   VideoCairoPrivate *priv = VIDEO_CAIRO_GET_PRIVATE(self);
+  DEBUG("Initializing cairo");
+
   priv->endpt = sflphone_video_init ();
 
-  priv->image_data = malloc (320 * 240 * 4); // FIXME Hard-coding !
+  priv->image_data = malloc (DEFAULT_NO_DEVICE_WIDTH * DEFAULT_NO_DEVICE_HEIGHT
+      * DEFAULT_BPP);
+  memset (priv->image_data, 0x000000ff, DEFAULT_NO_DEVICE_WIDTH
+      * DEFAULT_NO_DEVICE_HEIGHT * DEFAULT_BPP);
+  priv->image_stride = cairo_format_stride_for_width (CAIRO_FORMAT_ARGB32,
+      DEFAULT_NO_DEVICE_WIDTH);
 
-  priv->image_stride = cairo_format_stride_for_width (CAIRO_FORMAT_ARGB32, 320);
-  DEBUG("Cairo says %d for stride", priv->image_stride);
-
-  memset (priv->image_data, 0, 320 * 240 * 4); // FIXME Hard-coding !
   priv->surface = cairo_image_surface_create_for_data (priv->image_data,
-      CAIRO_FORMAT_ARGB32, 320, 240, priv->image_stride);
+      CAIRO_FORMAT_ARGB32, DEFAULT_NO_DEVICE_WIDTH, DEFAULT_NO_DEVICE_HEIGHT,
+      priv->image_stride);
 
   sflphone_video_add_observer (priv->endpt, &on_new_frame_cb, self);
+
   DEBUG("Registered as an observer");
 }
 
@@ -161,7 +224,6 @@ video_cairo_finalize (GObject *object)
   free (priv->image_data);
   cairo_surface_destroy (priv->surface);
   g_free (priv->source);
-  g_free (priv);
 
   G_OBJECT_CLASS (video_cairo_parent_class)->finalize (object);
 }
@@ -180,25 +242,40 @@ video_cairo_class_init (VideoCairoClass *class)
   widget_class = GTK_WIDGET_CLASS (class);
   widget_class->expose_event = video_cairo_expose;
 
-  GParamSpec *param_spec;
-  param_spec = g_param_spec_string ("source", "source",
-      "String specifying the source SHM for the video", NULL,
-      G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB
-          | G_PARAM_READWRITE);
-  g_object_class_install_property (obj_class, PROP_SOURCE, param_spec);
+  g_object_class_install_property (obj_class, PROP_SOURCE, g_param_spec_string (
+      "source", "source", "String specifying the source SHM for the video",
+      NULL, G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB
+          | G_PARAM_READWRITE));
+
+  g_object_class_install_property  (obj_class, PROP_WIDTH, g_param_spec_int (
+      "width", "width", "The frame width",
+      G_MININT, G_MAXINT, 0, G_PARAM_READWRITE));
+
+  g_object_class_install_property  (obj_class, PROP_HEIGHT, g_param_spec_int (
+      "height", "height", "The frame height",
+      G_MININT, G_MAXINT, 0, G_PARAM_READWRITE));
+
+  g_object_class_install_property (obj_class, PROP_FPS, g_param_spec_string (
+      "fps", "fps",
+      "String specifying the frame rate of the form numerator/denominator",
+      NULL, G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB
+          | G_PARAM_READWRITE));
+
   g_type_class_add_private (obj_class, sizeof(VideoCairoPrivate));
 }
 
 static gboolean
 video_cairo_expose (GtkWidget* cairo_video, GdkEventExpose* event)
 {
+  VideoCairoPrivate* priv = VIDEO_CAIRO_GET_PRIVATE (cairo_video);
+
   // Redraw on every expose event.
   cairo_t* cairo_context = gdk_cairo_create (cairo_video->window);
 
-  VideoCairoPrivate *priv;
-  priv = VIDEO_CAIRO_GET_PRIVATE (cairo_video);
-
   DEBUG("Expose event for video cairo widget invalidate %d %d", event->area.x, event->area.y);
+
+  DEBUG("Status : %s", cairo_status_to_string(cairo_surface_status(priv->surface)));
+
   cairo_set_source_surface (cairo_context, priv->surface, event->area.x,
       event->area.y);
   cairo_paint (cairo_context);
@@ -237,7 +314,9 @@ VideoCairo *
 video_cairo_new_with_source (const gchar *source)
 {
   DEBUG("Creating new VideoCairo.");
-  return g_object_new (VIDEO_TYPE_CAIRO, "source", source, NULL);
+  return g_object_new (VIDEO_TYPE_CAIRO, "source", source, "width",
+      DEFAULT_NO_DEVICE_WIDTH, "height", DEFAULT_NO_DEVICE_HEIGHT, "fps",
+      DEFAULT_FPS, NULL);
 }
 
 VideoCairo*

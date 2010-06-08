@@ -82,12 +82,18 @@ raise_error(VideoConf* self, gchar* error_message)
 {
   VideoConfPrivate* priv = GET_PRIVATE((VideoConf*) self);
 
-  DEBUG("************************ Raising error");
+  DEBUG("Raising error");
 
   gtk_label_set_text (GTK_LABEL (priv->message_info_bar_label), error_message);
   gtk_info_bar_set_message_type (GTK_INFO_BAR (priv->info_bar),
                                  GTK_MESSAGE_ERROR);
   gtk_widget_show (priv->info_bar);
+}
+
+static void
+switch_video_device_display(VideoConf* self)
+{
+
 }
 
 static void
@@ -185,10 +191,42 @@ on_devices_combo_changed_cb (GtkWidget* widget, gpointer self)
 
       g_free (device_name);
     }
+
+  switch_video_device_display(self);
 }
 
 static void
-video_conf_init (VideoConf *self)
+start_video(VideoConf* self)
+{
+  VideoConfPrivate* priv = GET_PRIVATE((VideoConf*) self);
+
+  GtkTreeModel* model;
+  GtkTreeIter iter;
+  gchar* device_name;
+
+  // Get the device name
+  model = gtk_combo_box_get_model (GTK_COMBO_BOX(priv->devices_combo));
+  gtk_combo_box_get_active_iter (GTK_COMBO_BOX(priv->devices_combo), &iter);
+  gtk_tree_model_get (model, &iter, 0, &device_name, -1);
+
+  // Get the corresponding resolutions
+  resolution_t* resolution;
+  model = gtk_combo_box_get_model (GTK_COMBO_BOX(priv->resolutions_combo));
+  gtk_combo_box_get_active_iter (GTK_COMBO_BOX(priv->resolutions_combo), &iter);
+  gtk_tree_model_get (model, &iter, 1, &resolution, -1);
+  gint width = resolution->width;
+  gint height = resolution->height;
+
+  // Get the corresponding fps
+  gchar* fps;
+  model = gtk_combo_box_get_model (GTK_COMBO_BOX(priv->framerates_combo));
+  gtk_combo_box_get_active_iter (GTK_COMBO_BOX(priv->framerates_combo), &iter);
+  gtk_tree_model_get (model, &iter, 0, &fps, -1);
+
+}
+
+static void
+video_conf_init (VideoConf* self)
 {
   VideoConfPrivate* priv = GET_PRIVATE(self);
 
@@ -203,6 +241,7 @@ video_conf_init (VideoConf *self)
   gtk_container_add (GTK_CONTAINER (content_area), priv->message_info_bar_label);
 
   // Cairo video
+  priv->video_cairo = video_cairo_new();
 
   // Device list
   gchar** available_devices = NULL;
@@ -268,6 +307,11 @@ video_conf_init (VideoConf *self)
 
   // Pack everything up
   gtk_box_pack_start (GTK_BOX(self), priv->info_bar, FALSE, TRUE, 10);
+
+  GtkWidget* hbox_cairo = gtk_hbox_new (TRUE, 10);
+  gtk_box_pack_start(GTK_BOX(hbox_cairo), priv->video_cairo, TRUE, TRUE, 10);
+  gtk_box_pack_start(GTK_BOX(self), hbox_cairo, TRUE, TRUE, 10);
+
   gtk_box_pack_start (GTK_BOX(self), priv->devices_combo, FALSE, FALSE, 10);
 
   GtkWidget* hbox = gtk_hbox_new (FALSE, 10);
@@ -286,12 +330,17 @@ video_conf_init (VideoConf *self)
   // Show errors if needed
   if(!(*available_devices)) {
     raise_error(self, "No video source device can be found");
+    gtk_widget_hide(priv->video_cairo);
     gtk_widget_hide(priv->devices_combo);
     gtk_widget_hide(priv->resolutions_combo);
     gtk_widget_hide(resolutions_label);
     gtk_widget_hide(priv->framerates_combo);
     gtk_widget_hide(framerates_label);
+    return;
   }
+
+  // We have device, so try to start it.
+  start_video(self);
 }
 
 VideoConf*

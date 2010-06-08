@@ -77,6 +77,24 @@
 			  </tp:docstring>
 			</arg>
 			
+			<arg type="i" name="width" direction="in">
+			  <tp:docstring>
+			   The source width.
+			  </tp:docstring>
+			</arg>
+			
+			<arg type="i" name="height" direction="in">
+			  <tp:docstring>
+			   The source height.
+			  </tp:docstring>
+			</arg>
+			
+			<arg type="s" name="fps" direction="in">
+			  <tp:docstring>
+			   The preferred frame rate, expressed as a ratio.
+			  </tp:docstring>
+			</arg>
+			
 			<arg type="s" name="path" direction="out">
 			  <tp:docstring>
 			  A path to the shared memory segment.

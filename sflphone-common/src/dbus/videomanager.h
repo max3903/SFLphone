@@ -62,10 +62,19 @@ public:
 	std::vector<std::string> getFrameRates(const std::string& device, const int32_t& width, const int32_t& height);
 
 	/**
-	 * @param device The device to start capturing from.
+	 * @param device The device to start capturing from. The resolution and framerate will be discovered automatically.
 	 * @return The shared memory segment where the data can be obtained or /dev/null if a problem has occurred.
 	 */
 	std::string startLocalCapture(const std::string& device);
+
+	/**
+	 * @param device The device to start capturing from.
+	 * @param width The source width.
+	 * @param height The source height.
+	 * @param fps The preferred frame rate, expressed as a ratio.
+	 * @return The shared memory segment where the data can be obtained or /dev/null if a problem has occurred.
+	 */
+	std::string startLocalCapture(const std::string& device, const int32_t& width, const int32_t& height, const std::string& fps);
 
 	/**
 	 * @param device The device of interest for event notifications (frame capture).

@@ -118,6 +118,27 @@ public:
 	}
 
 	/**
+	 * @param width The desired (and supported) width.
+	 */
+	void setWidth(const int& width);
+
+	/**
+	 * @param height The desired (and supported) height.
+	 */
+	void setHeight(const int& height);
+
+	/**
+	 * @param numerator The desired (and supported) numerator.
+	 * @param denominator The desired (and supported) denominator.
+	 */
+	void setFramerate(const int& numerator, const int& denominator);
+
+	/**
+	 * @param framerate A string of the form "num/denom".
+	 */
+	void setFramerate(const std::string& framerate);
+
+	/**
 	 * @return A textual representation of this frame format.
 	 */
 	std::string toString() const {

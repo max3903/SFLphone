@@ -2825,7 +2825,7 @@ dbus_video_get_resolution_for_device (const gchar* device)
 
       dbus_g_type_struct_get (&elem, 0, &width, 1, &height, G_MAXUINT);
 
-      resolution_t* resolution = malloc(sizeof (resolution_t));
+      resolution_t* resolution = malloc (sizeof(resolution_t));
       resolution->width = width;
       resolution->height = height;
       ret = g_list_prepend (ret, resolution);
@@ -2856,13 +2856,15 @@ dbus_video_get_framerates (const gchar* device, const gint width,
 }
 
 gchar*
-dbus_video_start_local_capture (gchar * device)
+dbus_video_start_local_capture (gchar * device, gint width, gint height,
+    gchar* fps)
 {
   GError *error = NULL;
   gchar *shm = NULL;
 
   org_sflphone_SFLphone_VideoManager_start_local_capture (videoManagerProxy,
-      device, &shm, &error);
+      device, width, height, fps, &shm, &error);
+
   if (error != NULL)
     {
       ERROR ("Caught remote method (startLocalCapture) exception  %s: %s", dbus_g_error_get_name(error), error->message);
