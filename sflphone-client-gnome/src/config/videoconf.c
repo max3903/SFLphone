@@ -39,7 +39,9 @@ typedef struct _VideoConfPrivate VideoConfPrivate;
 
 struct _VideoConfPrivate
 {
-  GtkWidget* capture_button;
+  GtkWidget* info_bar;
+  GtkWidget* message_info_bar_label;
+
   GtkWidget* video_cairo;
 
   GtkListStore* resolutions_store;
@@ -73,6 +75,19 @@ video_conf_class_init (VideoConfClass *klass)
 
   object_class->dispose = video_conf_dispose;
   object_class->finalize = video_conf_finalize;
+}
+
+static void
+raise_error(VideoConf* self, gchar* error_message)
+{
+  VideoConfPrivate* priv = GET_PRIVATE((VideoConf*) self);
+
+  DEBUG("************************ Raising error");
+
+  gtk_label_set_text (GTK_LABEL (priv->message_info_bar_label), error_message);
+  gtk_info_bar_set_message_type (GTK_INFO_BAR (priv->info_bar),
+                                 GTK_MESSAGE_ERROR);
+  gtk_widget_show (priv->info_bar);
 }
 
 static void
@@ -175,8 +190,17 @@ on_devices_combo_changed_cb (GtkWidget* widget, gpointer self)
 static void
 video_conf_init (VideoConf *self)
 {
-  // Capture button
   VideoConfPrivate* priv = GET_PRIVATE(self);
+
+  // Info bar
+  priv->info_bar = gtk_info_bar_new ();
+  gtk_widget_set_no_show_all (priv->info_bar, TRUE);
+
+  priv->message_info_bar_label = gtk_label_new ("");
+  gtk_widget_show (priv->message_info_bar_label);
+
+  GtkWidget* content_area = gtk_info_bar_get_content_area (GTK_INFO_BAR (priv->info_bar));
+  gtk_container_add (GTK_CONTAINER (content_area), priv->message_info_bar_label);
 
   // Cairo video
 
@@ -243,6 +267,7 @@ video_conf_init (VideoConf *self)
   gtk_combo_box_set_active (GTK_COMBO_BOX(priv->framerates_combo), 0);
 
   // Pack everything up
+  gtk_box_pack_start (GTK_BOX(self), priv->info_bar, FALSE, TRUE, 10);
   gtk_box_pack_start (GTK_BOX(self), priv->devices_combo, FALSE, FALSE, 10);
 
   GtkWidget* hbox = gtk_hbox_new (FALSE, 10);
@@ -257,6 +282,16 @@ video_conf_init (VideoConf *self)
   g_signal_connect(G_OBJECT(priv->resolutions_combo), "changed", G_CALLBACK(on_resolutions_combo_changed_cb), self);
 
   gtk_widget_show_all (GTK_WIDGET(self));
+
+  // Show errors if needed
+  if(!(*available_devices)) {
+    raise_error(self, "No video source device can be found");
+    gtk_widget_hide(priv->devices_combo);
+    gtk_widget_hide(priv->resolutions_combo);
+    gtk_widget_hide(resolutions_label);
+    gtk_widget_hide(priv->framerates_combo);
+    gtk_widget_hide(framerates_label);
+  }
 }
 
 VideoConf*
