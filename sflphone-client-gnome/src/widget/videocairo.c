@@ -34,7 +34,27 @@ enum
 static const int DEFAULT_NO_DEVICE_WIDTH = 320;
 static const int DEFAULT_NO_DEVICE_HEIGHT = 240;
 static const int DEFAULT_BPP = 4;
-static const int DEFAULT_FPS = 30;
+static const gchar* DEFAULT_FPS = "30/1";
+
+static void
+reallocate_buffer(VideoCairo* self)
+{
+  VideoCairoPrivate* priv = VIDEO_CAIRO_GET_PRIVATE((VideoCairo*) self);
+
+  DEBUG("Reallocating buffers");
+
+  free(priv->image_data);
+
+  priv->image_data = malloc (priv->width * priv->height * DEFAULT_BPP);
+
+  memset (priv->image_data, 0x000000ff, priv->width * priv->height * DEFAULT_BPP);
+
+  priv->image_stride = cairo_format_stride_for_width (CAIRO_FORMAT_ARGB32, priv->width);
+
+  priv->surface = cairo_image_surface_create_for_data (priv->image_data,
+      CAIRO_FORMAT_ARGB32, priv->width, priv->height,
+      priv->image_stride);
+}
 
 static void
 video_cairo_set_property (GObject *object, guint property_id,
@@ -63,17 +83,21 @@ video_cairo_set_property (GObject *object, guint property_id,
     DEBUG("Setting height %d", g_value_get_int(value))
     ;
     priv->height = g_value_get_int (value);
-    sflphone_video_set_width(priv->endpt, priv->height);
+    sflphone_video_set_height(priv->endpt, priv->height);
     break;
   case PROP_FPS:
     DEBUG("Setting fps %s", g_value_get_string(value))
     ;
     priv->fps = g_strdup (g_value_get_string (value));
-    sflphone_video_set_width(priv->endpt, priv->fps);
+    sflphone_video_set_framerate(priv->endpt, priv->fps);
     break;
   default:
     G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);
+    return;
     }
+
+  reallocate_buffer(self);
+  gtk_widget_queue_draw (GTK_WIDGET(self));
 }
 
 static void
@@ -119,7 +143,7 @@ video_cairo_set_capture_width (VideoCairo* video_cairo, gint width)
 void
 video_cairo_set_capture_height (VideoCairo* video_cairo, gint height)
 {
-  DEBUG("Setting width (%d)", height);
+  DEBUG("Setting height (%d)", height);
   g_object_set (G_OBJECT(video_cairo), "height", height, NULL);
 }
 
@@ -184,7 +208,7 @@ on_new_frame_cb (uint8_t* frame, void* widget)
   VideoCairoPrivate* priv = VIDEO_CAIRO_GET_PRIVATE((VideoCairo*) widget);
 
   // Copy the frame into the image surface
-  memcpy (priv->image_data, frame, 320 * 240 * 4); // FIXME Hard-coding !
+  memcpy (priv->image_data, frame, priv->width * priv->height * DEFAULT_BPP);
 
   // DEBUG("Status : %s", cairo_status_to_string(cairo_surface_status(priv->surface)));
 
