@@ -57,6 +57,12 @@ struct _VideoConfPrivate
 static void
 video_conf_dispose (GObject *object)
 {
+  VideoConfPrivate* priv = GET_PRIVATE((VideoConf*) object);
+  if (priv->video_cairo != NULL) {
+    video_cairo_stop(priv->video_cairo);
+  }
+  priv->video_cairo = NULL;
+
   G_OBJECT_CLASS (video_conf_parent_class)->dispose (object);
 }
 

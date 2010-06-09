@@ -231,9 +231,9 @@ on_new_frame_cb (uint8_t* frame, void* widget)
   // Copy the frame into the image surface
   memcpy (priv->image_data, frame, priv->width * priv->height * DEFAULT_BPP);
 
-  // gtk_widget_queue_draw (GTK_WIDGET(widget));
+  gtk_widget_queue_draw (GTK_WIDGET(widget));
 
-  video_cairo_redraw_canvas ((VideoCairo*) widget);
+  // video_cairo_redraw_canvas ((VideoCairo*) widget);
 }
 
 static void
@@ -319,8 +319,6 @@ video_cairo_expose (GtkWidget* cairo_video, GdkEventExpose* event)
 
   DEBUG("Expose event for video cairo widget invalidate %d %d", event->area.x, event->area.y);
 
-  DEBUG("Status : %s", cairo_status_to_string(cairo_surface_status(priv->surface)));
-
   cairo_set_source_surface (cairo_context, priv->surface, event->area.x,
       event->area.y);
   cairo_paint (cairo_context);
@@ -373,6 +371,8 @@ video_cairo_new ()
 int
 video_cairo_start (VideoCairo* self)
 {
+  DEBUG("Starting video cairo capture");
+
   VideoCairoPrivate* priv = VIDEO_CAIRO_GET_PRIVATE(self);
   if (sflphone_video_open (priv->endpt) < 0)
     {
@@ -390,6 +390,8 @@ video_cairo_start (VideoCairo* self)
 int
 video_cairo_stop (VideoCairo* self)
 {
+  DEBUG("Stopping video cairo capture");
+
   VideoCairoPrivate* priv = VIDEO_CAIRO_GET_PRIVATE(self);
   sflphone_video_stop_async (priv->endpt);
   sflphone_video_close (priv->endpt);

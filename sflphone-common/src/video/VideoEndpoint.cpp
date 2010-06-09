@@ -95,7 +95,7 @@ void VideoEndpoint::onNewFrame(const VideoFrame* frame) {
 }
 
 void VideoEndpoint::broadcastNewFrameEvent() {
-	_debug("Broadcasting NEW_FRAME_EVENT");
+	//_debug("Broadcasting NEW_FRAME_EVENT");
 	eventfd_write(eventFileDescriptor, NEW_FRAME_EVENT);
 }
 
