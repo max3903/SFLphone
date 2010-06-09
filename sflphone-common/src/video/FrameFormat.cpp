@@ -53,7 +53,9 @@ void FrameFormat::setFramerate(const std::string& framerate)
 {
 	size_t pos = framerate.find("/");
 	std::string denominator = framerate.substr(pos+1);
-	std::string numerator = framerate.substr(0, pos-1);
+	std::string numerator = framerate.substr(0, pos);
+
+	_debug("numerator %s denominator %s after parsing", numerator.c_str(), denominator.c_str());
 
 	// TODO Be a bit less naive about the proper syntax.
 	setFramerate(atoi(numerator.c_str()), atoi(denominator.c_str()));

@@ -158,12 +158,16 @@ std::string VideoManager::startLocalCapture(const std::string& device, const int
 	std::map<std::string, sfl::VideoDevicePtr>::iterator itDevice =
 			videoDevices.find(device);
 
+	// We know it's a GstVideoDevice
+	sfl::GstVideoDevicePtr gstDevice = std::static_pointer_cast<sfl::GstVideoDevice, sfl::VideoDevice>((*itDevice).second);
+
 	// Set the desired properties.
 	sfl::FrameFormat format;
 	format.setWidth(width);
 	format.setHeight(height);
 	format.setFramerate(fps);
-	((*itDevice).second)->setPreferredFormat(format);
+
+	gstDevice->setPreferredFormat(format);
 
 	// Create a new video source for that device.
 	sfl::VideoInputSourceGst* videoSource = new sfl::VideoInputSourceGst();
