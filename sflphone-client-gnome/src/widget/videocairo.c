@@ -37,23 +37,24 @@ static const int DEFAULT_BPP = 4;
 static const gchar* DEFAULT_FPS = "30/1";
 
 static void
-reallocate_buffer(VideoCairo* self)
+reallocate_buffer (VideoCairo* self)
 {
   VideoCairoPrivate* priv = VIDEO_CAIRO_GET_PRIVATE((VideoCairo*) self);
 
   DEBUG("Reallocating buffers");
 
-  free(priv->image_data);
+  free (priv->image_data);
 
   priv->image_data = malloc (priv->width * priv->height * DEFAULT_BPP);
 
-  memset (priv->image_data, 0x000000ff, priv->width * priv->height * DEFAULT_BPP);
+  memset (priv->image_data, 0x000000ff, priv->width * priv->height
+      * DEFAULT_BPP);
 
-  priv->image_stride = cairo_format_stride_for_width (CAIRO_FORMAT_ARGB32, priv->width);
+  priv->image_stride = cairo_format_stride_for_width (CAIRO_FORMAT_ARGB32,
+      priv->width);
 
   priv->surface = cairo_image_surface_create_for_data (priv->image_data,
-      CAIRO_FORMAT_ARGB32, priv->width, priv->height,
-      priv->image_stride);
+      CAIRO_FORMAT_ARGB32, priv->width, priv->height, priv->image_stride);
 }
 
 static void
@@ -77,26 +78,26 @@ video_cairo_set_property (GObject *object, guint property_id,
     DEBUG("Setting width %d", g_value_get_int(value))
     ;
     priv->width = g_value_get_int (value);
-    sflphone_video_set_width(priv->endpt, priv->width);
+    sflphone_video_set_width (priv->endpt, priv->width);
     break;
   case PROP_HEIGHT:
     DEBUG("Setting height %d", g_value_get_int(value))
     ;
     priv->height = g_value_get_int (value);
-    sflphone_video_set_height(priv->endpt, priv->height);
+    sflphone_video_set_height (priv->endpt, priv->height);
     break;
   case PROP_FPS:
     DEBUG("Setting fps %s", g_value_get_string(value))
     ;
     priv->fps = g_strdup (g_value_get_string (value));
-    sflphone_video_set_framerate(priv->endpt, priv->fps);
+    sflphone_video_set_framerate (priv->endpt, priv->fps);
     break;
   default:
     G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);
     return;
     }
 
-  reallocate_buffer(self);
+  reallocate_buffer (self);
   gtk_widget_queue_draw (GTK_WIDGET(self));
 }
 
@@ -201,6 +202,26 @@ gint iHeight /* height of image       */)
 }
 
 static void
+video_cairo_redraw_canvas (VideoCairo* self)
+{
+  GtkWidget *widget;
+  GdkRegion *region;
+
+  widget = GTK_WIDGET (self);
+
+  if (!widget->window)
+    return;
+
+  region = gdk_drawable_get_clip_region (widget->window);
+
+  /* redraw the cairo canvas completely by exposing it */
+  gdk_window_invalidate_region (widget->window, region, TRUE);
+  gdk_window_process_updates (widget->window, TRUE);
+
+  gdk_region_destroy (region);
+}
+
+static void
 on_new_frame_cb (uint8_t* frame, void* widget)
 {
   // DEBUG("Got frame");
@@ -210,9 +231,9 @@ on_new_frame_cb (uint8_t* frame, void* widget)
   // Copy the frame into the image surface
   memcpy (priv->image_data, frame, priv->width * priv->height * DEFAULT_BPP);
 
-  // DEBUG("Status : %s", cairo_status_to_string(cairo_surface_status(priv->surface)));
+  // gtk_widget_queue_draw (GTK_WIDGET(widget));
 
-  gtk_widget_queue_draw (GTK_WIDGET(widget));
+  video_cairo_redraw_canvas ((VideoCairo*) widget);
 }
 
 static void
@@ -271,13 +292,13 @@ video_cairo_class_init (VideoCairoClass *class)
       NULL, G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB
           | G_PARAM_READWRITE));
 
-  g_object_class_install_property  (obj_class, PROP_WIDTH, g_param_spec_int (
-      "width", "width", "The frame width",
-      G_MININT, G_MAXINT, 0, G_PARAM_READWRITE));
+  g_object_class_install_property (obj_class, PROP_WIDTH, g_param_spec_int (
+      "width", "width", "The frame width", G_MININT, G_MAXINT, 0,
+      G_PARAM_READWRITE));
 
-  g_object_class_install_property  (obj_class, PROP_HEIGHT, g_param_spec_int (
-      "height", "height", "The frame height",
-      G_MININT, G_MAXINT, 0, G_PARAM_READWRITE));
+  g_object_class_install_property (obj_class, PROP_HEIGHT, g_param_spec_int (
+      "height", "height", "The frame height", G_MININT, G_MAXINT, 0,
+      G_PARAM_READWRITE));
 
   g_object_class_install_property (obj_class, PROP_FPS, g_param_spec_string (
       "fps", "fps",

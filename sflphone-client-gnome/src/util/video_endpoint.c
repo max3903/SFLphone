@@ -158,7 +158,7 @@ static void notify_observer(gpointer obs, gpointer frame)
 
 static notify_all_observers(sflphone_video_endpoint_t* endpt, uint8_t* frame)
 {
-  DEBUG("Notifying all %d observers", g_slist_length(endpt->observers));
+  // DEBUG("Notifying all %d observers", g_slist_length(endpt->observers));
 
   // g_slist_foreach(endpt->observers, notify_observer, (gpointer) frame);
   GSList* obs;
@@ -178,7 +178,7 @@ static void* capturing_thread(void* params)
     sflphone_eventfd_catch(endpt->event_listener);
 
     // Go get the frame as fast as possible
-    DEBUG("A frame is available. Size %d", sflphone_shm_get_size(endpt->shm_frame))
+    // DEBUG("A frame is available. Size %d", sflphone_shm_get_size(endpt->shm_frame))
     memcpy (endpt->frame, sflphone_shm_get_addr(endpt->shm_frame), sflphone_shm_get_size(endpt->shm_frame));
 
     // Notify all observers
