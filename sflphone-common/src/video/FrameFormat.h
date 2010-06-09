@@ -19,10 +19,12 @@
 #ifndef __SFL_FRAME_FORMAT_H__
 #define __SFL_FRAME_FORMAT_H__
 
+#include <set>
 #include <vector>
 #include <string>
-#include <stdexcept>
 #include <sstream>
+#include <iterator>
+#include <stdexcept>
 
 namespace sfl {
 /**
@@ -61,6 +63,12 @@ public:
 
 		return false;
 	}
+
+	inline bool operator<(const FrameRate& other) const {
+		return (getNumerator() / getDenominator())
+				< (other.getNumerator() / other.getDenominator());
+	}
+
 	std::string toString() const {
 		std::ostringstream objectString;
 
@@ -90,10 +98,10 @@ public:
 	 * @param mimetype The mimetype.
 	 * @param width The frame width.
 	 * @param height The frame height.
-	 * @param framerates A vector containing all the supported framerates for that format.
+	 * @param framerates A set containing all the supported framerates for that format.
 	 */
 	FrameFormat(const std::string& mimetype, int width, int height,
-			std::vector<FrameRate> framerates)
+			std::set<FrameRate> framerates)
 			throw (InvalidFrameRateException);
 
 	/**
@@ -161,7 +169,7 @@ public:
 	/**
 	 * @return The supported framerates for this format.
 	 */
-	std::vector<FrameRate> getFrameRates() {
+	std::set<FrameRate> getFrameRates() {
 		return framerates;
 	}
 
@@ -182,7 +190,8 @@ public:
 	 * This interpretation of equality is needed in finding duplicates.
 	 */
 	inline bool operator==(const FrameFormat& other) const {
-		if ((getWidth() == other.getWidth()) && (getHeight() == other.getHeight())) {
+		if ((getWidth() == other.getWidth()) && (getHeight()
+				== other.getHeight())) {
 			return true;
 		}
 
@@ -194,10 +203,10 @@ public:
 	static const int DEFAULT_HEIGHT = 240;
 	static const FrameRate DEFAULT_FRAMERATE;
 private:
-	void init(const std::string& mimetype, int width, int height, std::vector<
+	void init(const std::string& mimetype, int width, int height, std::set<
 			FrameRate>& framerates) throw (InvalidFrameRateException);
 	std::string mimetype;
-	std::vector<FrameRate> framerates;
+	std::set<FrameRate> framerates;
 	FrameRate preferredFramerate;
 	int width;
 	int height;

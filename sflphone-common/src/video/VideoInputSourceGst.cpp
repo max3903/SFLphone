@@ -36,7 +36,6 @@ void VideoInputSourceGst::open(VideoDevicePtr device)
 
 	GstVideoDevicePtr gstDevice = std::static_pointer_cast<GstVideoDevice,
 			VideoDevice>(device);
-	_debug("Pipeline for device %s: %s", gstDevice->getName().c_str(), gstDevice->getGstPipeline().c_str());
 
 	// Build the GST graph based on the chosen device.
 	gchar* command = NULL;
@@ -278,7 +277,7 @@ std::vector<FrameFormat> VideoInputSourceGst::getSupportedFormats(GstCaps *caps)
 			gst_structure_get_int(structure, "width", &width);
 			gst_structure_get_int(structure, "height", &height);
 
-			std::vector<FrameRate> framerates = getSupportedFramerates(
+			std::set<FrameRate> framerates = getSupportedFramerates(
 					structure);
 			FrameFormat* format = new FrameFormat(gst_structure_get_name(
 					structure), width, height, framerates);
@@ -298,7 +297,7 @@ std::vector<FrameFormat> VideoInputSourceGst::getSupportedFormats(GstCaps *caps)
 			/* Gstreamer will sometimes give us a range with min_xxx == max_xxx,
 			 we use <= here (and not below) to make this work */
 			while (cur_width <= max_width && cur_height <= max_height) {
-				std::vector<FrameRate> framerates = getSupportedFramerates(
+				std::set<FrameRate> framerates = getSupportedFramerates(
 						structure);
 				FrameFormat* format = new FrameFormat(gst_structure_get_name(
 						structure), cur_width, cur_height, framerates);
@@ -311,7 +310,7 @@ std::vector<FrameFormat> VideoInputSourceGst::getSupportedFormats(GstCaps *caps)
 			cur_width = max_width;
 			cur_height = max_height;
 			while (cur_width > min_width && cur_height > min_height) {
-				std::vector<FrameRate> framerates = getSupportedFramerates(
+				std::set<FrameRate> framerates = getSupportedFramerates(
 						structure);
 				FrameFormat* format = new FrameFormat(gst_structure_get_name(
 						structure), cur_width, cur_height, framerates);
@@ -327,9 +326,9 @@ std::vector<FrameFormat> VideoInputSourceGst::getSupportedFormats(GstCaps *caps)
 	return detectedFormats;
 }
 
-std::vector<FrameRate> VideoInputSourceGst::getSupportedFramerates(
+std::set<FrameRate> VideoInputSourceGst::getSupportedFramerates(
 		GstStructure *structure) {
-	std::vector<FrameRate> supportedFrameRates;
+	std::set<FrameRate> supportedFrameRates;
 	const GValue *framerates;
 	int i, j;
 
@@ -338,7 +337,7 @@ std::vector<FrameRate> VideoInputSourceGst::getSupportedFramerates(
 
 		FrameRate rate(gst_value_get_fraction_numerator(framerates),
 				gst_value_get_fraction_denominator(framerates));
-		supportedFrameRates.push_back(rate);
+		supportedFrameRates.insert(rate);
 
 	} else if (GST_VALUE_HOLDS_LIST(framerates)) {
 
@@ -348,7 +347,7 @@ std::vector<FrameRate> VideoInputSourceGst::getSupportedFramerates(
 			value = gst_value_list_get_value(framerates, i);
 			FrameRate rate(gst_value_get_fraction_numerator(value),
 					gst_value_get_fraction_denominator(value));
-			supportedFrameRates.push_back(rate);
+			supportedFrameRates.insert(rate);
 		}
 
 	} else if (GST_VALUE_HOLDS_FRACTION_RANGE(framerates)) {
@@ -374,7 +373,7 @@ std::vector<FrameRate> VideoInputSourceGst::getSupportedFramerates(
 		for (i = numerator_min; i <= numerator_max; i++) {
 			for (j = denominator_min; j <= denominator_max; j++) {
 				FrameRate rate(i, j);
-				supportedFrameRates.push_back(rate);
+				supportedFrameRates.insert(rate);
 				k++;
 			}
 		}

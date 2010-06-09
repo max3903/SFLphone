@@ -24,6 +24,7 @@
 #include "GstVideoDevice.h"
 #include "VideoInputSource.h"
 
+#include <set>
 #include <vector>
 #include <string>
 #include <stdexcept> 
@@ -146,7 +147,7 @@ private:
 	 * @param structure A GstStructure, as obtained in the implementation of getSupportedFormats.
 	 * @return A vector containing all the supported framerates for the given device.
 	 */
-	std::vector<FrameRate> getSupportedFramerates(GstStructure* structure);
+	std::set<FrameRate> getSupportedFramerates(GstStructure* structure);
 
 	std::vector<VideoDevice*> getXimageSource() // TODO Re-integrate
 			throw (MissingGstPluginException);

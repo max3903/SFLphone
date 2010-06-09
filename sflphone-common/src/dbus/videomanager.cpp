@@ -25,6 +25,7 @@
 #include "logger.h"
 
 #include <vector>
+#include <algorithm>
 
 const char* VideoManager::SERVER_PATH = "/org/sflphone/SFLphone/VideoManager";
 const char* VideoManager::SHM_ERROR_PATH = "/dev/null";
@@ -95,9 +96,9 @@ std::vector<std::string> VideoManager::getFrameRates(const std::string& device,
 					== height)) {
 
 				_debug("Found resolution %d x %d %s", (*itFormat).getWidth(), (*itFormat).getHeight(), (*itFormat).getMimetype().c_str());
-				std::vector<sfl::FrameRate> rates = (*itFormat).getFrameRates();
-				std::vector<sfl::FrameRate>::iterator itRate;
-				for (itRate = rates.begin(); itRate < rates.end(); itRate++) {
+				std::set<sfl::FrameRate> rates = (*itFormat).getFrameRates();
+				std::set<sfl::FrameRate>::iterator itRate;
+				for (itRate = rates.begin(); itRate != rates.end(); itRate++) {
 					ratesList.push_back((*itRate).toString());
 				}
 
@@ -106,6 +107,7 @@ std::vector<std::string> VideoManager::getFrameRates(const std::string& device,
 		}
 	}
 
+	std::reverse(ratesList.begin(), ratesList.end());
 	return ratesList;
 }
 
