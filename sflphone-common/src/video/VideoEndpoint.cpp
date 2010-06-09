@@ -10,17 +10,20 @@
 #include <iostream>
 #include <sstream>
 #include <cc++/digest.h>
+#include <uuid/uuid.h>
 
 #include <string.h>
 #include <errno.h>
 #include <assert.h>
+
+#define UUID_UNPARSED_SIZE 37
 
 namespace sfl {
 
 const std::string VideoEndpoint::EVENT_NAMESPACE = "org.sflphone.eventfd.";
 
 VideoEndpoint::VideoEndpoint(VideoInputSource* src) :
-	videoSource(src) {
+	sourceTokens(), videoSource(src) {
 	// Compute a simple CRC16 hash digest for this device. We want that to limit the
 	// length of possible device/path names and offer consistent syntax.
 	std::string hash = getDigest(src->getDevice()->getName());
@@ -66,6 +69,41 @@ VideoInputSource* VideoEndpoint::getVideoInputSource() {
 
 std::string VideoEndpoint::getShmName() {
 	return shmVideoSource->getName();
+}
+
+std::string VideoEndpoint::generateToken() {
+
+	uuid_t uuid;
+	char uuidstr[UUID_UNPARSED_SIZE];
+
+	uuid_generate(uuid);
+	uuid_unparse(uuid, uuidstr);
+
+	return std::string(uuidstr);
+}
+
+std::string VideoEndpoint::requestTokenForSource() {
+	std::string token = generateToken();
+	sourceTokens.insert(token);
+
+	return token;
+}
+
+std::string VideoEndpoint::capture() throw (VideoDeviceIOException) {
+	videoSource->open();
+
+	return requestTokenForSource();
+}
+
+void VideoEndpoint::stopCapture(std::string token) throw(VideoDeviceIOException, InvalidTokenException)
+{
+	if (!sourceTokens.erase(token)) {
+		throw InvalidTokenException("Token " + token + " is not valid.");
+	}
+
+	if (sourceTokens.size() == 0) {
+		videoSource->close();
+	}
 }
 
 std::string VideoEndpoint::getFdPasserName() {

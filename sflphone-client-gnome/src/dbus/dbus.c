@@ -2855,23 +2855,41 @@ dbus_video_get_framerates (const gchar* device, const gint width,
   return array;
 }
 
-gchar*
-dbus_video_start_local_capture (gchar * device, gint width, gint height,
+video_key_t*
+dbus_video_start_local_capture (const gchar * device, gint width, gint height,
     gchar* fps)
 {
-  GError *error = NULL;
-  gchar *shm = NULL;
+  GError* error = NULL;
+  GValueArray* shmToken = NULL;
 
   org_sflphone_SFLphone_VideoManager_start_local_capture (videoManagerProxy,
-      device, width, height, fps, &shm, &error);
-
+      device, width, height, fps, &shmToken, &error);
   if (error != NULL)
     {
-      ERROR ("Caught remote method (startLocalCapture) exception  %s: %s", dbus_g_error_get_name(error), error->message);
+      ERROR ("Caught remote method (startLocalCapture) exception %s", error->message);
       g_error_free (error);
+      return NULL;
     }
 
-  return shm;
+  video_key_t* key = (video_key_t*) malloc(sizeof(video_key_t));
+  key->shm = g_value_dup_string(g_value_array_get_nth(shmToken, 0));
+  key->token = g_value_dup_string(g_value_array_get_nth(shmToken, 1));
+
+  return key;
+}
+
+gboolean
+dbus_video_stop_local_capture(gchar* device, gchar* token)
+{
+  GError* error = NULL;
+  org_sflphone_SFLphone_VideoManager_stop_local_capture (videoManagerProxy,
+      device, token, &error);
+  if (error != NULL) {
+    ERROR ("Caught remote method exception");
+    return FALSE;
+  }
+
+  return TRUE;
 }
 
 gchar*

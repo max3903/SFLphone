@@ -20,15 +20,44 @@
 #ifndef _SFL_VIDEO_MANAGER_H_
 #define _SFL_VIDEO_MANAGER_H_
 
-#include "video/VideoInputSource.h"
 #include "videomanager-glue.h"
+#include "video/VideoEndpoint.h"
 #include "video/VideoInputSource.h"
 
-#include <dbus-c++/dbus.h>
 #include <map>
+#include <dbus-c++/dbus.h>
 
 namespace sfl {
 	class VideoEndpoint;
+}
+
+/**
+ * Note that this exception is not the same as the one
+ * in the "sfl" namespace. This exception is thrown
+ * over dbus.
+ */
+namespace DBus {
+
+/**
+ * @see sfl#VideoDeviceIOException
+ */
+class VideoIOException : public DBus::Error {
+public:
+	VideoIOException(const sfl::VideoDeviceIOException e) :
+		DBus::Error ("VideoIOException", e.what()) {
+	}
+};
+
+/**
+ * @see sfl#InvalidTokenException
+ */
+class InvalidTokenException : public DBus::Error {
+public:
+	InvalidTokenException(const sfl::InvalidTokenException e) :
+		DBus::Error ("InvalidTokenException", e.what()) {
+	}
+};
+
 }
 
 class VideoManager: public org::sflphone::SFLphone::VideoManager_adaptor,
@@ -62,19 +91,22 @@ public:
 	std::vector<std::string> getFrameRates(const std::string& device, const int32_t& width, const int32_t& height);
 
 	/**
-	 * @param device The device to start capturing from. The resolution and framerate will be discovered automatically.
-	 * @return The shared memory segment where the data can be obtained or /dev/null if a problem has occurred.
-	 */
-	std::string startLocalCapture(const std::string& device);
-
-	/**
 	 * @param device The device to start capturing from.
 	 * @param width The source width.
 	 * @param height The source height.
 	 * @param fps The preferred frame rate, expressed as a ratio.
-	 * @return The shared memory segment where the data can be obtained or /dev/null if a problem has occurred.
+	 * @throw DBus#VideoIOException If a error occur while stopping video.
+	 * @return A path to the shared memory segment, followed by a token for referring to this request when calling stop.
 	 */
-	std::string startLocalCapture(const std::string& device, const int32_t& width, const int32_t& height, const std::string& fps);
+	::DBus::Struct< std::string, std::string > startLocalCapture(const std::string& device, const int32_t& width, const int32_t& height, const std::string& fps) throw(DBus::VideoIOException);
+
+	/**
+	 * @param token The token that was obtained when startLocalCapture() was called.
+	 * @throw DBus#VideoIOException If a error occur while stopping video.
+	 * @throw DBus#InvalidTokenException If the token that was provided is invalid.
+	 * @see VideoManager#startLocalCapture
+	 */
+	void stopLocalCapture(const std::string& device, const std::string& token) throw(DBus::VideoIOException, DBus::InvalidTokenException);
 
 	/**
 	 * @param device The device of interest for event notifications (frame capture).

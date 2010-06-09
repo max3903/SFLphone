@@ -111,47 +111,22 @@ std::vector<std::string> VideoManager::getFrameRates(const std::string& device,
 	return ratesList;
 }
 
-std::string VideoManager::startLocalCapture(const std::string& device) {
-	_debug("Starting local capture on %s", device.c_str());
+::DBus::Struct< std::string, std::string > VideoManager::startLocalCapture(const std::string& device, const int32_t& width,
+		const int32_t& height, const std::string& fps) throw(DBus::VideoIOException) {
 
-	// Return the SHM if already running.
-	std::map<std::string, sfl::VideoEndpoint*>::iterator it =
-			videoEndpoints.find(device);
-	if (it != videoEndpoints.end()) {
-		_debug((std::string("Device ") + std::string("is already opened.")).c_str());
-		return (*it).second->getShmName();
-	}
-
-	// Create a new end point.
-	sfl::VideoInputSourceGst* videoSource = new sfl::VideoInputSourceGst();
-	videoSource->setDevice(device);
-
-	// Start capturing
-	try {
-		videoSource->open();
-	} catch (sfl::VideoDeviceIOException& e) {
-		_debug ("Caught exception : %s", e.what());
-		return SHM_ERROR_PATH;
-	}
-
-	// Keep the alive endpoint in our internal list.
-	sfl::VideoEndpoint* endpoint = new sfl::VideoEndpoint(videoSource);
-	videoEndpoints.insert(std::pair<std::string, sfl::VideoEndpoint*>(device,
-			endpoint));
-
-	return endpoint->getShmName();
-}
-
-std::string VideoManager::startLocalCapture(const std::string& device, const int32_t& width,
-		const int32_t& height, const std::string& fps) {
-
-	// Return the SHM if already running.
+	// Might be already running, so send a new token.
 	std::map<std::string, sfl::VideoEndpoint*>::iterator it =
 			videoEndpoints.find(device);
 
 	if (it != videoEndpoints.end()) {
 		_debug((std::string("Device ") + std::string("is already opened.")).c_str());
-		return (*it).second->getShmName();
+		::DBus::Struct<std::string, std::string> reply;
+		reply._1 = (*it).second->getShmName();
+
+		// Request additional token
+		reply._2 = (*it).second->requestTokenForSource();
+
+		return reply;
 	}
 
 	// Find the device
@@ -173,21 +148,54 @@ std::string VideoManager::startLocalCapture(const std::string& device, const int
 	sfl::VideoInputSourceGst* videoSource = new sfl::VideoInputSourceGst();
 	videoSource->setDevice((*itDevice).second);
 
-	// Start capturing
-	try {
-		videoSource->open();
-	} catch (sfl::VideoDeviceIOException& e) {
-		_debug ("Caught exception : %s", e.what());
-		return SHM_ERROR_PATH;
-	}
-
 	// Keep the alive endpoint in our internal list.
 	sfl::VideoEndpoint* endpoint = new sfl::VideoEndpoint(videoSource);
+
+	// Start capturing
+	std::string token;
+	try {
+		token = endpoint->capture();
+	} catch (sfl::VideoDeviceIOException& e) {
+		_debug ("Caught exception : %s", e.what());
+		throw DBus::VideoIOException(e);
+	}
+
+	// Record (Device Name : Endpoint)
 	videoEndpoints.insert(std::pair<std::string, sfl::VideoEndpoint*>(device,
 			endpoint));
 
-	return endpoint->getShmName();
+	// Send the path to the SHM as well as token to get access to this resource.
+	::DBus::Struct<std::string, std::string> reply;
+	reply._1 = endpoint->getShmName();
+	reply._2 = token;
 
+	_debug("Sending reply %s with token %s", reply._1.c_str(), reply._2.c_str());
+
+	return reply;
+}
+
+void VideoManager::stopLocalCapture(const std::string& device, const std::string& token) throw(DBus::VideoIOException, DBus::InvalidTokenException)
+{
+	std::map<std::string, sfl::VideoEndpoint*>::iterator it = videoEndpoints.find(device);
+
+	_debug("Stopping device %s with token %s", device.c_str(), token.c_str());
+
+	if (it != videoEndpoints.end()) {
+		try {
+			((*it).second)->stopCapture(token);
+		} catch (sfl::VideoDeviceIOException e) {
+			_error("Throwing VideoDeviceIOException over DBus because : %s", e.what());
+			throw DBus::VideoIOException(e);
+		} catch (sfl::InvalidTokenException e1) {
+			_error("Throwing InvalidTokenException over DBus because : %s", e1.what());
+			throw DBus::InvalidTokenException(e1);
+		}
+ 	}
+
+	// Remove from local list
+
+
+	_debug("stopLocalCapture exited.");
 }
 
 std::string VideoManager::getEventFdPasserNamespace(const std::string& device) {

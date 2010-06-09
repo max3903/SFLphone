@@ -50,6 +50,14 @@ typedef struct
   gint height;
 } resolution_t;
 
+/**
+ * Utility structure for holding a (shm : token) key pair.
+ */
+typedef struct {
+  gchar* shm;
+  gchar* token;
+} video_key_t;
+
 /** @file dbus.h
  * @brief General DBus functions wrappers.
  */
@@ -788,10 +796,18 @@ dbus_video_get_framerates (const gchar* device, const gint width,
  * @param width The source width.
  * @param height The source height.
  * @param fps The preferred frame rate, expressed as a ratio.
- * @return The shared memory segment where the data can be obtained or /dev/null if a problem has occurred.
+ * @return A path to the shared memory segment, followed by a token for referring to this request when calling stop. NULL
+ * in case of error.
  */
-gchar*
-dbus_video_start_local_capture (gchar * device, gint width, gint height,
+video_key_t*
+dbus_video_start_local_capture (const gchar * device, gint width, gint height,
     gchar* fps);
+
+/**
+ * @param device The device on which to stop capturing from.
+ * @param token The token that was obtained when capture started.
+ * @param FALSE if an error occured.
+ */
+gboolean dbus_video_stop_local_capture(gchar* device, gchar* token);
 
 #endif

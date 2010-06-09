@@ -38,16 +38,16 @@ typedef void(*frame_observer)(uint8_t* frame, void* user_data);
  * Opaque structure. Do not manipulate directly.
  */
 typedef struct {
-  uint8_t * frame;
+  uint8_t* frame;
   GSList* observers;
   gchar* device;
   gchar* fps;
   gint width;
   gint height;
   pthread_t thread;
+  gchar* source_token;
   sflphone_shm_t* shm_frame;
   sflphone_event_listener_t* event_listener;
-
 } sflphone_video_endpoint_t;
 
 /**

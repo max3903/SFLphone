@@ -57,6 +57,7 @@ sflphone_video_endpoint_t* sflphone_video_init_with_device(gchar * device)
   endpt->width = 0;
   endpt->height = 0;
   endpt->fps = NULL;
+  endpt->source_token = NULL;
   return endpt;
 }
 
@@ -66,6 +67,7 @@ int sflphone_video_free(sflphone_video_endpoint_t* endpt)
 
   g_slist_free(endpt->observers);
   g_free(endpt->device);
+  g_free(endpt->source_token);
 }
 
 int sflphone_video_set_device(sflphone_video_endpoint_t * endpt, gchar * device)
@@ -93,13 +95,14 @@ int sflphone_video_set_width(sflphone_video_endpoint_t* endpt, gint width)
 int sflphone_video_open(sflphone_video_endpoint_t* endpt)
 {
   // Instruct the daemon to start video capture, if it's not already doing so.
-  gchar* path = dbus_video_start_local_capture(endpt->device, endpt->width, endpt->height, endpt->fps); // FIXME Check return value
-  if (g_strcmp0(path, "/dev/null") == 0) {
+  video_key_t* key;
+  key = dbus_video_start_local_capture(endpt->device, endpt->width, endpt->height, endpt->fps); // FIXME Check return value
+  if (key == NULL) {
     return -1;
   }
 
   // Set path to the shm device. We can only know until that point.
-  sflphone_shm_set_path(endpt->shm_frame, path);
+  sflphone_shm_set_path(endpt->shm_frame, key->shm);
   sflphone_shm_open(endpt->shm_frame);
 
   // Make sure that the shm is non-zero.
@@ -119,6 +122,12 @@ int sflphone_video_open(sflphone_video_endpoint_t* endpt)
   if (endpt->event_listener == NULL) {
     return -1;
   }
+
+  endpt->source_token = g_strdup(key->token);
+
+  g_free(key->token);
+  g_free(key->shm);
+  free(key);
 }
 
 int sflphone_video_close(sflphone_video_endpoint_t* endpt)
@@ -126,6 +135,8 @@ int sflphone_video_close(sflphone_video_endpoint_t* endpt)
   sflphone_eventfd_free(endpt->event_listener);
   sflphone_shm_close(endpt->shm_frame);
   free(endpt->frame);
+
+  dbus_video_stop_local_capture(endpt->device, endpt->source_token);
 }
 
 int sflphone_video_add_observer(sflphone_video_endpoint_t* endpt, frame_observer obs, void* data)
