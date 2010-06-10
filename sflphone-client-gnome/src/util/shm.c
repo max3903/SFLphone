@@ -10,6 +10,8 @@
 #include <fcntl.h>
 #include <string.h>
 
+#define WAIT_SHM_TIME_INCREMENT 1000000
+
 sflphone_shm_t*
 sflphone_shm_new ()
 {
@@ -50,7 +52,59 @@ sflphone_shm_free (sflphone_shm_t* shm)
   return 0;
 }
 
-off_t
+
+int
+sflphone_shm_ensure_non_zero (sflphone_shm_t* shm, useconds_t max_wait)
+{
+  // Open
+  int shm_fd;
+  if ((shm_fd = shm_open (shm->path, O_RDWR, 0666)) < 0)
+    {
+      int rc = errno;
+      if (errno != ENOENT)
+        {
+          ERROR ("cannot open shm segment (%s)", strerror (errno));
+        }
+      close (shm_fd);
+      return -1;
+    }
+
+  // Make sure that the shm is non-zero.
+  useconds_t time = 0;
+
+  struct stat buffer;
+  if (fstat (shm_fd, &buffer) < 0)
+    {
+      ERROR ("Cannot get size: (%s)", strerror (errno));
+    }
+
+  while ((buffer.st_size == 0) && (time + WAIT_SHM_TIME_INCREMENT) < max_wait)
+    {
+      usleep (WAIT_SHM_TIME_INCREMENT);
+      time += WAIT_SHM_TIME_INCREMENT;
+
+      if (fstat (shm_fd, &buffer) < 0)
+        {
+          ERROR ("Cannot get size: (%s)", strerror (errno));
+          return -1;
+        }
+    }
+
+  // Close
+  if (close (shm_fd) < 0)
+    {
+      ERROR ("cannot close shm fd : (%s)", strerror (errno));
+      return -1;
+    }
+
+  return 0;
+}
+
+/**
+ * @param An existing shared memory segment structure.
+ * @return The size in bytes of the file with file descriptor fd.
+ */
+static off_t
 sflphone_shm_get_file_size (sflphone_shm_t* shm)
 {
   struct stat buffer;
@@ -78,7 +132,8 @@ attach (sflphone_shm_t* shm)
 {
   DEBUG("Attaching in read only mode to segment %s for %d bytes", shm->path, shm->size);
 
-  if ((shm->addr = mmap (NULL, shm->size, PROT_READ, MAP_SHARED, shm->fd, (off_t) 0)) == MAP_FAILED)
+  if ((shm->addr = mmap (NULL, shm->size, PROT_READ, MAP_SHARED, shm->fd,
+      (off_t) 0)) == MAP_FAILED)
     {
       ERROR ("cannot mmap shm segment (%s)", strerror (errno));
       close (shm->fd);
@@ -107,7 +162,7 @@ release (sflphone_shm_t* shm)
 int
 sflphone_shm_open (sflphone_shm_t* shm)
 {
-  DEBUG("************************* Opening shared memory segment (%s)", shm->path);
+  DEBUG("Opening shared memory segment (%s)", shm->path);
 
   // Open
   int shm_fd;

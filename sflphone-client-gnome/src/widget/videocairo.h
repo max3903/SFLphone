@@ -83,6 +83,12 @@ video_cairo_start (VideoCairo* video_cairo);
 int
 video_cairo_stop (VideoCairo* video_cairo);
 
+/**
+ * @return TRUE if this widget is capturing (and displaying) video.
+ */
+gboolean
+video_cairo_is_capturing(VideoCairo* video_cairo);
+
 G_END_DECLS
 
 #endif

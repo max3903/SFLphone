@@ -47,7 +47,7 @@ VideoEndpoint::VideoEndpoint(VideoInputSource* src) :
 	// is available in DBUS 1.3, but this one is not yet stable.
 	sourceEventFdPasser = new FileDescriptorPasser(EVENT_NAMESPACE + hash,
 			eventFileDescriptor);
-	sourceEventFdPasser->detach();
+	sourceEventFdPasser->start();
 
 	while (!sourceEventFdPasser->isReady()) {
 		usleep(BUSY_WAIT_TIME);
@@ -59,6 +59,7 @@ VideoEndpoint::VideoEndpoint(VideoInputSource* src) :
 
 VideoEndpoint::~VideoEndpoint() {
 	videoSource->removeVideoFrameObserver(this);
+	delete sourceEventFdPasser;
 	close(eventFileDescriptor);
 	shmVideoSource->remove();
 }
@@ -114,6 +115,11 @@ std::string VideoEndpoint::getFdPasserName() {
 bool VideoEndpoint::isCapturing()
 {
 	return capturing;
+}
+
+bool VideoEndpoint::isDisposable()
+{
+	return !capturing;
 }
 
 void VideoEndpoint::onNewFrame(const VideoFrame* frame) {

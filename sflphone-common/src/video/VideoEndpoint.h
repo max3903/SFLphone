@@ -125,9 +125,15 @@ public:
 	std::string getFdPasserName();
 
 	/**
-	 * @return true if this endpoint is currently capturing from a video source.
+	 * @return true if this endpoint is capturing video from the local device.
 	 */
 	bool isCapturing();
+
+	/**
+	 * @return true if this endpoint can be destroyed. This is true when no capture is
+	 * taking place and that no session is established over RTP.
+	 */
+	bool isDisposable();
 
 	/**
 	 * @Override

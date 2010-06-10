@@ -22,6 +22,13 @@ namespace sfl {
 FileDescriptorPasser::FileDescriptorPasser(
 		const std::string& abstractNamespace, int fd) :
 	serverSocket(0), fdPassed(fd), path(abstractNamespace), ready(false) {
+	setCancel(cancelDeferred);
+}
+
+FileDescriptorPasser::~FileDescriptorPasser()
+{
+	_debug("************ Destructor called");
+	terminate();
 }
 
 void FileDescriptorPasser::initial() {
@@ -99,6 +106,7 @@ void FileDescriptorPasser::run() {
 }
 
 void FileDescriptorPasser::final() {
+	_debug("*************** Closing socket");
 	::close(serverSocket);
 	ready = false;
 }

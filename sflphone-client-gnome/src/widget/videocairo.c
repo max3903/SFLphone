@@ -18,6 +18,7 @@ struct _VideoCairoPrivate
   gchar* fps;
   gint width;
   gint height;
+  gboolean capturing;
   sflphone_video_endpoint_t* endpt;
 };
 
@@ -204,7 +205,6 @@ video_cairo_redraw_canvas (VideoCairo* self)
   GdkRegion *region;
 
   widget = GTK_WIDGET (self);
-
   if (!widget->window)
     return;
 
@@ -212,7 +212,7 @@ video_cairo_redraw_canvas (VideoCairo* self)
 
   /* redraw the cairo canvas completely by exposing it */
   gdk_window_invalidate_region (widget->window, region, TRUE);
-  gdk_window_process_updates (widget->window, TRUE);
+  //gdk_window_process_updates (widget->window, TRUE);
 
   gdk_region_destroy (region);
 }
@@ -220,7 +220,7 @@ video_cairo_redraw_canvas (VideoCairo* self)
 static void
 on_new_frame_cb (uint8_t* frame, void* widget)
 {
-  DEBUG("Got frame");
+  // DEBUG("Got frame");
 
   VideoCairoPrivate* priv = VIDEO_CAIRO_GET_PRIVATE((VideoCairo*) widget);
 
@@ -228,6 +228,7 @@ on_new_frame_cb (uint8_t* frame, void* widget)
   memcpy (priv->image_data, frame, priv->width * priv->height * DEFAULT_BPP);
 
   gtk_widget_queue_draw (GTK_WIDGET(widget));
+  //video_cairo_redraw_canvas((VideoCairo*) widget);
 }
 
 static void
@@ -248,6 +249,8 @@ video_cairo_init (VideoCairo *self)
   priv->surface = cairo_image_surface_create_for_data (priv->image_data,
       CAIRO_FORMAT_ARGB32, DEFAULT_NO_DEVICE_WIDTH, DEFAULT_NO_DEVICE_HEIGHT,
       priv->image_stride);
+
+  priv->capturing = FALSE;
 }
 
 static void
@@ -364,6 +367,12 @@ video_cairo_start (VideoCairo* self)
   DEBUG("Starting video cairo capture");
 
   VideoCairoPrivate* priv = VIDEO_CAIRO_GET_PRIVATE(self);
+
+  if (sflphone_video_add_observer (priv->endpt, &on_new_frame_cb, self) < 0) {
+    ERROR("Failed to register as an observer and start video %s:%d", __FILE__, __LINE__);
+    return -1;
+  }
+
   if (sflphone_video_open (priv->endpt) < 0)
     {
       ERROR("Failed to open and start video %s:%d", __FILE__, __LINE__);
@@ -376,12 +385,9 @@ video_cairo_start (VideoCairo* self)
       return -1;
     }
 
-  if (sflphone_video_add_observer (priv->endpt, &on_new_frame_cb, self) < 0) {
-    ERROR("Failed to register as an observer and start video %s:%d", __FILE__, __LINE__);
-    return -1;
-  }
-
   DEBUG("Registered as an observer");
+
+  priv->capturing = TRUE;
 }
 
 int
@@ -390,7 +396,18 @@ video_cairo_stop (VideoCairo* self)
   DEBUG("Stopping video cairo capture");
 
   VideoCairoPrivate* priv = VIDEO_CAIRO_GET_PRIVATE(self);
+
+  sflphone_video_remove_observer(priv->endpt, &on_new_frame_cb);
+
   sflphone_video_stop_async (priv->endpt);
   sflphone_video_close (priv->endpt);
-  sflphone_video_remove_observer(priv->endpt, &on_new_frame_cb);
+
+  priv->capturing = FALSE;
+}
+
+gboolean
+video_cairo_is_capturing(VideoCairo* video_cairo)
+{
+  VideoCairoPrivate* priv = VIDEO_CAIRO_GET_PRIVATE(video_cairo);
+  return priv->capturing;
 }

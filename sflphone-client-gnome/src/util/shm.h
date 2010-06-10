@@ -22,6 +22,7 @@
 
 #include <stdlib.h>
 #include <errno.h>
+#include <unistd.h>
 
 typedef struct {
   char* path;
@@ -76,10 +77,11 @@ int sflphone_shm_close(sflphone_shm_t* shm);
 void * sflphone_shm_get_addr(sflphone_shm_t* shm);
 
 /**
- * @param An existing shared memory segment structure.
- * @return The size in bytes of the file with file descriptor fd.
+ * Blocking call.
+ * @param The maximum time (in usec) to wait for the file to become non-zero.
+ * @return < 0 If the segment is still zero after max_wait usec.
  */
-off_t sflphone_shm_file_size(sflphone_shm_t* shm);
+int sflphone_shm_ensure_non_zero (sflphone_shm_t* shm, useconds_t max_wait);
 
 /**
  * @param An existing shared memory segment structure.

@@ -29,8 +29,7 @@
 
 #include "dbus/dbus.h"
 
-#define MAX_WAIT_SHM_NON_ZERO 10000
-#define WAIT_SHM_TIME 500
+#define MAX_WAIT_SHM_NON_ZERO 5000000
 
 typedef struct {
   frame_observer cb;
@@ -94,6 +93,8 @@ int sflphone_video_set_width(sflphone_video_endpoint_t* endpt, gint width)
 
 int sflphone_video_open(sflphone_video_endpoint_t* endpt)
 {
+  DEBUG("***************** Sending over dbus start() %s %d %d %s", endpt->device, endpt->width, endpt->height, endpt->fps);
+
   // Instruct the daemon to start video capture, if it's not already doing so.
   video_key_t* key;
   key = dbus_video_start_local_capture(endpt->device, endpt->width, endpt->height, endpt->fps); // FIXME Check return value
@@ -103,18 +104,13 @@ int sflphone_video_open(sflphone_video_endpoint_t* endpt)
 
   // Set path to the shm device. We can only know until that point.
   sflphone_shm_set_path(endpt->shm_frame, key->shm);
-  sflphone_shm_open(endpt->shm_frame);
 
-  // Make sure that the shm is non-zero.
-  useconds_t time = 0;
-  while((sflphone_shm_get_size(endpt->shm_frame) == 0)) {
-    usleep(WAIT_SHM_TIME);
-    time += WAIT_SHM_TIME;
-    if ((time > MAX_WAIT_SHM_NON_ZERO)) {
-      ERROR("After %d usec, shm was still 0", MAX_WAIT_SHM_NON_ZERO);
-      return -1;
-    }
+  if (sflphone_shm_ensure_non_zero(endpt->shm_frame, MAX_WAIT_SHM_NON_ZERO) < 0) {
+    ERROR("After %d micro seconds, shm segment failed to become non zero", MAX_WAIT_SHM_NON_ZERO);
+    return -1;
   }
+
+  sflphone_shm_open(endpt->shm_frame);
   endpt->frame = (uint8_t*) malloc(sflphone_shm_get_size(endpt->shm_frame));
 
   // Initialise event notification for frame capture.
@@ -135,7 +131,7 @@ int sflphone_video_close(sflphone_video_endpoint_t* endpt)
   sflphone_eventfd_free(endpt->event_listener);
   sflphone_shm_close(endpt->shm_frame);
   free(endpt->frame);
-
+  DEBUG("**************** Sending video stop()");
   dbus_video_stop_local_capture(endpt->device, endpt->source_token);
 }
 
@@ -152,10 +148,19 @@ int sflphone_video_add_observer(sflphone_video_endpoint_t* endpt, frame_observer
   endpt->observers = g_slist_append(endpt->observers, (gpointer) observer_context);
 }
 
-int sflphone_video_remove_observer(sflphone_video_endpoint_t* endpt, frame_observer obs)
+int sflphone_video_remove_observer(sflphone_video_endpoint_t* endpt, frame_observer callback)
 {
-  // FIXME free the structure correctly.
-  endpt->observers = g_slist_remove(endpt->observers, (gpointer) obs);
+  // FIXME The struture contains observer_context. Not frame_observer. Must find
+  // element manually, then remove.
+  GSList* obs;
+  for(obs = endpt->observers; obs; obs = g_slist_next(obs)) {
+    if (((observer_t*) obs->data)->cb == callback) {
+      endpt->observers = g_slist_delete_link (endpt->observers, obs);
+      return 0;
+    }
+  }
+
+  return -1;
 }
 
 static void notify_observer(gpointer obs, gpointer frame)
@@ -163,6 +168,10 @@ static void notify_observer(gpointer obs, gpointer frame)
   observer_t* observer_ctx = (observer_t*) obs;
   frame_observer frame_cb = observer_ctx->cb;
   void * data = observer_ctx->data;
+
+  if (frame_cb == NULL || data == NULL) {
+    return;
+  }
 
   frame_cb((uint8_t*) frame, data);
 }

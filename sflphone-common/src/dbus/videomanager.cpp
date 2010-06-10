@@ -113,38 +113,32 @@ std::vector<std::string> VideoManager::getFrameRates(const std::string& device,
 
 ::DBus::Struct< std::string, std::string > VideoManager::startLocalCapture(const std::string& device, const int32_t& width,
 		const int32_t& height, const std::string& fps) throw(DBus::VideoIOException) {
-
+	_debug("************ Starting");
+	// The code below deals with a device that is already capturing.
 	std::map<std::string, sfl::VideoEndpoint*>::iterator it =
 			videoEndpoints.find(device);
-
 	if (it != videoEndpoints.end()) {
 		_debug((std::string("Device ") + std::string("is already mapped to some endpoint.")).c_str());
 
-		::DBus::Struct<std::string, std::string> reply;
 		sfl::VideoEndpoint* runningEndpoint = (*it).second;
 
-		if ((*it).second->isCapturing()) {
-			reply._1 = runningEndpoint->getShmName();
-			// Request additional token
-			reply._2 = runningEndpoint->requestTokenForSource();
-		} else {
-			std::string token;
-			try {
-				token = runningEndpoint->capture();
-			} catch (sfl::VideoDeviceIOException& e) {
-				_debug ("Caught exception : %s", e.what());
-				throw DBus::VideoIOException(e);
-			}
-
-			reply._1 = runningEndpoint->getShmName();
-			reply._2 = token;
+		// Paranoid check. Should always be the case.
+		if (!runningEndpoint->isCapturing()) {
+			_error("Mapped device but not capturing.");
+			// throw DBus::VideoIOException(e);
 		}
+
+		::DBus::Struct<std::string, std::string> reply;
+		reply._1 = runningEndpoint->getShmName();
+		// Request additional token
+		reply._2 = runningEndpoint->requestTokenForSource();
+
+		_debug("Sending reply %s with token %s", reply._1.c_str(), reply._2.c_str());
 
 		return reply;
 	}
 
 	// The code below deals with creating a new endpoint.
-
 	// Find the device
 	std::map<std::string, sfl::VideoDevicePtr>::iterator itDevice =
 			videoDevices.find(device);
@@ -194,7 +188,7 @@ void VideoManager::stopLocalCapture(const std::string& device, const std::string
 {
 	std::map<std::string, sfl::VideoEndpoint*>::iterator it = videoEndpoints.find(device);
 
-	_debug("Stopping device %s with token %s", device.c_str(), token.c_str());
+	_debug("************* Stopping device %s with token %s", device.c_str(), token.c_str());
 
 	if (it != videoEndpoints.end()) {
 		try {
@@ -206,9 +200,13 @@ void VideoManager::stopLocalCapture(const std::string& device, const std::string
 			_error("Throwing InvalidTokenException over DBus because : %s", e1.what());
 			throw DBus::InvalidTokenException(e1);
 		}
- 	}
 
-	// Remove from local list
+		if (((*it).second)->isDisposable()) {
+			delete ((*it).second);
+			videoEndpoints.erase(it);
+			_debug("Endpoint was disposable. Removed.");
+		}
+ 	}
 
 }
 
@@ -218,6 +216,7 @@ std::string VideoManager::getEventFdPasserNamespace(const std::string& device) {
 		endpt = getVideoEndpoint(device);
 	} catch (sfl::UnknownVideoDeviceException e) {
 		_debug("%s", e.what());
+		// TODO Throw an exception
 	}
 
 	_debug("Returning passer namespace %s", endpt->getFdPasserName().c_str());

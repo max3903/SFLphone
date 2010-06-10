@@ -59,7 +59,9 @@ video_conf_dispose (GObject *object)
 {
   VideoConfPrivate* priv = GET_PRIVATE((VideoConf*) object);
   if (priv->video_cairo != NULL) {
-    video_cairo_stop(priv->video_cairo);
+    if (video_cairo_is_capturing(priv->video_cairo)) {
+      video_cairo_stop(priv->video_cairo);
+    }
   }
   priv->video_cairo = NULL;
 
@@ -70,6 +72,19 @@ static void
 video_conf_finalize (GObject *object)
 {
   G_OBJECT_CLASS (video_conf_parent_class)->finalize (object);
+}
+
+static void
+raise_error(VideoConf* self, gchar* error_message)
+{
+  VideoConfPrivate* priv = GET_PRIVATE((VideoConf*) self);
+
+  DEBUG("Raising error");
+
+  gtk_label_set_text (GTK_LABEL (priv->message_info_bar_label), error_message);
+  gtk_info_bar_set_message_type (GTK_INFO_BAR (priv->info_bar),
+                                 GTK_MESSAGE_ERROR);
+  gtk_widget_show (priv->info_bar);
 }
 
 static void
@@ -84,16 +99,45 @@ video_conf_class_init (VideoConfClass *klass)
 }
 
 static void
-raise_error(VideoConf* self, gchar* error_message)
+capture_video_from_active(VideoConf* self)
 {
+  DEBUG("Starting video");
+
   VideoConfPrivate* priv = GET_PRIVATE((VideoConf*) self);
 
-  DEBUG("Raising error");
+  GtkTreeModel* model;
+  GtkTreeIter iter;
+  gchar* device_name;
 
-  gtk_label_set_text (GTK_LABEL (priv->message_info_bar_label), error_message);
-  gtk_info_bar_set_message_type (GTK_INFO_BAR (priv->info_bar),
-                                 GTK_MESSAGE_ERROR);
-  gtk_widget_show (priv->info_bar);
+  // Get the device name
+  model = gtk_combo_box_get_model (GTK_COMBO_BOX(priv->devices_combo));
+  gtk_combo_box_get_active_iter (GTK_COMBO_BOX(priv->devices_combo), &iter);
+  gtk_tree_model_get (model, &iter, 0, &device_name, -1);
+
+  // Get the corresponding resolutions
+  resolution_t* resolution;
+  model = gtk_combo_box_get_model (GTK_COMBO_BOX(priv->resolutions_combo));
+  gtk_combo_box_get_active_iter (GTK_COMBO_BOX(priv->resolutions_combo), &iter);
+  gtk_tree_model_get (model, &iter, 1, &resolution, -1);
+  gint width = resolution->width;
+  gint height = resolution->height;
+
+  // Get the corresponding fps
+  gchar* fps;
+  model = gtk_combo_box_get_model (GTK_COMBO_BOX(priv->framerates_combo));
+  gtk_combo_box_get_active_iter (GTK_COMBO_BOX(priv->framerates_combo), &iter);
+  gtk_tree_model_get (model, &iter, 0, &fps, -1);
+
+  if (video_cairo_is_capturing(priv->video_cairo)) {
+    video_cairo_stop(priv->video_cairo);
+  }
+
+  video_cairo_set_source(priv->video_cairo, device_name);
+  video_cairo_set_capture_width(priv->video_cairo, width);
+  video_cairo_set_capture_height(priv->video_cairo, height);
+  video_cairo_set_capture_framerate(priv->video_cairo, fps);
+
+  video_cairo_start(priv->video_cairo);
 }
 
 static void
@@ -142,6 +186,8 @@ on_resolutions_combo_changed_cb (GtkWidget* widget, gpointer self)
 
   gtk_combo_box_set_active (GTK_COMBO_BOX(priv->framerates_combo), 0);
 
+  // Resolution changed, so restart video
+  capture_video_from_active(self);
 }
 
 static void
@@ -194,44 +240,6 @@ on_devices_combo_changed_cb (GtkWidget* widget, gpointer self)
 }
 
 static void
-capture_video_from_active(VideoConf* self)
-{
-  DEBUG("Starting video");
-
-  VideoConfPrivate* priv = GET_PRIVATE((VideoConf*) self);
-
-  GtkTreeModel* model;
-  GtkTreeIter iter;
-  gchar* device_name;
-
-  // Get the device name
-  model = gtk_combo_box_get_model (GTK_COMBO_BOX(priv->devices_combo));
-  gtk_combo_box_get_active_iter (GTK_COMBO_BOX(priv->devices_combo), &iter);
-  gtk_tree_model_get (model, &iter, 0, &device_name, -1);
-
-  // Get the corresponding resolutions
-  resolution_t* resolution;
-  model = gtk_combo_box_get_model (GTK_COMBO_BOX(priv->resolutions_combo));
-  gtk_combo_box_get_active_iter (GTK_COMBO_BOX(priv->resolutions_combo), &iter);
-  gtk_tree_model_get (model, &iter, 1, &resolution, -1);
-  gint width = resolution->width;
-  gint height = resolution->height;
-
-  // Get the corresponding fps
-  gchar* fps;
-  model = gtk_combo_box_get_model (GTK_COMBO_BOX(priv->framerates_combo));
-  gtk_combo_box_get_active_iter (GTK_COMBO_BOX(priv->framerates_combo), &iter);
-  gtk_tree_model_get (model, &iter, 0, &fps, -1);
-
-  video_cairo_set_source(priv->video_cairo, device_name);
-  video_cairo_set_capture_width(priv->video_cairo, width);
-  video_cairo_set_capture_height(priv->video_cairo, height);
-  video_cairo_set_capture_framerate(priv->video_cairo, fps);
-
-  video_cairo_start(priv->video_cairo);
-}
-
-static void
 video_conf_init (VideoConf* self)
 {
   VideoConfPrivate* priv = GET_PRIVATE(self);
@@ -247,7 +255,7 @@ video_conf_init (VideoConf* self)
   gtk_container_add (GTK_CONTAINER (content_area), priv->message_info_bar_label);
 
   // Cairo video
-  priv->video_cairo = GTK_WIDGET(video_cairo_new());
+  priv->video_cairo = video_cairo_new();
   gtk_widget_show(GTK_WIDGET(priv->video_cairo));
 
   // Device list
@@ -346,7 +354,7 @@ video_conf_init (VideoConf* self)
     return;
   }
 
-  capture_video_from_active(self);
+  // capture_video_from_active(self);
 }
 
 VideoConf*
