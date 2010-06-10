@@ -21,9 +21,6 @@ struct _VideoCairoPrivate
   sflphone_video_endpoint_t* endpt;
 };
 
-static gboolean
-video_cairo_expose (GtkWidget *cairo, GdkEventExpose *event);
-
 static gpointer video_cairo_parent_class = NULL;
 
 enum
@@ -78,12 +75,14 @@ video_cairo_set_property (GObject *object, guint property_id,
     DEBUG("Setting width %d", g_value_get_int(value))
     ;
     priv->width = g_value_get_int (value);
+    reallocate_buffer (self);
     sflphone_video_set_width (priv->endpt, priv->width);
     break;
   case PROP_HEIGHT:
     DEBUG("Setting height %d", g_value_get_int(value))
     ;
     priv->height = g_value_get_int (value);
+    reallocate_buffer (self);
     sflphone_video_set_height (priv->endpt, priv->height);
     break;
   case PROP_FPS:
@@ -96,9 +95,6 @@ video_cairo_set_property (GObject *object, guint property_id,
     G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);
     return;
     }
-
-  reallocate_buffer (self);
-  gtk_widget_queue_draw (GTK_WIDGET(self));
 }
 
 static void
@@ -224,7 +220,7 @@ video_cairo_redraw_canvas (VideoCairo* self)
 static void
 on_new_frame_cb (uint8_t* frame, void* widget)
 {
-  // DEBUG("Got frame");
+  DEBUG("Got frame");
 
   VideoCairoPrivate* priv = VIDEO_CAIRO_GET_PRIVATE((VideoCairo*) widget);
 
@@ -232,8 +228,6 @@ on_new_frame_cb (uint8_t* frame, void* widget)
   memcpy (priv->image_data, frame, priv->width * priv->height * DEFAULT_BPP);
 
   gtk_widget_queue_draw (GTK_WIDGET(widget));
-
-  // video_cairo_redraw_canvas ((VideoCairo*) widget);
 }
 
 static void
@@ -254,10 +248,6 @@ video_cairo_init (VideoCairo *self)
   priv->surface = cairo_image_surface_create_for_data (priv->image_data,
       CAIRO_FORMAT_ARGB32, DEFAULT_NO_DEVICE_WIDTH, DEFAULT_NO_DEVICE_HEIGHT,
       priv->image_stride);
-
-  sflphone_video_add_observer (priv->endpt, &on_new_frame_cb, self);
-
-  DEBUG("Registered as an observer");
 }
 
 static void
@@ -271,6 +261,24 @@ video_cairo_finalize (GObject *object)
   g_free (priv->source);
 
   G_OBJECT_CLASS (video_cairo_parent_class)->finalize (object);
+}
+
+static gboolean
+video_cairo_expose (GtkWidget* cairo_video, GdkEventExpose* event)
+{
+  VideoCairoPrivate* priv = VIDEO_CAIRO_GET_PRIVATE (cairo_video);
+
+  // Redraw on every expose event.
+  cairo_t* cairo_context = gdk_cairo_create (cairo_video->window);
+
+  DEBUG("Expose event for video cairo widget invalidate %d %d", event->area.x, event->area.y);
+
+  cairo_set_source_surface (cairo_context, priv->surface, event->area.x,
+      event->area.y);
+  cairo_paint (cairo_context);
+  cairo_destroy (cairo_context);
+
+  return FALSE;
 }
 
 static void
@@ -307,24 +315,6 @@ video_cairo_class_init (VideoCairoClass *class)
           | G_PARAM_READWRITE));
 
   g_type_class_add_private (obj_class, sizeof(VideoCairoPrivate));
-}
-
-static gboolean
-video_cairo_expose (GtkWidget* cairo_video, GdkEventExpose* event)
-{
-  VideoCairoPrivate* priv = VIDEO_CAIRO_GET_PRIVATE (cairo_video);
-
-  // Redraw on every expose event.
-  cairo_t* cairo_context = gdk_cairo_create (cairo_video->window);
-
-  DEBUG("Expose event for video cairo widget invalidate %d %d", event->area.x, event->area.y);
-
-  cairo_set_source_surface (cairo_context, priv->surface, event->area.x,
-      event->area.y);
-  cairo_paint (cairo_context);
-  cairo_destroy (cairo_context);
-
-  return FALSE;
 }
 
 static void
@@ -376,7 +366,7 @@ video_cairo_start (VideoCairo* self)
   VideoCairoPrivate* priv = VIDEO_CAIRO_GET_PRIVATE(self);
   if (sflphone_video_open (priv->endpt) < 0)
     {
-      ERROR("Failed to start video %s:%d", __FILE__, __LINE__);
+      ERROR("Failed to open and start video %s:%d", __FILE__, __LINE__);
       return -1;
     }
 
@@ -385,6 +375,13 @@ video_cairo_start (VideoCairo* self)
       ERROR("Failed to start video %s:%d", __FILE__, __LINE__);
       return -1;
     }
+
+  if (sflphone_video_add_observer (priv->endpt, &on_new_frame_cb, self) < 0) {
+    ERROR("Failed to register as an observer and start video %s:%d", __FILE__, __LINE__);
+    return -1;
+  }
+
+  DEBUG("Registered as an observer");
 }
 
 int
@@ -395,4 +392,5 @@ video_cairo_stop (VideoCairo* self)
   VideoCairoPrivate* priv = VIDEO_CAIRO_GET_PRIVATE(self);
   sflphone_video_stop_async (priv->endpt);
   sflphone_video_close (priv->endpt);
+  sflphone_video_remove_observer(priv->endpt, &on_new_frame_cb);
 }

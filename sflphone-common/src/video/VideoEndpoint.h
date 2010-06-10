@@ -125,6 +125,11 @@ public:
 	std::string getFdPasserName();
 
 	/**
+	 * @return true if this endpoint is currently capturing from a video source.
+	 */
+	bool isCapturing();
+
+	/**
 	 * @Override
 	 */
 	void onNewFrame(const VideoFrame* frame);
@@ -164,6 +169,7 @@ private:
 	FileDescriptorPasser* sourceEventFdPasser;
 	SharedMemoryPosix* shmVideoSource;
 	int eventFileDescriptor;
+	bool capturing;
 };
 
 }

@@ -23,7 +23,7 @@ namespace sfl {
 const std::string VideoEndpoint::EVENT_NAMESPACE = "org.sflphone.eventfd.";
 
 VideoEndpoint::VideoEndpoint(VideoInputSource* src) :
-	sourceTokens(), videoSource(src) {
+	sourceTokens(), videoSource(src), capturing(false) {
 	// Compute a simple CRC16 hash digest for this device. We want that to limit the
 	// length of possible device/path names and offer consistent syntax.
 	std::string hash = getDigest(src->getDevice()->getName());
@@ -91,7 +91,7 @@ std::string VideoEndpoint::requestTokenForSource() {
 
 std::string VideoEndpoint::capture() throw (VideoDeviceIOException) {
 	videoSource->open();
-
+	capturing = true;
 	return requestTokenForSource();
 }
 
@@ -103,11 +103,17 @@ void VideoEndpoint::stopCapture(std::string token) throw(VideoDeviceIOException,
 
 	if (sourceTokens.size() == 0) {
 		videoSource->close();
+		capturing = false;
 	}
 }
 
 std::string VideoEndpoint::getFdPasserName() {
 	return sourceEventFdPasser->getAbstractNamespace();
+}
+
+bool VideoEndpoint::isCapturing()
+{
+	return capturing;
 }
 
 void VideoEndpoint::onNewFrame(const VideoFrame* frame) {

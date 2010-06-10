@@ -74,16 +74,12 @@ public:
 	/**
 	 * @return a pointer to the shared memory region.
 	 */
-	void * getRegion() {
-		return mappedAddr;
-	}
+	void * getRegion();
 
 	/**
 	 * @return The shared memory name.
 	 */
-	std::string getName() {
-		return name;
-	}
+	std::string getName();
 
 	/**
 	 * @return The size of the current shared memory region in bytes, as seen from fstat.

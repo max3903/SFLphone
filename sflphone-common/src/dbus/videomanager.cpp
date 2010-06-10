@@ -114,20 +114,36 @@ std::vector<std::string> VideoManager::getFrameRates(const std::string& device,
 ::DBus::Struct< std::string, std::string > VideoManager::startLocalCapture(const std::string& device, const int32_t& width,
 		const int32_t& height, const std::string& fps) throw(DBus::VideoIOException) {
 
-	// Might be already running, so send a new token.
 	std::map<std::string, sfl::VideoEndpoint*>::iterator it =
 			videoEndpoints.find(device);
 
 	if (it != videoEndpoints.end()) {
-		_debug((std::string("Device ") + std::string("is already opened.")).c_str());
-		::DBus::Struct<std::string, std::string> reply;
-		reply._1 = (*it).second->getShmName();
+		_debug((std::string("Device ") + std::string("is already mapped to some endpoint.")).c_str());
 
-		// Request additional token
-		reply._2 = (*it).second->requestTokenForSource();
+		::DBus::Struct<std::string, std::string> reply;
+		sfl::VideoEndpoint* runningEndpoint = (*it).second;
+
+		if ((*it).second->isCapturing()) {
+			reply._1 = runningEndpoint->getShmName();
+			// Request additional token
+			reply._2 = runningEndpoint->requestTokenForSource();
+		} else {
+			std::string token;
+			try {
+				token = runningEndpoint->capture();
+			} catch (sfl::VideoDeviceIOException& e) {
+				_debug ("Caught exception : %s", e.what());
+				throw DBus::VideoIOException(e);
+			}
+
+			reply._1 = runningEndpoint->getShmName();
+			reply._2 = token;
+		}
 
 		return reply;
 	}
+
+	// The code below deals with creating a new endpoint.
 
 	// Find the device
 	std::map<std::string, sfl::VideoDevicePtr>::iterator itDevice =
@@ -194,8 +210,6 @@ void VideoManager::stopLocalCapture(const std::string& device, const std::string
 
 	// Remove from local list
 
-
-	_debug("stopLocalCapture exited.");
 }
 
 std::string VideoManager::getEventFdPasserNamespace(const std::string& device) {

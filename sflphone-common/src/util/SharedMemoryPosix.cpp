@@ -16,7 +16,7 @@
  *  along with this program; if not, write to the Free Software
  *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
- 
+
 #include "SharedMemoryPosix.h"
 
 #include <iostream>
@@ -34,17 +34,12 @@
 
 #include "logger.h" 
 
-namespace sfl
-{
+namespace sfl {
 
-SharedMemoryPosix::SharedMemoryPosix(const std::string& name, bool exclusive, std::ios_base::openmode mode) throw(SharedMemoryException):
-	fd(0),
-	size(0),
-	mappedAddr(NULL),
-	name(name),
-	exclusive(exclusive),
-	mode(mode)
-{
+SharedMemoryPosix::SharedMemoryPosix(const std::string& name, bool exclusive,
+		std::ios_base::openmode mode) throw (SharedMemoryException) :
+	fd(0), size(0), mappedAddr(NULL), name(name), exclusive(exclusive), mode(
+			mode) {
 	int oflags = getOflags(mode);
 
 	if (exclusive == true) {
@@ -52,11 +47,12 @@ SharedMemoryPosix::SharedMemoryPosix(const std::string& name, bool exclusive, st
 	} else {
 		oflags |= O_CREAT;
 	}
-	
+
 	if ((fd = shm_open(name.c_str(), oflags, 0666)) < 0) {
-		throw SharedMemoryException(std::string("shm_open(): ") + strerror(errno));
+		throw SharedMemoryException(std::string("shm_open(): ") + strerror(
+				errno));
 	}
-	
+
 	if ((mode & std::ios::in) || (mode & std::ios::trunc)) {
 		// this->truncate();
 	} else {
@@ -67,8 +63,7 @@ SharedMemoryPosix::SharedMemoryPosix(const std::string& name, bool exclusive, st
 	// this->attach();
 }
 
-SharedMemoryPosix::~SharedMemoryPosix()
-{
+SharedMemoryPosix::~SharedMemoryPosix() {
 	try {
 		_debug("Releasing ...");
 		release();
@@ -79,20 +74,18 @@ SharedMemoryPosix::~SharedMemoryPosix()
 	}
 }
 
-void SharedMemoryPosix::truncate() throw(SharedMemoryException)
-{
+void SharedMemoryPosix::truncate() throw (SharedMemoryException) {
 	int pageSize = sysconf(_SC_PAGE_SIZE);
-	truncate (pageSize);
+	truncate(pageSize);
 }
 
-void SharedMemoryPosix::truncate(off_t size) throw(SharedMemoryException)
-{
+void SharedMemoryPosix::truncate(off_t size) throw (SharedMemoryException) {
 	assert(fd);
 
 	if (ftruncate(fd, size) < 0) {
 		throw SharedMemoryException(std::string("Truncate: ") + strerror(errno));
 	}
-	
+
 	// We have to re-attach for the new size, else we'll run into segfaults. Detach with old size.
 	if (mappedAddr != NULL) {
 		release();
@@ -103,85 +96,88 @@ void SharedMemoryPosix::truncate(off_t size) throw(SharedMemoryException)
 	attach();
 }
 
-off_t SharedMemoryPosix::getFileSize() throw(SharedMemoryException)
-{
+void * SharedMemoryPosix::getRegion() {
+	return mappedAddr;
+}
+
+std::string SharedMemoryPosix::getName() {
+	return name;
+}
+
+off_t SharedMemoryPosix::getFileSize() throw (SharedMemoryException) {
 	assert(fd);
 
 	struct stat buffer;
 	if (fstat(fd, &buffer) < 0) {
-		throw SharedMemoryException(std::string("getFileSize: ") + strerror(errno));
+		throw SharedMemoryException(std::string("getFileSize: ") + strerror(
+				errno));
 	}
 
 	_debug("shm (%s) is %d bytes long", name.c_str(), buffer.st_size);
 	return buffer.st_size;
 }
 
-off_t SharedMemoryPosix::getSize()
-{
+off_t SharedMemoryPosix::getSize() {
 	return size;
 }
 
-void SharedMemoryPosix::attach() throw(SharedMemoryException)
-{
+void SharedMemoryPosix::attach() throw (SharedMemoryException) {
 	assert(fd);
 
-	mappedAddr = mmap(NULL, (size_t) size, getProtFlags(mode), MAP_SHARED, fd, (off_t) 0);
+	mappedAddr = mmap(NULL, (size_t) size, getProtFlags(mode), MAP_SHARED, fd,
+			(off_t) 0);
 	if (mappedAddr == MAP_FAILED) {
 		this->close();
 		throw SharedMemoryException(std::string("mmap(): ") + strerror(errno));
 	}
 }
 
-void SharedMemoryPosix::release() throw(SharedMemoryException)
-{
+void SharedMemoryPosix::release() throw (SharedMemoryException) {
 	assert(mappedAddr);
-	
+
 	if (munmap(mappedAddr, size) < 0) {
 		throw SharedMemoryException(std::string("munmap(): ") + strerror(errno));
 	}
-	
+
 	mappedAddr = NULL;
 	size = 0;
 }
 
-void SharedMemoryPosix::close() throw(SharedMemoryException)
-{
+void SharedMemoryPosix::close() throw (SharedMemoryException) {
 	assert(fd);
 
 	if (::close(fd) < 0) {
 		throw SharedMemoryException(std::string("close(): ") + strerror(errno));
 	}
-	
+
 	fd = 0;
 }
 
-void SharedMemoryPosix::remove() throw(SharedMemoryException)
-{
+void SharedMemoryPosix::remove() throw (SharedMemoryException) {
 	if (shm_unlink(name.c_str()) < 0) {
-		throw SharedMemoryException(std::string("shm_unlink(): ") + strerror(errno));
+		throw SharedMemoryException(std::string("shm_unlink(): ") + strerror(
+				errno));
 	}
 }
 
-int SharedMemoryPosix::getOflags(std::ios_base::openmode mode)
-{
+int SharedMemoryPosix::getOflags(std::ios_base::openmode mode) {
 	int oflags = 0;
 
 	// From the spec : "Applications specify exactly one of the first two values".
 	if ((mode & std::ios::in) && (mode & std::ios::out)) {
 		oflags = O_RDWR;
-	} else if (mode & std::ios::out){
+	} else if (mode & std::ios::out) {
 		oflags = O_RDONLY;
 	}
-	
+
 	if (mode & std::ios::trunc) {
-		oflags |= O_TRUNC;  // The result of using O_TRUNC with O_RDONLY is undefined.
+		oflags |= O_TRUNC; // The result of using O_TRUNC with O_RDONLY is undefined.
 	}
-	
+
 	return oflags;
 }
 
-int SharedMemoryPosix::getProtFlags(std::ios_base::openmode mode)
-{
+int SharedMemoryPosix::getProtFlags(std::ios_base::openmode mode) {
 	int prot = 0;
 
 	if (mode & std::ios::in) {

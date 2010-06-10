@@ -248,6 +248,7 @@ video_conf_init (VideoConf* self)
 
   // Cairo video
   priv->video_cairo = GTK_WIDGET(video_cairo_new());
+  gtk_widget_show(GTK_WIDGET(priv->video_cairo));
 
   // Device list
   gchar** available_devices = NULL;
@@ -315,7 +316,6 @@ video_conf_init (VideoConf* self)
   gtk_box_pack_start (GTK_BOX(self), priv->info_bar, FALSE, TRUE, 10);
 
   GtkWidget* hbox_cairo = gtk_hbox_new (TRUE, 10);
-  sleep(1);
   gtk_box_pack_start(GTK_BOX(hbox_cairo), priv->video_cairo, TRUE, TRUE, 10);
   gtk_box_pack_start(GTK_BOX(self), hbox_cairo, TRUE, TRUE, 10);
 
