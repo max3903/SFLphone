@@ -274,7 +274,7 @@ video_cairo_expose (GtkWidget* cairo_video, GdkEventExpose* event)
   // Redraw on every expose event.
   cairo_t* cairo_context = gdk_cairo_create (cairo_video->window);
 
-  DEBUG("Expose event for video cairo widget invalidate %d %d", event->area.x, event->area.y);
+  // DEBUG("Expose event for video cairo widget invalidate %d %d", event->area.x, event->area.y);
 
   cairo_set_source_surface (cairo_context, priv->surface, event->area.x,
       event->area.y);

@@ -40,6 +40,7 @@ sflphoned_CXXFLAGS = \
 		-DVERSION=\"$(VERSION)\" \
 		@ZRTPCPP_CFLAGS@ \
 		@GSTREAMER_CFLAGS@ \
+		@LIBAVCODEC_CFLAGS@ \
 		@libssl_CFLAGS@
 
 
@@ -50,6 +51,7 @@ sflphoned_LDADD = \
 		@CCEXT2_LIBS@ \
 		@ZRTPCPP_LIBS@ \
 		@GSTREAMER_LIBS@ \
+		@LIBAVCODEC_LIBS@ \
 		$(PJSIP_LIBS) \
 		@CCRTP_LIBS@ \
 		@ALSA_LIBS@ \
@@ -86,6 +88,8 @@ libsflphone_la_LIBADD = \
 	./audio/libaudio.la \
 	./audio/audiortp/libaudiortp.la \
 	./video/libvideo.la \
+	./video/decoder/libvideodecoder.la \
+	./video/rtp/libvideortp.la \
 	./audio/sound/libsound.la \
 	./audio/codecs/libcodecdescriptor.la \
 	./audio/alsa/libalsalayer.la \

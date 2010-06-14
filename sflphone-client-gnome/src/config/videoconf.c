@@ -141,6 +141,14 @@ capture_video_from_active(VideoConf* self)
 }
 
 static void
+on_framerates_combo_changed_cb (GtkWidget* widget, gpointer self)
+{
+  // Framerate changed, so restart video
+  // capture_video_from_active(self);
+  DEBUG("Frame rate changed");
+}
+
+static void
 on_resolutions_combo_changed_cb (GtkWidget* widget, gpointer self)
 {
   VideoConfPrivate* priv = GET_PRIVATE((VideoConf*) self);
@@ -256,7 +264,7 @@ video_conf_init (VideoConf* self)
 
   // Cairo video
   priv->video_cairo = video_cairo_new();
-  gtk_widget_show(GTK_WIDGET(priv->video_cairo));
+  gtk_widget_show(priv->video_cairo);
 
   // Device list
   gchar** available_devices = NULL;
@@ -339,6 +347,7 @@ video_conf_init (VideoConf* self)
   // Connect signals
   g_signal_connect(G_OBJECT(priv->devices_combo), "changed", G_CALLBACK(on_devices_combo_changed_cb), self);
   g_signal_connect(G_OBJECT(priv->resolutions_combo), "changed", G_CALLBACK(on_resolutions_combo_changed_cb), self);
+  g_signal_connect(G_OBJECT(priv->framerates_combo), "changed", G_CALLBACK(on_framerates_combo_changed_cb), self);
 
   gtk_widget_show_all (GTK_WIDGET(self));
 
@@ -353,8 +362,6 @@ video_conf_init (VideoConf* self)
     gtk_widget_hide(framerates_label);
     return;
   }
-
-  // capture_video_from_active(self);
 }
 
 VideoConf*

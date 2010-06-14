@@ -1,9 +1,9 @@
-dnl SFLPhone - configure.ac for automake 1.9 and autoconf 2.59
-dnl
+	dnl SFLPhone - configure.ac for automake 1.9 and autoconf 2.59
+	dnl
 
 	dnl Process this file with autoconf to produce a configure script.
 	AC_PREREQ(2.59)
-	AC_INIT([sflphone],[0.9.8~rc1],[sflphoneteam@savoirfairelinux.com],[sflphone])
+	AC_INIT([sflphone],[0.9.9~beta],[sflphoneteam@savoirfairelinux.com],[sflphone])
 	AC_COPYRIGHT([[Copyright (c) Savoir-Faire Linux 2004, 2005, 2006, 2007, 2008, 2009, 2010]])
 	AC_REVISION([$Revision$])
 
@@ -60,6 +60,8 @@ dnl
 			src/audio/sound/Makefile \
 			src/audio/codecs/Makefile \
 			src/video/Makefile \
+			src/video/decoder/Makefile \
+			src/video/rtp/Makefile \
 			src/util/Makefile \
 			src/config/Makefile \
 			src/dbus/Makefile \
@@ -81,7 +83,7 @@ dnl
 			doc/doxygen/Makefile])
 
 	dnl the file stamp-h.in should be there before (instead of AC_CONFIG_HEADERS(config.h))
-dnl AM_CONFIG_HEADER(config.h)
+	dnl AM_CONFIG_HEADER(config.h)
 
 	dnl Settings need Standard C++ Library
 	LIBS="$LIBS -lstdc++ -std=c++0x"
@@ -156,12 +158,12 @@ dnl AM_CONFIG_HEADER(config.h)
 	dnl Check for GNU ccRTP
 	PKG_PROG_PKG_CONFIG
 
-#Trying to set PJSIP using pkg-config
-#PKG_CHECK_MODULES(SIP, libpj-sfl, have_libpj=true, have_libpj=false)
-#if test "x${have_libpj}" = "xfalse" ; then
-#   AC_MSG_ERROR([PJSIP not found. http://www.pjsip.org/download.htm])
-#fi
-#AC_SUBST(SIP_CFLAGS)
+	#Trying to set PJSIP using pkg-config
+	#PKG_CHECK_MODULES(SIP, libpj-sfl, have_libpj=true, have_libpj=false)
+	#if test "x${have_libpj}" = "xfalse" ; then
+	#   AC_MSG_ERROR([PJSIP not found. http://www.pjsip.org/download.htm])
+	#fi
+	#AC_SUBST(SIP_CFLAGS)
 
 	dnl Check for uuid development package - name: uuid-dev 
 	dnl PKG_CHECK_MODULES(UUID, uuid >= ${UUID_MIN_VERSION})
@@ -216,13 +218,17 @@ dnl AM_CONFIG_HEADER(config.h)
 	AC_SUBST(ZRTPCPP_LIBS)
 	AC_SUBST(ZRTPCPP_CFLAGS)
 
-	dnl ###############################
-	dnl    GStreamer Support
-	dnl ###############################
+	dnl GStreamer Support
   	PKG_CHECK_MODULES(GSTREAMER, [gstreamer-plugins-base-0.10 >= 0.10.21.3 gstreamer-interfaces-0.10])
   	AC_SUBST(GSTREAMER_CFLAGS)
   	GSTREAMER_LIBS="$GSTREAMER_LIBS -lgstapp-0.10"  	
   	AC_SUBST(GSTREAMER_LIBS)
+
+	dnl libavcodec
+	LIBAVCODEC_MIN_VERSION=50.0.0
+	PKG_CHECK_MODULES(LIBAVCODEC, libavcodec >= ${LIBAVCODEC_MIN_VERSION})
+	AC_SUBST(LIBAVCODEC_LIBS)
+	AC_SUBST(LIBAVCODEC_CFLAGS)
 
 	dnl DBus-C++ detection (used to be in library own build system)
 	DBUS_REQUIRED_VERSION=0.60

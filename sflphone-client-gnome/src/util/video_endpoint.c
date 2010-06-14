@@ -180,7 +180,6 @@ static notify_all_observers(sflphone_video_endpoint_t* endpt, uint8_t* frame)
 {
   // DEBUG("Notifying all %d observers", g_slist_length(endpt->observers));
 
-  // g_slist_foreach(endpt->observers, notify_observer, (gpointer) frame);
   GSList* obs;
   for(obs = endpt->observers; obs; obs = g_slist_next(obs)) {
     notify_observer(obs->data, (gpointer) frame);
