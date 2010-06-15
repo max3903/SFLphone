@@ -70,7 +70,7 @@ void H264Decoder::init()
 	decoder = NULL;
 }
 
-void H264Decoder::decode(const uint8_t* frame, size_t size) {
+int H264Decoder::decode(const uint8_t* frame, size_t size) throw(VideoDecodingException) {
 	int nbytes;
 	int pictureFinished = 0;
 
@@ -78,7 +78,9 @@ void H264Decoder::decode(const uint8_t* frame, size_t size) {
 			frame, size);
 
 	if (pictureFinished) {
-		return; // FIXME device on returning nbytes or not.
+		return nbytes;
+	} else {
+		throw VideoDecodingException("Failed to decode to H264.");
 	}
 }
 

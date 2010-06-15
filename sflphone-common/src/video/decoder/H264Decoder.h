@@ -55,7 +55,7 @@ public:
 	/**
 	 * @Override
 	 */
-	void decode(const uint8_t* frame, size_t size);
+	int decode(const uint8_t* frame, size_t size) throw(VideoDecodingException);
 
 	/**
 	 * @Override

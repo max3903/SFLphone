@@ -35,7 +35,9 @@ test_SOURCES =\
 	SemaphorePosixTest.h \
 	SemaphorePosixTest.cpp \
 	VideoEndpointTest.h \
-	VideoEndpointTest.cpp
+	VideoEndpointTest.cpp \
+	VideoRtpSessionTest.h \
+	VideoRtpSessionTest.cpp
 
 LLIBS=$(CPPUNIT_LIBS) \
 	../src/libsflphone.la  \

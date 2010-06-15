@@ -66,12 +66,14 @@ void VideoRtpSession::queue(const ost::AppDataUnit* adu) {
 void VideoRtpSession::flush() {
 	while(!dataQueue.empty()) {
 		const ost::AppDataUnit* adu = dataQueue.front();
+
 		workingBuffer->put(adu->getData(), adu->getSize()); // TODO Catch exception.
+
 		dataQueue.pop();
 		delete adu;
 	}
 
-	decoder->decode(workingBuffer->getBuffer(), workingBuffer->getSize());
+	decoder->decode(workingBuffer->getBuffer(), workingBuffer->getSize()); // TODO Catch exception
 
 	workingBuffer->reset();
 	workingBuffer->clear();
@@ -83,7 +85,7 @@ void VideoRtpSession::flush() {
  * this part by slicing each packet into 500 bytes chunks. The last packet
  * of a serie has its rtp markbit set to 1. We read and copy packets data
  * till we get the markbit. Once we have it, we pass the whole buffer to
- * the decoder,
+ * the decoder.
  */
 void VideoRtpSession::listen() {
 	setSchedulingTimeout( SCHEDULING_TIMEOUT);
@@ -106,4 +108,11 @@ void VideoRtpSession::listen() {
 		yield();
 	}
 }
+
+void notify(Observer* observer, uint8_t* data)
+{
+	VideoFrameDecodedObserver* obs = static_cast<VideoFrameDecodedObserver*>(observer);
+	obs->onNewFrameDecoded(data);
+}
+
 }

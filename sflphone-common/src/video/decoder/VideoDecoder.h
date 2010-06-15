@@ -26,45 +26,57 @@
  *  shall include the source code for the parts of OpenSSL used as well
  *  as that of the covered work.
  */
- 
+
 #ifndef __SFL_DECODER_H__
 #define __SFL_DECODER_H__
 
 #include "video/VideoFrame.h"
 #include "video/FrameFormat.h"
 
-namespace sfl
-{
+#include <stdexcept>
+
+namespace sfl {
+/**
+ * This exception is thrown when a video frame cannot be decoded.
+ */
+class VideoDecodingException: public std::runtime_error {
+public:
+	VideoDecodingException(const std::string& msg) :
+		std::runtime_error(msg) {
+	}
+};
+
+/**
+ * Abstract base class for every video encoder.
+ */
+class VideoDecoder {
+public:
 	/**
-	 * Abstract base class for every video encoder.
+	 * @param The desired output frame format.
 	 */
-	class VideoDecoder
-	{
-		public:
-			/**
-			 * @param The desired output frame format.
-			 */
-			VideoDecoder(const FrameFormat& format);
+	VideoDecoder(const FrameFormat& format);
 
-			/**
-			 * @param frame The video frame to encode.
-			 * @param size The frame size.
-			 */
-			virtual void decode(const uint8_t* frame, size_t size) = 0;
+	/**
+	 * @param frame The video frame to encode.
+	 * @param size The frame size.
+	 * @param return The number of bytes decoded.
+	 * @throw VideoDecodingException if the frame cannot be decoded.
+	 */
+	virtual int decode(const uint8_t* frame, size_t size) throw(VideoDecodingException) = 0;
 
-			/**
-			 * @return A pointer to a new copy of the current object.
-			 */
-			virtual VideoDecoder* clone();
+	/**
+	 * @return A pointer to a new copy of the current object.
+	 */
+	virtual VideoDecoder* clone();
 
-			/**
-			 * @return The Frame format defined for the output image.
-			 */
-			const FrameFormat& getFrameFormat() const;
+	/**
+	 * @return The Frame format defined for the output image.
+	 */
+	const FrameFormat& getFrameFormat() const;
 
-		private:
-			FrameFormat format;
-	};
+private:
+	FrameFormat format;
+};
 
 }
 

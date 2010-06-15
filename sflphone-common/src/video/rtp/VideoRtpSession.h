@@ -29,8 +29,11 @@
 #ifndef __SFL_VIDEO_RTP_SESSION_H__
 #define __SFL_VIDEO_RTP_SESSION_H__
 
-#include <ccrtp/rtp.h>
 #include <queue>
+#include <ccrtp/rtp.h>
+
+#include "util/Observer.h"
+#include "util/AbstractObservable.h"
 
 namespace sfl {
 
@@ -42,9 +45,20 @@ template <class T>
 class QueuedBuffer;
 
 /**
+ * Asynchronous notification on frame decoding.
+ */
+class VideoFrameDecodedObserver : public Observer {
+public:
+	/**
+	 * @param frame The new frame that was depayloaded and decoded.
+	 */
+	void onNewFrameDecoded(uint8_t* frame);
+};
+
+/**
  * Interface for VideoRtpSession types.
  */
-class VideoRtpSession : public ost::RTPSession {
+class VideoRtpSession : public ost::RTPSession, public AbstractObservable<uint8_t*> {
 public:
 	/**
 	 * @param mutiCastAddress A multicast address.
@@ -74,6 +88,12 @@ public:
 
 	static const int SCHEDULING_TIMEOUT = 10000;
 	static const int EXPIRE_TIMEOUT = 1000000;
+
+protected:
+	/**
+	 * @Override
+	 */
+	void notify(Observer* observer, uint8_t* data);
 
 private:
 	/**

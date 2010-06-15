@@ -11,6 +11,9 @@ noinst_HEADERS = \
 		SharedMemoryPosix.h \
 		SemaphorePosix.h \
 		FileDescriptorPasser.h \
-		QueuedBuffer.h
+		QueuedBuffer.h \
+		Observer.h \
+		Observable.h \
+		AbstractObservable.h
 
 libutil_la_LDFLAGS = $(CCGNU2_LIBS)
