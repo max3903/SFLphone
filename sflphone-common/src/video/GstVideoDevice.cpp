@@ -5,7 +5,7 @@
 
 namespace sfl {
 GstVideoDevice::GstVideoDevice(VideoSourceType type,
-		std::vector<FrameFormat> formats, const std::string& device,
+		std::vector<VideoFormat> formats, const std::string& device,
 		const std::string& name) :
 	VideoDevice(type, formats, device, name) {
 	setGstPipelineFromFormat();
@@ -24,7 +24,7 @@ void GstVideoDevice::setGstPipeline(const std::string& pipeline) {
 	gstreamerPipeline = pipeline;
 }
 
-void GstVideoDevice::setPreferredFormat(const FrameFormat& format) {
+void GstVideoDevice::setPreferredFormat(const VideoFormat& format) {
 	VideoDevice::setPreferredFormat(format);
 	setGstPipelineFromFormat();
 }

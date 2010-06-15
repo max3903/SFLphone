@@ -7,20 +7,20 @@
 
 namespace sfl {
 
-const char* FrameFormat::DEFAULT_MIMETYPE = "video/x-raw-rgb";
-const FrameRate FrameFormat::DEFAULT_FRAMERATE = FrameRate(30, 1);
+const char* VideoFormat::DEFAULT_MIMETYPE = "video/x-raw-rgb";
+const FrameRate VideoFormat::DEFAULT_FRAMERATE = FrameRate(30, 1);
 
-FrameFormat::FrameFormat() throw (InvalidFrameRateException) {
+VideoFormat::VideoFormat() throw (InvalidFrameRateException) {
 	framerates.insert(DEFAULT_FRAMERATE);
 	init(DEFAULT_MIMETYPE, DEFAULT_WIDTH, DEFAULT_HEIGHT, framerates);
 }
 
-FrameFormat::FrameFormat(const std::string& mimetype, int width, int height,
+VideoFormat::VideoFormat(const std::string& mimetype, int width, int height,
 		std::set<FrameRate> framerates) throw (InvalidFrameRateException) {
 	init(mimetype, width, height, framerates);
 }
 
-void FrameFormat::init(const std::string& mimetype, int width, int height,
+void VideoFormat::init(const std::string& mimetype, int width, int height,
 		std::set<FrameRate>& framerates) throw (InvalidFrameRateException) {
 	if (framerates.size() == 0) {
 		throw InvalidFrameRateException("No framerate was passed for the given format");
@@ -34,58 +34,58 @@ void FrameFormat::init(const std::string& mimetype, int width, int height,
 	fourcc = DEFAULT_COLORSPACE;
 }
 
-std::string FrameFormat::getMimetype() const {
+std::string VideoFormat::getMimetype() const {
 	return mimetype;
 }
 
 /**
  * @return The frame's width, in pixels.
  */
-int FrameFormat::getWidth() const {
+int VideoFormat::getWidth() const {
 	return width;
 }
 
 /**
  * @return The frame's height, in pixels.
  */
-int FrameFormat::getHeight() const {
+int VideoFormat::getHeight() const {
 	return height;
 }
 
-FrameRate FrameFormat::getPreferredFrameRate() const {
+FrameRate VideoFormat::getPreferredFrameRate() const {
 	return preferredFramerate;
 }
 
-std::set<FrameRate> FrameFormat::getFrameRates() const {
+std::set<FrameRate> VideoFormat::getFrameRates() const {
 	return framerates;
 }
 
-PixelColorSpace FrameFormat::getColorSpace() const {
+PixelColorSpace VideoFormat::getColorSpace() const {
 	return fourcc;
 }
 
-void FrameFormat::setWidth(const int& width)
+void VideoFormat::setWidth(const int& width)
 {
 	this->width = width;
 }
 
-void FrameFormat::setHeight(const int& height)
+void VideoFormat::setHeight(const int& height)
 {
 	this->height = height;
 }
 
-void FrameFormat::setFramerate(const int& numerator, const int& denominator)
+void VideoFormat::setFramerate(const int& numerator, const int& denominator)
 {
 	_debug("Setting framerate %d %d", numerator, denominator);
 	this->preferredFramerate = FrameRate(numerator, denominator);
 }
 
-void FrameFormat::setPreferredFrameRate(const FrameRate& framerate)
+void VideoFormat::setPreferredFrameRate(const FrameRate& framerate)
 		throw (InvalidFrameRateException) {
 	preferredFramerate = framerate;
 }
 
-void FrameFormat::setFramerate(const std::string& framerate)
+void VideoFormat::setFramerate(const std::string& framerate)
 {
 	size_t pos = framerate.find("/");
 	std::string denominator = framerate.substr(pos+1);
@@ -97,17 +97,17 @@ void FrameFormat::setFramerate(const std::string& framerate)
 	setFramerate(atoi(numerator.c_str()), atoi(denominator.c_str()));
 }
 
-void FrameFormat::setColorSpace(PixelColorSpace colorSpace) {
+void VideoFormat::setColorSpace(PixelColorSpace colorSpace) {
 	fourcc = colorSpace;
 }
 
-void FrameFormat::addFramerate(int numerator, int denominator) {
+void VideoFormat::addFramerate(int numerator, int denominator) {
 	framerates.insert(FrameRate(numerator, denominator));
 }
 
 }
 
-std::ostream& operator<<(std::ostream& output, const sfl::FrameFormat& format) {
+std::ostream& operator<<(std::ostream& output, const sfl::VideoFormat& format) {
     output << format.toString();
     return output;
 }

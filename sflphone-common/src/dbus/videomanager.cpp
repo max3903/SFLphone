@@ -64,10 +64,10 @@ std::vector< ::DBus::Struct<int32_t, int32_t> > VideoManager::getResolutionForDe
 			videoDevices.find(device);
 
 	if (itDevice != videoDevices.end()) {
-		std::vector<sfl::FrameFormat> formats =
+		std::vector<sfl::VideoFormat> formats =
 				((*itDevice).second)->getFilteredFormats();
 
-		std::vector<sfl::FrameFormat>::iterator itFormat;
+		std::vector<sfl::VideoFormat>::iterator itFormat;
 		for (itFormat = formats.begin(); itFormat < formats.end(); itFormat++) {
 			::DBus::Struct<int32_t, int32_t> resolutionStruct;
 			resolutionStruct._1 = (*itFormat).getWidth();
@@ -87,10 +87,10 @@ std::vector<std::string> VideoManager::getFrameRates(const std::string& device,
 			videoDevices.find(device);
 
 	if (itDevice != videoDevices.end()) {
-		std::vector<sfl::FrameFormat> formats =
+		std::vector<sfl::VideoFormat> formats =
 				((*itDevice).second)->getSupportedFormats();
 
-		std::vector<sfl::FrameFormat>::iterator itFormat;
+		std::vector<sfl::VideoFormat>::iterator itFormat;
 		for (itFormat = formats.begin(); itFormat < formats.end(); itFormat++) {
 			if (((*itFormat).getWidth() == width) && ((*itFormat).getHeight()
 					== height)) {
@@ -147,7 +147,7 @@ std::vector<std::string> VideoManager::getFrameRates(const std::string& device,
 	sfl::GstVideoDevicePtr gstDevice = std::static_pointer_cast<sfl::GstVideoDevice, sfl::VideoDevice>((*itDevice).second);
 
 	// Set the desired properties.
-	sfl::FrameFormat format;
+	sfl::VideoFormat format;
 	format.setWidth(width);
 	format.setHeight(height);
 	format.setFramerate(fps);

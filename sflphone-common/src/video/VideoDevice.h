@@ -57,7 +57,7 @@ public:
 	 * @param name The representative, and unique name of this device.
 	 * @throws InvalidVideoDeviceException if no format is specified.
 	 */
-	VideoDevice(VideoSourceType type, std::vector<FrameFormat> formats,
+	VideoDevice(VideoSourceType type, std::vector<VideoFormat> formats,
 			const std::string& device, const std::string& name) throw(InvalidVideoDeviceException);
 
 	/**
@@ -84,12 +84,12 @@ public:
 	/**
 	 * @return the supported frame formats for this device.
 	 */
-	std::vector<FrameFormat> getSupportedFormats() const;
+	std::vector<VideoFormat> getSupportedFormats() const;
 
 	/**
 	 * @return the supported frame formats, formatted so that duplicate resolutions are removed.
 	 */
-	std::vector<FrameFormat> getFilteredFormats() const;
+	std::vector<VideoFormat> getFilteredFormats() const;
 
 	/**
 	 * @param mimetype The mimetype to be preferred over any other.
@@ -100,12 +100,12 @@ public:
 	/**
 	 * @param format The format to use on this device.
 	 */
-	void setPreferredFormat(const FrameFormat& format);
+	void setPreferredFormat(const VideoFormat& format);
 
 	/**
 	 * @return The preferred frame format for this device.
 	 */
-	FrameFormat getPreferredFormat() const;
+	VideoFormat getPreferredFormat() const;
 
 	/**
 	 * @return The preferred width.
@@ -151,9 +151,9 @@ protected:
 	void filterFrameFormats();
 
 	VideoSourceType type;
-	std::vector<FrameFormat> formats;
-	std::vector<FrameFormat> filteredFormats;
-	FrameFormat preferredFormat;
+	std::vector<VideoFormat> formats;
+	std::vector<VideoFormat> filteredFormats;
+	VideoFormat preferredFormat;
 	std::string preferredMimetype;
 	std::string device;
 	std::string name;

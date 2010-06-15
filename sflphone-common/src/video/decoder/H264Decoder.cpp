@@ -33,8 +33,8 @@
 
 namespace sfl {
 
-H264Decoder::H264Decoder(const FrameFormat& encodingFormat,
-		const FrameFormat& decodingFormat) :
+H264Decoder::H264Decoder(const VideoFormat& encodingFormat,
+		const VideoFormat& decodingFormat) :
 	VideoDecoder(encodingFormat, decodingFormat) {
 	// Init fields.
 	init();

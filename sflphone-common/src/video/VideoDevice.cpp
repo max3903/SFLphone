@@ -7,7 +7,7 @@
 namespace sfl {
 
 VideoDevice::VideoDevice(VideoSourceType type,
-		std::vector<FrameFormat> formats, const std::string& device,
+		std::vector<VideoFormat> formats, const std::string& device,
 		const std::string& name) throw (InvalidVideoDeviceException) :
 	type(type), formats(formats), device(device), name(name) {
 
@@ -27,13 +27,13 @@ void VideoDevice::setPreferredMimetype(const std::string& mimetype) {
 }
 
 void VideoDevice::filterFrameFormats() {
-	std::vector<FrameFormat> output;
-	std::vector<FrameFormat>::iterator itIn;
+	std::vector<VideoFormat> output;
+	std::vector<VideoFormat>::iterator itIn;
 
 	for (itIn = formats.begin(); itIn < formats.end(); itIn++) {
 		if ((*itIn).getMimetype() == preferredMimetype) {
 			// Always keep native formats, unless it's already present.
-			std::vector<FrameFormat>::iterator itOut;
+			std::vector<VideoFormat>::iterator itOut;
 			itOut = std::find(output.begin(), output.end(), (*itIn));
 
 			if (itOut == output.end()) {
@@ -41,7 +41,7 @@ void VideoDevice::filterFrameFormats() {
 			}
 		} else {
 			// If not native, only keep if not present.
-			std::vector<FrameFormat>::iterator itOut;
+			std::vector<VideoFormat>::iterator itOut;
 			itOut = std::find(output.begin(), output.end(), (*itIn));
 
 			if (itOut == output.end()) {
@@ -70,19 +70,19 @@ std::string VideoDevice::getName() const {
 	return name;
 }
 
-std::vector<FrameFormat> VideoDevice::getSupportedFormats() const {
+std::vector<VideoFormat> VideoDevice::getSupportedFormats() const {
 	return formats;
 }
 
-std::vector<FrameFormat> VideoDevice::getFilteredFormats() const {
+std::vector<VideoFormat> VideoDevice::getFilteredFormats() const {
 	return filteredFormats;
 }
 
-void VideoDevice::setPreferredFormat(const FrameFormat& format) {
+void VideoDevice::setPreferredFormat(const VideoFormat& format) {
 	preferredFormat = format;
 }
 
-FrameFormat VideoDevice::getPreferredFormat() const {
+VideoFormat VideoDevice::getPreferredFormat() const {
 	return preferredFormat;
 }
 

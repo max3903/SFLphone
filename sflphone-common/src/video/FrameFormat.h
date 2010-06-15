@@ -182,16 +182,16 @@ protected:
 };
 
 /**
- * A FrameFormat objects is used to hold various information about a video frame.
+ * A VideoFormat objects is used to hold various information about a video frame.
  */
-class FrameFormat {
+class VideoFormat {
 public:
 	/**
 	 * Default constructor, with default values. Warning: these values might
 	 * not be supported by the device. Hence do not use this constructor unless
 	 * you really know that it won't cause any trouble later.
 	 */
-	FrameFormat() throw (InvalidFrameRateException);
+	VideoFormat() throw (InvalidFrameRateException);
 
 	/**
 	 * @param mimetype The mimetype. http://www.gstreamer.net/data/doc/gstreamer/head/pwg/html/section-types-definitions.html#table-video-types
@@ -199,7 +199,7 @@ public:
 	 * @param height The frame height.
 	 * @param framerates A set containing all the supported framerates for that format.
 	 */
-	FrameFormat(const std::string& mimetype, int width, int height, std::set<
+	VideoFormat(const std::string& mimetype, int width, int height, std::set<
 			FrameRate> framerates) throw (InvalidFrameRateException);
 
 	/**
@@ -290,7 +290,7 @@ public:
 	/**
 	 * This interpretation of equality is needed in finding duplicates.
 	 */
-	inline bool operator==(const FrameFormat& other) const {
+	inline bool operator==(const VideoFormat& other) const {
 		if ((getWidth() == other.getWidth()) && (getHeight()
 				== other.getHeight())) {
 			return true;

@@ -46,7 +46,7 @@ public:
 	/**
 	 * @param The desired output frame format.
 	 */
-	H264Decoder(const FrameFormat& encodingFormat, const FrameFormat& decodingFormat);
+	H264Decoder(const VideoFormat& encodingFormat, const VideoFormat& decodingFormat);
 
 	/**
 	 * Copy constructor.

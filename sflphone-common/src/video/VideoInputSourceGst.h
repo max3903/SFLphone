@@ -130,7 +130,7 @@ private:
 	 * the resolution, mimetype and framerate.
 	 * @throws GstException if a gstreamer error occurs.
 	 */
-	std::vector<FrameFormat> getWebcamCapabilities(VideoSourceType type, const std::string& device) throw(GstException);
+	std::vector<VideoFormat> getWebcamCapabilities(VideoSourceType type, const std::string& device) throw(GstException);
 
 	/**
 	 * This methods figures out the : mimitype, resolution, and frame rate informations.
@@ -138,7 +138,7 @@ private:
 	 * Submethod used in getWebcamCapabilities.
 	 * @param caps The GstCaps for a given device.
 	 */
-	std::vector<FrameFormat> getSupportedFormats(GstCaps* caps);
+	std::vector<VideoFormat> getSupportedFormats(GstCaps* caps);
 
 	/**
 	 * Find the supported framerates for a specified video format.

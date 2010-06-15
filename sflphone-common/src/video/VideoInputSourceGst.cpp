@@ -181,9 +181,9 @@ void VideoInputSourceGst::close() throw (VideoDeviceIOException) {
 /**
  * @Override
  */
-std::vector<FrameFormat> VideoInputSourceGst::getWebcamCapabilities(
+std::vector<VideoFormat> VideoInputSourceGst::getWebcamCapabilities(
 		VideoSourceType type, const std::string& device) throw (GstException) {
-	std::vector<FrameFormat> formats;
+	std::vector<VideoFormat> formats;
 	char *pipeline_desc;
 	GstElement * pipeline;
 	GError *error;
@@ -249,8 +249,8 @@ std::vector<FrameFormat> VideoInputSourceGst::getWebcamCapabilities(
 	return formats;
 }
 
-std::vector<FrameFormat> VideoInputSourceGst::getSupportedFormats(GstCaps *caps) {
-	std::vector<FrameFormat> detectedFormats;
+std::vector<VideoFormat> VideoInputSourceGst::getSupportedFormats(GstCaps *caps) {
+	std::vector<VideoFormat> detectedFormats;
 	int i;
 	int num_structures;
 
@@ -279,7 +279,7 @@ std::vector<FrameFormat> VideoInputSourceGst::getSupportedFormats(GstCaps *caps)
 
 			std::set<FrameRate> framerates = getSupportedFramerates(
 					structure);
-			FrameFormat* format = new FrameFormat(gst_structure_get_name(
+			VideoFormat* format = new VideoFormat(gst_structure_get_name(
 					structure), width, height, framerates);
 			detectedFormats.push_back(*(format));
 		} else if (GST_VALUE_HOLDS_INT_RANGE(width)) {
@@ -299,7 +299,7 @@ std::vector<FrameFormat> VideoInputSourceGst::getSupportedFormats(GstCaps *caps)
 			while (cur_width <= max_width && cur_height <= max_height) {
 				std::set<FrameRate> framerates = getSupportedFramerates(
 						structure);
-				FrameFormat* format = new FrameFormat(gst_structure_get_name(
+				VideoFormat* format = new VideoFormat(gst_structure_get_name(
 						structure), cur_width, cur_height, framerates);
 				detectedFormats.push_back(*(format));
 
@@ -312,7 +312,7 @@ std::vector<FrameFormat> VideoInputSourceGst::getSupportedFormats(GstCaps *caps)
 			while (cur_width > min_width && cur_height > min_height) {
 				std::set<FrameRate> framerates = getSupportedFramerates(
 						structure);
-				FrameFormat* format = new FrameFormat(gst_structure_get_name(
+				VideoFormat* format = new VideoFormat(gst_structure_get_name(
 						structure), cur_width, cur_height, framerates);
 				detectedFormats.push_back(*(format));
 				cur_width /= 2;
@@ -412,7 +412,7 @@ std::vector<VideoDevice*> VideoInputSourceGst::getVideoTestSource()
 	std::vector<VideoDevice*> detectedDevices;
 	if (element != NULL) {
 		// FIXME
-		//std::vector<FrameFormat> formats = getWebcamCapabilities(TEST,
+		//std::vector<VideoFormat> formats = getWebcamCapabilities(TEST,
 		//detectedDevices.push_back(new VideoDevice(TEST, "videotestsrc",
 		//		"videotestsrc"));
 		gst_object_unref(GST_OBJECT(element));
@@ -434,7 +434,7 @@ std::vector<VideoDevice*> VideoInputSourceGst::getXimageSource()
 	std::vector<VideoDevice*> detectedDevices;
 
 	// FIXME
-	// std::vector<FrameFormat> formats = getWebcamCapabilities(XIMAGE,
+	// std::vector<VideoFormat> formats = getWebcamCapabilities(XIMAGE,
 	//		g_value_get_string(device));
 	// VideoDevice * gstDevice = new GstVideoDevice(XIMAGE, formats, name,
 	//		pipelineDescription);
@@ -476,7 +476,7 @@ std::vector<VideoDevicePtr> VideoInputSourceGst::getV4l2Devices()
 				g_object_get(G_OBJECT(element), "device-name", &name, NULL);
 
 				// Add to vector
-				std::vector<FrameFormat> formats = getWebcamCapabilities(V4L2,
+				std::vector<VideoFormat> formats = getWebcamCapabilities(V4L2,
 						g_value_get_string(device));
 
 				detectedDevices.push_back(VideoDevicePtr(new GstVideoDevice(

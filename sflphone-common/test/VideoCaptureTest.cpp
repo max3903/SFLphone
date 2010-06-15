@@ -59,8 +59,8 @@ void VideoCaptureTest::testEnumerateDevices() {
 		std::cout << "Preferred Frame Format: " << (*itDevice)->getPreferredFormat().toString() << std::endl;
 		std::cout << "Supported Frame Formats:" << std::endl;
 
-		std::vector<sfl::FrameFormat> formats = (*itDevice)->getSupportedFormats();
-		std::vector<sfl::FrameFormat>::iterator itFormat;
+		std::vector<sfl::VideoFormat> formats = (*itDevice)->getSupportedFormats();
+		std::vector<sfl::VideoFormat>::iterator itFormat;
 		for (itFormat = formats.begin(); itFormat < formats.end(); itFormat++) {
 			std::cout << "	- " << (*itFormat).toString() << std::endl;
 			std::cout << "	All Supported Frame Rates: " << std::endl;
@@ -73,8 +73,8 @@ void VideoCaptureTest::testEnumerateDevices() {
 		}
 
 		std::cout << "Filtered Frame Formats:" << std::endl;
-		std::vector<sfl::FrameFormat> filteredFormats = (*itDevice)->getFilteredFormats();
-		std::vector<sfl::FrameFormat>::iterator itFilteredFormat;
+		std::vector<sfl::VideoFormat> filteredFormats = (*itDevice)->getFilteredFormats();
+		std::vector<sfl::VideoFormat>::iterator itFilteredFormat;
 		for (itFilteredFormat = filteredFormats.begin(); itFilteredFormat < filteredFormats.end(); itFilteredFormat++) {
 			std::cout << "	- " << (*itFilteredFormat).toString() << std::endl;
 			std::cout << "	All Supported Frame Rates: " << std::endl;

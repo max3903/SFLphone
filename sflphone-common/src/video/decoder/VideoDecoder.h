@@ -55,17 +55,17 @@ public:
 	 * @param encodingFormat The source format.
 	 * @param decodingFormat The output format.
 	 */
-	VideoDecoder(const FrameFormat& encodingFormat, const FrameFormat& decodingFormat);
+	VideoDecoder(const VideoFormat& encodingFormat, const VideoFormat& decodingFormat);
 
 	/**
 	 * @return encodingFormat The source format.
 	 */
-	const FrameFormat& getEncondingFormat() const;
+	const VideoFormat& getEncondingFormat() const;
 
 	/**
 	 * @return decodingFormat The output format.
 	 */
-	const FrameFormat& getDecodingFormat() const;
+	const VideoFormat& getDecodingFormat() const;
 
 	/**
 	 * @param frame The video frame to encode.
@@ -96,8 +96,8 @@ public:
 	virtual uint8_t* getConvertedPacked() throw(VideoDecodingException) = 0;
 
 private:
-	FrameFormat encodedFormat;
-	FrameFormat decodedFormat;
+	VideoFormat encodedFormat;
+	VideoFormat decodedFormat;
 };
 
 }

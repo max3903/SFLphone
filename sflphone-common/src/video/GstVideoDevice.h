@@ -69,7 +69,7 @@ public:
 	 * @param device The device identifier (eg: /dev/video0).
 	 * @param name The representative, and unique name of this device.
 	 */
-	GstVideoDevice(VideoSourceType type, std::vector<FrameFormat> formats,
+	GstVideoDevice(VideoSourceType type, std::vector<VideoFormat> formats,
 			const std::string& device, const std::string& name);
 
 	/**
@@ -91,7 +91,7 @@ public:
 	void setGstPipeline(const std::string& pipeline);
 
 	/**
-	 * Build and set the gst pipeline corresponding to the specified FrameFormat.
+	 * Build and set the gst pipeline corresponding to the specified VideoFormat.
 	 * @precondition A preferred frame format must have been set.
 	 */
 	void setGstPipelineFromFormat();
@@ -100,7 +100,7 @@ public:
 	 * @Override
 	 * @postcondition The preferred format will be set and the corresponding GstPipeline will be generated.
 	 */
-	void setPreferredFormat(const FrameFormat& format);
+	void setPreferredFormat(const VideoFormat& format);
 
 private:
 	std::string gstreamerPipeline;
