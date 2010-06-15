@@ -31,6 +31,37 @@ void FrameFormat::init(const std::string& mimetype, int width, int height,
 	this->height = height;
 	this->framerates = framerates;
 	preferredFramerate = DEFAULT_FRAMERATE;
+	fourcc = DEFAULT_COLORSPACE;
+}
+
+std::string FrameFormat::getMimetype() const {
+	return mimetype;
+}
+
+/**
+ * @return The frame's width, in pixels.
+ */
+int FrameFormat::getWidth() const {
+	return width;
+}
+
+/**
+ * @return The frame's height, in pixels.
+ */
+int FrameFormat::getHeight() const {
+	return height;
+}
+
+FrameRate FrameFormat::getPreferredFrameRate() const {
+	return preferredFramerate;
+}
+
+std::set<FrameRate> FrameFormat::getFrameRates() const {
+	return framerates;
+}
+
+PixelColorSpace FrameFormat::getColorSpace() const {
+	return fourcc;
 }
 
 void FrameFormat::setWidth(const int& width)
@@ -49,6 +80,11 @@ void FrameFormat::setFramerate(const int& numerator, const int& denominator)
 	this->preferredFramerate = FrameRate(numerator, denominator);
 }
 
+void FrameFormat::setPreferredFrameRate(const FrameRate& framerate)
+		throw (InvalidFrameRateException) {
+	preferredFramerate = framerate;
+}
+
 void FrameFormat::setFramerate(const std::string& framerate)
 {
 	size_t pos = framerate.find("/");
@@ -61,17 +97,12 @@ void FrameFormat::setFramerate(const std::string& framerate)
 	setFramerate(atoi(numerator.c_str()), atoi(denominator.c_str()));
 }
 
+void FrameFormat::setColorSpace(PixelColorSpace colorSpace) {
+	fourcc = colorSpace;
+}
+
 void FrameFormat::addFramerate(int numerator, int denominator) {
 	framerates.insert(FrameRate(numerator, denominator));
-}
-
-void FrameFormat::setPreferredFrameRate(const FrameRate& framerate)
-		throw (InvalidFrameRateException) {
-	preferredFramerate = framerate;
-}
-
-FrameRate FrameFormat::getPreferredFrameRate() {
-	return preferredFramerate;
 }
 
 }

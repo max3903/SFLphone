@@ -64,6 +64,7 @@ void VideoRtpSession::queue(const ost::AppDataUnit* adu) {
 }
 
 void VideoRtpSession::flush() {
+	// Create a continuous buffer by appending all slices.
 	while(!dataQueue.empty()) {
 		const ost::AppDataUnit* adu = dataQueue.front();
 
@@ -73,8 +74,12 @@ void VideoRtpSession::flush() {
 		delete adu;
 	}
 
+	// Decode the whole buffer (1 encoded frame)
 	decoder->decode(workingBuffer->getBuffer(), workingBuffer->getSize()); // TODO Catch exception
 
+	// Call observers on the decoded frame
+
+	// Reuse working buffer
 	workingBuffer->reset();
 	workingBuffer->clear();
 }

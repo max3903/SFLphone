@@ -29,25 +29,27 @@
 
 #include "H264Decoder.h"
 #include <libavcodec/avcodec.h>
+#include <libswscale/swscale.h>
 
 namespace sfl {
 
-H264Decoder::H264Decoder(const FrameFormat& format) :
-	VideoDecoder(format){
+H264Decoder::H264Decoder(const FrameFormat& encodingFormat,
+		const FrameFormat& decodingFormat) :
+	VideoDecoder(encodingFormat, decodingFormat) {
 	// Init fields.
 	init();
 
 	// Allocate FFMPEG context
 	context = avcodec_alloc_context();
-	context->width = format.getWidth();
+	context->width = encodingFormat.getWidth();
 	;
-	context->height = format.getHeight();
+	context->height = encodingFormat.getHeight();
 	;
 	context->idct_algo = FF_IDCT_AUTO;
 	//context->dsp_mask = (FF_MM_MMX|FF_MM_MMXEXT|FF_MM_SSE|FF_MM_SSE2);
 
-	// Allocate FFMPEG frame
-	outputFrame = avcodec_alloc_frame();
+	// Allocate FFMPEG frame for decoded frames
+	decodedFrame = avcodec_alloc_frame();
 
 	// Open the decoder
 	decoder = avcodec_find_decoder(CODEC_ID_H264);
@@ -58,23 +60,62 @@ H264Decoder::H264Decoder(const FrameFormat& format) :
 	if (avcodec_open(context, decoder) < 0) {
 		// throw exception
 	}
+
+	// Allocate image convert context
+	convertContext = sws_getContext(context->width,
+			context->height, context->pix_fmt,
+			decodingFormat.getWidth(), decodingFormat.getHeight(),
+			(PixelFormat) decodingFormat.getColorSpace(), SWS_BICUBIC, NULL, NULL, NULL);
+
+	if (convertContext == NULL) {
+		// TODO Something.
+	}
+
+	// Allocate FFMPEG frame for converted frames
+	convertedFrame = avcodec_alloc_frame();
 }
 
-H264Decoder::H264Decoder(const H264Decoder& other) : VideoDecoder(other.getFrameFormat())
-{ init(); }
+H264Decoder::~H264Decoder() {
+	av_free(decodedFrame);
+	av_free(convertedFrame);
+}
 
-void H264Decoder::init()
-{
+H264Decoder::H264Decoder(const H264Decoder& other) :
+	VideoDecoder(other.getEncondingFormat(), other.getDecodingFormat()) {
+	init();
+}
+
+void H264Decoder::init() {
 	context = NULL;
-	outputFrame = NULL;
+	decodedFrame = NULL;
 	decoder = NULL;
 }
 
-int H264Decoder::decode(const uint8_t* frame, size_t size) throw(VideoDecodingException) {
+uint8_t* H264Decoder::getConvertedPacked() throw (VideoDecodingException) {
+
+	int ret = sws_scale(convertContext, decodedFrame->data,
+			decodedFrame->linesize, getDecodingFormat().getWidth(),
+			getDecodingFormat().getHeight(), convertedFrame->data,
+			convertedFrame->linesize);
+
+	if (ret < 0) {
+		throw VideoDecodingException("Failed to scale video.");
+	}
+
+	return convertedFrame->data[0];
+}
+
+uint8_t** H264Decoder::getRawData() const {
+	return decodedFrame->data;
+}
+
+int H264Decoder::decode(const uint8_t* frame, size_t size)
+		throw (VideoDecodingException) {
 	int nbytes;
 	int pictureFinished = 0;
 
-	nbytes = avcodec_decode_video(context, outputFrame, &pictureFinished,
+	// TODO Add thread safety if needed when writing to outputFrame
+	nbytes = avcodec_decode_video(context, decodedFrame, &pictureFinished,
 			frame, size);
 
 	if (pictureFinished) {

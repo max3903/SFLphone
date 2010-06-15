@@ -36,6 +36,7 @@
 class AVCodecContext;
 class AVFrame;
 class AVCodec;
+struct SwsContext;
 
 namespace sfl
 {
@@ -45,12 +46,14 @@ public:
 	/**
 	 * @param The desired output frame format.
 	 */
-	H264Decoder(const FrameFormat& format);
+	H264Decoder(const FrameFormat& encodingFormat, const FrameFormat& decodingFormat);
 
 	/**
 	 * Copy constructor.
 	 */
 	H264Decoder(const H264Decoder& decoder);
+
+	~H264Decoder();
 
 	/**
 	 * @Override
@@ -62,13 +65,25 @@ public:
 	 */
 	VideoDecoder* clone();
 
+	/**
+	 * @Override
+	 */
+	uint8_t** getRawData() const;
+
+	/**
+	 * @Override
+	 */
+	uint8_t* getConvertedPacked() throw(VideoDecodingException);
+
 private:
 	void init();
 
 	AVCodecContext* context;
-	AVFrame* outputFrame;
+	AVFrame* decodedFrame;
+	AVFrame* convertedFrame;
 	AVCodec* decoder;
-	FrameFormat format;
+
+	struct SwsContext* convertContext;
 };
 
 }

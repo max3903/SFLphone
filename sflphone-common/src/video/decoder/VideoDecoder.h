@@ -52,9 +52,20 @@ public:
 class VideoDecoder {
 public:
 	/**
-	 * @param The desired output frame format.
+	 * @param encodingFormat The source format.
+	 * @param decodingFormat The output format.
 	 */
-	VideoDecoder(const FrameFormat& format);
+	VideoDecoder(const FrameFormat& encodingFormat, const FrameFormat& decodingFormat);
+
+	/**
+	 * @return encodingFormat The source format.
+	 */
+	const FrameFormat& getEncondingFormat() const;
+
+	/**
+	 * @return decodingFormat The output format.
+	 */
+	const FrameFormat& getDecodingFormat() const;
 
 	/**
 	 * @param frame The video frame to encode.
@@ -62,20 +73,31 @@ public:
 	 * @param return The number of bytes decoded.
 	 * @throw VideoDecodingException if the frame cannot be decoded.
 	 */
-	virtual int decode(const uint8_t* frame, size_t size) throw(VideoDecodingException) = 0;
+	virtual int decode(const uint8_t* frame, size_t size)
+			throw (VideoDecodingException) = 0;
 
 	/**
 	 * @return A pointer to a new copy of the current object.
 	 */
-	virtual VideoDecoder* clone();
+	virtual VideoDecoder* clone() = 0;
 
 	/**
-	 * @return The Frame format defined for the output image.
+	 * @return The raw data after decoding.
 	 */
-	const FrameFormat& getFrameFormat() const;
+	virtual uint8_t** getRawData() const = 0;
+
+	/**
+	 * @precondition The requested output format must be of type "packed". You can ensure this by using the sfl::IsPlanar predicate.
+	 * @return The raw data converted to the format specified in the constructor.
+	 * @see sfl#VideoDecoder#VideoDecoder
+	 * @see sfl#VideoDecoder#getRawData
+	 * @see sfl#IsPlanar
+	 */
+	virtual uint8_t* getConvertedPacked() throw(VideoDecodingException) = 0;
 
 private:
-	FrameFormat format;
+	FrameFormat encodedFormat;
+	FrameFormat decodedFormat;
 };
 
 }

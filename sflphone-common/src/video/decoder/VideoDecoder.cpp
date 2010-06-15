@@ -31,14 +31,17 @@
 
 namespace sfl {
 
-VideoDecoder::VideoDecoder(const FrameFormat& format)
-{
-	this->format = format;
+VideoDecoder::VideoDecoder(const FrameFormat& encodingFormat,
+		const FrameFormat& decodingFormat) :
+	encodedFormat(encodedFormat), decodedFormat(decodedFormat) {
 }
 
-const FrameFormat& VideoDecoder::getFrameFormat() const
-{
-	return format;
+const FrameFormat& VideoDecoder::getEncondingFormat() const {
+	return encodedFormat;
+}
+
+const FrameFormat& VideoDecoder::getDecodingFormat() const {
+	return decodedFormat;
 }
 
 }

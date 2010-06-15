@@ -149,6 +149,10 @@
 	AC_CHECK_FUNCS([bzero floor gethostbyname gethrtime gettimeofday \
 			inet_ntoa memset mkdir pathconf pow regcomp select setlocale socket \
 			strchr strdup strerror strrchr strstr strtol utime])
+			
+	dnl # check for system bytesex
+	dnl # AC_DEFINES WORDS_BIGENDIAN
+	AC_C_BIGENDIAN
 
 	dnl *****************************************
 	dnl Check for header files
@@ -226,10 +230,16 @@
 
 	dnl libavcodec
 	LIBAVCODEC_MIN_VERSION=50.0.0
-	PKG_CHECK_MODULES(LIBAVCODEC, libavcodec >= ${LIBAVCODEC_MIN_VERSION})
+	PKG_CHECK_MODULES(LIBAVCODEC, libavutil libavformat libavcodec >= ${LIBAVCODEC_MIN_VERSION})
 	AC_SUBST(LIBAVCODEC_LIBS)
 	AC_SUBST(LIBAVCODEC_CFLAGS)
-
+	
+	dnl libswscale
+	LIBSWSCALE_MIN_VERSION=0.7.1
+	PKG_CHECK_MODULES(LIBSWSCALE, libswscale >= ${LIBSWSCALE_MIN_VERSION})
+	AC_SUBST(LIBSWSCALE_LIBS)
+	AC_SUBST(LIBSWSCALE_CFLAGS)
+	
 	dnl DBus-C++ detection (used to be in library own build system)
 	DBUS_REQUIRED_VERSION=0.60
 	PKG_CHECK_MODULES(dbus, [dbus-1 >= $DBUS_REQUIRED_VERSION],,
