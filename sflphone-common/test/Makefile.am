@@ -1,12 +1,11 @@
 include ../globals.mak
 
-TESTS = test
-check_PROGRAMS = $(TESTS)
-test_CXXFLAGS = $(CPPUNIT_CFLAGS) $(GSTREAMER_CFLAGS)
-test_LDFLAGS = -ldl
+check_PROGRAMS = test
+
+test_CXXFLAGS = $(CPPUNIT_CFLAGS) $(GSTREAMER_CFLAGS) $(LIBAVCODEC_CFLAGS) $(LIBSWSCALE_CFLAGS)
 test_LDADD = $(LLIBS)
 
-test_SOURCES =\ 
+test_SOURCES = \
 	main.cpp \
 	validator.cpp \
 	validator.h \
@@ -20,8 +19,6 @@ test_SOURCES =\
 	historytest.cpp \
 	hookmanagertest.h \
 	hookmanagertest.cpp \
-	mainbuffertest.h \
-	mainbuffertest.cpp \
 	numbercleanertest.h \
 	numbercleanertest.cpp \
 	pluginmanagertest.h \
@@ -40,19 +37,6 @@ test_SOURCES =\
 	VideoRtpSessionTest.cpp
 
 LLIBS=$(CPPUNIT_LIBS) \
-	../src/libsflphone.la  \
-	$(LIB_DNSSD) \
-	@ALSA_LIBS@ \
-	@PULSEAUDIO_LIBS@ \
-	@CPPUNIT_LIBS@ \
-	@CCEXT2_LIBS@ \
-	@CCGNU2_LIBS@ \
-	@CCRTP_LIBS@ \
-	@ZRTPCPP_LIBS@ \
-	@GSTREAMER_LIBS@ \
-	@libssl_LIBS@ \
-	@SAMPLERATE_LIBS@ \
-	$(PJSIP_LIBS) \
 	../src/sflphoned-logger.o \
 	../src/sflphoned-managerimpl.o \
 	../src/sflphoned-account.o\
@@ -64,17 +48,5 @@ LLIBS=$(CPPUNIT_LIBS) \
 	../src/sflphoned-numbercleaner.o \
 	../src/sflphoned-observer.o \
 	../src/sflphoned-voiplink.o \
-	../src/sip/libsiplink_la-sipcall.o \
-	../src/iax/libiaxlink_la-iaxcall.o \
-	../src/sip/libsiplink_la-sipvoiplink.o \
-	../src/iax/libiaxlink_la-iaxvoiplink.o \
-	../src/sip/libsiplink_la-sipaccount.o \
-	../src/iax/libiaxlink_la-iaxaccount.o \
-	../src/sip/libsiplink_la-sdp.o \
-	../src/sip/libsiplink_la-sdpmedia.o \
-	../src/plug-in/pluginmanager.o \
-	../src/plug-in/audiorecorder/audiorecord.o \
-	../src/audio/samplerateconverter.o \
-    ../src/history/historymanager.o \
-    ../src/video/libvideo.la \
-    ../src/util/libutil.la
+	../src/libsflphone.la
+	

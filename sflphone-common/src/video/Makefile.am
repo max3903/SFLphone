@@ -1,8 +1,8 @@
 include $(top_srcdir)/globals.mak
 
-AM_CXXFLAGS = $(GSTREAMER_CFLAGS)
-
 SUBDIRS = decoder rtp
+
+AM_CXXFLAGS = $(GSTREAMER_CFLAGS)
 
 noinst_LTLIBRARIES = libvideo.la
 
@@ -15,6 +15,12 @@ libvideo_la_SOURCES = \
 	VideoDevice.cpp \
 	GstVideoDevice.cpp
 
+libvideo_la_LIBADD = \
+	decoder/libvideodecoder.la \
+	rtp/libvideortp.la
+
+libvideo_la_LDFLAGS = $(GSTREAMER_LIBS) $(LIBS)
+
 noinst_HEADERS = \
 	VideoInputSource.h \
 	VideoInputSourceGst.h \
@@ -26,5 +32,4 @@ noinst_HEADERS = \
 	VideoDevice.h \
 	GstVideoDevice.h
 					
-libvideo_la_LDFLAGS = $(GSTREAMER_LIBS) $(LIBS)
 

@@ -27,10 +27,18 @@ noinst_HEADERS = \
 		mainbuffer.h \
 	 	recordable.h \
 		algorithm.h \
-		echocancel.h
+		echocancel.h \
 		speexechocancel.h \
 		audioprocessing.h \
 		dcblocker.h \
 		samplerateconverter.h
+		
+libaudio_la_LIBADD = \
+	./audiortp/libaudiortp.la \
+	./codecs/libcodecdescriptor.la \
+	./alsa/libalsalayer.la \
+	./pulseaudio/libpulselayer.la \
+	./sound/libsound.la 
+
 
 

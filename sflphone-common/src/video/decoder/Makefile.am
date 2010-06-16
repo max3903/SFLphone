@@ -14,3 +14,4 @@ noinst_HEADERS = \
 			
 libvideodecoder_la_LDFLAGS = $(LIBAVCODEC_LIBS) $(LIBSWSCALE_LIBS) $(LIBS)
 
+libvideodecoder_la_LIBADD = $(LIBAVCODEC_LIBS) $(LIBSWSCALE_LIBS) $(LIBS)
