@@ -36,35 +36,35 @@
 #include "Observer.h"
 
 namespace sfl {
-template<class T>
-class AbstractObservable: public Observable<T> {
+template<class PushedDataType, class ObserverType>
+class AbstractObservable: public Observable<PushedDataType, ObserverType> {
 public:
 	/**
 	 * @Override
 	 */
-	void addObserver(Observer* observer) {
+	void addObserver(ObserverType* observer) {
 		observers.push_back(observer);
 	}
 
 	/**
 	 * @Override
 	 */
-	void removeObserver(Observer* observer) {
+	void removeObserver(ObserverType* observer) {
 		std::remove(observers.begin(), observers.end(), observer);
 	}
 
 	/**
 	 * @Override
 	 */
-	void notifyAll(T data) {
-		std::vector<Observer*>::iterator it;
+	void notifyAll(PushedDataType data) {
+		typename std::vector<ObserverType*>::iterator it;
 		for (it = observers.begin(); it < observers.end(); it++) {
 			notify((*it), data);
 		}
 	}
 
 private:
-	std::vector<Observer*> observers;
+	std::vector<ObserverType*> observers;
 };
 }
 

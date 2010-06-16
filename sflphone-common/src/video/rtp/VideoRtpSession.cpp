@@ -114,10 +114,9 @@ void VideoRtpSession::listen() {
 	}
 }
 
-void notify(Observer* observer, uint8_t* data)
+void notify(VideoFrameDecodedObserver* observer, uint8_t* data)
 {
-	VideoFrameDecodedObserver* obs = static_cast<VideoFrameDecodedObserver*>(observer);
-	obs->onNewFrameDecoded(data);
+	observer->onNewFrameDecoded(data);
 }
 
 }

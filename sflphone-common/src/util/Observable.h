@@ -35,31 +35,33 @@ namespace sfl {
 /**
  * Interface for an Observable type.
  */
-template<class T>
+template<class PushedDataType, class ObserverType>
 class Observable {
 public:
 	/**
 	 * @param observer The observer object to be notify by this observable object.
 	 */
-	void addObserver(Observer* observer);
+	void addObserver(ObserverType* observer);
 
 	/**
 	 * @param observer The observer object to be removed.
 	 */
-	void removeObserver(Observer* observer);
+	void removeObserver(ObserverType* observer);
 
 	/**
 	 * @param data The data to be pushed to the observers.
 	 */
-	void notifyAll(T data);
+	void notifyAll(PushedDataType data);
 
 protected:
 	/**
 	 * This method must be overridden by the user, as in the template design pattern.
-	 * It will get called by notifyAll()
+	 * The implementer will use this as a way to call the appropriate "notify()" type of method
+	 * on the observer. That way, multiple inheritance on the Observer derived types won't cause
+	 * any conflicts.
 	 * @see AbstractObservable#notifyAll
 	 */
-	virtual void notify(Observer* observer, T data) = 0;
+	virtual void notify(ObserverType* observer, PushedDataType data) = 0;
 };
 }
 #endif

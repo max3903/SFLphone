@@ -58,7 +58,7 @@ public:
 /**
  * Interface for VideoRtpSession types.
  */
-class VideoRtpSession : public ost::RTPSession, public AbstractObservable<uint8_t*> {
+class VideoRtpSession : public ost::RTPSession, public AbstractObservable<uint8_t*, VideoFrameDecodedObserver> {
 public:
 	/**
 	 * @param mutiCastAddress A multicast address.
@@ -93,7 +93,7 @@ protected:
 	/**
 	 * @Override
 	 */
-	void notify(Observer* observer, uint8_t* data);
+	void notify(VideoFrameDecodedObserver* observer, uint8_t* data);
 
 private:
 	/**
