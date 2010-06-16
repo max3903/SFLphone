@@ -54,8 +54,9 @@ public:
 	/**
 	 * @param encodingFormat The source format.
 	 * @param decodingFormat The output format.
+	 * @throw VideoDecodingException if an error occurs while opening the video decoder.
 	 */
-	VideoDecoder(const VideoFormat& encodingFormat, const VideoFormat& decodingFormat);
+	VideoDecoder(const VideoFormat& encodingFormat, const VideoFormat& decodingFormat) throw(VideoDecodingException);
 
 	/**
 	 * @return encodingFormat The source format.

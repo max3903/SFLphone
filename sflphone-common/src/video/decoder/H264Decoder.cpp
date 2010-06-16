@@ -28,13 +28,17 @@
  */
 
 #include "H264Decoder.h"
-#include <libavcodec/avcodec.h>
-#include <libswscale/swscale.h>
+
+extern "C" {
+	#include <libavcodec/avcodec.h>
+	#include <libavformat/avformat.h>
+	#include <libswscale/swscale.h>
+}
 
 namespace sfl {
 
 H264Decoder::H264Decoder(const VideoFormat& encodingFormat,
-		const VideoFormat& decodingFormat) :
+		const VideoFormat& decodingFormat) throw(VideoDecodingException):
 	VideoDecoder(encodingFormat, decodingFormat) {
 	// Init fields.
 	init();
@@ -58,7 +62,7 @@ H264Decoder::H264Decoder(const VideoFormat& encodingFormat,
 	}
 
 	if (avcodec_open(context, decoder) < 0) {
-		// throw exception
+		throw VideoDecodingException("Failed to open decoder");
 	}
 
 	// Allocate image convert context

@@ -32,7 +32,7 @@
 namespace sfl {
 
 VideoDecoder::VideoDecoder(const VideoFormat& encodingFormat,
-		const VideoFormat& decodingFormat) :
+		const VideoFormat& decodingFormat)  throw(VideoDecodingException):
 	encodedFormat(encodedFormat), decodedFormat(decodedFormat) {
 }
 

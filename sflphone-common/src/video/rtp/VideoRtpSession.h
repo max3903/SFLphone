@@ -52,7 +52,7 @@ public:
 	/**
 	 * @param frame The new frame that was depayloaded and decoded.
 	 */
-	void onNewFrameDecoded(uint8_t* frame);
+	virtual void onNewFrameDecoded(uint8_t* frame) = 0;
 };
 
 /**
@@ -91,6 +91,7 @@ public:
 
 protected:
 	/**
+	 * Simple dispatch for the VideoFrameDecodedObserver type.
 	 * @Override
 	 */
 	void notify(VideoFrameDecodedObserver* observer, uint8_t* data);

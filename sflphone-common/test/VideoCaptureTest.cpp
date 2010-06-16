@@ -65,9 +65,9 @@ void VideoCaptureTest::testEnumerateDevices() {
 			std::cout << "	- " << (*itFormat).toString() << std::endl;
 			std::cout << "	All Supported Frame Rates: " << std::endl;
 
-			std::vector<sfl::FrameRate> rates = (*itFormat).getFrameRates();
-			std::vector<sfl::FrameRate>::iterator itRate;
-			for (itRate = rates.begin(); itRate < rates.end(); itRate++) {
+			std::set<sfl::FrameRate> rates = (*itFormat).getFrameRates();
+			std::set<sfl::FrameRate>::iterator itRate;
+			for (itRate = rates.begin(); itRate != rates.end(); itRate++) {
 				std::cout << "		" << (*itRate).toString() << std::endl;
 			}
 		}
@@ -79,9 +79,9 @@ void VideoCaptureTest::testEnumerateDevices() {
 			std::cout << "	- " << (*itFilteredFormat).toString() << std::endl;
 			std::cout << "	All Supported Frame Rates: " << std::endl;
 
-			std::vector<sfl::FrameRate> rates = (*itFilteredFormat).getFrameRates();
-			std::vector<sfl::FrameRate>::iterator itRate;
-			for (itRate = rates.begin(); itRate < rates.end(); itRate++) {
+			std::set<sfl::FrameRate> rates = (*itFilteredFormat).getFrameRates();
+			std::set<sfl::FrameRate>::iterator itRate;
+			for (itRate = rates.begin(); itRate != rates.end(); itRate++) {
 				std::cout << "		" << (*itRate).toString() << std::endl;
 			}
 		}

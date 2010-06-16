@@ -114,7 +114,7 @@ void VideoRtpSession::listen() {
 	}
 }
 
-void notify(VideoFrameDecodedObserver* observer, uint8_t* data)
+void VideoRtpSession::notify(VideoFrameDecodedObserver* observer, uint8_t* data)
 {
 	observer->onNewFrameDecoded(data);
 }

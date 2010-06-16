@@ -43,17 +43,13 @@ namespace sfl
 class H264Decoder : public VideoDecoder
 {
 public:
-	/**
-	 * @param The desired output frame format.
-	 */
-	H264Decoder(const VideoFormat& encodingFormat, const VideoFormat& decodingFormat);
+	H264Decoder(const VideoFormat& encodingFormat, const VideoFormat& decodingFormat) throw(VideoDecodingException);
+	~H264Decoder();
 
 	/**
 	 * Copy constructor.
 	 */
 	H264Decoder(const H264Decoder& decoder);
-
-	~H264Decoder();
 
 	/**
 	 * @Override
