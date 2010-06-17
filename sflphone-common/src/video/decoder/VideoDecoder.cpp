@@ -31,9 +31,9 @@
 
 namespace sfl {
 
-VideoDecoder::VideoDecoder(const VideoFormat& encodingFormat,
-		const VideoFormat& decodingFormat)  throw(VideoDecodingException):
-	encodedFormat(encodedFormat), decodedFormat(decodedFormat) {
+VideoDecoder::VideoDecoder(const VideoFormat& input,
+		const VideoFormat& output)  throw(VideoDecodingException, MissingPluginException):
+	encodedFormat(input), decodedFormat(output) {
 }
 
 const VideoFormat& VideoDecoder::getEncondingFormat() const {

@@ -47,6 +47,19 @@ public:
 };
 
 /**
+ * This exception is thrown when a video codec cannot be found.
+ * TODO This kind of exception is general and would benefit from being moved
+ * outside of this file into a class-neutral and separated file. It could
+ * also be made a supertype of MissingGstPluginException.
+ */
+class MissingPluginException: public std::runtime_error {
+public:
+	MissingPluginException(const std::string& msg) :
+		std::runtime_error(msg) {
+	}
+};
+
+/**
  * Abstract base class for every video encoder.
  */
 class VideoDecoder {
@@ -56,7 +69,7 @@ public:
 	 * @param decodingFormat The output format.
 	 * @throw VideoDecodingException if an error occurs while opening the video decoder.
 	 */
-	VideoDecoder(const VideoFormat& encodingFormat, const VideoFormat& decodingFormat) throw(VideoDecodingException);
+	VideoDecoder(const VideoFormat& encodingFormat, const VideoFormat& decodingFormat) throw(VideoDecodingException, MissingPluginException);
 
 	/**
 	 * @return encodingFormat The source format.

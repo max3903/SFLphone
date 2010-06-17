@@ -1,6 +1,6 @@
 include $(top_srcdir)/globals.mak
 
-AM_CXXFLAGS = $(LIBAVCODEC_CFLAGS) $(LIBSWSCALE_CFLAGS)
+AM_CXXFLAGS = $(LIBAVCODEC_CFLAGS) $(LIBSWSCALE_CFLAGS) -D__STDC_CONSTANT_MACROS
 
 noinst_LTLIBRARIES = libvideodecoder.la
 

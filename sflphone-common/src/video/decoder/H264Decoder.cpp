@@ -38,7 +38,7 @@ extern "C" {
 namespace sfl {
 
 H264Decoder::H264Decoder(const VideoFormat& encodingFormat,
-		const VideoFormat& decodingFormat) throw(VideoDecodingException):
+		const VideoFormat& decodingFormat) throw(VideoDecodingException, MissingPluginException):
 	VideoDecoder(encodingFormat, decodingFormat) {
 	// Init fields.
 	init();
@@ -58,7 +58,7 @@ H264Decoder::H264Decoder(const VideoFormat& encodingFormat,
 	// Open the decoder
 	decoder = avcodec_find_decoder(CODEC_ID_H264);
 	if (decoder == NULL) {
-		// Throw MissingCodecException
+		throw MissingPluginException("FFMPEG codec H264 is missing.");
 	}
 
 	if (avcodec_open(context, decoder) < 0) {
@@ -72,7 +72,7 @@ H264Decoder::H264Decoder(const VideoFormat& encodingFormat,
 			(PixelFormat) decodingFormat.getColorSpace(), SWS_BICUBIC, NULL, NULL, NULL);
 
 	if (convertContext == NULL) {
-		// TODO Something.
+		throw VideoDecodingException("Failed to create convert context.");
 	}
 
 	// Allocate FFMPEG frame for converted frames

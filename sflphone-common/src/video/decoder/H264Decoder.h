@@ -43,7 +43,7 @@ namespace sfl
 class H264Decoder : public VideoDecoder
 {
 public:
-	H264Decoder(const VideoFormat& encodingFormat, const VideoFormat& decodingFormat) throw(VideoDecodingException);
+	H264Decoder(const VideoFormat& encodingFormat, const VideoFormat& decodingFormat) throw(VideoDecodingException, MissingPluginException);
 	~H264Decoder();
 
 	/**
