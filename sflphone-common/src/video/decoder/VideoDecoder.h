@@ -27,11 +27,13 @@
  *  as that of the covered work.
  */
 
-#ifndef __SFL_DECODER_H__
-#define __SFL_DECODER_H__
+#ifndef __SFL_VIDEO_DECODER_H__
+#define __SFL_VIDEO_DECODER_H__
 
 #include "video/VideoFrame.h"
 #include "video/FrameFormat.h"
+#include "util/AbstractObservable.h"
+#include "util/Buffer.h"
 
 #include <stdexcept>
 
@@ -60,9 +62,21 @@ public:
 };
 
 /**
+ * The client that wants to get access to decoded frame must
+ * implement this interface.
+ */
+class VideoFrameDecodedObserver : public Observer {
+public:
+	/**
+	 * @param frame The new frame that was decoded.
+	 */
+	virtual void onNewFrameDecoded(uint8_t* frame) = 0;
+};
+
+/**
  * Abstract base class for every video encoder.
  */
-class VideoDecoder {
+class VideoDecoder : public AbstractObservable<Buffer<uint8_t>, VideoFrameDecodedObserver>{
 public:
 	/**
 	 * @param encodingFormat The source format.
@@ -82,32 +96,18 @@ public:
 	const VideoFormat& getDecodingFormat() const;
 
 	/**
-	 * @param frame The video frame to encode.
-	 * @param size The frame size.
-	 * @param return The number of bytes decoded.
+	 * @param buffer A buffer containing the depayloaded data.
 	 * @throw VideoDecodingException if the frame cannot be decoded.
 	 */
-	virtual int decode(const uint8_t* frame, size_t size)
+	virtual int decode(Buffer<uint8_t> buffer)
 			throw (VideoDecodingException) = 0;
 
+protected:
 	/**
-	 * @return A pointer to a new copy of the current object.
+	 * Simple dispatch for the VideoFrameDecodedObserver type.
+	 * @Override
 	 */
-	virtual VideoDecoder* clone() = 0;
-
-	/**
-	 * @return The raw data after decoding.
-	 */
-	virtual uint8_t** getRawData() const = 0;
-
-	/**
-	 * @precondition The requested output format must be of type "packed". You can ensure this by using the sfl::IsPlanar predicate.
-	 * @return The raw data converted to the format specified in the constructor.
-	 * @see sfl#VideoDecoder#VideoDecoder
-	 * @see sfl#VideoDecoder#getRawData
-	 * @see sfl#IsPlanar
-	 */
-	virtual uint8_t* getConvertedPacked() throw(VideoDecodingException) = 0;
+	void notify(VideoFrameDecodedObserver* observer, Buffer<uint8_t> data);
 
 private:
 	VideoFormat encodedFormat;

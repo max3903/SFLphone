@@ -119,13 +119,14 @@ void H264Depayloader::handleSingleNalUnitMode(const ost::AppDataUnit* adu) {
 	frame[0] = 0x00;
 	frame[1] = 0x00;
 	frame[2] = 0x01;
-	memcpy (&frame[3], payload, payloadSize);
+	memcpy(&frame[3], payload, payloadSize);
 }
 
 /**
  * @Override
  */
-void H264Depayloader::process(const ost::AppDataUnit* adu) throw(UnsupportedPacketizationMode){
+void H264Depayloader::process(const ost::AppDataUnit* adu)
+		throw (UnsupportedPacketizationMode) {
 	/**
 	 *
 	 * The expected payload format is the following.
@@ -179,8 +180,7 @@ void H264Depayloader::process(const ost::AppDataUnit* adu) throw(UnsupportedPack
 		case 26:
 		case 27:
 		case 30:
-		case 31:
-		{
+		case 31: {
 			std::ostringstream msg;
 			msg << "NAL Unit type ";
 			msg << nalUnitType;
@@ -207,4 +207,5 @@ void H264Depayloader::process(const ost::AppDataUnit* adu) throw(UnsupportedPack
 		}
 	}
 }
+
 }

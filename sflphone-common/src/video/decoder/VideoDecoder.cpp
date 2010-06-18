@@ -44,4 +44,9 @@ const VideoFormat& VideoDecoder::getDecodingFormat() const {
 	return decodedFormat;
 }
 
+void VideoDecoder::notify(VideoDecoderObserver* observer, uint8_t* data)
+{
+	observer->onNewFrameDecoded(data);
+}
+
 }

@@ -26,62 +26,42 @@
  *  shall include the source code for the parts of OpenSSL used as well
  *  as that of the covered work.
  */
-#ifndef __SFL_H264_DECODER_H__
-#define __SFL_H264_DECODER_H__
+#ifndef __SFL_BUFFER_H__
+#define __SFL_BUFFER_H__
 
-#include "VideoDecoder.h"
-#include "video/FrameFormat.h"
-
-// Forward declaration
-class AVCodecContext;
-class AVFrame;
-class AVCodec;
-struct SwsContext;
-
-namespace sfl
-{
-class H264Decoder : public VideoDecoder
-{
+namespace sfl {
+/**
+ * Thread UNSAFE general data buffer. It's merely a placeholder for keeping the size information together with a pointer
+ * to the buffer. std::pair<buffer, size> would capture the same idea, but we don't want it.
+ */
+template<class T>
+class Buffer {
 public:
-	H264Decoder(const VideoFormat& encodingFormat, const VideoFormat& decodingFormat) throw(VideoDecodingException, MissingPluginException);
-	~H264Decoder();
+	/**
+	 * @param buffer A pointer to the buffer that is actually holding the data.
+	 * @param size The size of the buffer.
+	 * @postcondition The buffer provided by the user is NOT copied into this object.
+	 */
+	Buffer(T* buffer, size_t size) {
+		this->buffer = buffer;
+		this->size = size;
+	}
+	virtual ~Buffer();
 
 	/**
-	 * Copy constructor.
+	 * @return A pointer to the buffer kept in this object.
 	 */
-	H264Decoder(const H264Decoder& decoder);
+	inline T* getBuffer() { return buffer; }
 
 	/**
-	 * @Override
+	 * @return The size of the buffer kept in this object.
 	 */
-	int decode(const uint8_t* frame, size_t size) throw(VideoDecodingException);
-
-	/**
-	 * @Override
-	 */
-	VideoDecoder* clone();
-
-	/**
-	 * @Override
-	 */
-	uint8_t** getRawData() const;
-
-	/**
-	 * @Override
-	 */
-	uint8_t* getConvertedPacked() throw(VideoDecodingException);
+	inline size_t getSize() { return size; }
 
 private:
-	void init();
-
-	AVCodecContext* context;
-	AVFrame* decodedFrame;
-	AVFrame* convertedFrame;
-	AVCodec* decoder;
-
-	struct SwsContext* convertContext;
+	T* buffer;
+	size_t size;
 };
-
 }
 
 #endif

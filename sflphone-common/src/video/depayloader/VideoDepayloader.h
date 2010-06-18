@@ -29,6 +29,8 @@
 #ifndef __SFL_VIDEO_DEPAYLOADER_H__
 #define __SFL_VIDEO_DEPAYLOADER_H__
 
+#include "util/AbstractObservable.h"
+#include "util/Buffer.h"
 #include <string>
 
 /**
@@ -40,11 +42,32 @@ class AppDataUnit;
 
 namespace sfl {
 /**
- * Interface for video depayloaders.
+ * This exception is thrown when a video frame cannot be decoded.
+ */
+class VideoDepayloadingException: public std::runtime_error {
+public:
+	VideoDepayloadingException(const std::string& msg) :
+		std::runtime_error(msg) {
+	}
+};
+
+/**
+ * Asynchronous notification on frame depayloading.
+ */
+class VideoFrameDepayloadedObserver : public Observer {
+public:
+	/**
+	 * @param frame The new frame that was depayloaded and decoded.
+	 */
+	virtual void onNewDepayloadedFrame(Buffer<uint8_t> buffer) = 0;
+};
+
+/**
+ * Abstract interface for video depayloaders.
  * We decided not to use the perfectly good depayloaders in Gstreamer to favor reuse
  * of our CCRTP code base. However, we might want to switch completely at some point.
  */
-class VideoDepayloader {
+class VideoDepayloader : public AbstractObservable<Buffer<uint8_t>, VideoFrameDepayloadedObserver>{
 public:
 	virtual ~VideoDepayloader();
 	/**
@@ -55,7 +78,16 @@ public:
 	/**
 	 * @param adu The rtp packet.
 	 */
-	virtual void process(const ost::AppDataUnit* adu) = 0;
+	virtual void process(const ost::AppDataUnit* adu) throw (VideoDepayloadingException) = 0;
+
+protected:
+	/**
+	 * @Override
+	 */
+	void notify(VideoFrameDepayloadedObserver* observer, Buffer<uint8_t> data) {
+		observer->onNewDepayloadedFrame(data);
+	}
+
 };
 }
 

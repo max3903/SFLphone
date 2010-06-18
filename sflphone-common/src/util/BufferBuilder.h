@@ -26,21 +26,22 @@
  *  shall include the source code for the parts of OpenSSL used as well
  *  as that of the covered work.
  */
-#ifndef __SFL_QUEUED_BUFFER_H__
-#define __SFL_QUEUED_BUFFER_H__
+#ifndef __SFL_BUFFER_BUILDER_H__
+#define __SFL_BUFFER_BUILDER_H__
 
-#include <stdlib.h>
-#include <string.h>
+#include <list>
+#include <utility>
 #include <stdexcept>
+#include <string.h>
 
 namespace sfl {
 
 /**
  * Thrown when an operation would have to go out of bound.
  */
-class ArrayOutOfBoundException: public std::runtime_error {
+class MemoryAllocationException: public std::runtime_error {
 public:
-	ArrayOutOfBoundException(const std::string& msg) :
+	MemoryAllocationException(const std::string& msg) :
 		std::runtime_error(msg) {
 	}
 };
@@ -50,65 +51,75 @@ public:
  * will cause the current write index to move each time.
  */
 template <class T>
-class QueuedBuffer {
+class BufferBuilder {
 public:
+	BufferBuilder() : size(0) {}
+	virtual ~BufferBuilder();
+
 	/**
-	 * @param size Initial size.
+	 * Push a piece of data into the queue.
+	 * @param data A pointer to the data.
+	 * @param size The size corresponding to this buffer.
+	 * @postcondition The data will be kept in this object as long as the object exists and be assembled into
+	 * a continuous buffer when getContinuousBuffer() is called.
+	 * @see BufferBuilder#getContinuousBuffer
 	 */
-	QueuedBuffer(size_t size) {
-		data = (T*) malloc(size);
-		index = 0;
-		this->size = size;
-	}
-
-	~QueuedBuffer() {
-		free(data);
+	void push(const T* data, size_t size) {
+		slices.push_back(std::pair<const T*, size_t>(data, size));
+		this->size += size;
 	}
 
 	/**
-	 * Copy the source data into the internal buffer at the current index.
-	 * @param data The data to be put into the buffer.
-	 * @param size The data size.
-	 */
-	void put(const T* data, size_t size) throw(ArrayOutOfBoundException) {
-		if (size + index > this->size) {
-			throw ArrayOutOfBoundException("Attempting to write outside of permissible range");
-		}
-		memcpy(this->data + index, data, size);
-		index += size;
-	}
-
-	/**
-	 * Reset the write index to 0.
-	 */
-	void reset() {
-		index = 0;
-	}
-
-	/**
-	 * Clear the data inside of the internal buffer.
-	 */
-	void clear() {
-		memset(data, 0, size);
-	}
-
-	/**
-	 * @return the content of the internal buffer.
-	 */
-	const T* getBuffer() {
-		return data;
-	}
-
-	/**
-	 * @return The number of bytes in the internal buffer.
+	 * @return the amount of data that was declared so far to be in all of the buffers.
 	 */
 	size_t getSize() {
 		return size;
 	}
 
+	/**
+	 * @return A new buffer containing all of the buffers in the order in which they were inserted.
+	 */
+	T* getContinuousBuffer() throw(MemoryAllocationException){
+
+		T* buffer = new T[size];
+		if (buffer == NULL) {
+			throw MemoryAllocationException("Could not create buffer.");
+		}
+
+		Iterator it;
+		size_t index = 0;
+		for (it = slices.begin(); it != slices.end(); it++) {
+			memcpy(buffer + index, (*it).first, (*it).second);
+			index += (*it).second;
+		}
+
+		return buffer;
+	}
+
+	/**
+	 * Remove all of the elements in the queue but does not clear the memory allocated for the data
+	 * referred to by the pointers.
+	 */
+	void clear() {
+		slices.clear();
+		size = 0;
+	}
+
+	/**
+	 * Remove and free (calls the constructor) for every element in the queue.
+	 */
+	void dispose() {
+		Iterator it;
+		for (it = slices.begin(); it != slices.end(); it++) {
+			delete const_cast<T*>((*it).first);
+		}
+
+		clear();
+	}
+
 private:
-	T* data;
-	int index;
+	std::list<std::pair<const T*, size_t> > slices;
+	typedef typename std::list<std::pair<const T*, size_t> >::iterator Iterator;
 	size_t size;
 };
 

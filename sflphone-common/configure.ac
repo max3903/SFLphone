@@ -61,6 +61,7 @@
 			src/audio/codecs/Makefile \
 			src/video/Makefile \
 			src/video/decoder/Makefile \
+			src/video/depayloader/Makefile \
 			src/video/rtp/Makefile \
 			src/util/Makefile \
 			src/config/Makefile \

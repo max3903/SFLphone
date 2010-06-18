@@ -44,10 +44,10 @@ namespace sfl {
  * TODO We will probably want to move this exception up in the hierarchy as more depayloaders
  * gets implemented.
  */
-class UnsupportedPacketizationMode: public std::runtime_error {
+class UnsupportedPacketizationMode: public VideoDepayloadingException {
 public:
 	UnsupportedPacketizationMode(const std::string& msg) :
-		std::runtime_error(msg) {
+		VideoDepayloadingException(msg) {
 	}
 };
 
