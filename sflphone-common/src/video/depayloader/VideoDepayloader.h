@@ -124,6 +124,11 @@ protected:
 		observer->onNewDepayloadedFrame(data);
 	}
 
+	/**
+	 * Dispatch the depayloded frame event to either both the specified Decoder and the observers, or
+	 * only the observers.
+	 * @param data The data to be posted.
+	 */
 	void post(Buffer<uint8_t>& data) {
 		if (decoder != NULL) {
 			decoder->decode(data);

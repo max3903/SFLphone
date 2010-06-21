@@ -29,6 +29,8 @@
 #ifndef __SFL_BUFFER_H__
 #define __SFL_BUFFER_H__
 
+#include <memory>
+
 namespace sfl {
 /**
  * Thread UNSAFE general data buffer. It's merely a placeholder for keeping the size information together with a pointer
@@ -43,7 +45,7 @@ public:
 	 * @postcondition The buffer provided by the user is NOT copied into this object.
 	 */
 	Buffer(T* buffer, size_t size) {
-		this->buffer = buffer;
+		this->buffer = std::shared_ptr<T>(buffer);
 		this->size = size;
 	}
 
@@ -52,7 +54,7 @@ public:
 	/**
 	 * @return A pointer to the buffer kept in this object.
 	 */
-	inline T* getBuffer() { return buffer; }
+	inline T* getBuffer() { return (*buffer); }
 
 	/**
 	 * @return The size of the buffer kept in this object.
@@ -60,7 +62,7 @@ public:
 	inline size_t getSize() { return size; }
 
 private:
-	T* buffer;
+	std::shared_ptr<T> buffer;
 	size_t size;
 };
 }
