@@ -32,12 +32,27 @@
 #include <stdlib.h>
 
 namespace sfl {
-VideoRtpSession::VideoRtpSession(ost::InetMcastAddress& ima, ost::tpport_t port) :
-	ost::RTPSession(ima, port) {
+VideoRtpSession::VideoRtpSession(ost::InetMcastAddress& ima, ost::tpport_t port)
+{
+	session = new ost::RTPSession(ima, port);
+	init();
 }
 
-VideoRtpSession::VideoRtpSession(ost::InetHostAddress& ia, ost::tpport_t port) :
-	ost::RTPSession(ia, port) {
+VideoRtpSession::VideoRtpSession(ost::InetHostAddress& ia, ost::tpport_t port)
+{
+	session = new ost::RTPSession(ia, port);
+	init();
+}
+
+VideoRtpSession::~VideoRtpSession()
+{
+	terminate();
+	_warn("VideoRtpSession has terminated");
+}
+
+void VideoRtpSession::init()
+{
+	setCancel(cancelDeferred);
 }
 
 void VideoRtpSession::configureFromSdp(const RtpMap& rtpmap, const Fmtp& fmtp) {
@@ -80,17 +95,16 @@ void VideoRtpSession::unregisterDecoder(const std::string mime) {
  * till we get the markbit. Once we have it, we pass the whole buffer to
  * the decoder.
  */
-void VideoRtpSession::listen() {
-	setSchedulingTimeout(SCHEDULING_TIMEOUT);
-	setExpireTimeout(EXPIRE_TIMEOUT);
+void VideoRtpSession::run() {
+	session->setPayloadFormat(ost::DynamicPayloadFormat(payloadType, clockRate)); // FIXME this is specific to h264.
+	session->setSchedulingTimeout(SCHEDULING_TIMEOUT);
+	session->setExpireTimeout(EXPIRE_TIMEOUT);
+	session->startRunning();
 
-	setPayloadFormat(ost::DynamicPayloadFormat(payloadType, clockRate)); // FIXME this is specific to h264.
-
-	startRunning();
-	for (;;) {
+	while (!testCancel()) {
 		// TODO Find out if we need to reorganize the packets based on their sequence number.
 		const ost::AppDataUnit* adu;
-		while ((adu = getData(getFirstTimestamp()))) {
+		while ((adu = session->getData(session->getFirstTimestamp()))) {
 			depayloader->process(adu);
 		}
 

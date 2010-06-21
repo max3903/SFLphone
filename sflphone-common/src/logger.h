@@ -70,14 +70,14 @@ namespace Logger
 #define END_COLOR "\033[0m"
 
 namespace sfl {
-#define ERROR ost::slog("sflphoned", classDaemon, levelError)
-#define ALERT ost::slog("sflphoned", classDaemon, levelAlert)
-#define CRITICAL ost::slog("sflphoned", classDaemon, levelCritical)
-#define EMERGENCY ost::slog("sflphoned", classDaemon, levelEmergency)
-#define WARNING ost::slog("sflphoned", classDaemon, levelWarning)
-#define NOTICE ost::slog("sflphoned", classDaemon, levelNotice)
-#define INFO ost::slog("sflphoned", classDaemon, levelInfo)
-#define DEBUG ost::slog("sflphoned", classDaemon, levelDebug)
+#define ERROR ost::slog("sflphoned", Slog::classDaemon, Slog::levelError)
+#define ALERT ost::slog("sflphoned", Slog::classDaemon, Slog::levelAlert)
+#define CRITICAL ost::slog("sflphoned", Slog::classDaemon, Slog::levelCritical)
+#define EMERGENCY ost::slog("sflphoned", Slog::classDaemon, Slog::levelEmergency)
+#define WARNING ost::slog("sflphoned", Slog::classDaemon, Slog::levelWarning)
+#define NOTICE ost::slog("sflphoned", Slog::classDaemon, Slog::levelNotice)
+#define INFO ost::slog("sflphoned", Slog::classDaemon, Slog::levelInfo)
+#define DEBUG ost::slog("sflphoned", Slog::classDaemon, Slog::levelDebug)
 }
 
 #endif

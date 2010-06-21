@@ -20,7 +20,7 @@ void H264DepayloaderTest::setUp() {
 void H264DepayloaderTest::tearDown() {
 	std::cout << "Tearing down..." << std::endl;
 
-	if (system("killall server.sh") < 0) {
+	if (system("killall gst-launch-0.10") < 0) {
 		CPPUNIT_FAIL("Failed to stop server in video RTP test.");
 	}
 }
@@ -45,5 +45,7 @@ void H264DepayloaderTest::testReceive()
 	session->configureFromSdp(rtpmap, fmtp);
 
 	// Start capturing
-	session->listen();
+	session->start();
+	sleep(3);
+	delete session;
 }

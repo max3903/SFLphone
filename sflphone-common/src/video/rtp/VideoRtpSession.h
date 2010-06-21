@@ -52,7 +52,7 @@ class BufferBuilder;
 /**
  * Interface for VideoRtpSession types.
  */
-class VideoRtpSession : public ost::RTPSession, public AbstractObservable<Buffer<uint8_t>&, VideoFrameDecodedObserver> {
+class VideoRtpSession : public AbstractObservable<Buffer<uint8_t>&, VideoFrameDecodedObserver>, public ost::Thread {
 public:
 	/**
 	 * @param mutiCastAddress A multicast address.
@@ -66,7 +66,7 @@ public:
 	 */
 	VideoRtpSession(ost::InetHostAddress& ia, ost::tpport_t port);
 
-	virtual ~VideoRtpSession() {};
+	~VideoRtpSession();
 
 	/**
 	 * Change the configuration of the object based on the information contained in
@@ -97,12 +97,6 @@ public:
 	 */
 	void unregisterDecoder(const std::string mime);
 
-	/**
-	 * This methods starts listening for rtp packets, calling the
-	 * observer when a frame is fully available.
-	 */
-	void listen();
-
 	static const int SCHEDULING_TIMEOUT = 10000;
 	static const int EXPIRE_TIMEOUT = 1000000;
 
@@ -113,13 +107,24 @@ protected:
 	 */
 	void notify(VideoFrameDecodedObserver* observer, Buffer<uint8_t>& data);
 
-private:
-	typedef std::map<std::string, VideoDepayloader*>::iterator DecoderTableIterator;
-	std::map<std::string, VideoDepayloader*> decoderTable;
+	/**
+	 * @Override
+	 */
+	void run();
 
-	VideoDepayloader* depayloader;
-	ost::PayloadType payloadType;
+private:
+	/**
+	 * Helper method to avoid code duplications with different constructors.
+	 */
+	void init();
+
 	unsigned clockRate;
+	ost::RTPSession* session;
+	ost::PayloadType payloadType;
+	VideoDepayloader* depayloader;
+
+	std::map<std::string, VideoDepayloader*> decoderTable;
+	typedef std::map<std::string, VideoDepayloader*>::iterator DecoderTableIterator;
 };
 }
 #endif
