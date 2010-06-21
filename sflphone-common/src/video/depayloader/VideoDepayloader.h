@@ -29,6 +29,7 @@
 #ifndef __SFL_VIDEO_DEPAYLOADER_H__
 #define __SFL_VIDEO_DEPAYLOADER_H__
 
+#include "video/decoder/VideoDecoder.h"
 #include "util/AbstractObservable.h"
 #include "util/Buffer.h"
 #include <string>
@@ -54,12 +55,12 @@ public:
 /**
  * Asynchronous notification on frame depayloading.
  */
-class VideoFrameDepayloadedObserver : public Observer {
+class VideoFrameDepayloadedObserver: public Observer {
 public:
 	/**
 	 * @param frame The new frame that was depayloaded and decoded.
 	 */
-	virtual void onNewDepayloadedFrame(Buffer<uint8_t> buffer) = 0;
+	virtual void onNewDepayloadedFrame(Buffer<uint8_t>& buffer) = 0;
 };
 
 /**
@@ -67,9 +68,34 @@ public:
  * We decided not to use the perfectly good depayloaders in Gstreamer to favor reuse
  * of our CCRTP code base. However, we might want to switch completely at some point.
  */
-class VideoDepayloader : public AbstractObservable<Buffer<uint8_t>, VideoFrameDepayloadedObserver>{
+class VideoDepayloader: public AbstractObservable<Buffer<uint8_t>&,
+		VideoFrameDepayloadedObserver> {
 public:
-	virtual ~VideoDepayloader();
+	/**
+	 * Default constructor. With this form, no decoder is specified to receive the depayloaded data, but
+	 * yet one can register observers.
+	 */
+	VideoDepayloader() :
+		decoder(NULL) {
+	}
+
+	/**
+	 * @param decoder A decoder that should receive the data after processing. This is optional.
+	 */
+	VideoDepayloader(VideoDecoder& decoder) {
+		this->decoder = &decoder;
+	}
+
+	virtual ~VideoDepayloader() {};
+
+	/**
+	 * @param decoder A decoder that should receive the data after processing
+	 * @postcondition Further calls to process() will send the data to the decoder.
+	 */
+	void setDecoder(VideoDecoder& decoder) {
+		this->decoder = &decoder;
+	}
+
 	/**
 	 * @param sdp The unparsed SDP description.
 	 */
@@ -78,16 +104,36 @@ public:
 	/**
 	 * @param adu The rtp packet.
 	 */
-	virtual void process(const ost::AppDataUnit* adu) throw (VideoDepayloadingException) = 0;
+	virtual void process(const ost::AppDataUnit* adu)
+			throw (VideoDepayloadingException) = 0;
+
+	/**
+	 * @param adu The rtp packet.
+	 * @see sfl#VideoDepayloader#process
+	 */
+	inline void operator()(const ost::AppDataUnit* adu)
+			throw (VideoDepayloadingException) {
+		process(adu);
+	}
 
 protected:
 	/**
 	 * @Override
 	 */
-	void notify(VideoFrameDepayloadedObserver* observer, Buffer<uint8_t> data) {
+	void notify(VideoFrameDepayloadedObserver* observer, Buffer<uint8_t>& data) {
 		observer->onNewDepayloadedFrame(data);
 	}
 
+	void post(Buffer<uint8_t>& data) {
+		if (decoder != NULL) {
+			decoder->decode(data);
+		}
+		notifyAll(data);
+	}
+	;
+
+private:
+	VideoDecoder* decoder;
 };
 }
 

@@ -26,46 +26,68 @@
  *  shall include the source code for the parts of OpenSSL used as well
  *  as that of the covered work.
  */
-#ifndef __SFL_ABSTRACT_OBSERVERVABLE_H__
-#define __SFL_ABSTRACT_OBSERVERVABLE_H__
+#ifndef __SFL_RTP_MAP_H__
+#define __SFL_RTP_MAP_H__
 
-#include <vector>
-#include <algorithm>
-
-#include "Observable.h"
-#include "Observer.h"
+#include <string>
+#include <stdlib.h>
 
 namespace sfl {
-template<class PushedDataType, class ObserverType>
-class AbstractObservable: public Observable<PushedDataType, ObserverType> {
+/**
+ * Unmutable class for holding the attributes of a a=rtpmap SDP line.
+ */
+class RtpMap {
 public:
 	/**
-	 * @Override
+	 * @param payloadType The static or dynamic payload type. For example : 98
+	 * @param codec The codec name. Eg: H264
+	 * @param clockRate The clock rate for this codec. Eg: 9000
+	 * @param param Optional parameters for this codec.
 	 */
-	void addObserver(ObserverType* observer) {
-		observers.push_back(observer);
+	RtpMap(const std::string& payloadType, const std::string& codec, unsigned clockRate, const std::string param) {
+		this->payloadType = atoi(payloadType.c_str());
+		this->codec = codec;
+		this->clockRate = clockRate;
+		this->param = param;
 	}
 
 	/**
-	 * @Override
+	 * @return The clock rate for this codec.
 	 */
-	void removeObserver(ObserverType* observer) {
-		std::remove(observers.begin(), observers.end(), observer);
-	}
+    unsigned getClockRate() const
+    {
+        return clockRate;
+    }
 
-	/**
-	 * @Override
-	 */
-	void notifyAll(PushedDataType data) {
-		typename std::vector<ObserverType*>::iterator it;
-		for (it = observers.begin(); it < observers.end(); it++) {
-			notify((*it), data);
-		}
-	}
+    /**
+     * @return The codec name.
+     */
+    std::string getCodecName() const
+    {
+        return codec;
+    }
+
+    /**
+     * @return Optional parameters for this codec.
+     */
+    std::string getParam() const
+    {
+        return param;
+    }
+
+    /**
+     * @return The static or dynamic payload type.
+     */
+    unsigned getPayloadType() const
+    {
+        return payloadType;
+    }
 
 private:
-	std::vector<ObserverType*> observers;
+    unsigned payloadType;
+	std::string codec;
+	unsigned clockRate;
+	std::string param;
 };
 }
-
 #endif

@@ -54,7 +54,7 @@ template <class T>
 class BufferBuilder {
 public:
 	BufferBuilder() : size(0) {}
-	virtual ~BufferBuilder();
+	virtual ~BufferBuilder() {};
 
 	/**
 	 * Push a piece of data into the queue.

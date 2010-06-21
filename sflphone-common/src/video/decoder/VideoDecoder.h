@@ -70,13 +70,13 @@ public:
 	/**
 	 * @param frame The new frame that was decoded.
 	 */
-	virtual void onNewFrameDecoded(uint8_t* frame) = 0;
+	virtual void onNewFrameDecoded(Buffer<uint8_t>& data) = 0;
 };
 
 /**
  * Abstract base class for every video encoder.
  */
-class VideoDecoder : public AbstractObservable<Buffer<uint8_t>, VideoFrameDecodedObserver>{
+class VideoDecoder : public AbstractObservable<Buffer<uint8_t>&, VideoFrameDecodedObserver>{
 public:
 	/**
 	 * @param encodingFormat The source format.
@@ -99,15 +99,23 @@ public:
 	 * @param buffer A buffer containing the depayloaded data.
 	 * @throw VideoDecodingException if the frame cannot be decoded.
 	 */
-	virtual int decode(Buffer<uint8_t> buffer)
+	virtual int decode(Buffer<uint8_t>& buffer)
 			throw (VideoDecodingException) = 0;
+
+	/**
+	 * @param buffer A buffer containing the depayloaded data.
+	 * @see sfl#VideoDecoder#decode
+	 */
+	inline int operator()(Buffer<uint8_t>& buffer) throw (VideoDecodingException) {
+		return decode(buffer);
+	}
 
 protected:
 	/**
 	 * Simple dispatch for the VideoFrameDecodedObserver type.
 	 * @Override
 	 */
-	void notify(VideoFrameDecodedObserver* observer, Buffer<uint8_t> data);
+	void notify(VideoFrameDecodedObserver* observer, Buffer<uint8_t>& data);
 
 private:
 	VideoFormat encodedFormat;

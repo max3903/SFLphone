@@ -33,7 +33,7 @@
 
 #include "sipcall.h"
 #include "global.h" // for _debug
-#include "sdp.h"
+#include "sdp/sdp.h"
 
 SIPCall::SIPCall (const CallID& id, Call::CallType type, pj_pool_t *pool) : Call (id, type)
         , _cid (0)

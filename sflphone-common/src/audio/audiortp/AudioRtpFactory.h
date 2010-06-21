@@ -33,7 +33,7 @@
 #include <stdexcept>
 #include <cc++/thread.h>
 
-#include "sip/SdesNegotiator.h"
+#include "sip/sdp/SdesNegotiator.h"
 #include "audio/codecs/audiocodec.h"
 
 class SdesNegotiator;
@@ -56,7 +56,6 @@ namespace sfl {
         Zrtp,
         Sdes
     } RtpMethod;
-
 
     class UnsupportedRtpSessionType : public std::logic_error {
         public:

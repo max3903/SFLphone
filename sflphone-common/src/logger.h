@@ -32,6 +32,7 @@
 #define __LOGGER_H__
 
 #include <syslog.h>
+#include <cc++/slog.h>
 
 namespace Logger
 {
@@ -67,6 +68,17 @@ namespace Logger
 #define LIGHT_CYAN "\033[01;36m"
 #define WHITE "\033[01;37m"
 #define END_COLOR "\033[0m"
+
+namespace sfl {
+#define ERROR ost::slog("sflphoned", classDaemon, levelError)
+#define ALERT ost::slog("sflphoned", classDaemon, levelAlert)
+#define CRITICAL ost::slog("sflphoned", classDaemon, levelCritical)
+#define EMERGENCY ost::slog("sflphoned", classDaemon, levelEmergency)
+#define WARNING ost::slog("sflphoned", classDaemon, levelWarning)
+#define NOTICE ost::slog("sflphoned", classDaemon, levelNotice)
+#define INFO ost::slog("sflphoned", classDaemon, levelInfo)
+#define DEBUG ost::slog("sflphoned", classDaemon, levelDebug)
+}
 
 #endif
 

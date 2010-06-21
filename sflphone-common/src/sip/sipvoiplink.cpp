@@ -36,11 +36,11 @@
 
 #include "manager.h"
 
-#include "sip/sdp.h"
+#include "sip/sdp/sdp.h"
 #include "sipcall.h"
 #include "sipaccount.h"
 #include "eventthread.h"
-#include "SdesNegotiator.h"
+#include "sdp/SdesNegotiator.h"
 
 #include "dbus/dbusmanager.h"
 #include "dbus/callmanager.h"

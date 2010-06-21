@@ -44,7 +44,7 @@
 </toolChain>
 </folderInfo>
 <sourceEntries>
-<entry flags="VALUE_WORKSPACE_PATH" kind="sourcePath" name=""/>
+<entry excluding="src/video/*.lo|src/util/*.o|src/video/*.gch|src/video/*.la|src/video/*.o" flags="VALUE_WORKSPACE_PATH" kind="sourcePath" name=""/>
 </sourceEntries>
 </configuration>
 </storageModule>

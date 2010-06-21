@@ -41,7 +41,7 @@
 #include "global.h"
 
 #include "sip/sipcall.h"
-#include "sip/sdp.h"
+#include "sip/sdp/sdp.h"
 #include "audio/audiolayer.h"
 #include "audio/codecs/audiocodec.h"
 #include "audio/samplerateconverter.h"

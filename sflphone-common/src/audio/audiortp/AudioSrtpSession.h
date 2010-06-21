@@ -31,7 +31,7 @@
 #define __SFL_AUDIO_SRTP_SESSION_H__
 
 #include "AudioRtpSession.h"
-#include "sip/SdesNegotiator.h"
+#include "sip/sdp/SdesNegotiator.h"
 
 #include <ccrtp/CryptoContext.h>
 #include <vector>

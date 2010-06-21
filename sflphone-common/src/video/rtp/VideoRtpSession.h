@@ -29,11 +29,16 @@
 #ifndef __SFL_VIDEO_RTP_SESSION_H__
 #define __SFL_VIDEO_RTP_SESSION_H__
 
-#include <queue>
+#include <map>
 #include <ccrtp/rtp.h>
+
+#include "video/depayloader/VideoDepayloader.h"
 
 #include "util/Observer.h"
 #include "util/AbstractObservable.h"
+
+#include "sip/sdp/Fmtp.h"
+#include "sip/sdp/RtpMap.h"
 
 namespace sfl {
 
@@ -42,23 +47,12 @@ namespace sfl {
  */
 class VideoDecoder;
 template <class T>
-class QueuedBuffer;
-
-/**
- * Asynchronous notification on frame decoding.
- */
-class VideoFrameDecodedObserver : public Observer {
-public:
-	/**
-	 * @param frame The new frame that was depayloaded and decoded.
-	 */
-	virtual void onNewFrameDecoded(uint8_t* frame) = 0;
-};
+class BufferBuilder;
 
 /**
  * Interface for VideoRtpSession types.
  */
-class VideoRtpSession : public ost::RTPSession, public AbstractObservable<uint8_t*, VideoFrameDecodedObserver> {
+class VideoRtpSession : public ost::RTPSession, public AbstractObservable<Buffer<uint8_t>&, VideoFrameDecodedObserver> {
 public:
 	/**
 	 * @param mutiCastAddress A multicast address.
@@ -72,13 +66,36 @@ public:
 	 */
 	VideoRtpSession(ost::InetHostAddress& ia, ost::tpport_t port);
 
-	~VideoRtpSession();
+	virtual ~VideoRtpSession() {};
 
 	/**
-	 * @param decoder The video decoder to use.
-	 * @postcondition The object will be copied (avoiding to leak control outside of class).
+	 * Change the configuration of the object based on the information contained in
+	 * the SDP "a=rtpmap" and "a=fmtp" attributes.
+	 * @param rtpmap The Rtmap object object holding the information of a "a=rtpmap" line of SDP.
+	 * @param fmtp The Fmtp object holding the information of a "a=fmtp" line of SDP for some corresponding "a=rtpmap".
 	 */
-	void setDecoder(VideoDecoder& decoder);
+	void configureFromSdp(const RtpMap& rtpmap, const Fmtp& fmtp);
+
+	/**
+	 * Register a given depayloader and decoder pair for a given MIME media type.
+	 * TODO integrate with the plugin manager.
+	 * @precondition The given decoding unit corresponding to the given MIME type must not be present in the table.
+	 * @postcondition The decoding unit corresponding to the MIME type will be used if appropriate.
+	 */
+	void registerDecoder(const std::string& mime, VideoDepayloader& depayloader, VideoDecoder& decoder);
+
+	/**
+	 * Register a given depayloader for a given MIME media type.
+	 * It is assumed that that depayloader is already configured to send its data to some decoder.
+	 * @see sfl#Depayloader#setDecoder
+	 */
+	void registerDecoder(const std::string& mime, VideoDepayloader& depayloader);
+
+
+	/**
+	 * @param mime The mime type corresponding to the decoding unit to remove.
+	 */
+	void unregisterDecoder(const std::string mime);
 
 	/**
 	 * This methods starts listening for rtp packets, calling the
@@ -94,31 +111,15 @@ protected:
 	 * Simple dispatch for the VideoFrameDecodedObserver type.
 	 * @Override
 	 */
-	void notify(VideoFrameDecodedObserver* observer, uint8_t* data);
+	void notify(VideoFrameDecodedObserver* observer, Buffer<uint8_t>& data);
 
 private:
-	/**
-	 * Used in constructor.
-	 */
-	void init();
+	typedef std::map<std::string, VideoDepayloader*>::iterator DecoderTableIterator;
+	std::map<std::string, VideoDepayloader*> decoderTable;
 
-	/**
-	 * Enqueue slice of data.
-	 * @param The whole adu object. Will be freed when flushed.
-	 */
-	void queue(const ost::AppDataUnit* adu);
-
-	/**
-	 * Encode queued data. Note that this could be made asynchronous. Flushing the data would be non-blocking, spawning a separate
-	 * thread for decoding.
-	 */
-	void flush();
-
-	VideoDecoder* decoder;
-	QueuedBuffer<uint8_t>* workingBuffer;
-	std::queue<const ost::AppDataUnit*> dataQueue;
-
-	static const int WORKING_BUFFER_SIZE = 100000;
+	VideoDepayloader* depayloader;
+	ost::PayloadType payloadType;
+	unsigned clockRate;
 };
 }
 #endif

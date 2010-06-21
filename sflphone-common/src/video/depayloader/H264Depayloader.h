@@ -57,10 +57,6 @@ public:
  */
 class H264Depayloader : public VideoDepayloader {
 public:
-	/**
-	 * @param sdp The SDP to be parsed.
-	 */
-	H264Depayloader(const std::string sdp);
 	~H264Depayloader();
 
 	/**

@@ -30,7 +30,7 @@
 
 #include "SdesNegotiator.h"
 
-#include "Pattern.h"
+#include "util/Pattern.h"
 
 #include <cstdio>
 #include <iostream>

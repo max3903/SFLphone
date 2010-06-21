@@ -32,9 +32,6 @@
 #include <stdint.h>
 
 namespace sfl {
-H264Depayloader::H264Depayloader(const std::string sdp) {
-}
-
 H264Depayloader::~H264Depayloader() {
 	assemblingBuffer.dispose();
 }
@@ -91,8 +88,11 @@ void H264Depayloader::handleFragmentationUnit(const ost::AppDataUnit* adu) {
 		assemblingBuffer.push(slice, sizeSlice);
 	} else if (endBit) {
 		// We should have a complete frame by now.
-		uint8_t* videoFrame = assemblingBuffer.getContinuousBuffer();
-		size_t videoFrameSize = assemblingBuffer.getSize();
+		uint8_t* frame = assemblingBuffer.getContinuousBuffer(); // TODO result should be freed somewhere
+		size_t frameSize = assemblingBuffer.getSize();
+
+		Buffer<uint8_t> data(frame, frameSize);
+		post(data);
 	}
 }
 
@@ -114,12 +114,15 @@ void H264Depayloader::handleSingleNalUnitMode(const ost::AppDataUnit* adu) {
 	size_t payloadSize = adu->getSize();
 
 	size_t frameSize = payloadSize + 3;
-	uint8_t* frame = (uint8_t*) malloc(frameSize);
+	uint8_t* frame = (uint8_t*) malloc(frameSize); // TODO result should be freed somewhere
 
 	frame[0] = 0x00;
 	frame[1] = 0x00;
 	frame[2] = 0x01;
 	memcpy(&frame[3], payload, payloadSize);
+
+	Buffer<uint8_t> data(frame, frameSize);
+	post(data);
 }
 
 /**

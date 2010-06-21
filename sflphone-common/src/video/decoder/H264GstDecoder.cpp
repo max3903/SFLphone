@@ -259,7 +259,7 @@ void H264GstDecoder::stop() throw (VideoDecodingException) {
 	gst_object_unref(gstApp->pipeline);
 }
 
-int H264GstDecoder::decode(Buffer<uint8_t> buffer) throw (VideoDecodingException) {
+int H264GstDecoder::decode(Buffer<uint8_t>& buffer) throw (VideoDecodingException) {
 	nalUnits.push(buffer);
 }
 

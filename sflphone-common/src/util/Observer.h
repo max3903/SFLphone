@@ -38,8 +38,8 @@ namespace sfl {
  */
 class Observer {
 public:
-	Observer();
-	~Observer();
+	Observer() {};
+	~Observer() {};
 };
 }
 

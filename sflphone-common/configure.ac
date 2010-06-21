@@ -51,6 +51,7 @@
 			libs/iax2/Makefile])
 
 	AC_CONFIG_FILES([src/Makefile \
+			src/sip/sdp/Makefile \
 			src/sip/Makefile \
 			src/iax/Makefile \
 			src/audio/Makefile \

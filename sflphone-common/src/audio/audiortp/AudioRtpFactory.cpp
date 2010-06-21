@@ -36,7 +36,7 @@
 #include "manager.h"
 #include "account.h"
 #include "sip/sipcall.h"
-#include "sip/SdesNegotiator.h"
+#include "sip/sdp/SdesNegotiator.h"
 
 #include <assert.h>
 

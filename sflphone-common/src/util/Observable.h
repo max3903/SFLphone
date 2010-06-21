@@ -27,7 +27,7 @@
  *  as that of the covered work.
  */
 #ifndef __SFL_OBSERVERVABLE_H__
-#define __SFL_OBSERVERABLE_H__
+#define __SFL_OBSERVERVABLE_H__
 
 #include "Observer.h"
 
@@ -41,17 +41,17 @@ public:
 	/**
 	 * @param observer The observer object to be notify by this observable object.
 	 */
-	void addObserver(ObserverType* observer);
+	virtual void addObserver(ObserverType* observer) = 0;
 
 	/**
 	 * @param observer The observer object to be removed.
 	 */
-	void removeObserver(ObserverType* observer);
+	virtual void removeObserver(ObserverType* observer) = 0;
 
 	/**
 	 * @param data The data to be pushed to the observers.
 	 */
-	void notifyAll(PushedDataType data);
+	virtual void notifyAll(PushedDataType data) = 0;
 
 protected:
 	/**

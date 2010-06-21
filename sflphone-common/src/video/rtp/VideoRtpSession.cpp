@@ -28,60 +28,48 @@
  */
 #include "VideoRtpSession.h"
 #include "video/decoder/VideoDecoder.h"
-#include "util/QueuedBuffer.h"
-
 #include <stdint.h>
 #include <stdlib.h>
 
 namespace sfl {
 VideoRtpSession::VideoRtpSession(ost::InetMcastAddress& ima, ost::tpport_t port) :
 	ost::RTPSession(ima, port) {
-	init();
 }
 
 VideoRtpSession::VideoRtpSession(ost::InetHostAddress& ia, ost::tpport_t port) :
 	ost::RTPSession(ia, port) {
-	init();
 }
 
-VideoRtpSession::~VideoRtpSession()
-{
-	delete decoder;
-	delete workingBuffer;
-}
-
-void VideoRtpSession::init() {
-	decoder = NULL;
-	workingBuffer = new QueuedBuffer<uint8_t>(WORKING_BUFFER_SIZE);
-}
-
-void VideoRtpSession::setDecoder(VideoDecoder& decoder) {
-	this->decoder = decoder.clone();
-}
-
-void VideoRtpSession::queue(const ost::AppDataUnit* adu) {
-	dataQueue.push(adu);
-}
-
-void VideoRtpSession::flush() {
-	// Create a continuous buffer by appending all slices.
-	while(!dataQueue.empty()) {
-		const ost::AppDataUnit* adu = dataQueue.front();
-
-		workingBuffer->put(adu->getData(), adu->getSize()); // TODO Catch exception.
-
-		dataQueue.pop();
-		delete adu;
+void VideoRtpSession::configureFromSdp(const RtpMap& rtpmap, const Fmtp& fmtp) {
+	// Find a decoder for the mimetype
+	DecoderTableIterator it = decoderTable.find(rtpmap.getCodecName());
+	if (it == decoderTable.end()) {
+		std::string msg = std::string("Codec \"") + rtpmap.getCodecName()
+				+ std::string("\"is not a registered codec.");
+		throw MissingPluginException(msg);
 	}
+	depayloader = (*it).second;
 
-	// Decode the whole buffer (1 encoded frame)
-	decoder->decode(workingBuffer->getBuffer(), workingBuffer->getSize()); // TODO Catch exception
+	// Configure additional information.
+	clockRate = rtpmap.getClockRate();
+	payloadType = rtpmap.getPayloadType();
+}
 
-	// Call observers on the decoded frame
+void VideoRtpSession::registerDecoder(const std::string& mime,
+		VideoDepayloader& depayloader) {
+	decoderTable.insert(std::pair<std::string, VideoDepayloader*>(mime,
+			&depayloader));
+}
 
-	// Reuse working buffer
-	workingBuffer->reset();
-	workingBuffer->clear();
+void VideoRtpSession::registerDecoder(const std::string& mime,
+		VideoDepayloader& depayloader, VideoDecoder& decoder) {
+	depayloader.setDecoder(decoder);
+	registerDecoder(mime, depayloader);
+}
+
+void VideoRtpSession::unregisterDecoder(const std::string mime) {
+	DecoderTableIterator it = decoderTable.find(mime);
+	decoderTable.erase(it);
 }
 
 /**
@@ -93,29 +81,24 @@ void VideoRtpSession::flush() {
  * the decoder.
  */
 void VideoRtpSession::listen() {
-	setSchedulingTimeout( SCHEDULING_TIMEOUT);
-	setExpireTimeout( EXPIRE_TIMEOUT);
+	setSchedulingTimeout(SCHEDULING_TIMEOUT);
+	setExpireTimeout(EXPIRE_TIMEOUT);
 
-	setPayloadFormat(ost::DynamicPayloadFormat((ost::PayloadType) 98, 9000)); // FIXME this is specific to h264.
+	setPayloadFormat(ost::DynamicPayloadFormat(payloadType, clockRate)); // FIXME this is specific to h264.
 
 	startRunning();
 	for (;;) {
+		// TODO Find out if we need to reorganize the packets based on their sequence number.
 		const ost::AppDataUnit* adu;
 		while ((adu = getData(getFirstTimestamp()))) {
-			if (adu->isMarked()) {
-				// We should have a full frame by now
-				flush();
-			} else {
-				queue(adu);
-			}
+			depayloader->process(adu);
 		}
 
 		yield();
 	}
 }
 
-void VideoRtpSession::notify(VideoFrameDecodedObserver* observer, uint8_t* data)
-{
+void VideoRtpSession::notify(VideoFrameDecodedObserver* observer, Buffer<uint8_t>& data) {
 	observer->onNewFrameDecoded(data);
 }
 

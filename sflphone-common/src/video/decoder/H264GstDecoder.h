@@ -44,12 +44,12 @@ public:
 	~H264Decoder();
 
 	/**
-	 * his call is asynchronous. The data will simply be placed in a queue and
+	 * This call is asynchronous. The data will simply be placed in a queue and
 	 * only be processed when Gstreamer requests it.
 	 *
 	 * @Override
 	 */
-	int decode(Buffer<uint8_t> buffer) throw (VideoDecodingException);
+	int decode(Buffer<uint8_t>& buffer) throw (VideoDecodingException);
 
 private:
 	/**

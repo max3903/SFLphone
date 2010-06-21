@@ -26,46 +26,48 @@
  *  shall include the source code for the parts of OpenSSL used as well
  *  as that of the covered work.
  */
-#ifndef __SFL_ABSTRACT_OBSERVERVABLE_H__
-#define __SFL_ABSTRACT_OBSERVERVABLE_H__
+#ifndef __SFL_FMTP_H__
+#define __SFL_FMTP_H__
 
-#include <vector>
-#include <algorithm>
-
-#include "Observable.h"
-#include "Observer.h"
+#include <string>
 
 namespace sfl {
-template<class PushedDataType, class ObserverType>
-class AbstractObservable: public Observable<PushedDataType, ObserverType> {
+
+/**
+ * Unmutable class for holding the attributes of a a=fmtp SDP line.
+ */
+class Fmtp {
 public:
 	/**
-	 * @Override
+	 * @param payloadType The static or dynamic payload type corresponding to some a=rtpmap line.
+	 * @params params Codec specific parameters.
 	 */
-	void addObserver(ObserverType* observer) {
-		observers.push_back(observer);
+	Fmtp(const std::string& payloadType, const std::string& params) {
+		this->payloadType = payloadType;
+		this->params = params;
 	}
 
 	/**
-	 * @Override
+	 * @return Codec specific parameters.
 	 */
-	void removeObserver(ObserverType* observer) {
-		std::remove(observers.begin(), observers.end(), observer);
-	}
+    std::string getParams() const
+    {
+        return params;
+    }
 
-	/**
-	 * @Override
-	 */
-	void notifyAll(PushedDataType data) {
-		typename std::vector<ObserverType*>::iterator it;
-		for (it = observers.begin(); it < observers.end(); it++) {
-			notify((*it), data);
-		}
-	}
+    /**
+     * @return The static or dynamic payload type corresponding to some a=rtpmap line.
+     */
+    std::string getPayloadType() const
+    {
+        return payloadType;
+    }
 
 private:
-	std::vector<ObserverType*> observers;
+	std::string payloadType;
+	std::string params;
 };
+
 }
 
 #endif

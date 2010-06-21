@@ -46,7 +46,8 @@ public:
 		this->buffer = buffer;
 		this->size = size;
 	}
-	virtual ~Buffer();
+
+	virtual ~Buffer() {};
 
 	/**
 	 * @return A pointer to the buffer kept in this object.
