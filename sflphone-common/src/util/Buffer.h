@@ -54,7 +54,7 @@ public:
 	/**
 	 * @return A pointer to the buffer kept in this object.
 	 */
-	inline T* getBuffer() { return (*buffer); }
+	inline T* getBuffer() { return buffer.get(); }
 
 	/**
 	 * @return The size of the buffer kept in this object.

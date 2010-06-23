@@ -102,7 +102,6 @@ void VideoRtpSession::run() {
 	session->startRunning();
 
 	while (!testCancel()) {
-		// TODO Find out if we need to reorganize the packets based on their sequence number.
 		const ost::AppDataUnit* adu;
 		while ((adu = session->getData(session->getFirstTimestamp()))) {
 			depayloader->process(adu);

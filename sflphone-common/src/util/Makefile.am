@@ -18,7 +18,8 @@ noinst_HEADERS = \
 		AbstractObservable.h \
 		Buffer.h \
 		BufferBuilder.h \
-		Pattern.h
+		Pattern.h \
+		Dimension.h
 
 libutil_la_LDFLAGS = $(CCGNU2_LIBS)
 libutil_la_CXXFLAGS = $(PCRE_LIBS)

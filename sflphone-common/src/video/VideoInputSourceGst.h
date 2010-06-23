@@ -22,39 +22,20 @@
 
 #include "FrameFormat.h"
 #include "GstVideoDevice.h"
+#include "VideoExceptions.h"
 #include "VideoInputSource.h"
 
 #include <set>
 #include <vector>
 #include <string>
 #include <stdexcept> 
+
 #include <stdint.h>
 
 #include <gst/gstelement.h>
 #include <gst/app/gstappsink.h>
 
 namespace sfl {
-
-/**
- * This exception is thrown when a gstreamer exception occurs.
- */
-class GstException: public std::runtime_error {
-public:
-	GstException(const std::string& msg) :
-		std::runtime_error(msg) {
-	}
-};
-
-/**
- * This exception is thrown when an expected plugin is missing from gstreamer.
- */
-class MissingGstPluginException: public GstException {
-public:
-	MissingGstPluginException(const std::string& msg) :
-		GstException(msg) {
-	}
-};
-
 
 /**
  * This class captures video frames asynchronously via Gstreamer.

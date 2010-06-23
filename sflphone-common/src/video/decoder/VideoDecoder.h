@@ -32,34 +32,15 @@
 
 #include "video/VideoFrame.h"
 #include "video/FrameFormat.h"
+#include "video/VideoExceptions.h"
+
 #include "util/AbstractObservable.h"
+#include "util/Dimension.h"
 #include "util/Buffer.h"
 
 #include <stdexcept>
 
 namespace sfl {
-/**
- * This exception is thrown when a video frame cannot be decoded.
- */
-class VideoDecodingException: public std::runtime_error {
-public:
-	VideoDecodingException(const std::string& msg) :
-		std::runtime_error(msg) {
-	}
-};
-
-/**
- * This exception is thrown when a video codec cannot be found.
- * TODO This kind of exception is general and would benefit from being moved
- * outside of this file into a class-neutral and separated file. It could
- * also be made a supertype of MissingGstPluginException.
- */
-class MissingPluginException: public std::runtime_error {
-public:
-	MissingPluginException(const std::string& msg) :
-		std::runtime_error(msg) {
-	}
-};
 
 /**
  * The client that wants to get access to decoded frame must
@@ -79,47 +60,66 @@ public:
 class VideoDecoder : public AbstractObservable<Buffer<uint8_t>&, VideoFrameDecodedObserver>{
 public:
 	/**
-	 * @param encodingFormat The source format.
+	 * Construct a video decoder with no rescaling nor colorspace transformation.
+	 * @see sfl#VideoDecoder#getDimension
+	 * @see sfl#VideoDecoder#getFrameFormat
+	 * #see sfl#VideoDecoder#setOutputFormat
+	 */
+	VideoDecoder() throw(VideoDecodingException, MissingPluginException) {};
+
+	/**
 	 * @param decodingFormat The output format.
 	 * @throw VideoDecodingException if an error occurs while opening the video decoder.
 	 */
-	VideoDecoder(const VideoFormat& encodingFormat, const VideoFormat& decodingFormat) throw(VideoDecodingException, MissingPluginException);
+	VideoDecoder(const VideoFormat& decodingFormat) throw(VideoDecodingException, MissingPluginException) {};
 
-	/**
-	 * @return encodingFormat The source format.
-	 */
-	const VideoFormat& getEncondingFormat() const;
-
-	/**
-	 * @return decodingFormat The output format.
-	 */
-	const VideoFormat& getDecodingFormat() const;
+	virtual ~VideoDecoder() {};
 
 	/**
 	 * @param buffer A buffer containing the depayloaded data.
 	 * @throw VideoDecodingException if the frame cannot be decoded.
 	 */
-	virtual int decode(Buffer<uint8_t>& buffer)
+	virtual void decode(Buffer<uint8_t>& buffer)
 			throw (VideoDecodingException) = 0;
 
 	/**
 	 * @param buffer A buffer containing the depayloaded data.
 	 * @see sfl#VideoDecoder#decode
 	 */
-	inline int operator()(Buffer<uint8_t>& buffer) throw (VideoDecodingException) {
+	inline void operator()(Buffer<uint8_t>& buffer) throw (VideoDecodingException) {
 		return decode(buffer);
 	}
+
+	/**
+	 * @param decodingFormat The desired output format.
+	 * @postcondition The new output video format will be applied immediately.
+	 * @throw VideoDecodingException if the output format can't be applied.
+	 */
+	virtual void setOutputFormat(const VideoFormat& decodingFormat) throw (VideoDecodingException) = 0;
+
+	/**
+	 * @return decodingFormat The specified output format.
+	 */
+	virtual VideoFormat getOutputFormat() const = 0;
+
+	/**
+	 * @return The output Dimension of the current video stream.
+	 */
+	virtual Dimension getDimension() const = 0;
+
+	/**
+	 * @return A string containing the FOURCC representation of the frame format that is being used.
+	 */
+	virtual std::string getFourcc() const = 0;
 
 protected:
 	/**
 	 * Simple dispatch for the VideoFrameDecodedObserver type.
 	 * @Override
 	 */
-	void notify(VideoFrameDecodedObserver* observer, Buffer<uint8_t>& data);
-
-private:
-	VideoFormat encodedFormat;
-	VideoFormat decodedFormat;
+	void notify(VideoFrameDecodedObserver* observer, Buffer<uint8_t>& data) {
+		observer->onNewFrameDecoded(data);
+	}
 };
 
 }

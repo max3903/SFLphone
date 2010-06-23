@@ -29,19 +29,28 @@
 #ifndef __SFL_H264_GST_DECODER_H__
 #define __SFL_H264_GST_DECODER_H__
 
+#include "util/Buffer.h"
 #include "VideoDecoder.h"
 #include "video/FrameFormat.h"
 
+#include "video/VideoExceptions.h"
+
+#include <queue>
+
+#include <gst/gst.h>
+#include <gst/app/gstappsink.h>
+
 namespace sfl {
+
 /**
  * H264 decode based on Gstreamer's element ffdec_h264.
  */
 class H264GstDecoder: public VideoDecoder {
 public:
-	H264GstDecoder(const VideoFormat& encodingFormat,
-			const VideoFormat& decodingFormat) throw (VideoDecodingException,
-			MissingPluginException);
-	~H264Decoder();
+	H264GstDecoder() throw (VideoDecodingException, MissingPluginException);
+	H264GstDecoder(const VideoFormat& decodingFormat)
+			throw (VideoDecodingException, MissingPluginException);
+	~H264GstDecoder();
 
 	/**
 	 * This call is asynchronous. The data will simply be placed in a queue and
@@ -49,46 +58,59 @@ public:
 	 *
 	 * @Override
 	 */
-	int decode(Buffer<uint8_t>& buffer) throw (VideoDecodingException);
+	void decode(Buffer<uint8_t>& buffer) throw (VideoDecodingException);
+
+	/**
+	 * @Override
+	 */
+	Dimension getDimension() const;
+
+	/**
+	 * @Override
+	 */
+	std::string getFourcc() const;
+
+	/**
+	 * @Override
+	 */
+	VideoFormat getOutputFormat() const;
+
+	/**
+	 * @Override
+	 */
+	void setOutputFormat(const VideoFormat& decodingFormat)
+			throw (VideoDecodingException);
 
 private:
 	/**
-	 * Forward declaration. We don't want to pollute the header with includes.
+	 * Helper method to avoid code duplications with different constructors.
 	 */
-	class GstBus;
-	class GObject;
-	class GMainLoop;
-	class GstElement;
-	class GstMessage;
-	class GParamSpec;
-	typedef int gboolean;
-	typedef void* gpointer;
-	typedef unsigned int guint;
+	void init();
 
 	/**
 	 * Gstreamer callback for messages that are posted on the bus.
 	 */
-	friend static gboolean gstreamer_bus_callback(GstBus* bus, GstMessage* msg,
+	static gboolean onGstreamerBusMessage(GstBus* bus, GstMessage* msg,
 			gpointer data);
 
 	/**
 	 * This function is called when the appsrc is initialized.
 	 */
-	friend static void init_appsrc_callback(GObject* object, GObject* orig,
-			GParamSpec* pspec, gpointer self);
+	static void onAppSrcInit(GObject * object, GObject * orig,
+			GParamSpec * pspec, gpointer self);
 
 	/**
 	 * This signal callback is called when appsrc needs data,
 	 * we add an idle handler to the mainloop to start pushing
 	 * data into the appsrc.
 	 */
-	friend static void start_feed(GstElement* playbin, guint size, gpointer self);
+	static void onStartFeed(GstElement* playbin, guint size, gpointer self);
 
 	/**
 	 * This callback is called when appsrc has enough data and
 	 * we can stop sending. We remove the idle handler from the mainloop.
 	 */
-	friend static void stop_feed(GstElement* playbin, gpointer self);
+	static void onStopFeed(GstElement* playbin, gpointer self);
 
 	/**
 	 * This method is called by the idle GSource in the mainloop.
@@ -97,11 +119,35 @@ private:
 	 * sending data (need-data signal) and is removed when appsrc has enough data
 	 * (enough-data signal).
 	 */
-	friend static gboolean read_data(gpointer self);
+	static gboolean onReadDataFromSource(gpointer self);
+
+	/**
+	 * This method is called when a new buffer becomes available at the sink.
+	 */
+	static GstFlowReturn onNewBuffer(GstAppSink* sink, gpointer self);
+
+	/**
+	 * Pull the buffer out from the decoder and notify the observers.
+	 */
+	void dispatchEvent();
+
+	/**
+	 * Start the pipeline.
+	 */
+	void start() throw (VideoDecodingException);
+
+	/**
+	 * Stop the pipeline.
+	 */
+	void stop() throw (VideoDecodingException);
 
 	GstElement* pipeline;
 	GstElement* appsrc;
+	GstElement* parser;
 	GstElement* decoder;
+	GstElement* ffmpegcolorspace;
+	GstElement* deinterlace;
+	GstElement* videoscale;
 	GstElement* appsink;
 
 	GstBus* bus;
@@ -110,7 +156,6 @@ private:
 
 	std::queue<Buffer<uint8_t> > nalUnits;
 	static const int MAX_BUS_POOL_WAIT = 10;
-
 };
 
 }

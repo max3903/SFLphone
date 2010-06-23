@@ -31,6 +31,8 @@ noinst_HEADERS = \
 	VideoFrame.h \
 	FrameFormat.h \
 	VideoDevice.h \
-	GstVideoDevice.h
+	GstVideoDevice.h \
+	VideoExceptions.h
+	
 					
 
