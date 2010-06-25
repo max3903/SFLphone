@@ -1,6 +1,6 @@
 include $(top_srcdir)/globals.mak
 
-SUBDIRS = decoder depayloader rtp
+SUBDIRS = decoder rtp
 
 AM_CXXFLAGS = $(GSTREAMER_CFLAGS)
 
@@ -17,7 +17,6 @@ libvideo_la_SOURCES = \
 
 libvideo_la_LIBADD = \
 	decoder/libvideodecoder.la \
-	depayloader/libvideodepayloader.la \
 	rtp/libvideortp.la
 
 libvideo_la_LDFLAGS = $(GSTREAMER_LIBS) $(LIBS)
