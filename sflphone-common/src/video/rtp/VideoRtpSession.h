@@ -32,7 +32,7 @@
 #include <map>
 #include <ccrtp/rtp.h>
 
-#include "video/depayloader/VideoDepayloader.h"
+#include "video/decoder/VideoDecoder.h"
 
 #include "util/Observer.h"
 #include "util/AbstractObservable.h"
@@ -52,7 +52,7 @@ class BufferBuilder;
 /**
  * Interface for VideoRtpSession types.
  */
-class VideoRtpSession : public AbstractObservable<Buffer<uint8_t>&, VideoFrameDecodedObserver>, public ost::Thread {
+class VideoRtpSession : public AbstractObservable<Buffer<uint8_t>&, VideoFrameDecodedObserver>, public ost::RTPSession {
 public:
 	/**
 	 * @param mutiCastAddress A multicast address.
@@ -77,25 +77,19 @@ public:
 	void configureFromSdp(const RtpMap& rtpmap, const Fmtp& fmtp);
 
 	/**
-	 * Register a given depayloader and decoder pair for a given MIME media type.
+	 * Register a given decoder and decoder pair for a given MIME media type.
 	 * TODO integrate with the plugin manager.
 	 * @precondition The given decoding unit corresponding to the given MIME type must not be present in the table.
 	 * @postcondition The decoding unit corresponding to the MIME type will be used if appropriate.
 	 */
-	void registerDecoder(const std::string& mime, VideoDepayloader& depayloader, VideoDecoder& decoder);
-
-	/**
-	 * Register a given depayloader for a given MIME media type.
-	 * It is assumed that that depayloader is already configured to send its data to some decoder.
-	 * @see sfl#Depayloader#setDecoder
-	 */
-	void registerDecoder(const std::string& mime, VideoDepayloader& depayloader);
-
+	void registerDecoder(const std::string& mime, VideoDecoder& decoder);
 
 	/**
 	 * @param mime The mime type corresponding to the decoding unit to remove.
 	 */
 	void unregisterDecoder(const std::string mime);
+
+	void listen();
 
 	static const int SCHEDULING_TIMEOUT = 10000;
 	static const int EXPIRE_TIMEOUT = 1000000;
@@ -110,7 +104,7 @@ protected:
 	/**
 	 * @Override
 	 */
-	void run();
+	bool onRTPPacketRecv(ost::IncomingRTPPkt& packet);
 
 private:
 	/**
@@ -121,10 +115,10 @@ private:
 	unsigned clockRate;
 	ost::RTPSession* session;
 	ost::PayloadType payloadType;
-	VideoDepayloader* depayloader;
 
-	std::map<std::string, VideoDepayloader*> decoderTable;
-	typedef std::map<std::string, VideoDepayloader*>::iterator DecoderTableIterator;
+	VideoDecoder* decoder;
+	std::map<std::string, VideoDecoder*> decoderTable;
+	typedef std::map<std::string, VideoDecoder*>::iterator DecoderTableIterator;
 };
 }
 #endif

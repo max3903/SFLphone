@@ -31,115 +31,12 @@
 #include "logger.h"
 
 #include <gst/video/video.h>
-#include <gst/app/gstappsrc.h>
+#include <gst/rtp/gstrtpbuffer.h>
 
 #include <stdint.h>
 #include <string.h>
 
 namespace sfl {
-
- gboolean H264GstDecoder::onGstreamerBusMessage(GstBus *bus, GstMessage *msg,
-		gpointer data) {
-	GMainLoop* loop = (GMainLoop*) data;
-
-	switch (GST_MESSAGE_TYPE(msg)) {
-	case GST_MESSAGE_EOS:
-		 _error("End-of-stream");
-		g_main_loop_quit(loop);
-		break;
-	case GST_MESSAGE_ERROR: {
-		gchar *debug = NULL;
-		GError *err = NULL;
-
-		gst_message_parse_error(msg, &err, &debug);
-
-		_error("Caught Gstreamer error: %s", err->message);
-
-		g_error_free(err);
-
-		if (debug) {
-			_debug("Debug details : %s", debug);
-			g_free(debug);
-		}
-
-		g_main_loop_quit(loop);
-		break;
-	}
-	default:
-		break;
-	}
-
-	return TRUE;
-}
-
- gboolean H264GstDecoder::onReadDataFromSource(gpointer object) {
-	H264GstDecoder* self = (H264GstDecoder*) object;
-
-	// Dequeue some encoded NAL unit
-	if (self->nalUnits.empty()) {
-		_warn("Decoding queue is empty.");
-		return TRUE;
-	}
-
-	Buffer<uint8_t> encodedFrame = self->nalUnits.front();
-	self->nalUnits.pop();
-
-	// Put in a GstBuffer
-	GstBuffer* buffer = gst_buffer_new_and_alloc(encodedFrame.getSize());
-	gst_buffer_set_data(buffer, encodedFrame.getBuffer(), encodedFrame.getSize());
-
-	// Push the buffer down to the decoder
-	GstFlowReturn ret;
-	g_signal_emit_by_name(self->appsrc, "push-buffer", buffer, &ret);
-	gst_buffer_unref(buffer);
-	if (ret != GST_FLOW_OK) {
-		// Some error, stop sending data
-		_error("Some error occured while pushing data to the decoder.");
-		return FALSE;
-	}
-
-	return TRUE;
-}
-
- void H264GstDecoder::onStartFeed(GstElement * playbin, guint size,
-		gpointer object) {
-	H264GstDecoder* self = (H264GstDecoder*) object;
-
-	if (self->sourceid == 0) {
-		_debug("start feeding");
-		self->sourceid = g_idle_add((GSourceFunc) onReadDataFromSource, object);
-	}
-}
-
- void H264GstDecoder::onStopFeed(GstElement * playbin, gpointer object) {
-	H264GstDecoder* self = (H264GstDecoder*) object;
-
-	if (self->sourceid != 0) {
-		_debug("Stop feeding.");
-		g_source_remove(self->sourceid);
-		self->sourceid = 0;
-	}
-}
-
- void H264GstDecoder::onAppSrcInit(GObject * object, GObject * orig,
-		GParamSpec * pspec, gpointer data) {
-	H264GstDecoder* self = (H264GstDecoder*) data;
-
-	// Get a handle to the appsrc
-	g_object_get(orig, pspec->name, &self->appsrc, NULL);
-
-	// configure the appsrc, we will push data into the appsrc from the mainloop.
-	g_signal_connect(self->appsrc, "need-data", G_CALLBACK(onStartFeed), object);
-	g_signal_connect(self->appsrc, "enough-data", G_CALLBACK(onStopFeed), object);
-}
-
-GstFlowReturn H264GstDecoder::onNewBuffer(GstAppSink* sink, gpointer data) {
-	H264GstDecoder* self = (H264GstDecoder*) data;
-
-	self->dispatchEvent();
-
-	return GST_FLOW_OK;
-}
 
 void H264GstDecoder::dispatchEvent() {
 	GstBuffer * buffer = NULL;
@@ -156,39 +53,18 @@ void H264GstDecoder::dispatchEvent() {
 	gst_buffer_unref(buffer);
 }
 
-void H264GstDecoder::start() throw (VideoDecodingException) {
-	GstStateChangeReturn ret = gst_element_set_state(pipeline,
-			GST_STATE_PLAYING);
-	if (ret == GST_STATE_CHANGE_FAILURE) {
-		g_print("Failed to start up pipeline!\n");
+GstFlowReturn H264GstDecoder::onNewBuffer(GstAppSink* sink, gpointer data) {
+	H264GstDecoder* self = (H264GstDecoder*) data;
 
-		// Check if there is an error message with details on the bus
-		std::string errorMessage = "An error occured while starting decoding. ";
-		GstMessage *msg = gst_bus_poll(bus, GST_MESSAGE_ERROR,
-				MAX_BUS_POOL_WAIT);
-		if (msg) {
-			GError *err = NULL;
-			gst_message_parse_error(msg, &err, NULL);
+	_debug("Got buffer at the output");
+	self->dispatchEvent();
 
-			errorMessage = errorMessage + std::string(err->message);
-			g_error_free(err);
-			gst_message_unref(msg);
-		}
-
-		throw VideoDecodingException(errorMessage);
-	}
-
-	g_main_loop_run(loop);
+	return GST_FLOW_OK;
 }
 
-void H264GstDecoder::stop() throw (VideoDecodingException) {
-	gst_element_set_state(pipeline, GST_STATE_NULL);
-	gst_object_unref(pipeline);
-}
-
-void H264GstDecoder::decode(Buffer<uint8_t>& buffer)
-		throw (VideoDecodingException) {
-	nalUnits.push(buffer);
+void H264GstDecoder::onEnoughData(GstAppSrc *src, gpointer user_data)
+{
+	_debug("Appsrc queue has enough data");
 }
 
 Dimension H264GstDecoder::getDimension() const {
@@ -234,15 +110,15 @@ void H264GstDecoder::setOutputFormat(const VideoFormat& outputFormat)
 	gst_app_sink_set_caps(GST_APP_SINK(appsink), caps);
 }
 
-VideoFormat H264GstDecoder::getOutputFormat() const
-{
+VideoFormat H264GstDecoder::getOutputFormat() const {
 	GstPad* pad;
 	if (!(pad = gst_element_get_pad(appsink, "sfl_appsink"))) {
 		throw GstException("Failed to get  pad.");
 	}
 
 	GstCaps* caps = gst_pad_get_caps(pad);
-	const gchar* mime = gst_structure_get_name (gst_caps_get_structure (GST_PAD_CAPS(caps), 0));
+	const gchar* mime = gst_structure_get_name(gst_caps_get_structure(
+			GST_PAD_CAPS(caps), 0));
 
 	VideoFormat format;
 	format.setFourcc(getFourcc());
@@ -255,26 +131,106 @@ VideoFormat H264GstDecoder::getOutputFormat() const
 	return format;
 }
 
+/**
+ * Initialize the Gstreamer pipeline.
+ *
+ * The appsrc element merely does what udpsrc would do. The only
+ * reason for not using it is because we want to keep the security
+ * features that we already have with ccRTP.
+ *
+ * |appsrc| -> |rtph264depay| -> |h264parse| -> |ffdec_h264| ---
+ *                                                                     -> |queue| -> |appsink|
+ *                                                                   /
+ * ----> |ffmpegcolorspace| -> |deinterlace| -> |videoscale| -> |tee|
+ *                                                                   \
+ *                                                                     -> |queue| -> |autovideosink| (debug branch)
+ */
+void H264GstDecoder::stop() throw (VideoDecodingException) {
+	gst_app_src_end_of_stream(GST_APP_SRC(appsrc));
+	gst_element_set_state(pipeline, GST_STATE_NULL);
+	gst_object_unref(pipeline);
+}
+
+void H264GstDecoder::start() throw (VideoDecodingException) {
+	GstStateChangeReturn ret = gst_element_set_state(pipeline,
+			GST_STATE_PLAYING);
+	if (ret == GST_STATE_CHANGE_FAILURE) {
+		g_print("Failed to start up pipeline!\n");
+
+		// Check if there is an error message with details on the bus
+		std::string errorMessage = "An error occured while starting decoding. ";
+		GstBus* bus = gst_element_get_bus(pipeline);
+		GstMessage *msg = gst_bus_poll(bus, GST_MESSAGE_ERROR,
+				MAX_BUS_POOL_WAIT);
+		gst_object_unref(bus);
+
+		if (msg) {
+			GError *err = NULL;
+			gst_message_parse_error(msg, &err, NULL);
+
+			errorMessage = errorMessage + std::string(err->message);
+			g_error_free(err);
+			gst_message_unref(msg);
+		}
+
+		throw VideoDecodingException(errorMessage);
+	}
+
+}
+
+void H264GstDecoder::decode(Buffer<uint8>& data) throw (VideoDecodingException) {
+
+	// Convert the raw decrypted packet to a GstBuffer that can be sent downstream in the pipeline.
+	// TODO Figure out if we can avoid copying the data.
+	GstBuffer* buffer = gst_rtp_buffer_new_copy_data(data.getBuffer(),
+			data.getSize());
+
+	// This function takes ownership of the buffer.
+	// _debug("Pushing buffer in the queue");
+	gst_app_src_push_buffer(GST_APP_SRC(appsrc), buffer);
+}
+
 void H264GstDecoder::init() {
 	gst_init(0, NULL);
-
-	// Create main loop
-	loop = g_main_loop_new(NULL, FALSE);
 
 	// Create pipeline
 	pipeline = gst_pipeline_new("sfl_h264_decoding");
 
-	// Watch for messages on the pipeline's bus
-	bus = gst_pipeline_get_bus(GST_PIPELINE(pipeline));
-	gst_bus_add_watch(bus, onGstreamerBusMessage, loop);
-	gst_object_unref(bus);
-
-	// Create the appsrc, in which we will inject depayloaded but still encoded frames.
+	// Create the appsrc, in which we will inject (unencrypted) rtp packets
 	appsrc = gst_element_factory_make("appsrc", "sfl_appsrc");
 	if (appsrc == NULL) {
 		throw MissingGstPluginException(
 				"Plugin \"appsrc\" could not be found. "
 					"Check your install (you need gst-plugins-base). "
+					"Run gst-inspect to get the list of available plugins");
+	}
+
+	GstAppSrcCallbacks sourceCallbacks;
+	sourceCallbacks.need_data = NULL;
+	sourceCallbacks.enough_data = H264GstDecoder::onEnoughData;
+	sourceCallbacks.seek_data = NULL;
+	gst_app_src_set_callbacks(GST_APP_SRC(appsrc), &sourceCallbacks, this, NULL);
+
+	gst_app_src_set_stream_type(GST_APP_SRC(appsrc), GST_APP_STREAM_TYPE_STREAM);
+	gst_app_src_set_max_bytes(GST_APP_SRC(appsrc), 1000000); // 1Mb
+
+	GstCaps* caps = gst_caps_new_simple("application/x-rtp",
+	  	      "media", G_TYPE_STRING, "video",
+		      "clock-rate", G_TYPE_INT, 90000,
+		      "encoding-name", G_TYPE_STRING, "H264",
+		      "sprop-parameter-sets", G_TYPE_STRING, "\"Z01AFZJUC4S8v/8EavQkIAAAAwAgAAAGQeLF1AA\\=\\,aO48gAA\\=\"",
+		      "payload", G_TYPE_INT, 96,
+			NULL);
+
+	gst_app_src_set_caps(GST_APP_SRC(appsrc), caps);
+	gst_caps_unref (caps);
+
+	// Create the depayloader element
+	depayloader = gst_element_factory_make("rtph264depay", "sfl_depayloader");
+	if (depayloader == NULL) {
+		throw MissingGstPluginException(
+				"Plugin \"rtph264depay\" could not be found. "
+					"Check your install (you need gst-plugins-good). "
 					"Run gst-inspect to get the list of available plugins");
 	}
 
@@ -323,7 +279,29 @@ void H264GstDecoder::init() {
 					"Run gst-inspect to get the list of available plugins");
 	}
 
-	// Create the appsink where decoded frames will be retrieved.
+	// Branch the pipeline. Might become a recording branch in the future.
+	tee = gst_element_factory_make("tee", "sfl_tee");
+	if (tee == NULL) {
+		throw MissingGstPluginException("Plugin \"tee\" could not be found. "
+			"Check your install (you need gst-plugins-base). "
+			"Run gst-inspect to get the list of available plugins");
+	}
+
+	// Debug window branch.
+	displayQueue = gst_element_factory_make("queue", "sfl_display_queue");
+	displayWindow = gst_element_factory_make("autovideosink",
+			"sfl_debug_window");
+	if (displayWindow == NULL) {
+		throw MissingGstPluginException("Plugin \"tee\" could not be found. "
+			"Check your install (you need gst-plugins-base). "
+			"Run gst-inspect to get the list of available plugins");
+	}
+
+	gst_element_link(tee, displayQueue);
+	gst_element_link(displayQueue, displayWindow);
+
+	// Appsink branch. This might be replaced by v4lsink.
+	appsinkQueue = gst_element_factory_make("queue", "sfl_appsink_queue");
 	appsink = gst_element_factory_make("appsink", "sfl_appsink");
 	if (appsink == NULL) {
 		throw MissingGstPluginException(
@@ -332,32 +310,33 @@ void H264GstDecoder::init() {
 					"Run gst-inspect to get the list of available plugins");
 	}
 
+	gst_element_link(tee, appsinkQueue);
+	gst_element_link(appsinkQueue, appsink);
+
 	// Add everything to the pipeline.
-	gst_bin_add_many(GST_BIN(pipeline), appsrc, parser, decoder,
-			ffmpegcolorspace, deinterlace, videoscale, appsink, NULL);
+	gst_bin_add_many(GST_BIN(pipeline), appsrc, depayloader, parser, decoder,
+			ffmpegcolorspace, deinterlace, videoscale, tee, displayQueue,
+			appsinkQueue, displayWindow, appsink, NULL);
 
 	// Link all elements together
-	if (gst_element_link_many(appsrc, parser, decoder, ffmpegcolorspace,
-			deinterlace, videoscale, appsink, NULL) == FALSE) {
+	if (gst_element_link_many(appsrc, depayloader, parser, decoder,
+			ffmpegcolorspace, deinterlace, videoscale, tee, NULL) == FALSE) {
 		throw VideoDecodingException("Failed to link one or more elements.");
 	}
 
 	// Configure callbacks for the appsink
-	GstAppSinkCallbacks callbacks;
-	callbacks.eos = NULL;
-	callbacks.new_preroll = NULL;
-	callbacks.new_buffer = H264GstDecoder::onNewBuffer;
-	callbacks.new_buffer_list = NULL;
-	gst_app_sink_set_callbacks(GST_APP_SINK(appsink), &callbacks, this, NULL);
-
-	// Connect signal. Called when the appsrc is created.
-	g_signal_connect(GST_BIN(pipeline), "deep-notify::source",
-			(GCallback) onAppSrcInit, this);
+	GstAppSinkCallbacks sinkCallbacks;
+	sinkCallbacks.eos = NULL;
+	sinkCallbacks.new_preroll = NULL;
+	sinkCallbacks.new_buffer = H264GstDecoder::onNewBuffer;
+	sinkCallbacks.new_buffer_list = NULL;
+	gst_app_sink_set_callbacks(GST_APP_SINK(appsink), &sinkCallbacks, this, NULL);
 }
 
 H264GstDecoder::H264GstDecoder() throw (VideoDecodingException,
 		MissingPluginException) :
 	VideoDecoder() {
+	_debug("Initializing Decoder ...");
 	init();
 	start();
 }
@@ -370,7 +349,7 @@ H264GstDecoder::H264GstDecoder(const VideoFormat& outputFormat)
 	start();
 }
 
-H264GstDecoder::~H264GstDecoder(){
+H264GstDecoder::~H264GstDecoder() {
 	stop();
 }
 

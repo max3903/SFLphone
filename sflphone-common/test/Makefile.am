@@ -2,8 +2,8 @@ include ../globals.mak
 
 check_PROGRAMS = test
 
-test_CXXFLAGS = $(CPPUNIT_CFLAGS) $(GSTREAMER_CFLAGS) $(LIBAVCODEC_CFLAGS) $(LIBSWSCALE_CFLAGS)
-test_LDADD = $(LLIBS)
+test_CXXFLAGS = $(CPPUNIT_CFLAGS) $(GSTREAMER_CFLAGS)
+test_LDADD = $(LLIBS) $(GSTREAMER_LIBS)
 
 test_SOURCES = \
 	main.cpp \

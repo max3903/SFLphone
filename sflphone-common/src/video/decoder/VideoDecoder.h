@@ -79,16 +79,8 @@ public:
 	 * @param buffer A buffer containing the depayloaded data.
 	 * @throw VideoDecodingException if the frame cannot be decoded.
 	 */
-	virtual void decode(Buffer<uint8_t>& buffer)
+	virtual void decode(Buffer<uint8>& data)
 			throw (VideoDecodingException) = 0;
-
-	/**
-	 * @param buffer A buffer containing the depayloaded data.
-	 * @see sfl#VideoDecoder#decode
-	 */
-	inline void operator()(Buffer<uint8_t>& buffer) throw (VideoDecodingException) {
-		return decode(buffer);
-	}
 
 	/**
 	 * @param decodingFormat The desired output format.

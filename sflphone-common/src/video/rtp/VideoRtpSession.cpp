@@ -32,27 +32,23 @@
 #include <stdlib.h>
 
 namespace sfl {
-VideoRtpSession::VideoRtpSession(ost::InetMcastAddress& ima, ost::tpport_t port)
+VideoRtpSession::VideoRtpSession(ost::InetMcastAddress& ima, ost::tpport_t port) : ost::RTPSession(ima, port)
 {
-	session = new ost::RTPSession(ima, port);
 	init();
 }
 
-VideoRtpSession::VideoRtpSession(ost::InetHostAddress& ia, ost::tpport_t port)
+VideoRtpSession::VideoRtpSession(ost::InetHostAddress& ia, ost::tpport_t port) : ost::RTPSession(ia, port)
 {
-	session = new ost::RTPSession(ia, port);
 	init();
 }
 
 VideoRtpSession::~VideoRtpSession()
 {
-	terminate();
 	_warn("VideoRtpSession has terminated");
 }
 
 void VideoRtpSession::init()
 {
-	setCancel(cancelDeferred);
 }
 
 void VideoRtpSession::configureFromSdp(const RtpMap& rtpmap, const Fmtp& fmtp) {
@@ -63,7 +59,11 @@ void VideoRtpSession::configureFromSdp(const RtpMap& rtpmap, const Fmtp& fmtp) {
 				+ std::string("\"is not a registered codec.");
 		throw MissingPluginException(msg);
 	}
-	depayloader = (*it).second;
+
+	std::cout << "Configuring from SDP ... " << std::endl;
+
+	_debug("Video decoder set to %s", ((*it).first).c_str());
+	decoder = (*it).second;
 
 	// Configure additional information.
 	clockRate = rtpmap.getClockRate();
@@ -71,20 +71,25 @@ void VideoRtpSession::configureFromSdp(const RtpMap& rtpmap, const Fmtp& fmtp) {
 }
 
 void VideoRtpSession::registerDecoder(const std::string& mime,
-		VideoDepayloader& depayloader) {
-	decoderTable.insert(std::pair<std::string, VideoDepayloader*>(mime,
-			&depayloader));
-}
-
-void VideoRtpSession::registerDecoder(const std::string& mime,
-		VideoDepayloader& depayloader, VideoDecoder& decoder) {
-	depayloader.setDecoder(decoder);
-	registerDecoder(mime, depayloader);
+		VideoDecoder& decoder) {
+	_debug("Codec %s registered", mime.c_str());
+	decoderTable.insert(std::pair<std::string, VideoDecoder*>(mime,
+			&decoder));
 }
 
 void VideoRtpSession::unregisterDecoder(const std::string mime) {
+	_debug("Codec %s unregistered", mime.c_str());
 	DecoderTableIterator it = decoderTable.find(mime);
 	decoderTable.erase(it);
+}
+
+bool VideoRtpSession::onRTPPacketRecv(ost::IncomingRTPPkt& packet) {
+	unsigned char* rawData = const_cast<unsigned char*>(packet.getRawPacket()); // FIXME Dangerous, but needed.
+	uint32 rawSize = packet.getRawPacketSize();
+
+	Buffer<uint8> buffer(rawData, rawSize);
+	decoder->decode(buffer);
+	return true;
 }
 
 /**
@@ -95,18 +100,17 @@ void VideoRtpSession::unregisterDecoder(const std::string mime) {
  * till we get the markbit. Once we have it, we pass the whole buffer to
  * the decoder.
  */
-void VideoRtpSession::run() {
-	session->setPayloadFormat(ost::DynamicPayloadFormat(payloadType, clockRate)); // FIXME this is specific to h264.
-	session->setSchedulingTimeout(SCHEDULING_TIMEOUT);
-	session->setExpireTimeout(EXPIRE_TIMEOUT);
-	session->startRunning();
+void VideoRtpSession::listen() {
+	setPayloadFormat(ost::DynamicPayloadFormat(payloadType, clockRate)); // FIXME this is specific to h264.
+	setSchedulingTimeout(SCHEDULING_TIMEOUT);
+	setExpireTimeout(EXPIRE_TIMEOUT);
+	startRunning();
 
 	while (!testCancel()) {
 		const ost::AppDataUnit* adu;
-		while ((adu = session->getData(session->getFirstTimestamp()))) {
-			depayloader->process(adu);
+		while ((adu = getData(getFirstTimestamp()))) {
+			// depayloader->process(adu);
 		}
-
 		yield();
 	}
 }

@@ -222,22 +222,9 @@
 	AC_SUBST(ZRTPCPP_CFLAGS)
 
 	dnl GStreamer Support
-  	PKG_CHECK_MODULES(GSTREAMER, [gstreamer-plugins-base-0.10 >= 0.10.21.3 gstreamer-interfaces-0.10])
+  	PKG_CHECK_MODULES(GSTREAMER, [gstreamer-plugins-base-0.10 gstreamer-interfaces-0.10  gstreamer-app-0.10 gstreamer-video-0.10 gstreamer-rtp-0.10])
   	AC_SUBST(GSTREAMER_CFLAGS)
-  	GSTREAMER_LIBS="$GSTREAMER_LIBS -lgstapp-0.10"  	
   	AC_SUBST(GSTREAMER_LIBS)
-
-	dnl libavcodec
-	LIBAVCODEC_MIN_VERSION=50.0.0
-	PKG_CHECK_MODULES(LIBAVCODEC, libavutil libavformat libavcodec >= ${LIBAVCODEC_MIN_VERSION})
-	AC_SUBST(LIBAVCODEC_LIBS)
-	AC_SUBST(LIBAVCODEC_CFLAGS)
-	
-	dnl libswscale
-	LIBSWSCALE_MIN_VERSION=0.7.1
-	PKG_CHECK_MODULES(LIBSWSCALE, libswscale >= ${LIBSWSCALE_MIN_VERSION})
-	AC_SUBST(LIBSWSCALE_LIBS)
-	AC_SUBST(LIBSWSCALE_CFLAGS)
 	
 	dnl DBus-C++ detection (used to be in library own build system)
 	DBUS_REQUIRED_VERSION=0.60

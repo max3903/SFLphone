@@ -38,6 +38,7 @@
 #include <queue>
 
 #include <gst/gst.h>
+#include <gst/app/gstappsrc.h>
 #include <gst/app/gstappsink.h>
 
 namespace sfl {
@@ -58,7 +59,7 @@ public:
 	 *
 	 * @Override
 	 */
-	void decode(Buffer<uint8_t>& buffer) throw (VideoDecodingException);
+	void decode(Buffer<uint8>& buffer) throw (VideoDecodingException);
 
 	/**
 	 * @Override
@@ -88,38 +89,9 @@ private:
 	void init();
 
 	/**
-	 * Gstreamer callback for messages that are posted on the bus.
+	 * This signal callback is called when the internal queue in appsrc is full.
 	 */
-	static gboolean onGstreamerBusMessage(GstBus* bus, GstMessage* msg,
-			gpointer data);
-
-	/**
-	 * This function is called when the appsrc is initialized.
-	 */
-	static void onAppSrcInit(GObject * object, GObject * orig,
-			GParamSpec * pspec, gpointer self);
-
-	/**
-	 * This signal callback is called when appsrc needs data,
-	 * we add an idle handler to the mainloop to start pushing
-	 * data into the appsrc.
-	 */
-	static void onStartFeed(GstElement* playbin, guint size, gpointer self);
-
-	/**
-	 * This callback is called when appsrc has enough data and
-	 * we can stop sending. We remove the idle handler from the mainloop.
-	 */
-	static void onStopFeed(GstElement* playbin, gpointer self);
-
-	/**
-	 * This method is called by the idle GSource in the mainloop.
-	 *
-	 * The idle handler is added to the mainloop when appsrc requests us to start
-	 * sending data (need-data signal) and is removed when appsrc has enough data
-	 * (enough-data signal).
-	 */
-	static gboolean onReadDataFromSource(gpointer self);
+	static void onEnoughData(GstAppSrc *src, gpointer user_data);
 
 	/**
 	 * This method is called when a new buffer becomes available at the sink.
@@ -143,18 +115,18 @@ private:
 
 	GstElement* pipeline;
 	GstElement* appsrc;
+	GstElement* depayloader;
 	GstElement* parser;
 	GstElement* decoder;
 	GstElement* ffmpegcolorspace;
 	GstElement* deinterlace;
 	GstElement* videoscale;
+	GstElement* tee;
+	GstElement* displayQueue;
+	GstElement* displayWindow;
+	GstElement* appsinkQueue;
 	GstElement* appsink;
 
-	GstBus* bus;
-	guint sourceid;
-	GMainLoop* loop;
-
-	std::queue<Buffer<uint8_t> > nalUnits;
 	static const int MAX_BUS_POOL_WAIT = 10;
 };
 
