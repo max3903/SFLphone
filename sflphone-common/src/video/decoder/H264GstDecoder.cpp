@@ -218,7 +218,7 @@ void H264GstDecoder::init() {
 	  	      "media", G_TYPE_STRING, "video",
 		      "clock-rate", G_TYPE_INT, 90000,
 		      "encoding-name", G_TYPE_STRING, "H264",
-		      "sprop-parameter-sets", G_TYPE_STRING, "\"Z01AFZJUC4S8v/8EavQkIAAAAwAgAAAGQeLF1AA\\=\\,aO48gAA\\=\"",
+		      //"sprop-parameter-sets", G_TYPE_STRING, "\"Z01AFZJUC4S8v/8EavQkIAAAAwAgAAAGQeLF1AA\\=\\,aO48gAA\\=\"",
 		      "payload", G_TYPE_INT, 96,
 			NULL);
 
@@ -319,8 +319,13 @@ void H264GstDecoder::init() {
 			appsinkQueue, displayWindow, appsink, NULL);
 
 	// Link all elements together
+//	if (gst_element_link_many(appsrc, depayloader, parser, decoder,
+//			ffmpegcolorspace, deinterlace, videoscale, tee, NULL) == FALSE) {
+//		throw VideoDecodingException("Failed to link one or more elements.");
+//	}
+
 	if (gst_element_link_many(appsrc, depayloader, parser, decoder,
-			ffmpegcolorspace, deinterlace, videoscale, tee, NULL) == FALSE) {
+			ffmpegcolorspace, deinterlace, videoscale, displayWindow, NULL) == FALSE) {
 		throw VideoDecodingException("Failed to link one or more elements.");
 	}
 
