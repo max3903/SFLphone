@@ -10,7 +10,7 @@
 #include <stdint.h>
 
 #include <video/VideoEndpoint.h>
-#include <video/VideoInputSourceGst.h>
+#include <video/source/VideoInputSourceGst.h>
 
 class VideoEndpointTest: public CppUnit::TestFixture
 {

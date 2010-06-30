@@ -9,7 +9,7 @@
 #include <assert.h>
 #include <stdint.h>
 
-#include "util/SemaphorePosix.h"
+#include "util/ipc/SemaphorePosix.h"
 
 class SemaphorePosixTest: public CppUnit::TestFixture
 {

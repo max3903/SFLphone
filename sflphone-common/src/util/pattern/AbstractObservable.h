@@ -56,6 +56,25 @@ public:
 	/**
 	 * @Override
 	 */
+	void clearObservers() {
+		observers.erase(observers.begin(), observers.end());
+	}
+
+	/**
+	 * @Override
+	 */
+	bool isObserver(ObserverType* observer) {
+		if (std::find(observers.begin(), observers.end(), observer) != observers.end()) {
+			return true;
+		}
+
+		return false;
+	}
+
+
+	/**
+	 * @Override
+	 */
 	void notifyAll(PushedDataType data) {
 		typename std::vector<ObserverType*>::iterator it;
 		for (it = observers.begin(); it < observers.end(); it++) {

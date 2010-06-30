@@ -49,6 +49,17 @@ public:
 	virtual void removeObserver(ObserverType* observer) = 0;
 
 	/**
+	 * @postcondition The observer list will be empty.
+	 */
+	virtual void clearObservers() = 0;
+
+	/**
+	 * @param observer The observer to check for.
+	 * @return true if the given observer is currently registered on this subject.
+	 */
+	virtual bool isObserver(ObserverType* observer) = 0;
+
+	/**
 	 * @param data The data to be pushed to the observers.
 	 */
 	virtual void notifyAll(PushedDataType data) = 0;

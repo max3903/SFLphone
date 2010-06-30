@@ -1,4 +1,4 @@
-#include "H264DepayloaderTest.h"
+#include "H264DecoderTest.h"
 
 #include "video/decoder/H264GstDecoder.h"
 #include "video/rtp/VideoRtpSession.h"
@@ -7,7 +7,7 @@
 
 #include <ccrtp/rtp.h>
 
-void H264DepayloaderTest::setUp() {
+void H264DecoderTest::setUp() {
 	std::cout << "Setting up..." << std::endl;
 
 	if (system("./server.sh >> /dev/null &") < 0) {
@@ -17,7 +17,7 @@ void H264DepayloaderTest::setUp() {
 	sleep(2);
 }
 
-void H264DepayloaderTest::tearDown() {
+void H264DecoderTest::tearDown() {
 	std::cout << "Tearing down..." << std::endl;
 
 	if (system("killall gst-launch-0.10") < 0) {
@@ -25,7 +25,7 @@ void H264DepayloaderTest::tearDown() {
 	}
 }
 
-void H264DepayloaderTest::testReceive()
+void H264DecoderTest::testReceive()
 {
 	std::cout << "Trying to decode frames ... " << std::endl;
 

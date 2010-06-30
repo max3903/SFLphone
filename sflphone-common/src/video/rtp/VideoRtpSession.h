@@ -33,9 +33,10 @@
 #include <ccrtp/rtp.h>
 
 #include "video/decoder/VideoDecoder.h"
+#include "video/encoder/VideoEncoder.h"
 
-#include "util/Observer.h"
-#include "util/AbstractObservable.h"
+#include "util/pattern/Observer.h"
+#include "util/pattern/AbstractObservable.h"
 
 #include "sip/sdp/Fmtp.h"
 #include "sip/sdp/RtpMap.h"
@@ -73,11 +74,29 @@ public:
 	 * the SDP "a=rtpmap" and "a=fmtp" attributes.
 	 * @param rtpmap The Rtmap object object holding the information of a "a=rtpmap" line of SDP.
 	 * @param fmtp The Fmtp object holding the information of a "a=fmtp" line of SDP for some corresponding "a=rtpmap".
+	 * @throw MissingPluginException if either the decoder, the encoder, or both are missing.
 	 */
-	void configureFromSdp(const RtpMap& rtpmap, const Fmtp& fmtp);
+	void configureFromSdp(const RtpMap& rtpmap, const Fmtp& fmtp) throw(MissingPluginException);
 
 	/**
-	 * Register a given decoder and decoder pair for a given MIME media type.
+	 * Register an encoder + decoder pair.
+	 * @param mime The mime type corresponding to the codec.
+	 * @param encoder The encoder object that will be fed with video frames and produce RTP packets stream.
+	 * @param decoder The decoder object that will take the raw RTP packets and produce a video stream.
+	 * @see sfl#VideoRtpSession#registerEncoder
+	 * @see sfl#VideoRtpSession#registerDecoder
+	 */
+	void registerCodec(const std::string& mime, VideoEncoder& encoder, VideoDecoder& decoder);
+
+	/**
+	 * @param mime The mime type corresponding to the decoding unit to remove.
+	 * @see sfl#VideoRtpSession#unregisterEncoder
+	 * @see sfl#VideoRtpSession#unregisterDecoder
+	 */
+	void unregisterCodec(const std::string& mime);
+
+	/**
+	 * Register a given decoder for a given MIME media type.
 	 * TODO integrate with the plugin manager.
 	 * @precondition The given decoding unit corresponding to the given MIME type must not be present in the table.
 	 * @postcondition The decoding unit corresponding to the MIME type will be used if appropriate.
@@ -88,6 +107,19 @@ public:
 	 * @param mime The mime type corresponding to the decoding unit to remove.
 	 */
 	void unregisterDecoder(const std::string mime);
+
+	/**
+	 * Register a given encoder for a given MIME media type.
+	 * TODO integrate with the plugin manager.
+	 * @precondition The given encoding unit corresponding to the given MIME type must not be present in the table.
+	 * @postcondition The encoding unit corresponding to the MIME type will be used if appropriate.
+	 */
+	void registerEncoder(const std::string& mime, VideoEncoder& decoder);
+
+	/**
+	 * @param mime The mime type corresponding to the encoding unit to remove.
+	 */
+	void unregisterEncoder(const std::string mime);
 
 	void listen();
 
@@ -112,6 +144,38 @@ private:
 	 */
 	void init();
 
+	/**
+	 * @param mime The mime type corresponding to the decoder.
+	 * @return A registered decoder for the given mime type.
+	 */
+	VideoDecoder* getDecoder(const std::string& mime) throw(MissingPluginException);
+
+	/**
+	 * @param mime The mime type corresponding to the encoder.
+	 * @return A registered encoder for the given mime type.
+	 */
+	VideoEncoder* getEncoder(const std::string& mime) throw(MissingPluginException);
+
+	/**
+	 * Replace the old codec with the new one.
+	 * @param encoderNew The new encoder to use instead of the current one.
+	 * @param decoderNew The new decoder to use instead of the current one.
+	 */
+	void replaceCodec(VideoEncoder* encoderNew, VideoDecoder* decoderNew) throw(MissingPluginException);
+
+	/**
+	 * Observer for NAL units produced by the encoder.
+	 */
+	class EncoderObserver : public VideoFrameEncodedObserver {
+	public:
+		EncoderObserver(VideoRtpSession* session) : parent(session) {}
+		VideoRtpSession* parent;
+		void onNewFrameEncoded(std::pair<uint32, Buffer<uint8> >& data) {
+			parent->putData(data.first /* timestamp */, (data.second).getBuffer() /* payload */, (data.second).getSize() /* payload size */);
+		}
+	};
+	EncoderObserver* encoderObserver;
+
 	unsigned clockRate;
 	ost::RTPSession* session;
 	ost::PayloadType payloadType;
@@ -119,6 +183,10 @@ private:
 	VideoDecoder* decoder;
 	std::map<std::string, VideoDecoder*> decoderTable;
 	typedef std::map<std::string, VideoDecoder*>::iterator DecoderTableIterator;
+
+	VideoEncoder* encoder;
+	std::map<std::string, VideoEncoder*> encoderTable;
+	typedef std::map<std::string, VideoEncoder*>::iterator EncoderTableIterator;
 };
 }
 #endif

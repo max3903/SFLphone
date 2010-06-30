@@ -10,9 +10,9 @@
 #include <stdint.h>
 #include <iostream>
 
-class H264DepayloaderTest: public CppUnit::TestFixture {
-CPPUNIT_TEST_SUITE( H264DepayloaderTest );
-	CPPUNIT_TEST( testReceive );
+class H264EncoderTest: public CppUnit::TestFixture {
+CPPUNIT_TEST_SUITE( H264EncoderTest );
+	CPPUNIT_TEST( testSend );
 CPPUNIT_TEST_SUITE_END();
 
 public:
@@ -26,12 +26,12 @@ public:
 	void tearDown();
 
 	/**
-	 * Try to receive frames from a gstreamer source (script).
+	 * Try to receive frames from a Gstreamer source (script).
 	 */
-	void testReceive();
+	void testSend();
 };
 /* Register our test module */
-CPPUNIT_TEST_SUITE_NAMED_REGISTRATION(H264DepayloaderTest, "H264DepayloaderTest");
-CPPUNIT_TEST_SUITE_REGISTRATION( H264DepayloaderTest );
+CPPUNIT_TEST_SUITE_NAMED_REGISTRATION(H264EncoderTest, "H264EncoderTest");
+CPPUNIT_TEST_SUITE_REGISTRATION( H264EncoderTest );
 
 #endif

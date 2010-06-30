@@ -1,0 +1,53 @@
+#include "H264EncoderTest.h"
+
+#include "sip/sdp/RtpMap.h"
+#include "sip/sdp/Fmtp.h"
+
+#include "video/rtp/VideoRtpSession.h"
+#include "video/encoder/H264GstEncoder.h"
+#include "video/decoder/H264GstDecoder.h"
+#include "video/source/VideoInputSourceGst.h"
+
+#include <ccrtp/rtp.h>
+
+void H264EncoderTest::setUp() {
+	std::cout << "Setting up..." << std::endl;
+}
+
+void H264EncoderTest::tearDown() {
+	std::cout << "Tearing down..." << std::endl;
+}
+
+void H264EncoderTest::testSend()
+{
+	std::cout << "Testing encoding and network transmission ... " << std::endl;
+
+	// Create a video source from which we will encode
+	sfl::VideoInputSourceGst source;
+
+	// Pick the first device
+	source.setDevice();
+
+	// Create a video session
+	ost::InetHostAddress address("127.0.0.1");
+	sfl::VideoRtpSession* session = new sfl::VideoRtpSession(address, (ost::tpport_t) 5000);
+
+	// Register supported codecs for this session.
+	sfl::H264GstDecoder decoder;
+	sfl::H264GstEncoder encoder(source);
+	session->registerCodec("H264", encoder, decoder);
+
+	// Simulate the arrival of an SDP offer
+	// At that point, the correct codec should be loaded and activated.
+	// Video frames would flow in the encoder and get sent to the remote peer.
+	sfl::RtpMap rtpmap("98", "H264", 9000, "");
+	sfl::Fmtp fmtp("98", "profile-level-id=42A01E; packetization-mode=0; sprop-parameter-sets=Z0IACpZTBYmI,aMljiA==");
+	session->configureFromSdp(rtpmap, fmtp);
+
+	// Receive data
+	session->listen();
+
+	sleep(3);
+
+	delete session;
+}

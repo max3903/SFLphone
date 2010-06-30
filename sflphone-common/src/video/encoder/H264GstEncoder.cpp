@@ -49,15 +49,16 @@ H264GstEncoder::H264GstEncoder(VideoInputSource& source)
 			NULL);
 
 	// Create the encoding portion
-	GstElement* encoder = gst_element_factory_make("ffmpegcolorspace", "sfl_encoder_csp");
+	GstElement* colospace = gst_element_factory_make("ffmpegcolorspace", "sfl_encoder_csp");
 	GstElement* videoscale = gst_element_factory_make("videoscale", "sfl_encoder_scale");
+	GstElement* encoder = gst_element_factory_make("h264enc", "sfl_encoder_enc");
 	GstElement* payloader = gst_element_factory_make("h264pay", "sfl_encoder_pay");
 
 	// Add the elements in bin
-	gst_bin_add_many(GST_BIN(gstPipeline), encoder, videoscale, payloader, NULL);
+	gst_bin_add_many(GST_BIN(gstPipeline), colospace, videoscale, encoder, payloader, NULL);
 
 	// Link elements together
-	if (gst_element_link_many(encoder, videoscale, payloader, NULL) == FALSE) {
+	if (gst_element_link_many(colospace, videoscale, encoder, payloader, NULL) == FALSE) {
 		throw VideoDecodingException("Failed to link one or more elements.");
 	}
 
@@ -67,13 +68,10 @@ H264GstEncoder::H264GstEncoder(VideoInputSource& source)
 	retrievableEnd = new RetrievablePipeline(pipeline);
 	retrievableEnd->addObserver(outputObserver);
 	injectableEnd = new InjectablePipeline(*retrievableEnd, sourceCaps);
-
-	pipeline.start();
 }
 
 H264GstEncoder::~H264GstEncoder() {
-	retrievableEnd->removeObserver(outputObserver);
-	retrievableEnd->stop(); // Acts on the pipeline as a whole.
+	deactivate();
 
 	delete retrievableEnd;
 	delete injectableEnd;
@@ -82,6 +80,16 @@ H264GstEncoder::~H264GstEncoder() {
 void H264GstEncoder::encode(const VideoFrame* frame) throw (VideoEncodingException) {
 	GstBuffer* buffer;
 	injectableEnd->inject(buffer);
+}
+
+void H264GstEncoder::activate() {
+	retrievableEnd->start();
+}
+
+void H264GstEncoder::deactivate() {
+	clearObservers();
+	retrievableEnd->removeObserver(outputObserver);
+	retrievableEnd->stop();
 }
 
 }

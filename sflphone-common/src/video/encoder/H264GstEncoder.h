@@ -35,6 +35,7 @@
 #include "util/gstreamer/RetrievablePipeline.h"
 #include "video/encoder/VideoEncoder.h"
 
+#include <gst/rtp/gstrtpbuffer.h>
 
 namespace sfl {
 
@@ -56,9 +57,14 @@ public:
 	void encode(const VideoFrame* frame) throw(VideoEncodingException);
 
 	/**
-	 * @param pipeline The pipeline object containing the GstElement representing the actual Gstreamer Pipeline.
+	 * @Override
 	 */
-	void setPipeline(Pipeline* pipeline);
+	void activate();
+
+	/**
+	 * @Override
+	 */
+	void deactivate();
 
 private:
 	InjectablePipeline* injectableEnd;
@@ -76,10 +82,13 @@ private:
 		 * @Override
 		 */
 		void onNewBuffer(GstBuffer* buffer) {
-			uint8* data = GST_BUFFER_DATA(buffer);
-			uint size = GST_BUFFER_SIZE(buffer);
-			Buffer<uint8> nalUnit(data, size);
+			GstBuffer* payload = gst_rtp_buffer_get_payload_buffer(buffer);
+			uint32 timestamp = gst_rtp_buffer_get_timestamp(buffer);
 
+			uint8* payloadData = GST_BUFFER_DATA(payload);
+			uint payloadSize = GST_BUFFER_SIZE(payload);
+
+			std::pair<uint32, Buffer<uint8> > nalUnit(timestamp, Buffer<uint8>(payloadData, payloadSize));
 			parent->notifyAll(nalUnit);
 		}
 	};

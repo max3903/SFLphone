@@ -9,8 +9,8 @@
 #include <assert.h>
 #include <stdint.h>
 
-#include "video/VideoInputSource.h"
-#include "video/VideoInputSourceGst.h"
+#include "video/source/VideoInputSource.h"
+#include "video/source/VideoInputSourceGst.h"
 
 class VideoCaptureTest: public CppUnit::TestFixture 
 {

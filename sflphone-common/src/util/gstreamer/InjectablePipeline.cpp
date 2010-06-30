@@ -34,8 +34,7 @@
 
 namespace sfl {
 
-unsigned int InjectablePipeline::numberInstances = 0;
-unsigned MAX_QUEUE_SIZE = 1000000;
+unsigned InjectablePipeline::numberInstances = 0;
 
 void InjectablePipeline::onEnoughData() {
 	_debug("Appsrc queue has enough data");

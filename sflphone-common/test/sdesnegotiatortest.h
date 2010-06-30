@@ -51,7 +51,7 @@
 
 // Application import
 #include "sip/sdp/SdesNegotiator.h"
-#include "util/Pattern.h"
+#include "util/regex/Pattern.h"
 
 
 /*

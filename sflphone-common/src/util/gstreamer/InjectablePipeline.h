@@ -100,7 +100,7 @@ public:
 	/**
 	 * The maximum default amount of bytes that can be queued at the source.
 	 */
-	static const unsigned MAX_QUEUE_SIZE;
+	static const size_t MAX_QUEUE_SIZE = 1000000;
 
 protected:
 	/**

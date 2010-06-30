@@ -58,7 +58,7 @@ public:
 	 * @param caps The caps that this source should have.
 	 * @precondition The "pipeline" argument must be existing.
 	 */
-	RetrievablePipeline(GstCaps* caps, Pipeline& from);
+	RetrievablePipeline(Pipeline& from, GstCaps* caps);
 
 	/**
 	 * @param from Part of the pipeline in which the data will flow through from the previous elements.
@@ -66,7 +66,7 @@ public:
 	 * @param maxBuffers The number of buffers that can be queued at the sink.
 	 * @precondition The "pipeline" argument must be existing.
 	 */
-	RetrievablePipeline(GstCaps* caps, Pipeline& from, uint maxBuffers);
+	RetrievablePipeline(Pipeline& from, GstCaps* caps, uint maxBuffers);
 
 protected:
 	/**

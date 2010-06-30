@@ -48,38 +48,19 @@ public:
 	 * @param frame The new frame, or NAL unit, that was encoded. The implementer will
 	 * then use this data and send it over the network.
 	 */
-	virtual void onNewFrameEncoded(Buffer<uint8_t>& data) = 0;
+	virtual void onNewFrameEncoded(std::pair<uint32, Buffer<uint8> >& data) = 0;
 };
 
 /**
  * Abstract base class for every video encoder.
  */
-class VideoEncoder : public AbstractObservable<Buffer<uint8_t>&, VideoFrameEncodedObserver> {
+class VideoEncoder : public AbstractObservable<std::pair<uint32, Buffer<uint8> >&, VideoFrameEncodedObserver> {
 public:
 	/**
 	 * @param source The video source from which to capture data from.
 	 * @throw VideoEncodingException if an error occurs while opening the video decoder.
 	 */
-	VideoEncoder(VideoInputSource& videoSource) throw(VideoEncodingException, MissingPluginException) : source(videoSource) {
-		/**
-		 * Used internally to get notified when a new frame becomes available for encoding.
-		 */
-		class SourceObserver : public VideoFrameObserver {
-		public:
-			SourceObserver(VideoEncoder* parent) : parent(parent) {};
-			VideoEncoder* parent;
-
-			/**
-			 * @Override
-			 */
-			void onNewFrame(const VideoFrame* frame) {
-				parent->encode(frame);
-			}
-
-		};
-
-		source.addVideoFrameObserver(new SourceObserver(this));
-	};
+	VideoEncoder(VideoInputSource& videoSource) throw(VideoEncodingException, MissingPluginException) : source(videoSource) {};
 
 	~VideoEncoder() {
 		// source.removeVideoFrameObserver(&sourceObserver);
@@ -95,14 +76,50 @@ public:
 
 private:
 	/**
+	 * Used internally to get notified when a new frame becomes available for encoding.
+	 */
+	class SourceObserver : public VideoFrameObserver {
+	public:
+		SourceObserver(VideoEncoder* parent) : parent(parent) {};
+		VideoEncoder* parent;
+
+		/**
+		 * @Override
+		 */
+		void onNewFrame(const VideoFrame* frame) {
+			parent->encode(frame);
+		}
+
+	};
+
+public:
+	/**
+	 * Activate the encoder. Must be overriden by the implementer.
+	 * @postcondition If a source has been specified and is capturing, then the data will get processed and be emitted by the encoder.
+	 */
+	void activate() {
+		videoSourceObserver = new SourceObserver(this);
+		source.addVideoFrameObserver(videoSourceObserver);
+	}
+
+	/**
+	 * Deactivate the encoder
+	 * @postcondition No more frame will get processed nor data emitted from that moment on. All observers will be flushed.
+	 */
+	void deactivate() {
+		source.removeVideoFrameObserver(videoSourceObserver);
+	}
+
+private:
+	/**
 	 * Simple dispatch for the VideoFrameDecodedObserver type.
 	 * @Override
 	 */
-	void notify(VideoFrameEncodedObserver* observer, Buffer<uint8_t>& data) {
+	void notify(VideoFrameEncodedObserver* observer, std::pair<uint32, Buffer<uint8> >& data) {
 		observer->onNewFrameEncoded(data);
 	}
 
-	// SourceObserver* observer;
+	SourceObserver* videoSourceObserver;
 	VideoInputSource& source;
 };
 

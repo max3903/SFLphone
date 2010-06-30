@@ -32,91 +32,179 @@
 #include <stdlib.h>
 
 namespace sfl {
-VideoRtpSession::VideoRtpSession(ost::InetMcastAddress& ima, ost::tpport_t port) : ost::RTPSession(ima, port)
-{
-	init();
+
+void VideoRtpSession::registerCodec(const std::string& mime,
+		VideoEncoder& encoder, VideoDecoder& decoder) {
+	registerEncoder(mime, encoder);
+	registerDecoder(mime, decoder);
 }
 
-VideoRtpSession::VideoRtpSession(ost::InetHostAddress& ia, ost::tpport_t port) : ost::RTPSession(ia, port)
-{
-	init();
-}
-
-VideoRtpSession::~VideoRtpSession()
-{
-	_warn("VideoRtpSession has terminated");
-}
-
-void VideoRtpSession::init()
-{
-}
-
-void VideoRtpSession::configureFromSdp(const RtpMap& rtpmap, const Fmtp& fmtp) {
-	// Find a decoder for the mimetype
-	DecoderTableIterator it = decoderTable.find(rtpmap.getCodecName());
-	if (it == decoderTable.end()) {
-		std::string msg = std::string("Codec \"") + rtpmap.getCodecName()
-				+ std::string("\"is not a registered codec.");
-		throw MissingPluginException(msg);
-	}
-
-	std::cout << "Configuring from SDP ... " << std::endl;
-
-	_debug("Video decoder set to %s", ((*it).first).c_str());
-	decoder = (*it).second;
-
-	// Configure additional information.
-	clockRate = rtpmap.getClockRate();
-	payloadType = rtpmap.getPayloadType();
+void VideoRtpSession::unregisterCodec(const std::string& mime) {
+	unregisterEncoder(mime);
+	unregisterDecoder(mime);
 }
 
 void VideoRtpSession::registerDecoder(const std::string& mime,
 		VideoDecoder& decoder) {
-	_debug("Codec %s registered", mime.c_str());
-	decoderTable.insert(std::pair<std::string, VideoDecoder*>(mime,
-			&decoder));
+	decoderTable.insert(std::pair<std::string, VideoDecoder*>(mime, &decoder));
+
+	_debug("Decoder %s registered", mime.c_str());
 }
 
 void VideoRtpSession::unregisterDecoder(const std::string mime) {
-	_debug("Codec %s unregistered", mime.c_str());
 	DecoderTableIterator it = decoderTable.find(mime);
 	decoderTable.erase(it);
+
+	_debug("Decoder %s unregistered", mime.c_str());
 }
 
-bool VideoRtpSession::onRTPPacketRecv(ost::IncomingRTPPkt& packet) {
-	unsigned char* rawData = const_cast<unsigned char*>(packet.getRawPacket()); // FIXME Dangerous, but needed.
-	uint32 rawSize = packet.getRawPacketSize();
+void VideoRtpSession::registerEncoder(const std::string& mime,
+		VideoEncoder& encoder) {
+	encoderTable.insert(std::pair<std::string, VideoEncoder*>(mime, &encoder));
 
-	Buffer<uint8> buffer(rawData, rawSize);
-	decoder->decode(buffer);
-	return true;
+	_debug("Encoder %s registered", mime.c_str());
+}
+
+void VideoRtpSession::unregisterEncoder(const std::string mime) {
+	EncoderTableIterator it = encoderTable.find(mime);
+	encoderTable.erase(it);
+
+	_debug("Encoder %s unregistered", mime.c_str());
 }
 
 /**
- * To send a video frame on a
- * rtp socket, we have to fragment it into multi packets. FFmpeg handles
- * this part by slicing each packet into 500 bytes chunks. The last packet
- * of a serie has its rtp markbit set to 1. We read and copy packets data
- * till we get the markbit. Once we have it, we pass the whole buffer to
- * the decoder.
+ * Take the raw, unencrypted, RTP packets and send to the decoder.
  */
-void VideoRtpSession::listen() {
-	setPayloadFormat(ost::DynamicPayloadFormat(payloadType, clockRate)); // FIXME this is specific to h264.
-	setSchedulingTimeout(SCHEDULING_TIMEOUT);
-	setExpireTimeout(EXPIRE_TIMEOUT);
-	startRunning();
+VideoDecoder* VideoRtpSession::getDecoder(const std::string& mime)
+		throw (MissingPluginException) {
+	// Find a decoder for the mimetype
+	DecoderTableIterator it = decoderTable.find(mime);
+	if (it == decoderTable.end()) {
+		std::string msg = std::string("Decoder \"") + mime + std::string(
+				"\"is not a registered decoder.");
+		throw MissingPluginException(msg);
+	}
 
+	return (*it).second;
+}
+
+VideoEncoder* VideoRtpSession::getEncoder(const std::string& mime)
+		throw (MissingPluginException) {
+	// Find a decoder for the mimetype
+	EncoderTableIterator it = encoderTable.find(mime);
+	if (it == encoderTable.end()) {
+		std::string msg = std::string("Encoder \"") + mime + std::string(
+				"\"is not a registered encoder.");
+		throw MissingPluginException(msg);
+	}
+
+	return (*it).second;
+}
+
+bool VideoRtpSession::onRTPPacketRecv(ost::IncomingRTPPkt& packet) {
+	// Make sure that a decoder has been configured
+	if (decoder != NULL) {
+		unsigned char* rawData =
+				const_cast<unsigned char*> (packet.getRawPacket()); // FIXME Dangerous, but needed.
+		uint32 rawSize = packet.getRawPacketSize();
+
+		Buffer<uint8> buffer(rawData, rawSize);
+		decoder->decode(buffer);
+	}
+
+	// TODO decide if an exception should be thrown.
+	// This special case means that we decided to add a destination,
+	// that the remote peer decided to send some data, but yet, no codec was configured prior to that.
+	// It would happen if configureFromSdp is not executed yet, or is being executed. Thus the problem
+	// would be between init() and configureFromSdp(). Maybe startRunning() should be called elsewhere.
+
+	return true;
+}
+
+void VideoRtpSession::replaceCodec(VideoEncoder* encoderNew,
+		VideoDecoder* decoderNew) throw (MissingPluginException) {
+	// Deactivate the previous codec
+	encoder->deactivate();
+	//decoder->deactivate();
+
+	// Set the current codec
+	encoder = encoderNew;
+	decoder = decoderNew;
+
+	// Register as observer from the new one
+	encoder->addObserver(encoderObserver);
+	// decoder->addObserver(this);
+
+	encoder->activate();
+	// decoder->activate();
+
+}
+
+void VideoRtpSession::configureFromSdp(const RtpMap& rtpmap, const Fmtp& fmtp)
+		throw (MissingPluginException) {
+	_info("Configuring current video codec from SDP");
+
+	// Replace codec
+	replaceCodec(getEncoder(rtpmap.getCodecName()), getDecoder(
+			rtpmap.getCodecName()));
+
+	// Configure additional information.
+	clockRate = rtpmap.getClockRate();
+	payloadType = rtpmap.getPayloadType();
+
+	// Set the new payload type
+	setPayloadFormat(ost::DynamicPayloadFormat(payloadType, clockRate));
+}
+
+void VideoRtpSession::listen() {
+	// TODO make this happen in a separate thread.
 	while (!testCancel()) {
 		const ost::AppDataUnit* adu;
 		while ((adu = getData(getFirstTimestamp()))) {
-			// depayloader->process(adu);
 		}
 		yield();
 	}
 }
 
-void VideoRtpSession::notify(VideoFrameDecodedObserver* observer, Buffer<uint8_t>& data) {
+void VideoRtpSession::init() {
+	// Fixed encoder for any video encoder type
+	encoderObserver = new EncoderObserver(this);
+
+	// The default scheduling timeout to use when no data packets are waiting to be sent.
+	setSchedulingTimeout(SCHEDULING_TIMEOUT);
+
+	// Set the "expired" timer for expiring packets pending in the send
+	// queue which have gone unsent and are already "too late" to be sent now.
+	setExpireTimeout(EXPIRE_TIMEOUT);
+
+	// Set the SDES information
+	// TODO Set the other items
+	ost::defaultApplication().setSDESItem(ost::SDESItemTypeTOOL,
+			"Video Endpoint");
+
+	// Start the socket thread
+	startRunning();
+}
+
+void VideoRtpSession::notify(VideoFrameDecodedObserver* observer, Buffer<
+		uint8_t>& data) {
 	observer->onNewFrameDecoded(data);
+}
+
+VideoRtpSession::VideoRtpSession(ost::InetMcastAddress& ima, ost::tpport_t port) :
+	ost::RTPSession(ima, port) {
+	init();
+}
+
+VideoRtpSession::VideoRtpSession(ost::InetHostAddress& ia, ost::tpport_t port) :
+	ost::RTPSession(ia, port) {
+	init();
+}
+
+VideoRtpSession::~VideoRtpSession() {
+	encoder->removeObserver(encoderObserver);
+	delete encoderObserver;
+	_warn("VideoRtpSession has terminated");
 }
 
 }

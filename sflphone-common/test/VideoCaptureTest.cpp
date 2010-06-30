@@ -19,10 +19,10 @@
 #include "VideoCaptureTest.h"
 
 #include "logger.h"
-#include "video/VideoInputSourceGst.h"
-#include "video/VideoInputSource.h"
-#include "video/VideoDevice.h"
-#include "video/FrameFormat.h"
+#include "video/source/VideoInputSourceGst.h"
+#include "video/source/VideoInputSource.h"
+#include "video/source/VideoDevice.h"
+#include "video/VideoFormat.h"
 
 void VideoCaptureTest::setUp() {
 	std::cout << "Setting up..." << std::endl;

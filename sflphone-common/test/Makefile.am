@@ -33,8 +33,10 @@ test_SOURCES = \
 	SemaphorePosixTest.cpp \
 	VideoEndpointTest.h \
 	VideoEndpointTest.cpp \
-	H264DepayloaderTest.h \
-	H264DepayloaderTest.cpp
+	H264DecoderTest.h \
+	H264DecoderTest.cpp \
+	H264EncoderTest.h \
+	H264EncoderTest.cpp
 
 LLIBS=$(CPPUNIT_LIBS) \
 	../src/sflphoned-logger.o \
