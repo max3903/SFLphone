@@ -63,6 +63,16 @@ public:
 		}
 	}
 
+	/**
+	 * @Override
+	 */
+	void notifyAll(PushedDataType data, const std::string& name) {
+		typename std::vector<ObserverType*>::iterator it;
+		for (it = observers.begin(); it < observers.end(); it++) {
+			notify((*it), name, data);
+		}
+	}
+
 private:
 	std::vector<ObserverType*> observers;
 };

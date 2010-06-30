@@ -21,7 +21,7 @@
 #define __SFL_VIDEO_ENDPOINT_H___
 
 #include <sys/eventfd.h>
-#include "video/VideoInputSource.h"
+#include "video/source/VideoInputSource.h"
 
 #include <set>
 #include <stdexcept>

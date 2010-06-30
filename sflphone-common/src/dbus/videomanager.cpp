@@ -18,9 +18,9 @@
  */
 
 #include "videomanager.h"
-#include "video/VideoInputSourceGst.h"
+#include "video/source/VideoInputSourceGst.h"
 #include "video/VideoEndpoint.h"
-#include "video/FrameFormat.h"
+#include "video/VideoFormat.h"
 
 #include "logger.h"
 

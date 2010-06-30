@@ -1,10 +1,14 @@
 #include "VideoEndpoint.h"
-#include "VideoInputSourceGst.h"
 #include "VideoFrame.h"
+
+#include "video/source/VideoInputSourceGst.h"
+
 #include "util/FileDescriptorPasser.h"
-#include "util/SharedMemoryPosix.h"
+#include "util/ipc/SharedMemoryPosix.h"
+
 #include "dbus/dbusmanager.h"
 #include "dbus/videomanager.h"
+
 #include "logger.h"
 
 #include <iostream>

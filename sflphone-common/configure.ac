@@ -60,10 +60,17 @@
 			src/audio/alsa/Makefile \
 			src/audio/sound/Makefile \
 			src/audio/codecs/Makefile \
-			src/video/Makefile \
-			src/video/decoder/Makefile \
-			src/video/rtp/Makefile \
+			src/util/regex/Makefile \
+			src/util/ipc/Makefile \
+			src/util/pattern/Makefile \
+			src/util/memory/Makefile \
+			src/util/gstreamer/Makefile \
 			src/util/Makefile \
+			src/video/source/Makefile \
+			src/video/decoder/Makefile \
+			src/video/encoder/Makefile \
+			src/video/rtp/Makefile \
+			src/video/Makefile \
 			src/config/Makefile \
 			src/dbus/Makefile \
 			src/plug-in/audiorecorder/Makefile \

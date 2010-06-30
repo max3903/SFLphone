@@ -26,42 +26,29 @@
  *  shall include the source code for the parts of OpenSSL used as well
  *  as that of the covered work.
  */
-#ifndef __SFL_OBSERVERVABLE_H__
-#define __SFL_OBSERVERVABLE_H__
-
-#include "Observer.h"
+#ifndef __SFL_DIMENSION_H__
+#define __SFL_DIMENSION_H__
 
 namespace sfl {
-/**
- * Interface for an Observable type.
- */
-template<class PushedDataType, class ObserverType>
-class Observable {
+
+class Dimension {
 public:
-	/**
-	 * @param observer The observer object to be notify by this observable object.
-	 */
-	virtual void addObserver(ObserverType* observer) = 0;
+	Dimension(int width, int height) : width(width), height(height) {}
+	virtual ~Dimension() {};
 
-	/**
-	 * @param observer The observer object to be removed.
-	 */
-	virtual void removeObserver(ObserverType* observer) = 0;
+    int getHeight() const
+    {
+        return height;
+    }
 
-	/**
-	 * @param data The data to be pushed to the observers.
-	 */
-	virtual void notifyAll(PushedDataType data) = 0;
+    int getWidth() const
+    {
+        return width;
+    }
 
-protected:
-	/**
-	 * This method must be overridden by the user, as in the template design pattern.
-	 * The implementer will use this as a way to call the appropriate "notify()" type of method
-	 * on the observer. That way, multiple inheritance on the Observer derived types won't cause
-	 * any conflicts.
-	 * @see AbstractObservable#notifyAll
-	 */
-	virtual void notify(ObserverType* observer, PushedDataType data) = 0;
+private:
+	int width;
+	int height;
 };
 }
 #endif

@@ -29,11 +29,10 @@
 #ifndef __SFL_H264_GST_DECODER_H__
 #define __SFL_H264_GST_DECODER_H__
 
-#include "util/Buffer.h"
 #include "VideoDecoder.h"
-#include "video/FrameFormat.h"
-
+#include "video/VideoFormat.h"
 #include "video/VideoExceptions.h"
+#include "util/memory/Buffer.h"
 
 #include <queue>
 

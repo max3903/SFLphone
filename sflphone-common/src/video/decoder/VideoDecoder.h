@@ -31,12 +31,12 @@
 #define __SFL_VIDEO_DECODER_H__
 
 #include "video/VideoFrame.h"
-#include "video/FrameFormat.h"
+#include "video/VideoFormat.h"
 #include "video/VideoExceptions.h"
 
-#include "util/AbstractObservable.h"
+#include "util/pattern/AbstractObservable.h"
+#include "util/memory/Buffer.h"
 #include "util/Dimension.h"
-#include "util/Buffer.h"
 
 #include <stdexcept>
 

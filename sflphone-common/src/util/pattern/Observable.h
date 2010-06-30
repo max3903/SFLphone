@@ -26,69 +26,55 @@
  *  shall include the source code for the parts of OpenSSL used as well
  *  as that of the covered work.
  */
-#ifndef __SFL_PIPELINE_ELEMENT_H__
-#define __SFL_PIPELINE_ELEMENT_H__
+#ifndef __SFL_OBSERVERVABLE_H__
+#define __SFL_OBSERVERVABLE_H__
 
-#include <list>
-#include <iostream>
+#include "Observer.h"
 
 namespace sfl {
-/**git
- * Base class for every Pipeline Element objects.
+/**
+ * Interface for an Observable type.
  */
-template<class InputType>
-class PipelineElementInterface {
+template<class PushedDataType, class ObserverType>
+class Observable {
 public:
 	/**
-	 * @param data The data that is pushed from the previous element.
+	 * @param observer The observer object to be notify by this observable object.
 	 */
-	void setData(InputType* data) {
-		dataFromPrevious = data;
-	}
+	virtual void addObserver(ObserverType* observer) = 0;
+
+	/**
+	 * @param observer The observer object to be removed.
+	 */
+	virtual void removeObserver(ObserverType* observer) = 0;
+
+	/**
+	 * @param data The data to be pushed to the observers.
+	 */
+	virtual void notifyAll(PushedDataType data) = 0;
+
+	/**
+	 * @param data The data to be pushed to the observers.
+	 * @param name The method name to call.
+	 */
+	virtual void notifyAll(PushedDataType data, const std::string& name) = 0;
 
 protected:
-	InputType* getDataFromPrevious() { return dataFromPrevious; }
+	/**
+	 * This method must be overridden by the user, as in the template design pattern.
+	 * The implementer will use this as a way to call the appropriate "notify()" type of method
+	 * on the observer. That way, multiple inheritance on the Observer derived types won't cause
+	 * any conflicts.
+	 * @see AbstractObservable#notifyAll
+	 */
+	void notify(ObserverType* observer, PushedDataType data) {};
 
-private:
-	InputType* dataFromPrevious;
+	/**
+	 * Optional method that the implementer can override in order to call a specific method
+	 * on the observer.
+	 * @param name The method name to call.
+	 */
+	void notify(ObserverType* observer, const std::string& name, PushedDataType data) {};
 };
-
-/**
- * Just a fancy name for an object that intends to mimic a
- * graph-based approach for data processing.
- */
-template<class InputType, class OutputType>
-class PipelineElement : public PipelineElementInterface<InputType> {
-public:
-	/**
-	 * Primary operator for executing a chain of elements.
-	 */
-	inline PipelineElement& operator>>(PipelineElementInterface<OutputType>& other) {
-		other.setData(getData());
-		return *this;
-	}
-
-	inline PipelineElement& operator>>(OutputType* data) {
-		*data = *getData();
-		return *this;
-	}
-
-	/**
-	 * Data specific input mode
-	 */
-	inline PipelineElement& operator<<(InputType* data) {
-		PipelineElementInterface<InputType>& parent = dynamic_cast<PipelineElementInterface<InputType>& >(*this);
-		parent.setData(data);
-		return *this;
-	}
-
-	/**
-	 * Used internally only in the pipeline.
-	 * @return The computed data for this element.
-	 */
-	virtual OutputType* getData() = 0;
-};
-
 }
-
 #endif

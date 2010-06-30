@@ -30,7 +30,7 @@
 
 #include "SdesNegotiator.h"
 
-#include "util/Pattern.h"
+#include "util/regex/Pattern.h"
 
 #include <cstdio>
 #include <iostream>

@@ -22,7 +22,7 @@
 
 #include "videomanager-glue.h"
 #include "video/VideoEndpoint.h"
-#include "video/VideoInputSource.h"
+#include "video/source/VideoInputSource.h"
 
 #include <map>
 #include <dbus-c++/dbus.h>
