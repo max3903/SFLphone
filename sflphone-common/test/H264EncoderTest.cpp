@@ -45,9 +45,12 @@ void H264EncoderTest::testSend()
 	session->configureFromSdp(rtpmap, fmtp);
 
 	// Receive data
-	session->listen();
+	// session->listen();
 
-	sleep(3);
+	// Let the frames flow into the encoder
+	source.open();
+
+	sleep(4);
 
 	delete session;
 }

@@ -47,7 +47,8 @@ GstFlowReturn RetrievablePipeline::onNewBuffer(GstAppSink* sink, gpointer data) 
 	return GST_FLOW_OK;
 }
 
-void RetrievablePipeline::init(GstCaps* caps, Pipeline& pipeline) {
+void RetrievablePipeline::init(GstCaps* caps, Pipeline& pipeline,
+		GstElement* tail) {
 	// Create new appsink
 	gchar* name = gst_element_get_name(getGstPipeline());
 
@@ -67,30 +68,32 @@ void RetrievablePipeline::init(GstCaps* caps, Pipeline& pipeline) {
 	gst_app_sink_set_callbacks(GST_APP_SINK(appsink), &sinkCallbacks, this,
 			NULL);
 
-	// Add everything to the pipeline.
+	// Add to the existing pipeline
 	gst_bin_add_many(GST_BIN(getGstPipeline()), appsink, NULL);
 
-	if (gst_element_link(getGstPipeline(), appsink) == FALSE) {
+	// Link the new source to the existing pipeline
+	if (gst_element_link(tail, appsink) == FALSE) {
 		throw VideoDecodingException(
 				"Failed to append appsink to the existing pipeline.");
 	}
 }
 
-RetrievablePipeline::RetrievablePipeline(Pipeline& pipeline) :
+RetrievablePipeline::RetrievablePipeline(Pipeline& pipeline, GstElement* tail) :
 	Pipeline(pipeline.getGstPipeline()) {
-	init(NULL, pipeline);
+	init(NULL, pipeline, tail);
 }
 
-RetrievablePipeline::RetrievablePipeline(Pipeline& pipeline, GstCaps* caps) :
+RetrievablePipeline::RetrievablePipeline(Pipeline& pipeline, GstElement* tail,
+		GstCaps* caps) :
 	Pipeline(pipeline.getGstPipeline()) {
-	init(caps, pipeline);
+	init(caps, pipeline, tail);
 }
 
-RetrievablePipeline::RetrievablePipeline(Pipeline& pipeline, GstCaps* caps,
-		uint maxBuffers) :
+RetrievablePipeline::RetrievablePipeline(Pipeline& pipeline, GstElement* tail,
+		GstCaps* caps, uint maxBuffers) :
 	Pipeline(pipeline.getGstPipeline()) {
 
-	init(caps, pipeline);
+	init(caps, pipeline, tail);
 	gst_app_sink_set_max_buffers(GST_APP_SINK(appsink), maxBuffers);
 }
 

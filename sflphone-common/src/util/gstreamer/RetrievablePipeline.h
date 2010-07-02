@@ -48,25 +48,26 @@ public:
 class RetrievablePipeline : public Pipeline, public AbstractObservable<GstBuffer*, RetrievablePipelineObserver> {
 public:
 	/**
-	 * @param from Part of the pipeline in which the data will flow through from the previous elements.
+	 * @param bin Part of the pipeline in which the data will flow through from the previous elements.
+	 * @param tail The last element in the processing graph from which to retreive frames.
 	 * @precondition The "pipeline" argument must be existing.
 	 */
-	RetrievablePipeline(Pipeline& from);
+	RetrievablePipeline(Pipeline& bin, GstElement* tail);
 
 	/**
-	 * @param from Part of the pipeline in which the data will flow through from the previous elements.
+	 * @param bin Part of the pipeline in which the data will flow through from the previous elements.
 	 * @param caps The caps that this source should have.
 	 * @precondition The "pipeline" argument must be existing.
 	 */
-	RetrievablePipeline(Pipeline& from, GstCaps* caps);
+	RetrievablePipeline(Pipeline& bin, GstElement* tail, GstCaps* caps);
 
 	/**
-	 * @param from Part of the pipeline in which the data will flow through from the previous elements.
+	 * @param bin Part of the pipeline in which the data will flow through from the previous elements.
 	 * @param caps The caps that this source should have.
 	 * @param maxBuffers The number of buffers that can be queued at the sink.
 	 * @precondition The "pipeline" argument must be existing.
 	 */
-	RetrievablePipeline(Pipeline& from, GstCaps* caps, uint maxBuffers);
+	RetrievablePipeline(Pipeline& bin, GstElement* tail, GstCaps* caps, uint maxBuffers);
 
 protected:
 	/**
@@ -79,7 +80,7 @@ protected:
 	/**
 	 * Helper method for constructors.
 	 */
-	void init(GstCaps* caps, Pipeline& pipeline);
+	void init(GstCaps* caps, Pipeline& pipeline, GstElement* tail);
 
 private:
 	static GstFlowReturn onNewBuffer(GstAppSink* sink, gpointer data);

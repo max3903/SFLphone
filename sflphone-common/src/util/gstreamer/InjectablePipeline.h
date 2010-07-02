@@ -64,24 +64,27 @@ class InjectablePipeline : public Pipeline, public AbstractObservable<void*, Inj
 public:
 	/**
 	 * @param pipeline Part of the pipeline in which the data will flow through from the source.
+	 * @param head The entry point for the data to be fed in.
 	 * @precondition The "pipeline" argument must be existing.
 	 */
-	InjectablePipeline(Pipeline& pipeline);
-
-	/**
-	 * @param middle Part of the pipeline in which the data will flow through from the source.
-	 * @param caps The caps that this source should have.
-	 * @precondition The "pipeline" argument must be existing.
-	 */
-	InjectablePipeline(Pipeline& pipeline, GstCaps* caps);
+	InjectablePipeline(Pipeline& pipeline, GstElement* head);
 
 	/**
 	 * @param pipeline Part of the pipeline in which the data will flow through from the source.
+	 * @param head The entry point for the data to be fed in.
+	 * @param caps The caps that this source should have.
+	 * @precondition The "pipeline" argument must be existing.
+	 */
+	InjectablePipeline(Pipeline& pipeline, GstElement* head, GstCaps* caps);
+
+	/**
+	 * @param pipeline Part of the pipeline in which the data will flow through from the source.
+	 * @param head The entry point for the data to be fed in.
 	 * @param caps The caps that this source should have.
 	 * @param maxQueueSize The maximum amount of bytes that can be queued at the source.
 	 * @precondition The "pipeline" argument must be existing.
 	 */
-	InjectablePipeline(Pipeline& middle, GstCaps* caps, size_t maxQueueSize);
+	InjectablePipeline(Pipeline& middle, GstElement* head, GstCaps* caps, size_t maxQueueSize);
 
 	virtual ~InjectablePipeline() {};;
 
@@ -142,7 +145,7 @@ private:
 	/**
 	 * Helper method for constructors.
 	 */
-	void init(GstCaps* caps, Pipeline& pipeline, size_t maxQueueSize);
+	void init(GstCaps* caps, Pipeline& pipeline,  GstElement* head, size_t maxQueueSize);
 
 	bool enoughData;
 	GstElement* appsrc;

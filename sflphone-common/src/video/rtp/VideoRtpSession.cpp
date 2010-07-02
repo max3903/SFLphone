@@ -124,7 +124,9 @@ bool VideoRtpSession::onRTPPacketRecv(ost::IncomingRTPPkt& packet) {
 void VideoRtpSession::replaceCodec(VideoEncoder* encoderNew,
 		VideoDecoder* decoderNew) throw (MissingPluginException) {
 	// Deactivate the previous codec
-	encoder->deactivate();
+	if (encoder != NULL) {
+		encoder->deactivate();
+	}
 	//decoder->deactivate();
 
 	// Set the current codec
@@ -158,17 +160,19 @@ void VideoRtpSession::configureFromSdp(const RtpMap& rtpmap, const Fmtp& fmtp)
 
 void VideoRtpSession::listen() {
 	// TODO make this happen in a separate thread.
-	while (!testCancel()) {
-		const ost::AppDataUnit* adu;
-		while ((adu = getData(getFirstTimestamp()))) {
-		}
-		yield();
-	}
+//	while (!testCancel()) {
+//		const ost::AppDataUnit* adu;
+//		while ((adu = getData(getFirstTimestamp()))) {
+//		}
+//		yield();
+//	}
 }
 
 void VideoRtpSession::init() {
 	// Fixed encoder for any video encoder type
 	encoderObserver = new EncoderObserver(this);
+	encoder = NULL;
+	decoder = NULL;
 
 	// The default scheduling timeout to use when no data packets are waiting to be sent.
 	setSchedulingTimeout(SCHEDULING_TIMEOUT);

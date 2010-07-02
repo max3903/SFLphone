@@ -97,7 +97,8 @@ public:
 	 * Activate the encoder. Must be overriden by the implementer.
 	 * @postcondition If a source has been specified and is capturing, then the data will get processed and be emitted by the encoder.
 	 */
-	void activate() {
+	virtual void activate() {
+		_info("Activating video encoder");
 		videoSourceObserver = new SourceObserver(this);
 		source.addVideoFrameObserver(videoSourceObserver);
 	}
@@ -106,7 +107,8 @@ public:
 	 * Deactivate the encoder
 	 * @postcondition No more frame will get processed nor data emitted from that moment on. All observers will be flushed.
 	 */
-	void deactivate() {
+	virtual void deactivate() {
+		_info("Deactivating video encoder");
 		source.removeVideoFrameObserver(videoSourceObserver);
 	}
 
