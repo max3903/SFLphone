@@ -37,6 +37,8 @@ unsigned int RetrievablePipeline::numberInstances = 0;
 GstFlowReturn RetrievablePipeline::onNewBuffer(GstAppSink* sink, gpointer data) {
 	RetrievablePipeline* self = (RetrievablePipeline*) data;
 
+	_debug("New buffer has arrived ...");
+
 	GstBuffer* buffer = gst_app_sink_pull_buffer(GST_APP_SINK(self->appsink));
 	if (buffer == NULL) {
 		_warn("Pulled a NULL buffer");

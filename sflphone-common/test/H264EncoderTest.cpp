@@ -12,11 +12,18 @@
 
 void H264EncoderTest::setUp() {
 	std::cout << "Setting up..." << std::endl;
+
+	if (system("./client.sh >> /dev/null &") < 0) {
+		CPPUNIT_FAIL("Failed to start client in video RTP test.");
+	}
 }
 
 void H264EncoderTest::tearDown() {
 	std::cout << "Tearing down..." << std::endl;
-}
+
+	if (system("killall gst-launch-0.10") < 0) {
+		CPPUNIT_FAIL("Failed to stop client in video RTP test.");
+	}}
 
 void H264EncoderTest::testSend()
 {
@@ -30,7 +37,7 @@ void H264EncoderTest::testSend()
 
 	// Create a video session
 	ost::InetHostAddress address("127.0.0.1");
-	sfl::VideoRtpSession* session = new sfl::VideoRtpSession(address, (ost::tpport_t) 5000);
+	sfl::VideoRtpSession* session = new sfl::VideoRtpSession(address, (ost::tpport_t) 5055);
 
 	// Register supported codecs for this session.
 	sfl::H264GstDecoder decoder;
@@ -44,13 +51,16 @@ void H264EncoderTest::testSend()
 	sfl::Fmtp fmtp("98", "profile-level-id=42A01E; packetization-mode=0; sprop-parameter-sets=Z0IACpZTBYmI,aMljiA==");
 	session->configureFromSdp(rtpmap, fmtp);
 
+	// Send packets to the client.
+	session->addDestination(address, (ost::tpport_t) 5000);
+
 	// Receive data
 	// session->listen();
 
 	// Let the frames flow into the encoder
 	source.open();
 
-	sleep(4);
+	sleep(10);
 
 	delete session;
 }

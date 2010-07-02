@@ -56,16 +56,16 @@ class BufferBuilder;
 class VideoRtpSession : public AbstractObservable<Buffer<uint8_t>&, VideoFrameDecodedObserver>, public ost::RTPSession {
 public:
 	/**
-	 * @param mutiCastAddress A multicast address.
-	 * @param port The port to work on.
+	 * @param mutiCastAddress Local multicast network address
+	 * @param port Local transport port (where incoming packets are expected)
 	 */
 	VideoRtpSession(ost::InetMcastAddress& multiCastAddress, ost::tpport_t port);
 
 	/**
-	 * @param mutiCastAddress An inet address.
-	 * @param port The port to work on.
+	 * @param unicastAddress Local unicast network address
+	 * @param port Local transport port (where incoming packets are expected)
 	 */
-	VideoRtpSession(ost::InetHostAddress& ia, ost::tpport_t port);
+	VideoRtpSession(ost::InetHostAddress& unicastAddress, ost::tpport_t port);
 
 	~VideoRtpSession();
 
@@ -171,6 +171,7 @@ private:
 		EncoderObserver(VideoRtpSession* session) : parent(session) {}
 		VideoRtpSession* parent;
 		void onNewFrameEncoded(std::pair<uint32, Buffer<uint8> >& data) {
+			_debug("Sending NAL unit over RTP");
 			parent->putData(data.first /* timestamp */, (data.second).getBuffer() /* payload */, (data.second).getSize() /* payload size */);
 		}
 	};

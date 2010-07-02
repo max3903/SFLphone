@@ -61,7 +61,10 @@ void InjectablePipeline::need_data_cb(GstAppSrc *src, guint length,
 }
 
 void InjectablePipeline::inject(GstBuffer* data) {
-	gst_app_src_push_buffer(GST_APP_SRC(appsrc), data);
+	if (enoughData == false) {
+		_debug("Injecting buffer ...");
+		gst_app_src_push_buffer(GST_APP_SRC(appsrc), data);
+	}
 }
 
 void InjectablePipeline::stop() {

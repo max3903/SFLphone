@@ -48,6 +48,12 @@ public:
 	 * @Override
 	 */
 	H264GstEncoder(VideoInputSource& source) throw(VideoDecodingException, MissingPluginException);
+	/**
+	 * @param source The video source from which to capture data from.
+	 * @param maxFrameQueued The maximum number of frames to be queued before starting to drop the following ones.
+	 * @throw VideoEncodingException if an error occurs while opening the video decoder.
+	 */
+	H264GstEncoder(VideoInputSource& source, unsigned maxFrameQueued) throw(VideoDecodingException, MissingPluginException);
 
 	~H264GstEncoder();
 
@@ -66,7 +72,13 @@ public:
 	 */
 	void deactivate();
 
+	static const unsigned MAX_FRAME_QUEUED = 10;
 private:
+	/**
+	 * Helper method for constructors.
+	 */
+	void init(VideoInputSource& source, unsigned maxFrameQueued) throw(VideoDecodingException, MissingPluginException);
+
 	InjectablePipeline* injectableEnd;
 	RetrievablePipeline* retrievableEnd;
 
@@ -82,6 +94,7 @@ private:
 		 * @Override
 		 */
 		void onNewBuffer(GstBuffer* buffer) {
+			_debug("NAL unit produced at the sink ...");
 			GstBuffer* payload = gst_rtp_buffer_get_payload_buffer(buffer);
 			uint32 timestamp = gst_rtp_buffer_get_timestamp(buffer);
 
