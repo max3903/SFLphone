@@ -63,13 +63,13 @@ void log(const int level, const char* format, ...)
 		case LOG_WARNING:
 		{
 			prefix = "<warning> ";
-			color_prefix = LIGHT_RED;
+			color_prefix = YELLOW;
 			break;
 		}
 		case LOG_INFO:
 		{
 			prefix = "<info> ";
-			color_prefix = "";
+			color_prefix = GREEN;
 			break;
 		}
 		case LOG_DEBUG:

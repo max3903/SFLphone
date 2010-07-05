@@ -100,6 +100,7 @@ void InjectablePipeline::init(GstCaps* caps, Pipeline& pipeline,
 	}
 
 	gst_base_src_set_live(GST_BASE_SRC(appsrc), TRUE); // FIXME probably useless
+	g_object_set(G_OBJECT(appsrc), "do-timestamp", TRUE, NULL);
 
 	// Install the callbacks
 	GstAppSrcCallbacks sourceCallbacks;

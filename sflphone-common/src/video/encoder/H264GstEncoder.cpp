@@ -127,7 +127,7 @@ void H264GstEncoder::encode(const VideoFrame* frame)
 
 	//gst_buffer_set_caps (buffer, gst_caps_from_string (video_caps)); // FIXME Might not be needed.
 
-	_debug("Encoding frame of raw size %d", GST_BUFFER_SIZE(buffer));
+	_info("Encoding frame of raw size %d", GST_BUFFER_SIZE(buffer));
 	injectableEnd->inject(buffer);
 }
 
