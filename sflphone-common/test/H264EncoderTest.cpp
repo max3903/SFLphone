@@ -60,7 +60,7 @@ void H264EncoderTest::testSend()
 	// Let the frames flow into the encoder
 	source.open();
 
-	sleep(10);
+	sleep(30);
 
 	delete session;
 }

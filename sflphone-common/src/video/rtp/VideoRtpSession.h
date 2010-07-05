@@ -133,6 +133,9 @@ protected:
 	 */
 	void notify(VideoFrameDecodedObserver* observer, Buffer<uint8_t>& data);
 
+	// FIXME Should not have to override if not needed.
+	void notify(VideoFrameDecodedObserver* observer, const std::string& name, Buffer<uint8_t>& data) {};
+
 	/**
 	 * @Override
 	 */
@@ -172,6 +175,7 @@ private:
 		VideoRtpSession* parent;
 		void onNewFrameEncoded(std::pair<uint32, Buffer<uint8> >& data) {
 			_debug("Sending NAL unit over RTP");
+			_debug("Size %d", (data.second).getSize());
 			parent->putData(data.first /* timestamp */, (data.second).getBuffer() /* payload */, (data.second).getSize() /* payload size */);
 		}
 	};

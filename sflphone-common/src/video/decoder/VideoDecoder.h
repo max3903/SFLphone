@@ -112,6 +112,9 @@ protected:
 	void notify(VideoFrameDecodedObserver* observer, Buffer<uint8_t>& data) {
 		observer->onNewFrameDecoded(data);
 	}
+
+	// FIXME Should not need to do that.
+	void notify(VideoFrameDecodedObserver* observer, const std::string& name, Buffer<uint8_t>& data) {}
 };
 
 }

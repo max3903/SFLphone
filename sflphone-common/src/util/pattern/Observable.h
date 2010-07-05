@@ -30,7 +30,7 @@
 #define __SFL_OBSERVERVABLE_H__
 
 #include "Observer.h"
-
+#include "logger.h"
 namespace sfl {
 /**
  * Interface for an Observable type.
@@ -78,14 +78,14 @@ protected:
 	 * any conflicts.
 	 * @see AbstractObservable#notifyAll
 	 */
-	void notify(ObserverType* observer, PushedDataType data) {};
+	virtual void notify(ObserverType* observer, PushedDataType data) = 0;
 
 	/**
 	 * Optional method that the implementer can override in order to call a specific method
 	 * on the observer.
 	 * @param name The method name to call.
 	 */
-	void notify(ObserverType* observer, const std::string& name, PushedDataType data) {};
+	virtual void notify(ObserverType* observer, const std::string& name, PushedDataType data) = 0;
 };
 }
 #endif

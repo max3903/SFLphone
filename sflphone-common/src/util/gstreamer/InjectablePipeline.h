@@ -101,6 +101,12 @@ public:
 	void inject(GstBuffer* data);
 
 	/**
+	 * Link the given element to the source, so that "sink" becomes a sink for the source.
+	 * @param sink The target sink element for the source.
+	 */
+	void setSink(GstElement* sink);
+
+	/**
 	 * The maximum default amount of bytes that can be queued at the source.
 	 */
 	static const size_t MAX_QUEUE_SIZE = 1000000;
@@ -109,13 +115,15 @@ protected:
 	/**
 	 * @Override
 	 */
-	void notify(InjectablePipelineObserver* observer, const std::string name, void* data) {
+	void notify(InjectablePipelineObserver* observer, const std::string& name, void* data) {
 		if (name == "onFeedData") {
 			observer->onEnoughData();
 		} else if (name == "onNeedData") {
 			observer->onNeedData();
 		}
 	}
+
+	void notify(InjectablePipelineObserver* observer, void* data) {};
 
 	/**
 	 * This method is called no more data is needed in the incoming queue (when it's full).

@@ -49,8 +49,25 @@ GstFlowReturn RetrievablePipeline::onNewBuffer(GstAppSink* sink, gpointer data) 
 	return GST_FLOW_OK;
 }
 
+GstFlowReturn RetrievablePipeline::onNewPreroll(GstAppSink *sink,
+		gpointer user_data) {
+	_debug("New preroll buffer is available");
+	return GST_FLOW_OK;
+}
+
+GstFlowReturn RetrievablePipeline::onNewBufferList(GstAppSink *sink,
+		gpointer user_data) {
+	_debug("New buffer list is available");
+	return GST_FLOW_OK;
+}
+
+void RetrievablePipeline::onEos(GstAppSink *sink, gpointer user_data) {
+	_warn("Got EOS on pipeline at appsink");
+}
+
 void RetrievablePipeline::init(GstCaps* caps, Pipeline& pipeline,
 		GstElement* tail) {
+
 	// Create new appsink
 	gchar* name = gst_element_get_name(getGstPipeline());
 
@@ -61,20 +78,35 @@ void RetrievablePipeline::init(GstCaps* caps, Pipeline& pipeline,
 
 	appsink = gst_element_factory_make("appsink", (ss.str()).c_str());
 
+	gst_app_sink_set_max_buffers(GST_APP_SINK(appsink), 2); // FIXME Hardcoded
+	gst_app_sink_set_drop(GST_APP_SINK(appsink), FALSE);
+
 	// Configure callbacks for the appsink
 	GstAppSinkCallbacks sinkCallbacks;
-	sinkCallbacks.eos = NULL;
-	sinkCallbacks.new_preroll = NULL;
+	sinkCallbacks.eos = RetrievablePipeline::onEos;
+	sinkCallbacks.new_preroll = RetrievablePipeline::onNewPreroll;
 	sinkCallbacks.new_buffer = RetrievablePipeline::onNewBuffer;
-	sinkCallbacks.new_buffer_list = NULL;
+	sinkCallbacks.new_buffer_list = RetrievablePipeline::onNewBufferList;
+
 	gst_app_sink_set_callbacks(GST_APP_SINK(appsink), &sinkCallbacks, this,
 			NULL);
+
+	_debug("Callbacks configured on appsink");
 
 	// Add to the existing pipeline
 	gst_bin_add_many(GST_BIN(getGstPipeline()), appsink, NULL);
 
 	// Link the new source to the existing pipeline
-	if (gst_element_link(tail, appsink) == FALSE) {
+	if (tail != NULL) {
+		if (gst_element_link(tail, appsink) == FALSE) {
+			throw VideoDecodingException(
+					"Failed to append appsink to the existing pipeline.");
+		}
+	}
+}
+
+void RetrievablePipeline::setSource(GstElement* source) {
+	if (gst_element_link(source, appsink) == FALSE) {
 		throw VideoDecodingException(
 				"Failed to append appsink to the existing pipeline.");
 	}

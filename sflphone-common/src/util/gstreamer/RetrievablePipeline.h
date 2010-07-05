@@ -34,7 +34,7 @@
 #include "util/pattern/AbstractObservable.h"
 
 #include <gst/app/gstappsink.h>
-
+#include "logger.h"
 namespace sfl {
 
 /**
@@ -69,13 +69,21 @@ public:
 	 */
 	RetrievablePipeline(Pipeline& bin, GstElement* tail, GstCaps* caps, uint maxBuffers);
 
+	/**
+	 * @param source The element from which the retrievable endpoint should receive data from.
+	 */
+	void setSource(GstElement* source);
+
 protected:
 	/**
 	 * Simple dispatch for this observer type.
 	 */
 	void notify(RetrievablePipelineObserver* observer, GstBuffer* data) {
+		_debug("Notifying observers");
 		observer->onNewBuffer(data);
 	}
+
+	void notify(RetrievablePipelineObserver* observer, const std::string& name, GstBuffer* data){};
 
 	/**
 	 * Helper method for constructors.
@@ -84,6 +92,9 @@ protected:
 
 private:
 	static GstFlowReturn onNewBuffer(GstAppSink* sink, gpointer data);
+	static GstFlowReturn onNewPreroll(GstAppSink* sink, gpointer data);
+	static GstFlowReturn onNewBufferList(GstAppSink* sink, gpointer data);
+	static void onEos(GstAppSink* sink, gpointer data);
 
 	GstElement* appsink;
 	static unsigned numberInstances;

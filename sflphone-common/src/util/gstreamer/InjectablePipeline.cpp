@@ -63,11 +63,14 @@ void InjectablePipeline::need_data_cb(GstAppSrc *src, guint length,
 void InjectablePipeline::inject(GstBuffer* data) {
 	if (enoughData == false) {
 		_debug("Injecting buffer ...");
-		gst_app_src_push_buffer(GST_APP_SRC(appsrc), data);
+		if (gst_app_src_push_buffer(GST_APP_SRC(appsrc), data) != GST_FLOW_OK) {
+			_warn("Failed to push buffer.");
+		}
 	}
 }
 
 void InjectablePipeline::stop() {
+	_warn("Sending EOS message from injectable endpoint (%s:%d)", __FILE__, __LINE__);
 	gst_app_src_end_of_stream(GST_APP_SRC(appsrc));
 	Pipeline::stop();
 }
@@ -96,6 +99,8 @@ void InjectablePipeline::init(GstCaps* caps, Pipeline& pipeline,
 					"Run gst-inspect to get the list of available plugins");
 	}
 
+	gst_base_src_set_live(GST_BASE_SRC(appsrc), TRUE); // FIXME probably useless
+
 	// Install the callbacks
 	GstAppSrcCallbacks sourceCallbacks;
 	sourceCallbacks.need_data = InjectablePipeline::need_data_cb;
@@ -116,7 +121,15 @@ void InjectablePipeline::init(GstCaps* caps, Pipeline& pipeline,
 	gst_bin_add(GST_BIN(getGstPipeline()), appsrc);
 
 	// Link the new source to the existing pipeline
-	if (gst_element_link(appsrc, head) == FALSE) {
+	if (head != NULL) {
+		if (gst_element_link(appsrc, head) == FALSE) {
+			throw GstException("Failed to prepend appsrc to head.");
+		}
+	}
+}
+
+void InjectablePipeline::setSink(GstElement* sink) {
+	if (gst_element_link(appsrc, sink) == FALSE) {
 		throw GstException("Failed to prepend appsrc to head.");
 	}
 }

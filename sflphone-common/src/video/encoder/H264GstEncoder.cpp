@@ -53,64 +53,63 @@ void H264GstEncoder::init(VideoInputSource& source, unsigned maxFrameQueued)
 
 	gst_init(0, NULL);
 
-	// Create pipeline
-	GstElement* gstPipeline = gst_pipeline_new("sfl_h264_encoding");
-
-	// Set the caps at the source
+	// Create the injectable end
 	VideoFormat format = source.getOutputFormat();
 
+	// video/x-raw-rgb,width=80,height=60,bpp=32,endianness=4321,depth=24,red_mask=65280,green_mask=16711680,blue_mask=-16777216,framerate=30/1
 	GstCaps* sourceCaps = gst_caps_new_simple(
 			"video/x-raw-rgb", // FIXME Hardcoded !
 			"format", GST_TYPE_FOURCC, GST_STR_FOURCC(
 					format.getFourcc().c_str()), "width", G_TYPE_INT,
 			format.getWidth(), "height", G_TYPE_INT, format.getHeight(),
-			"bpp",
-			G_TYPE_INT,
-			32, // FIXME Hardcoded !
+			"bpp", G_TYPE_INT, 32, // FIXME Hardcoded !,
+			"depth", G_TYPE_INT, 32, // FIXME Hardcoded !
+			"endianness", G_TYPE_INT, 4321,
+			"red_mask", G_TYPE_INT, 65280,
+			"green_mask", G_TYPE_INT, 16711680,
+			"blue_mask", G_TYPE_INT, -16777216,
 			"framerate", GST_TYPE_FRACTION,
 			format.getPreferredFrameRate().getNumerator(),
 			format.getPreferredFrameRate().getDenominator(), NULL);
-
 	_debug("Setting caps %s on appsrc", gst_caps_to_string(sourceCaps));
 
-	// Create the encoding portion
-	GstElement* filter = gst_element_factory_make("capsfilter",
-			"sfl_encoder_filter");
+	GstElement* gstPipeline = gst_pipeline_new("sfl_h264_encoding");
+	Pipeline pipeline(gstPipeline);
+	injectableEnd = new InjectablePipeline(pipeline, NULL, sourceCaps,
+			format.getWidth() * format.getHeight() * 32 * maxFrameQueued); // FIXME Hardcoded
 
-	g_object_set(G_OBJECT(filter), "caps", sourceCaps, NULL);
-	GstElement* identity = gst_element_factory_make("identity",
-			"sfl_encoder_identity");
+	// Create the retrievable end
+	retrievableEnd = new RetrievablePipeline(pipeline, NULL);
+	outputObserver = new PipelineEventObserver(this);
+	retrievableEnd->addObserver(outputObserver);
 
+	// Create the encoding portion of the pipeline
 	GstElement* colorspace = gst_element_factory_make("ffmpegcolorspace",
 			"sfl_encoder_csp");
 	GstElement* videoscale = gst_element_factory_make("videoscale",
 			"sfl_encoder_scale");
 	GstElement* encoder =
 			gst_element_factory_make("x264enc", "sfl_encoder_enc");
+	g_object_set(G_OBJECT(encoder), "byte-stream", TRUE, NULL);
+	g_object_set(G_OBJECT(encoder), "bitrate", 300, NULL); // FIXME Hardcoded
 	GstElement* payloader = gst_element_factory_make("rtph264pay",
 			"sfl_encoder_pay");
 
-	g_object_set(G_OBJECT(encoder), "byte-stream", TRUE, NULL);
-	g_object_set(G_OBJECT(encoder), "bitrate", 300, NULL); // FIXME Hardcoded
-
 	// Add the elements in bin
-	gst_bin_add_many(GST_BIN(gstPipeline), filter, identity, colorspace, encoder,
+	gst_bin_add_many(GST_BIN(gstPipeline), colorspace, encoder,
 			payloader, NULL);
 
-	// Link elements together
-	if (gst_element_link_many(filter, identity, colorspace, encoder, payloader, NULL)
+	// Link the source to the colospace filter
+	injectableEnd->setSink(colorspace);
+
+	// Link the encoding portion
+	if (gst_element_link_many(colorspace, encoder, payloader, NULL)
 			== FALSE) {
 		throw VideoDecodingException("Failed to link one or more elements.");
 	}
 
-	// Create an injectableEnd and retrievableEnd pipeline
-	Pipeline pipeline(gstPipeline);
-	injectableEnd = new InjectablePipeline(pipeline, filter, sourceCaps,
-			format.getWidth() * format.getHeight() * 32 * maxFrameQueued); // FIXME Hardcoded
-	retrievableEnd = new RetrievablePipeline(pipeline, payloader);
-
-	outputObserver = new PipelineEventObserver(this);
-	retrievableEnd->addObserver(outputObserver);
+	// Link the payloader to the retrievable end
+	retrievableEnd->setSource(payloader);
 }
 
 H264GstEncoder::~H264GstEncoder() {
@@ -126,7 +125,9 @@ void H264GstEncoder::encode(const VideoFrame* frame)
 	GST_BUFFER_SIZE(buffer) = frame->getSize();
 	GST_BUFFER_DATA(buffer) = (guint8*) frame->getFrame();
 
-	_debug("Encoding frame");
+	//gst_buffer_set_caps (buffer, gst_caps_from_string (video_caps)); // FIXME Might not be needed.
+
+	_debug("Encoding frame of raw size %d", GST_BUFFER_SIZE(buffer));
 	injectableEnd->inject(buffer);
 }
 

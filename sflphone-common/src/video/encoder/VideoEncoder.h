@@ -121,6 +121,9 @@ private:
 		observer->onNewFrameEncoded(data);
 	}
 
+	// FIXME Should not need to do that.
+	void notify(VideoFrameEncodedObserver* observer, const std::string& name, std::pair<uint32, Buffer<uint8> >& data) {};
+
 	SourceObserver* videoSourceObserver;
 	VideoInputSource& source;
 };

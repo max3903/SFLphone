@@ -101,8 +101,10 @@ private:
 			uint8* payloadData = GST_BUFFER_DATA(payload);
 			uint payloadSize = GST_BUFFER_SIZE(payload);
 
-			std::pair<uint32, Buffer<uint8> > nalUnit(timestamp, Buffer<uint8>(payloadData, payloadSize));
-			parent->notifyAll(nalUnit);
+			//std::pair<uint32, Buffer<uint8> > nalUnit(timestamp, Buffer<uint8>(payloadData, payloadSize));
+
+			_debug("Notifying buffer of size %d with timestamp %d", payloadSize, timestamp);
+			// parent->notifyAll(nalUnit);
 		}
 	};
 
