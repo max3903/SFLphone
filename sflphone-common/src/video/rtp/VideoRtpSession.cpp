@@ -108,7 +108,7 @@ bool VideoRtpSession::onRTPPacketRecv(ost::IncomingRTPPkt& packet) {
 				const_cast<unsigned char*> (packet.getRawPacket()); // FIXME Dangerous, but needed.
 		uint32 rawSize = packet.getRawPacketSize();
 
-		Buffer<uint8> buffer(rawData, rawSize);
+		ManagedBuffer<uint8> buffer(rawData, rawSize);
 		decoder->decode(buffer);
 	}
 
@@ -190,7 +190,7 @@ void VideoRtpSession::init() {
 	startRunning();
 }
 
-void VideoRtpSession::notify(VideoFrameDecodedObserver* observer, Buffer<
+void VideoRtpSession::notify(VideoFrameDecodedObserver* observer, ManagedBuffer<
 		uint8_t>& data) {
 	observer->onNewFrameDecoded(data);
 }

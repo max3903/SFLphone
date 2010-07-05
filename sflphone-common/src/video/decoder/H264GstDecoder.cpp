@@ -47,7 +47,7 @@ void H264GstDecoder::dispatchEvent() {
 	}
 
 	// Notify
-	Buffer<uint8> obsBuffer(GST_BUFFER_DATA(buffer), GST_BUFFER_SIZE(buffer));
+	ManagedBuffer<uint8> obsBuffer(GST_BUFFER_DATA(buffer), GST_BUFFER_SIZE(buffer));
 	notifyAll(obsBuffer);
 
 	gst_buffer_unref(buffer);
@@ -178,7 +178,7 @@ void H264GstDecoder::start() throw (VideoDecodingException) {
 
 }
 
-void H264GstDecoder::decode(Buffer<uint8>& data) throw (VideoDecodingException) {
+void H264GstDecoder::decode(ManagedBuffer<uint8>& data) throw (VideoDecodingException) {
 
 	// Convert the raw decrypted packet to a GstBuffer that can be sent downstream in the pipeline.
 	// TODO Figure out if we can avoid copying the data.

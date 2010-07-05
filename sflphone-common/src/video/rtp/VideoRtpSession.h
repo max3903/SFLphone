@@ -53,7 +53,7 @@ class BufferBuilder;
 /**
  * Interface for VideoRtpSession types.
  */
-class VideoRtpSession : public AbstractObservable<Buffer<uint8_t>&, VideoFrameDecodedObserver>, public ost::RTPSession {
+class VideoRtpSession : public AbstractObservable<ManagedBuffer<uint8_t>&, VideoFrameDecodedObserver>, public ost::RTPSession {
 public:
 	/**
 	 * @param mutiCastAddress Local multicast network address
@@ -131,10 +131,10 @@ protected:
 	 * Simple dispatch for the VideoFrameDecodedObserver type.
 	 * @Override
 	 */
-	void notify(VideoFrameDecodedObserver* observer, Buffer<uint8_t>& data);
+	void notify(VideoFrameDecodedObserver* observer, ManagedBuffer<uint8_t>& data);
 
 	// FIXME Should not have to override if not needed.
-	void notify(VideoFrameDecodedObserver* observer, const std::string& name, Buffer<uint8_t>& data) {};
+	void notify(VideoFrameDecodedObserver* observer, const std::string& name, ManagedBuffer<uint8_t>& data) {};
 
 	/**
 	 * @Override
@@ -176,7 +176,7 @@ private:
 		void onNewFrameEncoded(std::pair<uint32, Buffer<uint8> >& data) {
 			_debug("Sending NAL unit over RTP");
 			_debug("Size %d", (data.second).getSize());
-			parent->putData(data.first /* timestamp */, (data.second).getBuffer() /* payload */, (data.second).getSize() /* payload size */);
+			parent->sendImmediate(data.first /* timestamp */, (data.second).getBuffer() /* payload */, (data.second).getSize() /* payload size */);
 		}
 	};
 	EncoderObserver* encoderObserver;

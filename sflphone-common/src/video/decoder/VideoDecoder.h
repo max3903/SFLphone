@@ -35,7 +35,7 @@
 #include "video/VideoExceptions.h"
 
 #include "util/pattern/AbstractObservable.h"
-#include "util/memory/Buffer.h"
+#include "util/memory/ManagedBuffer.h"
 #include "util/Dimension.h"
 
 #include <stdexcept>
@@ -51,13 +51,13 @@ public:
 	/**
 	 * @param frame The new frame that was decoded.
 	 */
-	virtual void onNewFrameDecoded(Buffer<uint8_t>& data) = 0;
+	virtual void onNewFrameDecoded(ManagedBuffer<uint8_t>& data) = 0;
 };
 
 /**
  * Abstract base class for every video encoder.
  */
-class VideoDecoder : public AbstractObservable<Buffer<uint8_t>&, VideoFrameDecodedObserver>{
+class VideoDecoder : public AbstractObservable<ManagedBuffer<uint8_t>&, VideoFrameDecodedObserver>{
 public:
 	/**
 	 * Construct a video decoder with no rescaling nor colorspace transformation.
@@ -79,7 +79,7 @@ public:
 	 * @param buffer A buffer containing the depayloaded data.
 	 * @throw VideoDecodingException if the frame cannot be decoded.
 	 */
-	virtual void decode(Buffer<uint8>& data)
+	virtual void decode(ManagedBuffer<uint8>& data)
 			throw (VideoDecodingException) = 0;
 
 	/**
@@ -109,12 +109,12 @@ protected:
 	 * Simple dispatch for the VideoFrameDecodedObserver type.
 	 * @Override
 	 */
-	void notify(VideoFrameDecodedObserver* observer, Buffer<uint8_t>& data) {
+	void notify(VideoFrameDecodedObserver* observer, ManagedBuffer<uint8_t>& data) {
 		observer->onNewFrameDecoded(data);
 	}
 
 	// FIXME Should not need to do that.
-	void notify(VideoFrameDecodedObserver* observer, const std::string& name, Buffer<uint8_t>& data) {}
+	void notify(VideoFrameDecodedObserver* observer, const std::string& name, ManagedBuffer<uint8_t>& data) {}
 };
 
 }

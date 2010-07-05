@@ -33,8 +33,12 @@
 
 namespace sfl {
 /**
- * Thread UNSAFE general data buffer. It's merely a placeholder for keeping the size information together with a pointer
+ * Thread UNSAFE general data buffer.
+ *
+ * It's merely a placeholder for keeping the size information together with a pointer
  * to the buffer. std::pair<buffer, size> would capture the same idea, but we don't want it.
+ *
+ * @see sfl#ManagedBuffer
  */
 template<class T>
 class Buffer {
@@ -45,7 +49,7 @@ public:
 	 * @postcondition The buffer provided by the user is NOT copied into this object.
 	 */
 	Buffer(T* buffer, size_t size) {
-		this->buffer = std::shared_ptr<T>(buffer);
+		this->buffer = buffer;
 		this->size = size;
 	}
 
@@ -54,7 +58,7 @@ public:
 	/**
 	 * @return A pointer to the buffer kept in this object.
 	 */
-	inline T* getBuffer() { return buffer.get(); }
+	inline T* getBuffer() { return buffer; }
 
 	/**
 	 * @return The size of the buffer kept in this object.
@@ -62,7 +66,7 @@ public:
 	inline size_t getSize() { return size; }
 
 private:
-	std::shared_ptr<T> buffer;
+	T* buffer;
 	size_t size;
 };
 }

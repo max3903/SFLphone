@@ -32,7 +32,7 @@
 #include "VideoDecoder.h"
 #include "video/VideoFormat.h"
 #include "video/VideoExceptions.h"
-#include "util/memory/Buffer.h"
+#include "util/memory/ManagedBuffer.h"
 
 #include <queue>
 
@@ -58,7 +58,7 @@ public:
 	 *
 	 * @Override
 	 */
-	void decode(Buffer<uint8>& buffer) throw (VideoDecodingException);
+	void decode(ManagedBuffer<uint8>& buffer) throw (VideoDecodingException);
 
 	/**
 	 * @Override
