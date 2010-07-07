@@ -39,7 +39,6 @@ unsigned InjectablePipeline::numberInstances = 0;
 void InjectablePipeline::onEnoughData() {
 	_debug("Appsrc queue has enough data");
 	enoughData = true;
-
 	notifyAll(NULL, "onEnoughData");
 }
 
@@ -49,7 +48,7 @@ void InjectablePipeline::enough_data_cb(GstAppSrc *src, gpointer data) {
 }
 
 void InjectablePipeline::onNeedData() {
-	_debug("Appsrc queue now needs data");
+	_debug("Appsrc queue needs more data");
 	enoughData = false;
 	notifyAll(NULL, "onNeedData");
 }
@@ -66,6 +65,8 @@ void InjectablePipeline::inject(GstBuffer* data) {
 		if (gst_app_src_push_buffer(GST_APP_SRC(appsrc), data) != GST_FLOW_OK) {
 			_warn("Failed to push buffer.");
 		}
+	} else {
+		_warn("Dropping buffer. Not enough space in input queue.");
 	}
 }
 
@@ -99,7 +100,6 @@ void InjectablePipeline::init(GstCaps* caps, Pipeline& pipeline,
 					"Run gst-inspect to get the list of available plugins");
 	}
 
-	gst_base_src_set_live(GST_BASE_SRC(appsrc), TRUE); // FIXME probably useless
 	g_object_set(G_OBJECT(appsrc), "do-timestamp", TRUE, NULL);
 
 	// Install the callbacks

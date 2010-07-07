@@ -3,10 +3,13 @@
 #include "sip/sdp/RtpMap.h"
 #include "sip/sdp/Fmtp.h"
 
+#include "video/VideoFormat.h"
 #include "video/rtp/VideoRtpSession.h"
 #include "video/encoder/H264GstEncoder.h"
 #include "video/decoder/H264GstDecoder.h"
 #include "video/source/VideoInputSourceGst.h"
+
+#include "util/Dimension.h"
 
 #include <ccrtp/rtp.h>
 
@@ -32,9 +35,7 @@ void H264EncoderTest::testSend()
 
 	// Create a video source from which we will encode
 	sfl::VideoInputSourceGst source;
-
-	// Pick the first device
-	source.setDevice();
+	source.setDevice("/dev/video0", sfl::Dimension(320, 240), sfl::FrameRate(30,1));
 
 	// Create a video session
 	ost::InetHostAddress address("0.0.0.0");
