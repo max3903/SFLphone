@@ -48,15 +48,23 @@ H264GstEncoder::H264GstEncoder(VideoInputSource& source)
 
 void H264GstEncoder::init(VideoInputSource& source, unsigned maxFrameQueued)
 		throw (VideoDecodingException, MissingPluginException) {
-	injectableEnd = NULL;
-	retrievableEnd = NULL;
-
 	gst_init(0, NULL);
 
-	// Create the injectable end
+	Pipeline pipeline("sfl_h264_encoding");
+	pipeline.setPrefix("sfl_encoder_");
+
+	GstElement* ffmpegcolorspace = pipeline.addElement("ffmpegcolorspace");
+	GstElement* previous = pipeline.addElement("videoscale", ffmpegcolorspace);
+
+	GstElement* x264enc = pipeline.addElement("x264enc", previous);
+	g_object_set(G_OBJECT(x264enc), "byte-stream", TRUE, NULL);
+	g_object_set(G_OBJECT(x264enc), "bitrate", 300, NULL); // FIXME Hardcoded
+
+	GstElement* rtph264pay = pipeline.addElement("rtph264pay", x264enc);
+
+	// Add injectable endpoint
 	VideoFormat format = source.getOutputFormat();
 
-	// video/x-raw-rgb,width=80,height=60,bpp=32,endianness=4321,depth=24,red_mask=65280,green_mask=16711680,blue_mask=-16777216,framerate=30/1
 	GstCaps* sourceCaps = gst_caps_new_simple(
 			"video/x-raw-rgb", // FIXME Hardcoded !
 			"format", GST_TYPE_FOURCC, GST_STR_FOURCC(
@@ -71,45 +79,17 @@ void H264GstEncoder::init(VideoInputSource& source, unsigned maxFrameQueued)
 			"framerate", GST_TYPE_FRACTION,
 			format.getPreferredFrameRate().getNumerator(),
 			format.getPreferredFrameRate().getDenominator(), NULL);
-	_debug("Setting caps %s on appsrc", gst_caps_to_string(sourceCaps));
 
-	GstElement* gstPipeline = gst_pipeline_new("sfl_h264_encoding");
-	Pipeline pipeline(gstPipeline);
-	injectableEnd = new InjectablePipeline(pipeline, sourceCaps,
-			format.getWidth() * format.getHeight() * 32 * maxFrameQueued); // FIXME Hardcoded
+	injectableEnd = new InjectablePipeline(pipeline, sourceCaps, format.getWidth() * format.getHeight() * 32 * maxFrameQueued);  // FIXME Hardcoded
 
-	// Create the retrievable end
+	// Add retrievable endpoint
 	retrievableEnd = new RetrievablePipeline(pipeline);
 	outputObserver = new PipelineEventObserver(this);
 	retrievableEnd->addObserver(outputObserver);
 
-	// Create the encoding portion of the pipeline
-	GstElement* colorspace = gst_element_factory_make("ffmpegcolorspace",
-			"sfl_encoder_csp");
-	GstElement* videoscale = gst_element_factory_make("videoscale",
-			"sfl_encoder_scale");
-	GstElement* encoder =
-			gst_element_factory_make("x264enc", "sfl_encoder_enc");
-	g_object_set(G_OBJECT(encoder), "byte-stream", TRUE, NULL);
-	g_object_set(G_OBJECT(encoder), "bitrate", 300, NULL); // FIXME Hardcoded
-	GstElement* payloader = gst_element_factory_make("rtph264pay",
-			"sfl_encoder_pay");
-
-	// Add the elements in bin
-	gst_bin_add_many(GST_BIN(gstPipeline), colorspace, encoder,
-			payloader, NULL);
-
-	// Link the source to the colospace filter
-	injectableEnd->setSink(colorspace);
-
-	// Link the encoding portion
-	if (gst_element_link_many(colorspace, encoder, payloader, NULL)
-			== FALSE) {
-		throw VideoDecodingException("Failed to link one or more elements.");
-	}
-
-	// Link the payloader to the retrievable end
-	retrievableEnd->setSource(payloader);
+	// Connect both endpoints to the graph.
+	injectableEnd->setSink(ffmpegcolorspace);
+	retrievableEnd->setSource(rtph264pay);
 }
 
 H264GstEncoder::~H264GstEncoder() {
