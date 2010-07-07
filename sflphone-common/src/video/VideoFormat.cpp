@@ -44,7 +44,7 @@ void VideoFormat::init(const std::string& mimetype, const std::string& fourcc, i
 	if (framerates.size() == 0) {
 		preferredFramerate = DEFAULT_FRAMERATE;
 	} else {
-		preferredFramerate = *(framerates.begin());
+		preferredFramerate = *(framerates.rbegin());
 	}
 }
 
