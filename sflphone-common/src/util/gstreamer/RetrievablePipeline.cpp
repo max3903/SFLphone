@@ -65,9 +65,7 @@ void RetrievablePipeline::onEos(GstAppSink *sink, gpointer user_data) {
 	_warn("Got EOS on pipeline at appsink");
 }
 
-void RetrievablePipeline::init(GstCaps* caps, Pipeline& pipeline,
-		GstElement* tail) {
-
+void RetrievablePipeline::init(GstCaps* caps, Pipeline& pipeline) {
 	// Create new appsink
 	gchar* name = gst_element_get_name(getGstPipeline());
 
@@ -95,14 +93,6 @@ void RetrievablePipeline::init(GstCaps* caps, Pipeline& pipeline,
 
 	// Add to the existing pipeline
 	gst_bin_add_many(GST_BIN(getGstPipeline()), appsink, NULL);
-
-	// Link the new source to the existing pipeline
-	if (tail != NULL) {
-		if (gst_element_link(tail, appsink) == FALSE) {
-			throw VideoDecodingException(
-					"Failed to append appsink to the existing pipeline.");
-		}
-	}
 }
 
 void RetrievablePipeline::setSource(GstElement* source) {
@@ -112,22 +102,25 @@ void RetrievablePipeline::setSource(GstElement* source) {
 	}
 }
 
-RetrievablePipeline::RetrievablePipeline(Pipeline& pipeline, GstElement* tail) :
-	Pipeline(pipeline.getGstPipeline()) {
-	init(NULL, pipeline, tail);
+void RetrievablePipeline::setCaps(GstCaps* caps) {
+	gst_app_sink_set_caps(GST_APP_SINK(appsink), caps);
 }
 
-RetrievablePipeline::RetrievablePipeline(Pipeline& pipeline, GstElement* tail,
-		GstCaps* caps) :
+RetrievablePipeline::RetrievablePipeline(Pipeline& pipeline) :
 	Pipeline(pipeline.getGstPipeline()) {
-	init(caps, pipeline, tail);
+	init(NULL, pipeline);
 }
 
-RetrievablePipeline::RetrievablePipeline(Pipeline& pipeline, GstElement* tail,
-		GstCaps* caps, uint maxBuffers) :
+RetrievablePipeline::RetrievablePipeline(Pipeline& pipeline, GstCaps* caps) :
+	Pipeline(pipeline.getGstPipeline()) {
+	init(caps, pipeline);
+}
+
+RetrievablePipeline::RetrievablePipeline(Pipeline& pipeline, GstCaps* caps,
+		uint maxBuffers) :
 	Pipeline(pipeline.getGstPipeline()) {
 
-	init(caps, pipeline, tail);
+	init(caps, pipeline);
 	gst_app_sink_set_max_buffers(GST_APP_SINK(appsink), maxBuffers);
 }
 

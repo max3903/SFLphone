@@ -75,11 +75,11 @@ void H264GstEncoder::init(VideoInputSource& source, unsigned maxFrameQueued)
 
 	GstElement* gstPipeline = gst_pipeline_new("sfl_h264_encoding");
 	Pipeline pipeline(gstPipeline);
-	injectableEnd = new InjectablePipeline(pipeline, NULL, sourceCaps,
+	injectableEnd = new InjectablePipeline(pipeline, sourceCaps,
 			format.getWidth() * format.getHeight() * 32 * maxFrameQueued); // FIXME Hardcoded
 
 	// Create the retrievable end
-	retrievableEnd = new RetrievablePipeline(pipeline, NULL);
+	retrievableEnd = new RetrievablePipeline(pipeline);
 	outputObserver = new PipelineEventObserver(this);
 	retrievableEnd->addObserver(outputObserver);
 

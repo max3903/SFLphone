@@ -30,15 +30,12 @@
 #ifndef __SFL_VIDEO_DECODER_H__
 #define __SFL_VIDEO_DECODER_H__
 
-#include "video/VideoFrame.h"
+#include "video/VideoCodec.h"
 #include "video/VideoFormat.h"
 #include "video/VideoExceptions.h"
 
 #include "util/pattern/AbstractObservable.h"
 #include "util/memory/ManagedBuffer.h"
-#include "util/Dimension.h"
-
-#include <stdexcept>
 
 namespace sfl {
 
@@ -55,26 +52,10 @@ public:
 };
 
 /**
- * Abstract base class for every video encoder.
+ * Abstract base class for every video decoder.
  */
-class VideoDecoder : public AbstractObservable<ManagedBuffer<uint8_t>&, VideoFrameDecodedObserver>{
+class VideoDecoder : public VideoCodec, public AbstractObservable<ManagedBuffer<uint8_t>&, VideoFrameDecodedObserver> {
 public:
-	/**
-	 * Construct a video decoder with no rescaling nor colorspace transformation.
-	 * @see sfl#VideoDecoder#getDimension
-	 * @see sfl#VideoDecoder#getFrameFormat
-	 * #see sfl#VideoDecoder#setOutputFormat
-	 */
-	VideoDecoder() throw(VideoDecodingException, MissingPluginException) {};
-
-	/**
-	 * @param decodingFormat The output format.
-	 * @throw VideoDecodingException if an error occurs while opening the video decoder.
-	 */
-	VideoDecoder(const VideoFormat& decodingFormat) throw(VideoDecodingException, MissingPluginException) {};
-
-	virtual ~VideoDecoder() {};
-
 	/**
 	 * @param buffer A buffer containing the depayloaded data.
 	 * @throw VideoDecodingException if the frame cannot be decoded.
@@ -83,27 +64,9 @@ public:
 			throw (VideoDecodingException) = 0;
 
 	/**
-	 * @param decodingFormat The desired output format.
-	 * @postcondition The new output video format will be applied immediately.
-	 * @throw VideoDecodingException if the output format can't be applied.
+	 * @format The VideoFormat describing the desired output format in which to retrieve the decoded video frames.
 	 */
-	virtual void setOutputFormat(const VideoFormat& decodingFormat) throw (VideoDecodingException) = 0;
-
-	/**
-	 * @return decodingFormat The specified output format.
-	 */
-	virtual VideoFormat getOutputFormat() const = 0;
-
-	/**
-	 * @return The output Dimension of the current video stream.
-	 */
-	virtual Dimension getDimension() const = 0;
-
-	/**
-	 * @return A string containing the FOURCC representation of the frame format that is being used.
-	 */
-	virtual std::string getFourcc() const = 0;
-
+	virtual void setOutputFormat(VideoFormat& format) = 0;
 protected:
 	/**
 	 * Simple dispatch for the VideoFrameDecodedObserver type.

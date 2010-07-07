@@ -10,7 +10,7 @@ libutil_la_SOURCES = \
 noinst_HEADERS = \
 		FileDescriptorPasser.h \
 		Dimension.h
-
+		
 libutil_la_LIBADD = \
 		ipc/libipcutil.la \
 		regex/libregexutil.la \

@@ -56,11 +56,18 @@ public:
  */
 class VideoEncoder : public AbstractObservable<std::pair<uint32, Buffer<uint8> >&, VideoFrameEncodedObserver> {
 public:
+
+	/**
+	 * Initialize the video encoder with no video source.
+	 * @see sfl#VideoEncoder#setSource;
+	 */
+	VideoEncoder() throw(VideoEncodingException, MissingPluginException) : source(NULL) {};
+
 	/**
 	 * @param source The video source from which to capture data from.
 	 * @throw VideoEncodingException if an error occurs while opening the video decoder.
 	 */
-	VideoEncoder(VideoInputSource& videoSource) throw(VideoEncodingException, MissingPluginException) : source(videoSource) {};
+	VideoEncoder(VideoInputSource& videoSource) throw(VideoEncodingException, MissingPluginException) : source(&videoSource) {};
 
 	~VideoEncoder() {
 		// source.removeVideoFrameObserver(&sourceObserver);
@@ -99,8 +106,10 @@ public:
 	 */
 	virtual void activate() {
 		_info("Activating video encoder");
-		videoSourceObserver = new SourceObserver(this);
-		source.addVideoFrameObserver(videoSourceObserver);
+		if (source != NULL) {
+			videoSourceObserver = new SourceObserver(this);
+			source->addVideoFrameObserver(videoSourceObserver);
+		}
 	}
 
 	/**
@@ -109,7 +118,9 @@ public:
 	 */
 	virtual void deactivate() {
 		_info("Deactivating video encoder");
-		source.removeVideoFrameObserver(videoSourceObserver);
+		if (source != NULL) {
+			source->removeVideoFrameObserver(videoSourceObserver);
+		}
 	}
 
 private:
@@ -125,7 +136,7 @@ private:
 	void notify(VideoFrameEncodedObserver* observer, const std::string& name, std::pair<uint32, Buffer<uint8> >& data) {};
 
 	SourceObserver* videoSourceObserver;
-	VideoInputSource& source;
+	VideoInputSource* source;
 };
 
 }

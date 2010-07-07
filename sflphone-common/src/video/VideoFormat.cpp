@@ -8,7 +8,7 @@
 namespace sfl {
 
 const std::string VideoFormat::DEFAULT_MIMETYPE = "video/x-raw-rgb";
-const std::string VideoFormat::DEFAULT_FOURCC = "ARGB";
+const std::string VideoFormat::DEFAULT_FOURCC = "RGBA";
 const FrameRate VideoFormat::DEFAULT_FRAMERATE = FrameRate(30, 1);
 const int VideoFormat::DEFAULT_WIDTH = 320;
 const int VideoFormat::DEFAULT_HEIGHT = 240;
@@ -16,6 +16,13 @@ const int VideoFormat::DEFAULT_HEIGHT = 240;
 VideoFormat::VideoFormat() throw (InvalidFrameRateException) {
 	framerates.insert(DEFAULT_FRAMERATE);
 	init(DEFAULT_MIMETYPE, DEFAULT_FOURCC, DEFAULT_WIDTH, DEFAULT_HEIGHT, framerates);
+}
+
+VideoFormat::VideoFormat(const std::string& mimetype, int width, int height, FrameRate framerate) throw (InvalidFrameRateException)
+{
+	std::set<FrameRate> rates;
+	rates.insert(framerate);
+	init(mimetype, DEFAULT_FOURCC, width, height, rates);
 }
 
 VideoFormat::VideoFormat(const std::string& mimetype, int width, int height,

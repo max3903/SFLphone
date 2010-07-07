@@ -76,7 +76,7 @@ void InjectablePipeline::stop() {
 }
 
 void InjectablePipeline::init(GstCaps* caps, Pipeline& pipeline,
-		GstElement* head, size_t maxQueueSize) {
+		size_t maxQueueSize) {
 	gst_init(0, NULL);
 
 	// Let the data be queued initially
@@ -120,13 +120,6 @@ void InjectablePipeline::init(GstCaps* caps, Pipeline& pipeline,
 
 	// Add to the existing pipeline
 	gst_bin_add(GST_BIN(getGstPipeline()), appsrc);
-
-	// Link the new source to the existing pipeline
-	if (head != NULL) {
-		if (gst_element_link(appsrc, head) == FALSE) {
-			throw GstException("Failed to prepend appsrc to head.");
-		}
-	}
 }
 
 void InjectablePipeline::setSink(GstElement* sink) {
@@ -135,21 +128,20 @@ void InjectablePipeline::setSink(GstElement* sink) {
 	}
 }
 
-InjectablePipeline::InjectablePipeline(Pipeline& pipeline, GstElement* head) :
+InjectablePipeline::InjectablePipeline(Pipeline& pipeline) :
 	Pipeline(pipeline.getGstPipeline()) {
-	init(NULL, pipeline, head, MAX_QUEUE_SIZE);
+	init(NULL, pipeline, MAX_QUEUE_SIZE);
 }
 
-InjectablePipeline::InjectablePipeline(Pipeline& pipeline, GstElement* head,
-		GstCaps* caps) :
+InjectablePipeline::InjectablePipeline(Pipeline& pipeline, GstCaps* caps) :
 	Pipeline(pipeline.getGstPipeline()) {
-	init(caps, pipeline, head, MAX_QUEUE_SIZE);
+	init(caps, pipeline, MAX_QUEUE_SIZE);
 }
 
-InjectablePipeline::InjectablePipeline(Pipeline& pipeline, GstElement* head,
-		GstCaps* caps, size_t maxQueueSize) :
+InjectablePipeline::InjectablePipeline(Pipeline& pipeline, GstCaps* caps,
+		size_t maxQueueSize) :
 	Pipeline(pipeline.getGstPipeline()) {
-	init(caps, pipeline, head, maxQueueSize);
+	init(caps, pipeline, maxQueueSize);
 }
 
 }

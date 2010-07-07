@@ -5,9 +5,11 @@ noinst_LTLIBRARIES = libgstreamerutil.la
 libgstreamerutil_la_SOURCES = \
 		InjectablePipeline.cpp \
 		RetrievablePipeline.cpp \
-		Pipeline.cpp 
+		Pipeline.cpp
 		
 noinst_HEADERS = \
 		InjectablePipeline.h \
 		RetrievablePipeline.h \
-		Pipeline.h
+		Pipeline.h \
+		VideoFormatToGstCaps.h
+		

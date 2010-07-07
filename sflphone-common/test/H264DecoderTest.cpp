@@ -1,6 +1,6 @@
 #include "H264DecoderTest.h"
 
-#include "video/decoder/H264GstDecoder.h"
+#include "video/decoder/H264GstDecoderSimple.h"
 #include "video/rtp/VideoRtpSession.h"
 #include "sip/sdp/RtpMap.h"
 #include "sip/sdp/Fmtp.h"
@@ -30,28 +30,20 @@ void H264DecoderTest::testReceive()
 	std::cout << "Trying to decode frames ... " << std::endl;
 
 	ost::InetHostAddress address("127.0.0.1");
-
-	std::cout << "Creating session ... " << std::endl;
-
 	sfl::VideoRtpSession* session = new sfl::VideoRtpSession(address, (ost::tpport_t) 5000);
 
-	std::cout << "Session created." << std::endl;
-
 	// No decoder is attached to this depayloader.
-	sfl::H264GstDecoder decoder;
-
-	std::cout << "Decoder created." << std::endl;
-
-	std::cout << "Registering Decoder ... " << std::endl;
+	sfl::H264GstDecoderSimple decoder;
 	session->registerDecoder("H264", decoder);
 
 	// Simulate the arrival of an SDP offer
-	sfl::RtpMap rtpmap("98", "H264", 9000, "");
-	sfl::Fmtp fmtp("98", "profile-level-id=42A01E; packetization-mode=0; sprop-parameter-sets=Z0IACpZTBYmI,aMljiA==");
-	session->configureFromSdp(rtpmap, fmtp);
+	sfl::RtpMap rtpmap("96", "H264", 9000, "");
+	sfl::Fmtp fmtp("96", "profile-level-id=42A01E; packetization-mode=0; sprop-parameter-sets=Z0IACpZTBYmI,aMljiA==");
+	session->addSessionCodec(rtpmap, fmtp);
 
-	// Start capturing
-	session->listen();
-	sleep(3);
+	session->start();
+
+	sleep(10);
+
 	delete session;
 }

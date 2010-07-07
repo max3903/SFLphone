@@ -23,5 +23,6 @@ noinst_HEADERS = \
 	VideoEndpoint.h \
 	VideoFormat.h \
 	VideoFrame.h \
+	VideoCodec.h \
 	VideoExceptions.h
 	

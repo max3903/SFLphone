@@ -213,6 +213,7 @@ void H264GstDecoder::init() {
 
 	gst_app_src_set_stream_type(GST_APP_SRC(appsrc), GST_APP_STREAM_TYPE_STREAM);
 	gst_app_src_set_max_bytes(GST_APP_SRC(appsrc), 1000000); // 1Mb
+	g_object_set(G_OBJECT(appsrc), "do-timestamp", TRUE, NULL);
 
 	GstCaps* caps = gst_caps_new_simple("application/x-rtp",
 	  	      "media", G_TYPE_STRING, "video",

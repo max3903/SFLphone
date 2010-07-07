@@ -98,6 +98,14 @@ public:
 	 * @param mimetype The mimetype. http://www.gstreamer.net/data/doc/gstreamer/head/pwg/html/section-types-definitions.html#table-video-types
 	 * @param width The frame width.
 	 * @param height The frame height.
+	 * @param framerate A supported framerate.
+	 */
+	VideoFormat(const std::string& mimetype, int width, int height, FrameRate framerate) throw (InvalidFrameRateException);
+
+	/**
+	 * @param mimetype The mimetype. http://www.gstreamer.net/data/doc/gstreamer/head/pwg/html/section-types-definitions.html#table-video-types
+	 * @param width The frame width.
+	 * @param height The frame height.
 	 * @param framerates A set containing all the supported framerates for that format.
 	 */
 	VideoFormat(const std::string& mimetype, int width, int height, std::set<

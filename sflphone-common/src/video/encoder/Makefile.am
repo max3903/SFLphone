@@ -12,5 +12,6 @@ libvideoencoder_la_SOURCES = \
 		
 noinst_HEADERS = \
 		VideoEncoder.h \
+		NullEncoder.h \
 		H264GstEncoder.h
 		
