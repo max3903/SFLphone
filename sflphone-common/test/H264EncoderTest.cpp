@@ -5,7 +5,7 @@
 
 #include "video/rtp/VideoRtpSession.h"
 #include "video/encoder/H264GstEncoder.h"
-#include "video/decoder/H264GstDecoderSimple.h"
+#include "video/decoder/H264GstDecoder.h"
 #include "video/source/VideoInputSourceGst.h"
 
 #include <ccrtp/rtp.h>
@@ -46,7 +46,7 @@ void H264EncoderTest::testSend()
 	//session->addDestination(address, (ost::tpport_t) 5000);
 
 	// Register supported codecs for this session.
-	sfl::H264GstDecoderSimple decoder;
+	sfl::H264GstDecoder decoder;
 	sfl::H264GstEncoder encoder(source);
 	session->registerCodec("H264", encoder, decoder);
 

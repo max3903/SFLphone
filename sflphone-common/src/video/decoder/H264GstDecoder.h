@@ -26,107 +26,85 @@
  *  shall include the source code for the parts of OpenSSL used as well
  *  as that of the covered work.
  */
+
 #ifndef __SFL_H264_GST_DECODER_H__
 #define __SFL_H264_GST_DECODER_H__
 
-#include "VideoDecoder.h"
-#include "video/VideoFormat.h"
-#include "video/VideoExceptions.h"
-#include "util/memory/ManagedBuffer.h"
+#include "util/gstreamer/Pipeline.h"
+#include "util/gstreamer/InjectablePipeline.h"
+#include "util/gstreamer/RetrievablePipeline.h"
+#include "video/decoder/VideoDecoder.h"
 
-#include <queue>
-
-#include <gst/gst.h>
-#include <gst/app/gstappsrc.h>
-#include <gst/app/gstappsink.h>
+#include <gst/rtp/gstrtpbuffer.h>
 
 namespace sfl {
 
 /**
- * H264 decode based on Gstreamer's element ffdec_h264.
+ * Extends VideoDecoder
  */
-class H264GstDecoder: public VideoDecoder {
+class H264GstDecoder : public VideoDecoder {
 public:
-	H264GstDecoder() throw (VideoDecodingException, MissingPluginException);
-	H264GstDecoder(const VideoFormat& decodingFormat)
-			throw (VideoDecodingException, MissingPluginException);
+	/**
+	 * @Override
+	 */
+	H264GstDecoder() throw(VideoDecodingException, MissingPluginException);
+	/**
+	 * @param maxFrameQueued The maximum number of frames to be queued before starting to drop the following ones.
+	 * @throw VideoEncodingException if an error occurs while opening the video decoder.
+	 */
+	H264GstDecoder(VideoFormat& outputFormat) throw(VideoDecodingException, MissingPluginException);
+
+	/**
+	 * Delete the endpoints and stop the pipeline.
+	 */
 	~H264GstDecoder();
 
 	/**
-	 * This call is asynchronous. The data will simply be placed in a queue and
-	 * only be processed when Gstreamer requests it.
-	 *
 	 * @Override
 	 */
-	void decode(ManagedBuffer<uint8>& buffer) throw (VideoDecodingException);
+	void setOutputFormat(VideoFormat& format);
 
 	/**
 	 * @Override
 	 */
-	Dimension getDimension() const;
+	void decode(ManagedBuffer<uint8>& data) throw(VideoDecodingException);
 
 	/**
 	 * @Override
 	 */
-	std::string getFourcc() const;
+	void activate();
 
 	/**
 	 * @Override
 	 */
-	VideoFormat getOutputFormat() const;
-
-	/**
-	 * @Override
-	 */
-	void setOutputFormat(const VideoFormat& decodingFormat)
-			throw (VideoDecodingException);
+	void deactivate();
 
 private:
 	/**
-	 * Helper method to avoid code duplications with different constructors.
+	 * Helper method for constructors.
 	 */
-	void init();
+	void init(VideoFormat& format) throw(VideoDecodingException, MissingPluginException);
+
+	InjectablePipeline* injectableEnd;
+	RetrievablePipeline* retrievableEnd;
 
 	/**
-	 * This signal callback is called when the internal queue in appsrc is full.
+	 * Observer object for raw video frames produced by this decoder.
+	 * We only re-broadcast the event externally.
 	 */
-	static void onEnoughData(GstAppSrc *src, gpointer user_data);
-
-	/**
-	 * This method is called when a new buffer becomes available at the sink.
-	 */
-	static GstFlowReturn onNewBuffer(GstAppSink* sink, gpointer self);
-
-	/**
-	 * Pull the buffer out from the decoder and notify the observers.
-	 */
-	void dispatchEvent();
-
-	/**
-	 * Start the pipeline.
-	 */
-	void start() throw (VideoDecodingException);
-
-	/**
-	 * Stop the pipeline.
-	 */
-	void stop() throw (VideoDecodingException);
-
-	GstElement* pipeline;
-	GstElement* appsrc;
-	GstElement* depayloader;
-	GstElement* parser;
-	GstElement* decoder;
-	GstElement* ffmpegcolorspace;
-	GstElement* deinterlace;
-	GstElement* videoscale;
-	GstElement* tee;
-	GstElement* displayQueue;
-	GstElement* displayWindow;
-	GstElement* appsinkQueue;
-	GstElement* appsink;
-
-	static const int MAX_BUS_POOL_WAIT = 10;
+	class PipelineEventObserver : public RetrievablePipelineObserver {
+	public:
+		PipelineEventObserver(H264GstDecoder* encoder) : parent(encoder) {}
+		H264GstDecoder* parent;
+		/**
+		 * @Override
+		 */
+		void onNewBuffer(GstBuffer* buffer) {
+			_debug("Video frame decoded to raw format ...");
+			// parent->notifyAll(nalUnit);
+		}
+	};
+	PipelineEventObserver* outputObserver;
 };
 
 }

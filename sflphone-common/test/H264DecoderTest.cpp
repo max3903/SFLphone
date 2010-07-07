@@ -1,6 +1,6 @@
 #include "H264DecoderTest.h"
 
-#include "video/decoder/H264GstDecoderSimple.h"
+#include "video/decoder/H264GstDecoder.h"
 #include "video/rtp/VideoRtpSession.h"
 #include "sip/sdp/RtpMap.h"
 #include "sip/sdp/Fmtp.h"
@@ -9,31 +9,21 @@
 
 void H264DecoderTest::setUp() {
 	std::cout << "Setting up..." << std::endl;
-
-	if (system("./server.sh >> /dev/null &") < 0) {
-		CPPUNIT_FAIL("Failed to start server in video RTP test.");
-	}
-
-	sleep(2);
 }
 
 void H264DecoderTest::tearDown() {
 	std::cout << "Tearing down..." << std::endl;
-
-	if (system("killall gst-launch-0.10") < 0) {
-		CPPUNIT_FAIL("Failed to stop server in video RTP test.");
-	}
 }
 
 void H264DecoderTest::testReceive()
 {
 	std::cout << "Trying to decode frames ... " << std::endl;
 
-	ost::InetHostAddress address("127.0.0.1");
+	ost::InetHostAddress address("0.0.0.0");
 	sfl::VideoRtpSession* session = new sfl::VideoRtpSession(address, (ost::tpport_t) 5000);
 
 	// No decoder is attached to this depayloader.
-	sfl::H264GstDecoderSimple decoder;
+	sfl::H264GstDecoder decoder;
 	session->registerDecoder("H264", decoder);
 
 	// Simulate the arrival of an SDP offer
@@ -43,7 +33,15 @@ void H264DecoderTest::testReceive()
 
 	session->start();
 
+//	if (system("./server.sh >> /dev/null &") < 0) {
+//		CPPUNIT_FAIL("Failed to start server in video RTP test.");
+//	}
+
 	sleep(10);
+
+//	if (system("killall gst-launch-0.10") < 0) {
+//		CPPUNIT_FAIL("Failed to stop server in video RTP test.");
+//	}
 
 	delete session;
 }
