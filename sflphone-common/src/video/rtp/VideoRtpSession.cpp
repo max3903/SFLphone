@@ -131,13 +131,24 @@ void VideoRtpSession::setCodec(ost::PayloadType pt) throw(MissingPluginException
 
 	CodecConfiguration config = (*it).second;
 
-	setEncoder(config.getEncoder());
-	setDecoder(config.getDecoder());
+	// Replace with the new encoder and decoder
+	VideoEncoder* enc = config.getEncoder();
+	setEncoder(enc);
+	VideoDecoder* dec = config.getDecoder();
+	setDecoder(dec);
 
 	setActivePayloadType(pt);
 
 	setPayloadFormat(ost::DynamicPayloadFormat(pt,
 			config.getRtpmap().getClockRate()));
+
+	// Configure the codec with the options obtained from SDP.
+	std::map<std::string, std::string> props = config.getRtpmap().getParamParsed();
+	std::map<std::string, std::string>::iterator itProps;
+	for (itProps = props.begin(); itProps != props.end(); itProps++) {
+		enc->setProperty((*itProps).first /* Prop. name */, (*itProps).second /* Prop. value */);
+		dec->setProperty((*itProps).first /* Prop. name */, (*itProps).second /* Prop. value */);
+	}
 }
 
 void VideoRtpSession::addSessionCodec(const RtpMap& rtpmap, const Fmtp& fmtp)

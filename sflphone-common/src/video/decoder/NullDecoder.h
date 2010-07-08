@@ -45,6 +45,7 @@ public:
 	void setOutputFormat(VideoFormat& format) {};
 	void activate() { _warn("Activating the NullDecoder"); };
 	void deactivate() { _warn("Deactivating the NullDecoder"); };
+	void setProperty(const std::string& name, const std::string& value){ _warn("Setting property %s with value %s in NullDecoder", name.c_str(), value.c_str()); };
 };
 }
 

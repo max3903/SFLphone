@@ -26,27 +26,66 @@
  *  shall include the source code for the parts of OpenSSL used as well
  *  as that of the covered work.
  */
-#ifndef __SFL_NULL_ENCODER_H__
-#define __SFL_NULL_ENCODER_H__
 
-#include "VideoEncoder.h"
+#ifndef __SFL_GST_ENCODER_JPEG_2000_H__
+#define __SFL_GST_ENCODER_JPEG_2000_H__
+
+#include "GstEncoder.h"
+
+#include <string>
 
 namespace sfl {
 /**
- * Null object pattern for the VideoEncoder class of objects.
+ * Extends VideoEncoder, and implements RetrievablePipelineObserver
  */
-class NullEncoder: public VideoEncoder {
+class GstEncoderJpeg2000: public GstEncoder {
 public:
-	NullEncoder() : VideoEncoder() {};
-	virtual ~NullEncoder() {};
+	GstEncoderJpeg2000(VideoInputSource& source) throw (VideoDecodingException,
+			MissingPluginException);
 
-	virtual void encode(const VideoFrame* frame) throw(VideoEncodingException)
-			{ _error("No encoder for encoding %d bytes of data", frame->getSize()); }
-	void activate() { _warn("Activating the NullEncoder"); };
-	void deactivate() { _warn("Deactivating the NullEncoder"); };
-	void setProperty(const std::string& name, const std::string& value){ _warn("Setting property %s with value %s in NullEncoder", name.c_str(), value.c_str()); };
-	std::string getCodecName() { return "NullEncoder"; }
+	GstEncoderJpeg2000(VideoInputSource& source, unsigned maxFrameQueued)
+			throw (VideoDecodingException, MissingPluginException);
+
+	void setRate(const std::string& value);
+
+	void setChromaSubsamplingFormat(const std::string& value);
+
+	void setInterlace(const std::string& value);
+
+	void setWidth(const std::string& value);
+
+	void setHeight(const std::string& value);
+
+	/**
+	 * @Override
+	 */
+	std::string getCodecName();
+
+protected:
+
+	/**
+	 * @Override
+	 */
+	GstElement* getTail();
+
+	/**
+	 * @Override
+	 */
+	void setProperty(int index, const std::string& value);
+
+	/**
+	 * @Override
+	 */
+	void buildEncodingFilter(Pipeline& pipeline, GstElement* previous)
+			throw (VideoDecodingException, MissingPluginException);
+
+private:
+
+	void init() throw (VideoDecodingException, MissingPluginException);
+
+	GstElement* rtpj2kpay;
 };
+
 }
 
 #endif

@@ -6,7 +6,9 @@ libsdp_la_SOURCES = \
 		SdesNegotiator.cpp \
 		sdp.cpp \
 		sdpmedia.cpp
-	
+		
+libutil_la_LDFLAGS = $(CCGNU2_LIBS)
+
 noinst_HEADERS = \
 		RtpMap.h \
 		Fmtp.h \

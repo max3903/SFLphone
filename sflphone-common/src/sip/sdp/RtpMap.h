@@ -29,6 +29,8 @@
 #ifndef __SFL_RTP_MAP_H__
 #define __SFL_RTP_MAP_H__
 
+#include <cc++/tokenizer.h>
+
 #include <string>
 #include <stdlib.h>
 
@@ -44,7 +46,8 @@ public:
 	 * @param clockRate The clock rate for this codec. Eg: 9000
 	 * @param param Optional parameters for this codec.
 	 */
-	RtpMap(const std::string& payloadType, const std::string& codec, unsigned clockRate, const std::string param) {
+	RtpMap(const std::string& payloadType, const std::string& codec,
+			unsigned clockRate, const std::string param) {
 		this->payloadType = atoi(payloadType.c_str());
 		this->codec = codec;
 		this->clockRate = clockRate;
@@ -54,37 +57,55 @@ public:
 	/**
 	 * @return The clock rate for this codec.
 	 */
-    unsigned getClockRate() const
-    {
-        return clockRate;
-    }
+	unsigned getClockRate() const {
+		return clockRate;
+	}
 
-    /**
-     * @return The codec name.
-     */
-    std::string getCodecName() const
-    {
-        return codec;
-    }
+	/**
+	 * @return The codec name.
+	 */
+	std::string getCodecName() const {
+		return codec;
+	}
 
-    /**
-     * @return Optional parameters for this codec.
-     */
-    std::string getParam() const
-    {
-        return param;
-    }
+	/**
+	 * @return Optional parameters for this codec.
+	 */
+	std::string getParam() const {
+		return param;
+	}
 
-    /**
-     * @return The static or dynamic payload type.
-     */
-    unsigned getPayloadType() const
-    {
-        return payloadType;
-    }
+	/**
+	 * Split the params of a a=fmtp line into its individual parameter, separated by ";" tokens.
+	 * Note that RFC4566 indicates no assumption about how this piece of data should be formatted.
+	 * @return The param portion of the a=fmtp line, splitted into individual parameters in a "property-name:property-value" mapping.
+	 */
+	std::map<std::string, std::string> getParamParsed() {
+		std::map<std::string, std::string> properties;
+
+		ost::StringTokenizer paramsTokenizer(param.c_str(), ";", false, true /* Trim wspace */);
+		ost::StringTokenizer::iterator it;
+		for (it = paramsTokenizer.begin(); it != paramsTokenizer.end(); ++it) {
+			std::string param(*it);
+			size_t pos = param.find("=");
+			std::string property = param.substr(pos+1); // FIXME Too naive !
+			std::string value = param.substr(0, pos); // FIXME Too naive !
+
+			properties.insert(std::pair<std::string, std::string>(property, value));
+		}
+
+		return properties;
+	}
+
+	/**
+	 * @return The static or dynamic payload type.
+	 */
+	unsigned getPayloadType() const {
+		return payloadType;
+	}
 
 private:
-    unsigned payloadType;
+	unsigned payloadType;
 	std::string codec;
 	unsigned clockRate;
 	std::string param;
