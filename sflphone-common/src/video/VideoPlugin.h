@@ -26,69 +26,37 @@
  *  shall include the source code for the parts of OpenSSL used as well
  *  as that of the covered work.
  */
-#ifndef __SFL_NULL_DECODER_H__
-#define __SFL_NULL_DECODER_H__
+#ifndef __SFL_VIDEO_PLUGIN_H__
+#define __SFL_VIDEO_PLUGIN_H__
 
-#include "VideoDecoder.h"
+#include <string>
 
 namespace sfl {
 /**
- * Null object pattern for the VideoDecoder class of objects.
+ * Interface for video encoders and decoders.
+ * Might be used for audio codec also in the future.
  */
-class NullDecoder: public VideoDecoder {
+class VideoPlugin {
 public:
-	NullDecoder() :
-		VideoDecoder() {
-	}
-
-	virtual ~NullDecoder() {
-	}
-
+	virtual ~VideoPlugin() {} ;
+	/**
+	 * Activate an instance of a codec.
+	 */
+	virtual void activate() = 0;
+	/**
+	 * Deactivate an instance of a codec.
+	 */
+	virtual void deactivate() = 0;
+	/**
+	 * @return The submime type for which this plugin is designed.
+	 */
+	virtual std::string getMimeSubtype() = 0;
 
 	/**
-	 * @Override
+	 * @param propName The name that identifies this property.
+	 * @param propValue The value this property should have.
 	 */
-	void decode(ManagedBuffer<uint8>& data) throw (VideoDecodingException) {
-		_error("No decoder for decoding %d bytes of data", data.getSize());
-	}
-
-	/**
-	 * @Override
-	 */
-	void setOutputFormat(VideoFormat& format) {
-	}
-
-
-	/**
-	 * @Override
-	 */
-	void activate() {
-		_warn("Activating the NullDecoder");
-	}
-
-
-	/**
-	 * @Override
-	 */
-	void deactivate() {
-		_warn("Deactivating the NullDecoder");
-	}
-
-
-	/**
-	 * @Override
-	 */
-	void setProperty(const std::string& propName, const std::string& propValue) {
-		_warn("Setting property %s with value %s in NullDecoder", propName.c_str(), propValue.c_str());
-	}
-
-
-	/**
-	 * @Override
-	 */
-	std::string getMimeSubtype() {
-		return "NullDecoder";
-	}
+	virtual void setProperty(const std::string& propName, const std::string& propValue) = 0;
 };
 }
 

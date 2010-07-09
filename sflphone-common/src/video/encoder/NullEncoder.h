@@ -37,15 +37,47 @@ namespace sfl {
  */
 class NullEncoder: public VideoEncoder {
 public:
-	NullEncoder() : VideoEncoder() {};
-	virtual ~NullEncoder() {};
+	NullEncoder() :
+		VideoEncoder() {
+	}
+	;
+	virtual ~NullEncoder() {
+	}
 
-	virtual void encode(const VideoFrame* frame) throw(VideoEncodingException)
-			{ _error("No encoder for encoding %d bytes of data", frame->getSize()); }
-	void activate() { _warn("Activating the NullEncoder"); };
-	void deactivate() { _warn("Deactivating the NullEncoder"); };
-	void setProperty(const std::string& name, const std::string& value){ _warn("Setting property %s with value %s in NullEncoder", name.c_str(), value.c_str()); };
-	std::string getCodecName() { return "NullEncoder"; }
+	/**
+	 * @Override
+	 */
+	void encode(const VideoFrame* frame) throw (VideoEncodingException) {
+		_error("No encoder for encoding %d bytes of data", frame->getSize());
+	}
+
+	/**
+	 * @Override
+	 */
+	void activate() {
+		_warn("Activating the NullEncoder");
+	}
+
+	/**
+	 * @Override
+	 */
+	void deactivate() {
+		_warn("Deactivating the NullEncoder");
+	}
+
+	/**
+	 * @Override
+	 */
+	void setProperty(const std::string& propName, const std::string& propValue) {
+		_warn("Setting property %s with value %s in NullEncoder", propName.c_str(), propValue.c_str());
+	}
+
+	/**
+	 * @Override
+	 */
+	std::string getMimeSubtype() {
+		return "NullEncoder";
+	}
 };
 }
 

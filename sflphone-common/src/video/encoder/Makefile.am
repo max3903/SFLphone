@@ -10,9 +10,6 @@ libvideoencoder_la_SOURCES = \
 		VideoEncoder.h \
 		GstEncoder.cpp \
 		GstEncoderH264.cpp \
-		GstEncoderJpeg2000.cpp \
-		GstEncoderRaw.cpp \
-		GstEncoderTheora.cpp \
 		H264GstEncoder.cpp
 		
 noinst_HEADERS = \
@@ -20,7 +17,4 @@ noinst_HEADERS = \
 		NullEncoder.h \
 		GstEncoder.h \
 		GstEncoderH264.h \
-		GstEncoderJpeg2000.h \
-		GstEncoderRaw.h \
-		GstEncoderTheora.h \
 		H264GstEncoder.h

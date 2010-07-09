@@ -77,6 +77,16 @@ public:
 	/**
 	 * @Override
 	 */
+	std::string getMimeSubtype();
+
+	/**
+	 * @Override
+	 */
+	void setProperty(const std::string propName, const std::string propValue);
+
+	/**
+	 * @Override
+	 */
 	void setProperty(const std::string& name, const std::string& value);
 
 	void setProfileLevelId(const std::string& profileLevelId);

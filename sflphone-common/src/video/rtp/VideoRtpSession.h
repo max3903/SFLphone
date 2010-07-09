@@ -53,8 +53,7 @@ public:
 	 * @param mutiCastAddress Local multicast network address
 	 * @param port Local transport port (where incoming packets are expected)
 	 */
-			VideoRtpSession(ost::InetMcastAddress& multiCastAddress,
-					ost::tpport_t port);
+	VideoRtpSession(ost::InetMcastAddress& multiCastAddress, ost::tpport_t port);
 
 	/**
 	 * @param unicastAddress Local unicast network address
@@ -204,7 +203,7 @@ private:
 	 * @precondition A video codec identified with this payload type should have been added to the session codecs via
 	 * addSessionCodec();
 	 */
-	void setCodec(ost::PayloadType pt) throw(MissingPluginException);
+	void setCodec(ost::PayloadType pt) throw (MissingPluginException);
 
 	/**
 	 * This table holds a list of instantiated encoder that are supported.
@@ -214,7 +213,6 @@ private:
 	VideoDecoder* decoder;
 	std::map<std::string, VideoDecoder*> decoderTable;
 	typedef std::map<std::string, VideoDecoder*>::iterator DecoderTableIterator;
-
 
 	/**
 	 * This table holds a list of instantiated decoder that are supported.
@@ -283,8 +281,12 @@ private:
 
 	// Used for codec switching during RTP session.
 	ost::PayloadType activePayloadType;
-	void inline setActivePayloadType(ost::PayloadType pt) { activePayloadType = pt; }
-	ost::PayloadType inline getActivePayloadType() { return activePayloadType; }
+	void inline setActivePayloadType(ost::PayloadType pt) {
+		activePayloadType = pt;
+	}
+	ost::PayloadType inline getActivePayloadType() {
+		return activePayloadType;
+	}
 };
 }
 #endif

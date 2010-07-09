@@ -80,7 +80,7 @@ public:
 	 * Note that RFC4566 indicates no assumption about how this piece of data should be formatted.
 	 * @return The param portion of the a=fmtp line, splitted into individual parameters in a "property-name:property-value" mapping.
 	 */
-	std::map<std::string, std::string> getParamParsed() {
+	std::map<std::string, std::string> getParamParsed() const {
 		std::map<std::string, std::string> properties;
 
 		ost::StringTokenizer paramsTokenizer(param.c_str(), ";", false, true /* Trim wspace */);

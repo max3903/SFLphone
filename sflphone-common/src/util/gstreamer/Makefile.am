@@ -11,5 +11,6 @@ noinst_HEADERS = \
 		InjectablePipeline.h \
 		RetrievablePipeline.h \
 		Pipeline.h \
+		Filter.h \
 		VideoFormatToGstCaps.h
 		

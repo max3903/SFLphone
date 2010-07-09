@@ -27,54 +27,43 @@
  *  as that of the covered work.
  */
 
-#include "video/decoder/H264GstDecoder.h"
+#include "video/decoder/GstDecoder.h"
 #include "util/gstreamer/InjectablePipeline.h"
 #include "util/gstreamer/RetrievablePipeline.h"
 #include "util/gstreamer/VideoFormatToGstCaps.h"
 
 namespace sfl {
 
-H264GstDecoder::H264GstDecoder()
+GstDecoder::GstDecoder()
 		throw (VideoDecodingException, MissingPluginException) :
 	VideoDecoder() {
 	VideoFormat defaultFormat; // See VideoFormat for the default values that are set. Should be 320x240, RGB, 30/1
 	init(defaultFormat);
 }
 
-H264GstDecoder::H264GstDecoder(VideoFormat& format)
+GstDecoder::GstDecoder(VideoFormat& format)
 		throw (VideoDecodingException, MissingPluginException) :
 	VideoDecoder() {
 	init(format);
 }
 
-/**
- * Initialize the Gstreamer pipeline.
- *
- * The appsrc element merely does what udpsrc would do. The only
- * reason for not using it is because we want to keep the security
- * features that we already have with ccRTP.
- *
- * |appsrc| -> |rtph264depay| -> |h264parse| -> |ffdec_h264| ---
- *
- * ----> |ffmpegcolorspace| -> |deinterlace| -> |videoscale| -> |queue| -> |autovideosink| (debug branch)
- */
-void H264GstDecoder::init(VideoFormat& format)
+void GstDecoder::init(VideoFormat& format)
 		throw (VideoDecodingException, MissingPluginException) {
 	gst_init(0, NULL);
 
 	// Create the encoding portion of the pipeline
 	// TODO catch exceptions
-	Pipeline pipeline("sfl_h264_decoding");
+	Pipeline pipeline(std::string("sfl_") + getMimeSubtype() + std::string("_decoding"));
 	pipeline.setPrefix("sfl_decoder_");
 
-	GstElement* rtph264depay = pipeline.addElement("rtph264depay");
-	GstElement* previous = pipeline.addElement("h264parse", rtph264depay);
-	previous = pipeline.addElement("ffdec_h264", previous);
+	// Ask the derived child to take care of building the encoding portion of the pipeline itself. A knowledge that we
+	// can't have at this point in the object hierarchy (template design pattern).
+	buildFilter(pipeline);
 
-	pipeline.addTee("main_tee", previous);
+	pipeline.addTee("main_tee", getTail());
 
 	GstPad* debugBranch = pipeline.branch("main_tee");
-	previous = pipeline.addElement("queue", debugBranch);
+	GstElement* previous = pipeline.addElement("queue", debugBranch);
 	previous = pipeline.addElement("ffmpegcolorspace", previous);
 	previous = pipeline.addElement("deinterlace", previous);
 	pipeline.addElement("autovideosink", previous);
@@ -100,18 +89,18 @@ void H264GstDecoder::init(VideoFormat& format)
 	retrievableEnd->addObserver(outputObserver);
 
 	// Connect both endpoints to the graph.
-	injectableEnd->setSink(rtph264depay);
+	injectableEnd->setSink(getHead());
 	retrievableEnd->setSource(videoscale);
 }
 
-H264GstDecoder::~H264GstDecoder() {
+GstDecoder::~GstDecoder() {
 	deactivate();
 
 	delete retrievableEnd;
 	delete injectableEnd;
 }
 
-void H264GstDecoder::decode(ManagedBuffer<uint8>& data)
+void GstDecoder::decode(ManagedBuffer<uint8>& data)
 		throw (VideoDecodingException) {
 	_debug("Decoding RTP packet ...");
 
@@ -124,19 +113,19 @@ void H264GstDecoder::decode(ManagedBuffer<uint8>& data)
 	injectableEnd->inject(buffer);
 }
 
-void H264GstDecoder::setOutputFormat(VideoFormat& format)
+void GstDecoder::setOutputFormat(VideoFormat& format)
 {
 	retrievableEnd->setCaps(VideoFormatToGstCaps(format));
 }
 
-void H264GstDecoder::activate() {
+void GstDecoder::activate() {
 	_info("Activating h264 decoder");
 
 	// Does not matter whether we call start() on injectable or retrievable endpoints.
 	injectableEnd->start();
 }
 
-void H264GstDecoder::deactivate() {
+void GstDecoder::deactivate() {
 	_info("Deactivating h264 decoder");
 
 	// Clear our own observers
@@ -147,14 +136,6 @@ void H264GstDecoder::deactivate() {
 
 	// Does not matter whether we call stop() on injectable or retrievable endpoints.
 	retrievableEnd->stop();
-}
-
-std::string H264GstDecoder::getMimeSubtype() {
-	return "H264";
-}
-
-void H264GstDecoder::setProperty(const std::string& name, const std::string& value) {
-
 }
 
 }

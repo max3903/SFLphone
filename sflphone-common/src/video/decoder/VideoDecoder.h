@@ -30,7 +30,7 @@
 #ifndef __SFL_VIDEO_DECODER_H__
 #define __SFL_VIDEO_DECODER_H__
 
-#include "video/VideoCodec.h"
+#include "video/VideoPlugin.h"
 #include "video/VideoFormat.h"
 #include "video/VideoExceptions.h"
 
@@ -54,7 +54,7 @@ public:
 /**
  * Abstract base class for every video decoder.
  */
-class VideoDecoder : public VideoCodec, public AbstractObservable<ManagedBuffer<uint8_t>&, VideoFrameDecodedObserver> {
+class VideoDecoder : public VideoPlugin, public AbstractObservable<ManagedBuffer<uint8_t>&, VideoFrameDecodedObserver> {
 public:
 	/**
 	 * @param buffer A buffer containing the depayloaded data.
@@ -67,6 +67,9 @@ public:
 	 * @format The VideoFormat describing the desired output format in which to retrieve the decoded video frames.
 	 */
 	virtual void setOutputFormat(VideoFormat& format) = 0;
+
+    typedef int IsDerivedFromVideoDecoder;
+
 protected:
 	/**
 	 * Simple dispatch for the VideoFrameDecodedObserver type.

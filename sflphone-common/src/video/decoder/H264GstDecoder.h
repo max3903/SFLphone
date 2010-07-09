@@ -79,6 +79,16 @@ public:
 	 */
 	void deactivate();
 
+	/**
+	 * @Override
+	 */
+	std::string getMimeSubtype();
+
+	/**
+	 * @Override
+	 */
+	void setProperty(const std::string& propName, const std::string& propValue);
+
 private:
 	/**
 	 * Helper method for constructors.

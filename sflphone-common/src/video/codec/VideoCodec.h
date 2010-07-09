@@ -27,65 +27,40 @@
  *  as that of the covered work.
  */
 
-#ifndef __SFL_GST_ENCODER_THEORA_H__
-#define __SFL_GST_ENCODER_THEORA_H__
+#ifndef __SFL_VIDEO_CODEC_H__
+#define __SFL_VIDEO_CODEC_H__
 
-#include "GstEncoder.h"
-
-#include <string>
+#include "video/VideoPlugin.h"
+#include "video/encoder/VideoEncoder.h"
+#include "video/decoder/VideoDecoder.h"
+#include "video/source/VideoInputSource.h"
 
 namespace sfl {
+
 /**
- * Extends VideoEncoder, and implements RetrievablePipelineObserver
+ * A VideoCodec is a pair that consists of a video encoder and a video decoder.
+ * A VideoCodec object offers a complete set of properties that corresponds to the
+ * set of parameters defined in its RFC (SDP params).
+ *
+ * Hence, encoding and decoding params must be the same for the two elements.
+ *
+ * A lot of the public methods made available below are just meant to hide delegates.
  */
-class GstEncoderTheora: public GstEncoder {
+
+class VideoCodec :  public VideoPlugin {
 public:
-	GstEncoderTheora(VideoInputSource& source) throw (VideoDecodingException,
-			MissingPluginException);
+	VideoCodec() {};
+	virtual ~VideoCodec() {};
 
-	GstEncoderTheora(VideoInputSource& source, unsigned maxFrameQueued)
-			throw (VideoDecodingException, MissingPluginException);
+	virtual void encode(const VideoFrame* frame) throw(VideoEncodingException) = 0;
 
-	void setDeliveryMethod(const std::string& value);
+	virtual void decode(ManagedBuffer<uint8>& data) throw (VideoDecodingException) = 0;
 
-	void setConfiguration(const std::string& value);
+	virtual void setEncoderVideoSource(VideoInputSource& source) = 0;
 
-	void setConfigurationUri(const std::string& value);
+	virtual void addVideoFrameEncodedObserver(VideoFrameEncodedObserver& observer) = 0;
 
-	void setChromaSubsamplingFormat(const std::string& value);
-
-	void setWidth(const std::string& value);
-
-	void setHeight(const std::string& value);
-
-	/**
-	 * @Override
-	 */
-	std::string getCodecName();
-
-protected:
-
-	/**
-	 * @Override
-	 */
-	GstElement* getTail();
-
-	/**
-	 * @Override
-	 */
-	void setProperty(int index, const std::string& value);
-
-	/**
-	 * @Override
-	 */
-	void buildEncodingFilter(Pipeline& pipeline, GstElement* previous) throw (VideoDecodingException,
-			MissingPluginException);
-
-private:
-
-	void init() throw (VideoDecodingException, MissingPluginException);
-
-	GstElement* rtptheorapay;
+	virtual void addVideoFrameDecodedObserver(VideoFrameDecodedObserver& observer) = 0;
 };
 
 }

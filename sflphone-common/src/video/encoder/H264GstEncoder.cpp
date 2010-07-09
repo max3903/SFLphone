@@ -290,4 +290,9 @@ void H264GstEncoder::setProperty(const std::string& name, const std::string& val
 	};
 }
 
+std::string H264GstEncoder::getMimeSubtype() {
+	return "H264";
+}
+
+
 }

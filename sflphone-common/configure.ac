@@ -69,6 +69,7 @@
 			src/video/source/Makefile \
 			src/video/decoder/Makefile \
 			src/video/encoder/Makefile \
+			src/video/codec/Makefile \
 			src/video/rtp/Makefile \
 			src/video/Makefile \
 			src/config/Makefile \

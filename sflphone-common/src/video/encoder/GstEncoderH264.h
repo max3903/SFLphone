@@ -34,56 +34,16 @@
 
 #include <string>
 
+#include <gst/gstelement.h>
+
 namespace sfl {
-/**
- * Extends VideoEncoder, and implements RetrievablePipelineObserver
- */
+
 class GstEncoderH264: public GstEncoder {
-public:
-	GstEncoderH264(VideoInputSource& source) throw (VideoDecodingException,
-			MissingPluginException);
-
-	GstEncoderH264(VideoInputSource& source, unsigned maxFrameQueued)
-			throw (VideoDecodingException, MissingPluginException);
-
-	void setProfileLevelId(const std::string& profileLevelId);
-
-	void setMaxMbps(const std::string& maxMbps);
-
-	void setMaxFs(const std::string& maxFs);
-
-	void setMaxCpb(const std::string& maxCpb);
-
-	void setMaxDpb(const std::string& maxDpb);
-
-	void setMaxBr(const std::string& maxBr);
-
-	void setRedundantPicCap(const std::string& redundantPicCap);
-
-	void setParameterAdd(const std::string& parameterAdd);
-
-	void setPacketizationMode(const std::string& packetizationMode);
-
-	void setDeintBufCap(const std::string& deintBufCap);
-
-	void setMaxRcmdNaluSize(const std::string& maxRcmdNaluSize);
-
-	void setSpropParameterSets(const std::string& spropParameterSets);
-
-	void setSpropInterleavingDepth(const std::string& spropInterleavingDepth);
-
-	void setSpropDeintBufReq(const std::string& spropDeintBufReq);
-
-	void setSpropInitBufTime(const std::string& spropInitBufTime);
-
-	void setSpropMaxDonDiff(const std::string& spropMaxDonDiff);
-
+protected:
 	/**
 	 * @Override
 	 */
-	std::string getCodecName();
-
-protected:
+	GstElement* getHead();
 
 	/**
 	 * @Override
@@ -93,13 +53,17 @@ protected:
 	/**
 	 * @Override
 	 */
-	void setProperty(int index, const std::string& value);
+	std::string getMimeSubtype();
 
 	/**
 	 * @Override
 	 */
-	void buildEncodingFilter(Pipeline& pipeline, GstElement* previous) throw (VideoDecodingException,
-			MissingPluginException);
+	void buildFilter(Pipeline& pipeline) throw (MissingPluginException);
+
+	/**
+	 * @Override
+	 */
+	void setProperty(const std::string& name, const std::string& value);
 
 private:
 

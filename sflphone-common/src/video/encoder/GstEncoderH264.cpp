@@ -31,178 +31,38 @@
 
 namespace sfl {
 
-void GstEncoderH264::setMaxMbps(const std::string& maxMbps) {
-	_warn("max-mbps property not taken into account");
-}
+void GstEncoderH264::buildFilter(Pipeline& pipeline)
+		throw (MissingPluginException) {
 
-void GstEncoderH264::setMaxFs(const std::string& maxFs) {
-	_warn("max-fs property not taken into account");
-}
+	x264enc = pipeline.addElement("x264enc");
 
-void GstEncoderH264::setMaxCpb(const std::string& maxCpb) {
-	_warn("max-cpb property not taken into account");
-}
-
-void GstEncoderH264::setMaxDpb(const std::string& maxDpb) {
-	_warn("max-dpb property not taken into account");
-}
-
-void GstEncoderH264::setMaxBr(const std::string& maxBr) {
-	_warn("max-br property not taken into account");
-}
-
-void GstEncoderH264::setRedundantPicCap(const std::string& redundantPicCap) {
-	_warn("redundant-pic-cap property not taken into account");
-}
-
-void GstEncoderH264::setParameterAdd(const std::string& parameterAdd) {
-	_warn("parameter-add property not taken into account");
-}
-
-void GstEncoderH264::setDeintBufCap(const std::string& deintBufCap) {
-	_warn("deint-buf-cap property not taken into account");
-}
-
-void GstEncoderH264::setMaxRcmdNaluSize(const std::string& maxRcmdNaluSize) {
-	_warn("max-rcmd-nalu-size property not taken into account");
-}
-
-void GstEncoderH264::setSpropInterleavingDepth(
-		const std::string& spropInterleavingDepth) {
-	_warn("sprop-interleaving-depth property not taken into account");
-}
-
-void GstEncoderH264::setSpropDeintBufReq(const std::string& spropDeintBufReq) {
-	_warn("sprop-deint-buf-req property not taken into account");
-}
-
-void GstEncoderH264::setSpropInitBufTime(const std::string& spropInitBufTime) {
-	_warn("sprop-init-buf-time property not taken into account");
-}
-
-void GstEncoderH264::setSpropMaxDonDiff(const std::string& spropMaxDonDiff) {
-	_warn("sprop-max-don-diff property not taken into account");
-}
-
-void GstEncoderH264::setSpropParameterSets(
-		const std::string& spropParameterSets) {
-	_info("Setting sprop-parameter-sets property");
-	g_object_set(G_OBJECT(rtph264pay), "sprop-parameter-sets",
-			spropParameterSets.c_str(), NULL);
-}
-
-void GstEncoderH264::setPacketizationMode(
-		const std::string& packetizationMode) {
-	_info("Setting packetization-mode property");
-	g_object_set(G_OBJECT(rtph264pay), "scan-mode", packetizationMode.c_str(),
-			NULL);
-}
-
-void GstEncoderH264::setProfileLevelId(const std::string& profileLevelId) {
-	g_object_set(G_OBJECT(rtph264pay), "profile-level-id",
-			profileLevelId.c_str(), NULL);
-}
-
-std::string GstEncoderH264::getCodecName() {
-	return "H264";
-}
-
-void GstEncoderH264::buildEncodingFilter(Pipeline& pipeline, GstElement* previous)
-		throw (VideoDecodingException, MissingPluginException) {
-	x264enc = pipeline.addElement("x264enc", previous);
 	// Generate byte stream format of NALU
 	g_object_set(G_OBJECT(x264enc), "byte-stream", TRUE, NULL);
 
 	// Enable automatic multithreading
 	g_object_set(G_OBJECT(x264enc), "threads", 0, NULL);
 
-	g_object_set(G_OBJECT(x264enc), "bitrate", 300, NULL); // FIXME Hardcoded
+	// Set default bitrate
+	g_object_set(G_OBJECT(x264enc), "bitrate", 300, NULL);
 
 	rtph264pay = pipeline.addElement("rtph264pay", x264enc);
+
+}
+
+GstElement* GstEncoderH264::getHead() {
+	return x264enc;
 }
 
 GstElement* GstEncoderH264::getTail() {
 	return rtph264pay;
 }
 
-enum {
-	PROFILE_LEVEL_ID,
-	MAX_MBPS,
-	MAX_FS,
-	MAX_CPB,
-	MAX_DPB,
-	MAX_BR,
-	REDUNDANT_PIC_CAP,
-	PARAMETER_ADD,
-	PACKETIZATION_MODE,
-	DEINT_BUF_CAP,
-	MAX_RCMP_NALU_SIZE,
-	SPROP_PARAMETER_SETS,
-	SPROP_INTERLEAVING_DEPTH,
-	SPROP_DEINT_BUF_REQ,
-	SPROP_INIT_BUF_TIME,
-	SPROP_MAX_DON_DIFF
-};
-
-void GstEncoderH264::setProperty(int index, const std::string& value) {
-	switch (index) {
-	case SPROP_PARAMETER_SETS:
-		setSpropParameterSets(value);
-		break;
-	case PACKETIZATION_MODE:
-		setPacketizationMode(value);
-		break;
-	case PROFILE_LEVEL_ID:
-		setProfileLevelId(value);
-		break;
-	case MAX_MBPS:
-	case MAX_FS:
-	case MAX_CPB:
-	case MAX_DPB:
-	case MAX_BR:
-	case REDUNDANT_PIC_CAP:
-	case PARAMETER_ADD:
-	case DEINT_BUF_CAP:
-	case MAX_RCMP_NALU_SIZE:
-	case SPROP_INTERLEAVING_DEPTH:
-	case SPROP_DEINT_BUF_REQ:
-	case SPROP_INIT_BUF_TIME:
-	case SPROP_MAX_DON_DIFF:
-	default:
-		break;
-	};
+std::string GstEncoderH264::getMimeSubtype() {
+	return "H264";
 }
 
-void GstEncoderH264::init() throw(VideoDecodingException, MissingPluginException) {
-	installProperty("profile-level-id", PROFILE_LEVEL_ID);
-	installProperty("max-mbps", MAX_MBPS);
-	installProperty("max-fs", MAX_FS);
-	installProperty("max-cpb", MAX_CPB);
-	installProperty("max-dpb", MAX_DPB);
-	installProperty("max-br", MAX_BR);
-	installProperty("redundant-pic-cap", REDUNDANT_PIC_CAP);
-	installProperty("parameter-add", PARAMETER_ADD);
-	installProperty("packetization-mode", PACKETIZATION_MODE);
-	installProperty("deint-buf-cap", DEINT_BUF_CAP);
-	installProperty("max-rcmd-nalu-size", MAX_RCMP_NALU_SIZE);
-	installProperty("sprop-parameter-sets", SPROP_PARAMETER_SETS);
-	installProperty("sprop-interleaving-depth", SPROP_INTERLEAVING_DEPTH);
-	installProperty("sprop-deint-buf-req", SPROP_DEINT_BUF_REQ);
-	installProperty("sprop-init-buf-time", SPROP_INIT_BUF_TIME);
-	installProperty("sprop-max-don-diff", SPROP_MAX_DON_DIFF);
-}
+void GstEncoderH264::setProperty(const std::string& name, const std::string& value) {
 
-GstEncoderH264::GstEncoderH264(VideoInputSource& source)
-		throw (VideoDecodingException, MissingPluginException) :
-	GstEncoder(source) {
-	init();
-}
-
-GstEncoderH264::GstEncoderH264(VideoInputSource& source,
-		unsigned maxFrameQueued) throw (VideoDecodingException,
-		MissingPluginException) :
-	GstEncoder(source, maxFrameQueued) {
-	init();
 }
 
 }

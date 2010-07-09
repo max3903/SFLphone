@@ -51,7 +51,7 @@ void GstEncoder::init(VideoInputSource& source, unsigned maxFrameQueued)
 	gst_init(0, NULL);
 
 	// Create a new pipeline
-	Pipeline pipeline(std::string("sfl_") + getCodecName() + std::string("_encoding"));
+	Pipeline pipeline(std::string("sfl_") + getMimeSubtype() + std::string("_encoding"));
 	pipeline.setPrefix("sfl_encoder_");
 
 	GstElement* ffmpegcolorspace = pipeline.addElement("ffmpegcolorspace");
@@ -59,7 +59,7 @@ void GstEncoder::init(VideoInputSource& source, unsigned maxFrameQueued)
 
 	// Ask the derived child to take care of building the encoding portion of the pipeline itself. A knowledge that we
 	// can't have at this point in the object hierarchy (template design pattern).
-	buildEncodingFilter(pipeline, videoscale);
+	buildFilter(pipeline);
 
 	// Add an injectable endpoint
 	VideoFormat format = getVideoInputSource()->getOutputFormat();
@@ -117,7 +117,7 @@ void GstEncoder::encode(const VideoFrame* frame)
 void GstEncoder::activate() {
 	VideoEncoder::activate();
 
-	_info("Activating h264 encoder");
+	_info("Activating encoder");
 
 	retrievableEnd->start();
 }
@@ -125,25 +125,12 @@ void GstEncoder::activate() {
 void GstEncoder::deactivate() {
 	VideoEncoder::deactivate();
 
-	_info("Deactivating h264 encoder");
+	_info("Deactivating encoder");
 
 	clearObservers();
 
 	retrievableEnd->removeObserver(outputObserver);
 	retrievableEnd->stop();
-}
-
-void GstEncoder::installProperty(const std::string propName, int index)
-{
-	propertyTable.insert(SetterEntry(propName, index));
-}
-
-void GstEncoder::setProperty(const std::string& name, const std::string& value)
-{
-	SetterIterator it = propertyTable.find(name);
-	if (it != propertyTable.end()) {
-		setProperty((*it).second, value);
-	}
 }
 
 }

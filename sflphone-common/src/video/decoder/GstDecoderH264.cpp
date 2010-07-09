@@ -27,63 +27,35 @@
  *  as that of the covered work.
  */
 
-#ifndef __SFL_GST_ENCODER_RAW_H__
-#define __SFL_GST_ENCODER_RAW_H__
-
-#include "GstEncoder.h"
-
-#include <string>
+#include "GstDecoderH264.h"
 
 namespace sfl {
 
-class GstEncoderRaw: public GstEncoder {
-public:
-	GstEncoderRaw(VideoInputSource& source) throw (VideoDecodingException,
-			MissingPluginException);
+void GstDecoderH264::buildFilter(Pipeline& pipeline)
+		throw (MissingPluginException) {
 
-	GstEncoderRaw(VideoInputSource& source, unsigned maxFrameQueued)
-			throw (VideoDecodingException, MissingPluginException);
+	rtph264depay = pipeline.addElement("rtph264depay");
 
-	void setChromaSubsamplingFormat(const std::string& value);
+	GstElement* previous = pipeline.addElement("h264parse", rtph264depay);
 
-	void setWidth(const std::string& value);
+	ffdec_h264 = pipeline.addElement("ffdec_h264", previous);
+}
 
-	void setHeight(const std::string& value);
+GstElement* GstDecoderH264::getHead() {
+	return rtph264depay;
+}
 
-	void setDepth(const std::string& value);
+GstElement* GstDecoderH264::getTail() {
+	return ffdec_h264;
+}
 
-	void setColorimetry(const std::string& value);
+std::string GstDecoderH264::getMimeSubtype() {
+	return "H264";
+}
 
-	/**
-	 * @Override
-	 */
-	std::string getCodecName();
-
-protected:
-
-	/**
-	 * @Override
-	 */
-	GstElement* getTail();
-
-	/**
-	 * @Override
-	 */
-	void setProperty(int index, const std::string& value);
-
-	/**
-	 * @Override
-	 */
-	void buildEncodingFilter(Pipeline& pipeline, GstElement* previous)
-			throw (VideoDecodingException, MissingPluginException);
-
-private:
-
-	void init() throw (VideoDecodingException, MissingPluginException);
-
-	GstElement* previous;
-};
+void GstDecoderH264::setProperty(const std::string& name,
+		const std::string& value) {
 
 }
 
-#endif
+}

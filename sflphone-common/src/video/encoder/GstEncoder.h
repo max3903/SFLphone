@@ -30,9 +30,11 @@
 #ifndef __SFL_GST_ENCODER_H__
 #define __SFL_GST_ENCODER_H__
 
+#include "util/gstreamer/Filter.h"
 #include "util/gstreamer/Pipeline.h"
 #include "util/gstreamer/InjectablePipeline.h"
 #include "util/gstreamer/RetrievablePipeline.h"
+
 #include "video/encoder/VideoEncoder.h"
 
 #include <gst/rtp/gstrtpbuffer.h>
@@ -44,7 +46,7 @@ namespace sfl {
 /**
  * Extends VideoEncoder, and implements RetrievablePipelineObserver
  */
-class GstEncoder: public VideoEncoder {
+class GstEncoder: public VideoEncoder, protected Filter {
 public:
 	/**
 	 * @Override
@@ -76,40 +78,7 @@ public:
 	 */
 	void deactivate();
 
-	/**
-	 * @Override
-	 */
-	void setProperty(const std::string& name, const std::string& value);
-
 	static const unsigned MAX_FRAME_QUEUED = 0; // FIXME Unlimited !
-
-protected:
-	/**
-	 * @return The last node in the graph, where data gets retrieved.
-	 */
-	virtual GstElement* getTail() = 0;
-
-	/**
-	 * @param The current pipeline that is being built.
-	 * @param The previous element to link to.
-	 * @postcondition The pipeline should have been configured so that the desired encoding process can happen.
-	 */
-	virtual void buildEncodingFilter(Pipeline& pipeline, GstElement* previous)
-			throw (VideoDecodingException, MissingPluginException) = 0;
-
-	/**
-	 * Called by the higher level setProperty().
-	 * @param index The index corresponding to this property.
-	 * @param value The value to set.
-	 * @precondition The implementer should have installed some property associated with the given index.
-	 */
-	virtual void setProperty(int index, const std::string& value);
-
-	/**
-	 * Add a mapping so that the given property name triggers some callback method associated with an index.
-	 * @param propName The property
-	 */
-	void installProperty(const std::string propName, int index);
 
 private:
 	/**
@@ -151,11 +120,6 @@ private:
 	};
 
 	PipelineEventObserver* outputObserver;
-
-	// The following is used for mapping a property name to a setter method.
-	typedef std::pair<std::string, int> SetterEntry;
-	typedef std::map<std::string, int>::iterator SetterIterator;
-	std::map<std::string, int> propertyTable;
 };
 
 }

@@ -30,7 +30,7 @@
 #ifndef __SFL_VIDEO_ENCODER_H__
 #define __SFL_VIDEO_ENCODER_H__
 
-#include "video/VideoCodec.h"
+#include "video/VideoPlugin.h"
 #include "video/VideoExceptions.h"
 #include "video/source/VideoInputSource.h"
 
@@ -55,7 +55,7 @@ public:
 /**
  * Abstract base class for every video encoder.
  */
-class VideoEncoder : public VideoCodec, public AbstractObservable<std::pair<uint32, Buffer<uint8> >&, VideoFrameEncodedObserver> {
+class VideoEncoder : public VideoPlugin, public AbstractObservable<std::pair<uint32, Buffer<uint8> >&, VideoFrameEncodedObserver> {
 public:
 
 	/**
@@ -83,14 +83,18 @@ public:
 	virtual void encode(const VideoFrame* frame) throw(VideoEncodingException) = 0;
 
 	/**
-	 * @return The MIME type name for this codec (eg. "H264")
+	 * @param source The video source from which to capture data from.
 	 */
-	virtual std::string getCodecName() = 0;
+	void setVideoInputSource(VideoInputSource& videoSource) {
+		source = &videoSource;
+	}
 
 	/**
 	 * @return VideoInputSource set for this encoder.
 	 */
 	VideoInputSource* getVideoInputSource() { return source; }
+
+    typedef int IsDerivedFromVideoEncoder;
 
 private:
 	/**

@@ -27,65 +27,60 @@
  *  as that of the covered work.
  */
 
-#ifndef __SFL_GST_ENCODER_JPEG_2000_H__
-#define __SFL_GST_ENCODER_JPEG_2000_H__
+#ifndef __SFL_GST_CODEC_H264_H__
+#define __SFL_GST_CODEC_H264_H__
 
-#include "GstEncoder.h"
-
-#include <string>
+#include "AbstractVideoCodec.h"
+#include "video/encoder/GstEncoderH264.h"
+#include "video/decoder/GstDecoderH264.h"
 
 namespace sfl {
-/**
- * Extends VideoEncoder, and implements RetrievablePipelineObserver
- */
-class GstEncoderJpeg2000: public GstEncoder {
+class GstCodecH264: public AbstractVideoCodec<GstEncoderH264, GstDecoderH264> {
 public:
-	GstEncoderJpeg2000(VideoInputSource& source) throw (VideoDecodingException,
-			MissingPluginException);
+	GstCodecH264();
 
-	GstEncoderJpeg2000(VideoInputSource& source, unsigned maxFrameQueued)
-			throw (VideoDecodingException, MissingPluginException);
+	virtual ~GstCodecH264() {};
 
-	void setRate(const std::string& value);
+	std::string getMimeSubtype();
 
-	void setChromaSubsamplingFormat(const std::string& value);
+	void setProfileLevelId(const std::string& profileLevelId);
 
-	void setInterlace(const std::string& value);
+	void setMaxMbps(const std::string& maxMbps);
 
-	void setWidth(const std::string& value);
+	void setMaxFs(const std::string& maxFs);
 
-	void setHeight(const std::string& value);
+	void setMaxCpb(const std::string& maxCpb);
 
-	/**
-	 * @Override
-	 */
-	std::string getCodecName();
+	void setMaxDpb(const std::string& maxDpb);
+
+	void setMaxBr(const std::string& maxBr);
+
+	void setRedundantPicCap(const std::string& redundantPicCap);
+
+	void setParameterAdd(const std::string& parameterAdd);
+
+	void setPacketizationMode(const std::string& packetizationMode);
+
+	void setDeintBufCap(const std::string& deintBufCap);
+
+	void setMaxRcmdNaluSize(const std::string& maxRcmdNaluSize);
+
+	void setSpropParameterSets(const std::string& spropParameterSets);
+
+	void setSpropInterleavingDepth(const std::string& spropInterleavingDepth);
+
+	void setSpropDeintBufReq(const std::string& spropDeintBufReq);
+
+	void setSpropInitBufTime(const std::string& spropInitBufTime);
+
+	void setSpropMaxDonDiff(const std::string& spropMaxDonDiff);
 
 protected:
-
-	/**
-	 * @Override
-	 */
-	GstElement* getTail();
-
-	/**
-	 * @Override
-	 */
 	void setProperty(int index, const std::string& value);
 
-	/**
-	 * @Override
-	 */
-	void buildEncodingFilter(Pipeline& pipeline, GstElement* previous)
-			throw (VideoDecodingException, MissingPluginException);
-
 private:
-
-	void init() throw (VideoDecodingException, MissingPluginException);
-
-	GstElement* rtpj2kpay;
+	void init() throw(VideoDecodingException, MissingPluginException) ;
 };
-
 }
 
 #endif
