@@ -116,7 +116,7 @@ void GstDecoder::setOutputFormat(VideoFormat& format)
 }
 
 void GstDecoder::activate() {
-	_info("Activating h264 decoder");
+	_info("Activating decoder");
 
 	init();
 

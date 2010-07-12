@@ -85,6 +85,7 @@ void VideoRtpSessionSimple::setCodec(const RtpMap& rtpmap, const Fmtp& fmtp,
 	std::map<std::string, std::string> props = rtpmap.getParamParsed();
 	std::map<std::string, std::string>::iterator itProps;
 	for (itProps = props.begin(); itProps != props.end(); itProps++) {
+		_info("Configuring codec with property \"%s\" with value \"%s\".", (*itProps).first.c_str(), (*itProps).second.c_str());
 		activeCodec->setProperty((*itProps).first /* Prop. name */,
 				(*itProps).second /* Prop. value */);
 	}
@@ -98,6 +99,7 @@ void VideoRtpSessionSimple::setCodec(const RtpMap& rtpmap, const Fmtp& fmtp,
 
 void VideoRtpSessionSimple::registerCodec(VideoCodec* codec) {
 	availableCodecs.insert(AvailableCodecEntry(codec->getMimeSubtype(), codec));
+	_info("Codec \"%s\" registered", codec->getMimeSubtype().c_str());
 }
 
 void VideoRtpSessionSimple::unregisterCodec(const std::string& mime) {
@@ -108,8 +110,11 @@ void VideoRtpSessionSimple::unregisterCodec(const std::string& mime) {
 void VideoRtpSessionSimple::addSessionCodec(const RtpMap& rtpmap,
 		const Fmtp& fmtp) throw (MissingPluginException) {
 	VideoCodec* codec = getCodec(rtpmap.getCodecName());
+
 	sessionsCodecs.insert(SessionCodecEntry(rtpmap.getPayloadType(),
 			SessionCodecConfiguration(rtpmap, fmtp, codec)));
+
+	_info("Codec \"%s\" (payload number %d) added for this session", rtpmap.getCodecName().c_str(), rtpmap.getPayloadType());
 
 	// If this is the first codec that we add, set as default.
 	if (sessionsCodecs.size() == 1) {
@@ -144,6 +149,8 @@ void VideoRtpSessionSimple::init() {
 	// TODO Set the other items
 	ost::defaultApplication().setSDESItem(ost::SDESItemTypeTOOL,
 			"SFLPhone Video Endpoint");
+
+	_debug("VideoRtpSessionSimple initialized.");
 }
 
 VideoRtpSessionSimple::VideoRtpSessionSimple(ost::InetMcastAddress& ima,

@@ -9,11 +9,15 @@ libvideocodec_la_LDFLAGS = $(GSTREAMER_LIBS)
 libvideocodec_la_SOURCES = \
 		AbstractVideoCodec.h \
 		GstCodecH264.cpp \
+		GstCodecTheora.cpp \
+		GstCodecJpeg.cpp \
 		VideoCodecNull.h
 				
 noinst_HEADERS = \
 		VideoCodec.h \
-		VideoCodecNull.h \
 		AbstractVideoCodec.h \
-		GstCodecH264.h
-		
+		GstCodecH264.h \
+		GstCodecTheora.h \
+		GstCodecJpeg.h \
+		VideoCodecNull.h
+			

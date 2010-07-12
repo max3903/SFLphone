@@ -177,9 +177,6 @@ void GstCodecH264::setProperty(int index, const std::string& value) {
 }
 
 void GstCodecH264::init() throw(VideoDecodingException, MissingPluginException) {
-	setEncoder(new GstEncoderH264());
-	setDecoder(new GstDecoderH264());
-
 	installProperty("profile-level-id", PROFILE_LEVEL_ID);
 	installProperty("max-mbps", MAX_MBPS);
 	installProperty("max-fs", MAX_FS);

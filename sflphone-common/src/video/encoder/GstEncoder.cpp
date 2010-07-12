@@ -129,9 +129,9 @@ void GstEncoder::activate() {
 }
 
 void GstEncoder::deactivate() {
-	_info("Deactivating encoder");
-
 	VideoEncoder::deactivate();
+
+	_info("Deactivating encoder");
 
 	clearObservers();
 
