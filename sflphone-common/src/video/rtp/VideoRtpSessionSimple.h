@@ -106,6 +106,11 @@ public:
 	VideoCodec* getCodec(const std::string& mime);
 
 	/**
+	 * @param source The video source that will provide raw frames to the encoder, producing RTP packets that get sent in this session.
+	 */
+	void setVideoSource(VideoInputSource& source);
+
+	/**
 	 * Start sending and receiving in this session.
 	 * @Override ost#Thread#start
 	 */
@@ -200,6 +205,11 @@ private:
 	 * The main active codec being used.
 	 */
 	VideoCodec* activeCodec;
+
+	/**
+	 * The main active video source being used by the codec.
+	 */
+	VideoInputSource* activeVideoSource;
 };
 }
 #endif

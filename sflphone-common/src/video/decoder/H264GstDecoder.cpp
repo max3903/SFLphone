@@ -95,7 +95,8 @@ void H264GstDecoder::init(VideoFormat& format)
 	injectableEnd = new InjectablePipeline(pipeline, sourceCaps);
 
 	// Add retrievable endpoint
-	retrievableEnd = new RetrievablePipeline(pipeline, VideoFormatToGstCaps(format));
+	VideoFormatToGstCaps convert;
+	retrievableEnd = new RetrievablePipeline(pipeline, convert(format));
 	outputObserver = new PipelineEventObserver(this);
 	retrievableEnd->addObserver(outputObserver);
 
@@ -126,7 +127,8 @@ void H264GstDecoder::decode(ManagedBuffer<uint8>& data)
 
 void H264GstDecoder::setOutputFormat(VideoFormat& format)
 {
-	retrievableEnd->setCaps(VideoFormatToGstCaps(format));
+	VideoFormatToGstCaps convert;
+	retrievableEnd->setCaps(convert(format));
 }
 
 void H264GstDecoder::activate() {

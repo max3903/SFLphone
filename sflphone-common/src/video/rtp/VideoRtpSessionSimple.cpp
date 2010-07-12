@@ -27,6 +27,7 @@
  *  as that of the covered work.
  */
 #include "VideoRtpSessionSimple.h"
+#include "video/codec/VideoCodecNull.h"
 
 namespace sfl {
 
@@ -66,19 +67,31 @@ void VideoRtpSessionSimple::setCodec(ost::PayloadType pt) {
 	}
 }
 
-void VideoRtpSessionSimple::setCodec(const RtpMap& rtpmap, const Fmtp& fmtp, VideoCodec* codec) {
+void VideoRtpSessionSimple::setCodec(const RtpMap& rtpmap, const Fmtp& fmtp,
+		VideoCodec* codec) {
 	activeCodec->deactivate();
+	// TODO removeObserver
 
 	activeCodec = codec;
 
-	setPayloadFormat(ost::DynamicPayloadFormat(rtpmap.getPayloadType(), rtpmap.getClockRate()));
+	// Set the Video Source for this codec
+	activeCodec->setEncoderVideoSource(*activeVideoSource);
+
+	// Set the payload format in ccRTP from the information contained in the VideoCodec.
+	setPayloadFormat(ost::DynamicPayloadFormat(rtpmap.getPayloadType(),
+			rtpmap.getClockRate()));
 
 	// Configure the codec with the options obtained from SDP.
 	std::map<std::string, std::string> props = rtpmap.getParamParsed();
 	std::map<std::string, std::string>::iterator itProps;
 	for (itProps = props.begin(); itProps != props.end(); itProps++) {
-		activeCodec->setProperty((*itProps).first /* Prop. name */, (*itProps).second /* Prop. value */);
+		activeCodec->setProperty((*itProps).first /* Prop. name */,
+				(*itProps).second /* Prop. value */);
 	}
+
+	// Register as a VideoFrameEncodedObserver so that encoded frames produced in the VideoCodec,
+	// starting from the VideoSource, get dispatched internally and sent over the network immediately.
+	activeCodec->addVideoFrameEncodedObserver((*encoderObserver));
 
 	activeCodec->activate();
 }
@@ -92,9 +105,21 @@ void VideoRtpSessionSimple::unregisterCodec(const std::string& mime) {
 	availableCodecs.erase(it);
 }
 
-void VideoRtpSessionSimple::addSessionCodec(const RtpMap & rtpmap, const Fmtp & fmtp) throw (MissingPluginException) {
+void VideoRtpSessionSimple::addSessionCodec(const RtpMap& rtpmap,
+		const Fmtp& fmtp) throw (MissingPluginException) {
 	VideoCodec* codec = getCodec(rtpmap.getCodecName());
-	sessionsCodecs.insert(SessionCodecEntry(rtpmap.getPayloadType(), SessionCodecConfiguration(rtpmap, fmtp, codec)));
+	sessionsCodecs.insert(SessionCodecEntry(rtpmap.getPayloadType(),
+			SessionCodecConfiguration(rtpmap, fmtp, codec)));
+
+	// If this is the first codec that we add, set as default.
+	if (sessionsCodecs.size() == 1) {
+		setCodec(rtpmap, fmtp, codec);
+	}
+}
+
+void VideoRtpSessionSimple::setVideoSource(VideoInputSource& source) {
+	activeVideoSource = &source;
+	activeCodec->setEncoderVideoSource(source);
 }
 
 void VideoRtpSessionSimple::start() {
@@ -105,6 +130,8 @@ void VideoRtpSessionSimple::start() {
 void VideoRtpSessionSimple::init() {
 	// Fixed encoder for any video encoder type
 	encoderObserver = new EncoderObserver(this);
+	activeCodec = new VideoCodecNull();
+	activeVideoSource = new NullVideoInputSource();
 
 	// The default scheduling timeout to use when no data packets are waiting to be sent.
 	setSchedulingTimeout(SCHEDULING_TIMEOUT);

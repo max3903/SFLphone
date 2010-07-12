@@ -4,9 +4,8 @@
 #include "sip/sdp/Fmtp.h"
 
 #include "video/VideoFormat.h"
-#include "video/rtp/VideoRtpSession.h"
-#include "video/encoder/H264GstEncoder.h"
-#include "video/decoder/H264GstDecoder.h"
+#include "video/codec/GstCodecH264.h"
+#include "video/rtp/VideoRtpSessionSimple.h"
 #include "video/source/VideoInputSourceGst.h"
 
 #include "util/Dimension.h"
@@ -35,21 +34,21 @@ void H264EncoderTest::testSend()
 
 	// Create a video source from which we will encode
 	sfl::VideoInputSourceGst source;
-	source.setDevice("/dev/video0", sfl::Dimension(320, 240), sfl::FrameRate(30,1));
+	source.setDevice("/dev/video0", sfl::Dimension(960, 720), sfl::FrameRate(30,1));
 
 	// Create a video session
-	ost::InetHostAddress address("0.0.0.0");
-	sfl::VideoRtpSession* session = new sfl::VideoRtpSession(address, (ost::tpport_t) 5055);
+	ost::InetHostAddress address("127.0.0.1");
+	sfl::VideoRtpSessionSimple* session = new sfl::VideoRtpSessionSimple(address, (ost::tpport_t) 5055);
 
-	// Send packets to the client.
-	//ost::InetHostAddress remote("192.168.50.157");
-	//session->addDestination(remote, (ost::tpport_t) 5000);
+	// Set the video source for this RTP session
+	session->setVideoSource(source);
+
+	// Add a destination for the packets
 	session->addDestination(address, (ost::tpport_t) 5000);
 
 	// Register supported codecs for this session.
-	sfl::H264GstDecoder decoder;
-	sfl::H264GstEncoder encoder(source);
-	session->registerCodec("H264", encoder, decoder);
+	sfl::GstCodecH264* codec = new sfl::GstCodecH264();
+	session->registerCodec(codec);
 
 	// Simulate the arrival of an SDP offer
 	// At that point, the correct codec should be loaded and activated.

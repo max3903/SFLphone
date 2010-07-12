@@ -48,6 +48,8 @@ namespace sfl {
  */
 class GstEncoder: public VideoEncoder, protected Filter {
 public:
+	GstEncoder() throw (VideoEncodingException, MissingPluginException);
+
 	/**
 	 * @Override
 	 */
@@ -78,14 +80,16 @@ public:
 	 */
 	void deactivate();
 
-	static const unsigned MAX_FRAME_QUEUED = 0; // FIXME Unlimited !
+	static const unsigned MAX_FRAME_QUEUED = 10;
 
 private:
+
+	unsigned maxFrameQueued;
+
 	/**
 	 * Helper method for constructors.
 	 */
-	void init(VideoInputSource& source, unsigned maxFrameQueued)
-			throw (VideoDecodingException, MissingPluginException);
+	void init() throw (VideoDecodingException, MissingPluginException);
 
 	InjectablePipeline* injectableEnd;
 	RetrievablePipeline* retrievableEnd;

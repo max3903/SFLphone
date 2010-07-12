@@ -36,18 +36,13 @@ namespace sfl {
 
 GstDecoder::GstDecoder()
 		throw (VideoDecodingException, MissingPluginException) :
-	VideoDecoder() {
-	VideoFormat defaultFormat; // See VideoFormat for the default values that are set. Should be 320x240, RGB, 30/1
-	init(defaultFormat);
-}
+	VideoDecoder() {}
 
 GstDecoder::GstDecoder(VideoFormat& format)
 		throw (VideoDecodingException, MissingPluginException) :
-	VideoDecoder() {
-	init(format);
-}
+	VideoDecoder(), outputVideoFormat(format) {}
 
-void GstDecoder::init(VideoFormat& format)
+void GstDecoder::init()
 		throw (VideoDecodingException, MissingPluginException) {
 	gst_init(0, NULL);
 
@@ -84,7 +79,8 @@ void GstDecoder::init(VideoFormat& format)
 	injectableEnd = new InjectablePipeline(pipeline, sourceCaps);
 
 	// Add retrievable endpoint
-	retrievableEnd = new RetrievablePipeline(pipeline, VideoFormatToGstCaps(format));
+	VideoFormatToGstCaps convert;
+	retrievableEnd = new RetrievablePipeline(pipeline, convert(outputVideoFormat));
 	outputObserver = new PipelineEventObserver(this);
 	retrievableEnd->addObserver(outputObserver);
 
@@ -115,11 +111,14 @@ void GstDecoder::decode(ManagedBuffer<uint8>& data)
 
 void GstDecoder::setOutputFormat(VideoFormat& format)
 {
-	retrievableEnd->setCaps(VideoFormatToGstCaps(format));
+	VideoFormatToGstCaps convert;
+	retrievableEnd->setCaps(convert(format));
 }
 
 void GstDecoder::activate() {
 	_info("Activating h264 decoder");
+
+	init();
 
 	// Does not matter whether we call start() on injectable or retrievable endpoints.
 	injectableEnd->start();

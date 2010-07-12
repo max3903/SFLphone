@@ -42,7 +42,7 @@ namespace sfl {
 template<class EncoderType, class DecoderType>
 class AbstractVideoCodec: public VideoCodec {
 public:
-	AbstractVideoCodec() {};
+	AbstractVideoCodec() : VideoCodec() {};
 	virtual ~AbstractVideoCodec() {};
 
 	/**
@@ -135,8 +135,8 @@ protected:
 	/**
 	 * @param
 	 */
-	void setDecoder(EncoderType* enc) {
-		encoder = enc;
+	void setDecoder(DecoderType* enc) {
+		decoder = enc;
 	}
 
 private:

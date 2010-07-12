@@ -51,7 +51,6 @@ public:
 	 * @return The submime type for which this plugin is designed.
 	 */
 	virtual std::string getMimeSubtype() = 0;
-
 	/**
 	 * @param propName The name that identifies this property.
 	 * @param propValue The value this property should have.

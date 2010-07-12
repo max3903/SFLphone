@@ -26,13 +26,13 @@
  *  shall include the source code for the parts of OpenSSL used as well
  *  as that of the covered work.
  */
-
 #ifndef __SFL_VIDEO_ENCODER_H__
 #define __SFL_VIDEO_ENCODER_H__
 
 #include "video/VideoPlugin.h"
 #include "video/VideoExceptions.h"
 #include "video/source/VideoInputSource.h"
+#include "video/source/NullVideoInputSource.h"
 
 #include "util/pattern/AbstractObservable.h"
 #include "util/memory/Buffer.h"
@@ -62,7 +62,7 @@ public:
 	 * Initialize the video encoder with no video source.
 	 * @see sfl#VideoEncoder#setSource;
 	 */
-	VideoEncoder() throw(VideoEncodingException, MissingPluginException) : source(NULL) {};
+	VideoEncoder() throw(VideoEncodingException, MissingPluginException) : source(new NullVideoInputSource()) {};
 
 	/**
 	 * @param source The video source from which to capture data from.
@@ -111,7 +111,6 @@ private:
 		void onNewFrame(const VideoFrame* frame) {
 			parent->encode(frame);
 		}
-
 	};
 
 public:
@@ -120,7 +119,8 @@ public:
 	 * @postcondition If a source has been specified and is capturing, then the data will get processed and be emitted by the encoder.
 	 */
 	virtual void activate() {
-		_info("Activating video encoder");
+		_info("Activating VideoEncoder");
+
 		if (source != NULL) {
 			videoSourceObserver = new SourceObserver(this);
 			source->addVideoFrameObserver(videoSourceObserver);
@@ -132,7 +132,7 @@ public:
 	 * @postcondition No more frame will get processed nor data emitted from that moment on. All observers will be flushed.
 	 */
 	virtual void deactivate() {
-		_info("Deactivating video encoder");
+		_info("Deactivating VideoEncoder");
 		if (source != NULL) {
 			source->removeVideoFrameObserver(videoSourceObserver);
 		}

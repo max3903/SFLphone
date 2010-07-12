@@ -32,34 +32,38 @@
 #include "util/gstreamer/RetrievablePipeline.h"
 
 namespace sfl {
+GstEncoder::GstEncoder() throw (VideoEncodingException, MissingPluginException) :
+	VideoEncoder(), maxFrameQueued(MAX_FRAME_QUEUED) {
+}
 
-GstEncoder::GstEncoder(VideoInputSource& source,
-		unsigned maxFrameQueued) throw (VideoDecodingException,
+GstEncoder::GstEncoder(VideoInputSource& source) throw (VideoDecodingException,
 		MissingPluginException) :
-	VideoEncoder(source) {
-	init(source, maxFrameQueued);
+	VideoEncoder(source), maxFrameQueued(MAX_FRAME_QUEUED) {
 }
 
-GstEncoder::GstEncoder(VideoInputSource& source)
+GstEncoder::GstEncoder(VideoInputSource& source, unsigned maxFrameQueued)
 		throw (VideoDecodingException, MissingPluginException) :
-	VideoEncoder(source) {
-	init(source, MAX_FRAME_QUEUED);
+	VideoEncoder(source), maxFrameQueued(maxFrameQueued) {
 }
 
-void GstEncoder::init(VideoInputSource& source, unsigned maxFrameQueued)
-		throw (VideoDecodingException, MissingPluginException) {
+void GstEncoder::init() throw (VideoDecodingException, MissingPluginException) {
 	gst_init(0, NULL);
 
 	// Create a new pipeline
-	Pipeline pipeline(std::string("sfl_") + getMimeSubtype() + std::string("_encoding"));
+	Pipeline pipeline(std::string("sfl_") + getMimeSubtype() + std::string(
+			"_encoding"));
 	pipeline.setPrefix("sfl_encoder_");
 
 	GstElement* ffmpegcolorspace = pipeline.addElement("ffmpegcolorspace");
-	GstElement* videoscale = pipeline.addElement("videoscale", ffmpegcolorspace);
+	GstElement* videoscale =
+			pipeline.addElement("videoscale", ffmpegcolorspace);
 
 	// Ask the derived child to take care of building the encoding portion of the pipeline itself. A knowledge that we
 	// can't have at this point in the object hierarchy (template design pattern).
 	buildFilter(pipeline);
+
+	// Link the VideoScale element to the head of the filter
+	pipeline.link(videoscale, getHead());
 
 	// Add an injectable endpoint
 	VideoFormat format = getVideoInputSource()->getOutputFormat();
@@ -84,7 +88,8 @@ void GstEncoder::init(VideoInputSource& source, unsigned maxFrameQueued)
 			format.getPreferredFrameRate().getNumerator(),
 			format.getPreferredFrameRate().getDenominator(), NULL);
 
-	injectableEnd = new InjectablePipeline(pipeline, sourceCaps, maxFrameQueued);  // FIXME Do some calculation
+	injectableEnd
+			= new InjectablePipeline(pipeline, sourceCaps, format.getWidth() * format.getHeight() * 32 * maxFrameQueued); // FIXME Do some calculation
 
 	// Add a retrievable endpoint
 	retrievableEnd = new RetrievablePipeline(pipeline);
@@ -103,8 +108,7 @@ GstEncoder::~GstEncoder() {
 	delete injectableEnd;
 }
 
-void GstEncoder::encode(const VideoFrame* frame)
-		throw (VideoEncodingException) {
+void GstEncoder::encode(const VideoFrame* frame) throw (VideoEncodingException) {
 	GstBuffer* buffer = gst_buffer_new();
 	GST_BUFFER_SIZE(buffer) = frame->getSize();
 	GST_BUFFER_DATA(buffer) = (guint8*) frame->getFrame();
@@ -117,15 +121,17 @@ void GstEncoder::encode(const VideoFrame* frame)
 void GstEncoder::activate() {
 	VideoEncoder::activate();
 
-	_info("Activating encoder");
+	_info("Activating Gstreamer Encoder");
+
+	init();
 
 	retrievableEnd->start();
 }
 
 void GstEncoder::deactivate() {
-	VideoEncoder::deactivate();
-
 	_info("Deactivating encoder");
+
+	VideoEncoder::deactivate();
 
 	clearObservers();
 

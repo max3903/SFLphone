@@ -16,8 +16,8 @@
  *  along with this program; if not, write to the Free Software
  *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
-#ifndef __SFL_FRAME_FORMAT_H__
-#define __SFL_FRAME_FORMAT_H__
+#ifndef __SFL_VIDEO_FORMAT_H__
+#define __SFL_VIDEO_FORMAT_H__
 
 #include <set>
 #include <vector>

@@ -8,12 +8,14 @@ libvideosource_la_LDFLAGS = $(GSTREAMER_LIBS)
 
 libvideosource_la_SOURCES = \
 	VideoInputSource.cpp \
+	NullVideoInputSource.h \
 	VideoInputSourceGst.cpp  \
 	VideoDevice.cpp \
 	GstVideoDevice.cpp
 	
 noinst_HEADERS = \
 	VideoInputSource.h \
+	NullVideoInputSource.h \
 	VideoInputSourceGst.h \
 	VideoDevice.h \
 	GstVideoDevice.h
