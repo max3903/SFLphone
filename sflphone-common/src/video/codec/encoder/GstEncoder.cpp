@@ -46,14 +46,54 @@ GstEncoder::GstEncoder(VideoInputSource& source, unsigned maxFrameQueued)
 	VideoEncoder(source), maxFrameQueued(maxFrameQueued) {
 }
 
-void GstEncoder::setParameter(const std::string& name, const std::string& value)
-{
-	injectableEnd->setField(name, value);
+void GstEncoder::setParameter(const std::string& name, const std::string& value) {
+	if (injectableEnd->getCaps() == NULL) {
+		// Wait for the source to be set, creating the caps at the same time.
+		parameters.push_back(std::pair<std::string, std::string>(name, value));
+	} else {
+		// Apply the parameter immediately to the caps.
+		injectableEnd->setField(name, value);
+	}
 }
 
-std::string GstEncoder::getParameter(const std::string& name)
-{
-	return injectableEnd->getField(name);
+std::string GstEncoder::getParameter(const std::string& name) {
+	return injectableEnd->getField(name); // FIXME Param might not exists
+}
+
+void GstEncoder::setVideoInputSource(VideoInputSource& videoSource) {
+	VideoEncoder::setVideoInputSource(videoSource);
+
+	// Create the new caps for this video source
+	VideoFormat format = videoSource.getOutputFormat();
+	std::ostringstream caps;
+	caps << "video/x-raw-rgb" << ",format=(fourcc)" << GST_STR_FOURCC(
+			format.getFourcc().c_str()) << ",height=(int)"
+			<< format.getHeight() << ",width=(int)" << format.getWidth()
+			<< ",bpp=(int)" << 32 << ",depth=(int)" << 32
+			<< ",endianness=(int)" << 4321 << ",red_mask=(int)" << 65280
+			<< ",green_mask=(int)" << 16711680 << ",blue_mask=(int)"
+			<< -16777216 << ",framerate=(framerate)"
+			<< format.getPreferredFrameRate().getNumerator() << "/"
+			<< format.getPreferredFrameRate().getDenominator();
+
+	GstCaps* sourceCaps = gst_caps_from_string((caps.str()).c_str());
+	_debug("Setting caps %s on encoder source", caps.str().c_str());
+
+	// Set the new maximum size on the input queue
+	injectableEnd->setMaxQueueSize(10 /** Frames */ * format.getWidth() * format.getHeight() * 32); // FIXME Hardcoding !
+
+	// Append the optional parameters (if any)
+	std::list<std::pair<std::string, std::string> >::iterator it;
+	for (it = parameters.begin(); it != parameters.end(); it++) {
+		GValue gstValue;
+		memset(&gstValue, 0, sizeof(GValue));
+		g_value_init(&gstValue, G_TYPE_STRING);
+		g_value_set_string(&gstValue, ((*it).second).c_str());
+
+		gst_caps_set_value(sourceCaps, (*it).first.c_str(), &gstValue);
+	}
+
+	injectableEnd->setCaps(sourceCaps);
 }
 
 void GstEncoder::init() throw (VideoDecodingException, MissingPluginException) {
@@ -76,26 +116,7 @@ void GstEncoder::init() throw (VideoDecodingException, MissingPluginException) {
 	pipeline.link(videoscale, getHead());
 
 	// Add an injectable endpoint
-	VideoFormat format = getVideoInputSource()->getOutputFormat();
-
-	std::ostringstream caps;
-	caps << "video/x-raw-rgb"
-		<< ",format=(fourcc)" << GST_STR_FOURCC(format.getFourcc().c_str())
-		<< ",height=(int)" << format.getHeight()
-		<< ",width=(int)" << format.getWidth()
-		<< ",bpp=(int)" << 32
-		<< ",depth=(int)" << 32
-		<< ",endianness=(int)" << 4321
-		<< ",red_mask=(int)" << 65280
-		<< ",green_mask=(int)" << 16711680
-		<< ",blue_mask=(int)" << -16777216
-		<< ",framerate=(framerate)" << format.getPreferredFrameRate().getNumerator() << "/" << format.getPreferredFrameRate().getDenominator();
-
-	GstCaps* sourceCaps = gst_caps_from_string((caps.str()).c_str());
-	_debug("Setting caps %s on encoder source", caps.str().c_str());
-
-	injectableEnd
-			= new InjectablePipeline(pipeline, sourceCaps, format.getWidth() * format.getHeight() * 32 * maxFrameQueued); // FIXME Do some calculation
+	injectableEnd = new InjectablePipeline(pipeline);
 
 	// Add a retrievable endpoint
 	retrievableEnd = new RetrievablePipeline(pipeline);

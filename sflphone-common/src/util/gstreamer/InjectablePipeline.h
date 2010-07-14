@@ -70,6 +70,13 @@ public:
 
 	/**
 	 * @param pipeline Part of the pipeline in which the data will flow through from the source.
+	 * @param maxQueueSize The maximum amount of bytes that can be queued at the source.
+	 * @precondition The "pipeline" argument must be existing.
+	 */
+	InjectablePipeline(Pipeline& pipeline, size_t maxQueueSize);
+
+	/**
+	 * @param pipeline Part of the pipeline in which the data will flow through from the source.
 	 * @param caps The caps that this source should have.
 	 * @precondition The "pipeline" argument must be existing.
 	 */
@@ -131,9 +138,14 @@ public:
 	void setSink(GstElement* sink);
 
 	/**
+	 * @param maxQueueSize The maximum amount of bytes that can be queued at the source.
+	 */
+	void setMaxQueueSize(size_t size);
+
+	/**
 	 * The maximum default amount of bytes that can be queued at the source.
 	 */
-	static const size_t MAX_QUEUE_SIZE = 1000000;
+	static const size_t MAX_QUEUE_SIZE = 10000000;
 
 protected:
 	/**

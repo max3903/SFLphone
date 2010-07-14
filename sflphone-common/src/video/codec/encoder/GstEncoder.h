@@ -90,6 +90,11 @@ public:
 	 */
 	std::string getParameter(const std::string& name);
 
+	/**
+	 * @Override
+	 */
+	void setVideoInputSource(VideoInputSource& videoSource);
+
 	static const unsigned MAX_FRAME_QUEUED = 10;
 
 private:
@@ -132,8 +137,14 @@ private:
 			parent->notifyAll(nalUnit);
 		}
 	};
-
 	PipelineEventObserver* outputObserver;
+
+	/**
+	 * Holds a list of codec-specific parameters. This is needed because the video source
+	 * cannot be set at object creation is some cases. Then if setVideoSource() occurs after setParameters(),
+	 * then the latter will fail as the GstCaps had not been created yet at that point.
+	 */
+	std::list<std::pair<std::string, std::string> > parameters;
 };
 
 }

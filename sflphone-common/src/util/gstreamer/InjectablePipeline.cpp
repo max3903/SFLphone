@@ -44,6 +44,10 @@ GstCaps* InjectablePipeline::getCaps() {
 	return gst_app_src_get_caps(GST_APP_SRC(appsrc));
 }
 
+void InjectablePipeline::setMaxQueueSize(size_t size) {
+	gst_app_src_set_max_bytes(GST_APP_SRC(appsrc), size);
+}
+
 void InjectablePipeline::setField(const std::string& name, const std::string& value) {
 	GValue gstValue;
 	memset(&gstValue, 0, sizeof(GValue));
@@ -169,6 +173,11 @@ void InjectablePipeline::setSink(GstElement* sink) {
 InjectablePipeline::InjectablePipeline(Pipeline& pipeline) :
 	Pipeline(pipeline.getGstPipeline()) {
 	init(NULL, pipeline, MAX_QUEUE_SIZE);
+}
+
+InjectablePipeline::InjectablePipeline(Pipeline& pipeline, size_t maxQueueSize) :
+	Pipeline(pipeline.getGstPipeline()) {
+	init(NULL, pipeline, maxQueueSize);
 }
 
 InjectablePipeline::InjectablePipeline(Pipeline& pipeline, GstCaps* caps) :
