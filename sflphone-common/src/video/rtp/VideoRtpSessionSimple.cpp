@@ -81,12 +81,12 @@ void VideoRtpSessionSimple::setCodec(const RtpMap& rtpmap, const Fmtp& fmtp,
 	setPayloadFormat(activeCodec->getPayloadFormat());
 
 	// Configure the codec with the options obtained from SDP.
-	std::map<std::string, std::string> props = rtpmap.getParamParsed();
+	std::map<std::string, std::string> props = fmtp.getParamParsed();
 	std::map<std::string, std::string>::iterator itProps;
 	for (itProps = props.begin(); itProps != props.end(); itProps++) {
 		_info("Configuring codec with property \"%s\" with value \"%s\".", (*itProps).first.c_str(), (*itProps).second.c_str());
-		activeCodec->setParameter((*itProps).first /* Prop. name */,
-				(*itProps).second /* Prop. value */);
+		//activeCodec->setParameter((*itProps).first /* Prop. name */,
+		//		(*itProps).second /* Prop. value */);
 	}
 
 	// Register as a VideoFrameEncodedObserver so that encoded frames produced in the VideoCodec,

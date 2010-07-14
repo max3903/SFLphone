@@ -15,7 +15,7 @@
 
 class GstEncoderTest: public CppUnit::TestFixture {
 CPPUNIT_TEST_SUITE( GstEncoderTest );
-	CPPUNIT_TEST( testSendJpeg );
+	CPPUNIT_TEST( testSendH264 );
 CPPUNIT_TEST_SUITE_END();
 
 public:

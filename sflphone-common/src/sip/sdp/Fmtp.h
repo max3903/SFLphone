@@ -29,6 +29,10 @@
 #ifndef __SFL_FMTP_H__
 #define __SFL_FMTP_H__
 
+#include "logger.h"
+
+#include <cc++/tokenizer.h>
+
 #include <string>
 
 namespace sfl {
@@ -54,6 +58,32 @@ public:
     {
         return params;
     }
+
+
+	/**
+	 * Split the params of a a=fmtp line into its individual parameter, separated by ";" tokens.
+	 * Note that RFC4566 indicates no assumption about how this piece of data should be formatted.
+	 * @return The param portion of the a=fmtp line, splitted into individual parameters in a "property-name:property-value" mapping.
+	 */
+	std::map<std::string, std::string> getParamParsed() const {
+		std::map<std::string, std::string> properties;
+
+		_debug("Running tokenizer on \"%s\"", params.c_str());
+
+		ost::StringTokenizer paramsTokenizer(params.c_str(), ";", false, true);
+		ost::StringTokenizer::iterator it;
+		for (it = paramsTokenizer.begin(); it != paramsTokenizer.end(); ++it) {
+			std::string param(*it);
+			_debug("Found MIME parameter \"%s\"", param.c_str());
+			size_t pos = param.find("=");
+			std::string value = param.substr(pos+1); // FIXME Too naive !
+			std::string property = param.substr(0, pos); // FIXME Too naive !
+
+			properties.insert(std::pair<std::string, std::string>(property, value));
+		}
+
+		return properties;
+	}
 
     /**
      * @return The static or dynamic payload type corresponding to some a=rtpmap line.
