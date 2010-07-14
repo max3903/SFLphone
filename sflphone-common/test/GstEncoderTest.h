@@ -32,8 +32,6 @@ public:
 
 	void testSendJpeg();
 
-	void testSendTheora();
-
 private:
 	sfl::VideoInputSourceGst* source;
 	sfl::VideoRtpSessionSimple* session;

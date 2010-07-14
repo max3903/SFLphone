@@ -27,40 +27,16 @@
  *  as that of the covered work.
  */
 
-#ifndef __SFL_GST_CODEC_H264_H__
-#define __SFL_GST_CODEC_H264_H__
+#ifndef __SFL_GST_CODEC_THEORA_H__
+#define __SFL_GST_CODEC_THEORA_H__
 
 #include "AbstractVideoCodec.h"
-#include "video/encoder/GstEncoderTheora.h"
-#include "video/decoder/GstDecoderTheora.h"
+#include "video/codec/encoder/GstEncoderTheora.h"
+#include "video/codec/decoder/GstDecoderTheora.h"
+#include "video/codec/mime/MimeParametersTheora.h"
 
 namespace sfl {
-class GstCodecTheora: public AbstractVideoCodec<GstEncoderTheora, GstDecoderTheora> {
-public:
-	GstCodecTheora();
-
-	virtual ~GstCodecTheora() {};
-
-	std::string getMimeSubtype();
-
-	void setDeliveryMethod(const std::string& value);
-
-	void setConfiguration(const std::string& value);
-
-	void setConfigurationUri(const std::string& value);
-
-	void setChromaSubsamplingFormat(const std::string& value);
-
-	void setWidth(const std::string& value);
-
-	void setHeight(const std::string& value);
-
-protected:
-	void setProperty(int index, const std::string& value);
-
-private:
-	void init() throw (VideoDecodingException, MissingPluginException);
-};
+class GstCodecTheora: public MimeParametersTheora, public AbstractVideoCodec<GstEncoderTheora, GstDecoderTheora> {};
 }
 
 #endif

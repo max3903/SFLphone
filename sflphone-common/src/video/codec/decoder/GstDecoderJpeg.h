@@ -27,10 +27,44 @@
  *  as that of the covered work.
  */
 
-#include "GstCodecJpeg.h"
-#include "logger.h"
+#ifndef __SFL_GST_DECODER_JPEG_H__
+#define __SFL_GST_DECODER_JPEG_H__
+
+#include "GstDecoder.h"
+
+#include <string>
+
+#include <gst/gstelement.h>
+
+#include "video/codec/mime/MimeParametersJpeg.h"
 
 namespace sfl {
-std::string GstCodecJpeg::getMimeSubtype() { return "JPEG"; }
-GstCodecJpeg::GstCodecJpeg() : AbstractVideoCodec<GstEncoderJpeg, GstDecoderJpeg>() {}
+
+class GstDecoderJpeg: public MimeParametersJpeg, public GstDecoder {
+protected:
+	/**
+	 * @Override
+	 */
+	GstElement* getHead();
+
+	/**
+	 * @Override
+	 */
+	GstElement* getTail();
+
+	/**
+	 * @Override
+	 */
+	void buildFilter(Pipeline& pipeline) throw (MissingPluginException);
+
+private:
+
+	void init() throw (VideoDecodingException, MissingPluginException);
+
+	GstElement* jpegdec;
+	GstElement* rtpjpegdepay;
+};
+
 }
+
+#endif

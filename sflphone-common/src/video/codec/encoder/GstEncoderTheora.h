@@ -27,42 +27,44 @@
  *  as that of the covered work.
  */
 
-#include "GstEncoderH264.h"
+#ifndef __SFL_GST_ENCODER_THEORA_H__
+#define __SFL_GST_ENCODER_THEORA_H__
+
+#include "GstEncoder.h"
+
+#include <string>
+
+#include <gst/gstelement.h>
+
+#include "video/codec/mime/MimeParametersTheora.h"
 
 namespace sfl {
 
-void GstEncoderH264::buildFilter(Pipeline& pipeline)
-		throw (MissingPluginException) {
+class GstEncoderTheora: public MimeParametersTheora, public GstEncoder {
+protected:
+	/**
+	 * @Override
+	 */
+	GstElement* getHead();
 
-	x264enc = pipeline.addElement("x264enc");
+	/**
+	 * @Override
+	 */
+	GstElement* getTail();
 
-	// Generate byte stream format of NALU
-	g_object_set(G_OBJECT(x264enc), "byte-stream", TRUE, NULL);
+	/**
+	 * @Override
+	 */
+	void buildFilter(Pipeline& pipeline) throw (MissingPluginException);
 
-	// Enable automatic multithreading
-	g_object_set(G_OBJECT(x264enc), "threads", 0, NULL);
+private:
 
-	// Set default bitrate
-	g_object_set(G_OBJECT(x264enc), "bitrate", 300, NULL);
+	void init() throw (VideoDecodingException, MissingPluginException);
 
-	rtph264pay = pipeline.addElement("rtph264pay", x264enc);
-
-}
-
-GstElement* GstEncoderH264::getHead() {
-	return x264enc;
-}
-
-GstElement* GstEncoderH264::getTail() {
-	return rtph264pay;
-}
-
-std::string GstEncoderH264::getMimeSubtype() {
-	return "H264";
-}
-
-void GstEncoderH264::setProperty(const std::string& name, const std::string& value) {
+	GstElement* theoraenc;
+	GstElement* rtptheorapay;
+};
 
 }
 
-}
+#endif

@@ -27,8 +27,8 @@
  *  as that of the covered work.
  */
 
-#ifndef __SFL_GST_ENCODER_THEORA_H__
-#define __SFL_GST_ENCODER_THEORA_H__
+#ifndef __SFL_GST_ENCODER_H264_H__
+#define __SFL_GST_ENCODER_H264_H__
 
 #include "GstEncoder.h"
 
@@ -36,9 +36,11 @@
 
 #include <gst/gstelement.h>
 
+#include "video/codec/mime/MimeParametersH264.h"
+
 namespace sfl {
 
-class GstEncoderTheora: public GstEncoder {
+class GstEncoderH264: public MimeParametersH264, public GstEncoder {
 protected:
 	/**
 	 * @Override
@@ -53,24 +55,14 @@ protected:
 	/**
 	 * @Override
 	 */
-	std::string getMimeSubtype();
-
-	/**
-	 * @Override
-	 */
 	void buildFilter(Pipeline& pipeline) throw (MissingPluginException);
-
-	/**
-	 * @Override
-	 */
-	void setProperty(const std::string& name, const std::string& value);
 
 private:
 
 	void init() throw (VideoDecodingException, MissingPluginException);
 
-	GstElement* theoraenc;
-	GstElement* rtptheorapay;
+	GstElement* x264enc;
+	GstElement* rtph264pay;
 };
 
 }

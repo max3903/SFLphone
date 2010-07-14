@@ -32,8 +32,9 @@
 
 #include "VideoCodec.h"
 #include "video/VideoFrame.h"
-#include "video/decoder/VideoDecoder.h"
 #include "video/source/VideoInputSource.h"
+#include "video/codec/decoder/VideoDecoder.h"
+#include "video/codec/encoder/VideoEncoder.h"
 
 #include <map>
 
@@ -42,16 +43,16 @@ namespace sfl {
 template<class EncoderType, class DecoderType>
 class AbstractVideoCodec: public VideoCodec {
 public:
-	AbstractVideoCodec() : VideoCodec() {
+	AbstractVideoCodec() :
+		VideoCodec() {
 		encoder = new EncoderType();
 		decoder = new DecoderType();
 	}
 
-	virtual ~AbstractVideoCodec() {};
+	virtual ~AbstractVideoCodec() {
+	}
+	;
 
-	/**
-	 * @Override
-	 */
 	void setEncoderVideoSource(VideoInputSource& source) {
 		encoder->setVideoInputSource(source);
 	}
@@ -73,23 +74,15 @@ public:
 	/**
 	 * @Override
 	 */
-	void encode(const VideoFrame* frame) throw(VideoEncodingException) {
-		encoder->encode(frame);
-	}
-
-	/**
-	 * @Override
-	 */
-	inline void decode(ManagedBuffer<uint8>& data) throw (VideoDecodingException) {
+	inline void decode(Buffer<uint8>& data) throw (VideoDecodingException) {
 		decoder->decode(data);
 	}
 
 	/**
 	 * @Override
 	 */
-	void activate() {
-		encoder->activate();
-		decoder->activate();
+	void encode(const VideoFrame* frame) throw (VideoEncodingException) {
+		encoder->encode(frame);
 	}
 
 	/**
@@ -103,55 +96,33 @@ public:
 	/**
 	 * @Override
 	 */
-	void setProperty(const std::string& propName, const std::string& propValue) {
-		SetterIterator it = propertyTable.find(propName);
-		if (it != propertyTable.end()) {
-			setProperty((*it).second, propValue);
+	void activate() {
+		encoder->activate();
+		decoder->activate();
+	}
+
+	/**
+	 * @Override
+	 */
+	void setParameter(const std::string& name, const std::string& value) {
+		encoder->setParameter(name, value);
+		decoder->setParameter(name, value);
+	}
+
+	/**
+	 * @Override
+	 */
+	std::string getParameter(const std::string& name) {
+		std::string valueEncoder = encoder->getParameter(name);
+		std::string valueDecoder = decoder->getParameter(name);
+		if (valueEncoder != valueDecoder) {
+			_warn("Decoder and encoder do not agree on MIME parameter %s. Decoder set with %s ; Encoder %s", name.c_str(), valueDecoder.c_str(), valueEncoder.c_str());
 		}
-	}
 
-protected:
-
-	/**
-	 * Called by the higher level setProperty() to dispatch to the corresponding setter method of some interface.
-	 *
-	 * @param index The index corresponding to this property.
-	 * @param value The value to set.
-	 * @precondition The implementer should have installed some property associated with the given index.
-	 */
-	virtual void setProperty(int index, const std::string& value) = 0;
-
-	/**
-	 * Add a mapping so that the given property name triggers some callback method associated with an index.
-	 * @param propName The property
-	 */
-	void installProperty(const std::string propName, int index) {
-		propertyTable.insert(SetterEntry(propName, index));
-	}
-
-	/**
-	 * @param enc The encoder to be used.
-	 */
-	void setEncoder(EncoderType* enc) {
-		encoder = enc;
-	}
-
-	/**
-	 * @param
-	 */
-	void setDecoder(DecoderType* enc) {
-		decoder = enc;
+		return valueEncoder;
 	}
 
 private:
-
-	// The following is used for mapping a property name to a setter method.
-	typedef std::pair<std::string, int> SetterEntry;
-
-	typedef std::map<std::string, int>::iterator SetterIterator;
-
-	std::map<std::string, int> propertyTable;
-
 	// Impose constraint on the type. Something that we can do in Java, and other languages, but not that easily in C++.
 	typedef typename EncoderType::IsDerivedFromVideoEncoder
 			DerivedFromEncoderGuard;

@@ -47,12 +47,4 @@ GstElement* GstEncoderTheora::getTail() {
 	return rtptheorapay;
 }
 
-std::string GstEncoderTheora::getMimeSubtype() {
-	return "theora";
-}
-
-void GstEncoderTheora::setProperty(const std::string& name, const std::string& value) {
-
-}
-
 }

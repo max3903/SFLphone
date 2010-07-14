@@ -7,7 +7,6 @@ noinst_LTLIBRARIES = libvideodecoder.la
 libvideodecoder_la_LDFLAGS = $(GSTREAMER_LIBS)
 
 libvideodecoder_la_SOURCES = \
-		H264GstDecoder.cpp \
 		GstDecoder.cpp \
 		GstDecoderH264.cpp \
 		GstDecoderJpeg.cpp \
@@ -19,7 +18,5 @@ noinst_HEADERS = \
 		GstDecoder.h \
 		GstDecoderH264.h \
 		GstDecoderTheora.h \
-		GstDecoderJpeg.h \
-		H264GstDecoder.h \
-		H264GstDecoder.h
+		GstDecoderJpeg.h
 		

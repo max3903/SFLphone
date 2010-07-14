@@ -31,6 +31,8 @@
 
 #include <string>
 
+#include <ccrtp/rtp.h>
+
 namespace sfl {
 /**
  * Interface for video encoders and decoders.
@@ -38,7 +40,6 @@ namespace sfl {
  */
 class VideoPlugin {
 public:
-	virtual ~VideoPlugin() {} ;
 	/**
 	 * Activate an instance of a codec.
 	 */
@@ -47,15 +48,9 @@ public:
 	 * Deactivate an instance of a codec.
 	 */
 	virtual void deactivate() = 0;
-	/**
-	 * @return The submime type for which this plugin is designed.
-	 */
-	virtual std::string getMimeSubtype() = 0;
-	/**
-	 * @param propName The name that identifies this property.
-	 * @param propValue The value this property should have.
-	 */
-	virtual void setProperty(const std::string& propName, const std::string& propValue) = 0;
+protected:
+	VideoPlugin() {};
+	inline virtual ~VideoPlugin() {}
 };
 }
 

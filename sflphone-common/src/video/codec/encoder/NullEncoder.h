@@ -26,53 +26,47 @@
  *  shall include the source code for the parts of OpenSSL used as well
  *  as that of the covered work.
  */
+#ifndef __SFL_NULL_ENCODER_H__
+#define __SFL_NULL_ENCODER_H__
 
-#ifndef __SFL_GST_ENCODER_JPEG_H__
-#define __SFL_GST_ENCODER_JPEG_H__
+#include "VideoEncoder.h"
 
-#include "GstEncoder.h"
-
-#include <string>
-
-#include <gst/gstelement.h>
+#include "video/codec/mime/MimeParametersNull.h"
 
 namespace sfl {
-
-class GstEncoderJpeg: public GstEncoder {
-protected:
-	/**
-	 * @Override
-	 */
-	GstElement* getHead();
-
-	/**
-	 * @Override
-	 */
-	GstElement* getTail();
-
-	/**
-	 * @Override
-	 */
-	std::string getMimeSubtype();
+/**
+ * Null object pattern for the VideoEncoder class of objects.
+ */
+class NullEncoder: public VideoEncoder,  public MimeParametersNull {
+public:
+	NullEncoder() :
+		VideoEncoder() {
+	}
+	;
+	virtual ~NullEncoder() {
+	}
 
 	/**
 	 * @Override
 	 */
-	void buildFilter(Pipeline& pipeline) throw (MissingPluginException);
+	void encode(const VideoFrame* frame) throw (VideoEncodingException) {
+		_error("No encoder for encoding %d bytes of data", frame->getSize());
+	}
 
 	/**
 	 * @Override
 	 */
-	void setProperty(const std::string& name, const std::string& value);
+	void activate() {
+		_warn("Activating the NullEncoder");
+	}
 
-private:
-
-	void init() throw (VideoDecodingException, MissingPluginException);
-
-	GstElement* jpegenc;
-	GstElement* rtpjpegpay;
+	/**
+	 * @Override
+	 */
+	void deactivate() {
+		_warn("Deactivating the NullEncoder");
+	}
 };
-
 }
 
 #endif

@@ -36,6 +36,44 @@ namespace sfl {
 
 unsigned InjectablePipeline::numberInstances = 0;
 
+void InjectablePipeline::setCaps(GstCaps* caps) {
+	gst_app_src_set_caps(GST_APP_SRC(appsrc), caps);
+}
+
+GstCaps* InjectablePipeline::getCaps() {
+	return gst_app_src_get_caps(GST_APP_SRC(appsrc));
+}
+
+void InjectablePipeline::setField(const std::string& name, const std::string& value) {
+	GValue gstValue;
+	memset(&gstValue, 0, sizeof(GValue));
+	g_value_init(&gstValue, G_TYPE_STRING);
+	g_value_set_string(&gstValue, value.c_str());
+
+	GstCaps* caps = gst_app_src_get_caps(GST_APP_SRC(appsrc));
+
+	// Note that this method set the value in all structures.
+	gst_caps_set_value (caps, name.c_str(), &gstValue);
+}
+
+std::string InjectablePipeline::getField(const std::string& name) {
+	GstCaps* caps = gst_app_src_get_caps(GST_APP_SRC(appsrc));
+
+	// We take for granted that the first structure is the one of interest
+	GstStructure* structure = gst_caps_get_structure(caps, 0);
+
+	// Try to find a field with the given name
+	const GValue*  value = gst_structure_get_value(structure, name.c_str());
+
+	// Convert the value to string
+	gchar* valueStr;
+	if ((valueStr = gst_value_serialize(value)) == NULL) {
+		// TODO throw
+	}
+
+	return std::string((char*)valueStr);
+}
+
 void InjectablePipeline::onEnoughData() {
 	_debug("Appsrc queue has enough data");
 	enoughData = true;

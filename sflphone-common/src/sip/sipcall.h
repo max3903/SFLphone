@@ -97,9 +97,6 @@ class SIPCall : public Call
      * @return int  SIP transaction id
      */
     int  getTid() { return _tid; }
-
-    
-    
     
     /** 
      * Transaction identifier

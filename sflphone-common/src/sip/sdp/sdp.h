@@ -116,7 +116,8 @@ class Sdp {
          */
         inline void set_zrtp_hash(const std::string& hash) { _zrtp_hello_hash = hash; _debug("Zrtp hash set with %s\n", hash.c_str()); }
 
-	/* Set the srtp _master_key
+        /**
+         * Set the srtp _master_key
          * @param mk The Master Key of a srtp session.
          */
         inline void set_srtp_crypto(const std::vector<std::string> lc) { _srtp_crypto = lc; }

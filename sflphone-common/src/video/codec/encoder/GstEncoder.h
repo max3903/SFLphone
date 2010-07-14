@@ -27,13 +27,15 @@
  *  as that of the covered work.
  */
 
-#ifndef __SFL_H264_GST_ENCODER_H__
-#define __SFL_H264_GST_ENCODER_H__
+#ifndef __SFL_GST_ENCODER_H__
+#define __SFL_GST_ENCODER_H__
 
+#include "util/gstreamer/Filter.h"
 #include "util/gstreamer/Pipeline.h"
 #include "util/gstreamer/InjectablePipeline.h"
 #include "util/gstreamer/RetrievablePipeline.h"
-#include "video/encoder/VideoEncoder.h"
+
+#include "video/codec/encoder/VideoEncoder.h"
 
 #include <gst/rtp/gstrtpbuffer.h>
 
@@ -44,25 +46,29 @@ namespace sfl {
 /**
  * Extends VideoEncoder, and implements RetrievablePipelineObserver
  */
-class H264GstEncoder : public VideoEncoder {
+class GstEncoder: public VideoEncoder, protected Filter {
 public:
+	GstEncoder() throw (VideoEncodingException, MissingPluginException);
+
 	/**
 	 * @Override
 	 */
-	H264GstEncoder(VideoInputSource& source) throw(VideoDecodingException, MissingPluginException);
+	GstEncoder(VideoInputSource& source) throw (VideoDecodingException,
+			MissingPluginException);
 	/**
 	 * @param source The video source from which to capture data from.
 	 * @param maxFrameQueued The maximum number of frames to be queued before starting to drop the following ones.
 	 * @throw VideoEncodingException if an error occurs while opening the video decoder.
 	 */
-	H264GstEncoder(VideoInputSource& source, unsigned maxFrameQueued) throw(VideoDecodingException, MissingPluginException);
+	GstEncoder(VideoInputSource& source, unsigned maxFrameQueued)
+			throw (VideoDecodingException, MissingPluginException);
 
-	~H264GstEncoder();
+	~GstEncoder();
 
 	/**
 	 * @Override
 	 */
-	void encode(const VideoFrame* frame) throw(VideoEncodingException);
+	void encode(const VideoFrame* frame) throw (VideoEncodingException);
 
 	/**
 	 * @Override
@@ -77,58 +83,23 @@ public:
 	/**
 	 * @Override
 	 */
-	std::string getMimeSubtype();
+	void setParameter(const std::string& name, const std::string& value);
 
 	/**
 	 * @Override
 	 */
-	void setProperty(const std::string propName, const std::string propValue);
-
-	/**
-	 * @Override
-	 */
-	void setProperty(const std::string& name, const std::string& value);
-
-	void setProfileLevelId(const std::string& profileLevelId);
-
-	void setMaxMbps(const std::string& maxMbps);
-
-	void setMaxFs(const std::string& maxFs);
-
-	void setMaxCpb(const std::string& maxCpb);
-
-	void setMaxDpb(const std::string& maxDpb);
-
-	void setMaxBr(const std::string& maxBr);
-
-	void setRedundantPicCap(const std::string& redundantPicCap);
-
-	void setParameterAdd(const std::string& parameterAdd);
-
-	void setPacketizationMode(const std::string& packetizationMode);
-
-	void setDeintBufCap(const std::string& deintBufCap);
-
-	void setMaxRcmdNaluSize(const std::string& maxRcmdNaluSize);
-
-	void setSpropParameterSets(const std::string& spropParameterSets);
-
-	void setSpropInterleavingDepth(const std::string& spropInterleavingDepth);
-
-	void setSpropDeintBufReq(const std::string& spropDeintBufReq);
-
-	void setSpropInitBufTime(const std::string& spropInitBufTime);
-
-	void setSpropMaxDonDiff(const std::string& spropMaxDonDiff);
+	std::string getParameter(const std::string& name);
 
 	static const unsigned MAX_FRAME_QUEUED = 10;
+
 private:
-	GstElement* rtph264pay;
+
+	unsigned maxFrameQueued;
 
 	/**
 	 * Helper method for constructors.
 	 */
-	void init(VideoInputSource& source, unsigned maxFrameQueued) throw(VideoDecodingException, MissingPluginException);
+	void init() throw (VideoDecodingException, MissingPluginException);
 
 	InjectablePipeline* injectableEnd;
 	RetrievablePipeline* retrievableEnd;
@@ -137,10 +108,12 @@ private:
 	 * Observer object for NAL units produced by this encoder.
 	 * We only re-broadcast the event externally.
 	 */
-	class PipelineEventObserver : public RetrievablePipelineObserver {
+	class PipelineEventObserver: public RetrievablePipelineObserver {
 	public:
-		PipelineEventObserver(H264GstEncoder* encoder) : parent(encoder) {}
-		H264GstEncoder* parent;
+		PipelineEventObserver(GstEncoder* encoder) :
+			parent(encoder) {
+		}
+		GstEncoder* parent;
 		/**
 		 * @Override
 		 */
@@ -152,7 +125,8 @@ private:
 			uint8* payloadData = GST_BUFFER_DATA(payload);
 			uint payloadSize = GST_BUFFER_SIZE(payload);
 
-			std::pair<uint32, Buffer<uint8> > nalUnit(timestamp, Buffer<uint8>(payloadData, payloadSize));
+			std::pair<uint32, Buffer<uint8> > nalUnit(timestamp,
+					Buffer<uint8> (payloadData, payloadSize));
 
 			_debug("Notifying buffer of size %d with timestamp %u", payloadSize, timestamp);
 			parent->notifyAll(nalUnit);
@@ -160,13 +134,6 @@ private:
 	};
 
 	PipelineEventObserver* outputObserver;
-
-	// The following is used for mapping a property name to a setter method.
-	typedef std::pair<std::string, int> SetterEntry;
-	typedef std::map<std::string, int>::iterator SetterIterator;
-	std::map<std::string, int> propertyTable;
-
-	void installProperties();
 };
 
 }

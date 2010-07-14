@@ -26,59 +26,22 @@
  *  shall include the source code for the parts of OpenSSL used as well
  *  as that of the covered work.
  */
-#ifndef __SFL_NULL_ENCODER_H__
-#define __SFL_NULL_ENCODER_H__
 
-#include "VideoEncoder.h"
+#include "GstEncoderJpeg.h"
 
 namespace sfl {
-/**
- * Null object pattern for the VideoEncoder class of objects.
- */
-class NullEncoder: public VideoEncoder {
-public:
-	NullEncoder() :
-		VideoEncoder() {
-	}
-	;
-	virtual ~NullEncoder() {
-	}
 
-	/**
-	 * @Override
-	 */
-	void encode(const VideoFrame* frame) throw (VideoEncodingException) {
-		_error("No encoder for encoding %d bytes of data", frame->getSize());
-	}
-
-	/**
-	 * @Override
-	 */
-	void activate() {
-		_warn("Activating the NullEncoder");
-	}
-
-	/**
-	 * @Override
-	 */
-	void deactivate() {
-		_warn("Deactivating the NullEncoder");
-	}
-
-	/**
-	 * @Override
-	 */
-	void setProperty(const std::string& propName, const std::string& propValue) {
-		_warn("Setting property %s with value %s in NullEncoder", propName.c_str(), propValue.c_str());
-	}
-
-	/**
-	 * @Override
-	 */
-	std::string getMimeSubtype() {
-		return "NullEncoder";
-	}
-};
+void GstEncoderJpeg::buildFilter(Pipeline& pipeline)
+		throw (MissingPluginException) {
+	jpegenc = pipeline.addElement("jpegenc");
+	rtpjpegpay = pipeline.addElement("rtpjpegpay", jpegenc);
 }
 
-#endif
+GstElement* GstEncoderJpeg::getHead() {
+	return jpegenc;
+}
+
+GstElement* GstEncoderJpeg::getTail() {
+	return rtpjpegpay;
+}
+}

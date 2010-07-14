@@ -31,25 +31,12 @@
 #define __SFL_GST_CODEC_JPEG_H__
 
 #include "AbstractVideoCodec.h"
-#include "video/encoder/GstEncoderJpeg.h"
-#include "video/decoder/GstDecoderJpeg.h"
+#include "video/codec/encoder/GstEncoderJpeg.h"
+#include "video/codec/decoder/GstDecoderJpeg.h"
+#include "video/codec/mime/MimeParametersJpeg.h"
 
 namespace sfl {
-/**
- * RFC 2435 does not define any SDP parameter for JPEG payload.
- * RFC 3555 confirms this (4.2.3):
- *		Required parameters: None
- *		Optional parameters: None
- */
-class GstCodecJpeg: public AbstractVideoCodec<GstEncoderJpeg, GstDecoderJpeg> {
-public:
-	GstCodecJpeg();
-	virtual ~GstCodecJpeg() {};
-	std::string getMimeSubtype();
-
-protected:
-	void setProperty(int index, const std::string& value) {};
-};
+class GstCodecJpeg: public MimeParametersJpeg, public AbstractVideoCodec<GstEncoderJpeg, GstDecoderJpeg> {};
 }
 
 #endif

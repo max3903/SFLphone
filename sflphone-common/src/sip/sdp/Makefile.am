@@ -7,7 +7,7 @@ libsdp_la_SOURCES = \
 		sdp.cpp \
 		sdpmedia.cpp
 		
-libutil_la_LDFLAGS = $(CCGNU2_LIBS)
+libsdp_la_LDFLAGS = $(CCGNU2_LIBS)
 
 noinst_HEADERS = \
 		RtpMap.h \

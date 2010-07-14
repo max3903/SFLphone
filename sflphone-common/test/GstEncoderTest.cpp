@@ -50,6 +50,7 @@ void GstEncoderTest::testSendH264() {
 
 	// Register supported codecs for this session.
 	sfl::GstCodecH264* codec = new sfl::GstCodecH264();
+
 	session->registerCodec(codec);
 
 	// Simulate the arrival of an SDP offer
@@ -59,7 +60,7 @@ void GstEncoderTest::testSendH264() {
 	sfl::Fmtp fmtp("96", "profile-level-id=42A01E; packetization-mode=0; sprop-parameter-sets=Z0IACpZTBYmI,aMljiA==");
 	session->addSessionCodec(rtpmap, fmtp);
 
-	// Receive data
+	// Start the RTP stack
 	session->start();
 
 	// Let the frames flow into the encoder
@@ -69,9 +70,9 @@ void GstEncoderTest::testSendH264() {
 void GstEncoderTest::testSendJpeg() {
 	std::cout << "Testing JPEG ..." << std::endl;
 
-//	if (system("./client-jpeg.sh >> /dev/null &") < 0) {
-//		CPPUNIT_FAIL("Failed to start client in video RTP test.");
-//	}
+	if (system("./client-jpeg.sh >> /dev/null &") < 0) {
+		CPPUNIT_FAIL("Failed to start client in video RTP test.");
+	}
 
 	// Register supported codecs for this session.
 	sfl::GstCodecJpeg* codec = new sfl::GstCodecJpeg();
@@ -84,13 +85,9 @@ void GstEncoderTest::testSendJpeg() {
 	sfl::Fmtp fmtp("96", "");
 	session->addSessionCodec(rtpmap, fmtp);
 
-	// Receive data
+	// Start the RTP stack
 	session->start();
 
 	// Let the frames flow into the encoder
 	source->open();
-}
-
-void GstEncoderTest::testSendTheora() {
-
 }

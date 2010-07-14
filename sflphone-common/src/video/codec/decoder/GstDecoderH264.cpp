@@ -27,30 +27,27 @@
  *  as that of the covered work.
  */
 
-#include "GstEncoderJpeg.h"
+#include "GstDecoderH264.h"
 
 namespace sfl {
 
-void GstEncoderJpeg::buildFilter(Pipeline& pipeline)
+void GstDecoderH264::buildFilter(Pipeline& pipeline)
 		throw (MissingPluginException) {
-	jpegenc = pipeline.addElement("jpegenc");
-	rtpjpegpay = pipeline.addElement("rtpjpegpay", jpegenc);
+
+	rtph264depay = pipeline.addElement("rtph264depay");
+
+	GstElement* previous = pipeline.addElement("h264parse", rtph264depay);
+
+	ffdec_h264 = pipeline.addElement("ffdec_h264", previous);
 }
 
-GstElement* GstEncoderJpeg::getHead() {
-	return jpegenc;
+GstElement* GstDecoderH264::getHead() {
+	return rtph264depay;
 }
 
-GstElement* GstEncoderJpeg::getTail() {
-	return rtpjpegpay;
+GstElement* GstDecoderH264::getTail() {
+	return ffdec_h264;
 }
 
-std::string GstEncoderJpeg::getMimeSubtype() {
-	return "JPEG";
-}
-
-void GstEncoderJpeg::setProperty(const std::string& name, const std::string& value) {
-
-}
 
 }

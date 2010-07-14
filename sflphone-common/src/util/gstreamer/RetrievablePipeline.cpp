@@ -106,6 +106,10 @@ void RetrievablePipeline::setCaps(GstCaps* caps) {
 	gst_app_sink_set_caps(GST_APP_SINK(appsink), caps);
 }
 
+GstCaps* RetrievablePipeline::getCaps() {
+	return  gst_app_sink_get_caps(GST_APP_SINK(appsink));
+}
+
 RetrievablePipeline::RetrievablePipeline(Pipeline& pipeline) :
 	Pipeline(pipeline.getGstPipeline()) {
 	init(NULL, pipeline);

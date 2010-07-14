@@ -27,7 +27,7 @@
  *  as that of the covered work.
  */
 
-#include "video/encoder/GstEncoder.h"
+#include "GstEncoder.h"
 #include "util/gstreamer/InjectablePipeline.h"
 #include "util/gstreamer/RetrievablePipeline.h"
 
@@ -44,6 +44,16 @@ GstEncoder::GstEncoder(VideoInputSource& source) throw (VideoDecodingException,
 GstEncoder::GstEncoder(VideoInputSource& source, unsigned maxFrameQueued)
 		throw (VideoDecodingException, MissingPluginException) :
 	VideoEncoder(source), maxFrameQueued(maxFrameQueued) {
+}
+
+void GstEncoder::setParameter(const std::string& name, const std::string& value)
+{
+	injectableEnd->setField(name, value);
+}
+
+std::string GstEncoder::getParameter(const std::string& name)
+{
+	return injectableEnd->getField(name);
 }
 
 void GstEncoder::init() throw (VideoDecodingException, MissingPluginException) {
@@ -68,25 +78,21 @@ void GstEncoder::init() throw (VideoDecodingException, MissingPluginException) {
 	// Add an injectable endpoint
 	VideoFormat format = getVideoInputSource()->getOutputFormat();
 
-	GstCaps* sourceCaps = gst_caps_new_simple(
-			"video/x-raw-rgb", // FIXME Hardcoded !
-			"format", GST_TYPE_FOURCC, GST_STR_FOURCC(
-					format.getFourcc().c_str()), "width", G_TYPE_INT,
-			format.getWidth(),
-			"height",
-			G_TYPE_INT,
-			format.getHeight(),
-			"bpp",
-			G_TYPE_INT,
-			32, // FIXME Hardcoded !,
-			"depth",
-			G_TYPE_INT,
-			32, // FIXME Hardcoded !
-			"endianness", G_TYPE_INT, 4321, "red_mask", G_TYPE_INT, 65280,
-			"green_mask", G_TYPE_INT, 16711680, "blue_mask", G_TYPE_INT,
-			-16777216, "framerate", GST_TYPE_FRACTION,
-			format.getPreferredFrameRate().getNumerator(),
-			format.getPreferredFrameRate().getDenominator(), NULL);
+	std::ostringstream caps;
+	caps << "video/x-raw-rgb"
+		<< ",format=(fourcc)" << GST_STR_FOURCC(format.getFourcc().c_str())
+		<< ",height=(int)" << format.getHeight()
+		<< ",width=(int)" << format.getWidth()
+		<< ",bpp=(int)" << 32
+		<< ",depth=(int)" << 32
+		<< ",endianness=(int)" << 4321
+		<< ",red_mask=(int)" << 65280
+		<< ",green_mask=(int)" << 16711680
+		<< ",blue_mask=(int)" << -16777216
+		<< ",framerate=(framerate)" << format.getPreferredFrameRate().getNumerator() << "/" << format.getPreferredFrameRate().getDenominator();
+
+	GstCaps* sourceCaps = gst_caps_from_string((caps.str()).c_str());
+	_debug("Setting caps %s on encoder source", caps.str().c_str());
 
 	injectableEnd
 			= new InjectablePipeline(pipeline, sourceCaps, format.getWidth() * format.getHeight() * 32 * maxFrameQueued); // FIXME Do some calculation

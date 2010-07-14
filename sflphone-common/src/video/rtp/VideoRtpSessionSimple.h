@@ -34,8 +34,6 @@
 #include <ccrtp/rtp.h>
 
 #include "video/codec/VideoCodec.h"
-#include "video/decoder/VideoDecoder.h"
-#include "video/encoder/VideoEncoder.h"
 
 #include "sip/sdp/Fmtp.h"
 #include "sip/sdp/RtpMap.h"

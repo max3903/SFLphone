@@ -78,6 +78,11 @@ public:
 	 */
 	void setCaps(GstCaps* caps);
 
+	/**
+	 * @return The caps set at the source.
+	 */
+	GstCaps* getCaps();
+
 protected:
 	/**
 	 * Simple dispatch for this observer type.

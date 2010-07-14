@@ -26,53 +26,52 @@
  *  shall include the source code for the parts of OpenSSL used as well
  *  as that of the covered work.
  */
+#ifndef __SFL_NULL_DECODER_H__
+#define __SFL_NULL_DECODER_H__
 
-#ifndef __SFL_GST_DECODER_THEORA_H__
-#define __SFL_GST_DECODER_THEORA_H__
+#include "VideoDecoder.h"
 
-#include "GstDecoder.h"
-
-#include <string>
-
-#include <gst/gstelement.h>
+#include "video/codec/mime/MimeParametersNull.h"
 
 namespace sfl {
+/**
+ * Null object pattern for the VideoDecoder class of objects.
+ */
+class NullDecoder: public MimeParametersNull, public VideoDecoder {
+public:
+	NullDecoder() : VideoDecoder() {}
 
-class GstDecoderTheora: public GstDecoder {
-protected:
-	/**
-	 * @Override
-	 */
-	GstElement* getHead();
-
-	/**
-	 * @Override
-	 */
-	GstElement* getTail();
+	virtual ~NullDecoder() {}
 
 	/**
 	 * @Override
 	 */
-	std::string getMimeSubtype();
+	void decode(Buffer<uint8>& data) throw (VideoDecodingException) {
+		_error("No decoder for decoding %d bytes of data", data.getSize());
+	}
 
 	/**
 	 * @Override
 	 */
-	void buildFilter(Pipeline& pipeline) throw (MissingPluginException);
+	void setOutputFormat(VideoFormat& format) {
+	}
+
 
 	/**
 	 * @Override
 	 */
-	void setProperty(const std::string& name, const std::string& value);
+	void activate() {
+		_warn("Activating the NullDecoder");
+	}
 
-private:
 
-	void init() throw (VideoDecodingException, MissingPluginException);
-
-	GstElement* rtptheoradepay;
-	GstElement* theoradec;
+	/**
+	 * @Override
+	 */
+	void deactivate() {
+		_warn("Deactivating the NullDecoder");
+	}
 };
-
 }
 
 #endif

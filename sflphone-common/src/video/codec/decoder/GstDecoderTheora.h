@@ -27,35 +27,44 @@
  *  as that of the covered work.
  */
 
-#include "GstDecoderH264.h"
+#ifndef __SFL_GST_DECODER_THEORA_H__
+#define __SFL_GST_DECODER_THEORA_H__
+
+#include "GstDecoder.h"
+
+#include <string>
+
+#include <gst/gstelement.h>
+
+#include "video/codec/mime/MimeParametersTheora.h"
 
 namespace sfl {
 
-void GstDecoderH264::buildFilter(Pipeline& pipeline)
-		throw (MissingPluginException) {
+class GstDecoderTheora: public MimeParametersTheora, public GstDecoder {
+protected:
+	/**
+	 * @Override
+	 */
+	GstElement* getHead();
 
-	rtph264depay = pipeline.addElement("rtph264depay");
+	/**
+	 * @Override
+	 */
+	GstElement* getTail();
 
-	GstElement* previous = pipeline.addElement("h264parse", rtph264depay);
+	/**
+	 * @Override
+	 */
+	void buildFilter(Pipeline& pipeline) throw (MissingPluginException);
 
-	ffdec_h264 = pipeline.addElement("ffdec_h264", previous);
-}
+private:
 
-GstElement* GstDecoderH264::getHead() {
-	return rtph264depay;
-}
+	void init() throw (VideoDecodingException, MissingPluginException);
 
-GstElement* GstDecoderH264::getTail() {
-	return ffdec_h264;
-}
-
-std::string GstDecoderH264::getMimeSubtype() {
-	return "H264";
-}
-
-void GstDecoderH264::setProperty(const std::string& name,
-		const std::string& value) {
-
-}
+	GstElement* rtptheoradepay;
+	GstElement* theoradec;
+};
 
 }
+
+#endif

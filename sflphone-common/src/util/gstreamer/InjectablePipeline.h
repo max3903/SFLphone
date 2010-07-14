@@ -91,6 +91,33 @@ public:
 	void stop();
 
 	/**
+	 * Set the caps at the source.
+	 * @param caps The caps to set at the source.
+	 */
+	void setCaps(GstCaps* caps);
+
+	/**
+	 * @return The caps set at the source.
+	 */
+	GstCaps* getCaps();
+
+	/**
+	 * Set the value of a field identified by "name".
+	 * @param name The field name.
+	 * @param value The value this field should be set to.
+	 * @postcondition  If the field does not exist, it is created.
+	 * If the field exists, the previous value is replaced.
+	 * Set in all structures of caps.
+	 */
+	void setField(const std::string& name, const std::string& value);
+
+	/**
+	 * @param name The field name.
+	 * @return The value for this field on the first structure of the caps at the source.
+	 */
+	std::string getField(const std::string& name);
+
+	/**
 	 * Inject the given buffer into the pipeline.
 	 * @param data The data to inject downstream.
 	 * @postcondition The data gets queued until those elements downstream can process it.

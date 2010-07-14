@@ -67,8 +67,9 @@
 			src/util/gstreamer/Makefile \
 			src/util/Makefile \
 			src/video/source/Makefile \
-			src/video/decoder/Makefile \
-			src/video/encoder/Makefile \
+			src/video/codec/mime/Makefile \
+			src/video/codec/decoder/Makefile \
+			src/video/codec/encoder/Makefile \
 			src/video/codec/Makefile \
 			src/video/rtp/Makefile \
 			src/video/Makefile \

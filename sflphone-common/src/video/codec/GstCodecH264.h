@@ -31,56 +31,11 @@
 #define __SFL_GST_CODEC_H264_H__
 
 #include "AbstractVideoCodec.h"
-#include "video/encoder/GstEncoderH264.h"
-#include "video/decoder/GstDecoderH264.h"
+#include "video/codec/encoder/GstEncoderH264.h"
+#include "video/codec/decoder/GstDecoderH264.h"
+#include "video/codec/mime/MimeParametersH264.h"
 
 namespace sfl {
-class GstCodecH264: public AbstractVideoCodec<GstEncoderH264, GstDecoderH264> {
-public:
-	GstCodecH264();
-
-	virtual ~GstCodecH264() {};
-
-	std::string getMimeSubtype();
-
-	void setProfileLevelId(const std::string& profileLevelId);
-
-	void setMaxMbps(const std::string& maxMbps);
-
-	void setMaxFs(const std::string& maxFs);
-
-	void setMaxCpb(const std::string& maxCpb);
-
-	void setMaxDpb(const std::string& maxDpb);
-
-	void setMaxBr(const std::string& maxBr);
-
-	void setRedundantPicCap(const std::string& redundantPicCap);
-
-	void setParameterAdd(const std::string& parameterAdd);
-
-	void setPacketizationMode(const std::string& packetizationMode);
-
-	void setDeintBufCap(const std::string& deintBufCap);
-
-	void setMaxRcmdNaluSize(const std::string& maxRcmdNaluSize);
-
-	void setSpropParameterSets(const std::string& spropParameterSets);
-
-	void setSpropInterleavingDepth(const std::string& spropInterleavingDepth);
-
-	void setSpropDeintBufReq(const std::string& spropDeintBufReq);
-
-	void setSpropInitBufTime(const std::string& spropInitBufTime);
-
-	void setSpropMaxDonDiff(const std::string& spropMaxDonDiff);
-
-protected:
-	void setProperty(int index, const std::string& value);
-
-private:
-	void init() throw(VideoDecodingException, MissingPluginException) ;
-};
+class GstCodecH264 : public MimeParametersH264, public AbstractVideoCodec<GstEncoderH264, GstDecoderH264> {};
 }
-
 #endif

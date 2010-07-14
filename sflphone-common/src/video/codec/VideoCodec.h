@@ -31,9 +31,12 @@
 #define __SFL_VIDEO_CODEC_H__
 
 #include "video/VideoPlugin.h"
-#include "video/encoder/VideoEncoder.h"
-#include "video/decoder/VideoDecoder.h"
+#include "mime/MimeParameters.h"
+#include "encoder/VideoEncoder.h"
+#include "decoder/VideoDecoder.h"
 #include "video/source/VideoInputSource.h"
+
+#include "util/memory/Buffer.h"
 
 namespace sfl {
 
@@ -47,14 +50,14 @@ namespace sfl {
  * A lot of the public methods made available below are just meant to hide delegates.
  */
 
-class VideoCodec :  public VideoPlugin {
+class VideoCodec : public virtual MimeParameters, public VideoPlugin {
 public:
 	VideoCodec() {};
 	virtual ~VideoCodec() {};
 
 	virtual void encode(const VideoFrame* frame) throw(VideoEncodingException) = 0;
 
-	virtual void decode(ManagedBuffer<uint8>& data) throw (VideoDecodingException) = 0;
+	virtual void decode(Buffer<uint8>& data) throw (VideoDecodingException) = 0;
 
 	virtual void setEncoderVideoSource(VideoInputSource& source) = 0;
 

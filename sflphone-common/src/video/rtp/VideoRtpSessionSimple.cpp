@@ -43,7 +43,7 @@ bool VideoRtpSessionSimple::onRTPPacketRecv(ost::IncomingRTPPkt& packet) {
 	uint32 rawSize = packet.getRawPacketSize();
 
 	// Send to the depayloader/decoder
-	ManagedBuffer<uint8> buffer(rawData, rawSize);
+	Buffer<uint8> buffer(rawData, rawSize); // TODO Should not be managed
 	activeCodec->decode(buffer);
 
 	return true;
@@ -78,15 +78,14 @@ void VideoRtpSessionSimple::setCodec(const RtpMap& rtpmap, const Fmtp& fmtp,
 	activeCodec->setEncoderVideoSource(*activeVideoSource);
 
 	// Set the payload format in ccRTP from the information contained in the VideoCodec.
-	setPayloadFormat(ost::DynamicPayloadFormat(rtpmap.getPayloadType(),
-			rtpmap.getClockRate()));
+	setPayloadFormat(activeCodec->getPayloadFormat());
 
 	// Configure the codec with the options obtained from SDP.
 	std::map<std::string, std::string> props = rtpmap.getParamParsed();
 	std::map<std::string, std::string>::iterator itProps;
 	for (itProps = props.begin(); itProps != props.end(); itProps++) {
 		_info("Configuring codec with property \"%s\" with value \"%s\".", (*itProps).first.c_str(), (*itProps).second.c_str());
-		activeCodec->setProperty((*itProps).first /* Prop. name */,
+		activeCodec->setParameter((*itProps).first /* Prop. name */,
 				(*itProps).second /* Prop. value */);
 	}
 

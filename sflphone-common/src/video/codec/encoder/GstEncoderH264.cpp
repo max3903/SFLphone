@@ -26,70 +26,35 @@
  *  shall include the source code for the parts of OpenSSL used as well
  *  as that of the covered work.
  */
-#ifndef __SFL_NULL_DECODER_H__
-#define __SFL_NULL_DECODER_H__
 
-#include "VideoDecoder.h"
+#include "GstEncoderH264.h"
 
 namespace sfl {
-/**
- * Null object pattern for the VideoDecoder class of objects.
- */
-class NullDecoder: public VideoDecoder {
-public:
-	NullDecoder() :
-		VideoDecoder() {
-	}
 
-	virtual ~NullDecoder() {
-	}
+void GstEncoderH264::buildFilter(Pipeline& pipeline)
+		throw (MissingPluginException) {
 
+	x264enc = pipeline.addElement("x264enc");
 
-	/**
-	 * @Override
-	 */
-	void decode(ManagedBuffer<uint8>& data) throw (VideoDecodingException) {
-		_error("No decoder for decoding %d bytes of data", data.getSize());
-	}
+	// Generate byte stream format of NALU
+	g_object_set(G_OBJECT(x264enc), "byte-stream", TRUE, NULL);
 
-	/**
-	 * @Override
-	 */
-	void setOutputFormat(VideoFormat& format) {
-	}
+	// Enable automatic multithreading
+	g_object_set(G_OBJECT(x264enc), "threads", 0, NULL);
 
+	// Set default bitrate
+	g_object_set(G_OBJECT(x264enc), "bitrate", 300, NULL);
 
-	/**
-	 * @Override
-	 */
-	void activate() {
-		_warn("Activating the NullDecoder");
-	}
+	rtph264pay = pipeline.addElement("rtph264pay", x264enc);
 
-
-	/**
-	 * @Override
-	 */
-	void deactivate() {
-		_warn("Deactivating the NullDecoder");
-	}
-
-
-	/**
-	 * @Override
-	 */
-	void setProperty(const std::string& propName, const std::string& propValue) {
-		_warn("Setting property %s with value %s in NullDecoder", propName.c_str(), propValue.c_str());
-	}
-
-
-	/**
-	 * @Override
-	 */
-	std::string getMimeSubtype() {
-		return "NullDecoder";
-	}
-};
 }
 
-#endif
+GstElement* GstEncoderH264::getHead() {
+	return x264enc;
+}
+
+GstElement* GstEncoderH264::getTail() {
+	return rtph264pay;
+}
+
+}

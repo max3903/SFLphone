@@ -31,8 +31,11 @@
 
 #include "video/VideoPlugin.h"
 #include "video/VideoExceptions.h"
+
 #include "video/source/VideoInputSource.h"
 #include "video/source/NullVideoInputSource.h"
+
+#include "video/codec/mime/MimeParameters.h"
 
 #include "util/pattern/AbstractObservable.h"
 #include "util/memory/Buffer.h"
@@ -55,7 +58,7 @@ public:
 /**
  * Abstract base class for every video encoder.
  */
-class VideoEncoder : public VideoPlugin, public AbstractObservable<std::pair<uint32, Buffer<uint8> >&, VideoFrameEncodedObserver> {
+class VideoEncoder : public virtual MimeParameters, public VideoPlugin, public AbstractObservable<std::pair<uint32, Buffer<uint8> >&, VideoFrameEncodedObserver> {
 public:
 
 	/**

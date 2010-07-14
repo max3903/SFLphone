@@ -1,6 +1,6 @@
 include $(top_srcdir)/globals.mak
 
-SUBDIRS = source decoder encoder codec rtp
+SUBDIRS = codec rtp source
 
 AM_CXXFLAGS = $(GSTREAMER_CFLAGS)
 
@@ -12,10 +12,8 @@ libvideo_la_SOURCES = \
 	VideoFormat.cpp
 
 libvideo_la_LIBADD = \
-	source/libvideosource.la \
-	decoder/libvideodecoder.la \
-	encoder/libvideoencoder.la \
 	codec/libvideocodec.la \
+	source/libvideosource.la \
 	rtp/libvideortp.la
 
 libvideo_la_LDFLAGS = $(GSTREAMER_LIBS) $(LIBS)

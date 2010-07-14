@@ -38,7 +38,9 @@ test_SOURCES = \
 	H264EncoderTest.h \
 	H264EncoderTest.cpp \
 	GstEncoderTest.h \
-	GstEncoderTest.cpp
+	GstEncoderTest.cpp \
+	GstDecoderTest.h \
+	GstDecoderTest.cpp
 
 LLIBS=$(CPPUNIT_LIBS) \
 	../src/sflphoned-logger.o \
