@@ -52,7 +52,7 @@
  * To be added in the SDP attributes
  * The last one is only here to have to size information, otherwise the enum struct doesn't provide any means to know it
  */
-enum streamDirection {
+enum StreamDirection {
     SEND_RECEIVE,
     SEND_ONLY,
     RECEIVE_ONLY,
@@ -65,7 +65,7 @@ enum streamDirection {
  * To be added in the SDP attributes
  * The last one is only here to have to size information, otherwise the enum struct doesn't provide any means to know it
  */
-enum mediaType {
+enum MediaType {
     AUDIOMEDIA,
     VIDEO,
     APPLICATION,
@@ -75,93 +75,93 @@ enum mediaType {
     MEDIA_COUNT
 };
 
-typedef enum streamDirection streamDirection;
-typedef enum mediaType mediaType;
+typedef enum StreamDirection streamDirection;
+typedef enum MediaType mediaType;
 
 #include "audio/codecs/audiocodec.h"
 
-class sdpMedia
+class SdpMedia
 {
     public:
-        sdpMedia( int type );
-        sdpMedia( std::string type, int port, std::string dir = DEFAULT_STREAM_DIRECTION);
-        ~sdpMedia();
+        SdpMedia(int type);
+        SdpMedia(std::string type, int port, std::string dir = DEFAULT_STREAM_DIRECTION);
+        ~SdpMedia();
 
         /*
          * Read accessor. Return the list of codecs
          */
-        std::vector<AudioCodec*> get_media_codec_list() { return _codec_list; }
+        std::vector<AudioCodec*> getMediaCodecList() { return _codec_list; }
 
         /*
          * Read accessor. Return the type of media
          */
-        mediaType get_media_type() { return _media_type; }
+        MediaType getMediaType() { return _media_type; }
 
         /*
          * Read accessor. Return the type of media
          */
-        std::string get_media_type_str();
+        std::string getMediaTypeStr();
 
         /*
          * Set the media type
          */
-        void set_media_type( int type ) { _media_type = (mediaType)type; }
+        void setMediaType( int type ) { _media_type = (MediaType)type; }
 
         /*
          * Read accessor. Return the transport port
          */
-        int get_port() { return _port; }
+        int getPort() { return _port; }
 
         /*
          * Write accessor. Set the transport port
          */
-        void set_port( int port ) { _port = port; }
+        void setPort( int port ) { _port = port; }
 
         /*
          * Add a codec in the current media codecs vector
          *
          * @param payload     The payload type
          */
-        void add_codec( AudioCodec *codec );
+        void addCodec( AudioCodec *codec );
 
         /*
          * Remove a codec from the current media codecs vector
          *
          * @param codec_name    The codec encoding name
          */
-        void remove_codec( std::string codec_name );
+        void removeCodec( std::string codec_name );
 
         /*
          * Remove all the codecs from the list
          */
-        void clear_codec_list( void );
+        void clearCodecList( void );
 
         /*
          * Return a string description of the current media
          */ 
-        std::string to_string( void );
+        std::string toString( void );
 
         /*
          * Set the stream direction of the current media
          * ie: sendrecv, sendonly,...
          */
-        void set_stream_direction( int direction ) { _stream_type = (streamDirection)direction; }
+        void setStreamDirection( int direction ) { _stream_type = (StreamDirection)direction; }
 
         /*
          * Get the stream direction of the current media
          * ie: sendrecv, sendonly,...
          */
-        streamDirection get_stream_direction( void ) { return _stream_type; }
+        StreamDirection getStreamDirection( void ) { return _stream_type; }
 
         /*
          * Get the stream direction string description of the current media
          * ie: sendrecv, sendonly,...
          */
-        std::string get_stream_direction_str( void );
+        std::string getStreamDirectionStr( void );
 
     private:
         /* The type of media */
-        mediaType _media_type;
+        MediaType _media_type;
 
         /* The media codec vector */
         std::vector< AudioCodec* > _codec_list;
@@ -170,7 +170,7 @@ class sdpMedia
         int _port;
 
         /* The stream direction */
-        streamDirection _stream_type;
+        StreamDirection _stream_type;
 };
 
 #endif // _SDP_MEDIA

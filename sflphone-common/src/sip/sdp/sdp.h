@@ -47,20 +47,18 @@
 
 #include <exception>
 
-class sdpException: public std::exception
+class SdpException: public std::exception
 {
   virtual const char* what() const throw()
   {
-    return "An sdpException Occured";
+    return "An SdpException occured";
   }
 };
 
 typedef std::vector<std::string> CryptoOffer;
 
 class Sdp {
-
     public:
-        
         /*
          * Class Constructor.
          *
@@ -74,9 +72,9 @@ class Sdp {
         /*
          * Read accessor. Get the list of the local media capabilities. 
          *
-         * @return std::vector<sdpMedia*>   the vector containing the different media
+         * @return std::vector<SdpMedia*>   the vector containing the different media
          */
-        std::vector<sdpMedia*> get_local_media_cap( void ) { return _local_media_cap; }
+        std::vector<SdpMedia*> get_local_media_cap( void ) { return _local_media_cap; }
 
          /*
          *  Read accessor. Get the sdp session information
@@ -107,7 +105,7 @@ class Sdp {
          * @param media The media to add to SDP
          * @param med   The structure to receive the media section
          */
-        void set_media_descriptor_line( sdpMedia* media, pjmedia_sdp_media** p_med );
+        void set_media_descriptor_line( SdpMedia* media, pjmedia_sdp_media** p_med );
 
         /* Set the zrtp hash that was previously calculated from the hello message in the zrtp layer.
          * This hash value is unique at the media level. Therefore, if video support is added, one would
@@ -164,21 +162,21 @@ class Sdp {
         std::string media_to_string( void );
 
         /*
-         * Return the codec of the first media after negociation
+         * Return the codec of the first media after negotiation
          */
         AudioCodec* get_session_media( void );
 
         /*
-         * read accessor. Return the negociated offer
+         * read accessor. Return the negotiated offer
          *
-         * @return pjmedia_sdp_session  The negociated offer
+         * @return pjmedia_sdp_session  The negotiated offer
          */
         pjmedia_sdp_session* get_negociated_offer( void ){
             return _negociated_offer;
         }
 
          /*
-         * Start the sdp negociation.
+         * Start the sdp negotiation.
          *
          * @return pj_status_t  0 on success
          *                      1 otherwise
@@ -186,7 +184,7 @@ class Sdp {
         pj_status_t start_negociation( void );
 
          /*
-         * Retrieve the negociated sdp offer from the sip payload.
+         * Retrieve the negotiated sdp offer from the sip payload.
          *
          * @param sdp   the negociated offer
          */
@@ -233,16 +231,16 @@ class Sdp {
 
         void set_media_transport_info_from_remote_sdp (const pjmedia_sdp_session *remote_sdp);
 
-        std::vector<sdpMedia*> get_session_media_list (void) { return _session_media; }
+        std::vector<SdpMedia*> get_session_media_list (void) { return _session_media; }
 
         void get_remote_sdp_crypto_from_offer (const pjmedia_sdp_session* remote_sdp, CryptoOffer& crypto_offer);
 
     private:
         /** Codec Map */
-        std::vector<sdpMedia*> _local_media_cap;
+        std::vector<SdpMedia*> _local_media_cap;
 
         /* The media that will be used by the session (after the SDP negociation) */
-        std::vector<sdpMedia*> _session_media;
+        std::vector<SdpMedia*> _session_media;
 
         /** negociator */
         pjmedia_sdp_neg *_negociator;

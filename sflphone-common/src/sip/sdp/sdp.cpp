@@ -67,7 +67,7 @@ Sdp::~Sdp()
   // clean_local_media_capabilities();
 }
 
-void Sdp::set_media_descriptor_line (sdpMedia *media, pjmedia_sdp_media** p_med) {
+void Sdp::set_media_descriptor_line (SdpMedia *media, pjmedia_sdp_media** p_med) {
 
     pjmedia_sdp_media* med;
     pjmedia_sdp_rtpmap rtpmap;
@@ -80,9 +80,9 @@ void Sdp::set_media_descriptor_line (sdpMedia *media, pjmedia_sdp_media** p_med)
 
     // Get the right media format
     pj_strdup (_pool, &med->desc.media,
-               (media->get_media_type() == MIME_TYPE_AUDIO) ? &STR_AUDIO : &STR_VIDEO);
+               (media->getMediaType() == MIME_TYPE_AUDIO) ? &STR_AUDIO : &STR_VIDEO);
     med->desc.port_count = 1;
-    med->desc.port = media->get_port();
+    med->desc.port = media->getPort();
 
     // in case of sdes, media are tagged as "RTP/SAVP", RTP/AVP elsewhere
     if(_srtp_crypto.empty()) {
@@ -95,13 +95,13 @@ void Sdp::set_media_descriptor_line (sdpMedia *media, pjmedia_sdp_media** p_med)
     }
 
     // Media format ( RTP payload )
-    count = media->get_media_codec_list().size();
+    count = media->getMediaCodecList().size();
     med->desc.fmt_count = count;
 
     // add the payload list
 
     for (i=0; i<count; i++) {
-        codec = media->get_media_codec_list() [i];
+        codec = media->getMediaCodecList() [i];
         tmp = this->convert_int_to_string (codec->getPayload ());
         _debug ("%s", tmp.c_str());
         pj_strdup2 (_pool, &med->desc.fmt[i], tmp.c_str());
@@ -135,7 +135,7 @@ void Sdp::set_media_descriptor_line (sdpMedia *media, pjmedia_sdp_media** p_med)
     // Add the direction stream
     attr = (pjmedia_sdp_attr*) pj_pool_zalloc (_pool, sizeof (pjmedia_sdp_attr));
 
-    pj_strdup2 (_pool, &attr->name, media->get_stream_direction_str().c_str());
+    pj_strdup2 (_pool, &attr->name, media->getStreamDirectionStr().c_str());
 
     med->attr[ med->attr_count++] = attr;
 
@@ -417,7 +417,7 @@ void Sdp::sdp_add_sdes_attribute (std::vector<std::string>& crypto)
 
 	    if(pjmedia_sdp_media_add_attr(_local_offer->media[i], attribute) != PJ_SUCCESS) {
 	      // if(pjmedia_sdp_attr_add(&(_local_offer->attr_count), _local_offer->attr, attribute) != PJ_SUCCESS){
-	        throw sdpException();
+	        throw SdpException();
 	    }
 	}
 
@@ -450,7 +450,7 @@ void Sdp::sdp_add_zrtp_attribute (pjmedia_sdp_media* media, std::string hash)
     pj_memcpy (attribute->value.ptr, tempbuf, attribute->value.slen+1);
 
     if (pjmedia_sdp_media_add_attr (media, attribute) != PJ_SUCCESS) {
-        throw sdpException();
+        throw SdpException();
     }
 }
 
@@ -462,7 +462,7 @@ std::string Sdp::media_to_string (void)
     size = _local_media_cap.size();
 
     for (i = 0; i < size ; i++) {
-        res << _local_media_cap[i]->to_string();
+        res << _local_media_cap[i]->toString();
     }
 
     res << std::endl;
@@ -476,8 +476,8 @@ void Sdp::clean_session_media()
 
 	if(_session_media.size() > 0) {
 
-		std::vector<sdpMedia *>::iterator iter = _session_media.begin();
-	    sdpMedia *media;
+		std::vector<SdpMedia *>::iterator iter = _session_media.begin();
+	    SdpMedia *media;
 
 		while(iter != _session_media.end()) {
 			media = *iter;
@@ -495,8 +495,8 @@ void Sdp::clean_local_media_capabilities()
 
 	if(_local_media_cap.size() > 0) {
 
-		std::vector<sdpMedia *>::iterator iter = _local_media_cap.begin();
-			sdpMedia *media;
+		std::vector<SdpMedia *>::iterator iter = _local_media_cap.begin();
+			SdpMedia *media;
 
 			while(iter != _local_media_cap.end()) {
 				media = *iter;
@@ -513,7 +513,7 @@ void Sdp::set_negotiated_sdp (const pjmedia_sdp_session *sdp)
     int nb_media, nb_codecs;
     int i,j, port;
     pjmedia_sdp_media *current;
-    sdpMedia *media;
+    SdpMedia *media;
     std::string type, dir;
     CodecsMap codecs_list;
     CodecsMap::iterator iter;
@@ -532,7 +532,7 @@ void Sdp::set_negotiated_sdp (const pjmedia_sdp_session *sdp)
         current = _negociated_offer->media[i];
         type = current->desc.media.ptr;
         port = current->desc.port;
-        media = new sdpMedia (type, port);
+        media = new SdpMedia (type, port);
         // Retrieve the payload
         nb_codecs = current->desc.fmt_count;  // Must be one
 
@@ -550,7 +550,7 @@ void Sdp::set_negotiated_sdp (const pjmedia_sdp_session *sdp)
             if (iter==codecs_list.end())
                 return;
 
-            media->add_codec (iter->second);
+            media->addCodec (iter->second);
         }
 
         _session_media.push_back (media);
@@ -563,7 +563,7 @@ AudioCodec* Sdp::get_session_media (void)
     int nb_media;
     int nb_codec;
     AudioCodec *codec = NULL;
-    std::vector<sdpMedia*> media_list;
+    std::vector<SdpMedia*> media_list;
 
     _debug ("SDP: Executing sdp line %d - get_session_media()", __LINE__);
 
@@ -571,10 +571,10 @@ AudioCodec* Sdp::get_session_media (void)
     nb_media = media_list.size();
 
     if (nb_media > 0) {
-        nb_codec = media_list[0]->get_media_codec_list().size();
+        nb_codec = media_list[0]->getMediaCodecList().size();
 
         if (nb_codec > 0) {
-            codec = media_list[0]->get_media_codec_list() [0];
+            codec = media_list[0]->getMediaCodecList() [0];
         }
     }
 
@@ -636,7 +636,7 @@ void Sdp::toString (void)
 void Sdp::set_local_media_capabilities (CodecOrder selectedCodecs) {
 
     unsigned int i;
-    sdpMedia *audio;
+    SdpMedia *audio;
     CodecsMap codecs_list;
     CodecsMap::iterator iter;
 
@@ -646,8 +646,8 @@ void Sdp::set_local_media_capabilities (CodecOrder selectedCodecs) {
     _debug ("SDP: Fetch local media capabilities. Local extern audio port: %i" , get_local_extern_audio_port());
 
     /* Only one audio media used right now */
-    audio = new sdpMedia (MIME_TYPE_AUDIO);
-    audio->set_port (get_local_extern_audio_port());
+    audio = new SdpMedia (MIME_TYPE_AUDIO);
+    audio->setPort (get_local_extern_audio_port());
 
     /* We retrieve the codecs selected by the user */
     codecs_list = Manager::instance().getCodecDescriptorMap().getCodecsMap();
@@ -656,7 +656,7 @@ void Sdp::set_local_media_capabilities (CodecOrder selectedCodecs) {
         iter=codecs_list.find (selectedCodecs[i]);
 
         if (iter!=codecs_list.end()) {
-            audio->add_codec (iter->second);
+            audio->addCodec (iter->second);
         }
 		else {
 			_warn ("SDP: Couldn't find audio codec");
@@ -669,7 +669,7 @@ void Sdp::set_local_media_capabilities (CodecOrder selectedCodecs) {
 void Sdp::attribute_port_to_all_media (int port)
 {
 
-    std::vector<sdpMedia*> medias;
+    std::vector<SdpMedia*> medias;
     int i, size;
 
     set_local_extern_audio_port (port);
@@ -678,7 +678,7 @@ void Sdp::attribute_port_to_all_media (int port)
     size = medias.size();
 
     for (i=0; i<size; i++) {
-        medias[i]->set_port (port);
+        medias[i]->setPort (port);
     }
 }
 

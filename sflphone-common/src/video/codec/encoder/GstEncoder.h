@@ -124,6 +124,8 @@ private:
 		 */
 		void onNewBuffer(GstBuffer* buffer) {
 			_debug("NAL unit produced at the sink ...");
+			// _debug("Caps on buffer at the SINK %" GST_PTR_FORMAT, gst_buffer_get_caps(buffer));
+
 			GstBuffer* payload = gst_rtp_buffer_get_payload_buffer(buffer);
 			uint32 timestamp = gst_rtp_buffer_get_timestamp(buffer);
 

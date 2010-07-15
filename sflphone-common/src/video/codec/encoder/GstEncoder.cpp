@@ -101,7 +101,6 @@ void GstEncoder::configureSource() {
 
 	_debug("Caps on encoder %" GST_PTR_FORMAT, sourceCaps);
 
-
 	injectableEnd->setCaps(sourceCaps);
 
 }
