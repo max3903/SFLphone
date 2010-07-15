@@ -60,11 +60,9 @@ std::string GstEncoder::getParameter(const std::string& name) {
 	return injectableEnd->getField(name); // FIXME Param might not exists
 }
 
-void GstEncoder::setVideoInputSource(VideoInputSource& videoSource) {
-	VideoEncoder::setVideoInputSource(videoSource);
-
+void GstEncoder::configureSource() {
 	// Create the new caps for this video source
-	VideoFormat format = videoSource.getOutputFormat();
+	VideoFormat format = getVideoInputSource()->getOutputFormat();
 	std::ostringstream caps;
 	caps << "video/x-raw-rgb" << ",format=(fourcc)" << GST_STR_FOURCC(
 			format.getFourcc().c_str()) << ",height=(int)"
@@ -72,7 +70,7 @@ void GstEncoder::setVideoInputSource(VideoInputSource& videoSource) {
 			<< ",bpp=(int)" << 32 << ",depth=(int)" << 32
 			<< ",endianness=(int)" << 4321 << ",red_mask=(int)" << 65280
 			<< ",green_mask=(int)" << 16711680 << ",blue_mask=(int)"
-			<< -16777216 << ",framerate=(framerate)"
+			<< -16777216 << ",framerate=(fraction)"
 			<< format.getPreferredFrameRate().getNumerator() << "/"
 			<< format.getPreferredFrameRate().getDenominator();
 
@@ -100,8 +98,7 @@ void GstEncoder::init() throw (VideoDecodingException, MissingPluginException) {
 	gst_init(0, NULL);
 
 	// Create a new pipeline
-	Pipeline pipeline(std::string("sfl_") + getMimeSubtype() + std::string(
-			"_encoding"));
+	Pipeline pipeline(std::string("sfl_") + getMimeSubtype() + std::string("_encoding"));
 	pipeline.setPrefix("sfl_encoder_");
 
 	GstElement* ffmpegcolorspace = pipeline.addElement("ffmpegcolorspace");
@@ -117,6 +114,9 @@ void GstEncoder::init() throw (VideoDecodingException, MissingPluginException) {
 
 	// Add an injectable endpoint
 	injectableEnd = new InjectablePipeline(pipeline);
+
+	// Configure with VideoInputSource
+	configureSource();
 
 	// Add a retrievable endpoint
 	retrievableEnd = new RetrievablePipeline(pipeline);
@@ -147,7 +147,6 @@ void GstEncoder::encode(const VideoFrame* frame) throw (VideoEncodingException) 
 
 void GstEncoder::activate() {
 	VideoEncoder::activate();
-
 	_info("Activating Gstreamer Encoder");
 
 	init();
@@ -157,7 +156,6 @@ void GstEncoder::activate() {
 
 void GstEncoder::deactivate() {
 	VideoEncoder::deactivate();
-
 	_info("Deactivating encoder");
 
 	clearObservers();

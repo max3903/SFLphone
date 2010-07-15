@@ -90,11 +90,6 @@ public:
 	 */
 	std::string getParameter(const std::string& name);
 
-	/**
-	 * @Override
-	 */
-	void setVideoInputSource(VideoInputSource& videoSource);
-
 	static const unsigned MAX_FRAME_QUEUED = 10;
 
 private:
@@ -145,6 +140,11 @@ private:
 	 * then the latter will fail as the GstCaps had not been created yet at that point.
 	 */
 	std::list<std::pair<std::string, std::string> > parameters;
+
+	/**
+	 * Given that a video input source was set, configure the corresponding caps on the appsrc element.
+	 */
+	void configureSource();
 };
 
 }

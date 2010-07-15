@@ -37,13 +37,11 @@ namespace sfl {
 GstDecoder::GstDecoder()
 		throw (VideoDecodingException, MissingPluginException) :
 	VideoDecoder() {
-	init();
 }
 
 GstDecoder::GstDecoder(VideoFormat& format)
 		throw (VideoDecodingException, MissingPluginException) :
 	VideoDecoder(), outputVideoFormat(format) {
-	init();
 }
 
 void GstDecoder::setParameter(const std::string& name, const std::string& value)
@@ -135,6 +133,8 @@ void GstDecoder::setOutputFormat(VideoFormat& format)
 
 void GstDecoder::activate() {
 	_info("Activating decoder");
+
+	init();
 
 	// Does not matter whether we call start() on injectable or retrievable endpoints.
 	injectableEnd->start();
