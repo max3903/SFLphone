@@ -73,6 +73,11 @@ public:
 	/**
 	 * @Override
 	 */
+	void setVideoInputSource(VideoInputSource& videoSource);
+
+	/**
+	 * @Override
+	 */
 	void activate();
 
 	/**

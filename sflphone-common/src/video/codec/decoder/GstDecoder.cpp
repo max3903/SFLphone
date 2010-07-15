@@ -36,17 +36,22 @@ namespace sfl {
 
 GstDecoder::GstDecoder()
 		throw (VideoDecodingException, MissingPluginException) :
-	VideoDecoder() {
+	VideoDecoder(), injectableEnd(NULL), retrievableEnd(NULL) {
 }
 
 GstDecoder::GstDecoder(VideoFormat& format)
 		throw (VideoDecodingException, MissingPluginException) :
-	VideoDecoder(), outputVideoFormat(format) {
+	VideoDecoder(), outputVideoFormat(format), injectableEnd(NULL), retrievableEnd(NULL) {
 }
 
 void GstDecoder::setParameter(const std::string& name, const std::string& value)
 {
-	injectableEnd->setField(name, value);
+	if (injectableEnd == NULL) {
+		_debug("Pushing parameter in list since injectableEnd is null");
+		parameters.push_back(std::pair<std::string, std::string>(name, value));
+	} else {
+		injectableEnd->setField(name, value);
+	}
 }
 
 std::string GstDecoder::getParameter(const std::string& name)
@@ -87,12 +92,20 @@ void GstDecoder::init()
 		<< "media=(string)video,"
 		<< "encoding-name=(string)" << getMimeSubtype() << ","
 		<< "clock-rate=(int)" << getPayloadFormat().getRTPClockRate() << ","
-		<< "payload=(int)" << getPayloadFormat().getPayloadType();
+		<< "payload=(int)" << (int) getPayloadFormat().getPayloadType();
 
 	GstCaps* sourceCaps = gst_caps_from_string((caps.str()).c_str());
 	_debug("Setting caps %s on decoder source", caps.str().c_str());
 
 	injectableEnd = new InjectablePipeline(pipeline, sourceCaps);
+
+	// If there are any optional parameters that were added before activate()
+	// was called, apply them now.
+	std::list<std::pair<std::string, std::string> >::iterator it;
+	_debug("Unwinding parameters ...");
+	for (it = parameters.begin(); it != parameters.end(); it++) {
+		injectableEnd->setField((*it).first, (*it).second);
+	}
 
 	// Add retrievable endpoint
 	VideoFormatToGstCaps convert;
@@ -151,6 +164,9 @@ void GstDecoder::deactivate() {
 
 	// Does not matter whether we call stop() on injectable or retrievable endpoints.
 	retrievableEnd->stop();
+
+	// Clear the parameter set
+	parameters.clear();
 }
 
 }

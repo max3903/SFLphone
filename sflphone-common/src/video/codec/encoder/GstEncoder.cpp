@@ -33,21 +33,29 @@
 
 namespace sfl {
 GstEncoder::GstEncoder() throw (VideoEncodingException, MissingPluginException) :
-	VideoEncoder(), maxFrameQueued(MAX_FRAME_QUEUED) {
+	VideoEncoder(), maxFrameQueued(MAX_FRAME_QUEUED), injectableEnd(NULL), retrievableEnd(NULL) {
 }
 
 GstEncoder::GstEncoder(VideoInputSource& source) throw (VideoDecodingException,
 		MissingPluginException) :
-	VideoEncoder(source), maxFrameQueued(MAX_FRAME_QUEUED) {
+	VideoEncoder(source), maxFrameQueued(MAX_FRAME_QUEUED), injectableEnd(NULL), retrievableEnd(NULL) {
 }
 
 GstEncoder::GstEncoder(VideoInputSource& source, unsigned maxFrameQueued)
 		throw (VideoDecodingException, MissingPluginException) :
-	VideoEncoder(source), maxFrameQueued(maxFrameQueued) {
+	VideoEncoder(source), maxFrameQueued(maxFrameQueued), injectableEnd(NULL), retrievableEnd(NULL) {
+}
+
+void GstEncoder::setVideoInputSource(VideoInputSource& videoSource)
+{
+	VideoEncoder::setVideoInputSource(videoSource);
+	if (injectableEnd != NULL) {
+		configureSource();
+	}
 }
 
 void GstEncoder::setParameter(const std::string& name, const std::string& value) {
-	if (injectableEnd->getCaps() == NULL) {
+	if (injectableEnd == NULL) {
 		// Wait for the source to be set, creating the caps at the same time.
 		parameters.push_back(std::pair<std::string, std::string>(name, value));
 	} else {
@@ -91,7 +99,11 @@ void GstEncoder::configureSource() {
 		gst_caps_set_value(sourceCaps, (*it).first.c_str(), &gstValue);
 	}
 
+	_debug("Caps on encoder %" GST_PTR_FORMAT, sourceCaps);
+
+
 	injectableEnd->setCaps(sourceCaps);
+
 }
 
 void GstEncoder::init() throw (VideoDecodingException, MissingPluginException) {

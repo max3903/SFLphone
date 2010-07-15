@@ -56,8 +56,16 @@ void InjectablePipeline::setField(const std::string& name, const std::string& va
 
 	GstCaps* caps = gst_app_src_get_caps(GST_APP_SRC(appsrc));
 
+	caps = gst_caps_make_writable(caps);
+
 	// Note that this method set the value in all structures.
+	_debug("Setting field %s=%s on caps", name.c_str(), value.c_str());
 	gst_caps_set_value (caps, name.c_str(), &gstValue);
+
+	gst_app_src_set_caps(GST_APP_SRC(appsrc), caps); // Might not have to do that.
+
+	_debug("New altered caps on injectable element %" GST_PTR_FORMAT, caps);
+
 }
 
 std::string InjectablePipeline::getField(const std::string& name) {
