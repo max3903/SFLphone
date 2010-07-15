@@ -13,8 +13,8 @@ test_SOURCES = \
 	accounttest.cpp \
 	audiolayertest.h \
 	audiolayertest.cpp \
-	configurationtest.h \
-	configurationtest.cpp \
+	#configurationtest.h \
+	#configurationtest.cpp \
 	historytest.h \
 	historytest.cpp \
 	hookmanagertest.h \
@@ -54,5 +54,5 @@ LLIBS=$(CPPUNIT_LIBS) \
 	../src/sflphoned-numbercleaner.o \
 	../src/sflphoned-observer.o \
 	../src/sflphoned-voiplink.o \
+	../src/sflphoned-preferences.o \
 	../src/libsflphone.la
-	

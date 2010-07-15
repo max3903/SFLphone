@@ -10,6 +10,7 @@ sflphoned_SOURCES = \
 		conference.cpp \
 		voiplink.cpp \
 		main.cpp \
+		preferences.cpp \
 		managerimpl.cpp \
 		managerimpl_registration.cpp \
 		observer.cpp \
@@ -47,6 +48,7 @@ noinst_LTLIBRARIES = libsflphone.la
 noinst_HEADERS = \
 		conference.h \
 		voiplink.h \
+		preferences.h \
 		managerimpl.h \
 		manager.h \
 		global.h \
@@ -70,23 +72,9 @@ libsflphone_la_LIBADD = \
 	./dbus/libdbus.la \
 	./config/libconfig.la \
 	./plug-in/libplugin.la \
-	./plug-in/audiorecorder/libaudiorecorder.la \
 	./hooks/libhooks.la \
 	./history/libhistory.la \
 	./util/libutil.la
-
-libsflphone_la_LDFLAGS = \
-		@CCGNU2_LIBS@ \
-		@CCEXT2_LIBS@ \
-		@ZRTPCPP_LIBS@ \
-		@GSTREAMER_LIBS@ \
-		$(PJSIP_LIBS) \
-		@CCRTP_LIBS@ \
-		@ALSA_LIBS@ \
-		@PULSEAUDIO_LIBS@ \
-		@SAMPLERATE_LIBS@ \
-		@libssl_LIBS@ \
-		@UUID_LIBS@
 
 libsflphone_la_CFLAGS = \
 		@CCGNU2_CFLAGS@ \
@@ -99,7 +87,21 @@ libsflphone_la_CFLAGS = \
 		@PULSEAUDIO_CFLAGS@ \
 		@SAMPLERATE_CFLAGS@ \
 		@libssl_CFLAGS@ \
-		@UUID_CFLAGS@
+		@UUID_CFLAGS@ \
+		@yaml_CFLAGS@
+
+libsflphone_la_LDFLAGS = \
+		@CCGNU2_LIBS@ \
+		@CCEXT2_LIBS@ \
+		@ZRTPCPP_LIBS@ \
+		$(PJSIP_LIBS) \
+		@CCRTP_LIBS@ \
+		@ALSA_LIBS@ \
+		@PULSEAUDIO_LIBS@ \
+		@SAMPLERATE_LIBS@ \
+		@libssl_LIBS@ \
+		@UUID_LIBS@ \
+		@yaml_LIBS@
 
 libsflphone_la_SOURCES =
 

@@ -24,4 +24,3 @@ noinst_HEADERS = \
 	VideoFrame.h \
 	VideoPlugin.h \
 	VideoExceptions.h
-	

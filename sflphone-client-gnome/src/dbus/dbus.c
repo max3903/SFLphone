@@ -957,7 +957,9 @@ dbus_account_details (gchar * accountID)
   GError *error = NULL;
   GHashTable * details;
 
-  if (!org_sflphone_SFLphone_ConfigurationManager_get_account_details (
+  DEBUG("Dbus: Get account detail accountid %s", accountID);
+
+  if (!org_sflphone_SFLphone_ConfigurationManager_get_account_details(
       configurationManagerProxy, accountID, &details, &error))
     {
       if (error->domain == DBUS_GERROR && error->code
@@ -1791,32 +1793,6 @@ dbus_set_searchbar ()
     }
 }
 
-int
-dbus_get_volume_controls ()
-{
-  int state;
-  GError* error = NULL;
-  org_sflphone_SFLphone_ConfigurationManager_get_volume_controls (
-      configurationManagerProxy, &state, &error);
-  if (error)
-    {
-      g_error_free (error);
-    }
-  return state;
-}
-
-void
-dbus_set_volume_controls (gboolean display)
-{
-  GError* error = NULL;
-  org_sflphone_SFLphone_ConfigurationManager_set_volume_controls (
-      configurationManagerProxy, display, &error);
-  if (error)
-    {
-      g_error_free (error);
-    }
-}
-
 void
 dbus_join_participant (const gchar* sel_callID, const gchar* drag_callID)
 {
@@ -1901,7 +1877,7 @@ dbus_join_conference (const gchar* sel_confID, const gchar* drag_confID)
 void
 dbus_set_record (const gchar* id)
 {
-  DEBUG("dbus_set_record %s\n", id);
+  DEBUG("dbus_set_record %s", id);
 
   GError* error = NULL;
   org_sflphone_SFLphone_CallManager_set_recording (callManagerProxy, id, &error);
@@ -1914,7 +1890,7 @@ dbus_set_record (const gchar* id)
 gboolean
 dbus_get_is_recording (const callable_obj_t * c)
 {
-  DEBUG("dbus_get_is_recording %s\n", c->_callID);
+  DEBUG("dbus_get_is_recording %s", c->_callID);
   GError* error = NULL;
   gboolean isRecording;
   org_sflphone_SFLphone_CallManager_get_is_recording (callManagerProxy,
@@ -1965,32 +1941,6 @@ dbus_set_history_limit (const guint days)
     }
 }
 
-void
-dbus_set_history_enabled ()
-{
-  GError* error = NULL;
-  org_sflphone_SFLphone_ConfigurationManager_set_history_enabled (
-      configurationManagerProxy, &error);
-  if (error)
-    {
-      g_error_free (error);
-    }
-}
-
-gchar*
-dbus_get_history_enabled ()
-{
-  gchar* state;
-  GError* error = NULL;
-  org_sflphone_SFLphone_ConfigurationManager_get_history_enabled (
-      configurationManagerProxy, &state, &error);
-  if (error)
-    {
-      g_error_free (error);
-    }
-  return state;
-}
-
 guint
 dbus_get_history_limit (void)
 {
@@ -2006,97 +1956,7 @@ dbus_get_history_limit (void)
 }
 
 void
-dbus_start_hidden (void)
-{
-  GError* error = NULL;
-  org_sflphone_SFLphone_ConfigurationManager_start_hidden (
-      configurationManagerProxy, &error);
-  if (error)
-    {
-      g_error_free (error);
-    }
-}
-
-int
-dbus_is_start_hidden (void)
-{
-  GError* error = NULL;
-  int state;
-  org_sflphone_SFLphone_ConfigurationManager_is_start_hidden (
-      configurationManagerProxy, &state, &error);
-  if (error)
-    {
-      g_error_free (error);
-    }
-  return state;
-}
-
-int
-dbus_popup_mode (void)
-{
-  GError* error = NULL;
-  int state;
-  org_sflphone_SFLphone_ConfigurationManager_popup_mode (
-      configurationManagerProxy, &state, &error);
-  if (error)
-    {
-      g_error_free (error);
-    }
-  return state;
-}
-
-void
-dbus_switch_popup_mode (void)
-{
-  GError* error = NULL;
-  org_sflphone_SFLphone_ConfigurationManager_switch_popup_mode (
-      configurationManagerProxy, &error);
-  if (error)
-    {
-      g_error_free (error);
-    }
-}
-
-void
-dbus_set_notify (void)
-{
-  GError* error = NULL;
-  org_sflphone_SFLphone_ConfigurationManager_set_notify (
-      configurationManagerProxy, &error);
-  if (error)
-    {
-      g_error_free (error);
-    }
-}
-
-guint
-dbus_get_notify (void)
-{
-  gint level;
-  GError* error = NULL;
-  if (!org_sflphone_SFLphone_ConfigurationManager_get_notify (
-      configurationManagerProxy, &level, &error))
-    {
-      if (error->domain == DBUS_GERROR && error->code
-          == DBUS_GERROR_REMOTE_EXCEPTION)
-        {
-          ERROR ("Caught remote method (get_notify) exception  %s: %s", dbus_g_error_get_name(error), error->message);
-        }
-      else
-        {
-          ERROR ("Error while calling get_notify: %s", error->message);
-        }
-      g_error_free (error);
-      return 0;
-    }
-  else
-    {
-      return (guint) level;
-    }
-}
-
-void
-dbus_set_audio_manager (int api)
+dbus_set_audio_manager(int api)
 {
   GError* error = NULL;
   org_sflphone_SFLphone_ConfigurationManager_set_audio_manager (
@@ -2742,42 +2602,6 @@ dbus_set_shortcuts (GHashTable * shortcuts)
           error->message);
       g_error_free (error);
     }
-}
-
-void
-dbus_enable_status_icon (const gchar *value)
-{
-
-  GError *error = NULL;
-
-  org_sflphone_SFLphone_ConfigurationManager_enable_status_icon (
-      configurationManagerProxy, value, &error);
-
-  if (error != NULL)
-    {
-      ERROR ("Failed to call enable_status_icon on ConfigurationManager: %s",
-          error->message);
-      g_error_free (error);
-    }
-}
-
-gchar*
-dbus_is_status_icon_enabled (void)
-{
-
-  GError *error = NULL;
-  gchar *value = NULL;
-
-  org_sflphone_SFLphone_ConfigurationManager_is_status_icon_enabled (
-      configurationManagerProxy, &value, &error);
-
-  if (error != NULL)
-    {
-      ERROR ("Failed to call is_status_icon_enabled on ConfigurationManager: %s",
-          error->message);
-      g_error_free (error);
-    }
-  return value;
 }
 
 gchar**

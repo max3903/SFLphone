@@ -1,12 +1,11 @@
 /*
  *  Copyright (C) 2004, 2005, 2006, 2009, 2008, 2009, 2010 Savoir-Faire Linux Inc.
- *  Author: Alexandre Savard <alexandre.savard@savoirfairelinux.com>
+ *  Author: Pierre-Luc Bacon <pierre-luc.bacon@savoirfairelinux.com>
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation; either version 3 of the License, or
  *  (at your option) any later version.
- *
  *  This program is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -28,56 +27,43 @@
  *  as that of the covered work.
  */
 
-#ifndef _AUDIO_DSP_H
-#define _AUDIO_DSP_H
+#ifndef __SFL_MIME_PARAMETERS_H__
+#define __SFL_MIME_PARAMETERS_H__
 
-#include <math.h>
-#include <iostream>
-#include <string.h>
-#include <stdlib.h>
-#include <sstream>
+namespace sfl {
 
-class AudioDSP
-{
-
+/**
+ * Interface for exposing MIME parameters in SDP offer/answer model.
+ */
+class MimeParameters {
 public:
- 
-   AudioDSP();
+	/**
+	 * @return The mimesubtype for this codec. Eg. : "video"
+	 */
+	virtual std::string getMimeType() = 0;
 
-   ~AudioDSP();
+	/**
+	 * @return The mimesubtype for this codec. Eg. : "theora"
+	 */
+	virtual std::string getMimeSubtype() = 0;
 
-    /**
-     * Return rms value
-     */
-    float getRMS(int data);
+	/**
+	 * @return The payload format for which this plugin is designed for.
+	 */
+	virtual const ost::PayloadFormat& getPayloadFormat() = 0;
 
-protected:
+	/**
+	 * @param name The name that identifies the MIME parameter.
+	 * @param value The value this parameter should have.
+	 */
+	virtual void setParameter(const std::string& name, const std::string& value) = 0;
 
-    /**
-     * Compute Rms value
-     */
-    float computeRMS();
-
-    /**
-     * Internal buffer pointer
-     */
-    int bufPointer_;
-
-    /**
-     * Internal buffer length
-     */ 
-    int bufferLength_;
- 
-    /**
-     * Internal buffer to compute RMS
-     */
-    float* circBuffer_;
-
-    /**
-     * Variable to compute RMS value
-     */ 
-    float rms;
-   
+	/**
+	 * @param name The name that identifies the MIME parameter.
+	 * @return The value that is set for this parameter.
+	 */
+	virtual std::string getParameter(const std::string& name) = 0;
 };
 
-#endif // _AUDIO_DSP_H
+}
+#endif

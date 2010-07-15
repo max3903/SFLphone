@@ -75,7 +75,6 @@
 			src/video/Makefile \
 			src/config/Makefile \
 			src/dbus/Makefile \
-			src/plug-in/audiorecorder/Makefile \
 			src/plug-in/Makefile \
 			src/plug-in/test/Makefile \
 			src/hooks/Makefile \
@@ -285,8 +284,23 @@ fi
 xml_CFLAGS=
 xml_LIBS=-lexpat
 
-	AC_SUBST(xml_CFLAGS)
+AC_SUBST(xml_CFLAGS)
 AC_SUBST(xml_LIBS)
+
+AC_CHECK_LIB([yaml], yaml_parser_initialize,
+	       [AC_CHECK_HEADERS(expat.h, have_expat=true, have_expat=false)],
+	       have_yaml = false)
+
+if ! $have_yaml; then
+AC_MSG_ERROR([You need the eXpat xml parser]
+		[http://expat.sourceforge.net/])
+fi
+
+yaml_CFLAGS=
+yaml_LIBS=-lyaml
+
+AC_SUBST(yaml_CFLAGS)
+AC_SUBST(yaml_LIBS)
 
 AC_CHECK_LIB([pthread], pthread_create,
 		[AC_CHECK_HEADERS(pthread.h, have_pthread=true, have_pthread=false)],
@@ -309,6 +323,7 @@ AC_MSG_ERROR([You need the Perl-Compatible Regular Expressions library (pcre)])
 	PCRE_CFLAGS=
 	AC_SUBST(PCRE_LIBS)
 AC_SUBST(PCRE_CFLAGS)
+
 
 
 
@@ -360,17 +375,19 @@ AC_ARG_WITH([speex],
 
 AS_IF([test "x$with_speex" != xno],
 		[AC_CHECK_HEADER([speex/speex.h], , AC_MSG_FAILURE([Unable to find the libspeex headers (you may need to install the dev package).  You may use --without-speex to compile without speex codec support.]))]
-		[AC_CHECK_HEADER([speex/speex_preprocess.h], , AC_MSG_FAILURE([Unable to find the libspeexdsp headers (you may need to install the libspeexdsp-dev package).  You may use --without-speex to compile without speex codec support.]))]
 		[AC_CHECK_LIB([speex], [speex_decode_int],
 			[],
 			[AC_MSG_FAILURE(
 				[libspeex link test failed.   You may use --without-speex to compile without speex codec support.])]
 			)
 		]
-		dnl More advanced check in case the libspeexdsp is not installed
-		AC_SEARCH_LIBS(speex_preprocess_run, speexdsp, HAVE_SPEEXDSP="yes", HAVE_SPEEXDSP="no", [])
+		# dnl More advanced check in case the libspeexdsp is not installed
+		# AC_SEARCH_LIBS(speex_preprocess_run, speexdsp, HAVE_SPEEXDSP="yes", HAVE_SPEEXDSP="no", [])
 	 )
 
+dnl check in case the libspeexdsp is not installed
+AC_CHECK_HEADER([speex/speex_preprocess.h], , AC_MSG_FAILURE([Unable to find the libspeexdsp headers (you may need to install the libspeexdsp-dev package) used for Noise Suppression and Automatic Gain Control.]))
+AC_CHECK_LIB(speexdsp, speex_preprocess_run, [], [], [])
 AC_DEFINE([HAVE_SPEEX], test "x$with_speex" = "xyes", [Define if you have libspeex])
 	AM_CONDITIONAL(BUILD_SPEEX, test "x$with_speex" = "xyes" )
 AM_CONDITIONAL(ENABLE_SPEEXDSP, test  $HAVE_SPEEXDSP = yes)

@@ -260,6 +260,8 @@ PulseLayer::PulseLayer (ManagerImpl* manager)
     AudioLayer::_echocancelstate = true;
     AudioLayer::_noisesuppressstate = true;
 
+    byteCounter = 0;
+
     /*
     captureFile = new ofstream("captureFile", ofstream::binary);
     captureRsmplFile = new ofstream("captureRsmplFile", ofstream::binary);
@@ -519,9 +521,9 @@ bool PulseLayer::createStreams (pa_context* c)
 
     // _debug("Device list size %d", getDevicelist()->size());
 
-    std::string playbackDevice =  _manager->getConfigString(AUDIO, PULSE_DEVICE_PLAYBACK);
-    std::string recordDevice =  _manager->getConfigString(AUDIO, PULSE_DEVICE_PLAYBACK);
-    std::string ringtoneDevice =  _manager->getConfigString(AUDIO, PULSE_DEVICE_PLAYBACK);
+    std::string playbackDevice =  _manager->audioPreference.getDevicePlayback();
+    std::string recordDevice =  _manager->audioPreference.getDeviceRecord();
+    std::string ringtoneDevice =  _manager->audioPreference.getDeviceRingtone();
 
     _debug("Audio: Device stored in config for playback: %s", playbackDevice.c_str());
     _debug("Audio: Device stored in config for ringtone: %s", recordDevice.c_str());
@@ -615,8 +617,8 @@ void PulseLayer::closeCaptureStream (void)
     if (record) {
 
         std::string deviceName(pa_stream_get_device_name(record->pulseStream()));
-	_debug("record device to be stored in config: %s", deviceName.c_str());
-	_manager->setConfig(AUDIO, PULSE_DEVICE_RECORD, deviceName);
+	_debug("Audio: record device to be stored in config: %s", deviceName.c_str());
+	_manager->audioPreference.setDeviceRecord(deviceName);
         delete record;
         record=NULL;
     }
@@ -627,16 +629,16 @@ void PulseLayer::closePlaybackStream (void)
 {
     if (playback) {
         std::string deviceName(pa_stream_get_device_name(playback->pulseStream()));
-	_debug("playback device to be stored in config: %s", deviceName.c_str());
-	_manager->setConfig(AUDIO, PULSE_DEVICE_PLAYBACK, deviceName);
+	_debug("Audio: playback device to be stored in config: %s", deviceName.c_str());
+	_manager->audioPreference.setDevicePlayback(deviceName);
         delete playback;
         playback=NULL;
     }
 
     if(ringtone) {
         std::string deviceName(pa_stream_get_device_name(ringtone->pulseStream()));
-	_debug("ringtone device to be stored in config: %s", deviceName.c_str());
-	_manager->setConfig(AUDIO, PULSE_DEVICE_RINGTONE, deviceName);
+	_debug("Audio: ringtone device to be stored in config: %s", deviceName.c_str());
+	_manager->audioPreference.setDeviceRingtone(deviceName);
         delete ringtone;
 	ringtone  = NULL;
     }
@@ -902,8 +904,9 @@ void PulseLayer::writeToSpeaker (void)
 
                 }
 
+		
 		// Copy far-end signal in echo canceller to adapt filter coefficient
-		AudioLayer::_echoCanceller->putData(out, byteToGet);
+		// AudioLayer::_echoCanceller->putData(out, byteToGet);
 
                 pa_xfree (out);
 
@@ -971,21 +974,30 @@ void PulseLayer::readFromMic (void)
 	    // captureFilterFile->write ((const char *)rsmpl_out, nbSample*sizeof(SFLDataFormat));
 
 	    // echo cancellation processing
-	    int sampleready = _echoCanceller->processAudio(rsmpl_out, echoCancelledMic, nbSample*sizeof(SFLDataFormat));
+	    // int sampleready = _echoCanceller->processAudio(rsmpl_out, echoCancelledMic, nbSample*sizeof(SFLDataFormat));
 
             // getMainBuffer()->putData ( (void*) rsmpl_out, nbSample*sizeof (SFLDataFormat), 100);
-	    if(sampleready)
-	      getMainBuffer()->putData ( echoCancelledMic, sampleready*sizeof (SFLDataFormat), 100);
+	    // if(sampleready)
+	    // getMainBuffer()->putData ( echoCancelledMic, sampleready*sizeof (SFLDataFormat), 100);
+	    getMainBuffer()->putData ( rsmpl_out, nbSample*sizeof (SFLDataFormat), 100);
 
             pa_xfree (rsmpl_out);
 
         } else {
 
+	    SFLDataFormat* filter_out = (SFLDataFormat*) pa_xmalloc (r);
+
+	    // remove dc offset
+            _audiofilter->processAudio((SFLDataFormat *)data, filter_out, r);
+
 	    // echo cancellation processing
-	  int sampleready = _echoCanceller->processAudio((SFLDataFormat *)data, echoCancelledMic, r);
+	    // int sampleready = _echoCanceller->processAudio((SFLDataFormat *)filter_out, echoCancelledMic, r);
 
             // no resampling required
-            getMainBuffer()->putData (echoCancelledMic, sampleready*sizeof (SFLDataFormat), 100);
+            // getMainBuffer()->putData (echoCancelledMic, sampleready*sizeof (SFLDataFormat), 100);
+	    getMainBuffer()->putData (filter_out, r, 100);
+
+	    pa_xfree(filter_out);
         }
 
 

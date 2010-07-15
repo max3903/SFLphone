@@ -1,12 +1,11 @@
 /*
  *  Copyright (C) 2004, 2005, 2006, 2009, 2008, 2009, 2010 Savoir-Faire Linux Inc.
- *  Author: Alexandre Savard <alexandre.savard@savoirfairelinux.com>
+ *  Author: Pierre-Luc Bacon <pierre-luc.bacon@savoirfairelinux.com>
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation; either version 3 of the License, or
  *  (at your option) any later version.
- *
  *  This program is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -28,53 +27,26 @@
  *  as that of the covered work.
  */
 
-#include "audiodsp.h"
+#include "GstDecoderTheora.h"
 
-AudioDSP::AudioDSP()
-{
+namespace sfl {
 
-    bufPointer_ = 0;
-    bufferLength_ = 1024;
-    circBuffer_ = new float[bufferLength_];
+void GstDecoderTheora::buildFilter(Pipeline& pipeline)
+		throw (MissingPluginException) {
 
+	rtptheoradepay = pipeline.addElement("rtptheoradepay");
+
+	GstElement* previous = pipeline.addElement("theoraparse", rtptheoradepay);
+
+	theoradec = pipeline.addElement("theoradec", previous);
 }
 
-
-AudioDSP::~AudioDSP()
-{
-
-    delete[] circBuffer_;
-
+GstElement* GstDecoderTheora::getHead() {
+	return rtptheoradepay;
 }
 
-
-float AudioDSP::getRMS (int data)
-{
-    // printf("AudioDSP::getRMS() : bufPointer_ %i  ", bufPointer_);
-    printf ("AudioDSP::getRMS() : %i ", data);
-    circBuffer_[bufPointer_++] = (float) data;
-
-    if (bufPointer_ >= bufferLength_)
-        bufPointer_ = 0;
-
-    return computeRMS();
+GstElement* GstDecoderTheora::getTail() {
+	return theoradec;
 }
-
-
-float AudioDSP::computeRMS()
-{
-
-    rms = 0.0;
-
-
-    for (int i = 0; i < bufferLength_; i++) {
-        // printf("AudioDSP::computeRMS() : i_ %i  ", i);
-        rms += (float) (circBuffer_[i]*circBuffer_[i]);
-    }
-
-    rms = sqrt (rms / (float) bufferLength_);
-
-    // printf("AudioDSP::computeRMS() : RMS VALUE: %f ", rms);
-    return rms;
 
 }

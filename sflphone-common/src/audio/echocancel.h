@@ -36,6 +36,7 @@
 
 #include "audioprocessing.h"
 #include "ringbuffer.h"
+#include "delaydetection.h"
 
 // Number of ms in sec
 #define MS_PER_SEC 1000
@@ -49,7 +50,7 @@
 #define MIC_LENGTH 80
 
 // Voice level threashold 
-#define MIN_SIG_LEVEL 75
+#define MIN_SIG_LEVEL 250
 
 // Delay between mic and speaker
 // #define DELAY_AMPLIFY 60
@@ -116,12 +117,24 @@ class EchoCancel : public Algorithm {
      */
     void setSamplingRate(int smplRate);
 
+    /**
+     * Set echo canceller state to active/deactive
+     */ 
     void setEchoCancelState(bool state) { _echoActive = state; }
 
+    /**
+     * Return the echo canceller state
+     */
     bool getEchoCancelState(void) { return _echoActive; }
 
+    /**
+     * Set the noise suppression state to active/deactive
+     */
     void setNoiseSuppressState(bool state) { _noiseActive = state; }
 
+    /**
+     * Return the noise suppression state
+     */
     bool getNoiseSuppressState(void) { return _noiseActive; }
 
  private:
@@ -130,6 +143,21 @@ class EchoCancel : public Algorithm {
      * Actual method calld to supress echo from mic, micData and spkrData must be synchronized
      */
     void performEchoCancel(SFLDataFormat *micData, SFLDataFormat *spkrData, SFLDataFormat *outputData);
+
+    /**
+     * This is the fall back method in case there is no spkr data available
+     */
+    void performEchoCancelNoSpkr(SFLDataFormat *micData, SFLDataFormat *outputData);
+
+    /**
+     * Compute current instantaneous microphone signal power and store it in internal array 
+     */
+    void updateMicLevel(SFLDataFormat *micData);
+
+    /**
+     * Compute current instantaneous spkeaker signal power and store uit in internal array
+     */
+    void updateSpkrLevel(SFLDataFormat *spkrData);
 
     /**
      * Update speaker level array for both micData and spkrData
@@ -141,6 +169,11 @@ class EchoCancel : public Algorithm {
      * \param data must be of SEGMENT_LENGTH long.
      */ 
     int computeAmplitudeLevel(SFLDataFormat *data, int size);
+
+    /**
+     * Compute amplitude signal
+     */
+    SFLDataFormat estimatePower(SFLDataFormat *data, SFLDataFormat *ampl, int size, SFLDataFormat mem);
 
     /**
      * Return the max amplitude provided any of _avgSpkrLevelHist or _avgMicLevelHist
@@ -165,8 +198,14 @@ class EchoCancel : public Algorithm {
      */
     void decreaseFactor();
 
+    /**
+     * Perform simple correlation between data1 and data2
+     */
     int performCorrelation(int *data1, int *data2, int size);
 
+    /**
+     * Return maximum in data index
+     */
     int getMaximumIndex(int *data, int size);
 
     /**
@@ -289,6 +328,17 @@ class EchoCancel : public Algorithm {
      */
     int _adaptCnt;
 
+    /**
+     * Factor for power estimation
+     */
+    float _alpha;
+
+    /**
+     * Termporary spkr level memories
+     */
+    SFLDataFormat _spkrLevelMem;
+    SFLDataFormat _micLevelMem;
+
     int _spkrAdaptCnt;
 
     int _micAdaptCnt;
@@ -314,10 +364,12 @@ class EchoCancel : public Algorithm {
     ofstream *micLevelData;
     ofstream *spkrLevelData;
 
+    // #ifdef HAVE_SPEEXDSP_LIB
     /**
      * Noise reduction processing state
      */
     SpeexPreprocessState *_noiseState;
+    // #endif
 
     /**
      * true if noise suppressor is active, false elsewhere
@@ -327,7 +379,9 @@ class EchoCancel : public Algorithm {
     /**
      * true if noise suppressor is active, false elsewhere
      */
-    bool _noiseActive;  
+    bool _noiseActive;
+
+    DelayDetection _delayDetector;
 
 };
 

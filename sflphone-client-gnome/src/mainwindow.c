@@ -29,7 +29,6 @@
  *  shall include the source code for the parts of OpenSSL used as well
  *  as that of the covered work.
  */
-
 #include <config.h>
 #include <actions.h>
 #include <calltree.h>
@@ -46,6 +45,7 @@
 #include <widget/videopane.h>
 
 #include <gtk/gtk.h>
+#include <eel-gconf-extensions.h>
 
 /** Local variables */
 GtkUIManager *ui_manager = NULL;
@@ -60,18 +60,21 @@ GtkWidget * statusBar = NULL;
 GtkWidget * filterEntry = NULL;
 PidginScrollBook *embedded_error_notebook;
 
+/**
+ * Handle main window resizing
+ */
 static gboolean
 window_configure_cb (GtkWidget *win, GdkEventConfigure *event)
 {
 
   int pos_x, pos_y;
 
-  dbus_set_window_width ((guint) event->width);
-  dbus_set_window_height ((guint) event->height);
+  eel_gconf_set_integer (CONF_MAIN_WINDOW_WIDTH, event->width);
+  eel_gconf_set_integer (CONF_MAIN_WINDOW_HEIGHT, event->height);
 
   gtk_window_get_position (GTK_WINDOW (window), &pos_x, &pos_y);
-  dbus_set_window_position_x ((guint) pos_x);
-  dbus_set_window_position_y ((guint) pos_y);
+  eel_gconf_set_integer (CONF_MAIN_WINDOW_POSITION_X, pos_x);
+  eel_gconf_set_integer (CONF_MAIN_WINDOW_POSITION_Y, pos_y);
 
   return FALSE;
 }
@@ -83,14 +86,16 @@ static gboolean
 on_delete (GtkWidget * widget UNUSED, gpointer data UNUSED)
 {
 
-    if (g_strcasecmp (dbus_is_status_icon_enabled (), "true") == 0) {
-        gtk_widget_hide (GTK_WIDGET( get_main_window() ));
-        set_minimized (TRUE);
+  if (eel_gconf_get_integer (SHOW_STATUSICON))
+    {
+      gtk_widget_hide (GTK_WIDGET( get_main_window() ));
+      set_minimized (TRUE);
     }
-    else {
+  else
+    {
       sflphone_quit ();
     }
-    return TRUE;
+  return TRUE;
 }
 
 /** Ask the user if he wants to hangup current calls */
@@ -119,8 +124,7 @@ main_window_ask_quit ()
 
   gtk_widget_destroy (dialog);
 
-  return (response == GTK_RESPONSE_NO)? FALSE : TRUE ;
-
+  return (response == GTK_RESPONSE_NO) ? FALSE : TRUE;
 
 }
 
@@ -176,21 +180,21 @@ create_main_window ()
   focus_is_on_calltree = FALSE;
   focus_is_on_searchbar = FALSE;
 
-  // Get configuration stored
-  width = dbus_get_window_width ();
-  height = dbus_get_window_height ();
-  position_x = dbus_get_window_position_x ();
-  position_y = dbus_get_window_position_y ();
+  // Get configuration stored in gconf
+  width = eel_gconf_get_integer (CONF_MAIN_WINDOW_WIDTH);
+  height = eel_gconf_get_integer (CONF_MAIN_WINDOW_HEIGHT);
+  position_x = eel_gconf_get_integer (CONF_MAIN_WINDOW_POSITION_X);
+  position_y = eel_gconf_get_integer (CONF_MAIN_WINDOW_POSITION_Y);
 
   window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
   gtk_container_set_border_width (GTK_CONTAINER (window), 0);
   gtk_window_set_title (GTK_WINDOW (window), window_title);
   gtk_window_set_default_size (GTK_WINDOW (window), width, height);
   gtk_window_set_default_icon_from_file (LOGO, NULL);
-  gtk_window_set_position (GTK_WINDOW( window ), GTK_WIN_POS_MOUSE);
+  gtk_window_set_position (GTK_WINDOW(window), GTK_WIN_POS_MOUSE);
 
   /* Connect the destroy event of the window with our on_destroy function
-   * When the window is about to be destroyed we get a notification and
+   * When the window is about to be destroyed we get a notificaiton and
    * stop the main GTK loop
    */
   g_signal_connect (G_OBJECT (window), "delete-event",
@@ -220,42 +224,32 @@ create_main_window ()
 
   /* Create an accel group for window's shortcuts */
   gtk_window_add_accel_group (GTK_WINDOW(window),
-  gtk_ui_manager_get_accel_group (ui_manager));
+      gtk_ui_manager_get_accel_group (ui_manager));
 
   vbox = gtk_vbox_new (FALSE /*homogeneous*/, 0 /*spacing*/);
-  subvbox = gtk_vbox_new (FALSE, 5);
-  GtkWidget* call_elements_vbox = gtk_vbox_new (FALSE, 0);
+  subvbox = gtk_vbox_new (FALSE /*homogeneous*/, 5 /*spacing*/);
 
-  // Create menus and toolbars
   create_menus (ui_manager, &widget);
-  gtk_box_pack_start (GTK_BOX (vbox), widget, FALSE, TRUE, 0);
+  gtk_box_pack_start (GTK_BOX (vbox), widget, FALSE /*expand*/, TRUE /*fill*/,
+      0 /*padding*/);
 
   create_toolbar_actions (ui_manager, &widget);
-  gtk_widget_show_all(widget);
-  GtkWidget* handlebox_toolbar = gtk_handle_box_new();
-  gtk_container_add(GTK_CONTAINER(handlebox_toolbar), GTK_WIDGET(widget));
-  gtk_box_pack_start (GTK_BOX (vbox), handlebox_toolbar, FALSE, TRUE, 0);
+  // Do not override GNOME user settings
+  gtk_box_pack_start (GTK_BOX (vbox), widget, FALSE /*expand*/, TRUE /*fill*/,
+      0 /*padding*/);
 
-  // Main vertical box for the window
-  GtkWidget* split_pane = gtk_hpaned_new();
+  gtk_box_pack_start (GTK_BOX (vbox), current_calls->tree, TRUE /*expand*/,
+      TRUE /*fill*/, 0 /*padding*/);
+  gtk_box_pack_start (GTK_BOX (vbox), history->tree, TRUE /*expand*/,
+      TRUE /*fill*/, 0 /*padding*/);
+  gtk_box_pack_start (GTK_BOX (vbox), contacts->tree, TRUE /*expand*/,
+      TRUE /*fill*/, 0 /*padding*/);
 
-  gtk_box_pack_start (GTK_BOX (call_elements_vbox), current_calls->tree, TRUE, TRUE, 0);
-  gtk_box_pack_start (GTK_BOX (call_elements_vbox), history->tree, TRUE, TRUE, 0);
-  gtk_box_pack_start (GTK_BOX (call_elements_vbox), contacts->tree, TRUE, TRUE, 0);
-  gtk_widget_show_all (call_elements_vbox);
+  g_signal_connect_object (G_OBJECT (window), "configure-event",
+      G_CALLBACK (window_configure_cb), NULL, 0);
+  gtk_box_pack_start (GTK_BOX (vbox), subvbox, FALSE /*expand*/,
+      FALSE /*fill*/, 0 /*padding*/);
 
-  gtk_paned_add1(GTK_PANED(split_pane), call_elements_vbox);
-
-  // Video Widget
-  //GtkWidget* video_pane = video_pane_new();
-  //gtk_widget_show(video_pane);
-
-  //gtk_paned_add2(GTK_PANED(split_pane), video_pane);
-  gtk_widget_show_all(split_pane);
-  gtk_box_pack_start (GTK_BOX (vbox), split_pane, TRUE, TRUE, 0);
-
-  // Embedded error window at the bottom
-  gtk_box_pack_start (GTK_BOX (vbox), subvbox, FALSE, FALSE, 0);
   embedded_error_notebook = PIDGIN_SCROLL_BOOK(pidgin_scroll_book_new());
   gtk_box_pack_start (GTK_BOX(subvbox), GTK_WIDGET(embedded_error_notebook),
       FALSE, FALSE, 0);
@@ -272,7 +266,7 @@ create_main_window ()
       gtk_widget_show_all (mic_control);
     }
 
-  if (SHOW_DIALPAD)
+  if (eel_gconf_get_boolean (CONF_SHOW_DIALPAD))
     {
       dialpad = create_dialpad ();
       gtk_box_pack_end (GTK_BOX (subvbox), dialpad, FALSE /*expand*/,
@@ -324,7 +318,7 @@ create_main_window ()
 #endif
     }
 
-  // Move the main window
+  // Restore position according to the configuration stored in gconf
   gtk_window_move (GTK_WINDOW (window), position_x, position_y);
 }
 

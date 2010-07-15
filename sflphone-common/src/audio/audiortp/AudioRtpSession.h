@@ -50,6 +50,10 @@
 #include <ccrtp/rtp.h>
 #include <cc++/numbers.h> // ost::Time
 
+#include <speex/speex_jitter.h>
+
+#include "audio/jitterbuf.h"
+
 // Frequency (in packet number)
 #define RTP_TIMESTAMP_RESET_FREQ 100
 
@@ -229,9 +233,31 @@ namespace sfl {
               * EventQueue used to store list of DTMF-
               */
              EventQueue _eventQueue;
-	     
+
+	     /**
+	      * Adaptive jitter buffer
+	      */
+	     jitterbuf * _jbuffer;
+
+	     /**
+	      * Packet size in ms
+	      */
+	     int _packetLength;
+
+	     int _ts;
+
+	     /**
+	      * Current time in ms
+	      */
+	     int _currentTime;
+
+	     SpeexPreprocessState *_noiseState;
+
         protected:
+
              SIPCall * _ca;
+
+	     bool onRTPPacketRecv(ost::IncomingRTPPkt&);
     };    
     
     template <typename D>
@@ -255,6 +281,8 @@ namespace sfl {
      _timestampIncrement(0),
      _timestampCount(0),
      _countNotificationTime(0),
+     _jbuffer(NULL),
+     _noiseState(NULL),
      _ca (sipcall)
     {
         setCancel (cancelDefault);
@@ -271,6 +299,15 @@ namespace sfl {
         _layerFrameSize = _audiolayer->getFrameSize(); // in ms
         _layerSampleRate = _audiolayer->getSampleRate();
 
+	_jbuffer = jb_new();
+
+	_jbuffer->info.conf.max_jitterbuf = 1000;
+	_jbuffer->info.conf.target_extra = 100;
+	_jbuffer->info.silence_begin_ts = 0;
+
+	_ts= 0;
+	_packetLength = 20;
+	_currentTime = 0;
     }
     
     template <typename D>
@@ -296,8 +333,17 @@ namespace sfl {
         delete _converter;
 
         if (_audiocodec) {
-        	delete _audiocodec; _audiocodec = NULL;
+	    delete _audiocodec; _audiocodec = NULL;
         }
+
+	if(_jbuffer) {
+	    jb_destroy(_jbuffer);
+	}
+
+	if(_noiseState) {
+	    speex_preprocess_state_destroy(_noiseState);
+	}
+	
     }
     
     template <typename D>
@@ -367,6 +413,29 @@ namespace sfl {
             _debug ("RTP: Setting static payload format");
             static_cast<D*>(this)->setPayloadFormat (ost::StaticPayloadFormat ( (ost::StaticPayloadType) _audiocodec->getPayload()));
         }
+
+	if(_noiseState) {
+	    speex_preprocess_state_destroy(_noiseState);
+	    _noiseState = NULL;
+	}
+
+	_noiseState = speex_preprocess_state_init(_codecSampleRate, _codecFrameSize);
+	int i=1;
+	speex_preprocess_ctl(_noiseState, SPEEX_PREPROCESS_SET_DENOISE, &i);
+	i=-20;
+	speex_preprocess_ctl(_noiseState, SPEEX_PREPROCESS_SET_NOISE_SUPPRESS, &i);
+	i=0;
+	speex_preprocess_ctl(_noiseState, SPEEX_PREPROCESS_SET_AGC, &i);
+	i=8000;
+	speex_preprocess_ctl(_noiseState, SPEEX_PREPROCESS_SET_AGC_TARGET, &i);
+	i=16000;
+	speex_preprocess_ctl(_noiseState, SPEEX_PREPROCESS_SET_AGC_LEVEL, &i);
+	i=0;
+	speex_preprocess_ctl(_noiseState, SPEEX_PREPROCESS_SET_DEREVERB, &i);
+	float f=0.0;
+	speex_preprocess_ctl(_noiseState, SPEEX_PREPROCESS_SET_DEREVERB_DECAY, &f);
+	f=0.0;
+	speex_preprocess_ctl(_noiseState, SPEEX_PREPROCESS_SET_DEREVERB_LEVEL, &f);
     }
     
     template <typename D>
@@ -477,12 +546,20 @@ namespace sfl {
     }
 
     template <typename D>
+    bool onRTPPacketRecv(ost::IncomingRTPPkt&)
+    {
+        _debug("AudioRtpSession: onRTPPacketRecv");
+
+	return true;
+    }
+
+
+    template <typename D>
     int AudioRtpSession<D>::processDataEncode(void)
     {
         assert(_audiocodec);
         assert(_audiolayer);
 
-	
         int _mainBufferSampleRate = _manager->getAudioDriver()->getMainBuffer()->getInternalSamplingRate();
 
         // compute codec framesize in ms
@@ -552,6 +629,8 @@ namespace sfl {
                 // Store the number of samples for recording
                 _nSamplesSpkr = nbSample;
 
+		speex_preprocess_run(_noiseState, _spkrDataConverted);
+
                 // put data in audio layer, size in byte
 		_manager->getAudioDriver()->getMainBuffer()->putData (_spkrDataConverted, nbSample * sizeof (SFLDataFormat), 100, _ca->getCallId());
 
@@ -560,6 +639,7 @@ namespace sfl {
                 // Store the number of samples for recording
                 _nSamplesSpkr = nbSample;
 
+		// speex_preprocess_run(_noiseState, _spkrDataDecoded);
 
                 // put data in audio layer, size in byte
                 _manager->getAudioDriver()->getMainBuffer()->putData (_spkrDataDecoded, expandedSize, 100, _ca->getCallId());
@@ -624,28 +704,45 @@ namespace sfl {
         }
 
         const ost::AppDataUnit* adu = NULL;
+	int packetTimestamp = static_cast<D*>(this)->getFirstTimestamp();
+        adu = static_cast<D*>(this)->getData(packetTimestamp);
 
-        adu = static_cast<D*>(this)->getData(static_cast<D*>(this)->getFirstTimestamp());
+	if(!adu)
+	  return;
 
-        if (adu == NULL) {
-            // _debug("No RTP audio stream\n");
-            return;
-        }
+	unsigned char* spkrDataIn = NULL;
+	unsigned int size = 0;
+	int result;
 
-        unsigned char* spkrData  = (unsigned char*) adu->getData(); // data in char
+	jb_frame frame;
 
-        unsigned int size = adu->getSize(); // size in char
+	_jbuffer->info.conf.resync_threshold = 0;
+
+	if (adu) {
+
+	  spkrDataIn  = (unsigned char*) adu->getData(); // data in char
+	  size = adu->getSize(); // size in char
+
+	  
+
+	  result = jb_put(_jbuffer, spkrDataIn, JB_TYPE_VOICE, _packetLength, _ts+=20, _currentTime);
+
+	}
+	else {
+	    _debug("No RTP packet available !!!!!!!!!!!!!!!!!!!!!!!\n");
+	}
+
+	result = jb_get(_jbuffer, &frame, _currentTime+=20, _packetLength);
 
         // DTMF over RTP, size must be over 4 in order to process it as voice data
         if(size > 4) {
-        	processDataDecode (spkrData, size);
+	    processDataDecode(spkrDataIn, size);
+	  //if(result == JB_OK) {
+	  //   processDataDecode((unsigned char *)(frame.data), 160);
+	  //}
         }
-        else {
-        	// _debug("RTP: Received an RTP event with payload: %d", adu->getType());
-			// ost::RTPPacket::RFC2833Payload *dtmf = (ost::RTPPacket::RFC2833Payload *)adu->getData();
-			// _debug("RTP: Data received %d", dtmf->event);
 
-        }
+	delete adu;
     }
     
     template <typename D>
@@ -682,9 +779,9 @@ namespace sfl {
         }
 
         _ca->setRecordingSmplRate(_audiocodec->getClockRate());
- 
+
         // Start audio stream (if not started) AND flush all buffers (main and urgent)
-		_manager->getAudioDriver()->startStream();
+	_manager->getAudioDriver()->startStream();
         static_cast<D*>(this)->startRunning();
 
 
@@ -718,6 +815,8 @@ namespace sfl {
             // Recv session
             receiveSpeakerData ();
 
+	    /*
+
             // Let's wait for the next transmit cycle
             if (sessionWaiting == 1) {
                 // Record mic and speaker during conversation
@@ -726,6 +825,7 @@ namespace sfl {
                 // Record mic only while leaving a message
                 _ca->recAudio.recData (_micData,_nSamplesMic);
             }
+	    */
 
             _manager->getAudioLayerMutex()->leave();
 

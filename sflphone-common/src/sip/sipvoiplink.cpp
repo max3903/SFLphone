@@ -266,6 +266,8 @@ SIPVoIPLink::SIPVoIPLink (const AccountID& accountID)
         , _regPort (atoi (DEFAULT_SIP_PORT))
         , _clients (0)
 {
+
+  _debug("SIPVOIPLINK");
     // to get random number for RANDOM_PORT
     srand (time (NULL));
 
@@ -444,13 +446,16 @@ std::string SIPVoIPLink::get_useragent_name (const AccountID& id)
     useragent << PROGNAME << "/" << SFLPHONED_VERSION;
     return useragent.str();
 	*/
-    std::ostringstream  useragent;
-	
-	useragent << Manager::instance ().getConfigString (id, USERAGENT);
-	if (useragent.str() == "sflphone" || useragent.str() == "")
-		useragent << "/" << SFLPHONED_VERSION;
 
-	return useragent.str ();
+    SIPAccount *account = (SIPAccount *)Manager::instance().getAccount(id);
+
+    std::ostringstream  useragent;
+
+    useragent << account->getUseragent();
+    if (useragent.str() == "sflphone" || useragent.str() == "")
+	useragent << "/" << SFLPHONED_VERSION;
+    
+    return useragent.str ();
 }
 
 void
@@ -637,7 +642,7 @@ int SIPVoIPLink::sendRegister (AccountID id)
     pjsip_cred_info *cred = account->getCredInfo();
 
     int credential_count = account->getCredentialCount();
-    _debug ("setting %d credentials in sendRegister", credential_count);
+    _debug ("UserAgent: setting %d credentials in sendRegister", credential_count);
     pjsip_regc_set_credentials (regc, credential_count, cred);
 
     // Add User-Agent Header
@@ -651,7 +656,7 @@ int SIPVoIPLink::sendRegister (AccountID id)
     // pj_list_push_back (&hdr_list, (pjsip_hdr*) routing);
 
     pjsip_regc_add_headers (regc, &hdr_list);
-    
+  
     status = pjsip_regc_register (regc, PJ_TRUE, &tdata);
 
     if (status != PJ_SUCCESS) {
@@ -672,7 +677,7 @@ int SIPVoIPLink::sendRegister (AccountID id)
         // managed when acquiring transport 
         pjsip_transport_dec_ref(account->getAccountTransport ());
 
-        _debug("After setting the transport in account registration using transport: %s %s (refcnt=%d)",
+        _debug("UserAgent: After setting the transport in account registration using transport: %s %s (refcnt=%d)",
 	       account->getAccountTransport()->obj_name,
 	       account->getAccountTransport()->info,
 	       (int)pj_atomic_get(account->getAccountTransport()->ref_cnt));
@@ -1335,7 +1340,7 @@ SIPVoIPLink::dtmfSipInfo(SIPCall *call, char code)
 	pjsip_media_type ctype;
 
 
-	duration = Manager::instance().getConfigInt (SIGNALISATION, PULSE_LENGTH);
+	duration = Manager::instance().voipPreferences.getPulseLength();
 
 	dtmf_body = new char[body_len];
 
@@ -2364,7 +2369,7 @@ int SIPVoIPLink::createUdpTransport (AccountID id)
     pjsip_host_port a_name;
     // char tmpIP[32];
     pjsip_transport *transport;
-    std::string listeningAddress = "127.0.0.1";
+    std::string listeningAddress = "0.0.0.0";
     int listeningPort = _regPort;
 
     /* Use my local address as default value */
@@ -2409,6 +2414,7 @@ int SIPVoIPLink::createUdpTransport (AccountID id)
 
         // Init bound address to ANY
         bound_addr.sin_addr.s_addr = pj_htonl (PJ_INADDR_ANY);
+	loadSIPLocalIP (&listeningAddress);
     }
     else {
 
@@ -2423,15 +2429,21 @@ int SIPVoIPLink::createUdpTransport (AccountID id)
 
     // Create UDP-Server (default port: 5060)
     // Use here either the local information or the published address
-    if (account != NULL && !account->getPublishedSameasLocal ()) {
+    if (account && !account->getPublishedSameasLocal ()) {
 
         // Set the listening address to the published address
         listeningAddress = account->getPublishedAddress ();
+
         // Set the listening port to the published port
         listeningPort = account->getPublishedPort ();
         _debug ("UserAgent: Creating UDP transport published %s:%i", listeningAddress.c_str (), listeningPort);
 
     }
+
+    // We must specify this here to avoid the IP2IP_PROFILE
+    // to create a transport with name 0.0.0.0 to appear in the via header
+    if(id == IP2IP_PROFILE)
+      loadSIPLocalIP (&listeningAddress);
 
     if(listeningAddress == "" || listeningPort == 0) {
     	_error("UserAgent: Error invalid address for new udp transport");
@@ -2558,10 +2570,14 @@ std::string SIPVoIPLink::findLocalAddressFromUri (const std::string& uri, pjsip_
         return machineName;
     }
 
-	std::string localaddr(localAddress.ptr, localAddress.slen);
-    _debug ("SIP: Local address discovered from attached transport: %s", localaddr.c_str());
+    std::string localaddr(localAddress.ptr, localAddress.slen);
 
-    return std::string (localAddress.ptr, localAddress.slen);
+    if(localaddr == "0.0.0.0")
+      loadSIPLocalIP (&localaddr);
+
+    _debug ("SIP: Local address discovered from attached transport: %s", localaddr.c_str());    
+
+    return localaddr;
 }
 
 
@@ -3285,8 +3301,10 @@ void call_on_media_update (pjsip_inv_session *inv, pj_status_t status)
 
 	// if RTPFALLBACK, change RTP session
 	AccountID accountID = Manager::instance().getAccountFromCall (call->getCallId());
-	if(Manager::instance().getConfigString (accountID, SRTP_RTP_FALLBACK) == "true")
-	    call->getAudioRtp()->initAudioRtpSession(call);
+	SIPAccount *account = (SIPAccount *)Manager::instance().getAccount(accountID);
+
+	if(account->getSrtpFallback())
+	  call->getAudioRtp()->initAudioRtpSession(call);
     }
 
     if(nego_success && call->getAudioRtp()->getAudioRtpType() != sfl::Sdes) {
@@ -3390,7 +3408,11 @@ void regc_cb (struct pjsip_regc_cbparam *param)
         //_debug("Received client registration callback wiht code: %i, %s\n", param->code, descriptionprint.c_str());
         DBusManager::instance().getCallManager()->registrationStateChanged (account->getAccountID(), std::string (description->ptr, description->slen), param->code);
         std::pair<int, std::string> details (param->code, std::string (description->ptr, description->slen));
-        account->setRegistrationStateDetailed (details);
+
+	
+	// there a race condition for this ressource when closing the application
+	if(account)
+	  account->setRegistrationStateDetailed (details);
     }
 
     if (param->status == PJ_SUCCESS) {
@@ -3427,7 +3449,7 @@ void regc_cb (struct pjsip_regc_cbparam *param)
 		    out << (expire_value * 2);
 		    std::string s = out.str(); 
 
-		    Manager::instance().setConfig(account->getAccountID(), CONFIG_ACCOUNT_REGISTRATION_EXPIRE, s);
+		    account->setRegistrationExpire(s);
 		    account->registerVoIPLink();
 		}
 		    break;
@@ -3635,18 +3657,19 @@ mod_on_rx_request (pjsip_rx_data *rdata)
 
     /******************************************* URL HOOK *********************************************/
 
-    if (Manager::instance().getConfigString (HOOKS, URLHOOK_SIP_ENABLED) == "1") {
+    if (Manager::instance().hookPreference.getSipEnabled()) {
 
         _debug("UserAgent: Set sip url hooks");
 
         std::string header_value;
 
-        header_value = fetch_header_value (rdata->msg_info.msg, Manager::instance().getConfigString (HOOKS, URLHOOK_SIP_FIELD));
+        header_value = fetch_header_value (rdata->msg_info.msg, 
+					   Manager::instance().hookPreference.getUrlSipField());
 
         if (header_value.size () < header_value.max_size()) {
             if (header_value!="") {
                 urlhook->addAction (header_value,
-                                    Manager::instance().getConfigString (HOOKS, URLHOOK_COMMAND));
+                                    Manager::instance().hookPreference.getUrlCommand());
             }
         } else
             throw length_error ("UserAgent: Url exceeds std::string max_size");
