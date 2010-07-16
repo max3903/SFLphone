@@ -48,7 +48,7 @@ class Alaw : public AudioCodec
 
         virtual ~Alaw() {}
 
-        virtual int codecDecode (short *dst, unsigned char *src, unsigned int size) {
+        virtual int decode (short *dst, unsigned char *src, unsigned int size) {
             // _debug("Decoded by alaw ");
             int16* end = dst+size;
 
@@ -58,7 +58,7 @@ class Alaw : public AudioCodec
             return size<<1;
         }
 
-        virtual int codecEncode (unsigned char *dst, short *src, unsigned int size) {
+        virtual int encode (unsigned char *dst, short *src, unsigned int size) {
             // _debug("Encoded by alaw ");
             size >>= 1;
             uint8* end = dst+size;
@@ -130,6 +130,10 @@ class Alaw : public AudioCodec
 
             return a^0x55; // A-law has alternate bits inverted for transmission
         }
+
+    	Alaw* clone() {
+    		return new Alaw(*this);
+    	}
 
 };
 

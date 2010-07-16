@@ -64,14 +64,14 @@ CodecDescriptor::init()
     _nbCodecs = CodecDynamicList.size();
 
     if (_nbCodecs <= 0) {
-        _error ("CodecDescriptro: Error - No codecs available in directory %s" , CODECS_DIR);
+        _error ("CodecDescriptor: Error - No codecs available in directory %s" , CODECS_DIR);
     }
 
     int i;
 
     for (i = 0 ; i < _nbCodecs ; i++) {
-        _CodecsMap[ (AudioCodecType) CodecDynamicList[i]->getPayload() ] = CodecDynamicList[i];
-        _debug ("%s" , CodecDynamicList[i]->getCodecName().c_str());
+        _CodecsMap[ (AudioCodecType) CodecDynamicList[i]->getPayloadType() ] = CodecDynamicList[i];
+        _debug ("%s" , CodecDynamicList[i]->getMimeSubtype().c_str());
     }
 }
 
@@ -82,7 +82,6 @@ void CodecDescriptor::setDefaultOrder() {
 
     while (iter != _CodecsMap.end()) {
         _defaultCodecOrder.push_back (iter->first);
-        iter->second->setState (true);
         iter ++ ;
     }
 }
@@ -94,7 +93,7 @@ CodecDescriptor::getCodecName (AudioCodecType payload)
     CodecsMap::iterator iter = _CodecsMap.find (payload);
 
     if (iter!=_CodecsMap.end()) {
-        return (iter->second->getCodecName());
+        return (iter->second->getMimeSubtype());
     }
 
     return resNull;
@@ -159,7 +158,6 @@ void CodecDescriptor::saveActiveCodecs (const std::vector<std::string>& list) {
 
         if (isCodecLoaded (payload)) {
             _defaultCodecOrder.push_back ( (AudioCodecType) payload);
-            _CodecsMap.find ( (AudioCodecType) payload)->second->setState (true);
         }
 
         i++;
@@ -252,7 +250,7 @@ AudioCodec* CodecDescriptor::instantiateCodec (AudioCodecType payload) {
     std::vector< CodecHandlePointer >::iterator iter = _CodecInMemory.begin();
 
     while (iter != _CodecInMemory.end()) {
-        if (iter->first->getPayload() == payload) {
+        if (iter->first->getPayloadType() == payload) {
             create_t* createCodec = (create_t*) dlsym (iter->second , "create");
 
             if (dlerror())
@@ -268,10 +266,7 @@ AudioCodec* CodecDescriptor::instantiateCodec (AudioCodecType payload) {
     return NULL;
 }
 
-
-
 AudioCodec* CodecDescriptor::getFirstCodecAvailable (void) {
-
     CodecsMap::iterator iter = _CodecsMap.begin();
 
     if (iter != _CodecsMap.end())

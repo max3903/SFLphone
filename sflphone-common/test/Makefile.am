@@ -13,8 +13,6 @@ test_SOURCES = \
 	accounttest.cpp \
 	audiolayertest.h \
 	audiolayertest.cpp \
-	#configurationtest.h \
-	#configurationtest.cpp \
 	historytest.h \
 	historytest.cpp \
 	hookmanagertest.h \

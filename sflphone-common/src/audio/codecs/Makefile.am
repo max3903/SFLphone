@@ -2,8 +2,10 @@ include $(top_srcdir)/globals.mak
 
 noinst_LTLIBRARIES = libcodecdescriptor.la
 
-libcodecdescriptor_la_SOURCES = codecDescriptor.cpp 
-
+libcodecdescriptor_la_SOURCES = \
+	codecDescriptor.cpp \
+	audiocodec.cpp
+	
 if BUILD_GSM
 GSM_LIB = libcodec_gsm.so
 libcodec_gsm_so_SOURCES = gsmcodec.cpp

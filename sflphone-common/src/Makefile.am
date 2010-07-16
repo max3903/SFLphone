@@ -103,7 +103,11 @@ libsflphone_la_LDFLAGS = \
 		@UUID_LIBS@ \
 		@yaml_LIBS@
 
-libsflphone_la_SOURCES =
+libsflphone_la_SOURCES = \
+		Codec.h
+		
+noinst_HEADERS = \
+		Codec.h		
 
 indent:
 	@echo "Indenting code:"

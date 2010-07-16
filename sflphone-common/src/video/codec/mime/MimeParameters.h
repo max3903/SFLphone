@@ -30,6 +30,8 @@
 #ifndef __SFL_MIME_PARAMETERS_H__
 #define __SFL_MIME_PARAMETERS_H__
 
+#include <ccrtp/rtp.h>
+
 namespace sfl {
 
 /**

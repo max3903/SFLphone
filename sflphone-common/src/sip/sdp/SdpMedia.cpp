@@ -3,18 +3,18 @@
  *
  *  Author: Emmanuel Milou <emmanuel.milou@savoirfairelinux.com>
  *
- * This file is free software: you can redistribute it and*or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ *  This program is free software; you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation; either version 3 of the License, or
+ *  (at your option) any later version.
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
  *
- * Sropulpof is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with Sropulpof.  If not, see <http:*www.gnu.org*licenses*>.
+ *  You should have received a copy of the GNU General Public License
+ *  along with this program; if not, write to the Free Software
+ *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
  *  Additional permission under GNU GPL version 3 section 7:
  *
@@ -27,8 +27,7 @@
  *  shall include the source code for the parts of OpenSSL used as well
  *  as that of the covered work.
  */
-
-#include "sdpmedia.h"
+#include "SdpMedia.h"
 #include <string.h>
 #include <sstream>
 #include <iostream>
@@ -78,9 +77,7 @@ SdpMedia::~SdpMedia() {
 
 std::string SdpMedia::getMediaTypeStr(void) {
 	std::string value;
-
 	// Test the range to be sure we know the media
-
 	if (_media_type >= 0 && _media_type < MEDIA_COUNT)
 		value = mediaTypeStr[_media_type];
 	else
@@ -89,7 +86,7 @@ std::string SdpMedia::getMediaTypeStr(void) {
 	return value;
 }
 
-void SdpMedia::addCodec(AudioCodec* codec) {
+void SdpMedia::addCodec(sfl::Codec* codec) {
 	_codec_list.push_back(codec);
 }
 
@@ -98,17 +95,17 @@ void SdpMedia::removeCodec(std::string codecName) {
 	int i;
 	int size;
 	std::string enc_name;
-	std::vector<AudioCodec*>::iterator iter;
+	std::vector<sfl::Codec*>::iterator iter;
 
 	size = _codec_list.size();
 	std::cout << "vector size: " << size << std::endl;
 
 	for (i = 0; i < size; i++) {
-		std::cout << _codec_list[i]->getCodecName().c_str() << std::endl;
+		std::cout << _codec_list[i]->getMimeSubtype().c_str() << std::endl;
 
-		if (strcmp(_codec_list[i]->getCodecName().c_str(), codecName.c_str())
+		if (strcmp(_codec_list[i]->getMimeSubtype().c_str(), codecName.c_str())
 				== 0) {
-			std::cout << "erase " << _codec_list[i]->getCodecName()
+			std::cout << "erase " << _codec_list[i]->getMimeSubtype()
 					<< std::endl;
 			iter = _codec_list.begin() + i;
 			_codec_list.erase(iter);
@@ -146,7 +143,7 @@ std::string SdpMedia::toString(void) {
 	display << ":";
 
 	for (i = 0; i < size; i++) {
-		display << _codec_list[i]->getCodecName() << "/";
+		display << _codec_list[i]->getMimeSubtype() << "/";
 	}
 
 	display << ":" << getStreamDirectionStr() << std::endl;

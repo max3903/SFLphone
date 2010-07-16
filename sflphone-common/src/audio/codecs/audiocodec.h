@@ -1,8 +1,8 @@
 /*
- *  Copyright (C) 2004, 2005, 2006, 2009, 2008, 2009, 2010 Savoir-Faire Linux Inc.
+ * Copyright (C) 2004, 2005, 2006, 2009, 2008, 2009, 2010 Savoir-Faire Linux Inc.
  * Author:  Alexandre Savard <alexandre.savard@savoirfairelinux.com>
  *
- * Motly borrowed from asterisk's sources (Steve Underwood <steveu@coppice.org>)
+ * Mostly borrowed from asterisk's sources (Steve Underwood <steveu@coppice.org>)
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -29,7 +29,6 @@
  *  shall include the source code for the parts of OpenSSL used as well
  *  as that of the covered work.
  */
-
 #ifndef __AUDIO_CODEC_H__
 #define __AUDIO_CODEC_H__
 
@@ -37,110 +36,116 @@
 #include <iostream>
 #include <dlfcn.h>
 
-class AudioCodec {
+#include "Codec.h"
+
+class AudioCodec : public sfl::Codec { // TODO Move into the "sfl" namespace
 public:
-	AudioCodec(int payload, const std::string &codecName) :
-		_codecName(codecName), _clockRate(8000), _channel(1), _bitrate(0.0),
-				_bandwidth(0), _payload(payload), _hasDynamicPayload(false),
-				_state(true) {
+	AudioCodec(uint8 payload, const std::string &codecName);
 
-		_hasDynamicPayload = (_payload >= 96 && _payload <= 127) ? true : false;
+	/**
+	 * Copy constructor.
+	 */
+	AudioCodec(const AudioCodec& codec);
 
-		// If g722 (payload 9), we need to init libccrtp symetric sessions with using
-		// dynamic payload format. This way we get control on rtp clockrate.
+	virtual ~AudioCodec() {}
 
-		if (_payload == 9) {
-			_hasDynamicPayload = true;
-		}
+	/**
+	 * @Override
+	 */
+	std::string getMimeType();
 
-	}
+	/**
+	 * @Override
+	 */
+	std::string getMimeSubtype();
 
-	AudioCodec(const AudioCodec& codec) :
-		_codecName(codec._codecName), _clockRate(codec._clockRate), _channel(
-				codec._channel), _bitrate(codec._bitrate), _bandwidth(
-				codec._bandwidth), _payload(codec._payload),
-				_hasDynamicPayload(false), _state(true) {
+	/**
+	 * @Override
+	 */
+	const ost::PayloadFormat& getPayloadFormat();
 
-		_hasDynamicPayload = (_payload >= 96 && _payload <= 127) ? true : false;
+	/**
+	 * @Override
+	 */
+	void setParameter(const std::string& name, const std::string& value) {};
 
-		// If g722 (payload 9), we need to init libccrtp symetric sessions with using
-		// dynamic payload format. This way we get control on rtp clockrate.
+	/**
+	 * @Override
+	 */
+	std::string getParameter(const std::string& name) { return "";};
 
-		if (_payload == 9) {
-			_hasDynamicPayload = true;
-		}
-
-	}
-
-	virtual ~AudioCodec() {
-	}
 	/**
 	 * Decode an input buffer and fill the output buffer with the decoded data
 	 * @return the number of bytes decoded
 	 */
-	virtual int codecDecode(short *, unsigned char *, unsigned int) = 0;
+	virtual int decode(short *, unsigned char *, unsigned int) = 0;
 
 	/**
 	 * Encode an input buffer and fill the output buffer with the encoded data
 	 * @return the number of bytes encoded
 	 */
-	virtual int codecEncode(unsigned char *, short *, unsigned int) = 0;
+	virtual int encode(unsigned char *, short *, unsigned int) = 0;
 
-	/** Value used for SDP negotiation */
-	std::string getCodecName(void) {
-		return _codecName;
-	}
-	int getPayload(void) {
-		return _payload;
-	}
-	bool hasDynamicPayload(void) {
-		return _hasDynamicPayload;
-	}
-	int getClockRate(void) {
-		return _clockRate;
-	}
-	int getFrameSize(void) {
-		return _frameSize;
-	}
-	int getChannel(void) {
-		return _channel;
-	}
-	bool getState(void) {
-		return _state;
-	}
-	void setState(bool b) {
-		_state = b;
-	}
-	double getBitRate(void) {
-		return _bitrate;
-	}
-	double getBandwidth(void) {
-		return _bandwidth;
-	}
+	/**
+	 * @return payload type numeric identifier.
+	 */
+	uint8 getPayloadType();
+
+	/**
+	 * @return true if this payload is a dynamic one.
+	 */
+	bool hasDynamicPayload();
+
+	/**
+	 * @return RTP clock rate in Hz.
+	 */
+	uint32 getClockRate();
+
+	/**
+	 * @return the framing size for this codec.
+	 */
+	unsigned getFrameSize();
+
+	/**
+	 * @return the number of audio channels.
+	 */
+	uint8 getChannel();
+
+	/**
+	 * @return The bitrate for which this codec is configured // TODO deal with VBR case.
+	 */
+	double getBitRate();
+
+	/**
+	 * @return The expected bandwidth used by this codec.
+	 */
+	double getBandwidth();
 
 protected:
 	/** Holds SDP-compliant codec name */
 	std::string _codecName; // what we put inside sdp
 
 	/** Clock rate or sample rate of the codec, in Hz */
-	int _clockRate;
+	uint32 _clockRate;
 
 	/** Number of channel 1 = mono, 2 = stereo */
-	int _channel;
+	uint8 _channel;
 
 	/** codec frame size in samples*/
-	int _frameSize;
+	unsigned _frameSize;
 
 	/** Bitrate */
 	double _bitrate;
+
 	/** Bandwidth */
 	double _bandwidth;
 
 private:
-	int _payload;
-	bool _hasDynamicPayload;
-	bool _state;
+	uint8 _payload;
 
+	bool _hasDynamicPayload;
+
+	ost::DynamicPayloadFormat* _payloadFormat;
 };
 
 // the types of the class factories

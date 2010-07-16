@@ -66,21 +66,13 @@ class CodecDescriptor {
     ~CodecDescriptor(); 
 
     /**
-     * Accessor to data structures
-     * @return CodecsMap& The available codec
+     * @return The available codecs
      */
     CodecsMap& getCodecsMap() { return _CodecsMap; }
 
     /**
-     * Accessor to data structures
-     * @return CodecOrder& The list that reflects the user's choice
-     */
-    // CodecOrder& getActiveCodecs() { return _codecOrder; }
-
-    /**
      * Get codec name by its payload
-     * @param payload the payload looked for
-     *                same as getPayload()
+     * @param payload the payload looked for same as getPayloadType()
      * @return std::string  The name of the codec
      */
     std::string getCodecName(AudioCodecType payload);
@@ -90,7 +82,7 @@ class CodecDescriptor {
      * @param payload The payload looked for
      * @return AudioCodec* A pointer on a AudioCodec object
      */
-    AudioCodec* getCodec( AudioCodecType payload );
+    AudioCodec* getCodec(AudioCodecType payload );
 
     /**
      * Initialiaze the map with all the supported codecs, even those inactive
@@ -152,7 +144,7 @@ class CodecDescriptor {
 
     /**
      * Instantiate a codec, used in AudioRTP to get an instance of Codec per call
-     * @param CodecHandlePointer	The map containing the pointer on the object and the pointer on the handle function
+     * @param CodecHandlePointer The map containing the pointer on the object and the pointer on the handle function
      */
     AudioCodec* instantiateCodec(AudioCodecType payload);
 

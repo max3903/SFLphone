@@ -55,6 +55,8 @@ public:
 		return format;
 	}
 
+	VideoCodecNull* clone() { return new VideoCodecNull(*this); }
+
 };
 }
 

@@ -124,13 +124,13 @@ class Celt : public AudioCodec
             celt_mode_destroy(_mode);
         }
 
-        virtual int codecDecode (short *dst, unsigned char *src, unsigned int size) {
+        virtual int decode (short *dst, unsigned char *src, unsigned int size) {
             int err = 0;
             err = celt_decode (_dec, src, size, (celt_int16*) dst);
             return _frameSize * sizeof (celt_int16);
         }
 
-        virtual int codecEncode (unsigned char *dst, short *src, unsigned int size) {
+        virtual int encode (unsigned char *dst, short *src, unsigned int size) {
             int len = 0;
             len = celt_encode (_enc, (celt_int16*) src, (celt_int16 *) src, dst, 40);
             // returns the number of bytes writen

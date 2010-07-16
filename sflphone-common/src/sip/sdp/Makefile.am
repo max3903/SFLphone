@@ -5,7 +5,7 @@ noinst_LTLIBRARIES = libsdp.la
 libsdp_la_SOURCES = \
 		SdesNegotiator.cpp \
 		sdp.cpp \
-		sdpmedia.cpp
+		SdpMedia.cpp
 		
 libsdp_la_LDFLAGS = $(CCGNU2_LIBS)
 
@@ -14,5 +14,5 @@ noinst_HEADERS = \
 		Fmtp.h \
 		SdesNegotiator.h \
 		sdp.h \
-		sdpmedia.h
+		SdpMedia.h
 		

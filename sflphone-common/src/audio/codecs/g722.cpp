@@ -65,7 +65,7 @@ class G722 : public AudioCodec
 
         }
 
-        virtual int codecDecode (short *dst, unsigned char *src, unsigned int size) {
+        virtual int decode (short *dst, unsigned char *src, unsigned int size) {
 
             int in_byte = size;
             int out_samples;
@@ -75,7 +75,7 @@ class G722 : public AudioCodec
             return out_samples * 2;
         }
 
-        virtual int codecEncode (unsigned char *dst, short *src, unsigned int size) {
+        virtual int encode (unsigned char *dst, short *src, unsigned int size) {
 
             // 2 bytes per sample (int16)
             int in_samples = size / 2;
@@ -790,6 +790,9 @@ class G722 : public AudioCodec
             return g722_bytes;
         }
 
+        G722* clone() {
+    		return new G722(*this);
+    	}
 
     private:
 

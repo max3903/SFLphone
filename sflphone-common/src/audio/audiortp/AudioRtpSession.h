@@ -386,13 +386,13 @@ namespace sfl {
     {
         _audiocodec = audiocodec;
 
-        _debug ("RTP: Init codec payload %i", _audiocodec->getPayload());
+        _debug ("RTP: Init codec payload %i", _audiocodec->getPayloadType());
 
         _codecSampleRate = _audiocodec->getClockRate();
         _codecFrameSize = _audiocodec->getFrameSize();
 
 	// G722 requires timestamp to be incremented at 8 kHz
-	if (_audiocodec->getPayload() == 9)
+	if (_audiocodec->getPayloadType() == 9)
 	    _timestampIncrement = 160;
 	else
 	    _timestampIncrement = _codecFrameSize;
@@ -403,15 +403,15 @@ namespace sfl {
 	_debug("RTP: RTP timestamp increment: %d", _timestampIncrement);
 
         // Even if specified as a 16 kHz codec, G722 requires rtp sending rate to be 8 kHz
-        if (_audiocodec->getPayload() == 9) {
+        if (_audiocodec->getPayloadType() == 9) {
             _debug ("RTP: Setting G722 payload format");
-            static_cast<D*>(this)->setPayloadFormat (ost::DynamicPayloadFormat ( (ost::PayloadType) _audiocodec->getPayload(), _audiocodec->getClockRate()));
+            static_cast<D*>(this)->setPayloadFormat (ost::DynamicPayloadFormat ( (ost::PayloadType) _audiocodec->getPayloadType(), _audiocodec->getClockRate()));
         } else if (_audiocodec->hasDynamicPayload()) {
             _debug ("RTP: Setting dynamic payload format");
-            static_cast<D*>(this)->setPayloadFormat (ost::DynamicPayloadFormat ( (ost::PayloadType) _audiocodec->getPayload(), _audiocodec->getClockRate()));
-        } else if (!_audiocodec->hasDynamicPayload() && _audiocodec->getPayload() != 9) {
+            static_cast<D*>(this)->setPayloadFormat (ost::DynamicPayloadFormat ( (ost::PayloadType) _audiocodec->getPayloadType(), _audiocodec->getClockRate()));
+        } else if (!_audiocodec->hasDynamicPayload() && _audiocodec->getPayloadType() != 9) {
             _debug ("RTP: Setting static payload format");
-            static_cast<D*>(this)->setPayloadFormat (ost::StaticPayloadFormat ( (ost::StaticPayloadType) _audiocodec->getPayload()));
+            static_cast<D*>(this)->setPayloadFormat (ost::StaticPayloadFormat ( (ost::StaticPayloadType) _audiocodec->getPayloadType()));
         }
 
 	if(_noiseState) {
@@ -449,19 +449,19 @@ namespace sfl {
         _info ("RTP: Setting IP address for the RTP session");
 
         // Store remote ip in case we would need to forget current destination
-        _remote_ip = ost::InetHostAddress(_ca->getLocalSDP()->get_remote_ip().c_str());
+        _remote_ip = ost::InetHostAddress(_ca->getLocalSDP()->getRemoteIp().c_str());
 
         if (!_remote_ip) {
             _warn("RTP: Target IP address (%s) is not correct!",
-						_ca->getLocalSDP()->get_remote_ip().data());
+						_ca->getLocalSDP()->getRemoteIp().data());
             return;
         }
 
         // Store remote port in case we would need to forget current destination
-        _remote_port = (unsigned short) _ca->getLocalSDP()->get_remote_audio_port();
+        _remote_port = (unsigned short) _ca->getLocalSDP()->getRemoteAudioPort();
 
         _info("RTP: New remote address for session: %s:%d",
-        _ca->getLocalSDP()->get_remote_ip().data(), _remote_port);
+        _ca->getLocalSDP()->getRemoteIp().data(), _remote_port);
 
         if (! static_cast<D*>(this)->addDestination (_remote_ip, _remote_port)) {
         	_warn("RTP: Can't add new destination to session!");
@@ -528,7 +528,7 @@ namespace sfl {
 	}
 
 	// get back the payload to audio
-	static_cast<D*>(this)->setPayloadFormat (ost::StaticPayloadFormat ( (ost::StaticPayloadType) _audiocodec->getPayload()));
+	static_cast<D*>(this)->setPayloadFormat (ost::StaticPayloadFormat ( (ost::StaticPayloadType) _audiocodec->getPayloadType()));
 
 	// decrease length remaining to process for this event
 	dtmf->length -= 160;
@@ -560,7 +560,7 @@ namespace sfl {
         assert(_audiocodec);
         assert(_audiolayer);
 
-        int _mainBufferSampleRate = _manager->getAudioDriver()->getMainBuffer()->getInternalSamplingRate();
+        uint32 _mainBufferSampleRate = _manager->getAudioDriver()->getMainBuffer()->getInternalSamplingRate();
 
         // compute codec framesize in ms
         float fixed_codec_framesize = computeCodecFrameSize (_audiocodec->getFrameSize(), _audiocodec->getClockRate());
@@ -591,14 +591,14 @@ namespace sfl {
 
             nbSample = _converter->downsampleData (_micData , _micDataConverted , _audiocodec->getClockRate(), _mainBufferSampleRate, nb_sample_up);
 
-            compSize = _audiocodec->codecEncode (_micDataEncoded, _micDataConverted, nbSample*sizeof (int16));
+            compSize = _audiocodec->encode (_micDataEncoded, _micDataConverted, nbSample*sizeof (int16));
 
         } else {
 
         	_nSamplesMic = nbSample;
 
             // no resampling required
-            compSize = _audiocodec->codecEncode (_micDataEncoded, _micData, nbSample*sizeof (int16));
+            compSize = _audiocodec->encode (_micDataEncoded, _micData, nbSample*sizeof (int16));
         }
 
         return compSize;
@@ -610,10 +610,10 @@ namespace sfl {
         if (_audiocodec != NULL) {
 
 
-	    int _mainBufferSampleRate = _manager->getAudioDriver()->getMainBuffer()->getInternalSamplingRate();
+	    uint32 _mainBufferSampleRate = _manager->getAudioDriver()->getMainBuffer()->getInternalSamplingRate();
 
             // Return the size of data in bytes
-            int expandedSize = _audiocodec->codecDecode (_spkrDataDecoded , spkrData , size);
+            int expandedSize = _audiocodec->decode (_spkrDataDecoded , spkrData , size);
 
             // buffer _receiveDataDecoded ----> short int or int16, coded on 2 bytes
             int nbSample = expandedSize / sizeof (SFLDataFormat);
