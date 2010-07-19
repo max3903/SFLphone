@@ -84,7 +84,7 @@ void RtpTest::testRtpInitClose() {
 		audiortp->initAudioRtpConfig(sipcall);
 		audiortp->initAudioRtpSession(sipcall);
 		//AudioCodecType codecType = PAYLOAD_CODEC_ULAW;
-		//AudioCodec* audioCodec = Manager::instance().getCodecDescriptorMap().instantiateCodec(codecType);
+		//AudioCodec* audioCodec = Manager::instance().getCodecFactory().instantiateCodec(codecType);
 		//audiortp->start(audioCodec);
 
 	} catch (...) {

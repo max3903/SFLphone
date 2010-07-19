@@ -43,46 +43,49 @@
 
 /** Enable us to keep the handle pointer on the codec dynamicaly loaded so that we could destroy when we dont need it anymore */
 typedef std::pair<AudioCodec* , void*> CodecHandlePointer;
-/** Maps a pointer on an audiocodec object to a payload */
-typedef std::map<AudioCodecType , AudioCodec*> CodecsMap;
-/** A codec is identified by its payload. A payload is associated with a name. */ 
-typedef std::map<AudioCodecType, std::string> CodecMap;
 
 /*
  * @file codecdescriptor.h
  * @brief Handle audio codecs, load them in memory
  */
-
-class CodecDescriptor {
+class CodecFactory {
   public:
     /**
      * Constructor 
      */
-    CodecDescriptor();
+    CodecFactory();
 
     /**
      * Destructor 
      */
-    ~CodecDescriptor(); 
+    virtual inline ~CodecFactory() {}
 
     /**
-     * @return The available codecs
+     * @return a list of MIME types corresponding to the available codecs.
      */
-    CodecsMap& getCodecsMap() { return _CodecsMap; }
+    std::vector<std::string> getAvailableCodecMimeType();
+
+    /**
+     * Get the first codec object associated with the payload
+     * @param payload The payload (static or dynamic) identifying (not necessarily uniquely) a codec.
+     * @return AudioCodec* A pointer on a AudioCodec object
+     */
+    AudioCodec* getCodec(AudioCodecType payload );
+
+    /**
+     * (Linear search).
+     * @param mimeSubtype The mime subtype identifying the codec uniquely.
+     * @return a codec corresponding to the MIME subtype.
+     */
+    AudioCodec* getCodec(const std::string& mimeSubtype);
 
     /**
      * Get codec name by its payload
      * @param payload the payload looked for same as getPayloadType()
      * @return std::string  The name of the codec
+     * TODO Throw MissingPlugingException
      */
     std::string getCodecName(AudioCodecType payload);
-
-    /**
-     * Get the codec object associated with the payload
-     * @param payload The payload looked for
-     * @return AudioCodec* A pointer on a AudioCodec object
-     */
-    AudioCodec* getCodec(AudioCodecType payload );
 
     /**
      * Initialiaze the map with all the supported codecs, even those inactive
@@ -136,7 +139,7 @@ class CodecDescriptor {
     void deleteHandlePointer( void );
 
     /**
-     * Get the first element of the CodecsMap struct. 
+     * Get the first element of the PayloadTypeToCodecMap struct. 
      * i.e the one with the lowest payload
      * @return AudioCodec	The pointer on the codec object
      */
@@ -147,14 +150,6 @@ class CodecDescriptor {
      * @param CodecHandlePointer The map containing the pointer on the object and the pointer on the handle function
      */
     AudioCodec* instantiateCodec(AudioCodecType payload);
-
-	/**
-	 * For a given codec, return its specification
-	 *
-	 * @param payload	The RTP payload of the codec
-	 * @return std::vector <std::string>	A vector containing codec's name, sample rate, bandwidth and bit rate
-	 */
-	std::vector <std::string> getCodecSpecifications (const int32_t& payload);
 
 	/**
      *  Check if the audiocodec object has been successfully created
@@ -204,11 +199,6 @@ class CodecDescriptor {
     bool alreadyInCache( std::string );
 
     /**
-     * Map the payload of a codec and the object associated ( AudioCodec * )
-     */
-    CodecsMap _CodecsMap;
-
-    /**
      * Vector containing a default order for the codecs
      */
     CodecOrder _defaultCodecOrder;
@@ -228,6 +218,15 @@ class CodecDescriptor {
      * Pair between pointer on function handle and pointer on audiocodec object
      */
     std::vector< CodecHandlePointer > _CodecInMemory;
+
+    /** Maps a pointer on an audiocodec object to a payload */
+    typedef std::map<AudioCodecType , AudioCodec*> PayloadTypeToCodecMap;
+    typedef std::map<AudioCodecType , AudioCodec*>::iterator PayloadTypeToCodecMapIterator;
+
+    /**
+     * Map the payload of a codec and the object associated ( AudioCodec * )
+     */
+    PayloadTypeToCodecMap _codecsMap;
 };
 
 #endif // __CODEC_DESCRIPTOR_H__

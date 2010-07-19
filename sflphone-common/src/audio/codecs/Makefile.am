@@ -3,7 +3,7 @@ include $(top_srcdir)/globals.mak
 noinst_LTLIBRARIES = libcodecdescriptor.la
 
 libcodecdescriptor_la_SOURCES = \
-	codecDescriptor.cpp \
+	CodecFactory.cpp \
 	AudioCodec.cpp
 	
 if BUILD_GSM
@@ -59,7 +59,7 @@ endif
 
 noinst_PROGRAMS = libcodec_ulaw.so libcodec_alaw.so libcodec_g722.so $(GSM_LIB) $(SPEEX_NB_LIB) $(SPEEX_WB_LIB) $(SPEEX_UB_LIB) $(CELT_LIB)
 
-noinst_HEADERS = AudioCodec.h codecDescriptor.h
+noinst_HEADERS = AudioCodec.h CodecFactory.h
 
 libcodec_ulaw_so_SOURCES = ulaw.cpp
 libcodec_ulaw_so_CFLAGS = -fPIC -g -Wall

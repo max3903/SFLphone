@@ -3159,7 +3159,6 @@ void call_on_media_update(pjsip_inv_session *inv, pj_status_t status) {
 
 	// Get the new sdp, result of the negotiation
 	pjmedia_sdp_neg_get_active_local(inv->neg, &local_sdp);
-
 	pjmedia_sdp_neg_get_active_remote(inv->neg, &remote_sdp);
 
 	// Clean the resulting sdp offer to create a new one (in case of a reinvite)
@@ -3203,7 +3202,8 @@ void call_on_media_update(pjsip_inv_session *inv, pj_status_t status) {
 			_debug("UserAgent: Set remote cryptographic context\n");
 			try {
 				call->getAudioRtp()->setRemoteCryptoInfo(sdesnego);
-			} catch (...) {
+			} catch (sfl::AudioRtpFactoryException& e) {
+				_error("Failed to set crypto information for the RTP session");
 			}
 
 			DBusManager::instance().getCallManager()->secureSdesOn(
@@ -3246,6 +3246,7 @@ void call_on_media_update(pjsip_inv_session *inv, pj_status_t status) {
 		return; // FIXME Be a bit more severe please !
 	}
 
+	// Get a fresh instance of the codec that will handle the media
 	sfl::Codec* sessionMedia = sdpSession->getSessionMedia();
 	if (!sessionMedia) {
 		_error("Failed to retrieve the audio codec for the session");
@@ -3257,18 +3258,15 @@ void call_on_media_update(pjsip_inv_session *inv, pj_status_t status) {
 		audioCodec = dynamic_cast<AudioCodec*>(sessionMedia);
 	}
 
-	_debug("Frame size before cloning : %d", audioCodec->getFrameSize());
 	_info("Creating new instance of codec type \"%s/%s\"", sessionMedia->getMimeType().c_str(), sessionMedia->getMimeSubtype().c_str());
 
 	audioCodec = audioCodec->clone();
-
-	_debug("Frame size after cloning : %d", audioCodec->getFrameSize());
-
 	if (audioCodec == NULL) {
 		_error ("UserAgent: No audiocodec found");
 		return;  // FIXME Be a bit more severe please !
 	}
 
+	// Start the RTP with the codec
 	try {
 		_info("Starting RTP session ...");
 		call->setAudioStart(true);
@@ -3688,7 +3686,7 @@ pj_bool_t mod_on_rx_request(pjsip_rx_data *rdata) {
 	// Set the codec map, IP, peer number and so on... for the SIPCall object
 	setCallAudioLocal(call, addrToUse);
 
-	// We retrieve the remote sdp offer in the rdata struct to begin the negociation
+	// We retrieve the remote sdp offer in the rdata struct to begin the negotiation
 	call->getLocalSDP()->setIpAddress(addrSdp);
 
 	try {
@@ -4185,6 +4183,12 @@ void xfer_svr_cb(pjsip_evsub *sub, pjsip_event *event) {
 	}
 }
 
+/**
+ * This callback is called when the invite session has received new offer from peer.
+ * Application can inspect the remote offer in "offer", and set the SDP answer with pjsip_inv_set_sdp_answer().
+ * When the application sends a SIP message to send the answer, this SDP answer will
+ * be negotiated with the offer, and the result will be sent with the SIP message.
+ */
 void on_rx_offer(pjsip_inv_session *inv, const pjmedia_sdp_session *offer) {
 	_info("UserAgent: Received SDP offer");
 
@@ -4213,11 +4217,15 @@ void on_rx_offer(pjsip_inv_session *inv, const pjmedia_sdp_session *offer) {
 
 	if (link)
 		link->handle_reinvite(call);
-
 #endif
 
 }
 
+/**
+ * This callback is optional, and it is used to ask the application to create a fresh offer,
+ * When the invite session has received re-INVITE without offer.
+ * This offer then will be sent in the 200/OK response to the re-INVITE request.
+ */
 void on_create_offer(pjsip_inv_session *inv, pjmedia_sdp_session **p_offer) {
 	_info("UserAgent: Create new SDP offer");
 

@@ -52,7 +52,7 @@
 #include "audio/sound/tonelist.h"  // for Tone::TONEID declaration
 #include "audio/sound/audiofile.h" // AudioFile class contained by value here 
 #include "audio/sound/dtmf.h" // DTMF class contained by value here
-#include "audio/codecs/codecDescriptor.h" // CodecDescriptor class contained by value here
+#include "audio/codecs/CodecFactory.h" // CodecFactory class contained by value here
 
 #include "audio/mainbuffer.h"
 #include "yamlemitter.h"
@@ -151,10 +151,9 @@ class ManagerImpl {
     AudioLayer* getAudioDriver(void) const { return _audiodriver; }
 
     /**
-     * Get a descriptor map of codec available
-     * @return CodecDescriptor  The internal codec map
+     * @return a CodecFactory object from which new codecs can be instantiated.
      */
-    CodecDescriptor& getCodecDescriptorMap(void) {return _codecDescriptorMap;}
+    CodecFactory& getCodecFactory(void) {return _codecFactory;}
 
     /**
      * Functions which occur with a user's action
@@ -162,8 +161,7 @@ class ManagerImpl {
      * @param accountId	The account to make tha call with
      * @param id  The call identifier
      * @param to  The recipient of the call
-     * @return bool true on success
-     *		  false otherwise
+     * @return bool true on success false otherwise
      */
     bool outgoingCall(const AccountID& accountId, const CallID& id, const std::string& to);
 
@@ -1130,8 +1128,8 @@ class ManagerImpl {
     /** Protected current call access */
     ost::Mutex _currentCallMutex;
 
-    /** Vector of CodecDescriptor */
-    CodecDescriptor* _codecBuilder;
+    /** Vector of CodecFactory */
+    CodecFactory* _codecBuilder;
 
     /** Audio layer */
     AudioLayer* _audiodriver;
@@ -1141,7 +1139,7 @@ class ManagerImpl {
     DTMF* _dtmfKey;
 
     // map of codec (for configlist request)
-    CodecDescriptor _codecDescriptorMap;
+    CodecFactory _codecFactory;
 
     /////////////////////
     // Protected by Mutex

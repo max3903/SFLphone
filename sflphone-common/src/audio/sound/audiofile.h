@@ -36,7 +36,7 @@
 
 #include "audio/audioloop.h"
 #include "audio/codecs/AudioCodec.h"
-#include "audio/codecs/codecDescriptor.h"
+#include "audio/codecs/CodecFactory.h"
 
 /**
  * @file audiofile.h

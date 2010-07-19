@@ -236,7 +236,7 @@ IAXVoIPLink::getEvent()
         if (call) {
             // We know that call, deal with it
             iaxHandleCallEvent (event, call);
-            //_audiocodec = Manager::instance().getCodecDescriptorMap().getCodec( call -> getAudioCodec() );
+            //_audiocodec = Manager::instance().getCodecFactory().getCodec( call -> getAudioCodec() );
         } else if (event->session && event->session == _regSession) {
             // This is a registration session, deal with it
             iaxHandleRegReply (event);
@@ -487,7 +487,7 @@ Call*
 IAXVoIPLink::newOutgoingCall (const CallID& id, const std::string& toUrl)
 {
     IAXCall* call = new IAXCall (id, Call::Outgoing);
-    call->setCodecMap (Manager::instance().getCodecDescriptorMap());
+    call->setCodecMap (Manager::instance().getCodecFactory());
 
     if (call) {
         call->setPeerNumber (toUrl);
@@ -511,7 +511,7 @@ bool
 IAXVoIPLink::answer (const CallID& id)
 {
     IAXCall* call = getIAXCall (id);
-    call->setCodecMap (Manager::instance().getCodecDescriptorMap());
+    call->setCodecMap (Manager::instance().getCodecFactory());
 
     Manager::instance().addStream (call->getCallId());
 
@@ -1101,7 +1101,7 @@ IAXVoIPLink::iaxHandlePrecallEvent (iax_event* event)
             call->setSession (event->session);
 
             // setCallAudioLocal(call);
-            call->setCodecMap (Manager::instance().getCodecDescriptorMap());
+            call->setCodecMap (Manager::instance().getCodecFactory());
 
             call->setConnectionState (Call::Progressing);
 

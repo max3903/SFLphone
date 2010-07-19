@@ -50,7 +50,7 @@ static const pj_str_t STR_RTPMAP = { (char*) "rtpmap", 6 };
 static const pj_str_t STR_CRYPTO = { (char*) "crypto", 6 };
 
 Sdp::Sdp(pj_pool_t *pool) :
-	_local_media_cap(), _session_media(0), _negociator(NULL), _ip_addr(""),
+	_local_media_cap(), _session_media(0), _negotiator(NULL), _ip_addr(""),
 			_local_offer(NULL), _negociated_offer(NULL), _pool(NULL),
 			_local_extern_audio_port(0) {
 	_pool = pool;
@@ -145,21 +145,16 @@ void Sdp::setMediaDescriptorLine(SdpMedia *media, pjmedia_sdp_media** p_med) {
 }
 
 int Sdp::createLocalOffer(CodecOrder selectedCodecs) {
-
-	pj_status_t status;
-
 	_info("SDP: Create local offer");
 
 	// Build local media capabilities
 	setLocalMediaCapabilities(selectedCodecs);
 
-	// Reference: RFC 4566 [5]
-
-	/* Create and initialize basic SDP session */
+	// Create and initialize basic SDP session
 	this->_local_offer = PJ_POOL_ZALLOC_T (_pool, pjmedia_sdp_session);
 	this->_local_offer->conn = PJ_POOL_ZALLOC_T (_pool, pjmedia_sdp_conn);
 
-	/* Initialize the fields of the struct */
+	// Initialize the fields of the struct
 	sdpAddProtocol();
 	sdpAddOrigin();
 	sdpAddSessionName();
@@ -171,15 +166,8 @@ int Sdp::createLocalOffer(CodecOrder selectedCodecs) {
 		sdpAddSdesAttribute(_srtp_crypto);
 	}
 
-	//toString ();
-
 	// Validate the sdp session
-	status = pjmedia_sdp_validate(this->_local_offer);
-
-	if (status != PJ_SUCCESS)
-		return status;
-
-	return PJ_SUCCESS;
+	return pjmedia_sdp_validate(this->_local_offer);
 }
 
 int Sdp::createInitialOffer(CodecOrder selectedCodecs) {
@@ -196,16 +184,16 @@ int Sdp::createInitialOffer(CodecOrder selectedCodecs) {
 		return status;
 	}
 
-	// Create the SDP negociator instance with local offer
+	// Create the SDP negotiator instance with local offer
 	status = pjmedia_sdp_neg_create_w_local_offer(_pool, getLocalSdpSession(),
-			&_negociator);
+			&_negotiator);
 
 	if (status != PJ_SUCCESS) {
-		_error ("SDP: Error: Failed to create an initial SDP negociator");
+		_error ("SDP: Error: Failed to create an initial SDP negotiator");
 		return status;
 	}
 
-	state = pjmedia_sdp_neg_get_state(_negociator);
+	state = pjmedia_sdp_neg_get_state(_negotiator);
 
 	PJ_ASSERT_RETURN (status == PJ_SUCCESS, 1);
 
@@ -215,7 +203,7 @@ int Sdp::createInitialOffer(CodecOrder selectedCodecs) {
 int Sdp::receivingInitialOffer(pjmedia_sdp_session* remote,
 		CodecOrder selectedCodecs) {
 
-	// Create the SDP negociator instance by calling
+	// Create the SDP negotiator instance by calling
 	// pjmedia_sdp_neg_create_w_remote_offer with the remote offer, and by providing the local offer ( optional )
 
 	pj_status_t status;
@@ -224,7 +212,7 @@ int Sdp::receivingInitialOffer(pjmedia_sdp_session* remote,
 		return !PJ_SUCCESS;
 	}
 
-	// Create the SDP negociator instance by calling
+	// Create the SDP negotiator instance by calling
 	// pjmedia_sdp_neg_create_w_remote_offer with the remote offer, and by providing the local offer ( optional )
 
 	// Build the local offer to respond
@@ -239,7 +227,7 @@ int Sdp::receivingInitialOffer(pjmedia_sdp_session* remote,
 	this->setMediaTransportFromRemoteSdp(remote);
 
 	status = pjmedia_sdp_neg_create_w_remote_offer(_pool, getLocalSdpSession(),
-			remote, &_negociator);
+			remote, &_negotiator);
 
 	PJ_ASSERT_RETURN (status == PJ_SUCCESS, 1);
 
@@ -499,14 +487,13 @@ void Sdp::setNegotiatedSdp(const pjmedia_sdp_session *sdp) {
 	pjmedia_sdp_media *current;
 	SdpMedia *media;
 	std::string type, dir;
-	CodecsMap codecs_list;
-	CodecsMap::iterator iter;
+
 	pjmedia_sdp_attr *attribute = NULL;
 	pjmedia_sdp_rtpmap *rtpmap;
 
 	_negociated_offer = (pjmedia_sdp_session*) sdp;
 
-	codecs_list = Manager::instance().getCodecDescriptorMap().getCodecsMap();
+	CodecFactory& factory = Manager::instance().getCodecFactory();
 
 	// retrieve the media information
 	nb_media = _negociated_offer->media_count;
@@ -523,19 +510,17 @@ void Sdp::setNegotiatedSdp(const pjmedia_sdp_session *sdp) {
 
 		for (j = 0; j < nb_codecs; j++) {
 			attribute = pjmedia_sdp_media_find_attr(current, &STR_RTPMAP, NULL);
-			// pj_strtoul(attribute->pt)
 
-			if (!attribute)
+			if (!attribute) {
+				_error("a=rtpmap cannot be found in SDP.");
 				return;
+			}
 
 			pjmedia_sdp_attr_to_rtpmap(_pool, attribute, &rtpmap);
-
-			iter = codecs_list.find((AudioCodecType) pj_strtoul(&rtpmap->pt));
-
-			if (iter == codecs_list.end())
-				return;
-
-			media->addCodec(iter->second);
+			AudioCodec* codec = factory.getCodec((AudioCodecType) pj_strtoul(&rtpmap->pt));
+			if (codec != NULL) {
+				media->addCodec(codec);
+			}
 		}
 
 		_session_media.push_back(media);
@@ -567,8 +552,8 @@ sfl::Codec* Sdp::getSessionMedia(void) {
 pj_status_t Sdp::startNegotiation() {
 	pj_status_t status;
 
-	if (_negociator) {
-		status = pjmedia_sdp_neg_negotiate(_pool, _negociator, 0);
+	if (_negotiator) {
+		status = pjmedia_sdp_neg_negotiate(_pool, _negotiator, 0);
 	} else {
 		status = !PJ_SUCCESS;
 	}
@@ -614,30 +599,22 @@ void Sdp::toString(void) {
 
 void Sdp::setLocalMediaCapabilities(CodecOrder selectedCodecs) {
 
-	unsigned int i;
-	SdpMedia *audio;
-	CodecsMap codecs_list;
-	CodecsMap::iterator iter;
-
-	// Clean it first
 	_local_media_cap.clear();
 
 	_debug ("SDP: Fetch local media capabilities. Published audio port: %i" , getPublishedAudioPort());
 
-	/* Only one audio media used right now */
+	// Create new SDP media of type "audio".
+	SdpMedia *audio;
 	audio = new SdpMedia(MIME_TYPE_AUDIO);
 	audio->setPort(getPublishedAudioPort());
 
-	/* We retrieve the codecs selected by the user */
-	codecs_list = Manager::instance().getCodecDescriptorMap().getCodecsMap();
-
+	// Add selected audio codec to the SDP media.
+	CodecFactory& factory = Manager::instance().getCodecFactory();
+	int i;
 	for (i = 0; i < selectedCodecs.size(); i++) {
-		iter = codecs_list.find(selectedCodecs[i]);
-
-		if (iter != codecs_list.end()) {
-			audio->addCodec(iter->second);
-		} else {
-			_warn ("SDP: Couldn't find audio codec");
+		AudioCodec* codec = factory.getCodec(selectedCodecs[i]);
+		if (codec != NULL) {
+			audio->addCodec(codec);
 		}
 	}
 

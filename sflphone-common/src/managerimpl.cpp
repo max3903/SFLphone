@@ -78,7 +78,7 @@ SIPAccount defaultAccount("default");
 ManagerImpl::ManagerImpl (void) :
 	_hasTriedToRegister(false), _config(), _currentCallId2(),
 			_currentCallMutex(), _codecBuilder(NULL), _audiodriver(NULL),
-			_dtmfKey(NULL), _codecDescriptorMap(), _toneMutex(),
+			_dtmfKey(NULL), _codecFactory(), _toneMutex(),
 			_telephoneTone(NULL), _audiofile(), _spkr_volume(0),
 			_mic_volume(0), _mutex(), _dbus(NULL), _waitingCall(),
 			_waitingCallMutex(), _nbIncomingWaitingCall(0), _path(""),
@@ -171,7 +171,7 @@ void ManagerImpl::terminate () {
 	delete _telephoneTone; _telephoneTone = NULL;
 
 	_debug ("Manager: Unload audio codecs ");
-	_codecDescriptorMap.deleteHandlePointer();
+	_codecFactory.deleteHandlePointer();
 
 }
 
@@ -1936,7 +1936,7 @@ void ManagerImpl::ringtone () {
 
 		samplerate = audiolayer->getSampleRate();
 
-		codecForTone = _codecDescriptorMap.getFirstCodecAvailable();
+		codecForTone = _codecFactory.getFirstCodecAvailable();
 
 		_toneMutex.enterMutex();
 
@@ -2372,7 +2372,7 @@ void ManagerImpl::initAudioCodec (void) {
 	/* Init list of all supported codecs by the application.
 	 * This is a global list. Every account will inherit it.
 	 */
-	_codecDescriptorMap.init();
+	_codecFactory.init();
 }
 
 /*

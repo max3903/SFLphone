@@ -407,30 +407,28 @@
 		   </arg>
 	   </method>
 
-	   <!--      ///////////////////////               -->
-
 	   <!-- Codecs-related methods -->
-
-	   <method name="getCodecList" tp:name-for-bindings="getCodecList">
+	   <method name="getAudioCodecList" tp:name-for-bindings="getAudioCodecList">
 		   <tp:docstring>
 		   </tp:docstring>
-		   <annotation name="com.trolltech.QtDBus.QtTypeName.Out0" value="VectorString"/>
 		   <arg type="as" name="list" direction="out">
 			   <tp:docstring>
+			    A list of all the MIME subtypes for the supported audio codecs.
 			   </tp:docstring>
 		   </arg>
 	   </method>
 
-	   <method name="getCodecDetails" tp:name-for-bindings="getCodecDetails">
+	   <method name="getAudioCodecDetails" tp:name-for-bindings="getAudioCodecDetails">
 		   <tp:docstring>
 		   </tp:docstring>
-		   <arg type="i" name="payload" direction="in">
+		   <arg type="s" name="mimesubtype" direction="in">
 			   <tp:docstring>
+			   The MIME subtype identifying this codec.
 			   </tp:docstring>
 		   </arg>
-		   <annotation name="com.trolltech.QtDBus.QtTypeName.Out0" value="VectorString"/>
-		   <arg type="as" name="details" direction="out">
+		   <arg type="(idd)" name="details" direction="out">
 			   <tp:docstring>
+			   A structure containing the following fields in order : clock rate, bitrate, bandwidth.
 			   </tp:docstring>
 		   </arg>
 	   </method>

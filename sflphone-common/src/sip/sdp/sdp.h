@@ -42,7 +42,7 @@
 #include <pj/assert.h>
 #include <vector>
 
-#include "audio/codecs/codecDescriptor.h"
+#include "audio/codecs/CodecFactory.h"
 #include "SdpMedia.h"
 
 #include <exception>
@@ -270,7 +270,7 @@ private:
 	std::vector<SdpMedia*> _session_media;
 
 	/** negociator */
-	pjmedia_sdp_neg *_negociator;
+	pjmedia_sdp_neg *_negotiator;
 
 	/** IP address */
 	std::string _ip_addr;

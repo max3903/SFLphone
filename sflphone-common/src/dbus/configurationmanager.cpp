@@ -366,31 +366,6 @@ std::vector<std::string> ConfigurationManager::getRingtoneList() {
 	return ret;
 }
 
-/**
- * Send the list of all codecs loaded to the client through DBus.
- * Can stay global, as only the active codecs will be set per accounts
- */
-std::vector<std::string> ConfigurationManager::getCodecList(void) {
-
-	std::vector<std::string> list;
-
-	CodecsMap codecs = Manager::instance().getCodecDescriptorMap().getCodecsMap();
-	CodecsMap::iterator iter = codecs.begin();
-
-	while (iter != codecs.end()) {
-		std::stringstream ss;
-
-		if (iter->second != NULL) {
-			ss << iter->first;
-			list.push_back((ss.str()).data());
-		}
-
-		iter++;
-	}
-
-	return list;
-}
-
 std::vector<std::string> ConfigurationManager::getSupportedTlsMethod(void) {
 	std::vector<std::string> method;
 	method.push_back("Default");
@@ -401,11 +376,21 @@ std::vector<std::string> ConfigurationManager::getSupportedTlsMethod(void) {
 	return method;
 }
 
-std::vector<std::string> ConfigurationManager::getCodecDetails(
-		const int32_t& payload) {
+std::vector<std::string> ConfigurationManager::getAudioCodecList(void) {
+	CodecFactory& factory = Manager::instance().getCodecFactory();
+	return factory.getAvailableCodecMimeType();
+}
 
-	return Manager::instance().getCodecDescriptorMap().getCodecSpecifications(
-			payload);
+::DBus::Struct<int32_t, double, double> ConfigurationManager::getAudioCodecDetails(const std::string& codecSubMimeType) {
+	CodecFactory& factory = Manager::instance().getCodecFactory();
+	AudioCodec* codec = factory.getCodec(codecSubMimeType);
+
+	::DBus::Struct<int32_t, double, double> codecDescription;
+	codecDescription._1 = codec->getClockRate();
+	codecDescription._2 = codec->getBitRate();
+	codecDescription._3 = codec->getBandwidth();
+
+	return codecDescription;
 }
 
 std::vector<std::string> ConfigurationManager::getActiveCodecList(

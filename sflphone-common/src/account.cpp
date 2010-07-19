@@ -77,7 +77,7 @@ void Account::loadAudioCodecs (void) {
 	// if the user never set the codec list, use the default configuration for this account
        if(_codecStr == "") {
 		_info ("Account: use the default order");
-		Manager::instance ().getCodecDescriptorMap ().setDefaultOrder();
+		Manager::instance ().getCodecFactory ().setDefaultOrder();
 	}
 	// else retrieve the one set in the user config file
 	else {
@@ -100,7 +100,7 @@ void Account::setActiveCodecs (const std::vector <std::string> &list) {
 	while ( (unsigned int) i < size) {
 		payload = std::atoi (list[i].data());
 		_info ("Account: Adding codec with RTP payload=%i", payload);
-		//if (Manager::instance ().getCodecDescriptorMap ().isCodecLoaded (payload)) {
+		//if (Manager::instance ().getCodecFactory ().isCodecLoaded (payload)) {
 		_codecOrder.push_back ( (AudioCodecType) payload);
 		//}
 		i++;

@@ -32,7 +32,7 @@
 #define IAXCALL_H
 
 #include "call.h"
-#include "audio/codecs/codecDescriptor.h"
+#include "audio/codecs/CodecFactory.h"
 
 #include <iax-client.h>
 #include <frame.h>
@@ -91,11 +91,11 @@ public:
     /**
      * Return a format (int) with the first matching codec selected.
      * 
-     * This considers the order of the appearance in the CodecMap,
+     * This considers the order of the appearance in the PayloadTypeToCodecNameMap,
      * thus, the order of preference.
      *
      * NOTE: Everything returned is bound to the content of the local
-     *       CodecMap, so it won't return format values that aren't valid
+     *       PayloadTypeToCodecNameMap, so it won't return format values that aren't valid
      *       in this call context.
      *
      * @param needles  The format(s) (bitwise) you are looking for to match
@@ -108,13 +108,13 @@ public:
      * Set internal codec Map: initialization only, not protected 
      * @param map The codec map
      */
-    void setCodecMap(const CodecDescriptor& map) { _codecMap = map; } 
+    void setCodecMap(const CodecFactory& map) { _codecMap = map; } 
 
     /** 
      * Get internal codec Map: initialization only, not protected 
-     * @return CodecDescriptor	The codec map
+     * @return CodecFactory	The codec map
      */
-    CodecDescriptor& getCodecMap();
+    CodecFactory& getCodecMap();
 
     /** 
      * Return audio codec [mutex protected]
@@ -133,7 +133,7 @@ private:
     void setAudioCodec(AudioCodecType audioCodec) { _audioCodec = audioCodec; }
 
     /** Codec Map */
-    CodecDescriptor _codecMap;
+    CodecFactory _codecMap;
 
     /** Codec pointer */
     AudioCodecType _audioCodec;

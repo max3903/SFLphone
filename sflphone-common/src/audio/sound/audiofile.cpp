@@ -32,7 +32,7 @@
  *  as that of the covered work.
  */
 #include "audiofile.h"
-#include "audio/codecs/codecDescriptor.h"
+#include "audio/codecs/CodecFactory.h"
 #include <fstream>
 #include <math.h>
 #include <samplerate.h>
