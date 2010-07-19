@@ -30,7 +30,7 @@
  */
 
 #include "../common.h"
-#include "audiocodec.h"
+#include "AudioCodec.h"
 
 class Ulaw: public AudioCodec {
 
@@ -38,15 +38,22 @@ public:
 	// 0 PCMU A 8000 1 [RFC3551]
 	Ulaw(int payload = 0) :
 		AudioCodec(payload, "PCMU") {
-		_clockRate = 8000;
-		_frameSize = 160; // samples, 20 ms at 8kHz
-		_channel = 1;
-		_bitrate = 64;
-		_bandwidth = 80;
+		setClockRate(8000);
+		setChannel(1);
+		setFrameSize(160);
+		setBitrate(64);
+		setBandwidth(80);
 	}
 
-	virtual int decode(short *dst, unsigned char *src, unsigned int size) {
-		// _debug("Decoded by ulaw");
+	Ulaw(const Ulaw& other) : AudioCodec(other) {
+		setClockRate(other.getClockRate());
+		setChannel(other.getChannel());
+		setFrameSize(other.getFrameSize());
+		setBitrate(other.getBitRate());
+		setBandwidth(other.getBandwidth());
+	}
+
+	int decode(short *dst, unsigned char *src, unsigned int size) {
 		int16* end = dst + size;
 
 		while (dst < end)
@@ -55,8 +62,7 @@ public:
 		return size << 1;
 	}
 
-	virtual int encode(unsigned char *dst, short *src, unsigned int size) {
-		// _debug("Encoded by ulaw \n");
+	int encode(unsigned char *dst, short *src, unsigned int size) {
 		size >>= 1;
 		uint8* end = dst + size;
 

@@ -67,7 +67,7 @@ enum MediaType {
 typedef enum StreamDirection streamDirection;
 typedef enum MediaType mediaType;
 
-#include "audio/codecs/audiocodec.h"
+#include "audio/codecs/AudioCodec.h"
 
 class SdpMedia {
 public:

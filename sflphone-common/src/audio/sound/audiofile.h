@@ -35,7 +35,7 @@
 #define __AUDIOFILE_H__
 
 #include "audio/audioloop.h"
-#include "audio/codecs/audiocodec.h"
+#include "audio/codecs/AudioCodec.h"
 #include "audio/codecs/codecDescriptor.h"
 
 /**

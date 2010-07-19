@@ -34,7 +34,7 @@
 #include <cc++/thread.h>
 
 #include "sip/sdp/SdesNegotiator.h"
-#include "audio/codecs/audiocodec.h"
+#include "audio/codecs/AudioCodec.h"
 
 class SdesNegotiator;
 class SIPCall;

@@ -33,7 +33,7 @@
 
 
 #include "../common.h"
-#include "audiocodec.h"
+#include "AudioCodec.h"
 #include "g722.h"
 
 #include <stdlib.h>
@@ -50,19 +50,28 @@ class G722 : public AudioCodec
 
         G722 (int payload=9)
                 : AudioCodec (payload, "G722") {
-            _clockRate = 16000;
-            _frameSize = 320; // samples, 20 ms at 16kHz
-            _channel   = 1;
-            _bitrate = 64;
-            _bandwidth = 80;
-
+    		setClockRate(16000);
+    		setChannel(1);
+    		setFrameSize(320);
+    		setBitrate(64);
+    		setBandwidth(80);
 
             decode_s = new g722_decode_state_t;
             encode_s = new g722_encode_state_t;
 
             g722_decode_init ();
             g722_encode_init ();
+        }
 
+        G722 (const G722& other) : AudioCodec(other){
+    		setClockRate(other.getClockRate());
+    		setChannel(other.getChannel());
+    		setFrameSize(other.getFrameSize());
+    		setBitrate(other.getBitRate());
+    		setBandwidth(other.getBandwidth());
+
+    		decode_s = new g722_decode_state_t(*other.decode_s);
+            encode_s = new g722_encode_state_t(*other.encode_s);
         }
 
         virtual int decode (short *dst, unsigned char *src, unsigned int size) {
@@ -796,8 +805,8 @@ class G722 : public AudioCodec
 
     private:
 
-        g722_decode_state_t *decode_s;
-        g722_encode_state_t *encode_s;
+        g722_decode_state_t* decode_s;
+        g722_encode_state_t* encode_s;
 
 };
 

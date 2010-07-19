@@ -30,7 +30,7 @@
  */
 
 #include "../common.h"
-#include "audiocodec.h"
+#include "AudioCodec.h"
 
 class Alaw : public AudioCodec
 {
@@ -39,11 +39,19 @@ class Alaw : public AudioCodec
         // 8 PCMA A 8000 1 [RFC3551]
         Alaw (int payload=0)
                 : AudioCodec (payload, "PCMA") {
-            _clockRate = 8000;
-            _frameSize = 160; // samples, 20 ms at 8kHz
-            _channel   = 1;
-            _bitrate = 64;
-            _bandwidth = 80;
+    		setClockRate(8000);
+    		setChannel(1);
+    		setFrameSize(160);
+    		setBitrate(64);
+    		setBandwidth(80);
+        }
+
+        Alaw(const Alaw& other) : AudioCodec(other) {
+    		setClockRate(other.getClockRate());
+    		setChannel(other.getChannel());
+    		setFrameSize(other.getFrameSize());
+    		setBitrate(other.getBitRate());
+    		setBandwidth(other.getBandwidth());
         }
 
         virtual ~Alaw() {}

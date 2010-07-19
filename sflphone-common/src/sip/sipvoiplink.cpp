@@ -34,13 +34,14 @@
 
 #include "sipvoiplink.h"
 
-#include "manager.h"
-
 #include "sip/sdp/sdp.h"
+#include "sdp/SdesNegotiator.h"
+
 #include "sipcall.h"
 #include "sipaccount.h"
+
+#include "manager.h"
 #include "eventthread.h"
-#include "sdp/SdesNegotiator.h"
 
 #include "dbus/dbusmanager.h"
 #include "dbus/callmanager.h"
@@ -3253,16 +3254,26 @@ void call_on_media_update(pjsip_inv_session *inv, pj_status_t status) {
 
 	AudioCodec* audioCodec;
 	if (sessionMedia->getMimeType() == "audio") {
-		audioCodec = static_cast<AudioCodec*>(sessionMedia); // TODO need to static cast to the leaf.
+		audioCodec = dynamic_cast<AudioCodec*>(sessionMedia);
 	}
 
-	if (audioCodec == NULL)
+	_debug("Frame size before cloning : %d", audioCodec->getFrameSize());
+	_info("Creating new instance of codec type \"%s/%s\"", sessionMedia->getMimeType().c_str(), sessionMedia->getMimeSubtype().c_str());
+
+	audioCodec = audioCodec->clone();
+
+	_debug("Frame size after cloning : %d", audioCodec->getFrameSize());
+
+	if (audioCodec == NULL) {
 		_error ("UserAgent: No audiocodec found");
+		return;  // FIXME Be a bit more severe please !
+	}
 
 	try {
+		_info("Starting RTP session ...");
 		call->setAudioStart(true);
 		call->getAudioRtp()->start(audioCodec);
-	} catch (exception& rtpException) { // FIXME Be more specific catching this exception.
+	} catch (sfl::AudioRtpFactoryException& rtpException) {
 		_error ("UserAgent: Error: %s", rtpException.what());
 	}
 }

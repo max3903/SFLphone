@@ -30,7 +30,7 @@
  */
 
 
-#include "audiocodec.h"
+#include "AudioCodec.h"
 extern "C"
 {
 #include <gsm/gsm.h>
@@ -46,11 +46,11 @@ class Gsm : public AudioCodec
     public:
         // _payload should be 3
         Gsm (int payload=3) : AudioCodec (payload, "GSM"), _decode_gsmhandle (NULL), _encode_gsmhandle (NULL) {
-            _clockRate = 8000;
-            _frameSize = 160; // samples, 20 ms at 8kHz
-            _channel = 1;
-            _bitrate = 13.3;
-            _bandwidth = 29.2;
+    		setClockRate(8000);
+    		setChannel(1);
+    		setFrameSize(160);
+    		setBitrate(13.3);
+    		setBandwidth(29.2);
 
             if (! (_decode_gsmhandle = gsm_create()))
                 printf ("ERROR: decode_gsm_create");
@@ -59,9 +59,19 @@ class Gsm : public AudioCodec
                 printf ("AudioCodec: ERROR: encode_gsm_create");
         }
 
-        Gsm (const Gsm&);
+        Gsm (const Gsm& other)  : AudioCodec(other) {
+    		setClockRate(other.getClockRate());
+    		setChannel(other.getChannel());
+    		setFrameSize(other.getFrameSize());
+    		setBitrate(other.getBitRate());
+    		setBandwidth(other.getBandwidth());
 
-        Gsm& operator= (const Gsm&);
+            if (! (_decode_gsmhandle = gsm_create()))
+                printf ("ERROR: decode_gsm_create");
+
+            if (! (_encode_gsmhandle = gsm_create()))
+                printf ("AudioCodec: ERROR: encode_gsm_create");
+        }
 
         virtual ~Gsm (void) {
             gsm_destroy (_decode_gsmhandle);

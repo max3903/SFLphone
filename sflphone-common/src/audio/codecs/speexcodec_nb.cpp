@@ -29,7 +29,7 @@
  *  as that of the covered work.
  */
 
-#include "audiocodec.h"
+#include "AudioCodec.h"
 #include <cstdio>
 #include <speex/speex.h>
 #include <speex/speex_preprocess.h>
@@ -46,16 +46,25 @@ class Speex : public AudioCodec
                 _speex_dec_state(),
                 _speex_enc_state(),
 		  _speex_frame_size() {
-            _clockRate = 8000;
-            _frameSize = 160; // samples, 20 ms at 8kHz
-            _channel = 1;
-            _bitrate = 24;
-            _bandwidth = 0;
+
+    		setClockRate(8000);
+    		setChannel(1);
+    		setFrameSize(160);
+    		setBitrate(24);
+    		setBandwidth(0);
+
             initSpeex();
         }
 
-        Speex (const Speex&);
-        Speex& operator= (const Speex&);
+        Speex (const Speex& other) : AudioCodec(other) {
+    		setClockRate(other.getClockRate());
+    		setChannel(other.getChannel());
+    		setFrameSize(other.getFrameSize());
+    		setBitrate(other.getBitRate());
+    		setBandwidth(other.getBandwidth());
+
+            initSpeex();
+        }
 
         void initSpeex() {
 

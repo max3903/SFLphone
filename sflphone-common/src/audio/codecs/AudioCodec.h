@@ -99,27 +99,32 @@ public:
 	/**
 	 * @return RTP clock rate in Hz.
 	 */
-	uint32 getClockRate();
+	uint32 getClockRate() const;
 
 	/**
 	 * @return the framing size for this codec.
 	 */
-	unsigned getFrameSize();
+	unsigned getFrameSize() const;
 
 	/**
 	 * @return the number of audio channels.
 	 */
-	uint8 getChannel();
+	uint8 getChannel() const;
 
 	/**
 	 * @return The bitrate for which this codec is configured // TODO deal with VBR case.
 	 */
-	double getBitRate();
+	double getBitRate() const;
 
 	/**
 	 * @return The expected bandwidth used by this codec.
 	 */
-	double getBandwidth();
+	double getBandwidth() const;
+
+	/**
+	 * @Override
+	 */
+	virtual AudioCodec* clone() = 0;
 
 protected:
 	/** Holds SDP-compliant codec name */
@@ -140,12 +145,37 @@ protected:
 	/** Bandwidth */
 	double _bandwidth;
 
+	void setCodecName(const std::string& codecName) {
+		_codecName = codecName;
+	}
+
+	void setClockRate(uint32 rate) {
+		_clockRate = rate;
+	}
+
+	void setChannel(uint8 channel) {
+		_channel = channel;
+	}
+
+	void setFrameSize(unsigned size) {
+		_frameSize = size;
+	}
+
+	void setBitrate(double rate) {
+		_bitrate = rate;
+	}
+
+	void setBandwidth(double bandwidth) {
+		_bandwidth = bandwidth;
+	}
 private:
 	uint8 _payload;
 
 	bool _hasDynamicPayload;
 
 	ost::DynamicPayloadFormat* _payloadFormat;
+
+	void init(uint8 payloadType, uint32 clockRate);
 };
 
 // the types of the class factories
