@@ -627,35 +627,7 @@ codec_move_down (GtkButton *button UNUSED, gpointer data)
   codec_move (FALSE, data);
 }
 
-int
-is_ringtone_enabled (void)
-{
-  return dbus_is_ringtone_enabled ();
-}
-
-void
-ringtone_enabled (GtkWidget *widget UNUSED, gpointer fileChooser)
-{
-  dbus_ringtone_enabled ();
-  gtk_widget_set_sensitive (GTK_WIDGET(fileChooser),
-      dbus_is_ringtone_enabled ());
-}
-
-void
-ringtone_changed (GtkFileChooser *chooser, GtkLabel *label UNUSED)
-{
-  gchar* tone = gtk_file_chooser_get_filename (GTK_FILE_CHOOSER( chooser ));
-  dbus_set_ringtone_choice (tone);
-}
-
-gchar*
-get_ringtone_choice (void)
-{
-  return dbus_get_ringtone_choice ();
-}
-
-GtkWidget*
-codecs_box (account_t **a)
+GtkWidget* codecs_box (account_t **a)
 {
   GtkWidget *ret;
   GtkWidget *scrolledWindow;
@@ -832,120 +804,88 @@ active_noise_suppress (void)
 GtkWidget*
 alsa_box ()
 {
-  GtkWidget *ret;
-  GtkWidget *table;
-  GtkWidget *item;
-  GtkCellRenderer *renderer;
+	GtkWidget *ret;
+	GtkWidget *table;
+	GtkWidget *item;
+	GtkCellRenderer *renderer;
 
-  ret = gtk_hbox_new (FALSE, 10);
-  gtk_widget_show (ret);
+	ret = gtk_hbox_new(FALSE, 10);
+	gtk_widget_show( ret );
 
-  table = gtk_table_new (5, 3, FALSE);
-  gtk_table_set_col_spacing (GTK_TABLE(table), 0, 40);
-  gtk_box_pack_start (GTK_BOX(ret), table, TRUE, TRUE, 1);
-  gtk_widget_show (table);
+	table = gtk_table_new(5, 3, FALSE);
+	gtk_table_set_col_spacing(GTK_TABLE(table), 0, 40);
+	gtk_box_pack_start( GTK_BOX(ret) , table , TRUE , TRUE , 1);
+	gtk_widget_show(table);
 
-  DEBUG("Audio: Configuration plugin");
-  item = gtk_label_new (_("ALSA plugin"));
-  gtk_misc_set_alignment (GTK_MISC(item), 0, 0.5);
-  gtk_table_attach (GTK_TABLE(table), item, 1, 2, 1, 2, GTK_FILL | GTK_EXPAND,
-      GTK_SHRINK, 0, 0);
-  gtk_widget_show (item);
-  // Set choices of audio managers
-  pluginlist = gtk_list_store_new (1, G_TYPE_STRING);
-  preferences_dialog_fill_audio_plugin_list ();
-  plugin = gtk_combo_box_new_with_model (GTK_TREE_MODEL(pluginlist));
-  select_active_output_audio_plugin ();
-  gtk_label_set_mnemonic_widget (GTK_LABEL(item), plugin);
-  g_signal_connect(G_OBJECT(plugin), "changed", G_CALLBACK(select_output_audio_plugin), plugin);
+	DEBUG("Audio: Configuration plugin");
+	item = gtk_label_new(_("ALSA plugin"));
+	gtk_misc_set_alignment(GTK_MISC(item), 0, 0.5);
+	gtk_table_attach(GTK_TABLE(table), item, 1, 2, 1, 2, GTK_FILL | GTK_EXPAND, GTK_SHRINK, 0, 0);
+	gtk_widget_show( item );
+	// Set choices of audio managers
+	pluginlist = gtk_list_store_new(1, G_TYPE_STRING);
+	preferences_dialog_fill_audio_plugin_list();
+	plugin = gtk_combo_box_new_with_model(GTK_TREE_MODEL(pluginlist));
+	select_active_output_audio_plugin();
+	gtk_label_set_mnemonic_widget(GTK_LABEL(item), plugin);
+	g_signal_connect(G_OBJECT(plugin), "changed", G_CALLBACK(select_output_audio_plugin), plugin);
 
-  // Set rendering
-  renderer = gtk_cell_renderer_text_new ();
-  gtk_cell_layout_pack_start (GTK_CELL_LAYOUT(plugin), renderer, TRUE);
-  gtk_cell_layout_set_attributes (GTK_CELL_LAYOUT(plugin), renderer, "text", 0,
-      NULL);
-  gtk_table_attach (GTK_TABLE(table), plugin, 2, 3, 1, 2,
-      GTK_FILL | GTK_EXPAND, GTK_SHRINK, 0, 0);
-  gtk_widget_show (plugin);
+	// Set rendering
+	renderer = gtk_cell_renderer_text_new();
+	gtk_cell_layout_pack_start(GTK_CELL_LAYOUT(plugin), renderer, TRUE);
+	gtk_cell_layout_set_attributes(GTK_CELL_LAYOUT(plugin), renderer, "text", 0, NULL);
+	gtk_table_attach(GTK_TABLE(table), plugin, 2, 3, 1, 2, GTK_FILL | GTK_EXPAND, GTK_SHRINK, 0, 0);
+	gtk_widget_show(plugin);
 
-  // Device : Output device
-  // Create title label
-  DEBUG("Audio: Configuration output");
-  item = gtk_label_new (_("Output"));
-  gtk_misc_set_alignment (GTK_MISC(item), 0, 0.5);
-  gtk_table_attach (GTK_TABLE(table), item, 1, 2, 2, 3, GTK_FILL | GTK_EXPAND,
-      GTK_SHRINK, 0, 0);
-  gtk_widget_show (item);
-  // Set choices of output devices
-  outputlist = gtk_list_store_new (2, G_TYPE_STRING, G_TYPE_INT);
-  preferences_dialog_fill_output_audio_device_list ();
-  output = gtk_combo_box_new_with_model (GTK_TREE_MODEL(outputlist));
-  select_active_output_audio_device ();
-  gtk_label_set_mnemonic_widget (GTK_LABEL(item), output);
-  g_signal_connect(G_OBJECT(output), "changed", G_CALLBACK(select_audio_output_device), output);
+	// Device : Output device
+	// Create title label
+	DEBUG("Audio: Configuration output");
+	item = gtk_label_new(_("Output"));
+	gtk_misc_set_alignment(GTK_MISC(item), 0, 0.5);
+	gtk_table_attach(GTK_TABLE(table), item, 1, 2, 2, 3, GTK_FILL | GTK_EXPAND, GTK_SHRINK, 0, 0);
+	gtk_widget_show(item);
+	// Set choices of output devices
+	outputlist = gtk_list_store_new(2, G_TYPE_STRING, G_TYPE_INT);
+	preferences_dialog_fill_output_audio_device_list();
+	output = gtk_combo_box_new_with_model(GTK_TREE_MODEL(outputlist));
+	select_active_output_audio_device();
+	gtk_label_set_mnemonic_widget(GTK_LABEL(item), output);
+	g_signal_connect(G_OBJECT(output), "changed", G_CALLBACK(select_audio_output_device), output);
 
-  // Set rendering
-  renderer = gtk_cell_renderer_text_new ();
-  gtk_cell_layout_pack_start (GTK_CELL_LAYOUT(output), renderer, TRUE);
-  gtk_cell_layout_set_attributes (GTK_CELL_LAYOUT(output), renderer, "text", 0,
-      NULL);
-  gtk_table_attach (GTK_TABLE(table), output, 2, 3, 2, 3,
-      GTK_FILL | GTK_EXPAND, GTK_SHRINK, 0, 0);
-  gtk_widget_show (output);
+	// Set rendering
+	renderer = gtk_cell_renderer_text_new();
+	gtk_cell_layout_pack_start(GTK_CELL_LAYOUT(output), renderer, TRUE);
+	gtk_cell_layout_set_attributes(GTK_CELL_LAYOUT(output), renderer, "text", 0, NULL);
+	gtk_table_attach(GTK_TABLE(table), output, 2, 3, 2, 3, GTK_FILL | GTK_EXPAND, GTK_SHRINK, 0, 0);
+	gtk_widget_show(output);
 
-  // Device : Input device
-  // Create title label
-  DEBUG("Audio: Configuration input");
-  item = gtk_label_new (_("Input"));
-  gtk_misc_set_alignment (GTK_MISC(item), 0, 0.5);
-  gtk_table_attach (GTK_TABLE(table), item, 1, 2, 3, 4, GTK_FILL | GTK_EXPAND,
-      GTK_SHRINK, 0, 0);
-  gtk_widget_show (item);
+	// Device : Input device
+	// Create title label
+	DEBUG("Audio: Configuration input");
+	item = gtk_label_new(_("Input"));
+	gtk_misc_set_alignment(GTK_MISC(item), 0, 0.5);
+	gtk_table_attach(GTK_TABLE(table), item, 1, 2, 3, 4, GTK_FILL | GTK_EXPAND, GTK_SHRINK, 0, 0);
+	gtk_widget_show(item);
 
-  // Set choices of output devices
-  inputlist = gtk_list_store_new (2, G_TYPE_STRING, G_TYPE_INT);
-  preferences_dialog_fill_input_audio_device_list ();
-  input = gtk_combo_box_new_with_model (GTK_TREE_MODEL(inputlist));
-  select_active_input_audio_device ();
-  gtk_label_set_mnemonic_widget (GTK_LABEL(item), input);
-  g_signal_connect(G_OBJECT(input), "changed", G_CALLBACK(select_audio_input_device), input);
+	// Set choices of output devices
+	inputlist = gtk_list_store_new(2, G_TYPE_STRING, G_TYPE_INT);
+	preferences_dialog_fill_input_audio_device_list();
+	input = gtk_combo_box_new_with_model(GTK_TREE_MODEL(inputlist));
+	select_active_input_audio_device();
+	gtk_label_set_mnemonic_widget(GTK_LABEL(item), input);
+	g_signal_connect(G_OBJECT(input), "changed", G_CALLBACK(select_audio_input_device), input);
 
-  // Set rendering
-  renderer = gtk_cell_renderer_text_new ();
-  gtk_cell_layout_pack_start (GTK_CELL_LAYOUT(input), renderer, TRUE);
-  gtk_cell_layout_set_attributes (GTK_CELL_LAYOUT(input), renderer, "text", 0,
-      NULL);
-  gtk_table_attach (GTK_TABLE(table), input, 2, 3, 3, 4, GTK_FILL | GTK_EXPAND,
-      GTK_SHRINK, 0, 0);
-  gtk_widget_show (input);
+	// Set rendering
+	renderer = gtk_cell_renderer_text_new();
+	gtk_cell_layout_pack_start(GTK_CELL_LAYOUT(input), renderer, TRUE);
+	gtk_cell_layout_set_attributes(GTK_CELL_LAYOUT(input), renderer, "text", 0, NULL);
+	gtk_table_attach(GTK_TABLE(table), input, 2, 3, 3, 4, GTK_FILL | GTK_EXPAND, GTK_SHRINK, 0, 0);
+	gtk_widget_show(input);
 
-  DEBUG("Audio: Configuration rintgtone");
-  item = gtk_label_new (_("Ringtone"));
-  gtk_misc_set_alignment (GTK_MISC(item), 0, 0.5);
-  gtk_table_attach (GTK_TABLE(table), item, 1, 2, 4, 5, GTK_FILL | GTK_EXPAND,
-      GTK_SHRINK, 0, 0);
-  gtk_widget_show (item);
-  // set choices of ringtone devices
-  ringtonelist = gtk_list_store_new (2, G_TYPE_STRING, G_TYPE_INT);
-  preferences_dialog_fill_ringtone_audio_device_list ();
-  ringtone = gtk_combo_box_new_with_model (GTK_TREE_MODEL(ringtonelist));
-  select_active_ringtone_audio_device ();
-  gtk_label_set_mnemonic_widget (GTK_LABEL(item), output);
-  g_signal_connect(G_OBJECT(ringtone), "changed", G_CALLBACK(select_audio_ringtone_device), output);
+	gtk_widget_show_all(ret);
 
-  // Set rendering
-  renderer = gtk_cell_renderer_text_new ();
-  gtk_cell_layout_pack_start (GTK_CELL_LAYOUT(ringtone), renderer, TRUE);
-  gtk_cell_layout_set_attributes (GTK_CELL_LAYOUT(ringtone), renderer, "text",
-      0, NULL);
-  gtk_table_attach (GTK_TABLE(table), ringtone, 2, 3, 4, 5, GTK_FILL
-      | GTK_EXPAND, GTK_SHRINK, 0, 0);
-  gtk_widget_show (ringtone);
-
-  gtk_widget_show_all (ret);
-
-  DEBUG("done");
-  return ret;
+	DEBUG("done");
+	return ret;
 }
 
 static void
@@ -962,128 +902,82 @@ record_path_changed (GtkFileChooser *chooser, GtkLabel *label UNUSED)
 GtkWidget*
 create_audio_configuration ()
 {
-  // Main widget
-  GtkWidget *ret;
-  // Sub boxes
-  GtkWidget *box;
-  GtkWidget *frame;
-  GtkWidget *enableEchoCancel;
-  GtkWidget *enableNoiseReduction;
-  gboolean echocancelActive, noisesuppressActive;
-  gchar *state;
+	// Main widget
+	GtkWidget *ret;
+	// Sub boxes
+	GtkWidget *box;
+	GtkWidget *frame;
+	GtkWidget *enableEchoCancel;
+	GtkWidget *enableNoiseReduction;
+	gboolean echocancelActive, noisesuppressActive;
+	gchar *state;
 
-  ret = gtk_vbox_new (FALSE, 10);
-  gtk_container_set_border_width (GTK_CONTAINER(ret), 10);
+	ret = gtk_vbox_new(FALSE, 10);
+	gtk_container_set_border_width(GTK_CONTAINER(ret), 10);
 
-  GtkWidget *alsa;
-  GtkWidget *table;
+	GtkWidget *alsa;
+	GtkWidget *table;
 
-  gnome_main_section_new_with_table (_("Sound Manager"), &frame, &table, 1, 2);
-  gtk_box_pack_start (GTK_BOX(ret), frame, FALSE, FALSE, 0);
+	gnome_main_section_new_with_table (_("Sound Manager"), &frame, &table, 1, 2);
+	gtk_box_pack_start(GTK_BOX(ret), frame, FALSE, FALSE, 0);
 
-  int audio_manager = dbus_get_audio_manager ();
-  gboolean pulse_audio = FALSE;
-  if (audio_manager == PULSEAUDIO)
-    {
-      pulse_audio = TRUE;
-    }
+	int audio_manager = dbus_get_audio_manager();
+	gboolean pulse_audio = FALSE;
+	if (audio_manager == PULSEAUDIO) {
+		pulse_audio = TRUE;
+	}
 
-  pulse = gtk_radio_button_new_with_mnemonic (NULL, _("_Pulseaudio"));
-  gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON(pulse), pulse_audio);
-  gtk_table_attach (GTK_TABLE( table ), pulse, 0, 1, 0, 1, GTK_EXPAND
-      | GTK_FILL, GTK_EXPAND | GTK_FILL, 0, 0);
+	pulse = gtk_radio_button_new_with_mnemonic( NULL , _("_Pulseaudio"));
+	gtk_toggle_button_set_active( GTK_TOGGLE_BUTTON(pulse), pulse_audio);
+	gtk_table_attach ( GTK_TABLE( table ), pulse, 0, 1, 0, 1, GTK_EXPAND | GTK_FILL, GTK_EXPAND | GTK_FILL, 0, 0);
 
-  alsa = gtk_radio_button_new_with_mnemonic_from_widget (
-      GTK_RADIO_BUTTON(pulse), _("_ALSA"));
-  gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON(alsa), !pulse_audio);
-  g_signal_connect(G_OBJECT(alsa), "clicked", G_CALLBACK(select_audio_manager), NULL);
-  gtk_table_attach (GTK_TABLE( table ), alsa, 1, 2, 0, 1,
-      GTK_EXPAND | GTK_FILL, GTK_EXPAND | GTK_FILL, 0, 0);
+	alsa = gtk_radio_button_new_with_mnemonic_from_widget(GTK_RADIO_BUTTON(pulse),  _("_ALSA"));
+	gtk_toggle_button_set_active( GTK_TOGGLE_BUTTON(alsa), !pulse_audio);
+	g_signal_connect(G_OBJECT(alsa), "clicked", G_CALLBACK(select_audio_manager), NULL);
+	gtk_table_attach ( GTK_TABLE( table ), alsa, 1, 2, 0, 1, GTK_EXPAND | GTK_FILL, GTK_EXPAND | GTK_FILL, 0, 0);
 
-  // Box for the ALSA configuration
-  gnome_main_section_new (_("ALSA settings"), &alsa_conf);
-  gtk_box_pack_start (GTK_BOX(ret), alsa_conf, FALSE, FALSE, 0);
-  gtk_widget_show (alsa_conf);
-  if (SHOW_ALSA_CONF)
-    {
-      // Box for the ALSA configuration
-      printf ("ALSA Created \n");
-      alsabox = alsa_box ();
-      gtk_container_add (GTK_CONTAINER(alsa_conf), alsabox);
-      gtk_widget_hide (alsa_conf);
-    }
+	// Box for the ALSA configuration
+	gnome_main_section_new (_("ALSA settings"), &alsa_conf);
+	gtk_box_pack_start(GTK_BOX(ret), alsa_conf, FALSE, FALSE, 0);
+	gtk_widget_show( alsa_conf );
+	if( SHOW_ALSA_CONF )
+	{
+		// Box for the ALSA configuration
+		printf("ALSA Created \n");
+		alsabox = alsa_box();
+		gtk_container_add( GTK_CONTAINER(alsa_conf) , alsabox );
+		gtk_widget_hide( alsa_conf );
+	}
 
-  // Recorded file saving path
-  GtkWidget *label;
-  GtkWidget *folderChooser;
-  gchar *dftPath;
+	// Recorded file saving path
+	GtkWidget *label;
+	GtkWidget *folderChooser;
+	gchar *dftPath;
 
-  /* Get the path where to save audio files */
-  dftPath = dbus_get_record_path ();
-  DEBUG("load recording path %s\n", dftPath);
+	/* Get the path where to save audio files */
+	dftPath = dbus_get_record_path ();
+	DEBUG("load recording path %s\n", dftPath);
 
-  gnome_main_section_new_with_table (_("Recordings"), &frame, &table, 1, 2);
-  gtk_box_pack_start (GTK_BOX(ret), frame, FALSE, FALSE, 0);
+	gnome_main_section_new_with_table (_("Recordings"), &frame, &table, 1, 2);
+	gtk_box_pack_start(GTK_BOX(ret), frame, FALSE, FALSE, 0);
 
-  // label
-  label = gtk_label_new (_("Destination folder"));
-  gtk_table_attach (GTK_TABLE(table), label, 0, 1, 0, 1, GTK_EXPAND | GTK_FILL,
-      GTK_EXPAND | GTK_FILL, 0, 5);
+	// label
+	label = gtk_label_new(_("Destination folder"));
+	gtk_table_attach( GTK_TABLE(table), label, 0, 1, 0, 1, GTK_EXPAND | GTK_FILL, GTK_EXPAND | GTK_FILL, 0, 5);
 
-  // folder chooser button
-  folderChooser = gtk_file_chooser_button_new (_("Select a folder"),
-      GTK_FILE_CHOOSER_ACTION_SELECT_FOLDER);
-  gtk_file_chooser_set_current_folder (GTK_FILE_CHOOSER( folderChooser),
-      dftPath);
-  g_signal_connect( G_OBJECT( folderChooser ) , "selection_changed" , G_CALLBACK( record_path_changed ) , NULL );
-  gtk_table_attach (GTK_TABLE(table), folderChooser, 1, 2, 0, 1, GTK_EXPAND
-      | GTK_FILL, GTK_EXPAND | GTK_FILL, 0, 5);
+	// folder chooser button
+	folderChooser = gtk_file_chooser_button_new(_("Select a folder"), GTK_FILE_CHOOSER_ACTION_SELECT_FOLDER);
+	gtk_file_chooser_set_current_folder(GTK_FILE_CHOOSER( folderChooser), dftPath);
+	g_signal_connect( G_OBJECT( folderChooser ) , "selection_changed" , G_CALLBACK( record_path_changed ) , NULL );
+	gtk_table_attach(GTK_TABLE(table), folderChooser, 1, 2, 0, 1, GTK_EXPAND | GTK_FILL, GTK_EXPAND | GTK_FILL, 0, 5);
 
-  // Box for the ringtones
-  gnome_main_section_new_with_table (_("Ringtones"), &frame, &table, 1, 2);
-  gtk_box_pack_start (GTK_BOX(ret), frame, FALSE, FALSE, 0);
 
-  GtkWidget *enableTone;
-  GtkWidget *fileChooser = gtk_file_chooser_button_new (_("Choose a ringtone"),
-      GTK_FILE_CHOOSER_ACTION_OPEN);
+	// Box for the voice enhancement configuration
+	gnome_main_section_new_with_table (_("Voice enhancement settings"), &frame, &table, 2, 1);
+    gtk_box_pack_start(GTK_BOX(ret), frame, FALSE, FALSE, 0);
 
-  enableTone = gtk_check_button_new_with_mnemonic (_("_Enable ringtones"));
-  gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON(enableTone),
-      dbus_is_ringtone_enabled ());
-  g_signal_connect(G_OBJECT( enableTone) , "clicked" , G_CALLBACK( ringtone_enabled ) , fileChooser);
-  gtk_table_attach (GTK_TABLE( table ), enableTone, 0, 1, 0, 1, GTK_EXPAND
-      | GTK_FILL, GTK_EXPAND | GTK_FILL, 0, 0);
-
-  // file chooser button
-  gtk_file_chooser_set_current_folder (GTK_FILE_CHOOSER( fileChooser),
-      g_get_home_dir ());
-  gtk_file_chooser_set_filename (GTK_FILE_CHOOSER( fileChooser),
-      get_ringtone_choice ());
-  gtk_widget_set_sensitive (GTK_WIDGET(fileChooser),
-      dbus_is_ringtone_enabled ());
-  g_signal_connect( G_OBJECT( fileChooser ) , "selection_changed" , G_CALLBACK( ringtone_changed ) , NULL );
-
-  GtkFileFilter *filter = gtk_file_filter_new ();
-  gtk_file_filter_set_name (filter, _("Audio Files") );
-  gtk_file_filter_add_pattern (filter, "*.wav");
-  gtk_file_filter_add_pattern (filter, "*.ul");
-  gtk_file_filter_add_pattern (filter, "*.au");
-  gtk_file_chooser_add_filter (GTK_FILE_CHOOSER( fileChooser ), filter);
-  gtk_table_attach (GTK_TABLE( table ), fileChooser, 1, 2, 0, 1, GTK_EXPAND
-      | GTK_FILL, GTK_EXPAND | GTK_FILL, 0, 0);
-
-  // Box for the voice enhancement configuration
-  gnome_main_section_new_with_table (_("Voice enhancement settings"), &frame,
-      &table, 2, 1);
-  gtk_box_pack_start (GTK_BOX(ret), frame, FALSE, FALSE, 0);
-
-  enableEchoCancel
-      = gtk_check_button_new_with_mnemonic (_("_Echo Suppression"));
-  state = dbus_get_echo_cancel_state ();
-  echocancelActive = FALSE;
-  if (strcmp (state, "enabled") == 0)
-    echocancelActive = TRUE;
-  else
+	enableEchoCancel = gtk_check_button_new_with_mnemonic( _("_Echo Suppression"));
+    state = dbus_get_echo_cancel_state();
     echocancelActive = FALSE;
   gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON(enableEchoCancel),
       echocancelActive);
@@ -1118,26 +1012,3 @@ create_audio_configuration ()
 
   return ret;
 }
-/*
- GtkWidget* create_codecs_configuration (account_t **a) {
-
- // Main widget
- GtkWidget *ret, *codecs, *box, *frame;
-
- ret = gtk_vbox_new(FALSE, 10);
- gtk_container_set_border_width(GTK_CONTAINER(ret), 10);
-
- // Box for the codecs
- gnome_main_section_new (_("Codecs"), &codecs);
- gtk_box_pack_start (GTK_BOX(ret), codecs, FALSE, FALSE, 0);
- gtk_widget_set_size_request (GTK_WIDGET (codecs), -1, 200);
- gtk_widget_show (codecs);
- box = codecs_box (a);
- gtk_container_add (GTK_CONTAINER (codecs) , box);
-
- gtk_widget_show_all(ret);
-
- return ret;
-
- }
- */

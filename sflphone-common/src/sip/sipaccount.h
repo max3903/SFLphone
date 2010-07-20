@@ -60,6 +60,7 @@ const Conf::Key publishPortKey("publishPort");
 const Conf::Key sameasLocalKey("sameasLocal");
 const Conf::Key resolveOnceKey("resolveOnce");
 const Conf::Key dtmfTypeKey("dtmfType");
+const Conf::Key serviceRouteKey("serviceRoute");
 
 // TODO: write an object to store credential which implement serializable
 const Conf::Key srtpKey("srtp");
@@ -432,6 +433,10 @@ class SIPAccount : public Account
          * @return void
          */
         inline void setPublishedAddress(const std::string& publishedIpAddress) { _publishedIpAddress = publishedIpAddress; }
+
+	inline std::string getServiceRoute(void) { return _serviceRoute; }
+
+	inline void setServiceRoute(std::string route) { _serviceRoute = route; }
         
         /**
          * Get the chosen transport type.
@@ -575,6 +580,8 @@ class SIPAccount : public Account
         
         pj_uint16_t _localPort;
         pj_uint16_t _publishedPort;
+
+	std::string _serviceRoute;
 
         /**
          * The global TLS listener port which can be configured through the IP2IP_PROFILE

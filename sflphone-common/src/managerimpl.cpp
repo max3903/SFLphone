@@ -1355,38 +1355,42 @@ void ManagerImpl::addStream (const CallID& call_id) {
 
 	if (participToConference(call_id)) {
 
-		// bind to conference participant
-		ConferenceMap::iterator iter = _conferencemap.find(call->getConfId());
+	  _debug("Manager: Add stream to conference");
 
-		if (iter != _conferencemap.end()) {
-			Conference* conf = iter->second;
+	  // bind to conference participant
+	  ConferenceMap::iterator iter = _conferencemap.find(call->getConfId());
 
-			conf->bindParticipant(call_id);
+	  if (iter != _conferencemap.end()) {
+	    Conference* conf = iter->second;
 
-			ParticipantSet participants = conf->getParticipantList();
-			// reset ring buffer for all conference participant
-			ParticipantSet::iterator iter_p = participants.begin();
+	    conf->bindParticipant(call_id);
 
-			while (iter_p != participants.end()) {
+	    ParticipantSet participants = conf->getParticipantList();
+	    // reset ring buffer for all conference participant
+	    ParticipantSet::iterator iter_p = participants.begin();
 
-				// to avoid puting onhold the call
-				// switchCall("");
-				_audiodriver->getMainBuffer()->flush(*iter_p);
+	    while (iter_p != participants.end()) {
 
-				iter_p++;
-			}
+	      // to avoid puting onhold the call
+	      // switchCall("");
+	      _audiodriver->getMainBuffer()->flush(*iter_p);
+	      
+	      iter_p++;
+	    }
 
-			_audiodriver->getMainBuffer()->flush(default_id);
-		}
+	    _audiodriver->getMainBuffer()->flush(default_id);
+	  }
 
 	} else {
 
-		// bind to main
-		getAudioDriver()->getMainBuffer()->bindCallID(call_id);
+	  _debug("Manager: Add stream to call"); 
 
-		// _audiodriver->getMainBuffer()->flush(default_id);
-		_audiodriver->flushUrgent();
-		_audiodriver->flushMain();
+	  // bind to main
+	  getAudioDriver()->getMainBuffer()->bindCallID(call_id);
+	  
+	  // _audiodriver->getMainBuffer()->flush(default_id);
+	  _audiodriver->flushUrgent();
+	  _audiodriver->flushMain();
 
 	}
 
@@ -1609,7 +1613,7 @@ bool ManagerImpl::incomingCall (Call* call, const AccountID& accountId) {
 		_debug ("Manager: Has no current call");
 
 		call->setConnectionState(Call::Ringing);
-		ringtone();
+		ringtone(accountId);
 
 	}
 	else {
@@ -1901,7 +1905,7 @@ void ManagerImpl::ringback () {
 /**
  * Multi Thread
  */
-void ManagerImpl::ringtone () {
+void ManagerImpl::ringtone (const AccountID& accountID) {
 	std::string ringchoice;
 	AudioLayer *audiolayer;
 	AudioCodec *codecForTone;
@@ -1910,13 +1914,20 @@ void ManagerImpl::ringtone () {
 
 	_debug("Manager: Ringtone");
 
-	if (isRingtoneEnabled()) {
+	Account *account = getAccount(accountID);
+
+	if(!account) {
+	  _warn("Manager: Warning: invalid account in ringtone");
+	  return;
+	}
+
+	if (account->getRingtoneEnabled()) {
 
 		_debug ("Manager: Tone is enabled");
 		//TODO Comment this because it makes the daemon crashes since the main thread
 		//synchronizes the ringtone thread.
 
-		ringchoice = audioPreference.getRingchoice();
+		ringchoice = account->getRingtonePath();
 		//if there is no / inside the path
 
 		if (ringchoice.find(DIR_SEPARATOR_CH) == std::string::npos) {
@@ -2051,206 +2062,21 @@ void ManagerImpl::initConfigFile (bool load_user_value, std::string alternate) {
 
 	_debug ("Manager: Init config file");
 
-	// Default values, that will be overwritten by the call to
-	// 'populateFromFile' below.
-
-	// Peer to peer settings
-	/*
-	_config.addDefaultValue(std::pair<std::string, std::string>(SRTP_ENABLE,
-			FALSE_STR), IP2IP_PROFILE);
-	_config.addDefaultValue(std::pair<std::string, std::string>(
-			SRTP_RTP_FALLBACK, FALSE_STR), IP2IP_PROFILE);
-	_config.addDefaultValue(std::pair<std::string, std::string>(
-			SRTP_KEY_EXCHANGE, "1"), IP2IP_PROFILE);
-	_config.addDefaultValue(std::pair<std::string, std::string>(
-			ZRTP_HELLO_HASH, TRUE_STR), IP2IP_PROFILE);
-	_config.addDefaultValue(std::pair<std::string, std::string>(
-			ZRTP_DISPLAY_SAS, TRUE_STR), IP2IP_PROFILE);
-	_config.addDefaultValue(std::pair<std::string, std::string>(
-			ZRTP_DISPLAY_SAS_ONCE, FALSE_STR), IP2IP_PROFILE);
-	_config.addDefaultValue(std::pair<std::string, std::string>(
-			ZRTP_NOT_SUPP_WARNING, TRUE_STR), IP2IP_PROFILE);
-	_config.addDefaultValue(std::pair<std::string, std::string>(
-			TLS_LISTENER_PORT, DEFAULT_SIP_TLS_PORT), IP2IP_PROFILE);
-	_config.addDefaultValue(std::pair<std::string, std::string>(TLS_ENABLE,
-			FALSE_STR), IP2IP_PROFILE);
-	_config.addDefaultValue(std::pair<std::string, std::string>(
-			TLS_CA_LIST_FILE, EMPTY_FIELD), IP2IP_PROFILE);
-	_config.addDefaultValue(std::pair<std::string, std::string>(
-			TLS_CERTIFICATE_FILE, EMPTY_FIELD), IP2IP_PROFILE);
-	_config.addDefaultValue(std::pair<std::string, std::string>(
-			TLS_PRIVATE_KEY_FILE, EMPTY_FIELD), IP2IP_PROFILE);
-	_config.addDefaultValue(std::pair<std::string, std::string>(TLS_PASSWORD,
-			EMPTY_FIELD), IP2IP_PROFILE);
-	_config.addDefaultValue(std::pair<std::string, std::string>(TLS_METHOD,
-			"TLSv1"), IP2IP_PROFILE);
-	_config.addDefaultValue(std::pair<std::string, std::string>(TLS_CIPHERS,
-			EMPTY_FIELD), IP2IP_PROFILE);
-	_config.addDefaultValue(std::pair<std::string, std::string>(
-			TLS_SERVER_NAME, EMPTY_FIELD), IP2IP_PROFILE);
-	_config.addDefaultValue(std::pair<std::string, std::string>(
-			TLS_VERIFY_SERVER, TRUE_STR), IP2IP_PROFILE);
-	_config.addDefaultValue(std::pair<std::string, std::string>(
-			TLS_VERIFY_CLIENT, TRUE_STR), IP2IP_PROFILE);
-	_config.addDefaultValue(std::pair<std::string, std::string>(
-			TLS_REQUIRE_CLIENT_CERTIFICATE, TRUE_STR), IP2IP_PROFILE);
-	_config.addDefaultValue(std::pair<std::string, std::string>(
-			TLS_NEGOTIATION_TIMEOUT_SEC, "2"), IP2IP_PROFILE);
-	_config.addDefaultValue(std::pair<std::string, std::string>(
-			TLS_NEGOTIATION_TIMEOUT_MSEC, "0"), IP2IP_PROFILE);
-	_config.addDefaultValue(std::pair<std::string, std::string>(
-			LOCAL_INTERFACE, "default"), IP2IP_PROFILE);
-	_config.addDefaultValue(std::pair<std::string, std::string>(
-			PUBLISHED_SAMEAS_LOCAL, TRUE_STR), IP2IP_PROFILE);
-	_config.addDefaultValue(std::pair<std::string, std::string>(LOCAL_PORT,
-			DEFAULT_SIP_PORT), IP2IP_PROFILE);
-	_config.addDefaultValue(std::pair<std::string, std::string>(PUBLISHED_PORT,
-			DEFAULT_SIP_PORT), IP2IP_PROFILE);
-	_config.addDefaultValue(std::pair<std::string, std::string>(
-			PUBLISHED_ADDRESS, DEFAULT_ADDRESS), IP2IP_PROFILE);
-	_config.addDefaultValue(std::pair<std::string, std::string>(STUN_ENABLE,
-			DFT_STUN_ENABLE), IP2IP_PROFILE);
-	_config.addDefaultValue(std::pair<std::string, std::string>(STUN_SERVER,
-			DFT_STUN_SERVER), IP2IP_PROFILE);
-	_config.addDefaultValue(std::pair<std::string, std::string>(
-			CONFIG_ACCOUNT_ALIAS, EMPTY_FIELD), IP2IP_PROFILE);
-	*/
-
 	// Init display name to the username under which
 	// this sflphone instance is running.
-	std::string diplayName("");
 	uid_t uid = getuid();
 
 	struct passwd * user_info = NULL;
 	user_info = getpwuid(uid);
 
-	if (user_info != NULL) {
-		diplayName = user_info->pw_name;
-	}
-
-	/*
-	_config.addDefaultValue(std::pair<std::string, std::string>(DISPLAY_NAME,
-			diplayName), IP2IP_PROFILE);
-
-	// Signalisation settings
-	_config.addDefaultValue(std::pair<std::string, std::string>(SYMMETRIC,
-			TRUE_STR), SIGNALISATION);
-	_config.addDefaultValue(std::pair<std::string, std::string>(PLAY_DTMF,
-			TRUE_STR), SIGNALISATION);
-	_config.addDefaultValue(std::pair<std::string, std::string>(PLAY_TONES,
-			TRUE_STR), SIGNALISATION);
-	_config.addDefaultValue(std::pair<std::string, std::string>(PULSE_LENGTH,
-			DFT_PULSE_LENGTH_STR), SIGNALISATION);
-	_config.addDefaultValue(std::pair<std::string, std::string>(SEND_DTMF_AS,
-			SIP_INFO_STR), SIGNALISATION);
-	_config.addDefaultValue(std::pair<std::string, std::string>(ZRTP_ZIDFILE,
-			ZRTP_ZID_FILENAME), SIGNALISATION);
-
-	// Audio settings
-	_config.addDefaultValue(std::pair<std::string, std::string>(
-			ALSA_CARD_ID_IN, ALSA_DFT_CARD), AUDIO);
-	_config.addDefaultValue(std::pair<std::string, std::string>(
-			ALSA_CARD_ID_OUT, ALSA_DFT_CARD), AUDIO);
-	_config.addDefaultValue(std::pair<std::string, std::string>(
-			ALSA_CARD_ID_RING, ALSA_DFT_CARD), AUDIO);
-	_config.addDefaultValue(std::pair<std::string, std::string>(
-			AUDIO_SAMPLE_RATE, DFT_SAMPLE_RATE), AUDIO);
-	_config.addDefaultValue(std::pair<std::string, std::string>(
-			ALSA_FRAME_SIZE, DFT_FRAME_SIZE), AUDIO);
-	_config.addDefaultValue(std::pair<std::string, std::string>(ALSA_PLUGIN,
-			PCM_DEFAULT), AUDIO);
-	_config.addDefaultValue(std::pair<std::string, std::string>(RING_CHOICE,
-			DFT_RINGTONE), AUDIO);
-	_config.addDefaultValue(std::pair<std::string, std::string>(VOLUME_SPKR,
-			DFT_VOL_SPKR_STR), AUDIO);
-	_config.addDefaultValue(std::pair<std::string, std::string>(VOLUME_MICRO,
-			DFT_VOL_MICRO_STR), AUDIO);
-	_config.addDefaultValue(std::pair<std::string, std::string>(RECORD_PATH,
-			DFT_RECORD_PATH), AUDIO);
-
-	// Pulseaudio stream device
-	_config.addDefaultValue(std::pair<std::string, std::string>(PULSE_DEVICE_PLAYBACK, ""), AUDIO);
-	_config.addDefaultValue(std::pair<std::string, std::string>(PULSE_DEVICE_RECORD, ""), AUDIO);
-	_config.addDefaultValue(std::pair<std::string, std::string>(PULSE_DEVICE_RINGTONE, ""), AUDIO);
-
-
-	// General settings
-	_config.addDefaultValue(std::pair<std::string, std::string>(ZONE_TONE,
-			DFT_ZONE), PREFERENCES);
-	_config.addDefaultValue(std::pair<std::string, std::string>(
-			CONFIG_RINGTONE, TRUE_STR), PREFERENCES);
-	_config.addDefaultValue(std::pair<std::string, std::string>(CONFIG_DIALPAD,
-			TRUE_STR), PREFERENCES);
-	_config.addDefaultValue(std::pair<std::string, std::string>(
-			CONFIG_SEARCHBAR, TRUE_STR), PREFERENCES);
-	_config.addDefaultValue(std::pair<std::string, std::string>(CONFIG_START,
-			FALSE_STR), PREFERENCES);
-	_config.addDefaultValue(std::pair<std::string, std::string>(CONFIG_POPUP,
-			TRUE_STR), PREFERENCES);
-	_config.addDefaultValue(std::pair<std::string, std::string>(CONFIG_NOTIFY,
-			TRUE_STR), PREFERENCES);
-	_config.addDefaultValue(std::pair<std::string, std::string>(
-			CONFIG_MAIL_NOTIFY, FALSE_STR), PREFERENCES);
-	_config.addDefaultValue(std::pair<std::string, std::string>(CONFIG_VOLUME,
-			TRUE_STR), PREFERENCES);
-	_config.addDefaultValue(std::pair<std::string, std::string>(
-			CONFIG_HISTORY_LIMIT, DFT_HISTORY_LIMIT), PREFERENCES);
-	_config.addDefaultValue(std::pair<std::string, std::string>(
-			CONFIG_HISTORY_ENABLED, TRUE_STR), PREFERENCES);
-	_config.addDefaultValue(std::pair<std::string, std::string>(CONFIG_AUDIO,
-			DFT_AUDIO_MANAGER), PREFERENCES);
-	_config.addDefaultValue(std::pair<std::string, std::string>(
-			CONFIG_SIP_PORT, DFT_SIP_PORT), PREFERENCES);
-	_config.addDefaultValue(std::pair<std::string, std::string>(
-			CONFIG_ACCOUNTS_ORDER, EMPTY_FIELD), PREFERENCES);
-	_config.addDefaultValue(std::pair<std::string, std::string>(CONFIG_MD5HASH,
-			FALSE_STR), PREFERENCES);
-	_config.addDefaultValue(std::pair<std::string, std::string>(WINDOW_WIDTH,
-			DFT_WINDOW_WIDTH), PREFERENCES);
-	_config.addDefaultValue(std::pair<std::string, std::string>(WINDOW_HEIGHT,
-			DFT_WINDOW_HEIGHT), PREFERENCES);
-	_config.addDefaultValue(std::pair<std::string, std::string>(
-			WINDOW_POSITION_X, "0"), PREFERENCES);
-	_config.addDefaultValue(std::pair<std::string, std::string>(
-			WINDOW_POSITION_Y, "0"), PREFERENCES);
-
-	// Addressbook settings
-	_config.addDefaultValue(std::pair<std::string, std::string>(
-			ADDRESSBOOK_ENABLE, TRUE_STR), ADDRESSBOOK);
-	_config.addDefaultValue(std::pair<std::string, std::string>(
-			ADDRESSBOOK_MAX_RESULTS, "25"), ADDRESSBOOK);
-	_config.addDefaultValue(std::pair<std::string, std::string>(
-			ADDRESSBOOK_DISPLAY_CONTACT_PHOTO, FALSE_STR), ADDRESSBOOK);
-	_config.addDefaultValue(std::pair<std::string, std::string>(
-			ADDRESSBOOK_DISPLAY_PHONE_BUSINESS, TRUE_STR), ADDRESSBOOK);
-	_config.addDefaultValue(std::pair<std::string, std::string>(
-			ADDRESSBOOK_DISPLAY_PHONE_HOME, FALSE_STR), ADDRESSBOOK);
-	_config.addDefaultValue(std::pair<std::string, std::string>(
-			ADDRESSBOOK_DISPLAY_PHONE_MOBILE, FALSE_STR), ADDRESSBOOK);
-
-	// Hooks settings
-	_config.addDefaultValue(std::pair<std::string, std::string>(
-			URLHOOK_SIP_FIELD, HOOK_DEFAULT_SIP_FIELD), HOOKS);
-	_config.addDefaultValue(std::pair<std::string, std::string>(
-			URLHOOK_COMMAND, HOOK_DEFAULT_URL_COMMAND), HOOKS);
-	_config.addDefaultValue(std::pair<std::string, std::string>(
-			URLHOOK_SIP_ENABLED, FALSE_STR), HOOKS);
-	_config.addDefaultValue(std::pair<std::string, std::string>(
-			URLHOOK_IAX2_ENABLED, FALSE_STR), HOOKS);
-	_config.addDefaultValue(std::pair<std::string, std::string>(
-			PHONE_NUMBER_HOOK_ENABLED, FALSE_STR), HOOKS);
-	_config.addDefaultValue(std::pair<std::string, std::string>(
-			PHONE_NUMBER_HOOK_ADD_PREFIX, EMPTY_FIELD), HOOKS);
-	*/
-
-	std::string path; // = "configurationexample.yml";
-	// Loads config from ~/.sflphone/sflphonedrc or so..
+	std::string path;
+	// Loads config from ~/.sflphone/sflphoned.yml or so..
 
 	if (createSettingsPath() == 1 && load_user_value) {
 
-		(alternate == "") ? path = _path : path = alternate;
-		std::cout << path << std::endl;
-		_exist = _config.populateFromFile(path);
+	  (alternate == "") ? path = _path : path = alternate;
+	  std::cout << path << std::endl;
+	  _exist = _config.populateFromFile(path);
 	}
 	_debug("Manager: configuration file path: %s", path.c_str());
 	
@@ -2315,52 +2141,6 @@ void ManagerImpl::initConfigFile (bool load_user_value, std::string alternate) {
 	    _error("Manager: %s", e.what());
 	  }
 	}
-
-	/*
-	// Globally shared default values (not to be populated from file)
-	_config.addDefaultValue(std::pair<std::string, std::string>(HOSTNAME,
-			EMPTY_FIELD));
-
-	_config.addDefaultValue(std::pair<std::string, std::string>(
-			AUTHENTICATION_USERNAME, EMPTY_FIELD));
-
-	_config.addDefaultValue(std::pair<std::string, std::string>(USERNAME,
-			EMPTY_FIELD));
-
-	_config.addDefaultValue(std::pair<std::string, std::string>(PASSWORD,
-			EMPTY_FIELD));
-
-	_config.addDefaultValue(std::pair<std::string, std::string>(REALM,
-			DEFAULT_REALM));
-
-	_config.addDefaultValue(std::pair<std::string, std::string>(USERAGENT,
-			DFT_USERAGENT));
-
-	_config.addDefaultValue(std::pair<std::string, std::string>(
-			CONFIG_ACCOUNT_REGISTRATION_EXPIRE, DFT_EXPIRE_VALUE));
-
-	_config.addDefaultValue(std::pair<std::string, std::string>(
-			CONFIG_ACCOUNT_RESOLVE_ONCE, FALSE_STR));
-
-	_config.addDefaultValue(std::pair<std::string, std::string>(
-			CONFIG_ACCOUNT_ALIAS, EMPTY_FIELD));
-
-	_config.addDefaultValue(std::pair<std::string, std::string>(
-			CONFIG_ACCOUNT_MAILBOX, EMPTY_FIELD));
-
-	_config.addDefaultValue(std::pair<std::string, std::string>(
-			CONFIG_ACCOUNT_ENABLE, TRUE_STR));
-
-	_config.addDefaultValue(std::pair<std::string, std::string>(
-			CONFIG_CREDENTIAL_NUMBER, "0"));
-
-	_config.addDefaultValue(std::pair<std::string, std::string>(
-			CONFIG_ACCOUNT_TYPE, DEFAULT_ACCOUNT_TYPE));
-	*/
-
-	// _setupLoaded = (fileExist != 1) ? false : true; 
-
-	// _setupLoaded = (_exist == 2) ? false : true;
 }
 
 /**
@@ -2577,19 +2357,42 @@ int ManagerImpl::isIax2Enabled (void) {
 #endif
 }
 
-int ManagerImpl::isRingtoneEnabled (void) {
-  return preferences.getRingtoneEnabled() ? 1 : 0;
+int ManagerImpl::isRingtoneEnabled (const AccountID& id) {
+  Account *account = getAccount(id);
+
+  if(!account) {
+    _warn("Manager: Warning: invalid account in ringtone enabled");
+    return 0;
+  }
+
+  return account->getRingtoneEnabled() ? 1 : 0;
 }
 
-void ManagerImpl::ringtoneEnabled (void) {
+void ManagerImpl::ringtoneEnabled (const AccountID& id) {
 
-  preferences.getRingtoneEnabled() ? preferences.setRingtoneEnabled(false) : preferences.setRingtoneEnabled(true);
+  Account *account = getAccount(id);
+
+  if(!account) {
+    _warn("Manager: Warning: invalid account in ringtone enabled");
+    return;
+  }
+
+  account->getRingtoneEnabled() ? account->setRingtoneEnabled(false) : account->setRingtoneEnabled(true);
   
 }
 
-std::string ManagerImpl::getRingtoneChoice (void) {
-	// we need the absolute path
-  std::string tone_name = audioPreference.getRingchoice();
+std::string ManagerImpl::getRingtoneChoice (const AccountID& id) {
+	
+        // retreive specified account id
+        Account *account = getAccount(id);
+
+	if(!account) {
+	  _warn("Manager: Warning: Not a valid account ID for ringone choice");
+	  return std::string("");
+	}
+
+        // we need the absolute path
+        std::string tone_name = account->getRingtonePath();
 	std::string tone_path;
 
 	if (tone_name.find(DIR_SEPARATOR_CH) == std::string::npos) {
@@ -2601,14 +2404,25 @@ std::string ManagerImpl::getRingtoneChoice (void) {
 		tone_path = tone_name;
 	}
 
-	_debug ("%s", tone_path.c_str());
+	_debug ("Manager: get ringtone path %s", tone_path.c_str());
 
 	return tone_path;
 }
 
-void ManagerImpl::setRingtoneChoice (const std::string& tone) {
+void ManagerImpl::setRingtoneChoice (const std::string& tone, const AccountID& id) {
+
+        _debug("Manager: Set ringtone path %s to account", tone.c_str());
+
+        // retreive specified account id
+        Account *account = getAccount(id);
+
+	if(!account) {
+	  _warn("Manager: Warning: Not a valid account ID for ringtone choice");
+	  return;
+	}
+
 	// we save the absolute path
-        audioPreference.setRingchoice(tone);
+        account->setRingtonePath(tone);
 }
 
 std::string ManagerImpl::getRecordPath (void) {
@@ -2616,7 +2430,7 @@ std::string ManagerImpl::getRecordPath (void) {
 }
 
 void ManagerImpl::setRecordPath (const std::string& recPath) {
-	_debug ("ManagerImpl::setRecordPath(%s)! ", recPath.c_str());
+	_debug ("Manager: Set record path %s", recPath.c_str());
 	audioPreference.setRecordpath(recPath);
 }
 
@@ -3278,7 +3092,7 @@ bool ManagerImpl::setConfig (const std::string& section,
 }
 
 void ManagerImpl::setAccountsOrder (const std::string& order) {
-	_debug ("----------------------------------------- Manager: Set accounts order : %s", order.c_str());
+	_debug ("Manager: Set accounts order : %s", order.c_str());
 	// Set the new config
 
 	preferences.setAccountOrder(order);
@@ -4179,3 +3993,4 @@ std::vector<std::string> ManagerImpl::getParticipantList (
 	return v;
 }
 
+ 
