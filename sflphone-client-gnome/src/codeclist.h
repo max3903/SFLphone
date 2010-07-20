@@ -1,6 +1,7 @@
 /*
  *  Copyright (C) 2004, 2005, 2006, 2009, 2008, 2009, 2010 Savoir-Faire Linux Inc.
  *  Author: Emmanuel Milou <emmanuel.milou@savoirfairelinux.net>
+ *  Author: Pierre-Luc Bacon <pierre-luc.bacon@savoirfairelinux.net>
  *                                                                              
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -27,152 +28,123 @@
  *  shall include the source code for the parts of OpenSSL used as well
  *  as that of the covered work.
  */
-
-#ifndef __CODECLIST_H__
-#define __CODECLIST_H__
+#ifndef __CODEC_LIBRARY_H__
+#define __CODEC_LIBRARY_H__
 
 #include <gtk/gtk.h>
-#include <accountlist.h>
-/** @file codeclist.h
-  * @brief A list to hold codecs.
-  */
 
-typedef struct {
-  /** Payload of the codec */
-  gint _payload;
-  /** Tells if the codec has been activated */
-  gboolean is_active;
-  /** String description */
-  gchar * name;
-  /** Sample rate */
-  int sample_rate;
-  /** Bitrate */
-  gdouble _bitrate;
-  /** Bandwidth */
-  gdouble _bandwidth;
-}codec_t;
-
-/** @struct codec_t
-  * @brief Codec information.
-  * This struct holds information about a codec.
-  * This match how the server internally works and the dbus API to save and retrieve the codecs details.
-  */
-
-/** 
- * This function initialize a specific codec list. 
- */
-void codec_list_init (GQueue **q);
-
-/** 
- * This function initialize the system wide codec list. 
- */
-void codec_capabilities_load (void);
-
-/** 
- * This function empty and free a specific codec list. 
- */
-void codec_list_clear (GQueue **q);
-
-/** 
- * This function empty and free the system wide codec list. 
- */
-void system_codec_list_clear (void);
-
-/** 
- * This function append an codec to list. 
- * @param c The codec you want to add 
- */
-void codec_list_add (codec_t * c, GQueue **q);
+#include "codec.h"
+#include "account.h"
 
 /**
- * Set a codec active. An active codec will be used for codec negociation
- * @param name The string description of the codec
+ * Create a codec library type.
+ * @return a pointer to the new codec library object.
  */
-void codec_set_active (codec_t **c);
+codec_library_t* codec_library_create();
 
 /**
- * Set a codec inactive. An active codec won't be used for codec negociation
+ * Free a codec library object.
+ */
+void codec_library_free(codec_library_t* library);
+
+/**
+ * @return a codec library that contains all of the supported codecs in the deamon.
+ */
+codec_library_t* codec_library_get_system_codecs();
+
+/** 
+ * Retrieve the codec list from the server via DBUS.
+ * @param library The codec library object to load into.
+ */
+void codec_library_load_available_codecs (codec_library_t* library);
+
+/** 
+ * Retrieve the codec list from the server via DBUS.
+ * @param account The account in which to load the enabled codecs.
+ */
+void codec_library_load_enabled_codecs (account_t* account);
+
+/**
+ * This function clears the internal list of codec that it keeps.
+ * @param library The codec library object to clear.
+ */
+void codec_library_clear (codec_library_t* library);
+
+/** 
+ * Add a codec to the codec library.
+ * @param library The codec library object in which to add the codec.
+ * @param codec The codec to add.
+ */
+void codec_library_add (codec_library_t* library, codec_t* codec);
+
+/**
+ * @return The number of codecs in the list
+ */
+guint codec_library_get_size(codec_library_t* library);
+
+/** 
+ * @param library The codec library object in which to search for.
+ * @param name The codec's mime subtype to search for.
+ */
+codec_t* codec_library_get_codec_by_name (codec_library_t* library, gconstpointer name);
+
+/**
+ * @param library The codec library object in which to search for.
+ * @param name The codec's payload type to search for.
+ */
+codec_t* codec_library_get_codec_by_payload_type (codec_library_t* library, gconstpointer payload);
+
+/**
+ * @param library The codec library.
+ * @return a GQueue object containing all of the codecs.
+ */
+GQueue* codec_library_get_all_codecs(codec_library_t* library);
+
+/** 
+ * @param index The position of the codec in the list.
+ * @return the codec at the nth position in the list
+ */
+codec_t* codec_library_get_nth_codec (codec_library_t* library, guint n);
+
+/**
+ * Sync the codec library in this client with the server.
+ * @param account The account for which codecs should be synced.
+ * @postcondition The codec list for the account on the server will be the same as in this client.
+ */
+void codec_library_sync (account_t* account);
+
+/**
+ * Set the prefered codec first in the codec list
+ * @param library The library in which to move the codec up.
+ * @param index The position in the list of the prefered codec
+ */ 
+void codec_library_set_prefered_order (codec_library_t* library, guint index);
+
+/** 
+ * Move the codec from an unit up in the codec_list
+ * @param library The library in which to move the codec up.
+ * @param index The current index in the list
+ */
+void codec_library_move_codec_up (codec_library_t* library, guint index);
+
+/** 
+ * Move the codec from an unit down in the codec_list
+ * @param library The library in which to move the codec down.
+ * @param index The current index in the list
+ */
+void codec_list_move_codec_down (codec_library_t* library, guint index);
+
+/**
+ * Set a codec active. An active codec will be used for codec negotiation
  * @param name The string description of the codec
  */
 void codec_set_inactive(codec_t **c);
 
-/** 
- * Return the number of codecs in the list
- * @return guint The number of codecs in the list 
- */
-guint codec_list_get_size();
-
-/** 
- * Return the codec structure that corresponds to the string description 
+/**
+ * Set a codec inactive. An active codec won't be used for codec negotiation
  * @param name The string description of the codec
- * @return codec_t* A codec or NULL 
  */
-codec_t * codec_list_get_by_name(gconstpointer name, GQueue *q);
-
-/** 
- * Return the codec at the nth position in the list
- * @param index The position of the codec you want
- * @return codec_t* A codec or NULL 
- */
-codec_t* codec_list_get_nth (guint index, GQueue *q);
-codec_t* capabilities_get_nth (guint index);
-
-/**
- * Set the prefered codec first in the codec list
- * @param index The position in the list of the prefered codec
- */ 
-void codec_set_prefered_order (guint index, GQueue *q);
-
-/** 
- * Move the codec from an unit up in the codec_list
- * @param index The current index in the list
- */
-void codec_list_move_codec_up (guint index, GQueue **q);
-
-/** 
- * Move the codec from an unit down in the codec_list
- * @param index The current index in the list
- */
-void codec_list_move_codec_down (guint index, GQueue **q);
-
-/**
- * Notify modifications on codecs to the server
- */
-void codec_list_update_to_daemon (account_t *acc);
-
-codec_t* codec_list_get_by_payload (gconstpointer payload, GQueue *q);
-
-GQueue* get_system_codec_list (void);
-
-/**
- * Instanciate a new codecs with the given payload. 
- * Fetches codec specification through D-Bus
- *
- * @param payload		The unique RTP payload
- * @param active		Whether or not this codec should active (checked)
- * @param c			A pointer to receive the new codec instance
- */
-void codec_create_new (gint payload, gboolean active, codec_t **c);
-
-/*
- * Instanciate a new codec with the given specification
- *
- * @param payload	The unique RTP payload
- * @param specs		A list of codec specifications. Ordered: name, sample rate, bit rate, bandwith
- * @param active	Whether or not this codec should active (checked)
- * @param c			A pointer to receive the new codec instance
- */
-void codec_create_new_with_specs (gint payload, gchar **specs, gboolean active, codec_t **c);
-
-
-void codec_create_new_from_caps (codec_t *original, codec_t **copy);
-/*
- * Attach a codec list to a specific account
- *
- * @param acc		A pointer on the account to modify
- */
-void account_create_codec_list (account_t **acc);
-
+void codec_set_active(codec_t **c);
 
 #endif
 

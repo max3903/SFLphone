@@ -52,12 +52,12 @@ public:
 	/**
 	 * @Override
 	 */
-	std::string getMimeType();
+	std::string getMimeType() const;
 
 	/**
 	 * @Override
 	 */
-	std::string getMimeSubtype();
+	std::string getMimeSubtype() const;
 
 	/**
 	 * @Override
@@ -89,7 +89,7 @@ public:
 	/**
 	 * @return payload type numeric identifier.
 	 */
-	uint8 getPayloadType();
+	uint8 getPayloadType() const ;
 
 	/**
 	 * @return true if this payload is a dynamic one.

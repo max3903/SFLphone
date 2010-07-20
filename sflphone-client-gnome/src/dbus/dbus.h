@@ -41,6 +41,8 @@
 #include <conference_obj.h>
 #include <sflnotify.h>
 
+#include <stdint.h>
+
 /**
  * Utility structure for holding a video frame resolution.
  */
@@ -259,15 +261,7 @@ dbus_play_dtmf (const gchar * key);
  * @return gchar** The list of codecs
  */
 gchar**
-dbus_codec_list ();
-
-/**
- * ConfigurationManager - Get the codec details
- * @param payload The payload of the codec
- * @return gchar** The codec details
- */
-gchar**
-dbus_codec_details (int payload);
+dbus_audio_codec_list ();
 
 /**
  * ConfigurationManager - Get the default codec list
@@ -456,19 +450,6 @@ dbus_get_ringtone_choice (void);
 void
 dbus_set_ringtone_choice (const gchar* tone);
 
-/**
- * ConfigurationManager - Set the dialpad visible or not
- */
-void
-dbus_set_dialpad (gboolean display);
-
-/**
- * ConfigurationManager - Tells if the user wants to display the dialpad or not
- * @return int 1 if dialpad has to be displayed
- *	       0 otherwise
- */
-int
-dbus_get_dialpad (void);
 
 /**
  * ConfigurationManager - Set the searchbar visible or not
@@ -677,23 +658,6 @@ dbus_get_supported_tls_method ();
 
 gchar**
 dbus_get_participant_list (const char * confID);
-
-guint
-dbus_get_window_width (void);
-guint
-dbus_get_window_height (void);
-void
-dbus_set_window_height (const guint height);
-void
-dbus_set_window_width (const guint width);
-guint
-dbus_get_window_position_x (void);
-guint
-dbus_get_window_position_y (void);
-void
-dbus_set_window_position_x (const guint posx);
-void
-dbus_set_window_position_y (const guint posy);
 
 GHashTable*
 dbus_get_shortcuts (void);

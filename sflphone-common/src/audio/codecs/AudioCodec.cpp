@@ -59,11 +59,11 @@ void AudioCodec::init(uint8 payloadType, uint32 clockRate) {
 	}
 }
 
-std::string AudioCodec::getMimeType() {
+std::string AudioCodec::getMimeType() const {
 	return "audio";
 }
 
-std::string AudioCodec::getMimeSubtype() {
+std::string AudioCodec::getMimeSubtype() const {
 	return _codecName;
 }
 
@@ -71,7 +71,7 @@ const ost::PayloadFormat& AudioCodec::getPayloadFormat() {
 	return (*_payloadFormat);
 }
 
-uint8 AudioCodec::getPayloadType(void) {
+uint8 AudioCodec::getPayloadType(void) const {
 	return _payload;
 }
 

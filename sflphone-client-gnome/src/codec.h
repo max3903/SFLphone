@@ -1,11 +1,13 @@
 /*
  *  Copyright (C) 2004, 2005, 2006, 2009, 2008, 2009, 2010 Savoir-Faire Linux Inc.
- *  Author: Pierre-Luc Bacon <pierre-luc.bacon@savoirfairelinux.com>
+ *  Author: Pierre-Luc Beaudoin <pierre-luc@savoirfairelinux.com>
+ *  Author: Emmanuel Milou <emmanuel.milou@savoirfairelinux.com>
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation; either version 3 of the License, or
  *  (at your option) any later version.
+ *
  *  This program is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -27,45 +29,70 @@
  *  as that of the covered work.
  */
 
-#ifndef __SFL_MIME_PARAMETERS_H__
-#define __SFL_MIME_PARAMETERS_H__
+#ifndef __CODEC_H__
+#define __CODEC_H__
 
-#include <ccrtp/rtp.h>
+#include <glib.h>
 
-namespace sfl {
+#include <stdint.h>
 
 /**
- * Interface for exposing MIME parameters in SDP offer/answer model.
+ * This structure holds information about some audio codec.
  */
-class MimeParameters {
-public:
-	/**
-	 * @return The mimesubtype for this codec. Eg. : "video"
-	 */
-	virtual std::string getMimeType() const = 0;
+typedef struct {
+  uint32_t clock_rate;
+  uint8_t payload;
+  char* mime_type;
+  char* mime_subtype;
+  double bitrate;
+  double bandwidth;
+  gboolean is_active;
+} audio_codec_t;
 
-	/**
-	 * @return The mimesubtype for this codec. Eg. : "theora"
-	 */
-	virtual std::string getMimeSubtype() const = 0;
+/**
+ * This structure holds information about some video codec.
+ * (Same as audio codec for now).
+ */
+typedef struct {
+  uint32_t clock_rate;
+  uint8_t payload;
+  char* mime_type;
+  char* mime_subtype;
+  double bitrate;
+  double bandwidth;
+  gboolean is_active;
+} video_codec_t;
 
-	/**
-	 * @return The payload format for which this plugin is designed for.
-	 */
-	virtual const ost::PayloadFormat& getPayloadFormat() = 0;
+/**
+ * To obtain a "polymorphic" kind of behavior, one can choose to read the "codec"
+ * field of this union structure to access fields that are common to video and audio codecs.
+ */
+typedef union {
+  struct {
+    uint32_t clock_rate;
+    uint8_t payload;
+    char* mime_type;
+    char* mime_subtype;
+    double bitrate;
+    double bandwidth;
+    gboolean is_active;
+  } codec;
 
-	/**
-	 * @param name The name that identifies the MIME parameter.
-	 * @param value The value this parameter should have.
-	 */
-	virtual void setParameter(const std::string& name, const std::string& value) = 0;
+  audio_codec_t audio;
 
-	/**
-	 * @param name The name that identifies the MIME parameter.
-	 * @return The value that is set for this parameter.
-	 */
-	virtual std::string getParameter(const std::string& name) = 0;
-};
+  video_codec_t video;
 
-}
+} codec_t;
+
+
+/**
+ * This structure is used to hold various information needed by the functions
+ * below and avoid global variables.
+ *
+ * Opaque structure.
+ */
+typedef struct {
+  GQueue* codec_list;
+} codec_library_t;
+
 #endif

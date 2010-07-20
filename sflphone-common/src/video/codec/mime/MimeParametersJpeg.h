@@ -48,12 +48,12 @@ public:
 	/**
 	 * @Override
 	 */
-	std::string getMimeType()  { return "video"; }
+	std::string getMimeType() const { return "video"; }
 
 	/**
 	 * @Override
 	 */
-	std::string getMimeSubtype() { return "JPEG"; }
+	std::string getMimeSubtype() const { return "JPEG"; }
 
 	/**
 	 * @Override

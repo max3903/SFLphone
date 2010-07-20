@@ -36,9 +36,9 @@ namespace sfl {
 
 class MimeParametersNull : public virtual MimeParameters {
 public:
-	std::string getMimeType() { return "video"; }
+	std::string getMimeType() const { return "video"; }
 
-	std::string getMimeSubtype()  { return "NULL"; }
+	std::string getMimeSubtype() const { return "NULL"; }
 
 	const ost::PayloadFormat& getPayloadFormat()  {
 		static ost::DynamicPayloadFormat format((ost::PayloadType) 127, 90000);

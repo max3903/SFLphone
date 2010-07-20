@@ -76,12 +76,26 @@ public:
 	/**
 	 * @return a list of all the MIME subtypes for the supported audio codec.
 	 */
-	std::vector<std::string> getAudioCodecList();
+	std::vector<std::string> getAllAudioCodecMimeSubtypes();
 
 	/**
-	 * @return a structure containing the following fields in order : clock rate, bitrate, bandwidth
+	 * @return a structure containing the following fields in order :
+	 * 		clock rate,
+	 * 		payload type,
+	 * 		mime type,
+	 * 		mime subtype,
+	 * 		bitrate,
+	 * 		bandwidth.
 	 */
-	::DBus::Struct<int32_t, double, double> getAudioCodecDetails(const std::string& codecMimeType);
+	::DBus::Struct<int32_t, uint8_t, std::string, std::string, double, double>
+			getAudioCodecDetails(const std::string& codecMimeType);
+
+	/**
+	 * @return a vector of all the audio codecs that are available. Same as calling getAudioCodecMimeSubtypes() in a loop, then
+	 * getAudioCodecDetails.
+	 */
+	std::vector< ::DBus::Struct<int32_t, uint8_t, std::string, std::string, double, double> >
+		getAllAudioCodecs();
 
 	std::vector<std::string> getActiveCodecList(const std::string& accountID);
 	void setActiveCodecList(const std::vector<std::string>& list,

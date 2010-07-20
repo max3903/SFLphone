@@ -77,28 +77,6 @@ std::vector<std::string> CodecFactory::getAvailableCodecMimeType() {
 	return output;
 }
 
-void CodecFactory::setDefaultOrder() {
-
-	_defaultCodecOrder.clear();
-	PayloadTypeToCodecMap::iterator iter = _codecsMap.begin();
-
-	while (iter != _codecsMap.end()) {
-		_defaultCodecOrder.push_back(iter->first);
-		iter++;
-	}
-}
-
-std::string CodecFactory::getCodecName(AudioCodecType payload) {
-	std::string resNull = "";
-	PayloadTypeToCodecMap::iterator iter = _codecsMap.find(payload);
-
-	if (iter != _codecsMap.end()) {
-		return (iter->second->getMimeSubtype());
-	}
-
-	return resNull;
-}
-
 AudioCodec*
 CodecFactory::getCodec(AudioCodecType payload) {
 	PayloadTypeToCodecMap::iterator iter = _codecsMap.find(payload);
@@ -122,6 +100,44 @@ AudioCodec* CodecFactory::getCodec(const std::string& mimeSubtype) {
 	}
 
 	return NULL; // TODO throw something instead.
+}
+
+
+void CodecFactory::setDefaultOrder() {
+
+	_defaultCodecOrder.clear();
+	PayloadTypeToCodecMap::iterator iter = _codecsMap.begin();
+
+	while (iter != _codecsMap.end()) {
+		_defaultCodecOrder.push_back(iter->first);
+		iter++;
+	}
+}
+
+std::string CodecFactory::getCodecName(AudioCodecType payload) {
+	std::string resNull = "";
+	PayloadTypeToCodecMap::iterator iter = _codecsMap.find(payload);
+
+	if (iter != _codecsMap.end()) {
+		return (iter->second->getMimeSubtype());
+	}
+
+	return resNull;
+}
+
+std::vector<const AudioCodec*> CodecFactory::getAllAudioCodecs()
+{
+	std::vector<const AudioCodec*> output;
+
+	PayloadTypeToCodecMap::iterator it;
+	for (it = _codecsMap.begin(); it != _codecsMap.end(); it++) {
+		if (((*it).second)->getMimeType() == "audio") {
+			const AudioCodec* codec = static_cast<AudioCodec*>((*it).second);
+			output.push_back(codec);
+		}
+	}
+
+	return output;
 }
 
 double CodecFactory::getBitRate(AudioCodecType payload) {

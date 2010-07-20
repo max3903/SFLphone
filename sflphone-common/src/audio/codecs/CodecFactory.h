@@ -88,6 +88,11 @@ class CodecFactory {
     std::string getCodecName(AudioCodecType payload);
 
     /**
+     * @return all of the supported audio codecs.
+     */
+    std::vector<const AudioCodec*> getAllAudioCodecs();
+
+    /**
      * Initialiaze the map with all the supported codecs, even those inactive
      */  
     void init();

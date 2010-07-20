@@ -408,7 +408,7 @@
 	   </method>
 
 	   <!-- Codecs-related methods -->
-	   <method name="getAudioCodecList" tp:name-for-bindings="getAudioCodecList">
+	   <method name="getAllAudioCodecMimeSubtypes" tp:name-for-bindings="getAllAudioCodecMimeSubtypes">
 		   <tp:docstring>
 		   </tp:docstring>
 		   <arg type="as" name="list" direction="out">
@@ -426,10 +426,20 @@
 			   The MIME subtype identifying this codec.
 			   </tp:docstring>
 		   </arg>
-		   <arg type="(idd)" name="details" direction="out">
+		   <arg type="(iyssdd)" name="details" direction="out">
 			   <tp:docstring>
-			   A structure containing the following fields in order : clock rate, bitrate, bandwidth.
-			   </tp:docstring>
+ 				A structure containing the following fields in order : clock rate, payload type, mime type, mime subtype, bitrate, bandwidth.			   
+ 				</tp:docstring>
+		   </arg>
+	   </method>
+	   
+	   <method name="getAllAudioCodecs" tp:name-for-bindings="getAudioCodecDetails">
+		   <tp:docstring>
+		   </tp:docstring>
+		   <arg type="a(iyssdd)" name="details" direction="out">
+			   <tp:docstring>
+ 				A vector of all the audio codecs that are available. Same as calling getAudioCodecMimeSubtypes() in a loop, then getAudioCodecDetails. 				
+ 		   		</tp:docstring>
 		   </arg>
 	   </method>
 
