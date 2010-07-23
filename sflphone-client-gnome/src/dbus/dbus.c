@@ -1298,6 +1298,7 @@ dbus_get_all_audio_codecs ()
     {
       ERROR("Failed to audio codecs over dbus");
       g_error_free (error);
+      return NULL;
     }
 
   int i;
@@ -1348,13 +1349,14 @@ dbus_get_active_audio_codecs (gchar* accountID)
   GPtrArray* audio_codecs = NULL;
   GList* ret = NULL;
 
-  DEBUG("Fetching active audio codecs for account %s ...", accountID);
+  DEBUG("Fetching active audio codecs for account \"%s\" ...", accountID);
 
   org_sflphone_SFLphone_ConfigurationManager_get_all_active_audio_codecs(configurationManagerProxy, accountID, &audio_codecs, &error);
   if (error != NULL)
     {
-      ERROR("Failed to retrieve active audio codecs for account %s over Dbus", accountID);
+      ERROR("Failed to retrieve active audio codecs for account \"%s\" over Dbus", accountID);
       g_error_free (error);
+      return NULL;
     }
 
   DEBUG("Server returned %d audio codecs.", audio_codecs->len);

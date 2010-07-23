@@ -88,11 +88,11 @@ preferences_dialog_fill_codec_list (account_t **account)
   GtkTreeIter iter;
   for (i = 0; i < length; i++)
     {
-      codec_t* codec = g_queue_peek_nth(current, i); // Certainly not optimal.
-
-      DEBUG ("%s", codec->audio.mime_subtype);
+      codec_t* codec = g_queue_peek_nth(current, i);
 
       gtk_list_store_append (codecStore, &iter);
+
+      DEBUG("Payload %d", codec->audio.payload);
 
       gtk_list_store_set (codecStore, &iter,
           COLUMN_CODEC_ACTIVE,
@@ -100,7 +100,7 @@ preferences_dialog_fill_codec_list (account_t **account)
           COLUMN_CODEC_NAME,
           codec->audio.mime_subtype, // Name
           COLUMN_CODEC_FREQUENCY,
-          g_strdup_printf ("%d kHz", codec->audio.clock_rate / 1000), // Frequency (kHz)
+          g_strdup_printf ("%d Hz", codec->audio.clock_rate), // Frequency (kHz)
           COLUMN_CODEC_BITRATE,
           g_strdup_printf ("%.1f kbps", codec->audio.bitrate), // Bitrate (kbps)
           COLUMN_CODEC_BANDWIDTH,

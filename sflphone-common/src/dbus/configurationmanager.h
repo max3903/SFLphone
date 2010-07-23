@@ -48,10 +48,10 @@
  * 		bandwidth,
  * 		additional information (description)
  */
-typedef ::DBus::Struct<std::string, int32_t, uint8_t, std::string, std::string,
+typedef ::DBus::Struct<std::string, uint32_t, uint8_t, std::string, std::string,
 		double, double, std::string> DbusAudioCodec;
 
-typedef ::DBus::Struct<std::string, int32_t, uint8_t, std::string, std::string,
+typedef ::DBus::Struct<std::string, uint32_t, uint8_t, std::string, std::string,
 		double, double, std::string> DbusVideoCodec;
 
 class ConfigurationManager: public org::sflphone::SFLphone::ConfigurationManager_adaptor,
