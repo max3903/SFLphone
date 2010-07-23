@@ -1285,25 +1285,6 @@ dbus_unregister (int pid)
       g_error_free (error);
     }
 }
-
-gchar**
-dbus_audio_codec_list ()
-{
-
-  GError *error = NULL;
-  gchar** array = NULL;
-  org_sflphone_SFLphone_ConfigurationManager_get_audio_codec_list (
-      configurationManagerProxy, &array, &error);
-
-  if (error)
-    {
-      ERROR ("Failed to call get_codec_list() on ConfigurationManager: %s",
-          error->message);
-      g_error_free (error);
-    }
-  return array;
-}
-
 GList*
 dbus_get_all_audio_codecs ()
 {
@@ -1330,9 +1311,11 @@ dbus_get_all_audio_codecs ()
 
       audio_codec_t* codec = g_new(audio_codec_t, 1);
 
-      dbus_g_type_struct_get (&elem, 0, &codec->clock_rate, 1, &codec->payload,
-          2, &codec->mime_type, 3, &codec->mime_subtype, 4, &codec->bitrate, 5,
-          &codec->bandwidth, G_MAXUINT);
+      dbus_g_type_struct_get (&elem, 0, &codec->identifier, 1, &codec->clock_rate, 2, &codec->payload,
+          3, &codec->mime_type, 4, &codec->mime_subtype, 5, &codec->bitrate, 6,
+          &codec->bandwidth, 7, &codec->description, G_MAXUINT);
+
+     codec->is_active = FALSE;
 
       ret = g_list_prepend (ret, codec);
     }
@@ -1358,31 +1341,48 @@ dbus_get_current_codec_name (const callable_obj_t * c)
   return codecName;
 }
 
-gchar**
-dbus_get_active_codec_list (gchar *accountID)
+GList*
+dbus_get_active_audio_codecs (gchar* accountID)
 {
+  GError* error = NULL;
+  GPtrArray* audio_codecs = NULL;
+  GList* ret = NULL;
 
-  gchar ** array;
-  GError *error = NULL;
-  org_sflphone_SFLphone_ConfigurationManager_get_active_codec_list (
-      configurationManagerProxy, accountID, &array, &error);
-
-  if (error)
+  org_sflphone_SFLphone_ConfigurationManager_get_all_active_audio_codecs(configurationManagerProxy, accountID, &audio_codecs, &error);
+  if (error != NULL)
     {
-      ERROR ("Failed to call get_active_codec_list() on ConfigurationManager: %s",
-          error->message);
+      ERROR("Failed to retrieve active audio codecs for account %s over Dbus", accountID);
       g_error_free (error);
     }
-  return array;
+
+  int i;
+  for (i = 0; i < audio_codecs->len; i++)
+    {
+      GValue elem =
+        { 0 };
+      g_value_init (&elem, DBUS_AUDIO_CODEC_TYPE);
+
+      g_value_set_static_boxed (&elem, g_ptr_array_index(audio_codecs, i));
+
+      audio_codec_t* codec = g_new(audio_codec_t, 1);
+
+      dbus_g_type_struct_get (&elem, 0, &codec->identifier, 1, &codec->clock_rate, 2, &codec->payload,
+          3, &codec->mime_type, 4, &codec->mime_subtype, 5, &codec->bitrate, 6,
+          &codec->bandwidth, 7, &codec->description, G_MAXUINT);
+
+      codec->is_active = TRUE;
+
+      ret = g_list_prepend (ret, codec);
+    }
+
+  return ret;
 }
 
 void
-dbus_set_active_codec_list (const gchar** list, const gchar *accountID)
+dbus_set_active_audio_codecs (const gchar** list, const gchar *accountID)
 {
-
   GError *error = NULL;
-  org_sflphone_SFLphone_ConfigurationManager_set_active_codec_list (
-      configurationManagerProxy, list, accountID, &error);
+  org_sflphone_SFLphone_ConfigurationManager_set_active_audio_codecs (configurationManagerProxy, list, accountID, &error);
 
   if (error)
     {

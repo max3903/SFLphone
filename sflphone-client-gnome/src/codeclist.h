@@ -108,10 +108,11 @@ codec_t* codec_library_get_nth_codec (codec_library_t* library, guint n);
 
 /**
  * Sync the codec library in this client with the server.
- * @param account The account for which codecs should be synced.
+ * @param library The codec library that should be set on the server for the given account.
+ * @param accountID The account identifiers for which codecs should be synced.
  * @postcondition The codec list for the account on the server will be the same as in this client.
  */
-void codec_library_sync (account_t* account);
+void codec_library_set (codec_library_t* library, const gchar* accountID);
 
 /**
  * Set the prefered codec first in the codec list

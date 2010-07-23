@@ -64,6 +64,7 @@ enum
   COLUMN_CODEC_FREQUENCY,
   COLUMN_CODEC_BITRATE,
   COLUMN_CODEC_BANDWIDTH,
+  COLUMN_CODEC_POINTER,
   CODEC_COLUMN_COUNT
 };
 
@@ -102,8 +103,10 @@ preferences_dialog_fill_codec_list (account_t **account)
           g_strdup_printf ("%d kHz", codec->audio.clock_rate / 1000), // Frequency (kHz)
           COLUMN_CODEC_BITRATE,
           g_strdup_printf ("%.1f kbps", codec->audio.bitrate), // Bitrate (kbps)
-          COLUMN_CODEC_BANDWIDTH, g_strdup_printf ("%.1f kbps",
-              codec->audio.bandwidth), // Bandwidth (kpbs)
+          COLUMN_CODEC_BANDWIDTH,
+          g_strdup_printf ("%.1f kbps", codec->audio.bandwidth), // Bandwidth (kpbs)
+          COLUMN_CODEC_POINTER,
+          codec,
           -1);
     }
 }
@@ -501,8 +504,6 @@ static void
 codec_active_toggled (GtkCellRendererToggle *renderer UNUSED, gchar *path,
     gpointer data)
 {
-  codec_t* codec;
-
   // Get path of clicked codec active toggle box
   GtkTreePath* treePath = gtk_tree_path_new_from_string (path);
   GtkTreeModel* model = gtk_tree_view_get_model (GTK_TREE_VIEW (codecTreeView));
@@ -520,26 +521,21 @@ codec_active_toggled (GtkCellRendererToggle *renderer UNUSED, gchar *path,
   gboolean active;
   char* name;
   char* srate;
+  codec_t* codec;
   gtk_tree_model_get (model, &iter, COLUMN_CODEC_ACTIVE, &active,
-      COLUMN_CODEC_NAME, &name, COLUMN_CODEC_FREQUENCY, &srate, -1);
-  DEBUG ("%s, %s\n", name, srate);
+      COLUMN_CODEC_NAME, &name, COLUMN_CODEC_FREQUENCY, &srate, COLUMN_CODEC_POINTER, &codec, -1);
 
-  // Toggle active value
   active = !active;
 
-  codec_library_set_active(account->codecs, name);
-
   // Store value
-  gtk_list_store_set (GTK_LIST_STORE(model), &iter, COLUMN_CODEC_ACTIVE,
-      active, -1);
-
+  gtk_list_store_set (GTK_LIST_STORE(model), &iter, COLUMN_CODEC_ACTIVE, active, -1);
   gtk_tree_path_free (treePath);
 
   // Modify codec queue to represent change
   if (active) {
-    codec_set_inactive (&codec);
-  } else {
     codec_set_active (&codec);
+  } else {
+    codec_set_inactive (&codec);
   }
 }
 
@@ -652,7 +648,8 @@ GtkWidget* codecs_box (account_t **a)
       G_TYPE_STRING, // Name
       G_TYPE_STRING, // Frequency
       G_TYPE_STRING, // Bit rate
-      G_TYPE_STRING // Bandwith
+      G_TYPE_STRING, // Bandwith
+      G_TYPE_POINTER // A pointer to the actual codec.
       );
 
   // Create codec tree view with list store

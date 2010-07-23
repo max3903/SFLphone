@@ -128,9 +128,10 @@ public:
 	std::vector<DbusAudioCodec> getAllActiveAudioCodecs(const std::string& accountID);
 
 	/**
+	 * @param codecIdentifiers A vector containing all of the codec identifiers, in some specified order.
 	 * @param accountID The account identifier for which to set the new active codec list.
 	 */
-	void setActiveAudioCodecs(const std::vector<DbusAudioCodec>& codecs, const std::string& accountID);
+	void setActiveAudioCodecs(const std::vector<std::string>& codecIdentifiers, const std::string& accountID);
 
 	void removeAccount(const std::string& accoundID);
 	void deleteAllCredential(const std::string& accountID);

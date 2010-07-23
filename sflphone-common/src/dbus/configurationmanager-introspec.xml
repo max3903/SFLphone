@@ -467,9 +467,9 @@
 		   <tp:docstring>
 		   </tp:docstring>
 		   <annotation name="com.trolltech.QtDBus.QtTypeName.In0" value="VectorString"/>
-		   <arg type="a(siyssdds)" name="list" direction="in">
+		   <arg type="as" name="list" direction="in">
 			   <tp:docstring>
-			   A dbus array structure containing the codecs set by the user.
+			   A dbus array structure containing the codecs identifiers set by the user.
 			   </tp:docstring>
 		   </arg>
 		   <arg type="s" name="accountID" direction="in">

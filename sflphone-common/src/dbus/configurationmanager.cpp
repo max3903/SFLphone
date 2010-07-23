@@ -524,17 +524,16 @@ std::vector<DbusAudioCodec> ConfigurationManager::getAllActiveAudioCodecs(
 	return output;
 }
 
-void ConfigurationManager::setActiveAudioCodecs(const std::vector<
-		DbusAudioCodec>& codecs, const std::string& accountID) {
+void ConfigurationManager::setActiveAudioCodecs(const std::vector<std::string>& codecIdentifiers, const std::string& accountID) {
 
 	_debug ("Setting codecs for account id %s", accountID.c_str());
 
 	// Create a CodecOrder object from the hash codes contained in the structures.
 	CodecOrder ordering;
 
-	std::vector<DbusAudioCodec>::const_iterator it;
-	for (it = codecs.begin(); it != codecs.end(); it++) {
-		ordering.push_back((*it)._1);
+	std::vector<std::string>::const_iterator it;
+	for (it = codecIdentifiers.begin(); it != codecIdentifiers.end(); it++) {
+		ordering.push_back((*it));
 	}
 
 	// Set the new codec order.

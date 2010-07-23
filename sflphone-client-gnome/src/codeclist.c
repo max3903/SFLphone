@@ -45,7 +45,7 @@ codec_library_t* codec_library_get_system_codecs() {
   return system_library;
 }
 
-gint
+static gint
 match_mime_subtype_predicate (gconstpointer a, gconstpointer b)
 {
   codec_t * c = (codec_t *) a;
@@ -59,7 +59,7 @@ match_mime_subtype_predicate (gconstpointer a, gconstpointer b)
     }
 }
 
-gint
+static gint
 match_payload_predicate (gconstpointer a, gconstpointer b)
 {
   codec_t * c = (codec_t *) a;
@@ -117,7 +117,7 @@ codec_library_load_available_codecs (codec_library_t* library)
 void
 codec_library_load_codecs_by_account (account_t* account)
 {
-  GList* codecs = dbus_get_all_audio_codecs_by_account (account);
+  GList* codecs = dbus_get_active_audio_codecs (account->accountID);
   GList* it;
   for (it = codecs; it != NULL; it = g_list_next(it))
     {
@@ -222,4 +222,20 @@ codec_set_inactive (codec_t **c)
       DEBUG("%s set active", (*c)->codec.mime_subtype);
       (*c)->codec.is_active = FALSE;
     }
+}
+
+void codec_library_set (codec_library_t* library, const gchar* accountID)
+{
+  // Build an array of identifiers
+  gchar** identifiers = g_new(gchar*, codec_library_get_size(library));
+
+  int i;
+  for (i = 0; i < codec_library_get_size(library); i++) {
+    codec_t* codec = g_queue_peek_nth(library->codec_list, i);
+    identifiers[i] = codec->codec.identifier;
+  }
+
+  dbus_set_active_audio_codecs(identifiers, accountID);
+
+  // TODO g_free(identifiers)
 }

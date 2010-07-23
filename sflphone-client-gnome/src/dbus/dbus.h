@@ -256,34 +256,33 @@ dbus_get_volume (const gchar * device);
 void
 dbus_play_dtmf (const gchar * key);
 
-/**
- * ConfigurationManager - Get the codecs list
- * @return gchar** The list of codecs
- */
-gchar**
-dbus_audio_codec_list ();
+
 
 /**
  * ConfigurationManager - Get the default codec list
  * The default codec list are the codecs selected by the server if the user hasn't made any changes
  * @return gchar** The default codec list
  */
-gchar**
-dbus_default_codec_list ();
+gchar** dbus_default_codec_list ();
+
+/**
+ * @return The list of all the available codecs, as audio_codec_t elements.
+ */
+GList* dbus_get_all_audio_codecs();
 
 /**
  * ConfigurationManager - Get the list of the codecs used for media negociation
  * @return gchar** The list of codecs
  */
-gchar**
-dbus_get_active_codec_list (gchar *accountID);
+GList*
+dbus_get_active_audio_codecs (gchar *accountID);
 
 /**
  * ConfigurationManager - Set the list of codecs used for media negociation
  * @param list The list of codecs
  */
 void
-dbus_set_active_codec_list (const gchar** list, const gchar*);
+dbus_set_active_audio_codecs (const gchar** list, const gchar*);
 
 /**
  * CallManager - return the codec name

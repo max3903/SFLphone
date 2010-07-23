@@ -40,12 +40,14 @@
  * This structure holds information about some audio codec.
  */
 typedef struct {
+  char* identifier;
   uint32_t clock_rate;
   uint8_t payload;
   char* mime_type;
   char* mime_subtype;
   double bitrate;
   double bandwidth;
+  gchar* description;
   gboolean is_active;
 } audio_codec_t;
 
@@ -54,12 +56,14 @@ typedef struct {
  * (Same as audio codec for now).
  */
 typedef struct {
+  char* identifier;
   uint32_t clock_rate;
   uint8_t payload;
   char* mime_type;
   char* mime_subtype;
   double bitrate;
   double bandwidth;
+  gchar* description;
   gboolean is_active;
 } video_codec_t;
 
@@ -69,12 +73,14 @@ typedef struct {
  */
 typedef union {
   struct {
+    char* identifier;
     uint32_t clock_rate;
     uint8_t payload;
     char* mime_type;
     char* mime_subtype;
     double bitrate;
     double bandwidth;
+    gchar* description;
     gboolean is_active;
   } codec;
 

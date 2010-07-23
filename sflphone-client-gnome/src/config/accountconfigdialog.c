@@ -1578,7 +1578,7 @@ void show_account_window (account_t * a) {
     }
     
     // Perpetuate changes to the deamon
-    codec_library_sync (currentAccount);
+    codec_library_set(&currentAccount->codecs, currentAccount->accountID);
     
     gtk_widget_destroy (GTK_WIDGET(dialog));
 } 

@@ -429,7 +429,7 @@
 			   The MIME subtype identifying this codec.
 			   </tp:docstring>
 		   </arg>
-		   <arg type="(iyssdd)" name="details" direction="out">
+		   <arg type="(siyssdds)" name="details" direction="out">
 			   <tp:docstring>
  				A structure containing the following fields in order : clock rate, payload type, mime type, mime subtype, bitrate, bandwidth.			   
  				</tp:docstring>
@@ -439,43 +439,45 @@
 	   <method name="getAllAudioCodecs" tp:name-for-bindings="getAudioCodecDetails">
 		   <tp:docstring>
 		   </tp:docstring>
-		   <arg type="a(iyssdd)" name="details" direction="out">
+		   <arg type="a(siyssdds)" name="details" direction="out">
 			   <tp:docstring>
  				A vector of all the audio codecs that are available. Same as calling getAudioCodecMimeSubtypes() in a loop, then getAudioCodecDetails. 				
  		   		</tp:docstring>
 		   </arg>
 	   </method>
 
-	   <method name="getActiveCodecList" tp:name-for-bindings="getActiveCodecList">
+	   <method name="getAllActiveAudioCodecs" tp:name-for-bindings="getAllActiveAudioCodecs">
 		   <tp:docstring>
 		   </tp:docstring>
 		   <annotation name="com.trolltech.QtDBus.QtTypeName.Out0" value="VectorString"/>
 		   <arg type="s" name="accountID" direction="in">
 			   <tp:docstring>
+			   The account id for which to retrieve the list of active codecs.
 			   </tp:docstring>
 		   </arg>
-		   <arg type="as" name="list" direction="out">
+		   <arg type="a(siyssdds)" name="list" direction="out">
 			   <tp:docstring>
+			   A dbus array type containing those codecs, as structures, that are currently enabled by the user. The preferred
+			   order is preserved.
 			   </tp:docstring>
 		   </arg>
 	   </method>
 
-	   <method name="setActiveCodecList" tp:name-for-bindings="setActiveCodecList">
+	   <method name="setActiveAudioCodecs" tp:name-for-bindings="setActiveAudioCodecs">
 		   <tp:docstring>
 		   </tp:docstring>
 		   <annotation name="com.trolltech.QtDBus.QtTypeName.In0" value="VectorString"/>
 		   <arg type="as" name="list" direction="in">
 			   <tp:docstring>
+			   A dbus array structure containing the codecs identifiers set by the user.
 			   </tp:docstring>
 		   </arg>
 		   <arg type="s" name="accountID" direction="in">
 			   <tp:docstring>
+			   The account id on which to set those codecs.
 			   </tp:docstring>
 		   </arg>
 	   </method>
-
-
-	   <!-- Audio devices methods -->
 
 	   <method name="getAudioPluginList" tp:name-for-bindings="getAudioPluginList">
 		   <tp:docstring>
