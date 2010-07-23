@@ -40,7 +40,7 @@
  * Create a codec library type.
  * @return a pointer to the new codec library object.
  */
-codec_library_t* codec_library_create();
+codec_library_t* codec_library_new();
 
 /**
  * Free a codec library object.

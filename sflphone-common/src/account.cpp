@@ -76,15 +76,13 @@ void Account::setRegistrationState (RegistrationState state) {
 }
 
 void Account::loadAudioCodecs (void) {
-	// if the user never set the codec list, use the default configuration for this account
+	_debug("Serialized codecs : %s", _codecAudioSerialized.c_str());
        if(_codecAudioSerialized == "") {
-		_info ("Account: use the default order");
-		CodecFactory::getInstance().setDefaultOrder();
+		_info ("No audio codecs were configured for this account. Using the default list.");
+		setActiveAudioCodecs(CodecFactory::getInstance().getDefaultAudioCodecOrder());
 	}
 	// else retrieve the one set in the user config file
 	else {
-		std::vector<std::string> active_list = Manager::instance ().retrieveActiveCodecs();
-
 		setActiveAudioCodecs (Manager::instance ().unserialize (_codecAudioSerialized));
 	}
 }
@@ -99,10 +97,11 @@ void Account::setActiveVideoCodecs(CodecOrder codecs) {
 }
 
 CodecOrder& Account::getActiveAudioCodecs() {
-	return _codecVideoOrder;
+	return _codecAudioOrder;
 }
 
 void Account::setActiveAudioCodecs(CodecOrder codecs) {
 	_codecAudioOrder = codecs;
-	_codecAudioSerialized = Manager::instance().serialize (codecs);
+	_codecAudioSerialized = Manager::instance().serialize(codecs);
+	_debug("Setting active audio codecs : %s", _codecAudioSerialized.c_str());
 }

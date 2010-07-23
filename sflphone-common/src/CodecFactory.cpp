@@ -47,7 +47,7 @@ CodecFactory& CodecFactory::getInstance() {
 }
 
 CodecFactory::CodecFactory() :
-	_defaultCodecOrder(),  _cache(), _codecInMemory(), _codecsMap() {
+	_cache(), _codecInMemory(), _codecsMap() {
 	init();
 }
 
@@ -125,18 +125,6 @@ const sfl::Codec* CodecFactory::getCodecByPayloadFormat(const ost::PayloadFormat
 	return NULL; // TODO throw something instead.
 }
 
-void CodecFactory::setDefaultOrder() {
-
-	_defaultCodecOrder.clear();
-
-	IdentifierToCodecInstanceMap::iterator iter = _codecsMap.begin();
-
-	while (iter != _codecsMap.end()) {
-		_defaultCodecOrder.push_back(iter->first);
-		iter++;
-	}
-}
-
 const AudioCodec* CodecFactory::getFirstAvailableAudioCodec() {
 	IdentifierToCodecInstanceMap::iterator it = _codecsMap.begin();
 	for (it = _codecsMap.begin() ; it != _codecsMap.end(); it++) {
@@ -158,6 +146,20 @@ std::vector<const AudioCodec*> CodecFactory::getAllAudioCodecs()
 		if (((*it).second)->getMimeType() == "audio") {
 			const AudioCodec* codec = static_cast<AudioCodec*>((*it).second);
 			output.push_back(codec);
+		}
+	}
+
+	return output;
+}
+
+CodecOrder CodecFactory::getDefaultAudioCodecOrder()
+{
+	CodecOrder output;
+
+	IdentifierToCodecInstanceMap::iterator it;
+	for (it = _codecsMap.begin(); it != _codecsMap.end(); it++) {
+		if (((*it).second)->getMimeType() == "audio") {
+			output.push_back(((*it).second)->hashCode());
 		}
 	}
 
@@ -270,21 +272,30 @@ std::vector<sfl::Codec*> CodecFactory::scanCodecDirectory(void) {
 
 	for (i = 0; (unsigned int) i < dirToScan.size(); i++) {
 		std::string dirStr = dirToScan[i];
-		_debug ("CodecDescriptor: Scanning %s to find audio codecs....", dirStr.c_str());
-		DIR *dir = opendir(dirStr.c_str());
-		AudioCodec* audioCodec;
 
+		_debug ("CodecDescriptor: Scanning %s to find audio codecs....", dirStr.c_str());
+
+		DIR *dir = opendir(dirStr.c_str());
 		if (dir) {
 			dirent *dirStruct;
-
 			while ((dirStruct = readdir(dir))) {
-				tmp = dirStruct -> d_name;
-				if (tmp == CURRENT_DIR || tmp == PARENT_DIR) {
-				} else {
+				tmp = dirStruct->d_name;
+				if (!(tmp == CURRENT_DIR || tmp == PARENT_DIR)) {
 					if (isLibraryValid(tmp) && !isAlreadyInCache(tmp)) {
 						_cache.push_back(tmp);
-						audioCodec = loadCodec(dirStr.append(tmp));
+
+						_debug("Library %s added to the cache.", tmp.c_str());
+
+						AudioCodec* audioCodec = loadCodec(dirStr.append(tmp));
+
 						codecs.push_back(audioCodec);
+
+						_debug("Codec %s/%s %d (%s) loaded.",
+								audioCodec->getMimeType().c_str(),
+								audioCodec->getMimeSubtype().c_str(),
+								audioCodec->getClockRate(),
+								audioCodec->getDescription().c_str());
+
 						dirStr = dirToScan[i];
 					}
 				}

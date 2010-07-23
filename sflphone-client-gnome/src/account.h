@@ -1,7 +1,6 @@
 /*
  *  Copyright (C) 2004, 2005, 2006, 2009, 2008, 2009, 2010 Savoir-Faire Linux Inc.
- *  Author: Pierre-Luc Beaudoin <pierre-luc@savoirfairelinux.com>
- *  Author: Emmanuel Milou <emmanuel.milou@savoirfairelinux.com>
+ *  Author: Pierre-Luc Bacon <pierre-luc.bacon@savoirfairelinux.com>
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -80,8 +79,21 @@ typedef struct  {
         GPtrArray * credential_information;
 
         /* The codec list */
-        codec_library_t codecs;
+        codec_library_t* codecs;
         guint _messages_number;
 } account_t;
+
+/**
+ * @param accountID The accountID.
+ * @return a new and initialized account object.
+ */
+account_t* account_new(gchar* accountID);
+
+/**
+ * @param account The account to free
+ * @postcondition All of the elements within the structure as well as the structure itself will be freed.
+ */
+void account_free(account_t* account);
+
 
 #endif

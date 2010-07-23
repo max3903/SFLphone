@@ -495,14 +495,15 @@ std::vector<DbusAudioCodec> ConfigurationManager::getAllAudioCodecs()
 
 std::vector<DbusAudioCodec> ConfigurationManager::getAllActiveAudioCodecs(
 		const std::string& accountID) {
-	_debug("Send active codec list for account %s", accountID.c_str ());
+	_info("Send active codec list for account %s ...", accountID.c_str ());
 	std::vector<DbusAudioCodec> output;
 
 	Account* account = Manager::instance().getAccount(accountID);
 
-	CodecFactory& factory = CodecFactory::getInstance();
-
 	CodecOrder& audioCodecOrder = account->getActiveAudioCodecs();
+	_info("Account \"%s\" has %d active codecs.", accountID.c_str(), audioCodecOrder.size());
+
+	CodecFactory& factory = CodecFactory::getInstance();
 	CodecOrder::iterator it;
 	for (it = audioCodecOrder.begin(); it != audioCodecOrder.end(); it++) {
 		const AudioCodec* codec =

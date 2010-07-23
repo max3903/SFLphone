@@ -2147,9 +2147,8 @@ void ManagerImpl::initConfigFile (bool load_user_value, std::string alternate) {
  * TODO Retrieve the active codec list per account
  */
 std::vector<std::string> ManagerImpl::retrieveActiveCodecs () {
-
 	// This property is now set per account basis so we should remove it...
-        std::string s = "";
+     std::string s = "";
 	_info("Manager: Retrieve active codecs: %s", s.c_str ());
 	return unserialize(s);
 }
@@ -2157,12 +2156,14 @@ std::vector<std::string> ManagerImpl::retrieveActiveCodecs () {
 std::vector<std::string> ManagerImpl::unserialize (std::string s) {
 
 	std::vector<std::string> list;
-	std::string temp;
 
 	while (s.find("/", 0) != std::string::npos) {
 		size_t pos = s.find("/", 0);
-		temp = s.substr(0, pos);
+		std::string temp = s.substr(0, pos);
 		s.erase(0, pos + 1);
+
+		_debug("Using codec %s", temp.c_str());
+
 		list.push_back(temp);
 	}
 
@@ -3112,7 +3113,7 @@ std::vector<std::string> ManagerImpl::getAccountList () {
 	// ie according to the creation date.
 
 	if (account_order.size() == 0) {
-	        _debug("Manager: account order is empty");
+	        _debug("Manager: Account order is empty.");
 		iter = _accountMap.begin();
 
 		while (iter != _accountMap.end()) {
@@ -3151,17 +3152,16 @@ std::vector<std::string> ManagerImpl::getAccountList () {
 std::map<std::string, std::string> ManagerImpl::getAccountDetails (
 				   const AccountID& accountID) {
 
-  _debug("Manager: get account details %s", accountID.c_str());
+  _debug("Manager: Getting account details on \"%s\"", accountID.c_str());
   
   Account * account;
   if(!(account = _accountMap[accountID])) {
-    _debug("Manager: Get account details on a non-existing accountID %s. Returning default", accountID.c_str());
+    _debug("Manager: Get account details on a non-existing account identifier \"%s\". Returning defaults.", accountID.c_str());
     // return a default map
     return defaultAccount.getAccountDetails();
-  }	
-  else 
+  }	else {
     return account->getAccountDetails();
-  
+  }
 }
 
 /* Transform digest to string.
@@ -3473,7 +3473,7 @@ std::vector<std::string> ManagerImpl::loadAccountOrder (void) {
 
 	account_list = preferences.getAccountOrder();
 
-	_debug("Manager: Load sccount order %s", account_list.c_str());
+	_debug("Manager: Parsing account order \"%s\" ... ", account_list.c_str());
 
 	return unserialize(account_list);
 }

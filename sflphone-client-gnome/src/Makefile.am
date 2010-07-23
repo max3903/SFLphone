@@ -20,6 +20,7 @@ sflphone_client_gnome_SOURCES = \
   callable_obj.c \
   conference_obj.c \
   actions.c \
+  account.c \
   accountlist.c \
   sliders.c \
   statusicon.c \

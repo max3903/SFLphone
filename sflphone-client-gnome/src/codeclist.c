@@ -30,10 +30,11 @@
 
 #include <codeclist.h>
 
+#include "dbus.h"
+
 #include <string.h>
 #include <stdlib.h>
-
-#include "dbus.h"
+#include <assert.h>
 
 static codec_library_t* system_library = NULL;
 
@@ -74,10 +75,14 @@ match_payload_predicate (gconstpointer a, gconstpointer b)
 }
 
 codec_library_t*
-codec_library_create ()
+codec_library_new ()
 {
-  codec_library_t* library = g_new(codec_library_t, 1);
-  library->codec_list = g_queue_new ();
+  codec_library_t* library = (codec_library_t*) malloc(sizeof(codec_library_t));
+
+  library->codec_list = g_queue_new();
+
+  DEBUG("New codec library created");
+
   return library;
 }
 
@@ -123,9 +128,10 @@ codec_library_load_codecs_by_account (account_t* account)
     {
       codec_t* codec = g_new(codec_t, 1);
 
-      memcpy (codec, it->data, sizeof(audio_codec_t)); // Does not copy the strings themselves.
+      memcpy (codec, it->data, sizeof(codec_t)); // Does not copy the strings themselves.
 
-      codec_library_add (&account->codecs, codec);
+      DEBUG("Adding codec \"%s\"", codec->codec.mime_subtype);
+      codec_library_add (account->codecs, codec);
 
       // TODO g_free((it)->data)
     }
@@ -134,7 +140,9 @@ codec_library_load_codecs_by_account (account_t* account)
 void
 codec_library_add (codec_library_t* library, codec_t* codec)
 {
-  g_queue_push_tail (library->codec_list, codec);
+  DEBUG("Adding codec %s", codec->codec.mime_subtype);
+
+  g_queue_push_tail (library->codec_list, (gpointer *) codec);
 }
 
 guint

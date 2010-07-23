@@ -1454,9 +1454,7 @@ create_waiting_icon()
 void
 create_menus(GtkUIManager *ui_manager, GtkWidget **widget)
 {
-
 	GtkWidget * menu_bar;
-
 	menu_bar = gtk_ui_manager_get_widget (ui_manager, "/MenuBar");
 	pickUpAction = gtk_ui_manager_get_action (ui_manager, "/MenuBar/CallMenu/PickUp");
 	newCallAction = gtk_ui_manager_get_action (ui_manager, "/MenuBar/CallMenu/NewCall");

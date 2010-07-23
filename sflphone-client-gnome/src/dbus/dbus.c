@@ -52,7 +52,7 @@
 #define DEFAULT_DBUS_TIMEOUT 30000
 
 #define DBUS_STRUCT_INT_INT (dbus_g_type_get_struct ("GValueArray", G_TYPE_INT, G_TYPE_INT, G_TYPE_INVALID))
-#define DBUS_AUDIO_CODEC_TYPE (dbus_g_type_get_struct ("GValueArray", G_TYPE_UINT, G_TYPE_UCHAR, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_DOUBLE, G_TYPE_DOUBLE, G_TYPE_INVALID))
+#define DBUS_AUDIO_CODEC_TYPE (dbus_g_type_get_struct ("GValueArray", G_TYPE_STRING, G_TYPE_UINT, G_TYPE_UCHAR, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_DOUBLE, G_TYPE_DOUBLE, G_TYPE_STRING, G_TYPE_INVALID))
 
 DBusGConnection * connection;
 DBusGProxy * callManagerProxy;
@@ -958,7 +958,7 @@ dbus_account_details (gchar * accountID)
   GError *error = NULL;
   GHashTable * details;
 
-  DEBUG("Dbus: Get account detail accountid %s", accountID);
+  DEBUG("Dbus: Get account details on account %s", accountID);
 
   if (!org_sflphone_SFLphone_ConfigurationManager_get_account_details (
       configurationManagerProxy, accountID, &details, &error))
@@ -1348,6 +1348,8 @@ dbus_get_active_audio_codecs (gchar* accountID)
   GPtrArray* audio_codecs = NULL;
   GList* ret = NULL;
 
+  DEBUG("Fetching active audio codecs for account %s ...", accountID);
+
   org_sflphone_SFLphone_ConfigurationManager_get_all_active_audio_codecs(configurationManagerProxy, accountID, &audio_codecs, &error);
   if (error != NULL)
     {
@@ -1355,20 +1357,28 @@ dbus_get_active_audio_codecs (gchar* accountID)
       g_error_free (error);
     }
 
+  DEBUG("Server returned %d audio codecs.", audio_codecs->len);
+
   int i;
   for (i = 0; i < audio_codecs->len; i++)
     {
-      GValue elem =
-        { 0 };
+      GValue elem = { 0 };
       g_value_init (&elem, DBUS_AUDIO_CODEC_TYPE);
-
       g_value_set_static_boxed (&elem, g_ptr_array_index(audio_codecs, i));
 
       audio_codec_t* codec = g_new(audio_codec_t, 1);
-
       dbus_g_type_struct_get (&elem, 0, &codec->identifier, 1, &codec->clock_rate, 2, &codec->payload,
           3, &codec->mime_type, 4, &codec->mime_subtype, 5, &codec->bitrate, 6,
           &codec->bandwidth, 7, &codec->description, G_MAXUINT);
+
+      DEBUG("Codec %s/%s %d (payload number %d)\nDescription : \"%s\"\nBandwidth : %f\nBitrate : %f",
+                      codec->mime_type,
+                      codec->mime_subtype,
+                      codec->clock_rate,
+                      codec->payload,
+                      codec->description,
+                      codec->bandwidth,
+                      codec->bitrate);
 
       codec->is_active = TRUE;
 

@@ -111,11 +111,11 @@ public:
 	 */
 	const AudioCodec* getFirstAvailableAudioCodec();
 
+
 	/**
-	 * Set the default codecs order.
-	 * This order will be apply to each account by default
+	 * @return The default list of codec identifiers.
 	 */
-	void setDefaultOrder();
+	CodecOrder getDefaultAudioCodecOrder();
 
 protected:
 
@@ -177,11 +177,6 @@ private:
 	 *	    false otherwise
 	 */
 	bool isAlreadyInCache(std::string);
-
-	/**
-	 * This vector contains a list of all the codec id some specified order.
-	 */
-	std::vector<std::string> _defaultCodecOrder;
 
 	/**
 	 * Vector containing the complete name of the codec shared library scanned
