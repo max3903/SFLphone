@@ -37,6 +37,8 @@
 #include "sip/sipvoiplink.h"
 #include "sip/sipaccount.h"
 
+#include "CodecFactory.h"
+
 const char* ConfigurationManager::SERVER_PATH =
 		"/org/sflphone/SFLphone/ConfigurationManager";
 
@@ -440,49 +442,50 @@ std::vector<std::string> ConfigurationManager::getSupportedTlsMethod(void) {
 	return method;
 }
 
-std::vector<std::string> ConfigurationManager::getAllAudioCodecMimeSubtypes(void) {
-	CodecFactory& factory = Manager::instance().getCodecFactory();
-	return factory.getAvailableCodecMimeType();
+std::vector<std::string> ConfigurationManager::getAllAudioCodecMimeSubtypes(
+		void) {
+	CodecFactory& factory = CodecFactory::getInstance();
+	return factory.getAllMimeSubtypes();
 }
 
-::DBus::Struct<int32_t, uint8_t, std::string, std::string, double, double> ConfigurationManager::getAudioCodecDetails(
+DbusAudioCodec ConfigurationManager::getAudioCodecDetails(
 		const std::string& codecSubMimeType) {
-	CodecFactory& factory = Manager::instance().getCodecFactory();
-	AudioCodec* codec = factory.getCodec(codecSubMimeType); // TODO Make sure that the codec does exists
+	CodecFactory& factory = CodecFactory::getInstance();
+	const sfl::Codec* codec = factory.getCodec(codecSubMimeType); // TODO Make sure that the codec does exists
 
-	::DBus::Struct<int32_t, uint8_t, std::string, std::string, double, double>
-			codecDescription;
-	codecDescription._1 = codec->getClockRate();
-	codecDescription._2 = codec->getPayloadType();
-	codecDescription._3 = codec->getMimeType();
-	codecDescription._4 = codec->getMimeSubtype();
-	codecDescription._5 = codec->getBitRate();
-	codecDescription._6 = codec->getBandwidth();
+	DbusAudioCodec codecDescription;
+	codecDescription._1 = codec->hashCode();
+	codecDescription._2 = codec->getClockRate();
+	codecDescription._3 = codec->getPayloadType();
+	codecDescription._4 = codec->getMimeType();
+	codecDescription._5 = codec->getMimeSubtype();
+	codecDescription._6 = codec->getBitRate();
+	codecDescription._7 = codec->getBandwidth();
+	codecDescription._8 = codec->getDescription();
 
 	return codecDescription;
 }
 
-std::vector< ::DBus::Struct<int32_t, uint8_t, std::string, std::string, double,
-		double> > ConfigurationManager::getAllAudioCodecs() {
+std::vector<DbusAudioCodec> ConfigurationManager::getAllAudioCodecs()
+{
+	std::vector<DbusAudioCodec> output;
 
-	std::vector< ::DBus::Struct<int32_t, uint8_t, std::string, std::string, double,
-			double> > output;
-
-	CodecFactory& factory = Manager::instance().getCodecFactory();
+	CodecFactory& factory = CodecFactory::getInstance();
 
 	std::vector<const AudioCodec*> codecs = factory.getAllAudioCodecs();
 	std::vector<const AudioCodec*>::iterator it;
 	for (it = codecs.begin(); it != codecs.end(); it++) {
 		const AudioCodec* codec = (*it);
 
-		::DBus::Struct<int32_t, uint8_t, std::string, std::string, double, double>
-				codecDescription;
-		codecDescription._1 = codec->getClockRate();
-		codecDescription._2 = codec->getPayloadType();
-		codecDescription._3 = codec->getMimeType();
-		codecDescription._4 = codec->getMimeSubtype();
-		codecDescription._5 = codec->getBitRate();
-		codecDescription._6 = codec->getBandwidth();
+		DbusAudioCodec codecDescription;
+		codecDescription._1 = codec->hashCode();
+		codecDescription._2 = codec->getClockRate();
+		codecDescription._3 = codec->getPayloadType();
+		codecDescription._4 = codec->getMimeType();
+		codecDescription._5 = codec->getMimeSubtype();
+		codecDescription._6 = codec->getBitRate();
+		codecDescription._7 = codec->getBandwidth();
+		codecDescription._8 = codec->getDescription();
 
 		output.push_back(codecDescription);
 	}
@@ -490,45 +493,53 @@ std::vector< ::DBus::Struct<int32_t, uint8_t, std::string, std::string, double,
 	return output;
 }
 
-std::vector<std::string> ConfigurationManager::getActiveCodecList(
+std::vector<DbusAudioCodec> ConfigurationManager::getAllActiveAudioCodecs(
 		const std::string& accountID) {
-
 	_debug("Send active codec list for account %s", accountID.c_str ());
+	std::vector<DbusAudioCodec> output;
 
-	std::vector<std::string> v;
-	Account *acc;
-	CodecOrder active;
-	unsigned int i = 0;
-	size_t size;
+	Account* account = Manager::instance().getAccount(accountID);
 
-	acc = Manager::instance().getAccount(accountID);
-	if (acc != NULL) {
-		active = acc->getActiveCodecs();
-		size = active.size();
-		while (i < size) {
-			std::stringstream ss;
-			ss << active[i];
-			v.push_back((ss.str()).data());
-			i++;
-		}
+	CodecFactory& factory = CodecFactory::getInstance();
+
+	CodecOrder& audioCodecOrder = account->getActiveAudioCodecs();
+	CodecOrder::iterator it;
+	for (it = audioCodecOrder.begin(); it != audioCodecOrder.end(); it++) {
+		const AudioCodec* codec =
+				static_cast<const AudioCodec*> (factory.getCodec((*it)));
+
+		DbusAudioCodec codecDescription;
+		codecDescription._1 = codec->hashCode();
+		codecDescription._2 = codec->getClockRate();
+		codecDescription._3 = codec->getPayloadType();
+		codecDescription._4 = codec->getMimeType();
+		codecDescription._5 = codec->getMimeSubtype();
+		codecDescription._6 = codec->getBitRate();
+		codecDescription._7 = codec->getBandwidth();
+		codecDescription._8 = codec->getDescription();
+
+		output.push_back(codecDescription);
 	}
 
-	return v;
-
+	return output;
 }
 
-void ConfigurationManager::setActiveCodecList(
-		const std::vector<std::string>& list, const std::string& accountID) {
+void ConfigurationManager::setActiveAudioCodecs(const std::vector<
+		DbusAudioCodec>& codecs, const std::string& accountID) {
 
-	_debug ("ConfigurationManager: Active codec list received");
+	_debug ("Setting codecs for account id %s", accountID.c_str());
 
-	Account *acc;
+	// Create a CodecOrder object from the hash codes contained in the structures.
+	CodecOrder ordering;
 
-	// Save the codecs list per account
-	acc = Manager::instance().getAccount(accountID);
-	if (acc != NULL) {
-		acc->setActiveCodecs(list);
+	std::vector<DbusAudioCodec>::const_iterator it;
+	for (it = codecs.begin(); it != codecs.end(); it++) {
+		ordering.push_back((*it)._1);
 	}
+
+	// Set the new codec order.
+	Account* account = Manager::instance().getAccount(accountID);
+	account->setActiveAudioCodecs(ordering);
 }
 
 std::vector<std::string> ConfigurationManager::getAudioPluginList() {
@@ -626,15 +637,17 @@ void ConfigurationManager::ringtoneEnabled(const std::string& accountID) {
 }
 
 int32_t ConfigurationManager::isRingtoneEnabled(const std::string& accountID) {
-        return Manager::instance().isRingtoneEnabled(accountID);
+	return Manager::instance().isRingtoneEnabled(accountID);
 }
 
-std::string ConfigurationManager::getRingtoneChoice(const std::string& accountID) {
-       return Manager::instance().getRingtoneChoice(accountID);
+std::string ConfigurationManager::getRingtoneChoice(
+		const std::string& accountID) {
+	return Manager::instance().getRingtoneChoice(accountID);
 }
 
-void ConfigurationManager::setRingtoneChoice(const std::string& accountID, const std::string& tone) {
-       Manager::instance().setRingtoneChoice(accountID, tone);
+void ConfigurationManager::setRingtoneChoice(const std::string& accountID,
+		const std::string& tone) {
+	Manager::instance().setRingtoneChoice(accountID, tone);
 }
 
 std::string ConfigurationManager::getRecordPath(void) {
@@ -645,32 +658,6 @@ void ConfigurationManager::setRecordPath(const std::string& recPath) {
 	Manager::instance().setRecordPath(recPath);
 }
 
-/*
- int32_t ConfigurationManager::getDialpad(void) {
- return Manager::instance().getDialpad();
- }
-
- void ConfigurationManager::setDialpad(const bool& display) {
- Manager::instance().setDialpad(display);
- }
-
- int32_t ConfigurationManager::getSearchbar(void) {
- return Manager::instance().getSearchbar();
- }
-
- void ConfigurationManager::setSearchbar(void) {
- Manager::instance().setSearchbar();
- }
-
- int32_t ConfigurationManager::getVolumeControls(void) {
- return Manager::instance().getVolumeControls();
- }
-
- void ConfigurationManager::setVolumeControls(const bool& display) {
- Manager::instance().setVolumeControls(display);
- }
- */
-
 int32_t ConfigurationManager::getHistoryLimit(void) {
 	return Manager::instance().getHistoryLimit();
 }
@@ -678,40 +665,6 @@ int32_t ConfigurationManager::getHistoryLimit(void) {
 void ConfigurationManager::setHistoryLimit(const int32_t& days) {
 	Manager::instance().setHistoryLimit(days);
 }
-
-/*
- void ConfigurationManager::setHistoryEnabled(void) {
- Manager::instance().setHistoryEnabled();
- }
-
- std::string ConfigurationManager::getHistoryEnabled(void) {
- return Manager::instance().getHistoryEnabled();
- }
-
- void ConfigurationManager::startHidden(void) {
- Manager::instance().startHidden();
- }
-
- int32_t ConfigurationManager::isStartHidden(void) {
- return Manager::instance().isStartHidden();
- }
-
- void ConfigurationManager::switchPopupMode(void) {
- Manager::instance().switchPopupMode();
- }
-
- int32_t ConfigurationManager::popupMode(void) {
- return Manager::instance().popupMode();
- }
-
- void ConfigurationManager::setNotify(void) {
- Manager::instance().setNotify();
- }
-
- int32_t ConfigurationManager::getNotify(void) {
- return Manager::instance().getNotify();
- }
- */
 
 void ConfigurationManager::setAudioManager(const int32_t& api) {
 	Manager::instance().setAudioManager(api);
@@ -773,7 +726,7 @@ void ConfigurationManager::setHistory(
 std::string ConfigurationManager::getAddrFromInterfaceName(
 		const std::string& interface) {
 
-	std::string address = SIPVoIPLink::instance("")->getInterfaceAddrFromName(
+	std::string address = SipVoipLink::instance("")->getInterfaceAddrFromName(
 			interface);
 
 	return address;
@@ -782,8 +735,8 @@ std::string ConfigurationManager::getAddrFromInterfaceName(
 std::vector<std::string> ConfigurationManager::getAllIpInterface(void) {
 
 	std::vector<std::string> vector;
-	SIPVoIPLink * sipLink = NULL;
-	sipLink = SIPVoIPLink::instance("");
+	SipVoipLink * sipLink = NULL;
+	sipLink = SipVoipLink::instance("");
 
 	if (sipLink != NULL) {
 		vector = sipLink->getAllIpInterface();
@@ -794,8 +747,8 @@ std::vector<std::string> ConfigurationManager::getAllIpInterface(void) {
 
 std::vector<std::string> ConfigurationManager::getAllIpInterfaceByName(void) {
 	std::vector<std::string> vector;
-	SIPVoIPLink * sipLink = NULL;
-	sipLink = SIPVoIPLink::instance("");
+	SipVoipLink * sipLink = NULL;
+	sipLink = SipVoipLink::instance("");
 
 	if (sipLink != NULL) {
 		vector = sipLink->getAllIpInterfaceByName();

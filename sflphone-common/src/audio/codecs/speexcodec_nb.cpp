@@ -122,7 +122,17 @@ class Speex : public AudioCodec
             return nbBytes;
         }
 
-        Speex* clone() { return new Speex(*this); }
+        /**
+         * @Override
+         */
+        std::string getDescription() const {
+        	return "audio/speex 8000 (\"narrow band\") codec. Based on libspeex, by Jean-Marc Valin.";
+        }
+
+        /**
+         * @Override
+         */
+        Speex* clone() const { return new Speex(*this); }
 
     private:
         const SpeexMode* _speexModePtr;

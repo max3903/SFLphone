@@ -34,7 +34,7 @@
 #include "AudioRtpSession.h"
 
 class ManagerImpl;
-class SIPCall;
+class SipCall;
 
 namespace sfl {
 
@@ -49,7 +49,7 @@ namespace sfl {
     class AudioZrtpSession : public ost::SymmetricZRTPSession, public AudioRtpSession<AudioZrtpSession> 
     {
         public:
-			AudioZrtpSession(ManagerImpl * manager, SIPCall * sipcall, const std::string& zidFilename);
+			AudioZrtpSession(ManagerImpl * manager, SipCall * sipcall, const std::string& zidFilename);
 
         private:
             void initializeZid(void);

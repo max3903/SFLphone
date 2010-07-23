@@ -32,7 +32,7 @@
 #define IAXCALL_H
 
 #include "call.h"
-#include "audio/codecs/CodecFactory.h"
+#include "CodecFactory.h"
 
 #include <iax-client.h>
 #include <frame.h>
@@ -50,7 +50,7 @@ public:
      * @param id  The unique ID of the call
      * @param type  The type of the call
      */
-    IAXCall(const CallID& id, Call::CallType type);
+    IAXCall(const CallId& id, Call::CallType type);
 
     /**
      * Destructor
@@ -80,7 +80,7 @@ public:
      * Get format for the voice codec used
      * @return int  Bitmask for codecs defined in iax/frame.h
      */
-    int getFormat() { return _format; }
+    int getFormat() { return _asteriskFormat; }
 
 
     /**
@@ -103,13 +103,6 @@ public:
      */
     int getFirstMatchingFormat(int needles, std::string accountID);
 
-    // AUDIO
-    /** 
-     * Set internal codec Map: initialization only, not protected 
-     * @param map The codec map
-     */
-    void setCodecMap(const CodecFactory& map) { _codecMap = map; } 
-
     /** 
      * Get internal codec Map: initialization only, not protected 
      * @return CodecFactory	The codec map
@@ -118,9 +111,9 @@ public:
 
     /** 
      * Return audio codec [mutex protected]
-     * @return AudioCodecType The payload of the codec
+     * @return the AudioCodec used for this call.
      */
-    AudioCodecType getAudioCodec();
+    AudioCodec* getAudioCodec();
 
 private:
     /** Each call is associated with an iax_session */
@@ -128,21 +121,26 @@ private:
 
     /** 
      * Set the audio codec used.  [not protected] 
-     * @param audioCodec  The payload of the codec
+     * @param subtype The codec MIME subtype.
      */
-    void setAudioCodec(AudioCodecType audioCodec) { _audioCodec = audioCodec; }
+    void setAudioCodec(const std::string& subtype);
 
-    /** Codec Map */
-    CodecFactory _codecMap;
+    std::map<int, std::string> astMacroToMimeType;
+    typedef std::map<int, std::string>::iterator AstMacroToMimeTypeIterator;
 
-    /** Codec pointer */
-    AudioCodecType _audioCodec;
+    std::map<std::string, int> mimeTypeToAstMacro;
+    typedef std::map<std::string, int>::iterator MimeTypeToAstMacroIterator;
+
+    /**
+     * Keep it simple for now (no such thing as conflicting dynamic payloads in SDP to the horizon).
+     */
+    AudioCodec* _audioCodec;
 
     /**
      * Format currently in use in the conversation,
      * sent in each outgoing voice packet.
      */
-    int _format;
+    int _asteriskFormat;
 };
 
 #endif

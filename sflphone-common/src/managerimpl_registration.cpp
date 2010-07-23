@@ -133,10 +133,10 @@ void ManagerImpl::restartPJSIP (void)
 {
     _debug ("ManagerImpl::restartPJSIP\n");
     VoIPLink *link = getSIPAccountLink();
-    SIPVoIPLink *siplink = NULL;
+    SipVoipLink *siplink = NULL;
 
     if (link) {
-        siplink = dynamic_cast<SIPVoIPLink*> (getSIPAccountLink ());
+        siplink = dynamic_cast<SipVoipLink*> (getSIPAccountLink ());
     }
 
     _debug ("ManagerImpl::unregister sip account\n");
@@ -147,7 +147,7 @@ void ManagerImpl::restartPJSIP (void)
     if (siplink) {
         _debug ("ManagerImpl::Terminate sip\n");
         siplink->terminate ();
-        siplink = SIPVoIPLink::instance ("");
+        siplink = SipVoipLink::instance ("");
         _debug ("ManagerImpl::Init new sip\n");
         siplink->init ();
     }
@@ -169,7 +169,7 @@ VoIPLink* ManagerImpl::getAccountLink (const AccountID& accountID)
 
         return 0;
     } else
-        return SIPVoIPLink::instance ("");
+        return SipVoipLink::instance ("");
 }
 
 VoIPLink* ManagerImpl::getSIPAccountLink()

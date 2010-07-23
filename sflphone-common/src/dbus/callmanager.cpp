@@ -271,8 +271,8 @@ void CallManager::startTone(const int32_t& start, const int32_t& type) {
 // callID.
 sfl::AudioZrtpSession * CallManager::getAudioZrtpSession(
 		const std::string& callID) {
-	SIPVoIPLink * link = NULL;
-	link = dynamic_cast<SIPVoIPLink *> (Manager::instance().getAccountLink(
+	SipVoipLink * link = NULL;
+	link = dynamic_cast<SipVoipLink *> (Manager::instance().getAccountLink(
 			AccountNULL));
 
 	if (link == NULL) {
@@ -280,7 +280,7 @@ sfl::AudioZrtpSession * CallManager::getAudioZrtpSession(
 		throw CallManagerException();
 	}
 
-	SIPCall *call = link->getSIPCall(callID);
+	SipCall *call = link->getSIPCall(callID);
 
 	sfl::AudioRtpFactory * audioRtp = NULL;
 	audioRtp = call->getAudioRtp();

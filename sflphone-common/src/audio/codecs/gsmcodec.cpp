@@ -96,7 +96,17 @@ class Gsm : public AudioCodec
             return 33;
         }
 
-        Gsm* clone() {
+        /**
+         * @Override
+         */
+        std::string getDescription() const {
+        	return "GSM codec. Based on libgsm, (C) Jutta Degener and Carsten Bormann, Technische Universitaet Berlin.";
+        }
+
+        /**
+         * @Override
+         */
+        Gsm* clone() const {
         	return new Gsm(*this);
         }
 

@@ -87,7 +87,7 @@ public:
 	virtual int encode(unsigned char *, short *, unsigned int) = 0;
 
 	/**
-	 * @return payload type numeric identifier.
+	 * @Override
 	 */
 	uint8 getPayloadType() const ;
 
@@ -97,14 +97,9 @@ public:
 	bool hasDynamicPayload();
 
 	/**
-	 * @return RTP clock rate in Hz.
+	 * @Override
 	 */
 	uint32 getClockRate() const;
-
-	/**
-	 * @return the framing size for this codec.
-	 */
-	unsigned getFrameSize() const;
 
 	/**
 	 * @return the number of audio channels.
@@ -112,19 +107,24 @@ public:
 	uint8 getChannel() const;
 
 	/**
-	 * @return The bitrate for which this codec is configured // TODO deal with VBR case.
+	 * @Override
 	 */
 	double getBitRate() const;
 
 	/**
-	 * @return The expected bandwidth used by this codec.
+	 * @Override
 	 */
 	double getBandwidth() const;
 
 	/**
+	 * @return the framing size for this codec.
+	 */
+	unsigned getFrameSize() const;
+
+	/**
 	 * @Override
 	 */
-	virtual AudioCodec* clone() = 0;
+	virtual AudioCodec* clone() const = 0;
 
 protected:
 	/** Holds SDP-compliant codec name */

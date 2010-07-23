@@ -133,10 +133,10 @@ SIPAccount::SIPAccount (const AccountID& accountID)
 
     // IP2IP settings must be loaded before singleton instanciation, cannot call it here... 
 
-    // _link = SIPVoIPLink::instance ("");
+    // _link = SipVoipLink::instance ("");
 
     /* Represents the number of SIP accounts connected the same link */
-    // dynamic_cast<SIPVoIPLink*> (_link)->incrementClients();
+    // dynamic_cast<SipVoipLink*> (_link)->incrementClients();
 
 }
 
@@ -144,7 +144,7 @@ SIPAccount::~SIPAccount()
 {
     /* One SIP account less connected to the sip voiplink */
     if(_accountID != "default")
-      dynamic_cast<SIPVoIPLink*> (_link)->decrementClients();
+      dynamic_cast<SipVoipLink*> (_link)->decrementClients();
 
     /* Delete accounts-related information */
     _regc = NULL;
@@ -182,7 +182,7 @@ void SIPAccount::serialize(Conf::YamlEmitter *emitter) {
   Conf::ScalarNode publishPort(publicportstr.str());
   Conf::ScalarNode sameasLocal(_publishedSameasLocal ? "true" : "false");
   Conf::ScalarNode resolveOnce(_resolveOnce ? "true" : "false");
-  Conf::ScalarNode codecs(_codecStr);
+  Conf::ScalarNode codecs(_codecAudioSerialized);
   Conf::ScalarNode ringtonePath(_ringtonePath);
   Conf::ScalarNode ringtoneEnabled(_ringtoneEnabled ? "true" : "false");
   Conf::ScalarNode stunServer(_stunServer);
@@ -305,7 +305,7 @@ void SIPAccount::unserialize(Conf::MappingNode *map)
   //  val = (Conf::ScalarNode *)(map->getValue(mailboxKey));
 
   val = (Conf::ScalarNode *)(map->getValue(codecsKey));
-  if(val) { _codecStr = val->getValue(); val = NULL; }
+  if(val) { _codecAudioSerialized = val->getValue(); val = NULL; }
   val = (Conf::ScalarNode *)(map->getValue(ringtonePathKey));
   if(val) { _ringtonePath = val->getValue(); val = NULL; }
   val = (Conf::ScalarNode *)(map->getValue(ringtoneEnabledKey));
@@ -409,7 +409,6 @@ void SIPAccount::unserialize(Conf::MappingNode *map)
 
 void SIPAccount::setAccountDetails(const std::map<std::string, std::string>& details)
 {
-
   std::map<std::string, std::string> map_cpy;
   std::map<std::string, std::string>::iterator iter;
 
@@ -705,8 +704,8 @@ std::map<std::string, std::string> SIPAccount::getAccountDetails()
 // void SIPAccount::setVoIPLink(VoIPLink *link) {
 void SIPAccount::setVoIPLink() {
 
-    _link = SIPVoIPLink::instance ("");
-    dynamic_cast<SIPVoIPLink*> (_link)->incrementClients();
+    _link = SipVoipLink::instance ("");
+    dynamic_cast<SipVoipLink*> (_link)->incrementClients();
 
 }
 

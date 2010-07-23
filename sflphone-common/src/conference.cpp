@@ -80,7 +80,7 @@ void Conference::setState (ConferenceState state)
 }
 
 
-void Conference::add (CallID participant_id)
+void Conference::add (CallId participant_id)
 {
 
     _debug ("Conference:: add participant %s", participant_id.c_str());
@@ -91,7 +91,7 @@ void Conference::add (CallID participant_id)
 }
 
 
-void Conference::remove (CallID participant_id)
+void Conference::remove (CallId participant_id)
 {
 
 
@@ -103,7 +103,7 @@ void Conference::remove (CallID participant_id)
 
 }
 
-void Conference::bindParticipant (CallID participant_id)
+void Conference::bindParticipant (CallId participant_id)
 {
 
     if (_nbParticipant >= 1) {
@@ -173,7 +173,7 @@ bool Conference::setRecording() {
 
     ParticipantSet::iterator iter = _participants.begin();
 
-    CallID process_id = Recordable::recorder.getRecorderID();
+    CallId process_id = Recordable::recorder.getRecorderID();
 
     while(iter != _participants.end()) {
       mbuffer->bindHalfDuplexOut(process_id, *iter);
@@ -192,7 +192,7 @@ bool Conference::setRecording() {
 
       ParticipantSet::iterator iter = _participants.begin();
 
-      CallID process_id = Recordable::recorder.getRecorderID();
+      CallId process_id = Recordable::recorder.getRecorderID();
 
       while(iter != _participants.end()) {
 	mbuffer->unBindHalfDuplexOut(process_id, *iter);

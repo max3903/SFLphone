@@ -32,7 +32,7 @@
 
 #include <vector>
 
-#include "audio/codecs/CodecFactory.h"
+#include "CodecFactory.h"
 
 #define DEFAULT_STREAM_DIRECTION    "sendrecv"
 
@@ -47,21 +47,21 @@ enum MimeType {
 };
 
 /*
- * This enum contains the different media stream direction.
- * To be added in the SDP attributes
- * The last one is only here to have to size information, otherwise the enum struct doesn't provide any means to know it
- */
-enum StreamDirection {
-	SEND_RECEIVE, SEND_ONLY, RECEIVE_ONLY, INACTIVE, DIR_COUNT
-};
-
-/*
  * This enum contains the different media types.
  * To be added in the SDP attributes
  * The last one is only here to have to size information, otherwise the enum struct doesn't provide any means to know it
  */
 enum MediaType {
 	AUDIOMEDIA, VIDEO, APPLICATION, TEXT, IMAGE, MESSAGE, MEDIA_COUNT
+};
+
+/*
+ * This enum contains the different media stream direction.
+ * To be added in the SDP attributes
+ * The last one is only here to have to size information, otherwise the enum struct doesn't provide any means to know it
+ */
+enum StreamDirection {
+	SEND_RECEIVE, SEND_ONLY, RECEIVE_ONLY, INACTIVE, DIR_COUNT
 };
 
 typedef enum StreamDirection streamDirection;
@@ -72,61 +72,52 @@ typedef enum MediaType mediaType;
 class SdpMedia {
 public:
 	SdpMedia(int type);
-	SdpMedia(std::string type, int port, std::string dir =
-			DEFAULT_STREAM_DIRECTION);
-	~SdpMedia();
 
-	/**
-	 * @return the list of codecs
-	 */
-	std::vector<sfl::Codec*> getMediaCodecList() {
-		return _codec_list;
-	}
+	SdpMedia(std::string type, int port, std::string dir = DEFAULT_STREAM_DIRECTION);
+
+	~SdpMedia();
 
 	/**
 	 * @return the type of media
 	 */
-	MediaType getMediaType() {
-		return _media_type;
-	}
+	MediaType getMediaType();
 
 	/**
 	 *@return the type of media
 	 */
-	std::string getMediaTypeStr();
+	std::string getMediaTypeStr() const;
 
 	/**
 	 * @param type The given media type to use.
 	 */
-	void setMediaType(int type) {
-		_media_type = (MediaType) type;
-	}
+	void setMediaType(int type);
 
 	/**
 	 * @return the transport port
 	 */
-	int getPort() {
-		return _port;
-	}
+	int getPort() const ;
 
 	/**
 	 * @param port The transport port.
 	 */
-	void setPort(int port) {
-		_port = port;
-	}
+	void setPort(int port);
 
 	/**
 	 * Add a codec in the current media codecs vector
 	 * @param codec The codec to be added.
 	 */
-	void addCodec(sfl::Codec *codec);
+	void addCodec(const sfl::Codec *codec);
 
 	/**
-	 * Remove a codec from the current media codecs vector
-	 * @param codec_name The codec encoding name
+	 * @param pt The payload type for the codec to look for.
+	 * @return The codec uniquely identified by the given payload type.
 	 */
-	void removeCodec(std::string codec_name);
+	const sfl::Codec* getCodec(ost::PayloadType pt);
+
+	/**
+	 * @return the list of codecs
+	 */
+	std::vector<const sfl::Codec*> getMediaCodecList();
 
 	/**
 	 * Remove all the codecs from the list
@@ -134,42 +125,54 @@ public:
 	void clearCodecList();
 
 	/**
-	 * @return a string description of the current media
-	 */
-	std::string toString();
-
-	/**
 	 * Set the stream direction of the current media
 	 * @param direction The  stream direction. Eg. : sendrecv, sendonly ...
 	 */
-	void setStreamDirection(int direction) {
-		_stream_type = (StreamDirection) direction;
-	}
+	void setStreamDirection(int direction);
 
 	/**
 	 * @return The stream direction of the current media
 	 */
-	StreamDirection getStreamDirection() {
-		return _stream_type;
-	}
+	StreamDirection getStreamDirection();
 
 	/**
 	 * @return the stream direction string description of the current media.
 	 */
 	std::string getStreamDirectionStr();
 
+	/**
+	 * @return a string description of the current media
+	 */
+	std::string toString();
 private:
+
 	/* The type of media */
 	MediaType _media_type;
 
 	/* The media codec vector */
-	std::vector<sfl::Codec*> _codec_list;
+	std::vector<const sfl::Codec*> _codecList;
+	typedef std::vector<const sfl::Codec*>::iterator CodecListIterator;
 
 	/* the transport port */
 	int _port;
 
 	/* The stream direction */
 	StreamDirection _stream_type;
+
+	/**
+	 * Payload predicate to match a payload type in a codec.
+	 */
+	class IsSamePayload {
+	public:
+		IsSamePayload(ost::PayloadType pt) :
+			pt(pt) {
+		}
+		bool operator()(const sfl::Codec*& codec) const {
+			return codec->getPayloadType() == pt;
+		}
+	private:
+		unsigned long pt;
+	};
 };
 
 #endif // _SDP_MEDIA

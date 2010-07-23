@@ -37,21 +37,23 @@
 #include <pjsip-simple/evsub.h>
 #include <pjsip_ua.h>
 
-#include "audio/audiortp/AudioRtpFactory.h"
-
+/**
+ * Forward declarations
+ */
 class AudioCodec;
 class Sdp;
 class AudioRtp;
 
 namespace sfl {
     class AudioRtpFactory;
+    class VideoDevice;
 }
 
 /**
  * @file sipcall.h
- * @brief SIPCall are SIP implementation of a normal Call 
+ * @brief SipCall are SIP implementation of a normal Call 
  */
-class SIPCall : public Call
+class SipCall : public Call
 {
   public:
 
@@ -61,12 +63,12 @@ class SIPCall : public Call
      * @param type  The type of the call. Could be Incoming
      *						 Outgoing
      */
-    SIPCall(const CallID& id, Call::CallType type, pj_pool_t *pool );
+    SipCall(const CallId& id, Call::CallType type, pj_pool_t *pool );
 
     /**
      * Destructor
      */
-    ~SIPCall();
+    ~SipCall();
 
     /** 
      * Call Identifier
@@ -112,33 +114,50 @@ class SIPCall : public Call
 
     pjsip_inv_session *getInvSession() {return _invSession;}
     
-    Sdp* getLocalSDP (void) { return _local_sdp; }
+    /**
+     * @return The SDP session object used for this call.
+     */
+    Sdp* getLocalSDP (void) { return _localSdp; }
 
-    void setLocalSDP (Sdp *local_sdp) { _local_sdp = local_sdp; }
+    /**
+     * @para localSdp The SDP session object to use in this call.
+     */
+    void setLocalSDP (Sdp* localSdp) { _localSdp = localSdp; }
 
     /** Returns a pointer to the AudioRtp object */
     inline sfl::AudioRtpFactory * getAudioRtp(void) { return _audiortp; }
 
-  private:
+    /**
+     * @return true If the user has set a video device to offer in the upcoming session.
+     */
+    bool isVideoEnabled();
 
+    /**
+     * @param device The video device that the user has chosen for this call.
+     */
+    void setVideoDevice(sfl::VideoDevice& device);
+
+  private:
     int _cid;
     int _did;
     int _tid;
 
     // Copy Constructor
-    SIPCall(const SIPCall& rh);
+    SipCall(const SipCall& rh);
 
     // Assignment Operator
-    SIPCall& operator=( const SIPCall& rh);
+    SipCall& operator=( const SipCall& rh);
 
     /** Starting sound */
-    sfl::AudioRtpFactory * _audiortp;
+    sfl::AudioRtpFactory* _audiortp;
 
     pjsip_evsub *_xferSub;
     
 	pjsip_inv_session *_invSession;
     
-	Sdp *_local_sdp;
+	Sdp* _localSdp;
+
+	sfl::VideoDevice* _videoDevice;
 
 };
 

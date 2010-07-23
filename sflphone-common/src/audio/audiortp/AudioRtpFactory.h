@@ -37,7 +37,7 @@
 #include "audio/codecs/AudioCodec.h"
 
 class SdesNegotiator;
-class SIPCall;
+class SipCall;
 
 namespace sfl {
     class AudioZrtpSession;
@@ -70,10 +70,10 @@ namespace sfl {
     class AudioRtpFactory {
         public:
         AudioRtpFactory();
-        AudioRtpFactory(SIPCall * ca);
+        AudioRtpFactory(SipCall * ca);
         ~AudioRtpFactory();
 
-	void initAudioRtpConfig(SIPCall *ca);
+	void initAudioRtpConfig(SipCall *ca);
 
 	/**
 	 * 	Lazy instantiation method. Create a new RTP session of a given
@@ -81,7 +81,7 @@ namespace sfl {
 	 * @param ca A pointer on a SIP call
 	 * @return A new AudioRtpSession object
 	 */
-	void initAudioRtpSession(SIPCall *ca);
+	void initAudioRtpSession(SipCall *ca);
 
 	/**
 	 * Start the audio rtp thread of the type specified in the configuration

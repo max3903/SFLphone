@@ -54,10 +54,17 @@ public:
 	/**
 	 * @Override
 	 */
-	const ost::PayloadFormat& getPayloadFormat() {
-		static ost::DynamicPayloadFormat format((ost::PayloadType) 96, 90000);
-		return format;
+	uint8 getPayloadType() const {
+		return 96;
 	}
+
+	/**
+	 * @Override
+	 */
+	uint32 getClockRate() const {
+		return 90000;
+	}
+
 	/**
 	 * Determines the chroma subsampling format.
 	 */

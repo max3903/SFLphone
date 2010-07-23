@@ -47,7 +47,7 @@
  * @brief A call is the base class for protocol-based calls
  */
 
-typedef std::string CallID;
+typedef std::string CallId;
 
 class Call: public Recordable{
     public:
@@ -83,22 +83,22 @@ class Call: public Recordable{
          * @param id Unique identifier of the call
          * @param type set definitely this call as incoming/outgoing
          */
-        Call(const CallID& id, Call::CallType type);
+        Call(const CallId& id, Call::CallType type);
         virtual ~Call();
 
         /** 
          * Return a reference on the call id
          * @return call id
          */
-        CallID& getCallId() {return _id; }
+        CallId& getCallId() {return _id; }
 
 	/** 
          * Return a reference on the conference id
          * @return call id
          */
-        CallID& getConfId() {return _confID; }
+        CallId& getConfId() {return _confID; }
 
-	void setConfId(CallID id) {_confID = id; }
+	void setConfId(CallId id) {_confID = id; }
 
         inline CallType getCallType (void)
         {
@@ -261,10 +261,10 @@ class Call: public Recordable{
     private:  
 
         /** Unique ID of the call */
-        CallID _id;
+        CallId _id;
 
 	/** Unique conference ID, used exclusively in case of a conferece */
-	CallID _confID;
+	CallId _confID;
 
         /** Type of the call */
         CallType _type;

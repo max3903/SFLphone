@@ -82,7 +82,7 @@ public:
 	 * Constructor
 	 * @param sipcall The pointer on the SIP call
 	 */
-	AudioRtpSession(ManagerImpl * manager, SIPCall* sipcall);
+	AudioRtpSession(ManagerImpl * manager, SipCall* sipcall);
 
 	~AudioRtpSession();
 
@@ -252,13 +252,13 @@ private:
 
 protected:
 
-	SIPCall * _ca;
+	SipCall * _ca;
 
 	bool onRTPPacketRecv(ost::IncomingRTPPkt&);
 };
 
 template<typename D>
-AudioRtpSession<D>::AudioRtpSession(ManagerImpl * manager, SIPCall * sipcall) :
+AudioRtpSession<D>::AudioRtpSession(ManagerImpl * manager, SipCall * sipcall) :
 	_time(new ost::Time()), _mainloopSemaphore(0), _audiocodec(NULL),
 			_audiolayer(NULL), _micData(NULL), _micDataConverted(NULL),
 			_micDataEncoded(NULL), _spkrDataDecoded(NULL), _spkrDataConverted(
@@ -568,13 +568,13 @@ int AudioRtpSession<D>::processDataEncode(void) {
 	int bytesAvail = (availBytesFromMic < maxBytesToGet) ? availBytesFromMic
 			: maxBytesToGet;
 
-	if (bytesAvail == 0)
-		return 0;
-
 	if (bytesAvail == 0) {
 		memset(_micDataEncoded, 0, sizeof(SFLDataFormat));
 		return _audiocodec->getFrameSize();
 	}
+
+	// Get bytes from micRingBuffer to data_from_mic
+	int nbSample = _manager->getAudioDriver()->getMainBuffer()->getData(_micData , bytesAvail, 100, _ca->getCallId()) / sizeof (SFLDataFormat);
 
 	// nb bytes to be sent over RTP
 	int compSize = 0;

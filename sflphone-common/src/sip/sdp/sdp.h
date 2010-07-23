@@ -42,7 +42,7 @@
 #include <pj/assert.h>
 #include <vector>
 
-#include "audio/codecs/CodecFactory.h"
+#include "CodecFactory.h"
 #include "SdpMedia.h"
 
 #include <exception>
@@ -72,7 +72,7 @@ public:
 	 * @return std::vector<SdpMedia*>   the vector containing the different media
 	 */
 	std::vector<SdpMedia*> getLocalMediaCap(void) {
-		return _local_media_cap;
+		return _initialMedias;
 	}
 
 	/**
@@ -98,9 +98,11 @@ public:
 	}
 
 	/*
-	 * Build the local SDP offer
+	 * Build the local SDP offer from the SDP media that were configured.
+	 * @precondition The user must have configured some sdp media to use
+	 * @see Sdp#setLocalMediaCapabilities
 	 */
-	int createLocalOffer(CodecOrder selectedCodecs);
+	int createLocalOffer();
 
 	/*
 	 * Build the SDP media section for a given media type (audio/video)
@@ -128,11 +130,18 @@ public:
 		_srtp_crypto = lc;
 	}
 
+	/**
+	 * Creates a new SdpMedia for the given mime type and selected codecs.
+	 * @param mime The mime type for this SDP media. Either audio, or video
+	 * @param selectedCodecs The codecs that the user has chosen.
+	 */
+	void setLocalMediaCapabilities(MimeType mime, CodecOrder selectedCodecs);
+
 	/*
 	 * On building an invite outside a dialog, build the local offer and create the
 	 * SDP negociator instance with it.
 	 */
-	int createInitialOffer(CodecOrder selectedCodecs);
+	int createInitialOffer();
 
 	/*
 	 * On receiving an invite outside a dialog, build the local offer and create the
@@ -140,8 +149,7 @@ public:
 	 *
 	 * @param remote    The remote offer
 	 */
-	int receivingInitialOffer(pjmedia_sdp_session* remote,
-			CodecOrder selectedCodecs);
+	int receivingInitialOffer(pjmedia_sdp_session* remote);
 
 	/*
 	 * On receiving a message, check if it contains SDP and negotiate. Should be used for
@@ -173,7 +181,7 @@ public:
 	/*
 	 * @return the codec of the first media after negotiation
 	 */
-	sfl::Codec* getSessionMedia(void);
+	const sfl::Codec* getFirstCodec(void);
 
 	/*
 	 * read accessor. Return the negotiated offer
@@ -181,7 +189,7 @@ public:
 	 * @return pjmedia_sdp_session  The negotiated offer
 	 */
 	pjmedia_sdp_session* getNegotiatedOffer(void) {
-		return _negociated_offer;
+		return _negotiated_offer;
 	}
 
 	/*
@@ -255,21 +263,40 @@ public:
 	void setMediaTransportFromRemoteSdp(const pjmedia_sdp_session *remote_sdp);
 
 	std::vector<SdpMedia*> getSessionMediaList(void) {
-		return _session_media;
+		return _negotiatedMedias;
 	}
 
 	void getRemoteSdpCryptoFromOffer(const pjmedia_sdp_session* remote_sdp,
 			CryptoOffer& crypto_offer);
 
 	void toString(void);
+
 private:
 	/** Codec Map */
-	std::vector<SdpMedia*> _local_media_cap;
+	std::vector<SdpMedia*> _initialMedias;
+	typedef std::vector<SdpMedia*>::iterator InitialMediasIterator;
 
-	/* The media that will be used by the session (after the SDP negociation) */
-	std::vector<SdpMedia*> _session_media;
+	/**
+	 * Payload predicate to match a payload type in a codec.
+	 */
+	class IsSameMedia {
+	public:
+		IsSameMedia(std::string other, uint16 port) :
+			otherMedia(other),  port(port) {
+		}
+		bool operator()(SdpMedia*& media) {
+			return (media->getMediaTypeStr() == otherMedia) && (media->getPort() == port);
+		}
+	private:
+		std::string otherMedia;
+		uint16 port;
+	};
 
-	/** negociator */
+	/* The media that will be used by the session (after the SDP negotiation) */
+	std::vector<SdpMedia*> _negotiatedMedias;
+	typedef std::vector<SdpMedia*>::iterator NegotiatedMediasIterator;
+
+	/** negotiator */
 	pjmedia_sdp_neg *_negotiator;
 
 	/** IP address */
@@ -281,10 +308,10 @@ private:
 	/** Local SDP */
 	pjmedia_sdp_session *_local_offer;
 
-	/* The negociated SDP offer */
-	// Explanation: each endpoint's offer is negociated, and a new sdp offer results from this
-	// negociation, with the compatible media from each part
-	pjmedia_sdp_session *_negociated_offer;
+	/* The negotiated SDP offer */
+	// Explanation: each endpoint's offer is negotiated, and a new sdp offer results from this
+	// negotiation, with the compatible media from each part
+	pjmedia_sdp_session *_negotiated_offer;
 
 	// The pool to allocate memory
 	pj_pool_t *_pool;
@@ -300,10 +327,15 @@ private:
 	/** "a=crypto" sdes local attributes obtained from AudioSrtpSession */
 	std::vector<std::string> _srtp_crypto;
 
-	Sdp(const Sdp&); //No Copy Constructor
-	Sdp& operator=(const Sdp&); //No Assignment Operator
+	/**
+	 * No copy constructor.
+	 */
+	Sdp(const Sdp&);
 
-	void setLocalMediaCapabilities(CodecOrder selectedCodecs);
+	/**
+	 * No assignment operator
+	 */
+	Sdp& operator=(const Sdp&);
 
 	/*
 	 *  Mandatory field: Origin ("o=")

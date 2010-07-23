@@ -32,7 +32,7 @@
 #include "manager.h"
 #include "audio/mainbuffer.h"
 
-Call::Call (const CallID& id, Call::CallType type)
+Call::Call (const CallId& id, Call::CallType type)
         : _callMutex()
         , _audioStarted (false)
         , _localIPAddress ("")
@@ -197,7 +197,7 @@ Call::setRecording()
     if(!recordStatus) {
 
       MainBuffer *mbuffer = Manager::instance().getMainBuffer();
-      CallID process_id = Recordable::recorder.getRecorderID();
+      CallId process_id = Recordable::recorder.getRecorderID();
 
       mbuffer->bindHalfDuplexOut(process_id, _id);
       mbuffer->bindHalfDuplexOut(process_id);
@@ -207,7 +207,7 @@ Call::setRecording()
     else {
 
       MainBuffer *mbuffer = Manager::instance().getMainBuffer();      
-      CallID process_id = Recordable::recorder.getRecorderID();
+      CallId process_id = Recordable::recorder.getRecorderID();
 
       mbuffer->unBindHalfDuplexOut(process_id, _id);
       mbuffer->unBindHalfDuplexOut(process_id);

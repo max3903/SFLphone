@@ -45,7 +45,7 @@ AudioRtpFactory::AudioRtpFactory() :
 
 }
 
-AudioRtpFactory::AudioRtpFactory(SIPCall *ca) :
+AudioRtpFactory::AudioRtpFactory(SipCall *ca) :
 	_rtpSession(NULL) {
 	assert (ca);
 
@@ -60,7 +60,7 @@ AudioRtpFactory::~AudioRtpFactory() {
 	stop();
 }
 
-void AudioRtpFactory::initAudioRtpConfig(SIPCall *ca) {
+void AudioRtpFactory::initAudioRtpConfig(SipCall *ca) {
 	assert (ca);
 
 	if (_rtpSession != NULL) {
@@ -92,7 +92,7 @@ void AudioRtpFactory::initAudioRtpConfig(SIPCall *ca) {
 	}
 }
 
-void AudioRtpFactory::initAudioRtpSession(SIPCall * ca) {
+void AudioRtpFactory::initAudioRtpSession(SipCall * ca) {
 	ost::MutexLock m(_audioRtpThreadMutex);
 
 	_debug ("Srtp enable: %d ", _srtpEnabled);

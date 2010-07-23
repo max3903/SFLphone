@@ -40,7 +40,7 @@
 
 using namespace std;
 
-typedef std::string CallID;
+typedef std::string CallId;
 
 class AudioRecord
 {

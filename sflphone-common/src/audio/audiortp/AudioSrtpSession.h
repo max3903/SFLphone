@@ -38,7 +38,7 @@
 
 class SdesNegotiator;
 class ManagerImpl;
-class SIPCall;
+class SipCall;
 
 /* 
    Table from RFC 4568 6.2. Crypto-Suites, which define key parameters for supported 
@@ -78,7 +78,7 @@ namespace sfl {
     {
         public:
 
-            AudioSrtpSession(ManagerImpl * manager, SIPCall * sipcall);
+            AudioSrtpSession(ManagerImpl * manager, SipCall * sipcall);
 
             std::vector<std::string> getLocalCryptoInfo(void);
 

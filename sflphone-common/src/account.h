@@ -29,15 +29,19 @@
  *  as that of the covered work.
  */
 
-#ifndef ACCOUNT_H
-#define ACCOUNT_H
+#ifndef __ACCOUNT_H__
+#define __ACCOUNT_H__
+
+#include "config/config.h"
+
+#include "voiplink.h"
+
+#include "config/serializable.h"
+
+#include "CodecFactory.h"
 
 #include <string>
 #include <vector>
-
-#include "config/config.h"
-#include "voiplink.h"
-#include "config/serializable.h"
 
 class VoIPLink;
 
@@ -52,16 +56,16 @@ typedef std::string AccountID;
 
 /** Contains all the state an Voip can be in */
 typedef enum RegistrationState {
-        Unregistered, 
-        Trying, 
-        Registered, 
-        Error, 
-        ErrorAuth , 
-        ErrorNetwork , 
-        ErrorHost, 
-        ErrorExistStun, 
-        ErrorConfStun,
-        NumberOfState
+	Unregistered,
+	Trying,
+	Registered,
+	Error,
+	ErrorAuth,
+	ErrorNetwork,
+	ErrorHost,
+	ErrorExistStun,
+	ErrorConfStun,
+	NumberOfState
 } RegistrationState;
 
 #define AccountNULL ""
@@ -133,7 +137,6 @@ typedef enum RegistrationState {
 #define REGISTRATION_STATE_CODE             "Registration.code" 
 #define REGISTRATION_STATE_DESCRIPTION      "Registration.description"
 
-
 // General configuration keys for accounts
 const Conf::Key aliasKey("alias");
 const Conf::Key typeKey("type");
@@ -144,215 +147,288 @@ const Conf::Key hostnameKey("hostname");
 const Conf::Key accountEnableKey("enable");
 const Conf::Key mailboxKey("mailbox");
 
-const Conf::Key codecsKey("codecs");   // 0/9/110/111/112/
+const Conf::Key codecsKey("codecs"); // 0/9/110/111/112/
 const Conf::Key ringtonePathKey("ringtonePath");
 const Conf::Key ringtoneEnabledKey("ringtoneEnabled");
 const Conf::Key displayNameKey("displayName");
 
 #define find_in_map(X, Y)  if((iter = map_cpy.find(X)) != map_cpy.end()) { Y = iter->second; }
 
-class Account : public Serializable{
+class Account: public Serializable {
 
-    public:
+public:
 
-        Account(const AccountID& accountID, std::string type);
+	Account(const AccountID& accountID, std::string type);
 
-        /**
-         * Virtual destructor
-         */
-        virtual ~Account();
+	/**
+	 * Virtual destructor
+	 */
+	virtual ~Account();
 
 	virtual void serialize(Conf::YamlEmitter *emitter) = 0;
 
 	virtual void unserialize(Conf::MappingNode *map) = 0;
 
-	virtual void setAccountDetails(const std::map<std::string, std::string>& details) = 0;
+	virtual void setAccountDetails(
+			const std::map<std::string, std::string>& details) = 0;
 
 	virtual std::map<std::string, std::string> getAccountDetails() = 0;
-	
-
-        /**
-         * Load the settings for this account.
-         */
-        virtual void loadConfig();
-
-        /**
-         * Get the account ID
-         * @return constant account id
-         */
-        inline const AccountID& getAccountID() { return _accountID; }
-
-        /**
-         * Get the voiplink pointer
-         * @return VoIPLink* the pointer or 0
-         */
-        inline VoIPLink* getVoIPLink() { return _link; }
-
-        virtual void setVoIPLink () = 0;
-
-        /**
-         * Register the underlying VoIPLink. Launch the event listener.
-         * This should update the getRegistrationState() return value.
-         */
-        virtual int registerVoIPLink() = 0;
-
-        /**
-         * Unregister the underlying VoIPLink. Stop the event listener.
-         * This should update the getRegistrationState() return value.
-         */
-        virtual int unregisterVoIPLink() = 0;
-
-        /**
-         * Tell if the account is enable or not. 
-         * @return true if enabled
-         *	     false otherwise
-         */
-        bool isEnabled() { return _enabled; }
-
-	void setEnabled(bool enabl) { _enabled = enabl; }
-
-        /**
-         * Get the registration state of the specified link
-         * @return RegistrationState	The registration state of underlying VoIPLink
-         */
-        inline RegistrationState getRegistrationState() { return _registrationState; }
-
-        /**
-         * Set the registration state of the specified link
-         * @param state	The registration state of underlying VoIPLink
-         */
-        void setRegistrationState( RegistrationState state );
-        
-        /**
-         * Set the latest up-to-date state code
-         * for that account. These codes are 
-         * those used in SIP and IAX (eg. 200, 500 ...)
-         * @param state The Code:Description state
-         * @return void
-         */
-        void setRegistrationStateDetailed(std::pair<int, std::string> state) { _registrationStateDetailed = state; }
-        
-        /**
-         * Get the latest up-to-date state code
-         * for that account. These codes are 
-         * those used in SIP and IAX (eg. 200, 500 ...)
-         * @param void
-         * @return std::pair<int, std::string> A Code:Description state
-         */
-        std::pair<int, std::string> getRegistrationStateDetailed(void) { return _registrationStateDetailed; }
-                        
-
-        /* inline functions */
-        /* They should be treated like macro definitions by the C++ compiler */
-        inline std::string getUsername( void ) { return _username; }
-        inline void setUsername( std::string username) { _username = username; }
-
-        inline std::string getHostname( void ) { return _hostname; }
-        inline void setHostname( std::string hostname) { _hostname = hostname; }
-
-        inline std::string getPassword( void ) { return _password; }
-        inline void setPassword( std::string password ) { _password = password; }
-
-        inline std::string getAlias( void ) { return _alias; }
-        inline void setAlias( std::string alias ) { _alias = alias; }
-
-        inline std::string getType( void ) { return _type; }
-        inline void setType( std::string type ) { _type = type; }
-	
-	/**
-	 * Accessor to data structures
-	 * @return CodecOrder& The list that reflects the user's choice
-	 */
-	inline CodecOrder& getActiveCodecs(void) { return _codecOrder; }
-	void setActiveCodecs (const std::vector <std::string>& list);
-
-	inline std::string getRingtonePath(void) { return _ringtonePath; }
-	inline void setRingtonePath(std::string path) { _ringtonePath = path; }
-
-	inline bool getRingtoneEnabled(void) { return _ringtoneEnabled; }
-	inline void setRingtoneEnabled(bool enabl) { _ringtoneEnabled = enabl; }
-
-	inline std::string getDisplayName(void) { return _displayName; }
-	inline void setDisplayName(std::string name) { _displayName = name; }
-
-	std::string getUseragent(void) { return _useragent; }
-	void setUseragent(std::string ua) { _useragent = ua; }
-
-    private:
-        // copy constructor
-        Account(const Account& rh);
-
-        // assignment operator
-        Account& operator=(const Account& rh);
-
-	void loadAudioCodecs (void);
-
-    protected:
-        /**
-         * Account ID are assign in constructor and shall not changed
-         */
-        AccountID _accountID;
-
-        /**
-         * Account login information: username
-         */
-        std::string _username;
-
-        /**
-         * Account login information: hostname
-         */
-        std::string _hostname;
-
-        /**
-         * Account login information: password
-         */
-        std::string _password;
-
-        /**
-         * Account login information: Alias
-         */
-        std::string _alias;
-
-        /**
-         * Voice over IP Link contains a listener thread and calls
-         */
-        VoIPLink* _link;
-
-        /**
-         * Tells if the link is enabled, active.
-         * This implies the link will be initialized on startup.
-         * Modified by the configuration (key: ENABLED)
-         */
-        bool _enabled;
-
-        /*
-         * The account type
-         * IAX2 or SIP
-         */
-        std::string _type;
-
-        /*
-         * The general, protocol neutral registration 
-         * state of the account
-         */
-        RegistrationState _registrationState;
-        
-        /*
-         * Details about the registration state.
-         * This is a protocol Code:Description pair. 
-         */
-        std::pair<int, std::string> _registrationStateDetailed;
 
 	/**
-	 * Vector containing the order of the codecs
+	 * Load the settings for this account.
 	 */
-	CodecOrder _codecOrder;
+	virtual void loadConfig();
+
+	/**
+	 * Get the account ID
+	 * @return constant account id
+	 */
+	inline const AccountID& getAccountID() {
+		return _accountID;
+	}
+
+	/**
+	 * Get the voiplink pointer
+	 * @return VoIPLink* the pointer or 0
+	 */
+	inline VoIPLink* getVoIPLink() {
+		return _link;
+	}
+
+	virtual void setVoIPLink() = 0;
+
+	/**
+	 * Register the underlying VoIPLink. Launch the event listener.
+	 * This should update the getRegistrationState() return value.
+	 */
+	virtual int registerVoIPLink() = 0;
+
+	/**
+	 * Unregister the underlying VoIPLink. Stop the event listener.
+	 * This should update the getRegistrationState() return value.
+	 */
+	virtual int unregisterVoIPLink() = 0;
+
+	/**
+	 * Tell if the account is enable or not.
+	 * @return true if enabled
+	 *	     false otherwise
+	 */
+	bool isEnabled() {
+		return _enabled;
+	}
+
+	void setEnabled(bool enabl) {
+		_enabled = enabl;
+	}
+
+	/**
+	 * Get the registration state of the specified link
+	 * @return RegistrationState	The registration state of underlying VoIPLink
+	 */
+	inline RegistrationState getRegistrationState() {
+		return _registrationState;
+	}
+
+	/**
+	 * Set the registration state of the specified link
+	 * @param state	The registration state of underlying VoIPLink
+	 */
+	void setRegistrationState(RegistrationState state);
+
+	/**
+	 * Set the latest up-to-date state code
+	 * for that account. These codes are
+	 * those used in SIP and IAX (eg. 200, 500 ...)
+	 * @param state The Code:Description state
+	 * @return void
+	 */
+	void setRegistrationStateDetailed(std::pair<int, std::string> state) {
+		_registrationStateDetailed = state;
+	}
+
+	/**
+	 * Get the latest up-to-date state code
+	 * for that account. These codes are
+	 * those used in SIP and IAX (eg. 200, 500 ...)
+	 * @param void
+	 * @return std::pair<int, std::string> A Code:Description state
+	 */
+	std::pair<int, std::string> getRegistrationStateDetailed(void) {
+		return _registrationStateDetailed;
+	}
+
+	/**
+	 * @return An ordered list of those codecs that the user has chosen for this account.
+	 */
+	CodecOrder& getActiveAudioCodecs();
+
+	/**
+	 * @return An ordered list of those codecs that the user has chosen for this account.
+	 */
+	CodecOrder& getActiveVideoCodecs();
+
+	/**
+	 * @param codecs An ordered list of those codecs that the user has chosen for this account.
+	 */
+	void setActiveAudioCodecs(CodecOrder codecs);
+
+	/**
+	 * @param codecs An ordered list of those codecs that the user has chosen for this account.
+	 */
+	void setActiveVideoCodecs(CodecOrder codecs);
+
+	/* inline functions */
+	/* They should be treated like macro definitions by the C++ compiler */
+	inline std::string getUsername(void) {
+		return _username;
+	}
+	inline void setUsername(std::string username) {
+		_username = username;
+	}
+
+	inline std::string getHostname(void) {
+		return _hostname;
+	}
+	inline void setHostname(std::string hostname) {
+		_hostname = hostname;
+	}
+
+	inline std::string getPassword(void) {
+		return _password;
+	}
+	inline void setPassword(std::string password) {
+		_password = password;
+	}
+
+	inline std::string getAlias(void) {
+		return _alias;
+	}
+	inline void setAlias(std::string alias) {
+		_alias = alias;
+	}
+
+	inline std::string getType(void) {
+		return _type;
+	}
+	inline void setType(std::string type) {
+		_type = type;
+	}
+
+	inline std::string getRingtonePath(void) {
+		return _ringtonePath;
+	}
+	inline void setRingtonePath(std::string path) {
+		_ringtonePath = path;
+	}
+
+	inline bool getRingtoneEnabled(void) {
+		return _ringtoneEnabled;
+	}
+	inline void setRingtoneEnabled(bool enabl) {
+		_ringtoneEnabled = enabl;
+	}
+
+	inline std::string getDisplayName(void) {
+		return _displayName;
+	}
+	inline void setDisplayName(std::string name) {
+		_displayName = name;
+	}
+
+	std::string getUseragent(void) {
+		return _useragent;
+	}
+	void setUseragent(std::string ua) {
+		_useragent = ua;
+	}
+
+private:
+	// copy constructor
+	Account(const Account& rh);
+
+	// assignment operator
+	Account& operator=(const Account& rh);
+
+	void loadAudioCodecs(void);
+
+protected:
+	/**
+	 * Account ID are assign in constructor and shall not changed
+	 */
+	AccountID _accountID;
+
+	/**
+	 * Account login information: username
+	 */
+	std::string _username;
+
+	/**
+	 * Account login information: hostname
+	 */
+	std::string _hostname;
+
+	/**
+	 * Account login information: password
+	 */
+	std::string _password;
+
+	/**
+	 * Account login information: Alias
+	 */
+	std::string _alias;
+
+	/**
+	 * Voice over IP Link contains a listener thread and calls
+	 */
+	VoIPLink* _link;
+
+	/**
+	 * Tells if the link is enabled, active.
+	 * This implies the link will be initialized on startup.
+	 * Modified by the configuration (key: ENABLED)
+	 */
+	bool _enabled;
+
+	/*
+	 * The account type
+	 * IAX2 or SIP
+	 */
+	std::string _type;
+
+	/*
+	 * The general, protocol neutral registration
+	 * state of the account
+	 */
+	RegistrationState _registrationState;
+
+	/*
+	 * Details about the registration state.
+	 * This is a protocol Code:Description pair.
+	 */
+	std::pair<int, std::string> _registrationStateDetailed;
+
+	/**
+	 * Vector containing the order of the audio codecs
+	 */
+	CodecOrder _codecAudioOrder;
+
+	/**
+	 * Vector containing the order of the video codecs
+	 */
+	CodecOrder _codecVideoOrder;
 
 	/**
 	 * List of codec obtained when parsing configuration and used
 	 * to generate codec order list
 	 */
-	std::string _codecStr;
+	std::string _codecAudioSerialized;
+
+	/**
+	 * List of codec obtained when parsing configuration and used
+	 * to generate codec order list
+	 */
+	std::string _codecVideoSerialized;
 
 	/**
 	 * Ringtone .au file used for this account
@@ -361,13 +437,13 @@ class Account : public Serializable{
 
 	/**
 	 * Play ringtone when receiving a call
-	 */ 
+	 */
 	bool _ringtoneEnabled;
 
 	/**
 	 * Display name when calling 
 	 */
-        std::string _displayName;
+	std::string _displayName;
 
 	/**
 	 * Useragent used for registration

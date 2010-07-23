@@ -104,10 +104,12 @@ libsflphone_la_LDFLAGS = \
 		@yaml_LIBS@
 
 libsflphone_la_SOURCES = \
-		Codec.h
+		Codec.h \
+		CodecFactory.cpp
 		
 noinst_HEADERS = \
-		Codec.h		
+		Codec.h	\
+		CodecFactory.h	
 
 indent:
 	@echo "Indenting code:"

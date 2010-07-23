@@ -33,13 +33,14 @@
 #include "account.h"
 #include "manager.h"
 
+#include "CodecFactory.h"
+
 Account::Account (const AccountID& accountID, std::string type) :
 	_accountID (accountID)
 	, _link (NULL)
 	, _enabled (true)
 	, _type (type)
-	, _codecOrder ()
-	, _codecStr("")
+	, _codecAudioSerialized("")
 	, _ringtonePath("/usr/share/sflphone/ringtones/konga.ul")
 	, _ringtoneEnabled(true)
 	, _displayName("")
@@ -75,40 +76,33 @@ void Account::setRegistrationState (RegistrationState state) {
 }
 
 void Account::loadAudioCodecs (void) {
-
 	// if the user never set the codec list, use the default configuration for this account
-       if(_codecStr == "") {
+       if(_codecAudioSerialized == "") {
 		_info ("Account: use the default order");
-		Manager::instance ().getCodecFactory ().setDefaultOrder();
+		CodecFactory::getInstance().setDefaultOrder();
 	}
 	// else retrieve the one set in the user config file
 	else {
 		std::vector<std::string> active_list = Manager::instance ().retrieveActiveCodecs();
-		// This property is now set per account basis
-		// std::string s = Manager::instance ().getConfigString (_accountID, "ActiveCodecs");
-		setActiveCodecs (Manager::instance ().unserialize (_codecStr));
+
+		setActiveAudioCodecs (Manager::instance ().unserialize (_codecAudioSerialized));
 	}
 }
 
-void Account::setActiveCodecs (const std::vector <std::string> &list) {
+CodecOrder& Account::getActiveVideoCodecs() {
+	return _codecVideoOrder;
+}
 
-	_codecOrder.clear();
-	// list contains the ordered payload of active codecs picked by the user for this account
-	// we used the CodecOrder vector to save the order.
-	int i=0;
-	int payload;
-	size_t size = list.size();
+void Account::setActiveVideoCodecs(CodecOrder codecs) {
+	_codecVideoOrder = codecs;
+	_codecVideoSerialized = Manager::instance().serialize(codecs);
+}
 
-	while ( (unsigned int) i < size) {
-		payload = std::atoi (list[i].data());
-		_info ("Account: Adding codec with RTP payload=%i", payload);
-		//if (Manager::instance ().getCodecFactory ().isCodecLoaded (payload)) {
-		_codecOrder.push_back ( (AudioCodecType) payload);
-		//}
-		i++;
-	}
+CodecOrder& Account::getActiveAudioCodecs() {
+	return _codecVideoOrder;
+}
 
-	// setConfig
-	_codecStr = Manager::instance ().serialize (list);
-
+void Account::setActiveAudioCodecs(CodecOrder codecs) {
+	_codecAudioOrder = codecs;
+	_codecAudioSerialized = Manager::instance().serialize (codecs);
 }

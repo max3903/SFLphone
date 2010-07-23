@@ -38,7 +38,6 @@
 #include "voiplink.h"
 #include "hooks/urlhook.h"
 
-
 //////////////////////////////
 /* PJSIP imports */
 #include <pjsip.h>
@@ -52,7 +51,7 @@
 #include <sstream>
 
 class EventThread;
-class SIPCall;
+class SipCall;
 
 #define RANDOM_LOCAL_PORT ((rand() % 27250) + 5250)*2
 #define RANDOM_SIP_PORT   rand() % 64000 + 1024
@@ -63,278 +62,287 @@ class SIPCall;
 #define SipTransportMap std::map<std::string, pjsip_transport*>
 
 /**
+ * Forward declaration
+ */
+class SIPAccount;
+
+/**
  * @file sipvoiplink.h
  * @brief Specific VoIPLink for SIP (SIP core for incoming and outgoing events).
  *          This class is based on the singleton design pattern.
- *          One SIPVoIPLink can handle multiple SIP accounts, but all the SIP accounts have all the same SIPVoIPLink
+ *          One SipVoipLink can handle multiple SIP accounts, but all the SIP accounts have all the same SipVoipLink
  */
 
-class SIPVoIPLink : public VoIPLink
-{
-    public:
+class SipVoipLink: public VoIPLink {
+public:
 
-        /**
-         * Singleton method. Enable to retrieve the unique static instance
-         * @return SIPVoIPLink* A pointer on the object
-         */
-        static SIPVoIPLink* instance( const AccountID& id );
+	/**
+	 * Singleton method. Enable to retrieve the unique static instance
+	 * @return SipVoipLink* A pointer on the object
+	 */
+	static SipVoipLink* instance(const AccountID& id);
 
-        /**
-         * Destructor
-         */
-        ~SIPVoIPLink();
+	/**
+	 * Destructor
+	 */
+	~SipVoipLink();
 
-        /* Copy Constructor */
-        SIPVoIPLink(const SIPVoIPLink& rh);
+	/* Copy Constructor */
+	SipVoipLink(const SipVoipLink& rh);
 
-        /* Assignment Operator */
-        SIPVoIPLink& operator=( const SIPVoIPLink& rh);
+	/* Assignment Operator */
+	SipVoipLink& operator=(const SipVoipLink& rh);
 
-        /** 
-         * Try to initiate the pjsip engine/thread and set config 
-         * @return bool True if OK
-         */
-        bool init(void);
+	/**
+	 * Try to initiate the pjsip engine/thread and set config
+	 * @return bool True if OK
+	 */
+	bool init(void);
 
-        /**
-         * Shut the library and clean up
-         */
-        void terminate( void );
+	/**
+	 * Shut the library and clean up
+	 */
+	void terminate(void);
 
-        /**
-         * Event listener. Each event send by the call manager is received and handled from here
-         */
-        void getEvent(void);
+	/**
+	 * Event listener. Each event send by the call manager is received and handled from here
+	 */
+	void getEvent(void);
 
-        /**
-         * Build and send SIP registration request
-         * @return bool True on success
-         *		  false otherwise
-         */
-        int sendRegister(AccountID id);
+	/**
+	 * Build and send SIP registration request
+	 * @return bool True on success
+	 *		  false otherwise
+	 */
+	int sendRegister(AccountID id);
 
-        /**
-         * Build and send SIP unregistration request
-         * @return bool True on success
-         *		  false otherwise
-         */
-        int sendUnregister(AccountID id);
+	/**
+	 * Build and send SIP unregistration request
+	 * @return bool True on success
+	 *		  false otherwise
+	 */
+	int sendUnregister(AccountID id);
 
-        /**
-         * Place a new call
-         * @param id  The call identifier
-         * @param toUrl  The Sip address of the recipient of the call
-         * @return Call* The current call
-         */
-        Call* newOutgoingCall(const CallID& id, const std::string& toUrl);
+	/**
+	 * Place a new call
+	 * @param id  The call identifier
+	 * @param toUrl  The Sip address of the recipient of the call
+	 * @return Call* The current call
+	 */
+	Call* newOutgoingCall(const CallId& id, const std::string& toUrl);
 
-        /**
-         * Answer the call
-         * @param id The call identifier
-         * @return int True on success
-         */
-        bool answer(const CallID& id);
+	/**
+	 * Answer the call
+	 * @param id The call identifier
+	 * @return int True on success
+	 */
+	bool answer(const CallId& id);
 
-        /**
-         * Hang up the call
-         * @param id The call identifier
-         * @return bool True on success
-         */
-        bool hangup(const CallID& id);
+	/**
+	 * Hang up the call
+	 * @param id The call identifier
+	 * @return bool True on success
+	 */
+	bool hangup(const CallId& id);
 
-        /**
-         * Hang up the call
-         * @param id The call identifier
-         * @return bool True on success
-         */
-        bool peerHungup(const CallID& id);
+	/**
+	 * Hang up the call
+	 * @param id The call identifier
+	 * @return bool True on success
+	 */
+	bool peerHungup(const CallId& id);
 
-        /**
-         * Cancel the call
-         * @param id The call identifier
-         * @return bool True on success
-         */
-        bool cancel(const CallID& id);
+	/**
+	 * Cancel the call
+	 * @param id The call identifier
+	 * @return bool True on success
+	 */
+	bool cancel(const CallId& id);
 
-        /**
-         * Put the call on hold
-         * @param id The call identifier
-         * @return bool True on success
-         */
-        bool onhold(const CallID& id);
+	/**
+	 * Put the call on hold
+	 * @param id The call identifier
+	 * @return bool True on success
+	 */
+	bool onhold(const CallId& id);
 
-        /**
-         * Put the call off hold
-         * @param id The call identifier
-         * @return bool True on success
-         */
-        bool offhold(const CallID& id);
+	/**
+	 * Put the call off hold
+	 * @param id The call identifier
+	 * @return bool True on success
+	 */
+	bool offhold(const CallId& id);
 
-        /**
-         * Transfer the call
-         * @param id The call identifier
-         * @param to The recipient of the transfer
-         * @return bool True on success
-         */
-        bool transfer(const CallID& id, const std::string& to);
+	/**
+	 * Transfer the call
+	 * @param id The call identifier
+	 * @param to The recipient of the transfer
+	 * @return bool True on success
+	 */
+	bool transfer(const CallId& id, const std::string& to);
 
-        /** Handle the incoming refer msg, not finished yet */
-        bool transferStep2(SIPCall* call);
+	/** Handle the incoming refer msg, not finished yet */
+	bool transferStep2(SipCall* call);
 
-        /**
-         * Refuse the call
-         * @param id The call identifier
-         * @return bool True on success
-         */
-        bool refuse (const CallID& id);
+	/**
+	 * Refuse the call
+	 * @param id The call identifier
+	 * @return bool True on success
+	 */
+	bool refuse(const CallId& id);
 
-        /**
-         * Send DTMF refering to account configuration
-         * @param id The call identifier
-         * @param code  The char code
-         * @return bool True on success
-         */
-        bool carryingDTMFdigits(const CallID& id, char code);
+	/**
+	 * Send DTMF refering to account configuration
+	 * @param id The call identifier
+	 * @param code  The char code
+	 * @return bool True on success
+	 */
+	bool carryingDTMFdigits(const CallId& id, char code);
 
-        /**
-         * Send Dtmf using SIP INFO message
-         */
-        bool dtmfSipInfo(SIPCall *call, char code);
+	/**
+	 * Send Dtmf using SIP INFO message
+	 */
+	bool dtmfSipInfo(SipCall *call, char code);
 
-        /**
-         * Send Dtmf over RTP
-         */
-        bool dtmfOverRtp(SIPCall* call, char code);
+	/**
+	 * Send Dtmf over RTP
+	 */
+	bool dtmfOverRtp(SipCall* call, char code);
 
-        /** 
-         * Terminate every call not hangup | brutal | Protected by mutex 
-         */
-        void terminateSIPCall(); 
- 
-        /**
-         * Terminate only one call
-         */
-       void terminateOneCall(const CallID& id);
+	/**
+	 * Terminate every call not hangup | brutal | Protected by mutex
+	 */
+	void terminateSIPCall();
 
-        /**
-         * Send an outgoing call invite
-         * @param call  The current call
-         * @return bool True if all is correct
-         */
-        bool SIPOutgoingInvite(SIPCall* call);
+	/**
+	 * Terminate only one call
+	 */
+	void terminateOneCall(const CallId& id);
 
-        /**
-         * Start a SIP Call
-         * @param call  The current call
-         * @param subject Undocumented
-         * @return true if all is correct
-         */
-        bool SIPStartCall(SIPCall* call, const std::string& subject);
+	/**
+	 * Send an outgoing call invite
+	 * @param call  The current call
+	 * @return bool True if all is correct
+	 */
+	bool SIPOutgoingInvite(SipCall* call);
 
-        /**
-         * Tell the user that the call was answered
-         * @param
-         */
-        void SIPCallAnswered(SIPCall *call, pjsip_rx_data *rdata);
+	/**
+	 * Start a SIP Call
+	 * @param call  The current call
+	 * @param subject Undocumented
+	 * @return true if all is correct
+	 */
+	bool SIPStartCall(SipCall* call, const std::string& subject);
 
-        /**
-         * Handling 5XX/6XX error
-         * @param 
-         */
-        void SIPCallServerFailure(SIPCall *call);
+	/**
+	 * Tell the user that the call was answered
+	 * @param
+	 */
+	void SIPCallAnswered(SipCall *call, pjsip_rx_data *rdata);
 
-        /**
-         * Peer close the connection
-         * @param
-         */
-        void SIPCallClosed(SIPCall *call);
+	/**
+	 * Handling 5XX/6XX error
+	 * @param
+	 */
+	void SIPCallServerFailure(SipCall *call);
 
-        /**
-         * The call pointer was released
-         * If the call was not cleared before, report an error
-         * @param
-         */
-        void SIPCallReleased(SIPCall *call);
+	/**
+	 * Peer close the connection
+	 * @param
+	 */
+	void SIPCallClosed(SipCall *call);
 
-        /**
-         * Handle a re-invite request by the remote peer.
-         * A re-invite is an invite request inside a dialog.
-         * When receiving a re-invite, we close the current rtp session and create a new one with the updated information
-         */
-        void handle_reinvite (SIPCall *call);
+	/**
+	 * The call pointer was released
+	 * If the call was not cleared before, report an error
+	 * @param
+	 */
+	void SIPCallReleased(SipCall *call);
 
-        /**
-         * SIPCall accessor
-         * @param id  The call identifier
-         * @return SIPCall*	  A pointer on SIPCall object
-         */
-        SIPCall* getSIPCall(const CallID& id);
+	/**
+	 * Handle a re-invite request by the remote peer.
+	 * A re-invite is an invite request inside a dialog.
+	 * When receiving a re-invite, we close the current rtp session and create a new one with the updated information
+	 */
+	void handle_reinvite(SipCall *call);
 
-        /** when we init the listener, how many times we try to bind a port? */
-        int _nbTryListenAddr;
+	/**
+	 * SipCall accessor
+	 * @param id  The call identifier
+	 * @return SipCall*	  A pointer on SipCall object
+	 */
+	SipCall* getSIPCall(const CallId& id);
 
-        /** Increment the number of SIP account connected to this link */
-        void incrementClients (void) { _clients++; }
+	/** when we init the listener, how many times we try to bind a port? */
+	int _nbTryListenAddr;
 
-        /** Decrement the number of SIP account connected to this link */
-        void decrementClients (void);
+	/** Increment the number of SIP account connected to this link */
+	void incrementClients(void) {
+		_clients++;
+	}
 
- 	/**
-     	* Set Recording
-     	* @param id The call identifier
-     	*/
-    	void setRecording(const CallID& id);
-      
-        /**
-     	* Returning state (true recording)
-     	* @param id The call identifier
-     	*/
-    	bool isRecording(const CallID& id);
+	/** Decrement the number of SIP account connected to this link */
+	void decrementClients(void);
 
-        /**
-         * Return the codec protocol used for this call 
-         * @param id The call identifier
-         */
-         std::string getCurrentCodecName();
-      
-        int invSessionReinvite (SIPCall *call, std::string direction="");
-        
-        bool newIpToIpCall (const CallID& id, const std::string& to);
+	/**
+	 * Set Recording
+	 * @param id The call identifier
+	 */
+	void setRecording(const CallId& id);
 
-        std::string get_useragent_name (const AccountID& id);
+	/**
+	 * Returning state (true recording)
+	 * @param id The call identifier
+	 */
+	bool isRecording(const CallId& id);
 
-        /** 
-         * List all the interfaces on the system and return 
-         * a vector list containing their IPV4 address.
-         * @param void
-         * @return std::vector<std::string> A std::string vector
-         * of IPV4 address available on all of the interfaces on
-         * the system.
-         */
-        std::vector<std::string> getAllIpInterface(void);
+	/**
+	 * Return the codec protocol used for this call
+	 * @param id The call identifier
+	 */
+	std::string getCurrentCodecName();
 
+	int invSessionReinvite(SipCall *call, std::string direction = "");
 
-       	/** 
-         * List all the interfaces on the system and return 
-         * a vector list containing their name (eth0, eth0:1 ...).
-         * @param void
-         * @return std::vector<std::string> A std::string vector
-         * of interface name available on all of the interfaces on
-         * the system.
-         */
-        std::vector<std::string> getAllIpInterfaceByName(void);
+	/**
+	 * Create a new ip to ip (direct) call.
+	 */
+	bool newIpToIpCall(const CallId& id, const std::string& to);
 
+	/**
+	 * @return The user agent name published under a sip voip link for some given account.
+	 */
+	std::string getUserAgentName(const AccountID& id);
+
+	/**
+	 * List all the interfaces on the system and return
+	 * a vector list containing their IPV4 address.
+	 * @param void
+	 * @return std::vector<std::string> A std::string vector
+	 * of IPV4 address available on all of the interfaces on
+	 * the system.
+	 */
+	std::vector<std::string> getAllIpInterface(void);
+
+	/**
+	 * List all the interfaces on the system and return
+	 * a vector list containing their name (eth0, eth0:1 ...).
+	 * @param void
+	 * @return std::vector<std::string> A std::string vector
+	 * of interface name available on all of the interfaces on
+	 * the system.
+	 */
+	std::vector<std::string> getAllIpInterfaceByName(void);
 
 	/** 
-         * List all the interfaces on the system and return 
-         * a vector list containing their name (eth0, eth0:1 ...).
-         * @param void
-         * @return std::vector<std::string> A std::string vector
-         * of interface name available on all of the interfaces on
-         * the system.
-         */
+	 * List all the interfaces on the system and return
+	 * a vector list containing their name (eth0, eth0:1 ...).
+	 * @param void
+	 * @return std::vector<std::string> A std::string vector
+	 * of interface name available on all of the interfaces on
+	 * the system.
+	 */
 	std::string getInterfaceAddrFromName(std::string ifaceName);
-
 
 	/**
 	 * Initialize the transport selector
@@ -343,7 +351,8 @@ class SIPVoIPLink : public VoIPLink
 	 *
 	 * @return pj_status_t		PJ_SUCCESS if the structure was successfully initialized
 	 */
-	pj_status_t init_transport_selector (pjsip_transport *transport, pjsip_tpselector **tp_sel);
+	pj_status_t init_transport_selector(pjsip_transport *transport,
+			pjsip_tpselector **tp_sel);
 
 	/**
 	 * Requests PJSIP library for local IP address, using pj_gethostbyname()
@@ -351,8 +360,7 @@ class SIPVoIPLink : public VoIPLink
 	 *
 	 * @return bool                 True if addr successfully initialized
 	 */
-        bool loadSIPLocalIP (std::string *addr);
-
+	bool getLocalIp(std::string *addr);
 
 	/**
 	 * This function unset the transport for a given account. It tests wether the 
@@ -362,42 +370,64 @@ class SIPVoIPLink : public VoIPLink
 	 */
 	void shutdownSipTransport(const AccountID& accountID);
 
-    private:
-        /**
-         * Constructor
-         * @param accountID The account identifier
-         */
-        SIPVoIPLink(const AccountID& accountID);
+private:
+	/**
+	 * Constructor
+	 * @param accountID The account identifier
+	 */
+	SipVoipLink(const AccountID& accountID);
 
-        /* The singleton instance */
-        static SIPVoIPLink* _instance;
+	/* The singleton instance */
+	static SipVoipLink* _instance;
 
-        /**
-         * Enable the SIP SRV resolver
-         * @param endpt     The SIP endpoint
-         * @param p_resv    Pointer to receive The DNS resolver instance
-         *
-         * @return pj_status_t  PJ_SUCCESS on success
-         */
-        pj_status_t enable_dns_srv_resolver (pjsip_endpoint *endpt, pj_dns_resolver ** p_resv);
+	/**
+	 * This callback is optional, and it is used to ask the application to create a fresh offer,
+	 * When the invite session has received re-INVITE without offer.
+	 * This offer then will be sent in the 200/OK response to the re-INVITE request.
+	 */
+	static void on_create_offer(pjsip_inv_session *inv, pjmedia_sdp_session **p_offer);
 
-        void busy_sleep(unsigned msec);
+	/**
+	 * Optional function to be called to process incoming request message.
+	 */
+	static pj_bool_t mod_on_rx_request(pjsip_rx_data *rdata);
 
-        /** 
-         * Initialize the PJSIP library
-         * Must be called before any other calls to the SIP layer
-         *
-         * @return bool True on success
-         */
-        bool pjsip_init();
+	/**
+	 * Enable the SIP SRV resolver
+	 * @param endpt     The SIP endpoint
+	 * @param p_resv    Pointer to receive The DNS resolver instance
+	 *
+	 * @return pj_status_t  PJ_SUCCESS on success
+	 */
+	pj_status_t enable_dns_srv_resolver(pjsip_endpoint *endpt,
+			pj_dns_resolver ** p_resv);
 
-        /**
-         * Delete link-related stuff like calls
-         */
-        bool pjsip_shutdown(void);
+	void busy_sleep(unsigned msec);
 
-        pj_status_t stunServerResolve (AccountID id);
+	/**
+	 * Initialize the PJSIP library
+	 * Must be called before any other calls to the SIP layer
+	 *
+	 * @return bool True on success
+	 */
+	bool pjsip_init();
 
+	/**
+	 * Delete link-related stuff like calls
+	 */
+	bool pjsip_shutdown(void);
+
+	pj_status_t stunServerResolve(AccountID id);
+
+	/**
+	 * Create the SDP offer for some given call and account.
+	 * If the user has enabled video for this call, then
+	 * video codecs will be added in the offer.
+	 *
+	 * @param call The call in which the offer will be sent.
+	 * @param account The account that is used for placing the call.
+	 */
+	void createSdpOffer(SipCall* call, SIPAccount* account);
 
 	/**
 	 * Function used to create a new sip transport or get an existing one from the map.
@@ -410,33 +440,28 @@ class SIPVoIPLink : public VoIPLink
 	 */
 	bool acquireTransport(const AccountID& accountID);
 
-
 	/**
 	 * Create the default UDP transport according ot Ip2Ip profile settings
 	 */
 	bool createDefaultSipUdpTransport();
-
 
 	/**
 	 * Create the default TLS litener using IP2IP_PROFILE settings
 	 */
 	void createDefaultSipTlsListener();
 
-
 	/**
 	 * Create the default TLS litener according to account settings.
 	 */
 	void createTlsListener(const AccountID& accountID);
 
-
 	/**
 	 * General Sip transport creation method according to the 
 	 * transport type specified in account settings
 	 * @param id The account id for which a transport must
-     * be created.
+	 * be created.
 	 */
 	bool createSipTransport(AccountID id);
-
 
 	/**
 	 * Method to store newly created UDP transport in internal transport map. 
@@ -447,30 +472,29 @@ class SIPVoIPLink : public VoIPLink
 	 */
 	bool addTransportToMap(std::string key, pjsip_transport* transport);
 
-     /**
+	/**
 	 * Create SIP UDP transport from account's setting
 	 * @param id The account id for which a transport must
-     * be created.
+	 * be created.
 	 * @return pj_status_t PJ_SUCCESS on success 
 	 */
-        int createUdpTransport (AccountID = "");
-
-     /**
-      * Create a TLS transport from the default TLS listener from
-      * @param id The account id for which a transport must
-      * be created.
-      * @return pj_status_t PJ_SUCCESS on success
-      */
-     pj_status_t createTlsTransport(const AccountID& id,  std::string remoteAddr);
+	int createUdpTransport(AccountID = "");
 
 	/**
-     * Create a UDP transport using stun server to resove public address
-     * @param id The account id for which a transport must
-     * be created.
-     * @return pj_status_t PJ_SUCCESS on success
-     */
-	pj_status_t createAlternateUdpTransport (AccountID id);
+	 * Create a TLS transport from the default TLS listener from
+	 * @param id The account id for which a transport must
+	 * be created.
+	 * @return pj_status_t PJ_SUCCESS on success
+	 */
+	pj_status_t createTlsTransport(const AccountID& id, std::string remoteAddr);
 
+	/**
+	 * Create a UDP transport using stun server to resove public address
+	 * @param id The account id for which a transport must
+	 * be created.
+	 * @return pj_status_t PJ_SUCCESS on success
+	 */
+	pj_status_t createAlternateUdpTransport(AccountID id);
 
 	/** 
 	 * UDP Transports are stored in this map in order to retreive them in case
@@ -485,28 +509,38 @@ class SIPVoIPLink : public VoIPLink
 	EventThread* _evThread;
 	ost::Mutex _mutexSIP;
 
-    /* Number of SIP accounts connected to the link */
-    int _clients;
-        
-    /*
-     * Get the correct address to use (ie advertised) from
-         * a uri. The corresponding transport that should be used
-         * with that uri will be discovered. 
-         *
-         * @param uri The uri from which we want to discover the address to use
-         * @param transport The transport to use to discover the address 
-         * @return pj_str_t The extern (public) address
-         */
-        std::string findLocalAddressFromUri(const std::string& uri, pjsip_transport *transport);
-        
-        /* 
-         * Does the same as findLocalAddressFromUri but returns a port.
-         * @param uri The uri from which we want to discover the port to use
-         * @param transport The transport to use to discover the port 
-         * @return int The extern (public) port
-         */
-        int findLocalPortFromUri(const std::string& uri, pjsip_transport *transport);
-};
+	/* Number of SIP accounts connected to the link */
+	int _clients;
 
+	/*
+	 * Get the correct address to use (ie advertised) from
+	 * a uri. The corresponding transport that should be used
+	 * with that uri will be discovered.
+	 *
+	 * @param uri The uri from which we want to discover the address to use
+	 * @param transport The transport to use to discover the address
+	 * @return pj_str_t The extern (public) address
+	 */
+	std::string findLocalAddressFromUri(const std::string& uri,
+			pjsip_transport *transport);
+
+	/*
+	 * Does the same as findLocalAddressFromUri but returns a port.
+	 * @param uri The uri from which we want to discover the port to use
+	 * @param transport The transport to use to discover the port
+	 * @return int The extern (public) port
+	 */
+	int
+			findLocalPortFromUri(const std::string& uri,
+					pjsip_transport *transport);
+
+	/**
+	 * @param call The call for which to set the information.
+	 * @postcondition The SipCall object will contain the appropriate information to configure the RTP session (port and addr),
+	 * according to the settings configured for an account.
+	 */
+	bool setRtpNetworkParams(SipCall* call);
+
+};
 
 #endif

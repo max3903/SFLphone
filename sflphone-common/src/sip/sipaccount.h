@@ -97,11 +97,11 @@ const Conf::Key stunServerKey("stunServer");
 const Conf::Key credKey("credential");
 const Conf::Key credentialCountKey("count");
 
-class SIPVoIPLink;
+class SipVoipLink;
 
 /**
  * @file sipaccount.h
- * @brief A SIP Account specify SIP specific functions and object (SIPCall/SIPVoIPLink)
+ * @brief A SIP Account specify SIP specific functions and object (SipCall/SipVoipLink)
  */
 
 class SipAccountException : public std::exception

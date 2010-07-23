@@ -34,30 +34,36 @@
 #include "sipcall.h"
 #include "global.h" // for _debug
 #include "sdp/sdp.h"
+#include "audio/audiortp/AudioRtpFactory.h"
 
-SIPCall::SIPCall (const CallID& id, Call::CallType type, pj_pool_t *pool) : Call (id, type)
+SipCall::SipCall (const CallId& id, Call::CallType type, pj_pool_t *pool) : Call (id, type)
         , _cid (0)
         , _did (0)
         , _tid (0)
         , _audiortp (new sfl::AudioRtpFactory())
         , _xferSub (NULL)
         , _invSession (NULL)
-        , _local_sdp (0)
+        , _localSdp (0)
 {
 	_debug ("SIPCall: Create new call %s", id.c_str());
 
-    _local_sdp = new Sdp (pool);
+    _localSdp = new Sdp (pool);
 }
 
-SIPCall::~SIPCall()
+SipCall::~SipCall()
 {
 	_debug ("SIPCall: Delete call");
 
     delete _audiortp;
     _audiortp = 0;
-    delete _local_sdp;
-    _local_sdp = 0;
+    delete _localSdp;
+    _localSdp = 0;
 }
 
+bool SipCall::isVideoEnabled() {
+	return false;
+}
 
-
+void SipCall::setVideoDevice(sfl::VideoDevice& device){
+	_videoDevice = &device;
+}

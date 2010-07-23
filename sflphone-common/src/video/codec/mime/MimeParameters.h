@@ -50,9 +50,14 @@ public:
 	virtual std::string getMimeSubtype() const = 0;
 
 	/**
-	 * @return The payload format for which this plugin is designed for.
+	 * @return payload type numeric identifier.
 	 */
-	virtual const ost::PayloadFormat& getPayloadFormat() = 0;
+	virtual uint8 getPayloadType() const = 0;
+
+	/**
+	 * @return RTP clock rate in Hz.
+	 */
+	virtual uint32 getClockRate() const = 0;
 
 	/**
 	 * @param name The name that identifies the MIME parameter.

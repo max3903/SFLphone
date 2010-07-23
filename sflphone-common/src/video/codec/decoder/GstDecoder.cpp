@@ -91,8 +91,8 @@ void GstDecoder::init()
 	caps << "application/x-rtp,"
 		<< "media=(string)video,"
 		<< "encoding-name=(string)" << getMimeSubtype() << ","
-		<< "clock-rate=(int)" << getPayloadFormat().getRTPClockRate() << ","
-		<< "payload=(int)" << (int) getPayloadFormat().getPayloadType();
+		<< "clock-rate=(int)" << getClockRate() << ","
+		<< "payload=(int)" << (int) getPayloadType();
 
 	GstCaps* sourceCaps = gst_caps_from_string((caps.str()).c_str());
 	_debug("Setting caps %s on decoder source", caps.str().c_str());

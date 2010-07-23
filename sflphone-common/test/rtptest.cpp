@@ -50,9 +50,9 @@ void RtpTest::setUp() {
 
 	pjsipInit();
 
-	CallID cid = "123456";
+	CallId cid = "123456";
 
-	sipcall = new SIPCall(cid, Call::Incoming, _pool);
+	sipcall = new SipCall(cid, Call::Incoming, _pool);
 
 	sipcall->setLocalIp("127.0.0.1");
 	sipcall->setLocalAudioPort(RANDOM_LOCAL_PORT);

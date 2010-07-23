@@ -37,6 +37,23 @@
 #include "configurationmanager-glue.h"
 #include <dbus-c++/dbus.h>
 
+/**
+ * This structure contains:
+ *		hash code (unique identifier),
+ * 		clock rate,
+ * 		payload type,
+ * 		mime type,
+ * 		mime subtype,
+ * 		bitrate,
+ * 		bandwidth,
+ * 		additional information (description)
+ */
+typedef ::DBus::Struct<std::string, int32_t, uint8_t, std::string, std::string,
+		double, double, std::string> DbusAudioCodec;
+
+typedef ::DBus::Struct<std::string, int32_t, uint8_t, std::string, std::string,
+		double, double, std::string> DbusVideoCodec;
+
 class ConfigurationManager: public org::sflphone::SFLphone::ConfigurationManager_adaptor,
 		public DBus::IntrospectableAdaptor,
 		public DBus::ObjectAdaptor {
@@ -49,27 +66,36 @@ private:
 	std::vector<std::string> shortcutsKeys;
 
 public:
-
+	/**
+	 * @param accountID The account ID
+	 * @return  All parameters of the specified account.
+	 */
 	std::map<std::string, std::string> getAccountDetails(
 			const std::string& accountID);
+
+	/**
+	 * Send new account parameters, or account parameters changes, to the core.
+	 * The hash table is not required to be complete, only the updated parameters may be specified.
+	 * Account settings are written to the configuration file when sflphone properly quits.
+	 * After calling this method, the core will emit the signal accountsChanged with the updated data.
+	 * The client must subscribe to this signal and use it to update its internal data structure.
+	 *
+	 * @param accountID The account ID
+	 * @param details A map with key:value pairs containing new settings for the given account.
+	 * @return
+	 */
 	void setAccountDetails(const std::string& accountID, const std::map<
 			std::string, std::string>& details);
-	std::string addAccount(const std::map<std::string, std::string>& details);
-	void removeAccount(const std::string& accoundID);
-	void deleteAllCredential(const std::string& accountID);
-	std::vector<std::string> getAccountList();
-	void sendRegister(const std::string& accoundID, const int32_t& expire);
 
-	std::map<std::string, std::string> getTlsSettingsDefault(void);
-	void setIp2IpDetails(const std::map<std::string, std::string>& details);
-	std::map<std::string, std::string> getIp2IpDetails(void);
-	std::map<std::string, std::string> getCredential(
-			const std::string& accountID, const int32_t& index);
-	int32_t getNumberOfCredential(const std::string& accountID);
-	void setCredential(const std::string& accountID, const int32_t& index,
-			const std::map<std::string, std::string>& details);
-	void setNumberOfCredential(const std::string& accountID,
-			const int32_t& number);
+	/**
+	 * Add a new account. When created, the signal accountsChanged is emitted.
+	 * The clients must then call getAccountList to update their internal data structure.
+	 * If no details are specified, the default parameters are used.
+	 * The core tries to register the account as soon it is created.
+	 *
+	 * @param details A map with key:value pairs containing new settings for the new account.
+	 */
+	std::string addAccount(const std::map<std::string, std::string>& details);
 
 	std::vector<std::string> getSupportedTlsMethod(void);
 
@@ -87,20 +113,40 @@ public:
 	 * 		bitrate,
 	 * 		bandwidth.
 	 */
-	::DBus::Struct<int32_t, uint8_t, std::string, std::string, double, double>
-	getAudioCodecDetails(const std::string& codecMimeType);
+
+	DbusAudioCodec getAudioCodecDetails(const std::string& codecMimeType);
 
 	/**
 	 * @return a vector of all the audio codecs that are available. Same as calling getAudioCodecMimeSubtypes() in a loop, then
 	 * getAudioCodecDetails.
 	 */
-	std::vector<::DBus::Struct<int32_t, uint8_t, std::string, std::string,
-			double, double> >
-	getAllAudioCodecs();
+	std::vector<DbusAudioCodec> getAllAudioCodecs();
 
-	std::vector<std::string> getActiveCodecList(const std::string& accountID);
-	void setActiveCodecList(const std::vector<std::string>& list,
-			const std::string& accountID);
+	/**
+	 * @param accountID A string representing the account for which to return the list of active codec.
+	 */
+	std::vector<DbusAudioCodec> getAllActiveAudioCodecs(const std::string& accountID);
+
+	/**
+	 * @param accountID The account identifier for which to set the new active codec list.
+	 */
+	void setActiveAudioCodecs(const std::vector<DbusAudioCodec>& codecs, const std::string& accountID);
+
+	void removeAccount(const std::string& accoundID);
+	void deleteAllCredential(const std::string& accountID);
+	std::vector<std::string> getAccountList();
+	void sendRegister(const std::string& accoundID, const int32_t& expire);
+
+	std::map<std::string, std::string> getTlsSettingsDefault(void);
+	void setIp2IpDetails(const std::map<std::string, std::string>& details);
+	std::map<std::string, std::string> getIp2IpDetails(void);
+	std::map<std::string, std::string> getCredential(
+			const std::string& accountID, const int32_t& index);
+	int32_t getNumberOfCredential(const std::string& accountID);
+	void setCredential(const std::string& accountID, const int32_t& index,
+			const std::map<std::string, std::string>& details);
+	void setNumberOfCredential(const std::string& accountID,
+			const int32_t& number);
 
 	std::vector<std::string> getAudioPluginList();
 	void setInputAudioPlugin(const std::string& audioPlugin);
@@ -133,6 +179,18 @@ public:
 	void ringtoneEnabled(void);
 	std::string getRingtoneChoice(void);
 	void setRingtoneChoice(const std::string& tone);
+
+	void ringtoneEnabled(const std::string& accountID);
+
+	/**
+	 * @return true if ringtone is enabled, false otherwise
+	 */
+	int32_t isRingtoneEnabled(const std::string& accountID);
+
+	std::string getRingtoneChoice(const std::string& accountID);
+
+	void setRingtoneChoice(const std::string& accountID, const std::string& tone);
+
 	std::string getRecordPath(void);
 	void setRecordPath(const std::string& recPath);
 

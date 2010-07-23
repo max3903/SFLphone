@@ -40,9 +40,18 @@ public:
 
 	std::string getMimeSubtype() const { return "NULL"; }
 
-	const ost::PayloadFormat& getPayloadFormat()  {
-		static ost::DynamicPayloadFormat format((ost::PayloadType) 127, 90000);
-		return format;
+	/**
+	 * @Override
+	 */
+	uint8 getPayloadType() const {
+		return 96;
+	}
+
+	/**
+	 * @Override
+	 */
+	uint32 getClockRate() const {
+		return 90000;
 	}
 
 	void setParameter(const std::string& name, const std::string& value) {}

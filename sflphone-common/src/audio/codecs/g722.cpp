@@ -2,7 +2,7 @@
  *  Copyright (C) 2004, 2005, 2006, 2009, 2008, 2009, 2010 Savoir-Faire Linux Inc.
  * Author:  Alexandre Savard <alexandre.savard@savoirfairelinux.com>
  *
- * Motly borrowed from asterisk's sources (Steve Underwood <steveu@coppice.org>)
+ * Mostly borrowed from asterisk's sources (Steve Underwood <steveu@coppice.org>)
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -94,7 +94,6 @@ class G722 : public AudioCodec
 
             return out_bytes;
         }
-
 
         void g722_encode_init (void) {
 
@@ -799,7 +798,17 @@ class G722 : public AudioCodec
             return g722_bytes;
         }
 
-        G722* clone() {
+        /**
+         * @Override
+         */
+        std::string getDescription() const {
+        	return "G722 codec. Most of the code comes from Steve Underwood (<steveu@coppice.org>) for the Asterisk project.";
+        }
+
+        /**
+         * @Override
+         */
+        G722* clone() const {
     		return new G722(*this);
     	}
 

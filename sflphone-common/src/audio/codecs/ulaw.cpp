@@ -127,8 +127,17 @@ public:
 
 		return u;
 	}
+    /**
+     * @Override
+     */
+    std::string getDescription() const {
+    	return "audio/PCMU 8000 (\"ulaw\") codec.";
+    }
 
-	Ulaw* clone() {
+    /**
+     * @Override
+     */
+	Ulaw* clone() const {
 		return new Ulaw(*this);
 	}
 };

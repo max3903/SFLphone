@@ -36,7 +36,7 @@
 
 #include "audio/audioloop.h"
 #include "audio/codecs/AudioCodec.h"
-#include "audio/codecs/CodecFactory.h"
+#include "CodecFactory.h"
 
 /**
  * @file audiofile.h
@@ -93,9 +93,9 @@ private:
   /** The absolute path to the sound file */
   std::string _filename;
   
-  /** Your preferred codec */ 
+  /** Your preferred codec */
   AudioCodec* _codec;
-  
+
   /** Start or not */
   bool _start;
 };

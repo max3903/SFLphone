@@ -78,7 +78,8 @@ void VideoRtpSessionSimple::setCodec(const RtpMap& rtpmap, const Fmtp& fmtp,
 	activeCodec->setEncoderVideoSource(*activeVideoSource);
 
 	// Set the payload format in ccRTP from the information contained in the VideoCodec.
-	setPayloadFormat(activeCodec->getPayloadFormat());
+	ost::DynamicPayloadFormat format(activeCodec->getPayloadType(), activeCodec->getClockRate());
+	setPayloadFormat(format);
 
 	// Configure the codec with the options obtained from SDP.
 	std::map<std::string, std::string> props = fmtp.getParamParsed();

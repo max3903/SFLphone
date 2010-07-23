@@ -49,10 +49,17 @@ public:
 	/**
 	 * @Override
 	 */
-	const ost::PayloadFormat& getPayloadFormat() {
-		static ost::DynamicPayloadFormat format((ost::PayloadType) 96, 90000);
-		return format;
+	uint8 getPayloadType() const {
+		return 96;
 	}
+
+	/**
+	 * @Override
+	 */
+	uint32 getClockRate() const {
+		return 90000;
+	}
+
 	/**
 	 *	A base16 [6] (hexadecimal) representation of the following three bytes in the sequence
 	 *	parameter set NAL unit specified in [1]: 1) profile_idc, 2) a byte herein referred to as

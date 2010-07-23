@@ -61,7 +61,7 @@ void MainBuffer::setInternalSamplingRate (int sr)
     }
 }
 
-CallIDSet* MainBuffer::getCallIDSet (CallID call_id)
+CallIDSet* MainBuffer::getCallIDSet (CallId call_id)
 {
 
     CallIDMap::iterator iter = _callIDMap.find (call_id);
@@ -73,18 +73,18 @@ CallIDSet* MainBuffer::getCallIDSet (CallID call_id)
 
 }
 
-bool MainBuffer::createCallIDSet (CallID set_id)
+bool MainBuffer::createCallIDSet (CallId set_id)
 {
 
     CallIDSet* newCallIDSet = new CallIDSet;
 
-    _callIDMap.insert (pair<CallID, CallIDSet*> (set_id, newCallIDSet));
+    _callIDMap.insert (pair<CallId, CallIDSet*> (set_id, newCallIDSet));
 
     return true;
 
 }
 
-bool MainBuffer::removeCallIDSet (CallID set_id)
+bool MainBuffer::removeCallIDSet (CallId set_id)
 {
 
 
@@ -105,7 +105,7 @@ bool MainBuffer::removeCallIDSet (CallID set_id)
 
 }
 
-void MainBuffer::addCallIDtoSet (CallID set_id, CallID call_id)
+void MainBuffer::addCallIDtoSet (CallId set_id, CallId call_id)
 {
 
     CallIDSet* callid_set = getCallIDSet (set_id);
@@ -113,7 +113,7 @@ void MainBuffer::addCallIDtoSet (CallID set_id, CallID call_id)
 
 }
 
-void MainBuffer::removeCallIDfromSet (CallID set_id, CallID call_id)
+void MainBuffer::removeCallIDfromSet (CallId set_id, CallId call_id)
 {
 
     CallIDSet* callid_set = getCallIDSet (set_id);
@@ -129,7 +129,7 @@ void MainBuffer::removeCallIDfromSet (CallID set_id, CallID call_id)
 }
 
 
-RingBuffer* MainBuffer::getRingBuffer (CallID call_id)
+RingBuffer* MainBuffer::getRingBuffer (CallId call_id)
 {
 
     RingBufferMap::iterator iter = _ringBufferMap.find (call_id);
@@ -142,18 +142,18 @@ RingBuffer* MainBuffer::getRingBuffer (CallID call_id)
 }
 
 
-RingBuffer* MainBuffer::createRingBuffer (CallID call_id)
+RingBuffer* MainBuffer::createRingBuffer (CallId call_id)
 {
 
     RingBuffer* newRingBuffer = new RingBuffer (SIZEBUF, call_id);
 
-    _ringBufferMap.insert (pair<CallID, RingBuffer*> (call_id, newRingBuffer));
+    _ringBufferMap.insert (pair<CallId, RingBuffer*> (call_id, newRingBuffer));
 
     return newRingBuffer;
 }
 
 
-bool MainBuffer::removeRingBuffer (CallID call_id)
+bool MainBuffer::removeRingBuffer (CallId call_id)
 {
 
     RingBuffer* ring_buffer = getRingBuffer (call_id);
@@ -173,7 +173,7 @@ bool MainBuffer::removeRingBuffer (CallID call_id)
 }
 
 
-void MainBuffer::bindCallID (CallID call_id1, CallID call_id2)
+void MainBuffer::bindCallID (CallId call_id1, CallId call_id2)
 {
 
   // ost::MutexLock guard (_mutex);
@@ -203,7 +203,7 @@ void MainBuffer::bindCallID (CallID call_id1, CallID call_id2)
 
 }
 
-void MainBuffer::bindHalfDuplexOut(CallID process_id, CallID call_id)
+void MainBuffer::bindHalfDuplexOut(CallId process_id, CallId call_id)
 {
 
   // This method is used only for active calls, if this call does not exist, do nothing
@@ -220,7 +220,7 @@ void MainBuffer::bindHalfDuplexOut(CallID process_id, CallID call_id)
 }
 
 
-void MainBuffer::unBindCallID (CallID call_id1, CallID call_id2)
+void MainBuffer::unBindCallID (CallId call_id1, CallId call_id2)
 {
 
   // ost::MutexLock guard (_mutex);
@@ -255,7 +255,7 @@ void MainBuffer::unBindCallID (CallID call_id1, CallID call_id2)
     }
 }
 
-void MainBuffer::unBindHalfDuplexOut(CallID process_id, CallID call_id)
+void MainBuffer::unBindHalfDuplexOut(CallId process_id, CallId call_id)
 {
 
   removeCallIDfromSet(process_id, call_id);
@@ -285,7 +285,7 @@ void MainBuffer::unBindHalfDuplexOut(CallID process_id, CallID call_id)
 }
 
 
-void MainBuffer::unBindAll (CallID call_id)
+void MainBuffer::unBindAll (CallId call_id)
 {
 
     // ost::MutexLock guard (_mutex);
@@ -303,7 +303,7 @@ void MainBuffer::unBindAll (CallID call_id)
     CallIDSet::iterator iter_set = temp_set.begin();
 
     while (iter_set != temp_set.end()) {
-        CallID call_id_in_set = *iter_set;
+        CallId call_id_in_set = *iter_set;
         unBindCallID (call_id, call_id_in_set);
 
         iter_set++;
@@ -312,7 +312,7 @@ void MainBuffer::unBindAll (CallID call_id)
 }
 
 
-void MainBuffer::unBindAllHalfDuplexOut(CallID process_id)
+void MainBuffer::unBindAllHalfDuplexOut(CallId process_id)
 {
 
   CallIDSet* callid_set = getCallIDSet(process_id);
@@ -328,7 +328,7 @@ void MainBuffer::unBindAllHalfDuplexOut(CallID process_id)
   CallIDSet::iterator iter_set = temp_set.begin();
 
   while(iter_set != temp_set.end()) {
-    CallID call_id_in_set = *iter_set;
+    CallId call_id_in_set = *iter_set;
     unBindCallID(process_id, call_id_in_set);
 
     iter_set++;
@@ -336,7 +336,7 @@ void MainBuffer::unBindAllHalfDuplexOut(CallID process_id)
 }
 
 
-int MainBuffer::putData (void *buffer, int toCopy, unsigned short volume, CallID call_id)
+int MainBuffer::putData (void *buffer, int toCopy, unsigned short volume, CallId call_id)
 {
 
     RingBuffer* ring_buffer = getRingBuffer (call_id);
@@ -360,7 +360,7 @@ int MainBuffer::putData (void *buffer, int toCopy, unsigned short volume, CallID
 
 }
 
-int MainBuffer::availForPut (CallID call_id)
+int MainBuffer::availForPut (CallId call_id)
 {
 
     RingBuffer* ringbuffer = getRingBuffer (call_id);
@@ -373,7 +373,7 @@ int MainBuffer::availForPut (CallID call_id)
 }
 
 
-int MainBuffer::getData (void *buffer, int toCopy, unsigned short volume, CallID call_id)
+int MainBuffer::getData (void *buffer, int toCopy, unsigned short volume, CallId call_id)
 {
 
     CallIDSet* callid_set = getCallIDSet (call_id);
@@ -407,7 +407,7 @@ int MainBuffer::getData (void *buffer, int toCopy, unsigned short volume, CallID
 
 	    memset(mixBuffer, 0, toCopy);
 
-            size = getDataByID(mixBuffer, toCopy, volume, (CallID) (*iter_id), call_id);
+            size = getDataByID(mixBuffer, toCopy, volume, (CallId) (*iter_id), call_id);
 
             if (size > 0) {
                 for (int k = 0; k < nbSmplToCopy; k++) {
@@ -423,7 +423,7 @@ int MainBuffer::getData (void *buffer, int toCopy, unsigned short volume, CallID
 }
 
 
-int MainBuffer::getDataByID (void *buffer, int toCopy, unsigned short volume, CallID call_id, CallID reader_id)
+int MainBuffer::getDataByID (void *buffer, int toCopy, unsigned short volume, CallId call_id, CallId reader_id)
 {
 
     RingBuffer* ring_buffer = getRingBuffer (call_id);
@@ -436,7 +436,7 @@ int MainBuffer::getDataByID (void *buffer, int toCopy, unsigned short volume, Ca
 }
 
 
-int MainBuffer::availForGet (CallID call_id)
+int MainBuffer::availForGet (CallId call_id)
 {
 
     CallIDSet* callid_set = getCallIDSet (call_id);
@@ -479,7 +479,7 @@ int MainBuffer::availForGet (CallID call_id)
 }
 
 
-int MainBuffer::availForGetByID (CallID call_id, CallID reader_id)
+int MainBuffer::availForGetByID (CallId call_id, CallId reader_id)
 {
 
     if ( (call_id != default_id) && (reader_id == call_id)) {
@@ -497,7 +497,7 @@ int MainBuffer::availForGetByID (CallID call_id, CallID reader_id)
 }
 
 
-int MainBuffer::discard (int toDiscard, CallID call_id)
+int MainBuffer::discard (int toDiscard, CallId call_id)
 {
 
     CallIDSet* callid_set = getCallIDSet (call_id);
@@ -529,7 +529,7 @@ int MainBuffer::discard (int toDiscard, CallID call_id)
 }
 
 
-int MainBuffer::discardByID (int toDiscard, CallID call_id, CallID reader_id)
+int MainBuffer::discardByID (int toDiscard, CallId call_id, CallId reader_id)
 {
 
     RingBuffer* ringbuffer = getRingBuffer (call_id);
@@ -543,7 +543,7 @@ int MainBuffer::discardByID (int toDiscard, CallID call_id, CallID reader_id)
 
 
 
-void MainBuffer::flush (CallID call_id)
+void MainBuffer::flush (CallId call_id)
 {
   // ost::MutexLock guard (_mutex);
 
@@ -579,7 +579,7 @@ void MainBuffer::flushDefault()
 }
 
 
-void MainBuffer::flushByID (CallID call_id, CallID reader_id)
+void MainBuffer::flushByID (CallId call_id, CallId reader_id)
 {
 
     RingBuffer* ringbuffer = getRingBuffer (call_id);
@@ -602,7 +602,7 @@ void MainBuffer::flushAllBuffers()
     }
 }
 
-void MainBuffer:: syncBuffers(CallID call_id)
+void MainBuffer:: syncBuffers(CallId call_id)
 {
   
     CallIDSet* callid_set = getCallIDSet(call_id);

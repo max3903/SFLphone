@@ -47,7 +47,7 @@ using namespace std;
 namespace sfl
 {
 
-ZrtpSessionCallback::ZrtpSessionCallback (SIPCall *sipcall) :
+ZrtpSessionCallback::ZrtpSessionCallback (SipCall *sipcall) :
         _sipcall (sipcall)
 {
 

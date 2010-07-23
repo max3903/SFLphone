@@ -35,27 +35,72 @@
 #include "mime/MimeParametersNull.h"
 
 namespace sfl {
-class VideoCodecNull: public MimeParametersNull, public AbstractVideoCodec<
-		NullEncoder, NullDecoder> {
+class VideoCodecNull: public MimeParametersNull, public AbstractVideoCodec<NullEncoder, NullDecoder>
+{
 public:
+	/**
+	 * @Override
+	 */
 	void setParameter(const std::string& name, const std::string& value) {
 		return;
 	}
 
+	/**
+	 * @Override
+	 */
 	std::string getParameter(const std::string& name) {
 		return "";
 	}
 
-	std::string getMimeType() const { return "video"; }
-
-	std::string getMimeSubtype() const { return ""; }
-
-	const ost::PayloadFormat& getPayloadFormat() {
-		static ost::DynamicPayloadFormat format((ost::PayloadType) 127, 90000);
-		return format;
+	/**
+	 * @Override
+	 */
+	uint8 getPayloadType() const {
+		return 96;
 	}
 
-	VideoCodecNull* clone() { return new VideoCodecNull(*this); }
+	/**
+	 * @Override
+	 */
+	uint32 getClockRate() const {
+		return 90000;
+	}
+
+	/**
+	 * @Override
+	 */
+	std::string getMimeType() const { return "video"; }
+
+	/**
+	 * @Override
+	 */
+	std::string getMimeSubtype() const { return ""; }
+
+	/**
+	 * @Override
+	 */
+	VideoCodecNull* clone() const { return new VideoCodecNull(*this); }
+
+	/**
+	 * @Override
+	 */
+	std::string getDescription() const {
+		return "Null video codec. This codec does nothing. If you ever read this, it's most likely to be a bug.";
+	}
+
+	/**
+	 * @Override
+	 */
+	double getBitRate() const {
+		return 0.0;
+	}
+
+	/**
+	 * @Override
+	 */
+	double getBandwidth() const {
+		return 0.0;
+	}
 
 };
 }

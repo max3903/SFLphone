@@ -960,7 +960,7 @@ dbus_account_details (gchar * accountID)
 
   DEBUG("Dbus: Get account detail accountid %s", accountID);
 
-  if (!org_sflphone_SFLphone_ConfigurationManager_get_account_details(
+  if (!org_sflphone_SFLphone_ConfigurationManager_get_account_details (
       configurationManagerProxy, accountID, &details, &error))
     {
       if (error->domain == DBUS_GERROR && error->code
@@ -1322,21 +1322,17 @@ dbus_get_all_audio_codecs ()
   int i;
   for (i = 0; i < audio_codecs->len; i++)
     {
-      GValue elem = { 0 };
+      GValue elem =
+        { 0 };
       g_value_init (&elem, DBUS_AUDIO_CODEC_TYPE);
 
       g_value_set_static_boxed (&elem, g_ptr_array_index(audio_codecs, i));
 
       audio_codec_t* codec = g_new(audio_codec_t, 1);
 
-      dbus_g_type_struct_get (&elem,
-          0, &codec->clock_rate,
-          1, &codec->payload,
-          2, &codec->mime_type,
-          3, &codec->mime_subtype,
-          4, &codec->bitrate,
-          5, &codec->bandwidth,
-          G_MAXUINT);
+      dbus_g_type_struct_get (&elem, 0, &codec->clock_rate, 1, &codec->payload,
+          2, &codec->mime_type, 3, &codec->mime_subtype, 4, &codec->bitrate, 5,
+          &codec->bandwidth, G_MAXUINT);
 
       ret = g_list_prepend (ret, codec);
     }
@@ -1659,11 +1655,11 @@ dbus_set_noise_suppress_state (gchar* state)
 }
 
 gchar*
-dbus_get_ringtone_choice(const gchar *accountID)
+dbus_get_ringtone_choice (const gchar *accountID)
 {
   gchar* tone;
   GError* error = NULL;
-  org_sflphone_SFLphone_ConfigurationManager_get_ringtone_choice(
+  org_sflphone_SFLphone_ConfigurationManager_get_ringtone_choice (
       configurationManagerProxy, accountID, &tone, &error);
   if (error)
     {
@@ -1673,10 +1669,10 @@ dbus_get_ringtone_choice(const gchar *accountID)
 }
 
 void
-dbus_set_ringtone_choice(const gchar *accountID, const gchar* tone)
+dbus_set_ringtone_choice (const gchar *accountID, const gchar* tone)
 {
   GError* error = NULL;
-  org_sflphone_SFLphone_ConfigurationManager_set_ringtone_choice(
+  org_sflphone_SFLphone_ConfigurationManager_set_ringtone_choice (
       configurationManagerProxy, accountID, tone, &error);
   if (error)
     {
@@ -1685,11 +1681,11 @@ dbus_set_ringtone_choice(const gchar *accountID, const gchar* tone)
 }
 
 int
-dbus_is_ringtone_enabled(const gchar *accountID)
+dbus_is_ringtone_enabled (const gchar *accountID)
 {
   int res;
   GError* error = NULL;
-  org_sflphone_SFLphone_ConfigurationManager_is_ringtone_enabled(
+  org_sflphone_SFLphone_ConfigurationManager_is_ringtone_enabled (
       configurationManagerProxy, accountID, &res, &error);
   if (error)
     {
@@ -1699,13 +1695,13 @@ dbus_is_ringtone_enabled(const gchar *accountID)
 }
 
 void
-dbus_ringtone_enabled(const gchar *accountID)
+dbus_ringtone_enabled (const gchar *accountID)
 {
   DEBUG("DBUS: Ringtone enabled %s", accountID);
 
   GError* error = NULL;
-  org_sflphone_SFLphone_ConfigurationManager_ringtone_enabled(
-		 configurationManagerProxy, accountID, &error);
+  org_sflphone_SFLphone_ConfigurationManager_ringtone_enabled (
+      configurationManagerProxy, accountID, &error);
   if (error)
     {
       g_error_free (error);
@@ -1915,7 +1911,7 @@ dbus_get_history_limit (void)
 }
 
 void
-dbus_set_audio_manager(int api)
+dbus_set_audio_manager (int api)
 {
   GError* error = NULL;
   org_sflphone_SFLphone_ConfigurationManager_set_audio_manager (
@@ -2379,6 +2375,46 @@ dbus_get_all_ip_interface_by_name (void)
     }
 }
 
+GHashTable*
+dbus_get_shortcuts (void)
+{
+  GError *error = NULL;
+  GHashTable * shortcuts;
+  if (!org_sflphone_SFLphone_ConfigurationManager_get_shortcuts (
+      configurationManagerProxy, &shortcuts, &error))
+    {
+      if (error->domain == DBUS_GERROR && error->code
+          == DBUS_GERROR_REMOTE_EXCEPTION)
+        {
+          ERROR ("Caught remote method (get_shortcuts) exception  %s: %s", dbus_g_error_get_name(error), error->message);
+        }
+      else
+        {
+          ERROR("Error while calling get_shortcuts: %s", error->message);
+        }
+      g_error_free (error);
+      return NULL;
+    }
+  else
+    {
+      return shortcuts;
+    }
+}
+
+void
+dbus_set_shortcuts (GHashTable * shortcuts)
+{
+  GError *error = NULL;
+  org_sflphone_SFLphone_ConfigurationManager_set_shortcuts (
+      configurationManagerProxy, shortcuts, &error);
+  if (error)
+    {
+      ERROR ("Failed to call set_shortcuts() on ConfigurationManager: %s",
+          error->message);
+      g_error_free (error);
+    }
+}
+
 gchar**
 dbus_video_enumerate_devices (void)
 {
@@ -2470,23 +2506,24 @@ dbus_video_start_local_capture (const gchar * device, gint width, gint height,
       return NULL;
     }
 
-  video_key_t* key = (video_key_t*) malloc(sizeof(video_key_t));
-  key->shm = g_value_dup_string(g_value_array_get_nth(shmToken, 0));
-  key->token = g_value_dup_string(g_value_array_get_nth(shmToken, 1));
+  video_key_t* key = (video_key_t*) malloc (sizeof(video_key_t));
+  key->shm = g_value_dup_string (g_value_array_get_nth (shmToken, 0));
+  key->token = g_value_dup_string (g_value_array_get_nth (shmToken, 1));
 
   return key;
 }
 
 gboolean
-dbus_video_stop_local_capture(gchar* device, gchar* token)
+dbus_video_stop_local_capture (gchar* device, gchar* token)
 {
   GError* error = NULL;
   org_sflphone_SFLphone_VideoManager_stop_local_capture (videoManagerProxy,
       device, token, &error);
-  if (error != NULL) {
-    ERROR ("Caught remote method exception");
-    return FALSE;
-  }
+  if (error != NULL)
+    {
+      ERROR ("Caught remote method exception");
+      return FALSE;
+    }
 
   return TRUE;
 }
