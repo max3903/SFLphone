@@ -1569,7 +1569,7 @@ void show_account_window (account_t * a) {
       }
     }
 
-    /** @todo Verify if it's the best condition to check */
+    /** TODO Verify if it's the best condition to check */
     if (g_strcasecmp(currentAccount->accountID, "new") == 0) {
       dbus_add_account(currentAccount);
     }

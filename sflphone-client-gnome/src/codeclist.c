@@ -235,13 +235,14 @@ codec_set_inactive (codec_t **c)
 void codec_library_set (codec_library_t* library, const gchar* accountID)
 {
   // Build an array of identifiers
-  gchar** identifiers = g_new(gchar*, codec_library_get_size(library));
+  gchar** identifiers = g_new(gchar*, codec_library_get_size(library) + 1);
 
   int i;
   for (i = 0; i < codec_library_get_size(library); i++) {
     codec_t* codec = g_queue_peek_nth(library->codec_list, i);
     identifiers[i] = codec->codec.identifier;
   }
+  identifiers[i] = NULL;
 
   dbus_set_active_audio_codecs(identifiers, accountID);
 

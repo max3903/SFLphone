@@ -1318,7 +1318,7 @@ dbus_get_all_audio_codecs ()
 
      codec->is_active = FALSE;
 
-      ret = g_list_prepend (ret, codec);
+      ret = g_list_append (ret, codec);
     }
 
   return ret;
@@ -1384,7 +1384,7 @@ dbus_get_active_audio_codecs (gchar* accountID)
 
       codec->is_active = TRUE;
 
-      ret = g_list_prepend (ret, codec);
+      ret = g_list_append (ret, codec);
     }
 
   return ret;

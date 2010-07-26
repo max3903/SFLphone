@@ -520,6 +520,7 @@ std::vector<DbusAudioCodec> ConfigurationManager::getAllActiveAudioCodecs(
 		codecDescription._8 = codec->getDescription();
 
 		output.push_back(codecDescription);
+		_debug("Sending %s", codec->getMimeSubtype().c_str());
 	}
 
 	return output;
