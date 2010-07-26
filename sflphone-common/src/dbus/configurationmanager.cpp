@@ -375,7 +375,7 @@ int32_t ConfigurationManager::getNumberOfCredential(
 void ConfigurationManager::setNumberOfCredential(const std::string& accountID,
 		const int32_t& number) {
 	/*
-	 if (accountID != AccountNULL || !accountID.empty()) {
+	 if (accountID != ACCOUNT_NULL || !accountID.empty()) {
 	 SIPAccount *sipaccount = (SIPAccount *)Manager::instance().getAccount(accountID);
 	 sipaccount->setCredentialCount(number);
 	 }
@@ -495,15 +495,21 @@ std::vector<DbusAudioCodec> ConfigurationManager::getAllAudioCodecs()
 
 std::vector<DbusAudioCodec> ConfigurationManager::getAllActiveAudioCodecs(
 		const std::string& accountID) {
-	_info("Send active codec list for account %s ...", accountID.c_str ());
+	_info("Sending active codec list for account \"%s\" ...", accountID.c_str ());
 	std::vector<DbusAudioCodec> output;
 
 	Account* account = Manager::instance().getAccount(accountID);
+	CodecFactory& factory = CodecFactory::getInstance();
 
-	CodecOrder& audioCodecOrder = account->getActiveAudioCodecs();
+	CodecOrder audioCodecOrder = factory.getDefaultAudioCodecOrder();;
+	if (account != NULL) {
+		audioCodecOrder = account->getActiveAudioCodecs();
+	} else {
+		_error("Could not return active codec list for non-existing account id \"%s\". Sending defaults.", accountID.c_str());
+	}
+
 	_info("Account \"%s\" has %d active codecs.", accountID.c_str(), audioCodecOrder.size());
 
-	CodecFactory& factory = CodecFactory::getInstance();
 	CodecOrder::iterator it;
 	for (it = audioCodecOrder.begin(); it != audioCodecOrder.end(); it++) {
 		const AudioCodec* codec =
@@ -527,8 +533,14 @@ std::vector<DbusAudioCodec> ConfigurationManager::getAllActiveAudioCodecs(
 }
 
 void ConfigurationManager::setActiveAudioCodecs(const std::vector<std::string>& codecIdentifiers, const std::string& accountID) {
+	_debug ("Setting codecs for account id \"%s\"", accountID.c_str());
 
-	_debug ("Setting codecs for account id %s", accountID.c_str());
+	// Set the new codec order.
+	Account* account = Manager::instance().getAccount(accountID);
+	if (!account) {
+		_error("Account id \"%s\" cannot be found.", accountID.c_str());
+		return;
+	}
 
 	// Create a CodecOrder object from the hash codes contained in the structures.
 	CodecOrder ordering;
@@ -538,8 +550,6 @@ void ConfigurationManager::setActiveAudioCodecs(const std::vector<std::string>& 
 		ordering.push_back((*it));
 	}
 
-	// Set the new codec order.
-	Account* account = Manager::instance().getAccount(accountID);
 	account->setActiveAudioCodecs(ordering);
 }
 

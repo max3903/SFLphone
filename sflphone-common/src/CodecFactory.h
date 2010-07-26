@@ -33,14 +33,19 @@
 #ifndef __CODEC_DESCRIPTOR_H__
 #define __CODEC_DESCRIPTOR_H__
 
-#include <map>
-#include <vector>
-#include <dirent.h>
+#include "audio/codecs/AudioCodec.h"
 
 #include "global.h"
 #include "user_cfg.h"
 
-#include "audio/codecs/AudioCodec.h"
+#include <map>
+#include <vector>
+#include <algorithm>
+
+#include <dirent.h>
+
+#include <ctype.h>
+
 
 /**
  * Maintains a list of the codec id (hash code) in a given order.
@@ -125,6 +130,15 @@ protected:
 	CodecFactory();
 
 private:
+	struct CodecMimeSubtypeLexicalComparator{
+	  bool operator() (sfl::Codec* const& c1, sfl::Codec* const& c2) {
+		  return  std::lexicographical_compare(c1->getMimeSubtype().begin(),
+				  c1->getMimeSubtype().end(),
+				  c2->getMimeSubtype().begin(),
+				  c2->getMimeSubtype().end());
+	  }
+	} CodecComparator;
+
 	/**
 	 * Initialiaze the map with all the supported codecs, even those inactive
 	 */

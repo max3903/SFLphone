@@ -160,7 +160,7 @@ void ManagerImpl::restartPJSIP (void)
 
 VoIPLink* ManagerImpl::getAccountLink (const AccountID& accountID)
 {
-    if (accountID!=AccountNULL) {
+    if (accountID!=ACCOUNT_NULL) {
         Account* acc = getAccount (accountID);
 
         if (acc) {

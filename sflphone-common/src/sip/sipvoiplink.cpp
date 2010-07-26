@@ -1542,7 +1542,7 @@ void SipVoipLink::createSdpOffer(SipCall* call, SIPAccount* account)
 		// sdpSession->setLocalMediaCapabilities(MIME_TYPE_VIDEO, account->getActiveVideoCodecs()); TODO implement !
 	}
 
-	sdpSession->setLocalMediaCapabilities(MIME_TYPE_VIDEO, account->getActiveAudioCodecs());
+	sdpSession->setLocalMediaCapabilities(MIME_TYPE_AUDIO, account->getActiveAudioCodecs());
 
 	sdpSession->createInitialOffer();
 }
@@ -3127,7 +3127,7 @@ void call_on_media_update(pjsip_inv_session *inv, pj_status_t status) {
 	}
 
 	link = dynamic_cast<SipVoipLink *> (Manager::instance().getAccountLink(
-			AccountNULL));
+			ACCOUNT_NULL));
 
 	if (link == NULL) {
 		_warn ("UserAgent: Error: Failed to get sip link");
@@ -3468,7 +3468,7 @@ pj_bool_t SipVoipLink::mod_on_rx_request(pjsip_rx_data *rdata) {
 			server);
 
 	/* If we don't find any account to receive the call */
-	if (account_id == AccountNULL) {
+	if (account_id == ACCOUNT_NULL) {
 		_debug ("UserAgent: Username %s doesn't match any account, using IP2IP!",userName.c_str());
 	}
 

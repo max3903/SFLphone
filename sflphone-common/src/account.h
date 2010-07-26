@@ -68,7 +68,7 @@ typedef enum RegistrationState {
 	NumberOfState
 } RegistrationState;
 
-#define AccountNULL ""
+#define ACCOUNT_NULL ""
 
 // Account identifier                       
 #define ACCOUNT_ID                          "Account.id"

@@ -31,10 +31,11 @@
  *  as that of the covered work.
  */
 
-#include <iostream>
-#include <cstdlib>
-
 #include "CodecFactory.h"
+
+#include <iostream>
+
+#include <cstdlib>
 
 CodecFactory* CodecFactory::instance = 0;
 
@@ -168,6 +169,9 @@ CodecOrder CodecFactory::getDefaultAudioCodecOrder()
 
 void CodecFactory::init() {
 	std::vector<sfl::Codec*> codecs = scanCodecDirectory();
+
+	std::sort(codecs.begin(), codecs.end(), CodecComparator);
+
 	if (codecs.size() != 0) {
 		std::vector<sfl::Codec*>::iterator it;
 		for (it = codecs.begin(); it != codecs.end(); it++) {
@@ -177,7 +181,7 @@ void CodecFactory::init() {
 		}
 	} else {
 		_error("No plugin could be found.");
-		// throw
+		// TODO Throw something.
 	}
 }
 

@@ -1337,7 +1337,7 @@ dbus_get_current_codec_name (const callable_obj_t * c)
       g_error_free (error);
     }
 
-  DEBUG("dbus_get_current_codec_name : codecName : %s", codecName);
+  DEBUG("Current audio codec name : \"%s\"", codecName);
 
   return codecName;
 }

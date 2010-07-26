@@ -273,7 +273,7 @@ sfl::AudioZrtpSession * CallManager::getAudioZrtpSession(
 		const std::string& callID) {
 	SipVoipLink * link = NULL;
 	link = dynamic_cast<SipVoipLink *> (Manager::instance().getAccountLink(
-			AccountNULL));
+			ACCOUNT_NULL));
 
 	if (link == NULL) {
 		_debug ("Failed to get sip link");

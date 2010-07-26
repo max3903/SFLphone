@@ -104,17 +104,13 @@ call_get_peer_number (const gchar *format)
 gchar*
 call_get_audio_codec (callable_obj_t *obj)
 {
-
-  int samplerate;
-
   gchar* format = "";
   if (obj)
     {
       gchar* audio_codec = dbus_get_current_codec_name (obj);
 
       codec_library_t* library = codec_library_get_system_codecs ();
-
-      codec_t* codec = codec_library_get_codec_by_name (library, audio_codec);
+      codec_t* codec = codec_library_get_codec_by_mime_subtype (library, audio_codec);
 
       if (codec)
         {

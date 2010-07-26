@@ -1300,7 +1300,7 @@ class ManagerImpl {
      * @param accountID	  Account ID to get
      * @return VoIPLink*   The voip link from the account pointer or 0
      */
-    VoIPLink* getAccountLink(const AccountID& accountID=AccountNULL);
+    VoIPLink* getAccountLink(const AccountID& accountID=ACCOUNT_NULL);
 
     VoIPLink* getSIPAccountLink (void);
 

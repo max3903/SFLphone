@@ -40,6 +40,7 @@ static codec_library_t* system_library = NULL;
 
 codec_library_t* codec_library_get_system_codecs() {
   if (system_library == NULL) {
+    system_library = codec_library_new();
     codec_library_load_available_codecs(system_library);
   }
 
@@ -81,7 +82,7 @@ codec_library_new ()
 
   library->codec_list = g_queue_new();
 
-  DEBUG("New codec library created");
+  DEBUG("New codec library created.");
 
   return library;
 }
@@ -130,7 +131,6 @@ codec_library_load_codecs_by_account (account_t* account)
 
       memcpy (codec, it->data, sizeof(codec_t)); // Does not copy the strings themselves.
 
-      DEBUG("Adding codec \"%s\"", codec->codec.mime_subtype);
       codec_library_add (account->codecs, codec);
 
       // TODO g_free((it)->data)
@@ -140,7 +140,7 @@ codec_library_load_codecs_by_account (account_t* account)
 void
 codec_library_add (codec_library_t* library, codec_t* codec)
 {
-  DEBUG("Adding codec %s", codec->codec.mime_subtype);
+  DEBUG("Adding codec \"%s\" to codec library.", codec->codec.mime_subtype);
 
   g_queue_push_tail (library->codec_list, (gpointer *) codec);
 }
@@ -152,11 +152,16 @@ codec_library_get_size (codec_library_t* library)
 }
 
 codec_t*
-codec_library_get_codec_by_name (codec_library_t* library, gconstpointer name)
+codec_library_get_codec_by_mime_subtype (codec_library_t* library, gconstpointer name)
 {
-  GList* codec = g_queue_find_custom (library->codec_list, name,
-      match_mime_subtype_predicate);
-  return codec->data;
+  GList* codec = g_queue_find_custom (library->codec_list, name, match_mime_subtype_predicate);
+  if (codec) {
+    return codec->data;
+  }
+
+  WARN("Codec with mime subtype \"%s\" could not be found in the library.", name);
+
+  return NULL;
 }
 
 codec_t*
@@ -165,7 +170,13 @@ codec_library_get_codec_by_payload_type (codec_library_t* library,
 {
   GList* codec = g_queue_find_custom (library->codec_list, payload,
       match_payload_predicate);
-  return codec->data;
+  if (codec) {
+    return codec->data;
+  }
+
+  WARN("Codec with payload type \"%d\" could not be found in the library.", payload);
+
+  return NULL;
 }
 
 GQueue*

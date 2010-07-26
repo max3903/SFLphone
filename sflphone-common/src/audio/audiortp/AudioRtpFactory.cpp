@@ -73,7 +73,7 @@ void AudioRtpFactory::initAudioRtpConfig(SipCall *ca) {
 			ca->getCallId());
 
 	// Check if it is an IP-to-IP call
-	if (accountId == AccountNULL) {
+	if (accountId == ACCOUNT_NULL) {
 		_srtpEnabled = Manager::instance().getConfigBool(IP2IP_PROFILE,
 				SRTP_ENABLE);
 		_keyExchangeProtocol = Manager::instance().getConfigInt(IP2IP_PROFILE,

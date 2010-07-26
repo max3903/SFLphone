@@ -86,7 +86,7 @@ guint codec_library_get_size(codec_library_t* library);
  * @param library The codec library object in which to search for.
  * @param name The codec's mime subtype to search for.
  */
-codec_t* codec_library_get_codec_by_name (codec_library_t* library, gconstpointer name);
+codec_t* codec_library_get_codec_by_mime_subtype (codec_library_t* library, gconstpointer name);
 
 /**
  * @param library The codec library object in which to search for.

@@ -193,10 +193,8 @@ static GPtrArray* getNewCredential (GHashTable * properties) {
 	gchar *password;
 	GHashTable * new_table;   
 
-	DEBUG("shit");
-
 	if(valid == FALSE) {
-	  DEBUG("Gtk tree model iter is not valid")
+	  DEBUG("Gtk tree model iter is not valid.")
 	  return NULL;
 	}
 
@@ -205,8 +203,6 @@ static GPtrArray* getNewCredential (GHashTable * properties) {
 			      COLUMN_CREDENTIAL_USERNAME, &username,
 			      COLUMN_CREDENTIAL_PASSWORD, &password,
 			      -1);
-	DEBUG("shit");
-
 	g_hash_table_insert(properties, g_strdup(ACCOUNT_REALM), realm);
 
 	// better use the current_username as it is the account username in the 
@@ -1320,11 +1316,10 @@ void show_account_window (account_t * a) {
     currentAccount = a;   
 
     if (currentAccount == NULL) {
-      currentAccount = g_new0(account_t, 1);
+      currentAccount = account_new("new");
       currentAccount->properties = dbus_account_details(NULL);
-      currentAccount->accountID = "new";    
       sflphone_fill_codec_list_per_account (&currentAccount);
-      DEBUG("Config: Account is NULL. Will fetch default values");      
+      DEBUG("Config: Account is NULL. Will fetch default values");
     }
 
     dialog = GTK_DIALOG(gtk_dialog_new_with_buttons (_("Account settings"),
