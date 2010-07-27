@@ -676,8 +676,6 @@ static local_interface_changed_cb(GtkWidget * widget, gpointer data UNUSED) {
 		gtk_entry_set_text(GTK_ENTRY(localAddressEntry), local_iface_addr);
 		gtk_entry_set_text (GTK_ENTRY(publishedAddressEntry), local_iface_addr);
 
-		// gchar * local_port = (gchar *) gtk_entry_get_text(GTK_ENTRY(localPortSpinBox));
-		// gtk_spin_button_set_value(GTK_SPIN_BUTTON(publishedPortSpinBox), g_ascii_strtod(local_port, NULL));
 		g_free(local_iface_addr);
 	}
 
@@ -1300,7 +1298,6 @@ GtkWidget* create_codecs_configuration (account_t **a) {
 }
 
 void show_account_window (account_t * a) {
-
     GtkWidget * notebook;
     GtkWidget *tab, *codecs_tab, *ip_tab; 
     gint response;
@@ -1360,7 +1357,6 @@ void show_account_window (account_t * a) {
 
     // Do not need advanced or security one for the IP2IP account
     if (g_strcasecmp (currentAccount->accountID, IP2IP) != 0) {
-
 	/* Advanced */
 	advanced_tab = create_advanced_tab(&currentAccount);
 	gtk_notebook_append_page(GTK_NOTEBOOK(notebook), advanced_tab, gtk_label_new(_("Advanced")));
@@ -1370,10 +1366,7 @@ void show_account_window (account_t * a) {
 	security_tab = create_security_tab (&currentAccount);
 	gtk_notebook_append_page(GTK_NOTEBOOK(notebook), security_tab, gtk_label_new(_("Security")));
 	gtk_notebook_page_num(GTK_NOTEBOOK(notebook),security_tab);
-
-    }
-    else {
-
+    } else {
       /* Custom tab for the IP to IP profile */
       ip_tab = create_direct_ip_calls_tab (&currentAccount);
       gtk_notebook_prepend_page (GTK_NOTEBOOK (notebook), ip_tab, gtk_label_new(_("Network")));
@@ -1381,8 +1374,9 @@ void show_account_window (account_t * a) {
     }
 
     // Emit signal to hide advanced and security tabs in case of IAX
-    if(protocolComboBox)
+    if(protocolComboBox) {
         g_signal_emit_by_name (GTK_WIDGET(protocolComboBox), "changed", NULL);
+    }
 
     gtk_notebook_set_current_page (GTK_NOTEBOOK (notebook) ,  0);
 
@@ -1573,6 +1567,7 @@ void show_account_window (account_t * a) {
     // Perpetuate changes to the deamon
     codec_library_set(currentAccount->codecs, currentAccount->accountID);
     
+    DEBUG("Codec library set");
     gtk_widget_destroy (GTK_WIDGET(dialog));
 } 
 

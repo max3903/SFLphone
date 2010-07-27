@@ -206,7 +206,6 @@ hashtable_free (gpointer key, gpointer value, gpointer user_data)
 void
 sflphone_fill_account_list (void)
 {
-
   gchar** array;
   gchar** accountID;
   unsigned int i;

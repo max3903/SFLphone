@@ -45,7 +45,8 @@ account_t* account_new(gchar* accountID)
   ret->properties = NULL;
   ret->credential_information = NULL;
   ret->codecs = codec_library_new();
-  DEBUG("Account created with queue of length %d", g_queue_get_length(ret->codecs->codec_list));
+
+  DEBUG("Account \"%s\" created with queue of length %d", accountID, g_queue_get_length(ret->codecs->codec_list));
 
   return ret;
 }
