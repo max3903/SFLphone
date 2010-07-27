@@ -358,7 +358,7 @@ public:
 	 * Requests PJSIP library for local IP address, using pj_gethostbyname()
 	 * @param addr*                 A string to be initialized
 	 *
-	 * @return bool                 True if addr successfully initialized
+	 * @return bool True if param "addr" is successfully initialized
 	 */
 	bool getLocalIp(std::string *addr);
 

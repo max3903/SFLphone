@@ -1393,12 +1393,13 @@ dbus_get_active_audio_codecs (gchar* accountID)
 void
 dbus_set_active_audio_codecs (const gchar** list, const gchar *accountID)
 {
+  DEBUG("Sending active audio codec list for account %s ...", accountID)
   GError *error = NULL;
   org_sflphone_SFLphone_ConfigurationManager_set_active_audio_codecs (configurationManagerProxy, list, accountID, &error);
 
   if (error)
     {
-      ERROR ("Failed to call set_active_codec_list() on ConfigurationManager: %s",
+      ERROR ("Failed to call setActiveAudioCodecs on ConfigurationManager: %s",
           error->message);
       g_error_free (error);
     }

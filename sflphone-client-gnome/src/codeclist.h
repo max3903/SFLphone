@@ -82,6 +82,18 @@ void codec_library_add (codec_library_t* library, codec_t* codec);
  */
 guint codec_library_get_size(codec_library_t* library);
 
+/**
+ * @param library The library structure.
+ * @return The number of active codecs in the library;
+ */
+guint codec_library_get_number_active (codec_library_t* library);
+
+/**
+ * @param library The library structure.
+ * @return The number of inactive codecs in the library;
+ */
+guint codec_library_get_number_inactive (codec_library_t* library);
+
 /** 
  * @param library The codec library object in which to search for.
  * @param name The codec's mime subtype to search for.
@@ -134,6 +146,13 @@ void codec_library_move_codec_up (codec_library_t* library, guint index);
  * @param index The current index in the list
  */
 void codec_list_move_codec_down (codec_library_t* library, guint index);
+
+/**
+ * Toggle the activation state of a codec in some library.
+ * @param library The library in which this codec is set to the new state.
+ * @param codec The codec that get a state change.
+ */
+void codec_library_toggle_active(codec_library_t* library, codec_t* codec);
 
 /**
  * Set a codec active. An active codec will be used for codec negotiation

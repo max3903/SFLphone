@@ -821,9 +821,7 @@ GtkWidget* create_credential_widget (account_t **a) {
 
 	gtk_container_add(GTK_CONTAINER(scrolledWindowCredential), treeViewCredential);
 
-	DEBUG("Credential pas ok");
 	fill_treeview_with_credential(credentialStore, *a);
-	DEBUG("Credential ok");
 
 	/* Credential Buttons */    
 	hbox = gtk_hbox_new(FALSE, 10);

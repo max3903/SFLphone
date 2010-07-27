@@ -742,8 +742,9 @@ SipVoipLink::newOutgoingCall(const CallId& id, const std::string& toUrl) {
 	SipCall* call = new SipCall(id, Call::Outgoing, _pool);
 
 	if (call) {
-		SIPAccount* account = dynamic_cast<SIPAccount *> (Manager::instance().getAccount(
-				Manager::instance().getAccountFromCall(id)));
+		SIPAccount* account =
+				dynamic_cast<SIPAccount *> (Manager::instance().getAccount(
+						Manager::instance().getAccountFromCall(id)));
 
 		// Set the initial state in which this account is
 		if (account == NULL) {
@@ -1380,10 +1381,7 @@ bool SipVoipLink::SIPStartCall(SipCall* call, const std::string& subject UNUSED)
 	status = pjsip_inv_create_uac(dialog,
 			call->getLocalSDP()->getLocalSdpSession(), 0, &inv);
 
-	PJ_ASSERT_RETURN (status == PJ_SUCCESS, false);
-
 	if (!(account->getServiceRoute().empty())) {
-
 		_error("UserAgent: Set Service-Route with %s", account->getServiceRoute().c_str());
 
 		pjsip_route_hdr *route_set = pjsip_route_hdr_create(_pool);
@@ -1398,6 +1396,10 @@ bool SipVoipLink::SIPStartCall(SipCall* call, const std::string& subject UNUSED)
 	}
 
 	PJ_ASSERT_RETURN (status == PJ_SUCCESS, false);
+
+	// Set auth information
+	pjsip_auth_clt_set_credentials(&dialog->auth_sess, 1,
+			account->getCredInfo());
 
 	// Associate current call in the invite session
 	inv->mod_data[getModId()] = call;
@@ -1520,8 +1522,7 @@ SipVoipLink::getSIPCall(const CallId& id) {
 	return NULL;
 }
 
-void SipVoipLink::createSdpOffer(SipCall* call, SIPAccount* account)
-{
+void SipVoipLink::createSdpOffer(SipCall* call, SIPAccount* account) {
 	// Find out the ip adress to put in the SDP
 	std::string addrSdp;
 	if (account->isStunEnabled()) {
@@ -1542,7 +1543,8 @@ void SipVoipLink::createSdpOffer(SipCall* call, SIPAccount* account)
 		// sdpSession->setLocalMediaCapabilities(MIME_TYPE_VIDEO, account->getActiveVideoCodecs()); TODO implement !
 	}
 
-	sdpSession->setLocalMediaCapabilities(MIME_TYPE_AUDIO, account->getActiveAudioCodecs());
+	sdpSession->setLocalMediaCapabilities(MIME_TYPE_AUDIO,
+			account->getActiveAudioCodecs());
 
 	sdpSession->createInitialOffer();
 }
@@ -2973,13 +2975,6 @@ void call_on_state_changed(pjsip_inv_session *inv, pjsip_event *e) {
 		pjsip_evsub_state ev_state = PJSIP_EVSUB_STATE_ACTIVE;
 
 		switch (call->getInvSession()->state) {
-
-		case PJSIP_INV_STATE_NULL:
-
-		case PJSIP_INV_STATE_CALLING:
-			/* Do nothing */
-			break;
-
 		case PJSIP_INV_STATE_EARLY:
 
 		case PJSIP_INV_STATE_CONNECTING:
@@ -3000,6 +2995,8 @@ void call_on_state_changed(pjsip_inv_session *inv, pjsip_event *e) {
 			ev_state = PJSIP_EVSUB_STATE_TERMINATED;
 			break;
 
+		case PJSIP_INV_STATE_NULL:
+		case PJSIP_INV_STATE_CALLING:
 		case PJSIP_INV_STATE_INCOMING:
 			/* Nothing to do. Just to keep gcc from complaining about
 			 * unused enums.
@@ -3366,8 +3363,9 @@ void regc_cb(struct pjsip_regc_cbparam *param) {
 				account->setRegistrationState(ErrorAuth);
 				break;
 
-			case 423: { // Expiration Interval Too Brief
-
+			case 423: {
+				// Expiration Interval Too Brief
+				// TODO Make sure to stop doing that at some point.
 				int expire_value;
 				std::istringstream stream(account->getRegistrationExpire());
 				stream >> expire_value;
@@ -3388,13 +3386,8 @@ void regc_cb(struct pjsip_regc_cbparam *param) {
 
 			account->setRegister(false);
 
-			// shutdown this transport since useless
-			// if(account->getAccountTransport() != _localUDPTransport) {
-
 			SipVoipLink::instance("")->shutdownSipTransport(
 					account->getAccountID());
-			//}
-
 		} else {
 			// Registration/Unregistration is success
 			if (account->isRegister())
@@ -3405,9 +3398,6 @@ void regc_cb(struct pjsip_regc_cbparam *param) {
 
 				SipVoipLink::instance("")->shutdownSipTransport(
 						account->getAccountID());
-
-				// pjsip_regc_destroy(param->regc);
-				// account->setRegistrationInfo(NULL);
 			}
 		}
 	} else {
@@ -3503,10 +3493,9 @@ pj_bool_t SipVoipLink::mod_on_rx_request(pjsip_rx_data *rdata) {
 		displayName = std::string("");
 	}
 
-	_debug("UserAgent: DisplayName: %s", displayName.c_str());
-
-	_debug ("UserAgent: The receiver is: %s@%s", userName.data(), server.data());
-	_debug ("UserAgent: The callee account is %s", account_id.c_str());
+	_debug("UserAgent: Display Name: %s", displayName.c_str());
+	_debug("UserAgent: The receiver is: %s@%s", userName.data(), server.data());
+	_debug("UserAgent: The callee account is %s", account_id.c_str());
 
 	/* Now, it is the time to find the information of the caller */
 	uri = rdata->msg_info.from->uri;
@@ -3561,8 +3550,7 @@ pj_bool_t SipVoipLink::mod_on_rx_request(pjsip_rx_data *rdata) {
 	// Respond statelessly any non-INVITE requests with 500
 	if (rdata->msg_info.msg->line.req.method.id != PJSIP_INVITE_METHOD) {
 		if (rdata->msg_info.msg->line.req.method.id != PJSIP_ACK_METHOD) {
-			pj_strdup2(_pool, &reason,
-					"user agent unable to handle this request ");
+			pj_strdup2(_pool, &reason, "Unable to handle this request.");
 			pjsip_endpt_respond_stateless(_endpt, rdata,
 					PJSIP_SC_METHOD_NOT_ALLOWED, &reason, NULL, NULL);
 			return true;
@@ -4156,7 +4144,7 @@ void xfer_svr_cb(pjsip_evsub *sub, pjsip_event *event) {
  * be negotiated with the offer, and the result will be sent with the SIP message.
  */
 void on_rx_offer(pjsip_inv_session *inv, const pjmedia_sdp_session *offer) {
-	_info("UserAgent: Received SDP offer");
+	_info("UserAgent: Received SDP offer.");
 
 #ifdef CAN_REINVITE
 	_debug ("UserAgent: %s (%d): on_rx_offer REINVITE", __FILE__, __LINE__);
@@ -4187,7 +4175,8 @@ void on_rx_offer(pjsip_inv_session *inv, const pjmedia_sdp_session *offer) {
 
 }
 
-void SipVoipLink::on_create_offer(pjsip_inv_session *inv, pjmedia_sdp_session **p_offer) {
+void SipVoipLink::on_create_offer(pjsip_inv_session *inv,
+		pjmedia_sdp_session **p_offer) {
 	_info("UserAgent: Create new SDP offer");
 
 	/* Retrieve the call information */
@@ -4286,7 +4275,8 @@ bool SipVoipLink::setRtpNetworkParams(SipCall* call) {
 		}
 
 		// Bind the audio call to the local interface
-		std::string localAddress = getInterfaceAddrFromName(account->getLocalInterface());
+		std::string localAddress = getInterfaceAddrFromName(
+				account->getLocalInterface());
 
 		// If local address bound to ANY, resolve it using PJSIP
 		if (localAddress == "0.0.0.0") {

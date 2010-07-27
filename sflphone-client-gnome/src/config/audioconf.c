@@ -80,6 +80,7 @@ preferences_dialog_fill_codec_list (account_t **account)
   gtk_list_store_clear (codecStore);
 
   // Get all the codecs for this account
+  codec_library_load_codecs_by_account(*account);
   GQueue* current = codec_library_get_all_codecs((*account)->codecs);
   guint length = g_queue_get_length (current);
 
@@ -525,18 +526,12 @@ codec_active_toggled (GtkCellRendererToggle *renderer UNUSED, gchar *path,
   gtk_tree_model_get (model, &iter, COLUMN_CODEC_ACTIVE, &active,
       COLUMN_CODEC_NAME, &name, COLUMN_CODEC_FREQUENCY, &srate, COLUMN_CODEC_POINTER, &codec, -1);
 
-  active = !active;
-
   // Store value
-  gtk_list_store_set (GTK_LIST_STORE(model), &iter, COLUMN_CODEC_ACTIVE, active, -1);
+  gtk_list_store_set (GTK_LIST_STORE(model), &iter, COLUMN_CODEC_ACTIVE, !active, -1);
   gtk_tree_path_free (treePath);
 
   // Modify codec queue to represent change
-  if (active) {
-    codec_set_active (&codec);
-  } else {
-    codec_set_inactive (&codec);
-  }
+  codec_library_toggle_active(account->codecs, codec);
 }
 
 /**

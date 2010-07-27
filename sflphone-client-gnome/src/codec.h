@@ -99,6 +99,7 @@ typedef union {
  */
 typedef struct {
   GQueue* codec_list;
+  guint number_active;
 } codec_library_t;
 
 #endif

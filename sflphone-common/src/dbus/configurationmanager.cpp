@@ -466,8 +466,7 @@ DbusAudioCodec ConfigurationManager::getAudioCodecDetails(
 	return codecDescription;
 }
 
-std::vector<DbusAudioCodec> ConfigurationManager::getAllAudioCodecs()
-{
+std::vector<DbusAudioCodec> ConfigurationManager::getAllAudioCodecs() {
 	std::vector<DbusAudioCodec> output;
 
 	CodecFactory& factory = CodecFactory::getInstance();
@@ -501,7 +500,8 @@ std::vector<DbusAudioCodec> ConfigurationManager::getAllActiveAudioCodecs(
 	Account* account = Manager::instance().getAccount(accountID);
 	CodecFactory& factory = CodecFactory::getInstance();
 
-	CodecOrder audioCodecOrder = factory.getDefaultAudioCodecOrder();;
+	CodecOrder audioCodecOrder = factory.getDefaultAudioCodecOrder();
+	;
 	if (account != NULL) {
 		audioCodecOrder = account->getActiveAudioCodecs();
 	} else {
@@ -514,26 +514,30 @@ std::vector<DbusAudioCodec> ConfigurationManager::getAllActiveAudioCodecs(
 	for (it = audioCodecOrder.begin(); it != audioCodecOrder.end(); it++) {
 		const AudioCodec* codec =
 				static_cast<const AudioCodec*> (factory.getCodec((*it)));
+		if (codec != NULL) { // TODO Catch exception instead
 
-		DbusAudioCodec codecDescription;
-		codecDescription._1 = codec->hashCode();
-		codecDescription._2 = codec->getClockRate();
-		codecDescription._3 = codec->getPayloadType();
-		codecDescription._4 = codec->getMimeType();
-		codecDescription._5 = codec->getMimeSubtype();
-		codecDescription._6 = codec->getBitRate();
-		codecDescription._7 = codec->getBandwidth();
-		codecDescription._8 = codec->getDescription();
+			DbusAudioCodec codecDescription;
+			codecDescription._1 = codec->hashCode();
+			codecDescription._2 = codec->getClockRate();
+			codecDescription._3 = codec->getPayloadType();
+			codecDescription._4 = codec->getMimeType();
+			codecDescription._5 = codec->getMimeSubtype();
+			codecDescription._6 = codec->getBitRate();
+			codecDescription._7 = codec->getBandwidth();
+			codecDescription._8 = codec->getDescription();
 
-		output.push_back(codecDescription);
-		_debug("Sending %s", codec->getMimeSubtype().c_str());
+			output.push_back(codecDescription);
+			_debug("Sending \"%s\" (id \"%s\")", codec->getMimeSubtype().c_str(), codec->hashCode().c_str());
+		}
 	}
 
 	return output;
 }
 
-void ConfigurationManager::setActiveAudioCodecs(const std::vector<std::string>& codecIdentifiers, const std::string& accountID) {
-	_debug ("Setting codecs for account id \"%s\"", accountID.c_str());
+void ConfigurationManager::setActiveAudioCodecs(
+		const std::vector<std::string>& codecIdentifiers,
+		const std::string& accountID) {
+	_info ("Setting codecs for account id \"%s\"", accountID.c_str());
 
 	// Set the new codec order.
 	Account* account = Manager::instance().getAccount(accountID);
@@ -547,6 +551,7 @@ void ConfigurationManager::setActiveAudioCodecs(const std::vector<std::string>& 
 
 	std::vector<std::string>::const_iterator it;
 	for (it = codecIdentifiers.begin(); it != codecIdentifiers.end(); it++) {
+		_debug("Setting codec ID \"%s\" for account \"%s\"", (*it).c_str(), accountID.c_str());
 		ordering.push_back((*it));
 	}
 

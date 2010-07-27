@@ -38,11 +38,14 @@
 
 static codec_library_t* system_library = NULL;
 
-codec_library_t* codec_library_get_system_codecs() {
-  if (system_library == NULL) {
-    system_library = codec_library_new();
-    codec_library_load_available_codecs(system_library);
-  }
+codec_library_t*
+codec_library_get_system_codecs ()
+{
+  if (system_library == NULL)
+    {
+      system_library = codec_library_new ();
+      codec_library_load_available_codecs (system_library);
+    }
 
   return system_library;
 }
@@ -78,9 +81,12 @@ match_payload_predicate (gconstpointer a, gconstpointer b)
 codec_library_t*
 codec_library_new ()
 {
-  codec_library_t* library = (codec_library_t*) malloc(sizeof(codec_library_t));
+  codec_library_t* library =
+      (codec_library_t*) malloc (sizeof(codec_library_t));
 
-  library->codec_list = g_queue_new();
+  library->codec_list = g_queue_new ();
+
+  library->number_active = 0;
 
   DEBUG("New codec library created.");
 
@@ -101,6 +107,8 @@ codec_library_clear (codec_library_t* library)
 {
   g_queue_free (library->codec_list);
   library->codec_list = NULL;
+  library->number_active = 0;
+  library->codec_list = g_queue_new ();
 }
 
 void
@@ -123,6 +131,8 @@ codec_library_load_available_codecs (codec_library_t* library)
 void
 codec_library_load_codecs_by_account (account_t* account)
 {
+  codec_library_clear (account->codecs);
+
   GList* codecs = dbus_get_active_audio_codecs (account->accountID);
   GList* it;
   for (it = codecs; it != NULL; it = g_list_next(it))
@@ -143,6 +153,15 @@ codec_library_add (codec_library_t* library, codec_t* codec)
   DEBUG("Adding codec \"%s\" to codec library.", codec->codec.mime_subtype);
 
   g_queue_push_tail (library->codec_list, (gpointer *) codec);
+
+  if (codec->codec.is_active)
+    {
+      library->number_active += 1;
+    }
+  else
+    {
+      library->number_active -= 1;
+    }
 }
 
 guint
@@ -151,13 +170,28 @@ codec_library_get_size (codec_library_t* library)
   return g_queue_get_length (library->codec_list);
 }
 
-codec_t*
-codec_library_get_codec_by_mime_subtype (codec_library_t* library, gconstpointer name)
+guint
+codec_library_get_number_active (codec_library_t* library)
 {
-  GList* codec = g_queue_find_custom (library->codec_list, name, match_mime_subtype_predicate);
-  if (codec) {
-    return codec->data;
-  }
+  return library->number_active;
+}
+
+guint
+codec_library_get_number_inactive (codec_library_t* library)
+{
+  return codec_library_get_size(library) - library->number_active;
+}
+
+codec_t*
+codec_library_get_codec_by_mime_subtype (codec_library_t* library,
+    gconstpointer name)
+{
+  GList* codec = g_queue_find_custom (library->codec_list, name,
+      match_mime_subtype_predicate);
+  if (codec)
+    {
+      return codec->data;
+    }
 
   WARN("Codec with mime subtype \"%s\" could not be found in the library.", name);
 
@@ -170,9 +204,10 @@ codec_library_get_codec_by_payload_type (codec_library_t* library,
 {
   GList* codec = g_queue_find_custom (library->codec_list, payload,
       match_payload_predicate);
-  if (codec) {
-    return codec->data;
-  }
+  if (codec)
+    {
+      return codec->data;
+    }
 
   WARN("Codec with payload type \"%d\" could not be found in the library.", payload);
 
@@ -202,7 +237,7 @@ codec_library_set_prefered_order (codec_library_t* library, guint index)
 void
 codec_list_move_codec_down (codec_library_t* library, guint index)
 {
-  DEBUG("Codec list Size: %i \n", codec_library_get_size(library));
+  DEBUG("Codec list size: %i", codec_library_get_size(library));
 
   if (codec_library_get_size (library) != index)
     {
@@ -214,12 +249,27 @@ codec_list_move_codec_down (codec_library_t* library, guint index)
 void
 codec_library_move_codec_up (codec_library_t* library, guint index)
 {
-  DEBUG("Codec list Size: %i \n", codec_library_get_size(library));
+  DEBUG("Codec list size: %i", codec_library_get_size(library));
 
   if (codec_library_get_size (library) != index)
     {
       gpointer codec = g_queue_pop_nth (library->codec_list, index);
       g_queue_push_nth (library->codec_list, codec, index - 1);
+    }
+}
+
+void
+codec_library_toggle_active (codec_library_t* library, codec_t* codec)
+{
+  if (codec->codec.is_active)
+    {
+      codec->codec.is_active = FALSE;
+      library->number_active -= 1;
+    }
+  else
+    {
+      codec->codec.is_active = TRUE;
+      library->number_active += 1;
     }
 }
 
@@ -243,19 +293,31 @@ codec_set_inactive (codec_t **c)
     }
 }
 
-void codec_library_set (codec_library_t* library, const gchar* accountID)
+void
+codec_library_set (codec_library_t* library, const gchar* accountID)
 {
   // Build an array of identifiers
-  gchar** identifiers = g_new(gchar*, codec_library_get_size(library) + 1);
+  guint size = codec_library_get_number_active(library) + 1;
+
+  DEBUG("Account id %s has %d active codecs on %d available", accountID, size-1, codec_library_get_size(library));
+
+  gchar** identifiers = g_new(gchar*, size);
 
   int i;
-  for (i = 0; i < codec_library_get_size(library); i++) {
-    codec_t* codec = g_queue_peek_nth(library->codec_list, i);
-    identifiers[i] = codec->codec.identifier;
-  }
-  identifiers[i] = NULL;
+  int j = 0;
+  for (i = 0; i < codec_library_get_size (library); i++)
+    {
+      codec_t* codec = g_queue_peek_nth (library->codec_list, i);
+      if (codec && codec->codec.is_active)
+        {
+          DEBUG("Sending preferred codec %s (%s) for account id \"%s\"", codec->codec.identifier, codec->codec.mime_subtype, accountID);
+          identifiers[j] = codec->codec.identifier;
+          j += 1;
+        }
+    }
+  identifiers[j] = NULL;
 
-  dbus_set_active_audio_codecs(identifiers, accountID);
+  dbus_set_active_audio_codecs (identifiers, accountID);
 
   // TODO g_free(identifiers)
 }
