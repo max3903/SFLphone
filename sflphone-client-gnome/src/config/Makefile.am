@@ -13,6 +13,7 @@ libconfig_la_SOURCES = \
   accountconfigdialog.c \
   hooks-config.c \
   audioconf.c \
+  videocodeclist.c \
   videoconf.c \
   utils.c 
 

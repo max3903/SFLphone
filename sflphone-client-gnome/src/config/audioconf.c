@@ -618,7 +618,7 @@ codec_move_down (GtkButton *button UNUSED, gpointer data)
   codec_move (FALSE, data);
 }
 
-GtkWidget* codecs_box (account_t **a)
+GtkWidget* create_audio_codec_box (account_t **a)
 {
   GtkWidget *ret;
   GtkWidget *scrolledWindow;
