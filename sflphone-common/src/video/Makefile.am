@@ -1,6 +1,6 @@
 include $(top_srcdir)/globals.mak
 
-SUBDIRS = codec rtp source
+SUBDIRS = rtp source codec
 
 AM_CXXFLAGS = $(GSTREAMER_CFLAGS)
 

@@ -290,7 +290,7 @@ std::vector<sfl::Codec*> CodecFactory::scanCodecDirectory(void) {
 
 						_debug("Library %s added to the cache.", tmp.c_str());
 
-						AudioCodec* audioCodec = loadCodec(dirStr.append(tmp));
+						sfl::Codec* audioCodec = loadCodec(dirStr.append(tmp));
 
 						codecs.push_back(audioCodec);
 
@@ -312,38 +312,29 @@ std::vector<sfl::Codec*> CodecFactory::scanCodecDirectory(void) {
 	return codecs;
 }
 
-AudioCodec* CodecFactory::loadCodec(std::string path) {
-
+sfl::Codec* CodecFactory::loadCodec(std::string path) {
 	CodecHandlePointer p;
-	using std::cerr;
-	void * codecHandle = dlopen(path.c_str(), RTLD_LAZY);
-
-	if (!codecHandle)
-		cerr << dlerror() << '\n';
-
-	dlerror();
+	void* codecHandle = dlopen(path.c_str(), RTLD_LAZY);
+	if (!codecHandle) {
+		_error("%s", dlerror());
+	}
 
 	create_t* createCodec = (create_t*) dlsym(codecHandle, "create");
+	if (createCodec == NULL) {
+		_error("%s (%s:%d)", dlerror(), __FILE__, __LINE__);
+	}
 
-	if (dlerror())
-		cerr << dlerror() << '\n';
+	sfl::Codec* codec = createCodec();
+	_codecInMemory.push_back(CodecHandlePointer(codec, codecHandle));
 
-	AudioCodec* a = createCodec();
-
-	p = CodecHandlePointer(a, codecHandle);
-
-	_codecInMemory.push_back(p);
-
-	return a;
+	return codec;
 }
 
 void CodecFactory::unloadCodec(CodecHandlePointer p) {
-
-	using std::cerr;
 	destroy_t* destroyCodec = (destroy_t*) dlsym(p.second, "destroy");
-
-	if (dlerror())
-		cerr << dlerror() << '\n';
+	if (destroyCodec == NULL) {
+		_error("%s (%s:%d)", dlerror(), __FILE__, __LINE__);
+	}
 
 	destroyCodec(p.first);
 

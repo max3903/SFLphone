@@ -41,7 +41,7 @@
 namespace sfl {
 
 template<class EncoderType, class DecoderType>
-class AbstractVideoCodec: public VideoCodec {
+class AbstractVideoCodec: public virtual VideoCodec {
 public:
 	AbstractVideoCodec() :
 		VideoCodec() {

@@ -147,12 +147,12 @@ class Speex : public AudioCodec
 };
 
 // the class factories
-extern "C" AudioCodec* create()
+extern "C" sfl::Codec* create()
 {
     return new Speex (111);
 }
 
-extern "C" void destroy (AudioCodec* a)
+extern "C" void destroy (sfl::Codec* a)
 {
     delete a;
 }

@@ -50,7 +50,7 @@ namespace sfl {
  * A lot of the public methods made available below are just meant to hide delegates.
  */
 
-class VideoCodec : public Codec, public VideoPlugin {
+class VideoCodec : public virtual Codec, public VideoPlugin {
 public:
 	VideoCodec() {};
 	virtual ~VideoCodec() {};

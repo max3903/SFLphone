@@ -54,7 +54,6 @@ libcodec_celt_so_LDADD = libcodecdescriptor.la
 INSTALL_CELT_RULE = install-libcodec_celt_so
 endif
 
-
 noinst_PROGRAMS = libcodec_ulaw.so libcodec_alaw.so libcodec_g722.so $(GSM_LIB) $(SPEEX_NB_LIB) $(SPEEX_WB_LIB) $(SPEEX_UB_LIB) $(CELT_LIB)
 
 noinst_HEADERS = AudioCodec.h

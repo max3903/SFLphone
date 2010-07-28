@@ -217,7 +217,6 @@ public:
 	void setMaxRcmdNaluSize(const std::string& maxRcmdNaluSize) { setParameter("max-rcmd-nalu-size", maxRcmdNaluSize); }
 	std::string getMaxRcmdNaluSize() { return getParameter("max-rcmd-nalu-sizep"); }
 
-protected:
 	MimeParametersH264() {};
 	inline virtual ~MimeParametersH264() {}
 };

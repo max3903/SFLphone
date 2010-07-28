@@ -34,6 +34,7 @@
 #define __CODEC_DESCRIPTOR_H__
 
 #include "audio/codecs/AudioCodec.h"
+#include "video/codec/VideoCodec.h"
 
 #include "global.h"
 #include "user_cfg.h"
@@ -100,14 +101,14 @@ public:
 	const sfl::Codec* getCodecByPayloadFormat(const ost::PayloadFormat& format);
 
 	/**
-	 * @return all of the supported audio codecs.
-	 */
-	std::vector<const AudioCodec*> getAllAudioCodecs();
-
-	/**
 	 * @return a list of MIME subtype types corresponding to the available codecs.
 	 */
 	std::vector<std::string> getAllMimeSubtypes();
+
+	/**
+	 * @return all of the supported audio codecs.
+	 */
+	std::vector<const AudioCodec*> getAllAudioCodecs();
 
 	/**
 	 * Get the first element of the IdentifierToCodecInstanceMap struct.
@@ -115,7 +116,6 @@ public:
 	 * @return AudioCodec	The pointer on the codec object
 	 */
 	const AudioCodec* getFirstAvailableAudioCodec();
-
 
 	/**
 	 * @return The default list of codec identifiers.
@@ -152,7 +152,7 @@ private:
 	/**
 	 * Scan the installation directory ( --prefix configure option )
 	 * And load the dynamic library
-	 * @return std::vector<AudioCodec*> The list of the codec object successfully loaded in memory
+	 * @return The list of the codec object successfully loaded in memory
 	 */
 	std::vector<sfl::Codec*> scanCodecDirectory(void);
 
@@ -161,13 +161,13 @@ private:
 	 * @param std::string	The path of the shared ( dynamic ) library.
 	 * @return AudioCodec*  the pointer of the object loaded.
 	 */
-	AudioCodec* loadCodec(std::string);
+	sfl::Codec* loadCodec(std::string);
 
 	/**
 	 * Enable us to keep the handle pointer on the codec dynamicaly loaded so that we could destroy
 	 * when we dont need it anymore
 	 * */
-	typedef std::pair<AudioCodec*, void*> CodecHandlePointer;
+	typedef std::pair<sfl::Codec*, void*> CodecHandlePointer;
 
 	/**
 	 * Unload a codec

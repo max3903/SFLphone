@@ -162,10 +162,10 @@ private:
 };
 
 // the class factories
-extern "C" AudioCodec* create() {
+extern "C" sfl::Codec* create() {
 	return new Celt(115);
 }
 
-extern "C" void destroy(AudioCodec* a) {
+extern "C" void destroy(sfl::Codec* a) {
 	delete a;
 }

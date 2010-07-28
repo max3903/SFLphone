@@ -36,6 +36,34 @@
 #include "video/codec/mime/MimeParametersH264.h"
 
 namespace sfl {
-class GstCodecH264 : public MimeParametersH264, public AbstractVideoCodec<GstEncoderH264, GstDecoderH264> {};
+class GstCodecH264 : public virtual MimeParametersH264, public AbstractVideoCodec<GstEncoderH264, GstDecoderH264> {
+	static const double DEFAULT_BITRATE = 768;
+	double getBitRate() const {
+		return DEFAULT_BITRATE;
+	}
+
+	double getBandwidth() const {
+		return getBitRate()/8;
+	}
+
+	std::string getDescription() const {
+		return "Gstreamer implementation. Using \"x264enc\" and \"ffdec_h264\" elements";
+	}
+
+	sfl::Codec* clone() const {
+		return new GstCodecH264(*this);
+	}
+};
 }
+
+extern "C" sfl::Codec* create()
+{
+    return new sfl::GstCodecH264();
+}
+
+extern "C" void destroy (sfl::Codec* codec)
+{
+    delete codec;
+}
+
 #endif

@@ -36,7 +36,33 @@
 #include "video/codec/mime/MimeParametersTheora.h"
 
 namespace sfl {
-class GstCodecTheora: public MimeParametersTheora, public AbstractVideoCodec<GstEncoderTheora, GstDecoderTheora> {};
+class GstCodecTheora: public virtual MimeParametersTheora, public AbstractVideoCodec<GstEncoderTheora, GstDecoderTheora> {
+	double getBitRate() const {
+		return 0; // VBR
+	}
+
+	double getBandwidth() const {
+		return 0; // VBR
+	}
+
+	std::string getDescription() const {
+		return "Gstreamer implementation. Using \"theoraenc\" and \"theoradec\" elements.";
+	}
+
+	sfl::Codec* clone() const {
+		return new GstCodecTheora(*this);
+	}
+};
+}
+
+extern "C" sfl::Codec* create()
+{
+    return new sfl::GstCodecTheora();
+}
+
+extern "C" void destroy (sfl::Codec* codec)
+{
+    delete codec;
 }
 
 #endif

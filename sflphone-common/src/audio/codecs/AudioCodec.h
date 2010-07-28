@@ -178,8 +178,4 @@ private:
 	void init(uint8 payloadType, uint32 clockRate);
 };
 
-// the types of the class factories
-typedef AudioCodec* create_t();
-typedef void destroy_t(AudioCodec*);
-
 #endif
