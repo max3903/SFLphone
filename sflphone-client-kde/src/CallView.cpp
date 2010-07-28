@@ -37,10 +37,11 @@ bool CallView::dropMimeData(QTreeWidgetItem *parent, int index, const QMimeData 
    if (!QString(encodedData).isEmpty()) {
    clearArtefact(privateCallList_callId[encodedData]->treeItem);
    
-   if (!parent) {
+      if (!parent) {
          qDebug() << "Call dropped on empty space";
-         if (privateCallList_callId[encodedData]->treeItem->parent())
+         if (privateCallList_callId[encodedData]->treeItem->parent()) {
             detachParticipant(privateCallList_callId[encodedData]->call_real);
+         }
          else
             qDebug() << "The call is not in a conversation (doing nothing)";
          return true;
@@ -245,7 +246,9 @@ void CallView::destroyCall(Call* toDestroy)
    if (privateCallList_call[toDestroy]->treeItem == currentItem())
       setCurrentItem(0);
    
-   if (indexOfTopLevelItem(privateCallList_call[toDestroy]->treeItem) != -1)
+   if (!privateCallList_call[toDestroy])
+       qDebug() << "Call not found";
+   else if (indexOfTopLevelItem(privateCallList_call[toDestroy]->treeItem) != -1)
       takeTopLevelItem(indexOfTopLevelItem(privateCallList_call[toDestroy]->treeItem));
    else if (privateCallList_call[toDestroy]->treeItem->parent()) //May crash here
       privateCallList_call[toDestroy]->treeItem->parent()->removeChild(privateCallList_call[toDestroy]->treeItem);
@@ -350,8 +353,8 @@ bool CallView::conferenceChanged(const QString &confId, const QString &state)
 void CallView::conferenceRemoved(const QString &confId) 
 {
    CallModel<InternalCallModelStruct>::conferenceRemoved(confId);
-   for (int j =0; j < privateCallList_callId[confId]->treeItem->childCount();j++) {
-      insertItem(extractItem(privateCallList_callId[confId]->treeItem->child(j)));
+   while (privateCallList_callId[confId]->treeItem->childCount()) {
+      insertItem(extractItem(privateCallList_callId[confId]->treeItem->child(0)));
    }
    privateCallList_widget.remove(privateCallList_callId[confId]->call);
    privateCallList_item.remove(privateCallList_callId[confId]->treeItem);
