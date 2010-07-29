@@ -106,14 +106,15 @@ public:
 
 	/**
 	 * @return a structure containing the following fields in order :
+	 * 		hash code,
 	 * 		clock rate,
 	 * 		payload type,
 	 * 		mime type,
 	 * 		mime subtype,
 	 * 		bitrate,
-	 * 		bandwidth.
+	 * 		bandwidth,
+	 * 		description.
 	 */
-
 	DbusAudioCodec getAudioCodecDetails(const std::string& codecMimeType);
 
 	/**
@@ -123,15 +124,34 @@ public:
 	std::vector<DbusAudioCodec> getAllAudioCodecs();
 
 	/**
+	 * @return a vector of all the audio codecs that are available. Same as calling getAudioCodecMimeSubtypes() in a loop, then
+	 * getAudioCodecDetails.
+	 */
+	std::vector<DbusAudioCodec> getAllVideoCodecs();
+
+	/**
 	 * @param accountID A string representing the account for which to return the list of active codec.
+	 * @return A Dbus Array containing all of the video codecs for the given account.
 	 */
 	std::vector<DbusAudioCodec> getAllActiveAudioCodecs(const std::string& accountID);
 
 	/**
-	 * @param codecIdentifiers A vector containing all of the codec identifiers, in some specified order.
+	 * @param accountID A string representing the account for which to return the list of active codec.
+	 * @return A Dbus Array containing all of the video codecs for the given account.
+	 */
+	std::vector<DbusAudioCodec> getAllActiveVideoCodecs(const std::string& accountID);
+
+	/**
+	 * @param codecIdentifiers A vector containing all of the audio codec identifiers, in some specified order.
 	 * @param accountID The account identifier for which to set the new active codec list.
 	 */
 	void setActiveAudioCodecs(const std::vector<std::string>& codecIdentifiers, const std::string& accountID);
+
+	/**
+	 * @param codecIdentifiers A vector containing all of the video codec identifiers, in some specified order.
+	 * @param accountID The account identifier for which to set the new active codec list.
+	 */
+	void setActiveVideoCodecs(const std::vector<std::string>& codecIdentifiers, const std::string& accountID);
 
 	void removeAccount(const std::string& accoundID);
 	void deleteAllCredential(const std::string& accountID);

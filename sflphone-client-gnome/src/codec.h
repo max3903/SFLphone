@@ -98,9 +98,13 @@ typedef union {
  * Opaque structure.
  */
 typedef struct {
-  GQueue* codec_list;
-  GMutex* codec_list_mutex;
-  guint number_active;
+  GQueue* audio_codec_list;
+  GMutex* audio_codec_list_mutex;
+
+  guint number_active; // FIXME Should get rid of that.
+
+  GQueue* video_codec_list;
+  GMutex* video_codec_list_mutex;
 } codec_library_t;
 
 #endif

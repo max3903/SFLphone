@@ -111,17 +111,19 @@ public:
 	std::vector<const AudioCodec*> getAllAudioCodecs();
 
 	/**
-	 * Get the first element of the IdentifierToCodecInstanceMap struct.
-	 * i.e the one with the lowest payload
-	 * @return AudioCodec	The pointer on the codec object
+	 * @return all of the supported video codecs.
 	 */
-	const AudioCodec* getFirstAvailableAudioCodec();
+	std::vector<const sfl::VideoCodec*> getAllVideoCodecs();
 
 	/**
 	 * @return The default list of codec identifiers.
 	 */
 	CodecOrder getDefaultAudioCodecOrder();
 
+	/**
+	 * @return The default list of codec identifiers.
+	 */
+	CodecOrder getDefaultVideoCodecOrder();
 protected:
 
 	/**
@@ -199,7 +201,7 @@ private:
 
 	/**
 	 * Vector containing pairs
-	 * Pair between pointer on function handle and pointer on audiocodec object
+	 * Pair between pointer on function handle and pointer on a Codec object
 	 */
 	std::vector<CodecHandlePointer> _codecInMemory;
 

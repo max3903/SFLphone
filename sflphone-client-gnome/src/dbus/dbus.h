@@ -271,6 +271,11 @@ gchar** dbus_default_codec_list ();
 GList* dbus_get_all_audio_codecs();
 
 /**
+ * @return The list of all the available codecs, as video_codec_t elements.
+ */
+GList* dbus_get_all_video_codecs();
+
+/**
  * ConfigurationManager - Get the list of the codecs used for media negociation
  * @return gchar** The list of codecs
  */
@@ -278,11 +283,25 @@ GList*
 dbus_get_active_audio_codecs (gchar *accountID);
 
 /**
+ * ConfigurationManager - Get the list of the codecs used for media negociation
+ * @return gchar** The list of codecs
+ */
+GList*
+dbus_get_active_video_codecs (gchar* accountID);
+
+/**
  * ConfigurationManager - Set the list of codecs used for media negociation
  * @param list The list of codecs
  */
 void
 dbus_set_active_audio_codecs (const gchar** list, const gchar*);
+
+/**
+ * ConfigurationManager - Set the list of codecs used for media negociation
+ * @param list The list of codecs
+ */
+void
+dbus_set_active_video_codecs (const gchar** list, const gchar *accountID);
 
 /**
  * CallManager - return the codec name

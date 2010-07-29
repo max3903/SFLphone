@@ -27,43 +27,37 @@
  *  as that of the covered work.
  */
 
-#ifndef __SFL_GST_CODEC_H264_H__
-#define __SFL_GST_CODEC_H264_H__
-
 #include "AbstractVideoCodec.h"
-#include "video/codec/encoder/GstEncoderH264.h"
-#include "video/codec/decoder/GstDecoderH264.h"
-#include "video/codec/mime/MimeParametersH264.h"
+#include "video/codec/encoder/GstEncoderTheora.h"
+#include "video/codec/decoder/GstDecoderTheora.h"
+#include "video/codec/mime/MimeParametersTheora.h"
 
 namespace sfl {
-class GstCodecH264 : public virtual MimeParametersH264, public AbstractVideoCodec<GstEncoderH264, GstDecoderH264> {
-	static const double DEFAULT_BITRATE = 768;
+class GstCodecTheora: public virtual MimeParametersTheora, public AbstractVideoCodec<GstEncoderTheora, GstDecoderTheora> {
 	double getBitRate() const {
-		return DEFAULT_BITRATE;
+		return 0; // VBR
 	}
 
 	double getBandwidth() const {
-		return getBitRate()/8;
+		return 0; // VBR
 	}
 
 	std::string getDescription() const {
-		return "Gstreamer implementation. Using \"x264enc\" and \"ffdec_h264\" elements";
+		return "Gstreamer implementation. Using \"theoraenc\" and \"theoradec\" elements.";
 	}
 
 	sfl::Codec* clone() const {
-		return new GstCodecH264(*this);
+		return new GstCodecTheora(*this);
 	}
 };
 }
 
 extern "C" sfl::Codec* create()
 {
-    return new sfl::GstCodecH264();
+    return new sfl::GstCodecTheora();
 }
 
 extern "C" void destroy (sfl::Codec* codec)
 {
     delete codec;
 }
-
-#endif

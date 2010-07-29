@@ -51,17 +51,6 @@ void
 codec_library_free (codec_library_t* library);
 
 /**
- * Take two codec library and merge them into a single one.
- * @param l1 Some codec library.
- * @param l2 Some other codec library.
- * @return A new codec library.
- * @postcondition All of the codecs in l1 but NOT in l2 are now in the new library. All of the codecs of l1 having the
- * same identifier as some codec of l2 are also in the new library, but with the state from l2.
- */
-codec_library_t*
-codec_library_merge (const codec_library_t* l1, const codec_library_t* l2);
-
-/**
  * @return a codec library that contains all of the supported codecs in the deamon.
  */
 codec_library_t*
@@ -79,14 +68,7 @@ codec_library_load_available_codecs (codec_library_t* library);
  * @param account The account in which to load the enabled codecs.
  */
 void
-codec_library_load_codecs_by_account (account_t* account);
-
-/**
- * This function clears the internal list of codec that it keeps.
- * @param library The codec library object to clear.
- */
-void
-codec_library_clear (codec_library_t* library);
+codec_library_load_audio_codecs_by_account (account_t* account);
 
 /** 
  * Add a codec to the codec library.
@@ -101,20 +83,6 @@ codec_library_add (codec_library_t* library, codec_t* codec);
  */
 guint
 codec_library_get_size (codec_library_t* library);
-
-/**
- * @param library The library structure.
- * @return The number of active codecs in the library;
- */
-guint
-codec_library_get_number_active (codec_library_t* library);
-
-/**
- * @param library The library structure.
- * @return The number of inactive codecs in the library;
- */
-guint
-codec_library_get_number_inactive (codec_library_t* library);
 
 /** 
  * @param library The codec library object in which to search for.
@@ -142,17 +110,17 @@ codec_library_get_codec_by_identifier (codec_library_t* library,
 
 /**
  * @param library The codec library.
- * @return a GQueue object containing all of the codecs.
+ * @return a GQueue object containing all of the audio codecs.
  */
 GQueue*
-codec_library_get_all_codecs (codec_library_t* library);
+codec_library_get_audio_codecs (codec_library_t* library);
 
-/** 
- * @param index The position of the codec in the list.
- * @return the codec at the nth position in the list
+/**
+ * @param library The codec library.
+ * @return a GQueue object containing all of the video codecs.
  */
-codec_t*
-codec_library_get_nth_codec (codec_library_t* library, guint n);
+GQueue*
+codec_library_get_video_codecs (codec_library_t* library);
 
 /**
  * Sync the codec library in this client with the server.
@@ -163,29 +131,21 @@ codec_library_get_nth_codec (codec_library_t* library, guint n);
 void
 codec_library_set (codec_library_t* library, const gchar* accountID);
 
-/**
- * Set the prefered codec first in the codec list
- * @param library The library in which to move the codec up.
- * @param index The position in the list of the prefered codec
- */
-void
-codec_library_set_prefered_order (codec_library_t* library, guint index);
-
 /** 
  * Move the codec from an unit up in the codec_list
  * @param library The library in which to move the codec up.
- * @param index The current index in the list
+ * @param codec The codec to move up.
  */
 void
-codec_library_move_codec_up (codec_library_t* library, guint index);
+codec_library_move_codec_up (codec_library_t* library, codec_t* codec);
 
 /** 
  * Move the codec from an unit down in the codec_list
  * @param library The library in which to move the codec down.
- * @param index The current index in the list
+ * @param codec The codec to move down.
  */
 void
-codec_list_move_codec_down (codec_library_t* library, guint index);
+codec_library_move_codec_down (codec_library_t* library, codec_t* codec);
 
 /**
  * Toggle the activation state of a codec in some library.
@@ -219,5 +179,9 @@ codec_set_inactive (codec_t **c);
 void
 codec_set_active (codec_t **c);
 
+/**
+ * @return a new instance of "src"
+ */
+codec_t* codec_copy (codec_t* src);
 #endif
 

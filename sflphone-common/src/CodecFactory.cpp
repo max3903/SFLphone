@@ -126,18 +126,6 @@ const sfl::Codec* CodecFactory::getCodecByPayloadFormat(const ost::PayloadFormat
 	return NULL; // TODO throw something instead.
 }
 
-const AudioCodec* CodecFactory::getFirstAvailableAudioCodec() {
-	IdentifierToCodecInstanceMap::iterator it = _codecsMap.begin();
-	for (it = _codecsMap.begin() ; it != _codecsMap.end(); it++) {
-		if (((*it).second)->getMimeSubtype() == "audio") {
-			const AudioCodec* codec = static_cast<AudioCodec*>((*it).second);
-			return codec;
-		}
-	}
-
-	return NULL;
-}
-
 std::vector<const AudioCodec*> CodecFactory::getAllAudioCodecs()
 {
 	std::vector<const AudioCodec*> output;
@@ -153,6 +141,21 @@ std::vector<const AudioCodec*> CodecFactory::getAllAudioCodecs()
 	return output;
 }
 
+std::vector<const sfl::VideoCodec*> CodecFactory::getAllVideoCodecs()
+{
+	std::vector<const sfl::VideoCodec*> output;
+
+	IdentifierToCodecInstanceMap::iterator it;
+	for (it = _codecsMap.begin(); it != _codecsMap.end(); it++) {
+		if (((*it).second)->getMimeType() == "video") {
+			const sfl::VideoCodec* codec = dynamic_cast<sfl::VideoCodec*>((*it).second);
+			output.push_back(codec);
+		}
+	}
+
+	return output;
+}
+
 CodecOrder CodecFactory::getDefaultAudioCodecOrder()
 {
 	CodecOrder output;
@@ -160,6 +163,20 @@ CodecOrder CodecFactory::getDefaultAudioCodecOrder()
 	IdentifierToCodecInstanceMap::iterator it;
 	for (it = _codecsMap.begin(); it != _codecsMap.end(); it++) {
 		if (((*it).second)->getMimeType() == "audio") {
+			output.push_back(((*it).second)->hashCode());
+		}
+	}
+
+	return output;
+}
+
+CodecOrder CodecFactory::getDefaultVideoCodecOrder()
+{
+	CodecOrder output;
+
+	IdentifierToCodecInstanceMap::iterator it;
+	for (it = _codecsMap.begin(); it != _codecsMap.end(); it++) {
+		if (((*it).second)->getMimeType() == "video") {
 			output.push_back(((*it).second)->hashCode());
 		}
 	}

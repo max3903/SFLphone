@@ -75,7 +75,7 @@ void IAXAccount::serialize(Conf::YamlEmitter *emitter)
   accountmap.setKeyValue(mailboxKey, &mailbox);
 
   accountmap.setKeyValue(displayNameKey, &displayName);
-  accountmap.setKeyValue(codecsKey, &codecs);
+  accountmap.setKeyValue(audioCodecsKey, &codecs);
 
   try{
     emitter->serializeAccount(&accountmap);
@@ -107,7 +107,7 @@ void IAXAccount::unserialize(Conf::MappingNode *map)
   if(val) { _enabled = (val->getValue().compare("true") == 0) ? true : false; val = NULL; }
   //  val = (Conf::ScalarNode *)(map->getValue(mailboxKey));
 
-  val = (Conf::ScalarNode *)(map->getValue(codecsKey));
+  val = (Conf::ScalarNode *)(map->getValue(audioCodecsKey));
   if(val) { _codecAudioSerialized = val->getValue(); val = NULL; }
   val = (Conf::ScalarNode *)(map->getValue(displayNameKey));
   if(val) { _displayName = val->getValue(); val = NULL; }

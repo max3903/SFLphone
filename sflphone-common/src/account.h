@@ -147,7 +147,8 @@ const Conf::Key hostnameKey("hostname");
 const Conf::Key accountEnableKey("enable");
 const Conf::Key mailboxKey("mailbox");
 
-const Conf::Key codecsKey("codecs"); // 0/9/110/111/112/
+const Conf::Key audioCodecsKey("audioCodecs");
+const Conf::Key videoCodecsKey("videoCodecs");
 const Conf::Key ringtonePathKey("ringtonePath");
 const Conf::Key ringtoneEnabledKey("ringtoneEnabled");
 const Conf::Key displayNameKey("displayName");
@@ -353,6 +354,28 @@ private:
 	void loadAudioCodecs(void);
 
 protected:
+
+	/**
+	 * @return The audio codec order under the form of a string.
+	 */
+	std::string getAudioCodecsSerialized();
+
+	/**
+	 * @param audioCodecs A string representing the serialized audio codecs identifiers.
+	 */
+	void setAudioCodecsSerialized(const std::string& audioCodecs);
+
+	/**
+	 * @return The video codec order under the form of a string.
+	 */
+	std::string getVideoCodecsSerialized();
+
+	/**
+	 * @param videoCodecs A string representing the serialized video codecs identifiers.
+	 */
+	void setVideoCodecsSerialized(const std::string& videoCodecs);
+
+protected: // Should become private !
 	/**
 	 * Account ID are assign in constructor and shall not changed
 	 */

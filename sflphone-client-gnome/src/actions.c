@@ -1178,7 +1178,7 @@ sflphone_fill_codec_list ()
 void
 sflphone_fill_codec_list_per_account (account_t **account)
 {
-  codec_library_load_codecs_by_account(*account);
+  codec_library_load_audio_codecs_by_account(*account);
 }
 
 void

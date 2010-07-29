@@ -492,26 +492,93 @@ std::vector<DbusAudioCodec> ConfigurationManager::getAllAudioCodecs() {
 	return output;
 }
 
+std::vector<DbusAudioCodec> ConfigurationManager::getAllVideoCodecs() {
+	std::vector<DbusAudioCodec> output;
+
+	CodecFactory& factory = CodecFactory::getInstance();
+
+	std::vector<const sfl::VideoCodec*> codecs = factory.getAllVideoCodecs();
+	std::vector<const sfl::VideoCodec*>::iterator it;
+	for (it = codecs.begin(); it != codecs.end(); it++) {
+		const sfl::VideoCodec* codec = (*it);
+
+		DbusAudioCodec codecDescription;
+		codecDescription._1 = codec->hashCode();
+		codecDescription._2 = codec->getClockRate();
+		codecDescription._3 = codec->getPayloadType();
+		codecDescription._4 = codec->getMimeType();
+		codecDescription._5 = codec->getMimeSubtype();
+		codecDescription._6 = codec->getBitRate();
+		codecDescription._7 = codec->getBandwidth();
+		codecDescription._8 = codec->getDescription();
+
+		output.push_back(codecDescription);
+	}
+
+	return output;
+}
+
 std::vector<DbusAudioCodec> ConfigurationManager::getAllActiveAudioCodecs(
 		const std::string& accountID) {
 	_info("Sending active codec list for account \"%s\" ...", accountID.c_str ());
-	std::vector<DbusAudioCodec> output;
+
+	CodecFactory& factory = CodecFactory::getInstance();
+	CodecOrder audioCodecOrder = factory.getDefaultAudioCodecOrder();
 
 	Account* account = Manager::instance().getAccount(accountID);
-	CodecFactory& factory = CodecFactory::getInstance();
-
-	CodecOrder audioCodecOrder = factory.getDefaultAudioCodecOrder();
-	;
 	if (account != NULL) {
 		audioCodecOrder = account->getActiveAudioCodecs();
 	} else {
 		_error("Could not return active codec list for non-existing account id \"%s\". Sending defaults.", accountID.c_str());
 	}
 
-	_info("Account \"%s\" has %d active codecs.", accountID.c_str(), audioCodecOrder.size());
+	_info("Account \"%s\" has %d active audio codecs.", accountID.c_str(), audioCodecOrder.size());
 
+	std::vector<DbusAudioCodec> output;
 	CodecOrder::iterator it;
 	for (it = audioCodecOrder.begin(); it != audioCodecOrder.end(); it++) {
+		const AudioCodec* codec =
+				static_cast<const AudioCodec*> (factory.getCodec((*it)));
+		if (codec != NULL) { // TODO Catch exception instead
+
+			DbusAudioCodec codecDescription;
+			codecDescription._1 = codec->hashCode();
+			codecDescription._2 = codec->getClockRate();
+			codecDescription._3 = codec->getPayloadType();
+			codecDescription._4 = codec->getMimeType();
+			codecDescription._5 = codec->getMimeSubtype();
+			codecDescription._6 = codec->getBitRate();
+			codecDescription._7 = codec->getBandwidth();
+			codecDescription._8 = codec->getDescription();
+
+			output.push_back(codecDescription);
+			_debug("Sending \"%s\" (id \"%s\")", codec->getMimeSubtype().c_str(), codec->hashCode().c_str());
+		}
+	}
+
+	return output;
+}
+
+std::vector<DbusAudioCodec> ConfigurationManager::getAllActiveVideoCodecs(
+		const std::string& accountID)
+{
+	_info("Sending active codec list for account \"%s\" ...", accountID.c_str ());
+
+	CodecFactory& factory = CodecFactory::getInstance();
+	CodecOrder videoCodecOrder = factory.getDefaultVideoCodecOrder();
+
+	Account* account = Manager::instance().getAccount(accountID);
+	if (account != NULL) {
+		videoCodecOrder = account->getActiveVideoCodecs();
+	} else {
+		_error("Could not return active codec list for non-existing account id \"%s\". Sending defaults.", accountID.c_str());
+	}
+
+	_info("Account \"%s\" has %d active video codecs.", accountID.c_str(), videoCodecOrder.size());
+
+	std::vector<DbusAudioCodec> output;
+	CodecOrder::iterator it;
+	for (it = videoCodecOrder.begin(); it != videoCodecOrder.end(); it++) {
 		const AudioCodec* codec =
 				static_cast<const AudioCodec*> (factory.getCodec((*it)));
 		if (codec != NULL) { // TODO Catch exception instead
@@ -537,7 +604,7 @@ std::vector<DbusAudioCodec> ConfigurationManager::getAllActiveAudioCodecs(
 void ConfigurationManager::setActiveAudioCodecs(
 		const std::vector<std::string>& codecIdentifiers,
 		const std::string& accountID) {
-	_info ("Setting codecs for account id \"%s\"", accountID.c_str());
+	_info ("Setting audio codecs for account id \"%s\"", accountID.c_str());
 
 	// Set the new codec order.
 	Account* account = Manager::instance().getAccount(accountID);
@@ -556,6 +623,29 @@ void ConfigurationManager::setActiveAudioCodecs(
 	}
 
 	account->setActiveAudioCodecs(ordering);
+}
+
+void ConfigurationManager::setActiveVideoCodecs(
+		const std::vector<std::string>& codecIdentifiers,
+		const std::string& accountID) {
+	_info ("Setting video codecs for account id \"%s\"", accountID.c_str());
+
+	// Create a CodecOrder object from the hash codes contained in the structures.
+	CodecOrder ordering;
+
+	std::vector<std::string>::const_iterator it;
+	for (it = codecIdentifiers.begin(); it != codecIdentifiers.end(); it++) {
+		_debug("Setting video codec ID \"%s\" for account \"%s\"", (*it).c_str(), accountID.c_str());
+		ordering.push_back((*it));
+	}
+
+	// Set the new codec order.
+	Account* account = Manager::instance().getAccount(accountID);
+	if (!account) {
+		_error("Account id \"%s\" cannot be found.", accountID.c_str());
+		return;
+	}
+	account->setActiveVideoCodecs(ordering);
 }
 
 std::vector<std::string> ConfigurationManager::getAudioPluginList() {

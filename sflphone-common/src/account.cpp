@@ -91,17 +91,36 @@ CodecOrder& Account::getActiveVideoCodecs() {
 	return _codecVideoOrder;
 }
 
+CodecOrder& Account::getActiveAudioCodecs() {
+	return _codecAudioOrder;
+}
+
 void Account::setActiveVideoCodecs(CodecOrder codecs) {
 	_codecVideoOrder = codecs;
 	_codecVideoSerialized = Manager::instance().serialize(codecs);
-}
-
-CodecOrder& Account::getActiveAudioCodecs() {
-	return _codecAudioOrder;
+	_debug("Setting active video codecs : %s", _codecVideoSerialized.c_str());
 }
 
 void Account::setActiveAudioCodecs(CodecOrder codecs) {
 	_codecAudioOrder = codecs;
 	_codecAudioSerialized = Manager::instance().serialize(codecs);
 	_debug("Setting active audio codecs : %s", _codecAudioSerialized.c_str());
+}
+
+std::string Account::getAudioCodecsSerialized() {
+	return _codecAudioSerialized;
+}
+
+void Account::setAudioCodecsSerialized(const std::string& audioCodecs)
+{
+	_codecAudioSerialized = audioCodecs;
+}
+
+void Account::setVideoCodecsSerialized(const std::string& videoCodecs)
+{
+	_codecVideoSerialized = videoCodecs;
+}
+
+std::string Account::getVideoCodecsSerialized() {
+	return _codecVideoSerialized;
 }

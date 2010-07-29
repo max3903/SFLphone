@@ -25,7 +25,7 @@ noinst_HEADERS = \
 		VideoCodecNull.h
 	
 H264_LIB = libcodec_h264.so
-libcodec_h264_so_SOURCES = GstCodecH264.h
+libcodec_h264_so_SOURCES = GstCodecH264.cpp
 libcodec_h264_so_CFLAGS = -fPIC -g -Wall
 libcodec_h264_so_CXXFLAGS = -fPIC -g -Wall
 libcodec_h264_so_LDFLAGS = --shared -lc
@@ -34,7 +34,7 @@ libcodec_h264_so_LDADD = \
 	libvideocodec.la
 
 THEORA_LIB = libcodec_theora.so
-libcodec_theora_so_SOURCES = GstCodecTheora.h
+libcodec_theora_so_SOURCES = GstCodecTheora.cpp
 libcodec_theora_so_CFLAGS = -fPIC -g -Wall
 libcodec_theora_so_CXXFLAGS = -fPIC -g -Wall
 libcodec_theora_so_LDFLAGS = --shared -lc

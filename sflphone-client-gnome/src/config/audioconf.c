@@ -80,8 +80,8 @@ preferences_dialog_fill_codec_list (account_t **account)
   gtk_list_store_clear (codecStore);
 
   // Get all the codecs for this account
-  codec_library_load_codecs_by_account(*account);
-  GQueue* current = codec_library_get_all_codecs((*account)->codecs);
+  codec_library_load_audio_codecs_by_account(*account);
+  GQueue* current = codec_library_get_audio_codecs((*account)->codecs);
   guint length = g_queue_get_length (current);
 
   // Insert in the tree view
@@ -592,7 +592,7 @@ codec_move (gboolean moveUp, gpointer data)
   if (moveUp) {
     codec_library_move_codec_up(account->codecs, indice);
   } else {
-    codec_list_move_codec_down(account->codecs, indice);
+    codec_library_move_codec_down(account->codecs, indice);
   }
 }
 

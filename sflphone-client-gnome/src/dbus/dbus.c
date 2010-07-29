@@ -53,6 +53,7 @@
 
 #define DBUS_STRUCT_INT_INT (dbus_g_type_get_struct ("GValueArray", G_TYPE_INT, G_TYPE_INT, G_TYPE_INVALID))
 #define DBUS_AUDIO_CODEC_TYPE (dbus_g_type_get_struct ("GValueArray", G_TYPE_STRING, G_TYPE_UINT, G_TYPE_UCHAR, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_DOUBLE, G_TYPE_DOUBLE, G_TYPE_STRING, G_TYPE_INVALID))
+#define DBUS_VIDEO_CODEC_TYPE (dbus_g_type_get_struct ("GValueArray", G_TYPE_STRING, G_TYPE_UINT, G_TYPE_UCHAR, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_DOUBLE, G_TYPE_DOUBLE, G_TYPE_STRING, G_TYPE_INVALID))
 
 DBusGConnection * connection;
 DBusGProxy * callManagerProxy;
@@ -1285,6 +1286,7 @@ dbus_unregister (int pid)
       g_error_free (error);
     }
 }
+
 GList*
 dbus_get_all_audio_codecs ()
 {
@@ -1296,7 +1298,7 @@ dbus_get_all_audio_codecs ()
       configurationManagerProxy, &audio_codecs, &error);
   if (error != NULL)
     {
-      ERROR("Failed to audio codecs over dbus");
+      ERROR("Failed to get all of the audio codecs over dbus");
       g_error_free (error);
       return NULL;
     }
@@ -1311,6 +1313,45 @@ dbus_get_all_audio_codecs ()
       g_value_set_static_boxed (&elem, g_ptr_array_index(audio_codecs, i));
 
       audio_codec_t* codec = g_new(audio_codec_t, 1);
+
+      dbus_g_type_struct_get (&elem, 0, &codec->identifier, 1, &codec->clock_rate, 2, &codec->payload,
+          3, &codec->mime_type, 4, &codec->mime_subtype, 5, &codec->bitrate, 6,
+          &codec->bandwidth, 7, &codec->description, G_MAXUINT);
+
+     codec->is_active = FALSE;
+
+      ret = g_list_append (ret, codec);
+    }
+
+  return ret;
+}
+
+GList*
+dbus_get_all_video_codecs ()
+{
+  GError* error = NULL;
+  GPtrArray* video_codecs = NULL;
+  GList* ret = NULL;
+
+  org_sflphone_SFLphone_ConfigurationManager_get_all_video_codecs (
+      configurationManagerProxy, &video_codecs, &error);
+  if (error != NULL)
+    {
+      ERROR("Failed to get all of the video codecs over dbus");
+      g_error_free (error);
+      return NULL;
+    }
+
+  int i;
+  for (i = 0; i < video_codecs->len; i++)
+    {
+      GValue elem =
+        { 0 };
+      g_value_init (&elem, DBUS_VIDEO_CODEC_TYPE);
+
+      g_value_set_static_boxed (&elem, g_ptr_array_index(video_codecs, i));
+
+      video_codec_t* codec = g_new(video_codec_t, 1);
 
       dbus_g_type_struct_get (&elem, 0, &codec->identifier, 1, &codec->clock_rate, 2, &codec->payload,
           3, &codec->mime_type, 4, &codec->mime_subtype, 5, &codec->bitrate, 6,
@@ -1373,7 +1414,7 @@ dbus_get_active_audio_codecs (gchar* accountID)
           3, &codec->mime_type, 4, &codec->mime_subtype, 5, &codec->bitrate, 6,
           &codec->bandwidth, 7, &codec->description, G_MAXUINT);
 
-      DEBUG("Codec %s/%s %d (payload number %d)\nDescription : \"%s\"\nBandwidth : %f\nBitrate : %f",
+      DEBUG("Audio codec %s/%s %d (payload number %d)\nDescription : \"%s\"\nBandwidth : %f\nBitrate : %f",
                       codec->mime_type,
                       codec->mime_subtype,
                       codec->clock_rate,
@@ -1400,6 +1441,69 @@ dbus_set_active_audio_codecs (const gchar** list, const gchar *accountID)
   if (error)
     {
       ERROR ("Failed to call setActiveAudioCodecs on ConfigurationManager: %s",
+          error->message);
+      g_error_free (error);
+    }
+}
+
+GList*
+dbus_get_active_video_codecs (gchar* accountID)
+{
+  GError* error = NULL;
+  GPtrArray* video_codecs = NULL;
+  GList* ret = NULL;
+
+  DEBUG("Fetching active video codecs for account \"%s\" ...", accountID);
+
+  org_sflphone_SFLphone_ConfigurationManager_get_all_active_video_codecs(configurationManagerProxy, accountID, &video_codecs, &error);
+  if (error != NULL)
+    {
+      ERROR("Failed to retrieve active video codecs for account \"%s\" over Dbus", accountID);
+      g_error_free (error);
+      return NULL;
+    }
+
+  DEBUG("Server returned %d video codecs.", video_codecs->len);
+
+  int i;
+  for (i = 0; i < video_codecs->len; i++)
+    {
+      GValue elem = { 0 };
+      g_value_init (&elem, DBUS_VIDEO_CODEC_TYPE);
+      g_value_set_static_boxed (&elem, g_ptr_array_index(video_codecs, i));
+
+      video_codec_t* codec = g_new(video_codec_t, 1);
+      dbus_g_type_struct_get (&elem, 0, &codec->identifier, 1, &codec->clock_rate, 2, &codec->payload,
+          3, &codec->mime_type, 4, &codec->mime_subtype, 5, &codec->bitrate, 6,
+          &codec->bandwidth, 7, &codec->description, G_MAXUINT);
+
+      DEBUG("Video codec %s/%s %d (payload number %d)\nDescription : \"%s\"\nBandwidth : %f\nBitrate : %f",
+                      codec->mime_type,
+                      codec->mime_subtype,
+                      codec->clock_rate,
+                      codec->payload,
+                      codec->description,
+                      codec->bandwidth,
+                      codec->bitrate);
+
+      codec->is_active = TRUE;
+
+      ret = g_list_append (ret, codec);
+    }
+
+  return ret;
+}
+
+void
+dbus_set_active_video_codecs (const gchar** list, const gchar *accountID)
+{
+  DEBUG("Sending active video codec list for account %s ...", accountID)
+  GError *error = NULL;
+  org_sflphone_SFLphone_ConfigurationManager_set_active_video_codecs(configurationManagerProxy, list, accountID, &error);
+
+  if (error)
+    {
+      ERROR ("Failed to call setActiveVideoCodecs on ConfigurationManager: %s",
           error->message);
       g_error_free (error);
     }
