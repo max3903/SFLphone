@@ -144,7 +144,6 @@ account_list_get_size (void)
 account_t *
 account_list_get_nth (guint n)
 {
-  DEBUG("Peeking element %d in queue of length %d",  n, g_queue_get_length(accountQueue));
   return g_queue_peek_nth (accountQueue, n);
 }
 

@@ -70,6 +70,13 @@ codec_library_load_available_codecs (codec_library_t* library);
 void
 codec_library_load_audio_codecs_by_account (account_t* account);
 
+/**
+ * Retrieve the codec list from the server via DBUS.
+ * @param account The account in which to load the enabled codecs.
+ */
+void
+codec_library_load_video_codecs_by_account (account_t* account);
+
 /** 
  * Add a codec to the codec library.
  * @param library The codec library object in which to add the codec.
@@ -183,5 +190,6 @@ codec_set_active (codec_t **c);
  * @return a new instance of "src"
  */
 codec_t* codec_copy (codec_t* src);
+
 #endif
 

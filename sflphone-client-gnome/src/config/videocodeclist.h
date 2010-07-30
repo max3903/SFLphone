@@ -31,41 +31,37 @@
 #ifndef __VIDEO_CODEC_LIST_H__
 #define __VIDEO_CODEC_LIST_H__
 
-#include "account.h"
+#include "codeclist.h"
 
 #include <glib-object.h>
 #include <gtk/gtk.h>
 
 G_BEGIN_DECLS
-
 #define SFL_TYPE_VIDEO_CODEC_LIST            (video_codec_list_get_type ())
 #define SFL_VIDEO_CODEC_LIST(obj)            (G_TYPE_CHECK_INSTANCE_CAST ((obj), SFL_TYPE_VIDEO_CODEC_LIST, VideoCodecList))
-#define SFL_VIDEO_CODEC_LIST_CLASS(obj)      (G_TYPE_CHECK_CLASS_CAST ((obj), SFL_VIDEO_CODEC_LIST, VideoCodecListClass))
+#define SFL_VIDEO_CODEC_LIST_CLASS(klass)    (G_TYPE_CHECK_CLASS_CAST ((klass), SFL_TYPE_VIDEO_CODEC_LIST, VideoCodecListClass))
 #define SFL_IS_VIDEO_CODEC_LIST(obj)         (G_TYPE_CHECK_INSTANCE_TYPE ((obj), SFL_TYPE_VIDEO_CODEC_LIST))
 #define SFL_IS_VIDEO_CODEC_LIST_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass), SFL_TYPE_VIDEO_CODEC_LIST))
-#define SFL_VIDEO_CODEC_LIST_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS ((obj), SFL_TYPE_VIDEO_CODEC_LIST, VIDEO_CODEC_LISTClass))
+#define SFL_GET_VIDEO_CODEC_LIST_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS ((obj), SFL_TYPE_VIDEO_CODEC_LIST, VideoCodecListClass))
 
 typedef struct {
-  GtkVBox parent;
+  CodecList parent;
 } VideoCodecList;
 
 typedef struct {
-  GtkVBoxClass parent_class;
+  CodecListClass parent_class;
 } VideoCodecListClass;
 
 /**
- * @return The GType corresponding to a VideoCodecList widget.
+ * @return The GType corresponding to a CodecList widget.
  */
 GType video_codec_list_get_type (void);
 
 /**
  * @param account The account for which this widget should display codecs for.
- * @return a new instance of a VideoCodecList widget.
+ * @return a new instance of a CodecList widget.
  */
 VideoCodecList* video_codec_list_new (account_t* account);
-
-
 G_END_DECLS
-
 
 #endif

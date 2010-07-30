@@ -28,29 +28,29 @@
  *  as that of the covered work.
  */
 
-#include "videocodeclist.h"
+#include "audiocodeclist.h"
 #include "codeclibrary.h"
 
-G_DEFINE_TYPE (VideoCodecList, video_codec_list, SFL_TYPE_CODEC_LIST)
+G_DEFINE_TYPE (AudioCodecList, audio_codec_list, SFL_TYPE_CODEC_LIST)
 
 static void
-video_codec_list_init (VideoCodecList *self)
+audio_codec_list_init (AudioCodecList* self)
 {
   /* Nothing */
 }
 
 static void
-video_codec_list_class_init (VideoCodecListClass *klass)
+audio_codec_list_class_init (AudioCodecListClass* klass)
 {
   CodecListClass* base_class = SFL_CODEC_LIST_CLASS(klass);
 
-  base_class->load_codecs = codec_library_load_video_codecs_by_account;
-  base_class->get_codecs = codec_library_get_video_codecs;
+  base_class->load_codecs = codec_library_load_audio_codecs_by_account;
+  base_class->get_codecs = codec_library_get_audio_codecs;
 }
 
-VideoCodecList*
-video_codec_list_new (account_t* account)
+AudioCodecList*
+audio_codec_list_new (account_t* account)
 {
-  return g_object_new (SFL_TYPE_VIDEO_CODEC_LIST, "account", account, NULL);
+  return g_object_new (SFL_TYPE_AUDIO_CODEC_LIST, "account", account, NULL);
 }
 

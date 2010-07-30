@@ -28,29 +28,56 @@
  *  as that of the covered work.
  */
 
-#include "videocodeclist.h"
-#include "codeclibrary.h"
+#ifndef __CODEC_LIST_H__
+#define __CODEC_LIST_H__
 
-G_DEFINE_TYPE (VideoCodecList, video_codec_list, SFL_TYPE_CODEC_LIST)
+#include "account.h"
 
-static void
-video_codec_list_init (VideoCodecList *self)
-{
-  /* Nothing */
-}
+#include <glib-object.h>
+#include <gtk/gtk.h>
 
-static void
-video_codec_list_class_init (VideoCodecListClass *klass)
-{
-  CodecListClass* base_class = SFL_CODEC_LIST_CLASS(klass);
+G_BEGIN_DECLS
 
-  base_class->load_codecs = codec_library_load_video_codecs_by_account;
-  base_class->get_codecs = codec_library_get_video_codecs;
-}
+#define SFL_TYPE_CODEC_LIST            (codec_list_get_type ())
+#define SFL_CODEC_LIST(obj)            (G_TYPE_CHECK_INSTANCE_CAST ((obj), SFL_TYPE_CODEC_LIST, CodecList))
+#define SFL_CODEC_LIST_CLASS(klass)    (G_TYPE_CHECK_CLASS_CAST ((klass), SFL_TYPE_CODEC_LIST, CodecListClass))
+#define SFL_IS_CODEC_LIST(obj)         (G_TYPE_CHECK_INSTANCE_TYPE ((obj), SFL_TYPE_CODEC_LIST))
+#define SFL_IS_CODEC_LIST_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass), SFL_TYPE_CODEC_LIST))
+#define SFL_GET_CODEC_LIST_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS ((obj), SFL_TYPE_CODEC_LIST, CodecListClass))
 
-VideoCodecList*
-video_codec_list_new (account_t* account)
-{
-  return g_object_new (SFL_TYPE_VIDEO_CODEC_LIST, "account", account, NULL);
-}
+typedef struct {
+  GtkVBox parent;
+} CodecList;
 
+typedef struct {
+  GtkVBoxClass parent_class;
+
+  /* vtable below */
+
+  /**
+   * Load the available codec for some account.
+   */
+  void (*load_codecs)(account_t*);
+
+  /**
+   * @return the codecs that were loaded.
+   */
+  GQueue* (*get_codecs)(codec_library_t*);
+} CodecListClass;
+
+/**
+ * @return The GType corresponding to a CodecList widget.
+ */
+GType codec_list_get_type (void);
+
+/**
+ * @param account The account for which this widget should display codecs for.
+ * @return a new instance of a CodecList widget.
+ */
+CodecList* codec_list_new (account_t* account);
+
+
+G_END_DECLS
+
+
+#endif

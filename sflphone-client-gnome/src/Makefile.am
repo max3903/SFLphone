@@ -24,12 +24,12 @@ sflphone_client_gnome_SOURCES = \
   accountlist.c \
   sliders.c \
   statusicon.c \
-  codeclist.c \
+  codeclibrary.c \
   reqaccount.c \
   shortcuts.c  \
   eel-gconf-extensions.c
 
-noinst_HEADERS =  actions.h sflnotify.h mainwindow.h dialpad.h codeclist.h \
+noinst_HEADERS =  actions.h sflnotify.h mainwindow.h dialpad.h codeclibrary.h \
                   reqaccount.h errors.h sflphone_const.h uimanager.h \
                   accountlist.h sliders.h statusicon.h callable_obj.h conference_obj.h \
                   shortcuts.h eel-gconf-extensions.h

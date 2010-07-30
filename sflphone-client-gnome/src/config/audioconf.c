@@ -90,10 +90,13 @@ preferences_dialog_fill_codec_list (account_t **account)
   for (i = 0; i < length; i++)
     {
       codec_t* codec = g_queue_peek_nth(current, i);
-
-      gtk_list_store_append (codecStore, &iter);
+      if (!codec) {
+        continue;
+      }
 
       DEBUG("Payload %d", codec->audio.payload);
+
+      gtk_list_store_append (codecStore, &iter);
 
       gtk_list_store_set (codecStore, &iter,
           COLUMN_CODEC_ACTIVE,
@@ -590,9 +593,9 @@ codec_move (gboolean moveUp, gpointer data)
   account_t* account = (account_t*) data;
 
   if (moveUp) {
-    codec_library_move_codec_up(account->codecs, indice);
+    //codec_library_move_codec_up(account->codecs, indice);
   } else {
-    codec_library_move_codec_down(account->codecs, indice);
+    //codec_library_move_codec_down(account->codecs, indice);
   }
 }
 

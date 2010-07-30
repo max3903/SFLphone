@@ -39,7 +39,7 @@
 #include <zrtpadvanceddialog.h>
 #include <tlsadvanceddialog.h>
 #include <audioconf.h>
-#include <videocodeclist.h>
+#include <audiocodeclist.h>
 
 // From version 2.16, gtk provides the functionalities libsexy used to provide
 #if GTK_CHECK_VERSION(2,16,0)
@@ -1413,7 +1413,8 @@ create_codecs_configuration (account_t **a)
   GtkWidget* audio_vbox = gtk_vbox_new (FALSE, 10);
   gtk_container_set_border_width (GTK_CONTAINER(audio_vbox), 10);
 
-  GtkWidget* audio_codec_list = create_audio_codec_box (a);
+ // GtkWidget* audio_codec_list = create_audio_codec_box (a);
+  GtkWidget* audio_codec_list = audio_codec_list_new(*a);
 
   // Box for the codecs
   GtkWidget *codecs;
@@ -1550,7 +1551,7 @@ show_account_window (account_t * account)
   gtk_notebook_page_num (GTK_NOTEBOOK (notebook), codecs_tab);
 
   // Video codecs
-  GtkWidget* video_tab = video_codec_list_new(account);
+  GtkWidget* video_tab = audio_codec_list_new(account);
   gtk_notebook_append_page (GTK_NOTEBOOK (notebook), video_tab, gtk_label_new (
       _("Video")));
   gtk_notebook_page_num (GTK_NOTEBOOK (notebook), video_tab);
@@ -1812,8 +1813,7 @@ show_account_window (account_t * account)
       dbus_set_account_details (currentAccount);
     }
 
-  // Perpetuate changes to the deamon
-  codec_library_set (currentAccount->codecs, currentAccount->accountID);
+  // codec_library_set (currentAccount->codecs, currentAccount->accountID);
 
   DEBUG("Codec library set");
   gtk_widget_destroy (GTK_WIDGET(dialog));
