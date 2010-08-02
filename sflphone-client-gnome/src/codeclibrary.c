@@ -550,34 +550,30 @@ codec_library_move_codec_up (codec_library_t* library, codec_t* codec)
 void
 codec_library_toggle_active (codec_library_t* library, codec_t* codec)
 {
-  if (codec->codec.is_active)
-    {
-      g_mutex_lock(library->audio_codec_list_mutex);
-        {
-          codec->codec.is_active = FALSE;
-        }
-      g_mutex_unlock(library->audio_codec_list_mutex);
-    }
-  else
-    {
-      g_mutex_lock(library->audio_codec_list_mutex);
-        {
-          codec->codec.is_active = TRUE;
-        }
-      g_mutex_unlock(library->audio_codec_list_mutex);
-    }
+  gboolean state = codec->codec.is_active;
+  DEBUG("Video codec %s (%s) is in state %d", codec->codec.mime_subtype, codec->codec.identifier, codec->codec.is_active);
+  codec_library_set_active(library, codec, !state);
 }
 
 void
 codec_library_set_active (codec_library_t* library, codec_t* codec,
     gboolean state)
 {
-  if (codec->codec.is_active == state)
+  if (g_strcmp0(codec->codec.mime_type, "video") == 0) {
+    g_mutex_lock(library->video_codec_list_mutex);
     {
-      return;
+      codec->codec.is_active = state;
     }
+    g_mutex_unlock(library->video_codec_list_mutex);
+  } else if (g_strcmp0(codec->codec.mime_type, "audio") == 0) {
+    g_mutex_lock(library->audio_codec_list_mutex);
+    {
+      codec->codec.is_active = state;
+    }
+    g_mutex_unlock(library->audio_codec_list_mutex);
+  }
 
-  codec_library_toggle_active (library, codec);
+  DEBUG("Video codec %s (%s) is now in state %d", codec->codec.mime_subtype, codec->codec.identifier, codec->codec.is_active);
 }
 
 codec_t*
@@ -609,18 +605,15 @@ codec_library_copy (codec_library_t* library)
 static void
 codec_library_set (codec_library_t* library, const gchar* accountID, gboolean video)
 {
-  // Work on a private copy to avoid race condition problems
-  codec_library_t* library_copy = codec_library_copy (library);
-
-  // Scan the codec library for finding only those codecs that are active
-  GQueue* active_queue = g_queue_new ();
-
   GQueue* codec_queue;
   if (video) {
-    codec_queue = library_copy->video_codec_list;
+    codec_queue = library->video_codec_list;
   } else {
-    codec_queue = library_copy->audio_codec_list;
+    codec_queue = library->audio_codec_list;
   }
+
+  // Scan the codec library for finding only those codecs that are active. A copy is created to avoid concurrency issues.
+  GQueue* active_queue = g_queue_new ();
 
   int i;
   for (i = 0; i < g_queue_get_length(codec_queue); i++)

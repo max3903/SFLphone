@@ -80,14 +80,16 @@ codec_list_fill (CodecList* self)
 
   // Get all the codecs for this account
   CodecListClass* class = SFL_GET_CODEC_LIST_CLASS(self);
-  if (class->load_codecs) {
-    class->load_codecs(priv->account);
-  }
+  if (class->load_codecs)
+    {
+      class->load_codecs (priv->account);
+    }
 
   GQueue* current;
-  if (class->get_codecs) {
-    current = class->get_codecs(priv->account->codecs);
-  }
+  if (class->get_codecs)
+    {
+      current = class->get_codecs (priv->account->codecs);
+    }
 
   guint length = g_queue_get_length (current);
 
@@ -99,10 +101,11 @@ codec_list_fill (CodecList* self)
   for (i = 0; i < length; i++)
     {
       codec_t* codec = g_queue_peek_nth (current, i);
-      if (!codec) {
-        DEBUG("Codec is NULL for %d", i);
-        continue;
-      }
+      if (!codec)
+        {
+          DEBUG("Codec is NULL for %d", i);
+          continue;
+        }
       gtk_list_store_append (codecStore, &iter);
 
       gtk_list_store_set (codecStore, &iter, COLUMN_CODEC_ACTIVE,
@@ -137,8 +140,8 @@ codec_list_set_property (GObject *object, guint property_id,
 }
 
 static void
-codec_list_get_property (GObject *object, guint property_id,
-    GValue *value, GParamSpec *pspec)
+codec_list_get_property (GObject *object, guint property_id, GValue *value,
+    GParamSpec *pspec)
 {
   CodecList *self = SFL_CODEC_LIST(object);
   CodecListPrivate* priv = GET_PRIVATE((CodecList*) self);
@@ -177,7 +180,7 @@ static void
 codec_list_realize (GtkWidget* widget)
 {
   DEBUG("Realizing ....");
-  GTK_WIDGET_CLASS(codec_list_parent_class)->realize(widget);
+  GTK_WIDGET_CLASS(codec_list_parent_class)->realize (widget);
 
   CodecListPrivate* priv = GET_PRIVATE(widget);
 
@@ -302,6 +305,7 @@ codec_active_toggled_cb (GtkCellRendererToggle *renderer, gchar *path,
   gtk_tree_path_free (treePath);
 
   // Modify codec queue to represent change
+  DEBUG("Toggling codec %s", codec->codec.mime_subtype);
   codec_library_toggle_active (account->codecs, codec);
 }
 
@@ -335,11 +339,14 @@ codec_move_cb (gboolean moveUp, gpointer data)
   gint indice = indices[0];
 
   // Depending on button direction get new path
-  if (moveUp) {
-    gtk_tree_path_prev (treePath);
-  } else {
-    gtk_tree_path_next (treePath);
-  }
+  if (moveUp)
+    {
+      gtk_tree_path_prev (treePath);
+    }
+  else
+    {
+      gtk_tree_path_next (treePath);
+    }
 
   gtk_tree_model_get_iter (model, &iter, treePath);
 
@@ -371,11 +378,11 @@ codec_move_cb (gboolean moveUp, gpointer data)
 
   if (moveUp)
     {
-      // codec_library_move_codec_up (account->codecs, codec);
+      codec_library_move_codec_up (account->codecs, codec);
     }
   else
     {
-      // codec_library_move_codec_down (account->codecs, codec);
+      codec_library_move_codec_down (account->codecs, codec);
     }
 }
 
@@ -515,14 +522,17 @@ codec_list_new (account_t* account)
   return g_object_new (SFL_TYPE_CODEC_LIST, "account", account, NULL);
 }
 
-void codec_list_save(CodecList* widget) {
+void
+codec_list_save (CodecList* widget)
+{
   CodecListPrivate* priv = GET_PRIVATE(widget);
 
   if (priv->account)
     {
       CodecListClass* class = SFL_GET_CODEC_LIST_CLASS(widget);
-      if (class->save_codecs) {
-        class->save_codecs(priv->account->codecs, priv->account->accountID);
-      }
+      if (class->save_codecs)
+        {
+          class->save_codecs (priv->account->codecs, priv->account->accountID);
+        }
     }
 }

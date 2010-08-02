@@ -1413,7 +1413,7 @@ create_codecs_configuration (account_t **a)
   GtkWidget* audio_vbox = gtk_vbox_new (FALSE, 10);
   gtk_container_set_border_width (GTK_CONTAINER(audio_vbox), 10);
 
- // GtkWidget* audio_codec_list = create_audio_codec_box (a);
+  // GtkWidget* audio_codec_list = create_audio_codec_box (a);
   GtkWidget* audio_codec_list = audio_codec_list_new(*a);
 
   // Box for the codecs
@@ -1814,6 +1814,7 @@ show_account_window (account_t * account)
     }
 
   codec_list_save(video_tab);
+  // codec_list_save(audio_list);
 
   gtk_widget_destroy (GTK_WIDGET(dialog));
 }
