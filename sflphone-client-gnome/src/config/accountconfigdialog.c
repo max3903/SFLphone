@@ -112,6 +112,8 @@ GHashTable * directIpCallsProperties = NULL;
 
 gchar *current_username;
 
+GtkWidget* audio_codec_list;
+
 // Credentials
 enum
 {
@@ -1414,7 +1416,7 @@ create_codecs_configuration (account_t **a)
   gtk_container_set_border_width (GTK_CONTAINER(audio_vbox), 10);
 
   // GtkWidget* audio_codec_list = create_audio_codec_box (a);
-  GtkWidget* audio_codec_list = audio_codec_list_new(*a);
+  audio_codec_list = audio_codec_list_new(*a);
 
   // Box for the codecs
   GtkWidget *codecs;
@@ -1551,10 +1553,10 @@ show_account_window (account_t * account)
   gtk_notebook_page_num (GTK_NOTEBOOK (notebook), codecs_tab);
 
   // Video codecs
-  GtkWidget* video_tab = video_codec_list_new(account);
-  gtk_notebook_append_page (GTK_NOTEBOOK (notebook), video_tab, gtk_label_new (
+  GtkWidget* video_codec_list = video_codec_list_new(account);
+  gtk_notebook_append_page (GTK_NOTEBOOK (notebook), video_codec_list, gtk_label_new (
       _("Video")));
-  gtk_notebook_page_num (GTK_NOTEBOOK (notebook), video_tab);
+  gtk_notebook_page_num (GTK_NOTEBOOK (notebook), video_codec_list);
 
   // Get current protocol for this account protocol
   gchar *currentProtocol = "SIP";
@@ -1813,8 +1815,9 @@ show_account_window (account_t * account)
       dbus_set_account_details (currentAccount);
     }
 
-  codec_list_save(video_tab);
-  // codec_list_save(audio_list);
+  codec_list_save(SFL_CODEC_LIST(video_codec_list));
+
+  codec_list_save(SFL_CODEC_LIST(audio_codec_list));
 
   gtk_widget_destroy (GTK_WIDGET(dialog));
 }

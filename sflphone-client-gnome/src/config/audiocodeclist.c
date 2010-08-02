@@ -45,6 +45,7 @@ audio_codec_list_class_init (AudioCodecListClass* klass)
   CodecListClass* base_class = SFL_CODEC_LIST_CLASS(klass);
 
   base_class->load_codecs = codec_library_load_audio_codecs_by_account;
+  base_class->save_codecs = codec_library_set_audio;
   base_class->get_codecs = codec_library_get_audio_codecs;
 }
 
