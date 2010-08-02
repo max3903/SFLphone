@@ -314,74 +314,48 @@ codec_active_toggled_cb (GtkCellRendererToggle *renderer, gchar *path,
  * update changes in the daemon list and the configuration files
  */
 static void
-codec_move_cb (gboolean moveUp, gpointer data)
+codec_move_cb (gboolean move_up, gpointer data)
 {
   // Get view, model and selection of codec store
-  GtkTreeModel *model;
   CodecListPrivate* priv = (CodecListPrivate*) data;
-  model = gtk_tree_view_get_model (GTK_TREE_VIEW(priv->codec_tree_view));
 
-  GtkTreeSelection *selection;
-  selection
-      = gtk_tree_view_get_selection (GTK_TREE_VIEW(priv->codec_tree_view));
+  GtkTreeModel* model = gtk_tree_view_get_model (GTK_TREE_VIEW(priv->codec_tree_view));
 
-  // Find selected iteration and create a copy
-  GtkTreeIter iter;
-  gtk_tree_selection_get_selected (GTK_TREE_SELECTION(selection), &model, &iter);
+  GtkTreeSelection* selection = gtk_tree_view_get_selection (GTK_TREE_VIEW(priv->codec_tree_view));
 
-  // Find path of iteration
-  gchar *path;
-  path = gtk_tree_model_get_string_from_iter (GTK_TREE_MODEL(model), &iter);
+  GtkTreeIter current_line_iter;
+  gtk_tree_selection_get_selected (GTK_TREE_SELECTION(selection), &model, &current_line_iter);
 
-  GtkTreePath *treePath;
-  treePath = gtk_tree_path_new_from_string (path);
-  gint *indices = gtk_tree_path_get_indices (treePath);
-  gint indice = indices[0];
+   // Find path of iteration
+  gchar *path = gtk_tree_model_get_string_from_iter (GTK_TREE_MODEL(model), &current_line_iter);
 
-  // Depending on button direction get new path
-  if (moveUp)
-    {
-      gtk_tree_path_prev (treePath);
-    }
-  else
-    {
-      gtk_tree_path_next (treePath);
-    }
+  GtkTreePath* tree_path = gtk_tree_path_new_from_string (path);
 
-  gtk_tree_model_get_iter (model, &iter, treePath);
+  GtkListStore* store = GTK_LIST_STORE(model);
 
-  // Get active value and name at iteration
   codec_t* codec;
-  gtk_tree_model_get (model, &iter, COLUMN_CODEC_POINTER, &codec, -1);
+  gtk_tree_model_get (model, &current_line_iter, COLUMN_CODEC_POINTER, &codec, -1);
 
-  DEBUG("************ Iter selected : %s", codec->codec.identifier);
-
-  // Swap iterations if valid
-  GtkTreeIter *iter2;
-  iter2 = gtk_tree_iter_copy (&iter);
-  if (gtk_list_store_iter_is_valid (GTK_LIST_STORE(model), &iter))
-    {
-      gtk_list_store_swap (GTK_LIST_STORE(model), &iter, iter2);
-    }
-
-  // Scroll to new position
-  gtk_tree_view_scroll_to_cell (GTK_TREE_VIEW (priv->codec_tree_view),
-      treePath, NULL, FALSE, 0, 0);
-
-  // Free resources
-  gtk_tree_path_free (treePath);
-  gtk_tree_iter_free (iter2);
-  g_free (path);
+  DEBUG("Iter selected : %s", codec->codec.mime_subtype);
 
   // Retrieve the user data
   account_t* account = (account_t*) priv->account;
-
-  if (moveUp)
+  GtkTreeIter swapped_line_iter;
+  if (move_up)
     {
+      gtk_tree_path_prev (tree_path);
+      gtk_tree_model_get_iter (model, &swapped_line_iter, tree_path);
+      gtk_list_store_move_before(store, &current_line_iter, &swapped_line_iter);
+
+      DEBUG("Iter after model change : %s", codec->codec.mime_subtype);
+
       codec_library_move_codec_up (account->codecs, codec);
     }
   else
     {
+      gtk_tree_path_next (tree_path);
+      gtk_tree_model_get_iter (model, &swapped_line_iter, tree_path);
+      gtk_list_store_move_after(store, &current_line_iter, &swapped_line_iter);
       codec_library_move_codec_down (account->codecs, codec);
     }
 }

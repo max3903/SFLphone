@@ -132,18 +132,11 @@ static void
 codec_library_add_audio_codec (codec_library_t* library,
     audio_codec_t* audioCodec)
 {
-  // If there is already a codec with that identifier, the new one has precedence over the old.
+  // If there is already a codec with that identifier, the old one has precedence over the new
   codec_t* codec;
-  if ((codec = codec_library_get_codec_by_identifier(library, audioCodec->identifier)) != NULL)
+  if ((codec = codec_library_get_codec_by_identifier(library, audioCodec->identifier)) == NULL)
     {
-      // TODO unref/free the old data.
-      DEBUG("Replacing existing codec with new one %s", audioCodec->identifier);
-      GList* element = codec_library_get_link(library, codec);
-      element->data = audioCodec;
-    }
-  else
-    {
-    DEBUG("Codec could not be found");
+      DEBUG("Codec could not be found");
       g_mutex_lock(library->audio_codec_list_mutex);
         {
           g_queue_push_tail (library->audio_codec_list, (gpointer *) audioCodec);
@@ -158,16 +151,9 @@ codec_library_add_video_codec (codec_library_t* library,
 {
   // If there is already a codec with that identifier, the new one has precedence over the old.
   codec_t* codec;
-  if ((codec = codec_library_get_codec_by_identifier(library, videoCodec->identifier)) != NULL)
+  if ((codec = codec_library_get_codec_by_identifier(library, videoCodec->identifier)) == NULL)
     {
-      // TODO unref/free the old data.
-      DEBUG("Replacing existing codec with new one %s", videoCodec->identifier);
-      GList* element = codec_library_get_link(library, codec);
-      element->data = videoCodec;
-    }
-  else
-    {
-    DEBUG("Codec could not be found");
+      DEBUG("Codec could not be found");
       g_mutex_lock(library->video_codec_list_mutex);
         {
           g_queue_push_tail (library->video_codec_list, (gpointer *) videoCodec);
@@ -240,20 +226,6 @@ codec_library_video_clear (codec_library_t* library)
   g_mutex_unlock(library->video_codec_list_mutex);
 }
 
-static void
-codec_library_audio_reset (account_t* account)
-{
-  codec_library_audio_clear (account->codecs);
-  codec_library_add_list (account->codecs, dbus_get_all_audio_codecs ());
-}
-
-static void
-codec_library_video_reset (account_t* account)
-{
-  codec_library_video_clear (account->codecs);
-  codec_library_add_list (account->codecs, dbus_get_all_video_codecs ());
-}
-
 static codec_t*
 codec_library_get_audio_codec_by_identifier (codec_library_t* library,
     gconstpointer identifier)
@@ -302,17 +274,22 @@ static
 void
 swap_link_down (GList* codec)
 {
-  if (!codec)
+  if (codec == NULL)
     {
+      WARN("Codec is NULL (%s:%d)", __FILE__, __LINE__);
       return;
     }
 
   GList* link_down;
   if ((link_down = g_list_next(codec)) != NULL)
     {
+      DEBUG("Link down %s", ((codec_t*)link_down->data)->codec.mime_subtype);
       gpointer tmp = codec->data;
       codec->data = link_down->data;
       link_down->data = tmp;
+      DEBUG("Link down now %s", ((codec_t*)link_down->data)->codec.mime_subtype);
+    } else {
+      ERROR("Next link is NULL.")
     }
 }
 
@@ -320,8 +297,9 @@ static
 void
 swap_link_up (GList* codec)
 {
-  if (!codec)
+  if (codec == NULL)
     {
+      WARN("Codec is NULL (%s:%d)", __FILE__, __LINE__);
       return;
     }
 
@@ -390,10 +368,12 @@ codec_library_load_audio_codecs_by_account (account_t* account)
   DEBUG("Loading audio codecs for account \"%s\" ...", account->accountID);
 
   // Clear all of the actual codecs, and load built-in list
-  codec_library_audio_reset (account);
+  codec_library_audio_clear(account->codecs);
 
   // Add (selectively) codecs for this account
   codec_library_add_list(account->codecs, dbus_get_active_audio_codecs(account->accountID));
+
+  codec_library_add_list(account->codecs, dbus_get_all_audio_codecs());
 }
 
 void
@@ -402,10 +382,12 @@ codec_library_load_video_codecs_by_account (account_t* account)
   DEBUG("Loading video codecs for account \"%s\" ...", account->accountID);
 
   // Clear all of the actual codecs, and load built-in list
-  codec_library_video_reset (account);
+  codec_library_video_clear(account->codecs);
 
   // Add (selectively) codecs for this account
   codec_library_add_list(account->codecs, dbus_get_active_video_codecs(account->accountID));
+
+  codec_library_add_list(account->codecs, dbus_get_all_video_codecs());
 }
 
 void
@@ -504,47 +486,47 @@ codec_library_get_video_codecs (codec_library_t* library)
   return library->video_codec_list;
 }
 
-void
-codec_library_move_codec_down (codec_library_t* library, codec_t* codec)
+static void
+codec_library_move_codec (codec_library_t* library, codec_t* codec, gboolean direction)
 {
-  if (g_strcmp0 (codec->codec.identifier, "audio"))
+  if (g_strcmp0 (codec->codec.mime_type, "audio") == 0)
     {
       g_mutex_lock(library->audio_codec_list_mutex);
         {
-          swap_link_down (g_queue_find (library->audio_codec_list, codec));
+          GList* codec_link = g_queue_find_custom (library->audio_codec_list, codec->codec.identifier, match_identifier_predicate);
+          if (direction) {
+            swap_link_down (codec_link);
+          } else {
+            swap_link_up (codec_link);
+          }
         }
       g_mutex_unlock(library->audio_codec_list_mutex);
-
     }
-  else if (g_strcmp0 (codec->codec.identifier, "video"))
+  else if (g_strcmp0 (codec->codec.mime_type, "video") == 0)
     {
       g_mutex_lock(library->video_codec_list_mutex);
         {
-          swap_link_down (g_queue_find (library->video_codec_list, codec));
+          GList* codec_link = g_queue_find_custom (library->video_codec_list, codec->codec.identifier, match_identifier_predicate);
+          if (direction) {
+            swap_link_down (codec_link);
+          } else {
+            swap_link_up (codec_link);
+          }
         }
       g_mutex_unlock(library->video_codec_list_mutex);
     }
 }
 
 void
+codec_library_move_codec_down (codec_library_t* library, codec_t* codec)
+{
+  codec_library_move_codec(library, codec, TRUE);
+}
+
+void
 codec_library_move_codec_up (codec_library_t* library, codec_t* codec)
 {
-  if (g_strcmp0 (codec->codec.identifier, "audio"))
-    {
-      g_mutex_lock(library->audio_codec_list_mutex);
-        {
-          swap_link_up (g_queue_find (library->audio_codec_list, codec));
-        }
-      g_mutex_unlock(library->audio_codec_list_mutex);
-    }
-  else if (g_strcmp0 (codec->codec.identifier, "video"))
-    {
-      g_mutex_lock(library->video_codec_list_mutex);
-        {
-          swap_link_up (g_queue_find (library->video_codec_list, codec));
-        }
-      g_mutex_unlock(library->video_codec_list_mutex);
-    }
+  codec_library_move_codec(library, codec, FALSE);
 }
 
 void
@@ -628,7 +610,7 @@ codec_library_set (codec_library_t* library, const gchar* accountID, gboolean vi
   // Build a string array for sending over dbus
   gchar** identifiers = g_new(gchar*, g_queue_get_length(active_queue) + 1);
 
-  DEBUG("************************ Active codecs %d", g_queue_get_length(active_queue));
+  DEBUG("Active codecs %d", g_queue_get_length(active_queue));
 
   int j = 0;
   for (i = 0; i < g_queue_get_length (active_queue); i++)

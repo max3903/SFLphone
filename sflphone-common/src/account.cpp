@@ -41,6 +41,7 @@ Account::Account (const AccountID& accountID, std::string type) :
 	, _enabled (true)
 	, _type (type)
 	, _codecAudioSerialized("")
+	, _codecVideoSerialized("")
 	, _ringtonePath("/usr/share/sflphone/ringtones/konga.ul")
 	, _ringtoneEnabled(true)
 	, _displayName("")
@@ -89,7 +90,7 @@ void Account::loadCodecs (void) {
 		_info ("No video codecs were configured for this account. Using the default list.");
 		setActiveVideoCodecs(CodecFactory::getInstance().getDefaultVideoCodecOrder());
 	} else {
-		setActiveVideoCodecs (Manager::instance ().unserialize (_codecAudioSerialized));
+		setActiveVideoCodecs (Manager::instance ().unserialize (_codecVideoSerialized));
 	}
 }
 
