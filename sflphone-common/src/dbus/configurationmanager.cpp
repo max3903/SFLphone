@@ -529,7 +529,7 @@ std::vector<DbusAudioCodec> ConfigurationManager::getAllActiveAudioCodecs(
 	if (account != NULL) {
 		audioCodecOrder = account->getActiveAudioCodecs();
 	} else {
-		_error("Could not return active codec list for non-existing account id \"%s\". Sending defaults.", accountID.c_str());
+		_error("Could not return active codec list for non-existing account id \"%s\". Sending audio defaults.", accountID.c_str());
 	}
 
 	_info("Account \"%s\" has %d active audio codecs.", accountID.c_str(), audioCodecOrder.size());
@@ -562,7 +562,7 @@ std::vector<DbusAudioCodec> ConfigurationManager::getAllActiveAudioCodecs(
 std::vector<DbusAudioCodec> ConfigurationManager::getAllActiveVideoCodecs(
 		const std::string& accountID)
 {
-	_info("Sending active codec list for account \"%s\" ...", accountID.c_str ());
+	_info("Sending active video codec list for account \"%s\" ...", accountID.c_str ());
 
 	CodecFactory& factory = CodecFactory::getInstance();
 	CodecOrder videoCodecOrder = factory.getDefaultVideoCodecOrder();
@@ -571,7 +571,7 @@ std::vector<DbusAudioCodec> ConfigurationManager::getAllActiveVideoCodecs(
 	if (account != NULL) {
 		videoCodecOrder = account->getActiveVideoCodecs();
 	} else {
-		_error("Could not return active codec list for non-existing account id \"%s\". Sending defaults.", accountID.c_str());
+		_error("Could not return active codec list for non-existing account id \"%s\". Sending video defaults.", accountID.c_str());
 	}
 
 	_info("Account \"%s\" has %d active video codecs.", accountID.c_str(), videoCodecOrder.size());
@@ -579,8 +579,8 @@ std::vector<DbusAudioCodec> ConfigurationManager::getAllActiveVideoCodecs(
 	std::vector<DbusAudioCodec> output;
 	CodecOrder::iterator it;
 	for (it = videoCodecOrder.begin(); it != videoCodecOrder.end(); it++) {
-		const AudioCodec* codec =
-				static_cast<const AudioCodec*> (factory.getCodec((*it)));
+		const sfl::VideoCodec* codec =
+				dynamic_cast<const sfl::VideoCodec*> (factory.getCodec((*it)));
 		if (codec != NULL) { // TODO Catch exception instead
 
 			DbusAudioCodec codecDescription;

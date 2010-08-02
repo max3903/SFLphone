@@ -75,7 +75,7 @@ void VideoRtpSessionSimple::setCodec(const RtpMap& rtpmap, const Fmtp& fmtp,
 	activeCodec = codec;
 
 	// Set the Video Source for this codec
-	activeCodec->setEncoderVideoSource(*activeVideoSource);
+	activeCodec->setEncoderVideoSource(activeVideoSource);
 
 	// Set the payload format in ccRTP from the information contained in the VideoCodec.
 	ost::DynamicPayloadFormat format(activeCodec->getPayloadType(), activeCodec->getClockRate());
@@ -123,7 +123,7 @@ void VideoRtpSessionSimple::addSessionCodec(const RtpMap& rtpmap,
 
 void VideoRtpSessionSimple::setVideoSource(VideoInputSource& source) {
 	activeVideoSource = &source;
-	activeCodec->setEncoderVideoSource(source);
+	activeCodec->setEncoderVideoSource(&source);
 }
 
 void VideoRtpSessionSimple::start() {

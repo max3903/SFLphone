@@ -351,7 +351,7 @@ private:
 	// assignment operator
 	Account& operator=(const Account& rh);
 
-	void loadAudioCodecs(void);
+	void loadCodecs(void);
 
 protected:
 

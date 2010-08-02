@@ -403,6 +403,9 @@ codec_library_load_video_codecs_by_account (account_t* account)
 
   // Clear all of the actual codecs, and load built-in list
   codec_library_video_reset (account);
+
+  // Add (selectively) codecs for this account
+  codec_library_add_list(account->codecs, dbus_get_active_video_codecs(account->accountID));
 }
 
 void
@@ -603,18 +606,26 @@ codec_library_copy (codec_library_t* library)
   return lib;
 }
 
-void
-codec_library_set (codec_library_t* library, const gchar* accountID)
+static void
+codec_library_set (codec_library_t* library, const gchar* accountID, gboolean video)
 {
   // Work on a private copy to avoid race condition problems
   codec_library_t* library_copy = codec_library_copy (library);
 
   // Scan the codec library for finding only those codecs that are active
   GQueue* active_queue = g_queue_new ();
+
+  GQueue* codec_queue;
+  if (video) {
+    codec_queue = library_copy->video_codec_list;
+  } else {
+    codec_queue = library_copy->audio_codec_list;
+  }
+
   int i;
-  for (i = 0; i < codec_library_get_size (library_copy); i++)
+  for (i = 0; i < g_queue_get_length(codec_queue); i++)
     {
-      codec_t* codec = g_queue_peek_nth (library_copy->audio_codec_list, i);
+      codec_t* codec = g_queue_peek_nth (codec_queue, i);
       if (codec && codec->codec.is_active)
         {
           g_queue_push_tail (active_queue, codec);
@@ -624,7 +635,7 @@ codec_library_set (codec_library_t* library, const gchar* accountID)
   // Build a string array for sending over dbus
   gchar** identifiers = g_new(gchar*, g_queue_get_length(active_queue) + 1);
 
-  DEBUG("Active codecs %d", g_queue_get_length(active_queue));
+  DEBUG("************************ Active codecs %d", g_queue_get_length(active_queue));
 
   int j = 0;
   for (i = 0; i < g_queue_get_length (active_queue); i++)
@@ -640,7 +651,19 @@ codec_library_set (codec_library_t* library, const gchar* accountID)
     }
   identifiers[j] = NULL;
 
-  dbus_set_active_audio_codecs ((const gchar**) identifiers, accountID);
+  if (video) {
+    dbus_set_active_video_codecs ((const gchar**) identifiers, accountID);
+  } else {
+    dbus_set_active_audio_codecs ((const gchar**) identifiers, accountID);
+  }
 
   // TODO g_free(identifiers)
+}
+
+void codec_library_set_audio(codec_library_t* library, const gchar* accountID) {
+  codec_library_set(library, accountID, FALSE);
+}
+
+void codec_library_set_video (codec_library_t* library, const gchar* accountID) {
+  codec_library_set(library, accountID, TRUE);
 }

@@ -33,7 +33,7 @@
 
 #include "VideoDevice.h"
 #include "VideoInputSource.h"
-#include "video/VideoFormat.h"
+#include "video/source/VideoFormat.h"
 
 namespace sfl {
 class NullVideoInputSource : public VideoInputSource  {

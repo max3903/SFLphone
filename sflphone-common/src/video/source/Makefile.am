@@ -11,12 +11,15 @@ libvideosource_la_SOURCES = \
 	NullVideoInputSource.h \
 	VideoInputSourceGst.cpp  \
 	VideoDevice.cpp \
-	GstVideoDevice.cpp
+	GstVideoDevice.cpp \
+	VideoFrame.cpp  \
+	VideoFormat.cpp
 	
 noinst_HEADERS = \
 	VideoInputSource.h \
 	NullVideoInputSource.h \
 	VideoInputSourceGst.h \
 	VideoDevice.h \
-	GstVideoDevice.h
-	
+	GstVideoDevice.h \
+	VideoFrame.h  \
+	VideoFormat.h

@@ -31,14 +31,18 @@
 #define __SFL_ABSTRACT_VIDEO_CODEC_H__
 
 #include "VideoCodec.h"
-#include "video/VideoFrame.h"
-#include "video/source/VideoInputSource.h"
 #include "video/codec/decoder/VideoDecoder.h"
 #include "video/codec/encoder/VideoEncoder.h"
 
 #include <map>
 
 namespace sfl {
+
+/**
+ * Forward declaration
+ */
+class VideoFrame;
+class VideoInputSource;
 
 template<class EncoderType, class DecoderType>
 class AbstractVideoCodec: public virtual VideoCodec {
@@ -53,8 +57,8 @@ public:
 	}
 	;
 
-	void setEncoderVideoSource(VideoInputSource& source) {
-		encoder->setVideoInputSource(source);
+	void setEncoderVideoSource(VideoInputSource* source) {
+		encoder->setVideoInputSource(*source);
 	}
 
 	/**

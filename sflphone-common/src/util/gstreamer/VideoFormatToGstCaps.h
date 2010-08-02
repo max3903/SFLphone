@@ -29,7 +29,7 @@
 #ifndef __SFL_VIDEO_FORMAT_TO_GST_CAPS_H__
 #define __SFL_VIDEO_FORMAT_TO_GST_CAPS_H__
 
-#include "video/VideoFormat.h"
+#include "video/source/VideoFormat.h"
 
 #include <functional>
 

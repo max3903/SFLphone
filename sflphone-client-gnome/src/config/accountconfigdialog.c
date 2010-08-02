@@ -1551,7 +1551,7 @@ show_account_window (account_t * account)
   gtk_notebook_page_num (GTK_NOTEBOOK (notebook), codecs_tab);
 
   // Video codecs
-  GtkWidget* video_tab = audio_codec_list_new(account);
+  GtkWidget* video_tab = video_codec_list_new(account);
   gtk_notebook_append_page (GTK_NOTEBOOK (notebook), video_tab, gtk_label_new (
       _("Video")));
   gtk_notebook_page_num (GTK_NOTEBOOK (notebook), video_tab);
@@ -1813,9 +1813,8 @@ show_account_window (account_t * account)
       dbus_set_account_details (currentAccount);
     }
 
-  // codec_library_set (currentAccount->codecs, currentAccount->accountID);
+  codec_list_save(video_tab);
 
-  DEBUG("Codec library set");
   gtk_widget_destroy (GTK_WIDGET(dialog));
 }
 

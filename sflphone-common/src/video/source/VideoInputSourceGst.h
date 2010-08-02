@@ -23,7 +23,7 @@
 #include "video/source/VideoInputSource.h"
 #include "video/source/GstVideoDevice.h"
 #include "video/VideoExceptions.h"
-#include "video/VideoFormat.h"
+#include "video/source/VideoFormat.h"
 
 #include "util/Dimension.h"
 

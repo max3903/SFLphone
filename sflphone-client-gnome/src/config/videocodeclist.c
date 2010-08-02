@@ -45,6 +45,7 @@ video_codec_list_class_init (VideoCodecListClass *klass)
   CodecListClass* base_class = SFL_CODEC_LIST_CLASS(klass);
 
   base_class->load_codecs = codec_library_load_video_codecs_by_account;
+  base_class->save_codecs = codec_library_set_video;
   base_class->get_codecs = codec_library_get_video_codecs;
 }
 

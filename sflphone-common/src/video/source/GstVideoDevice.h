@@ -21,7 +21,7 @@
 #define __SFL_GST_VIDEO_DEVICE_H__
 
 #include "video/source/VideoDevice.h"
-#include "video/VideoFormat.h"
+#include "video/source/VideoFormat.h"
 #include "logger.h"
 
 #include <vector>

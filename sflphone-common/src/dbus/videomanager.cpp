@@ -20,7 +20,7 @@
 #include "videomanager.h"
 #include "video/source/VideoInputSourceGst.h"
 #include "video/VideoEndpoint.h"
-#include "video/VideoFormat.h"
+#include "video/source/VideoFormat.h"
 
 #include "logger.h"
 

@@ -168,7 +168,7 @@ codec_list_dispose (GObject *object)
 }
 
 static void
-codec_list_finalize (GObject *object)
+codec_list_finalize (GObject* object)
 {
   G_OBJECT_CLASS (codec_list_parent_class)->finalize (object);
 }
@@ -513,4 +513,16 @@ CodecList*
 codec_list_new (account_t* account)
 {
   return g_object_new (SFL_TYPE_CODEC_LIST, "account", account, NULL);
+}
+
+void codec_list_save(CodecList* widget) {
+  CodecListPrivate* priv = GET_PRIVATE(widget);
+
+  if (priv->account)
+    {
+      CodecListClass* class = SFL_GET_CODEC_LIST_CLASS(widget);
+      if (class->save_codecs) {
+        class->save_codecs(priv->account->codecs, priv->account->accountID);
+      }
+    }
 }

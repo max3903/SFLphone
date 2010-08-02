@@ -31,7 +31,7 @@
 #define __SFL_VIDEO_DECODER_H__
 
 #include "video/VideoPlugin.h"
-#include "video/VideoFormat.h"
+#include "video/source/VideoFormat.h"
 #include "video/VideoExceptions.h"
 #include "video/codec/mime/MimeParameters.h"
 

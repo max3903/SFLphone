@@ -136,7 +136,16 @@ codec_library_get_video_codecs (codec_library_t* library);
  * @postcondition The codec list for the account on the server will be the same as in this client.
  */
 void
-codec_library_set (codec_library_t* library, const gchar* accountID);
+codec_library_set_audio (codec_library_t* library, const gchar* accountID);
+
+/**
+ * Sync the codec library in this client with the server.
+ * @param library The codec library that should be set on the server for the given account.
+ * @param accountID The account identifiers for which codecs should be synced.
+ * @postcondition The codec list for the account on the server will be the same as in this client.
+ */
+void
+codec_library_set_video (codec_library_t* library, const gchar* accountID);
 
 /** 
  * Move the codec from an unit up in the codec_list

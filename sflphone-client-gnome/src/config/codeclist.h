@@ -55,9 +55,14 @@ typedef struct {
   /* vtable below */
 
   /**
-   * Load the available codec for some account.
+   * Load the available codec for some account over DBus.
    */
   void (*load_codecs)(account_t*);
+
+  /**
+   * Save the active codec library for some account.
+   */
+  void (*save_codecs)(codec_library_t*, gchar*);
 
   /**
    * @return the codecs that were loaded.
@@ -76,6 +81,10 @@ GType codec_list_get_type (void);
  */
 CodecList* codec_list_new (account_t* account);
 
+/**
+ * Save the given codec list over DBus.
+ */
+void codec_list_save(CodecList* widget);
 
 G_END_DECLS
 

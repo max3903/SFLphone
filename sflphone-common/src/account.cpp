@@ -61,7 +61,7 @@ void Account::loadConfig() {
     _enabled = false;
 #endif
 
-  loadAudioCodecs ();
+  loadCodecs ();
 }
 
 void Account::setRegistrationState (RegistrationState state) {
@@ -75,15 +75,21 @@ void Account::setRegistrationState (RegistrationState state) {
 	}
 }
 
-void Account::loadAudioCodecs (void) {
+void Account::loadCodecs (void) {
 	_debug("Serialized codecs : %s", _codecAudioSerialized.c_str());
-       if(_codecAudioSerialized == "") {
+
+    if(_codecAudioSerialized == "") {
 		_info ("No audio codecs were configured for this account. Using the default list.");
 		setActiveAudioCodecs(CodecFactory::getInstance().getDefaultAudioCodecOrder());
-	}
-	// else retrieve the one set in the user config file
-	else {
+	} else {
 		setActiveAudioCodecs (Manager::instance ().unserialize (_codecAudioSerialized));
+	}
+
+    if(_codecVideoSerialized == "") {
+		_info ("No video codecs were configured for this account. Using the default list.");
+		setActiveVideoCodecs(CodecFactory::getInstance().getDefaultVideoCodecOrder());
+	} else {
+		setActiveVideoCodecs (Manager::instance ().unserialize (_codecAudioSerialized));
 	}
 }
 

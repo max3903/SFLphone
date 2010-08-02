@@ -1,5 +1,5 @@
 #include "VideoEndpoint.h"
-#include "VideoFrame.h"
+#include "source/VideoFrame.h"
 
 #include "video/source/VideoInputSourceGst.h"
 

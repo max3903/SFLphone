@@ -20,7 +20,7 @@
 #ifndef __SFL_VIDEO_DEVICE_H__
 #define __SFL_VIDEO_DEVICE_H__
 
-#include "video/VideoFormat.h"
+#include "video/source/VideoFormat.h"
 
 #include <vector>
 #include <string>

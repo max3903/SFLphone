@@ -29,7 +29,7 @@
 #ifndef __SFL_VIDEO_INPUT_SOURCE_H___
 #define __SFL_VIDEO_INPUT_SOURCE_H___
 
-#include "video/VideoFrame.h"
+#include "video/source/VideoFrame.h"
 #include "video/source/VideoDevice.h"
 #include "util/Dimension.h"
 
@@ -98,6 +98,17 @@ public:
  */
 class VideoInputSource {
 public:
+	/**
+	 * Constructor. The user must then enumerateDevices() and set the device to use.
+	 * @see sfl::VideoInputSource#enumerateDevices()
+	 */
+	VideoInputSource();
+
+	/**
+	 * Destructor.
+	 */
+	~VideoInputSource();
+
 	/**
 	 * @return a vector containing the name of all the video devices available from this source.
 	 */
@@ -236,17 +247,6 @@ public:
 	 * @return The current frame.
 	 */
 	VideoFrame* getCurrentFrame();
-
-	/**
-	 * Destructor.
-	 */
-	~VideoInputSource();
-
-	/**
-	 * Constructor. The user must then enumerateDevices() and set the device to use.
-	 * @see sfl::VideoInputSource#enumerateDevices()
-	 */
-	VideoInputSource();
 
 	static const char* CLIENT_MIMETYPE;
 	static const int CLIENT_BPP = 32;

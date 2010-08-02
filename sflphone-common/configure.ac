@@ -77,6 +77,7 @@
 			src/dbus/Makefile \
 			src/plug-in/Makefile \
 			src/plug-in/test/Makefile \
+			src/plugin/Makefile
 			src/hooks/Makefile \
 			src/history/Makefile]) 
 
