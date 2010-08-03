@@ -52,7 +52,12 @@ bool CallView::dropMimeData(QTreeWidgetItem *parent, int index, const QMimeData 
          return true;
       }
       
-      if ((parent->parent()) || (parent->childCount())) {
+      if ((parent->childCount()) && (privateCallList_callId[encodedData]->treeItem->childCount())) {
+         qDebug() << "Merging two conferences";
+         mergeConferences(privateCallList_item[parent]->call_real,privateCallList_callId[encodedData]->call_real);
+         return true;
+      }
+      else if ((parent->parent()) || (parent->childCount())) {
          qDebug() << "Call dropped on a conference";
          
          if ((privateCallList_callId[encodedData]->treeItem->childCount()) && (!parent->childCount())) {
@@ -64,6 +69,7 @@ bool CallView::dropMimeData(QTreeWidgetItem *parent, int index, const QMimeData 
          QTreeWidgetItem* call2 = (parent->parent())?parent->parent():parent;
          
          if (call1->parent()) {
+            qDebug() << "Call 1 is part of a conference";
             if (call1->parent() == call2) {
                qDebug() << "Call dropped on it's own conversation (doing nothing)";
                return true;
@@ -77,10 +83,12 @@ bool CallView::dropMimeData(QTreeWidgetItem *parent, int index, const QMimeData 
                detachParticipant(privateCallList_callId[encodedData]->call_real);
             }
          }
-         
+         qDebug() << "Adding participant";
          addParticipant(privateCallList_item[call1]->call_real,privateCallList_item[call2]->call_real);
          return true;
       }
+      
+
       
       qDebug() << "Call dropped on another call";
       createConferenceFromCall(privateCallList_callId[encodedData]->call_real,privateCallList_item[parent]->call_real);

@@ -438,7 +438,9 @@ call_state Call::actionPerformed(call_action action)
    //update the state
    changeCurrentState(actionPerformedStateMap[previousState][action]);
    //execute the action associated with this transition
-   (this->*(actionPerformedFunctionMap[previousState][action]))(); //Warning BUG
+   Q_ASSERT_X((previousState>10) || (previousState<0),"perform action","Invalid previous state ("+QString::number(previousState)+")");
+   Q_ASSERT_X((state>4) || (state < 0),"perform action","Invalid action ("+QString::number(actuon)+")");
+   (this->*(actionPerformedFunctionMap[previousState][action]))(); //WARNING BUG //WARNING SEGFAULT
    qDebug() << "Calling action " << action << " on call with state " << previousState << ". Become " << currentState;
    //return the new state
    return currentState;
