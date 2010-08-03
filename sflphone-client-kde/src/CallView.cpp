@@ -40,6 +40,7 @@ bool CallView::dropMimeData(QTreeWidgetItem *parent, int index, const QMimeData 
       if (!parent) {
          qDebug() << "Call dropped on empty space";
          if (privateCallList_callId[encodedData]->treeItem->parent()) {
+            qDebug() << "Detaching participant";
             detachParticipant(privateCallList_callId[encodedData]->call_real);
          }
          else
@@ -71,7 +72,7 @@ bool CallView::dropMimeData(QTreeWidgetItem *parent, int index, const QMimeData 
          if (call1->parent()) {
             qDebug() << "Call 1 is part of a conference";
             if (call1->parent() == call2) {
-               qDebug() << "Call dropped on it's own conversation (doing nothing)";
+               qDebug() << "Call dropped on it's own conference (doing nothing)";
                return true;
             }
             else if (privateCallList_item[call1]->treeItem->childCount()) {
@@ -308,9 +309,16 @@ void CallView::itemClicked(QTreeWidgetItem* item, int column) {
 ///Add a new conference, get the call list and update the interface as needed
 Call* CallView::addConference(const QString & confID) 
 {
+   qDebug() << "Conference created";
    Call* newConf =  CallModel<InternalCallModelStruct>::addConference(confID);
 
    InternalCallModelStruct* aNewStruct = privateCallList_callId[confID];
+   
+   if (!aNewStruct) {
+      qDebug() << "Conference failed";
+      return 0;
+   }
+   
    QTreeWidgetItem* confItem = new QTreeWidgetItem();
    aNewStruct->treeItem = confItem;
    
@@ -327,12 +335,15 @@ Call* CallView::addConference(const QString & confID)
    foreach (QString callId, callList) {
      insertItem(extractItem(privateCallList_callId[callId]->treeItem),confItem);
    }
+   
+   Q_ASSERT_X(confItem->childCount() == 0, "add conference","Conference created, but without any participants");
    return newConf;
 }
 
 ///Executed when the daemon signal a modification in an existing conference. Update the call list and update the TreeView
 bool CallView::conferenceChanged(const QString &confId, const QString &state) 
 {
+   qDebug() << "Conference changed";
    if (!CallModel<InternalCallModelStruct>::conferenceChanged(confId, state))
      return false;
 
@@ -354,6 +365,9 @@ bool CallView::conferenceChanged(const QString &confId, const QString &state)
       if (buffer.indexOf(privateCallList_callId[confId]->treeItem->child(j)) == -1)
          insertItem(extractItem(privateCallList_callId[confId]->treeItem->child(j)));
    }
+   
+   Q_ASSERT_X(privateCallList_callId[confId]->treeItem->childCount() == 0,"changind conference","A conference can't have no participants");
+   
    return true;
 }
 
@@ -369,6 +383,7 @@ void CallView::conferenceRemoved(const QString &confId)
    takeTopLevelItem(indexOfTopLevelItem(privateCallList_callId[confId]->treeItem));
    delete privateCallList_callId[confId]->treeItem;
    privateCallList_callId.remove(confId);
+   qDebug() << "Conference removed";
 }
 
 ///Clear the list of old calls //TODO Clear them from the daemon

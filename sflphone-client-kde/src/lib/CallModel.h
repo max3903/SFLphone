@@ -354,7 +354,7 @@ template<typename T> bool CallModel<T>::createConferenceFromCall(Call* call1, Ca
 template<typename T> bool CallModel<T>::addParticipant(Call* call2, Call* conference) 
 {
    if (conference->isConference()) {
-      CallManagerInterface & callManager = CallManagerInterfaceSingleton::getInstance();
+      CallManagerInterface& callManager = CallManagerInterfaceSingleton::getInstance();
       callManager.addParticipant(call2->getCallId(), conference->getConfId());
       return true;
    }

@@ -112,7 +112,7 @@ SFLPhoneView::SFLPhoneView(QWidget *parent)
            this,         SLOT(on1_incomingConference(const QString &)));
    connect(&callManager, SIGNAL(conferenceChanged(const QString &, const QString &)),
            this,         SLOT(on1_changingConference(const QString &, const QString &)));
-           connect(&callManager, SIGNAL(conferenceRemoved(const QString &)),
+   connect(&callManager, SIGNAL(conferenceRemoved(const QString &)),
            this,         SLOT(on1_conferenceRemoved(const QString &)));
    connect(&callManager, SIGNAL(incomingMessage(const QString &, const QString &)),
            this,         SLOT(on1_incomingMessage(const QString &, const QString &)));
