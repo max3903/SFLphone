@@ -50,10 +50,18 @@ class CallView : private QTreeWidget, public CallModel<InternalCallModelStruct> 
       QHash<CallTreeItem* , InternalCallModelStruct*> privateCallList_widget;
       QHash<QTreeWidgetItem* , InternalCallModelStruct*> privateCallList_item;
       
-   private slots:
+   public slots:
       void destroyCall(Call* toDestroy);
       void itemDoubleClicked(QTreeWidgetItem* item, int column);
       void itemClicked(QTreeWidgetItem* item, int column);
+      //D-Bus handling
+//       void callStateChangedSignal(const QString& callId, const QString& state);
+//       void incomingCallSignal(const QString& accountId, const QString& callId);
+      void conferenceCreatedSignal(const QString& confId);
+      void conferenceChangedSignal(const QString& confId, const QString& state);
+      void conferenceRemovedSignal(const QString& confId);
+//       void incomingMessageSignal(const QString& accountId, const QString& message);
+//       void voiceMailNotifySignal(const QString& accountId, int count);
       
    public slots:
       void clearHistory();

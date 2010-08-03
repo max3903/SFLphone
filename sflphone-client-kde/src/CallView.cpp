@@ -13,10 +13,30 @@ CallView::CallView(ModelType type, QWidget* parent) : QTreeWidget(parent), CallM
    setDragEnabled(true);
    CallTreeItemDelegate *delegate = new CallTreeItemDelegate();
    setItemDelegate(delegate); 
+   setSizePolicy(QSizePolicy(QSizePolicy::Expanding,QSizePolicy::Expanding));
 
-   //Events
+   //User Interface events
    connect(this, SIGNAL(itemDoubleClicked(QTreeWidgetItem*,int)), this, SLOT(itemDoubleClicked(QTreeWidgetItem*,int)));
    connect(this, SIGNAL(itemClicked(QTreeWidgetItem*,int)), this, SLOT(itemClicked(QTreeWidgetItem*,int)));
+   
+
+   
+   //D-Bus event    
+//    CallManagerInterface& callManager = CallManagerInterfaceSingleton::getInstance();
+//    connect(&callManager, SIGNAL(callStateChanged(const QString &, const QString &)),
+//            this,         SLOT(callStateChangedSignal(const QString &, const QString &)));
+//    connect(&callManager, SIGNAL(incomingCall(const QString &, const QString &, const QString &)),
+//            this,         SLOT(incomingCallSignal(const QString &, const QString &)));
+//    connect(&callManager, SIGNAL(conferenceCreated(const QString &)),
+//            this,         SLOT(conferenceCreatedSignal(const QString &)));
+//    connect(&callManager, SIGNAL(conferenceChanged(const QString &, const QString &)),
+//            this,         SLOT(conferenceChangedSignal(const QString &, const QString &)));
+//    connect(&callManager, SIGNAL(conferenceRemoved(const QString &)),
+//            this,         SLOT(conferenceRemovedSignal(const QString &)));
+//    connect(&callManager, SIGNAL(incomingMessage(const QString &, const QString &)),
+//            this,         SLOT(incomingMessageSignal(const QString &, const QString &)));
+//    connect(&callManager, SIGNAL(voiceMailNotify(const QString &, int)),
+//            this,         SLOT(voiceMailNotifySignal(const QString &, int)));
 }
 
 
@@ -86,6 +106,10 @@ bool CallView::dropMimeData(QTreeWidgetItem *parent, int index, const QMimeData 
          }
          qDebug() << "Adding participant";
          addParticipant(privateCallList_item[call1]->call_real,privateCallList_item[call2]->call_real);
+         return true;
+      }
+      else if ((privateCallList_callId[encodedData]->treeItem->childCount()) && (!parent->childCount())) {
+         qDebug() << "Call dropped on it's own conference (doing nothing)";
          return true;
       }
       
@@ -333,6 +357,7 @@ Call* CallView::addConference(const QString & confID)
    QStringList callList = callManager.getParticipantList(confID);
    
    foreach (QString callId, callList) {
+      qDebug() << "Adding " << callId << "to the conversation";
      insertItem(extractItem(privateCallList_callId[callId]->treeItem),confItem);
    }
    
@@ -391,3 +416,78 @@ void CallView::clearHistory()
 {
    historyCalls.clear();
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// void CallView::callStateChangedSignal(const QString& callId, const QString& state)
+// {
+//   qDebug() << "Signal : Call State Changed for call  " << callId << " . New state : " << state;
+//    Call* call = findCallByCallId(callId);
+//    if(!call) {
+//       if(state == CALL_STATE_CHANGE_RINGING) {
+//          call = addRingingCall(callId);
+//       }
+//       else {
+//          qDebug() << "Call doesn't exist in this client. Might have been initialized by another client instance before this one started.";
+//          return;
+//       }
+//    }
+//    else {
+//       call->stateChanged(state);
+//    } 
+// }
+// 
+// void CallView::incomingCallSignal(const QString& accountId, const QString& callId)
+// {
+//    Q_UNUSED(accountId)
+//    qDebug() << "Signal : Incoming Call ! ID = " << callId;
+//    addIncomingCall(callId);
+// }
+// 
+void CallView::conferenceCreatedSignal(const QString& confId)
+{
+   addConference(confId);
+}
+
+void CallView::conferenceChangedSignal(const QString& confId, const QString& state)
+{
+   conferenceChanged(confId, state);
+}
+
+void CallView::conferenceRemovedSignal(const QString& confId)
+{
+   conferenceRemoved(confId);
+}
+// 
+// void CallView::incomingMessageSignal(const QString& accountId, const QString& message)
+// {
+//    Q_UNUSED(accountId)
+//    Q_UNUSED(message)
+//    //TODO
+// }
+// 
+// void CallView::voiceMailNotifySignal(const QString& accountId, int count)
+// {
+//    Q_UNUSED(accountId)
+//    Q_UNUSED(count)
+//    //TODO
+// }

@@ -58,7 +58,8 @@ SFLPhoneView::SFLPhoneView(QWidget *parent)
    : QWidget(parent),
      addressBookTree(CallView::Address),
      callTreeModel(CallView::ActiveCall),
-     historyTreeModel(CallView::History)
+     historyTreeModel(CallView::History),
+     wizard(0)
 {
    setupUi(this);
    
@@ -95,8 +96,8 @@ SFLPhoneView::SFLPhoneView(QWidget *parent)
    //configDialog->setObjectName("configDialog");
    //configDialog->setModal(true);
    
-   wizard = new AccountWizard(this);
-   wizard->setModal(false);
+   //wizard = new AccountWizard(this);
+   //wizard->setModal(false);
    
    QPalette pal = QPalette(palette());
    pal.setColor(QPalette::AlternateBase, Qt::lightGray);
@@ -104,6 +105,8 @@ SFLPhoneView::SFLPhoneView(QWidget *parent)
       
    stackedWidget_screen->setCurrentWidget(page_callList);
    
+   
+   //BEGIN Port to CallModel
    connect(&callManager, SIGNAL(callStateChanged(const QString &, const QString &)),
            this,         SLOT(on1_callStateChanged(const QString &, const QString &)));
    connect(&callManager, SIGNAL(incomingCall(const QString &, const QString &, const QString &)),
@@ -118,6 +121,9 @@ SFLPhoneView::SFLPhoneView(QWidget *parent)
            this,         SLOT(on1_incomingMessage(const QString &, const QString &)));
    connect(&callManager, SIGNAL(voiceMailNotify(const QString &, int)),
            this,         SLOT(on1_voiceMailNotify(const QString &, int)));
+   //END Port to Call Model
+
+
    connect(&callManager, SIGNAL(volumeChanged(const QString &, double)),
            this,         SLOT(on1_volumeChanged(const QString &, double)));
    
@@ -1076,6 +1082,10 @@ void SFLPhoneView::configureSflPhone()
 
 void SFLPhoneView::accountCreationWizard()
 {
+   if (!wizard) {
+      wizard = new AccountWizard(this);
+      wizard->setModal(false);
+   }
    wizard->show();
 }
    
@@ -1205,7 +1215,7 @@ void SFLPhoneView::on1_callStateChanged(const QString &callID, const QString &st
       call->stateChanged(state);
    }
    //   updateCallItem(call);
-   updateWindowCallState();
+   updateWindowCallState(); //NEED_PORT
 }
 
 void SFLPhoneView::on1_error(MapStringString details)
@@ -1219,6 +1229,8 @@ void SFLPhoneView::on1_incomingCall(const QString & /*accountID*/, const QString
    Call* call = callTreeModel.addIncomingCall(callID);
    //callTreeModel.selectItem(addCallToCallList(call));
 
+   
+   //NEED_PORT
    changeScreen(SCREEN_MAIN);
 
    ((SFLPhone*)parent())->activateWindow();
@@ -1229,15 +1241,18 @@ void SFLPhoneView::on1_incomingCall(const QString & /*accountID*/, const QString
 }
 
 void SFLPhoneView::on1_incomingConference(const QString &confID) {
-   callTreeModel.addConference(confID);
+   //callTreeModel.addConference(confID);
+   callTreeModel.conferenceCreatedSignal(confID);
 }
 
 void SFLPhoneView::on1_changingConference(const QString &confID, const QString &state) {
-   callTreeModel.conferenceChanged(confID, state);
+   //callTreeModel.conferenceChanged(confID, state);
+   callTreeModel.conferenceChangedSignal(confID, state);
 }
 
 void SFLPhoneView::on1_conferenceRemoved(const QString &confId) {
-   callTreeModel.conferenceRemoved(confId);
+   //callTreeModel.conferenceRemoved(confId);
+   callTreeModel.conferenceRemovedSignal(confId);
 }
 
 void SFLPhoneView::on1_incomingMessage(const QString &accountID, const QString &message)
