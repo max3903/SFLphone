@@ -81,7 +81,7 @@
      </property>
      <layout class="QGridLayout" name="gridLayout">
       <item row="0" column="0">
-       <widget class="QSlider" name="slider_recVol_2">
+       <widget class="QSlider" name="slider_recVol">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Fixed" vsizetype="Expanding">
           <horstretch>0</horstretch>
@@ -131,7 +131,7 @@
        </widget>
       </item>
       <item row="0" column="3">
-       <widget class="QSlider" name="slider_sndVol_2">
+       <widget class="QSlider" name="slider_sndVol">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Fixed" vsizetype="Expanding">
           <horstretch>0</horstretch>
@@ -165,37 +165,6 @@
        </widget>
       </item>
       <item row="1" column="0">
-       <widget class="QToolButton" name="toolButton_recVol_2">
-        <property name="text">
-         <string/>
-        </property>
-        <property name="icon">
-         <iconset>
-          <normaloff>:/Images/mic_75.svg</normaloff>:/Images/mic_75.svg</iconset>
-        </property>
-        <property name="checkable">
-         <bool>true</bool>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="3">
-       <widget class="QToolButton" name="toolButton_sndVol_2">
-        <property name="text">
-         <string/>
-        </property>
-        <property name="icon">
-         <iconset>
-          <normaloff>:/Images/speaker_75.svg</normaloff>:/Images/speaker_75.svg</iconset>
-        </property>
-        <property name="checkable">
-         <bool>true</bool>
-        </property>
-        <property name="checked">
-         <bool>false</bool>
-        </property>
-       </widget>
-      </item>
-      <item row="2" column="0" colspan="2">
        <widget class="QToolButton" name="toolButton_recVol">
         <property name="text">
          <string/>
@@ -209,31 +178,20 @@
         </property>
        </widget>
       </item>
-      <item row="2" column="2" colspan="2">
-       <widget class="QSlider" name="slider_recVol">
-        <property name="orientation">
-         <enum>Qt::Horizontal</enum>
-        </property>
-       </widget>
-      </item>
-      <item row="3" column="0" colspan="2">
+      <item row="1" column="3">
        <widget class="QToolButton" name="toolButton_sndVol">
         <property name="text">
          <string/>
         </property>
         <property name="icon">
          <iconset>
-          <normaloff>:/Images/mic_75.svg</normaloff>:/Images/mic_75.svg</iconset>
+          <normaloff>:/Images/speaker_75.svg</normaloff>:/Images/speaker_75.svg</iconset>
         </property>
         <property name="checkable">
          <bool>true</bool>
         </property>
-       </widget>
-      </item>
-      <item row="3" column="2" colspan="2">
-       <widget class="QSlider" name="slider_sndVol">
-        <property name="orientation">
-         <enum>Qt::Horizontal</enum>
+        <property name="checked">
+         <bool>false</bool>
         </property>
        </widget>
       </item>
@@ -258,70 +216,5 @@
  <resources>
   <include location="../qrc/resources.qrc"/>
  </resources>
- <connections>
-  <connection>
-   <sender>toolButton_sndVol</sender>
-   <signal>toggled(bool)</signal>
-   <receiver>toolButton_sndVol_2</receiver>
-   <slot>setChecked(bool)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>26</x>
-     <y>509</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>317</x>
-     <y>449</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>toolButton_recVol</sender>
-   <signal>toggled(bool)</signal>
-   <receiver>toolButton_recVol_2</receiver>
-   <slot>setChecked(bool)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>25</x>
-     <y>478</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>23</x>
-     <y>450</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>slider_recVol</sender>
-   <signal>valueChanged(int)</signal>
-   <receiver>slider_recVol_2</receiver>
-   <slot>setValue(int)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>208</x>
-     <y>477</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>19</x>
-     <y>318</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>slider_sndVol</sender>
-   <signal>valueChanged(int)</signal>
-   <receiver>slider_sndVol_2</receiver>
-   <slot>setValue(int)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>253</x>
-     <y>500</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>317</x>
-     <y>318</y>
-    </hint>
-   </hints>
-  </connection>
- </connections>
+ <connections/>
 </ui>

@@ -668,24 +668,19 @@ void SFLPhoneView::updateRecordButton()
    double recVol = callManager.getVolume(RECORD_DEVICE);
    if(recVol == 0.00) {
       toolButton_recVol->setIcon(QIcon(ICON_REC_VOL_0));
-                toolButton_recVol_2->setIcon(QIcon(ICON_REC_VOL_0));
    }
    else if(recVol < 0.33) {
       toolButton_recVol->setIcon(QIcon(ICON_REC_VOL_1));
-                toolButton_recVol_2->setIcon(QIcon(ICON_REC_VOL_1));
    }
    else if(recVol < 0.67) {
       toolButton_recVol->setIcon(QIcon(ICON_REC_VOL_2));
-                toolButton_recVol_2->setIcon(QIcon(ICON_REC_VOL_2));
    }
    else {
       toolButton_recVol->setIcon(QIcon(ICON_REC_VOL_3));
-                toolButton_recVol_2->setIcon(QIcon(ICON_REC_VOL_3));
    }
    
    if(recVol > 0) {   
       toolButton_recVol->setChecked(false);
-                toolButton_recVol_2->setChecked(false);
    }
 }
 void SFLPhoneView::updateVolumeButton()
@@ -696,24 +691,19 @@ void SFLPhoneView::updateVolumeButton()
         
    if(sndVol == 0.00) {
       toolButton_sndVol->setIcon(QIcon(ICON_SND_VOL_0));
-                toolButton_sndVol_2->setIcon(QIcon(ICON_SND_VOL_0));
    }
    else if(sndVol < 0.33) {
       toolButton_sndVol->setIcon(QIcon(ICON_SND_VOL_1));
-                toolButton_sndVol_2->setIcon(QIcon(ICON_SND_VOL_1));
    }
    else if(sndVol < 0.67) {
       toolButton_sndVol->setIcon(QIcon(ICON_SND_VOL_2));
-                toolButton_sndVol_2->setIcon(QIcon(ICON_SND_VOL_2));
    }
    else {
       toolButton_sndVol->setIcon(QIcon(ICON_SND_VOL_3));
-                toolButton_sndVol_2->setIcon(QIcon(ICON_SND_VOL_3));
    }
    
    if(sndVol > 0) {
       toolButton_sndVol->setChecked(false);
-                toolButton_sndVol_2->setChecked(false);
    }
 }
 
@@ -759,10 +749,6 @@ void SFLPhoneView::updateVolumeControls()
    slider_recVol->setVisible(display);
    slider_sndVol->setVisible(display);
    
-   slider_sndVol_2->setVisible(display);
-   slider_recVol_2->setVisible(display);
-   toolButton_recVol_2->setVisible(display);
-   toolButton_sndVol_2->setVisible(display);
 }
 
 void SFLPhoneView::updateDialpad()
@@ -852,16 +838,6 @@ void SFLPhoneView::on_slider_sndVol_valueChanged(int value)
    updateVolumeButton();
 }
 
-void SFLPhoneView::on_slider_recVol_2_valueChanged(int value)
-{
-        on_slider_recVol_valueChanged(value);
-}
-
-void SFLPhoneView::on_slider_sndVol_2_valueChanged(int value)
-{
-        on_slider_sndVol_valueChanged(value);
-}
-
 void SFLPhoneView::on_toolButton_recVol_clicked(bool checked)
 {
    CallManagerInterface & callManager = CallManagerInterfaceSingleton::getInstance();
@@ -879,17 +855,6 @@ void SFLPhoneView::on_toolButton_recVol_clicked(bool checked)
       callManager.setVolume(RECORD_DEVICE, 0.0);
    }
    updateRecordButton();
-}
-
-void SFLPhoneView::on_toolButton_recVol_2_clicked(bool checked)
-{
-        on_toolButton_recVol_clicked(checked);
-}
-
-
-void SFLPhoneView::on_toolButton_sndVol_2_clicked(bool checked)
-{
-        on_toolButton_sndVol_clicked(checked);
 }
 
 void SFLPhoneView::on_toolButton_sndVol_clicked(bool checked)
