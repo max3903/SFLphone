@@ -2,7 +2,7 @@
 #include <string.h>
 #include <stdlib.h>
 
-#include "videocairo.h"
+#include "VideoCairo.h"
 #include "util/video_endpoint.h"
 #include "sflphone_const.h"
 

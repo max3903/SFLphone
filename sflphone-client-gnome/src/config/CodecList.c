@@ -27,9 +27,10 @@
  *  shall include the source code for the parts of OpenSSL used as well
  *  as that of the covered work.
  */
-#include "codeclist.h"
+#include "CodecList.h"
 #include "sflphone_const.h"
 
+static const int DEFAULT_SPACING = 10;
 G_DEFINE_ABSTRACT_TYPE (CodecList, codec_list, GTK_TYPE_VBOX)
 
 #define GET_PRIVATE(o) \
@@ -39,9 +40,6 @@ typedef struct _CodecListPrivate CodecListPrivate;
 
 struct _CodecListPrivate
 {
-  GtkWidget* info_bar;
-  GtkWidget* message_info_bar_label;
-
   GtkWidget *codec_tree_view;
   GtkTreeModel* codec_store;
 
@@ -188,19 +186,6 @@ codec_list_realize (GtkWidget* widget)
     {
       codec_list_fill (SFL_CODEC_LIST(widget));
     }
-}
-
-static void
-raise_error (CodecList* self, gchar* error_message)
-{
-  CodecListPrivate* priv = GET_PRIVATE((CodecList*) self);
-
-  DEBUG("Raising error");
-
-  gtk_label_set_text (GTK_LABEL (priv->message_info_bar_label), error_message);
-  gtk_info_bar_set_message_type (GTK_INFO_BAR (priv->info_bar),
-      GTK_MESSAGE_ERROR);
-  gtk_widget_show (priv->info_bar);
 }
 
 static void
@@ -385,20 +370,6 @@ codec_list_init (CodecList* self)
 {
   CodecListPrivate* priv = GET_PRIVATE(self);
 
-  // Info bar
-  priv->info_bar = gtk_info_bar_new ();
-  gtk_widget_set_no_show_all (priv->info_bar, TRUE);
-
-  priv->message_info_bar_label = gtk_label_new ("");
-  gtk_widget_show (priv->message_info_bar_label);
-
-  GtkWidget* content_area = gtk_info_bar_get_content_area (
-      GTK_INFO_BAR (priv->info_bar));
-  gtk_container_add (GTK_CONTAINER (content_area), priv->message_info_bar_label);
-
-  // Create the tree view
-  gtk_container_set_border_width (GTK_CONTAINER(self), 10);
-
   GtkWidget *scrolledWindow = gtk_scrolled_window_new (NULL, NULL);
   gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW(scrolledWindow),
       GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
@@ -425,7 +396,7 @@ codec_list_init (CodecList* self)
   // Active column
   GtkCellRenderer* renderer = gtk_cell_renderer_toggle_new ();
   GtkTreeViewColumn* treeViewColumn = gtk_tree_view_column_new_with_attributes (
-      _("Enabled"), renderer, "active", COLUMN_CODEC_ACTIVE, NULL);
+      "", renderer, "active", COLUMN_CODEC_ACTIVE, NULL);
   gtk_tree_view_append_column (GTK_TREE_VIEW(priv->codec_tree_view),
       treeViewColumn);
 
@@ -464,8 +435,8 @@ codec_list_init (CodecList* self)
   gtk_container_add (GTK_CONTAINER(scrolledWindow), priv->codec_tree_view);
 
   // Create button box
-  GtkWidget* buttonBox = gtk_vbox_new (FALSE, 10);
-  gtk_container_set_border_width (GTK_CONTAINER(buttonBox), 10);
+  GtkWidget* buttonBox = gtk_vbox_new (FALSE, DEFAULT_SPACING);
+  gtk_container_set_border_width (GTK_CONTAINER(buttonBox), DEFAULT_SPACING);
 
   priv->codec_move_up_button = gtk_button_new_from_stock (GTK_STOCK_GO_UP);
   gtk_widget_set_sensitive (GTK_WIDGET(priv->codec_move_up_button), FALSE);
@@ -480,12 +451,11 @@ codec_list_init (CodecList* self)
   g_signal_connect(G_OBJECT(priv->codec_move_down_button), "clicked", G_CALLBACK(codec_move_down_cb), priv);
 
   // Pack everything up
-  GtkWidget* hbox = gtk_hbox_new (FALSE, 10);
-  gtk_box_pack_start (GTK_BOX(hbox), scrolledWindow, TRUE, TRUE, 10);
-  gtk_box_pack_start (GTK_BOX(hbox), buttonBox, FALSE, FALSE, 10);
+  GtkWidget* hbox = gtk_hbox_new (FALSE, 0);
+  gtk_box_pack_start (GTK_BOX(hbox), scrolledWindow, TRUE, TRUE, 0);
+  gtk_box_pack_start (GTK_BOX(hbox), buttonBox, FALSE, FALSE, 0);
 
-  gtk_box_pack_start (GTK_BOX(self), priv->info_bar, TRUE, TRUE, 10);
-  gtk_box_pack_start (GTK_BOX(self), hbox, TRUE, TRUE, 10);
+  gtk_box_pack_start (GTK_BOX(self), hbox, TRUE, TRUE, 0);
 
   gtk_widget_show_all (GTK_WIDGET(self));
 }

@@ -24,7 +24,7 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02111-1301  USA
  */
 
-#include "gtkscrollbook.h"
+#include "PidginScrollBook.h"
 
 
 static void pidgin_scroll_book_init (PidginScrollBook *scroll_book);

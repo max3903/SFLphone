@@ -1,6 +1,6 @@
 /*
  *  Copyright (C) 2004, 2005, 2006, 2009, 2008, 2009, 2010 Savoir-Faire Linux Inc.
- *  Author: Pierre-Luc Bacon <pierre-luc.bacon@savoirfairelinux.com>
+ *  Author: Pierre-Luc Bacon <pierre-luc.bacon@savoifairelinux.com>
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -28,29 +28,38 @@
  *  as that of the covered work.
  */
 
-#include "account.h"
+#ifndef __VIDEO_CONF_DEVICE_H__
+#define __VIDEO_CONF_DEVICE_H__
 
-#include "CodecList.h"
+#include <glib-object.h>
+#include <gtk/gtk.h>
 
-#include <glib.h>
-#include <glib/gprintf.h>
+G_BEGIN_DECLS
+#define SFL_TYPE_VIDEO_CONF_DEVICE            (video_conf_device_get_type ())
+#define SFL_VIDEO_CONF_DEVICE(obj)            (G_TYPE_CHECK_INSTANCE_CAST ((obj), SFL_TYPE_VIDEO_CONF_DEVICE, VideoConfDevice))
+#define SFL_VIDEO_CONF_DEVICE_CLASS(klass)    (G_TYPE_CHECK_CLASS_CAST ((klass), SFL_TYPE_VIDEO_CONF_DEVICE, VideoConfDeviceClass))
+#define SFL_IS_VIDEO_CONF_DEVICE(obj)         (G_TYPE_CHECK_INSTANCE_TYPE ((obj), SFL_TYPE_VIDEO_CONF_DEVICE))
+#define SFL_IS_VIDEO_CONF_DEVICE_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass), SFL_TYPE_VIDEO_CONF_DEVICE))
+#define SFL_GET_VIDEO_CONF_DEVICE_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS ((obj), SFL_TYPE_VIDEO_CONF_DEVICE, VideoConfDeviceClass))
 
-#include "sflphone_const.h"
-
-account_t* account_new(gchar* accountID)
+typedef struct
 {
-  account_t* ret =  g_new0(account_t,1);
-  ret->accountID = g_strdup (accountID);
-  ret->protocol_state_description = NULL;
-  ret->properties = NULL;
-  ret->credential_information = NULL;
-  ret->codecs = codec_library_new();
+  GtkVBox parent;
+} VideoConfDevice;
 
-  return ret;
-}
-
-void account_free(account_t* account)
+typedef struct
 {
-  g_free(account->accountID);
-  codec_library_free(account->codecs);
-}
+  GtkVBoxClass parent_class;
+} VideoConfDeviceClass;
+
+GType
+video_conf_device_get_type (void);
+
+/**
+ * @return a new instance of a VideoConfDevice
+ */
+VideoConfDevice*
+video_conf_device_new (void);
+G_END_DECLS
+
+#endif

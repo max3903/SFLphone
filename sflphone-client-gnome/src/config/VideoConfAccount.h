@@ -28,40 +28,50 @@
  *  as that of the covered work.
  */
 
-#ifndef __AUDIO_CODEC_LIST_H__
-#define __AUDIO_CODEC_LIST_H__
+#ifndef __SFL_VIDEO_CONF_ACCOUNT_H__
+#define __SFL_VIDEO_CONF_ACCOUNT_H__
 
-#include "codeclist.h"
+#include "account.h"
 
 #include <glib-object.h>
 #include <gtk/gtk.h>
 
 G_BEGIN_DECLS
-#define SFL_TYPE_AUDIO_CODEC_LIST            (audio_codec_list_get_type ())
-#define SFL_AUDIO_CODEC_LIST(obj)            (G_TYPE_CHECK_INSTANCE_CAST ((obj), SFL_TYPE_AUDIO_CODEC_LIST, AudioCodecList))
-#define SFL_AUDIO_CODEC_LIST_CLASS(klass)    (G_TYPE_CHECK_CLASS_CAST ((klass), SFL_TYPE_AUDIO_CODEC_LIST, AudioCodecListClass))
-#define SFL_IS_AUDIO_CODEC_LIST(obj)         (G_TYPE_CHECK_INSTANCE_TYPE ((obj), SFL_TYPE_AUDIO_CODEC_LIST))
-#define SFL_IS_AUDIO_CODEC_LIST_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass), SFL_TYPE_AUDIO_CODEC_LIST))
-#define SFL_GET_AUDIO_CODEC_LIST_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS ((obj), SFL_TYPE_AUDIO_CODEC_LIST, AudioCodecListClass))
+
+#define SFL_TYPE_VIDEO_CONF_ACCOUNT            (video_conf_account_get_type ())
+#define SFL_VIDEO_CONF_ACCOUNT(obj)            (G_TYPE_CHECK_INSTANCE_CAST ((obj), SFL_TYPE_VIDEO_CONF_ACCOUNT, VideoConfAccount))
+#define SFL_VIDEO_CONF_ACCOUNT_CLASS(klass)    (G_TYPE_CHECK_CLASS_CAST ((klass), SFL_TYPE_VIDEO_CONF_ACCOUNT, VideoConfAccountClass))
+#define SFL_IS_VIDEO_CONF_ACCOUNT(obj)         (G_TYPE_CHECK_INSTANCE_TYPE ((obj), SFL_TYPE_VIDEO_CONF_ACCOUNT))
+#define SFL_IS_VIDEO_CONF_ACCOUNT_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass), SFL_TYPE_VIDEO_CONF_ACCOUNT))
+#define SFL_GET_VIDEO_CONF_ACCOUNT_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS ((obj), SFL_TYPE_VIDEO_CONF_ACCOUNT, VideoConfAccountClass))
 
 typedef struct {
-  CodecList parent;
-} AudioCodecList;
+  GtkVBox parent;
+} VideoConfAccount;
 
 typedef struct {
-  CodecListClass parent_class;
-} AudioCodecListClass;
+  GtkVBoxClass parent_class;
+} VideoConfAccountClass;
 
 /**
- * @return The GType corresponding to a CodecList widget.
+ * @return The GType corresponding to a VideoConfAccount widget.
  */
-GType audio_codec_list_get_type (void);
+GType video_conf_account_get_type (void);
 
 /**
  * @param account The account for which this widget should display codecs for.
- * @return a new instance of a CodecList widget.
+ * @return a new instance of a VideoConfAccount widget.
  */
-AudioCodecList* audio_codec_list_new (account_t* account);
+VideoConfAccount* video_conf_account_new (account_t* account);
+
+
+/**
+ * Save all of the widget content to the DBus server.
+ * @param video_conf The VideoConfAccount widget to save.
+ */
+void video_conf_account_save(VideoConfAccount* video_conf);
+
 G_END_DECLS
+
 
 #endif

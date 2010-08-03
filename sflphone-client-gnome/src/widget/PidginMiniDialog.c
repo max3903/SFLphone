@@ -27,7 +27,7 @@
 #include <gtk/gtkbutton.h>
 #include <gtk/gtk.h>
 
-#include "minidialog.h"
+#include "PidginMiniDialog.h"
 
 #define HIG_BOX_SPACE 6
 #define LABEL_WIDTH 200

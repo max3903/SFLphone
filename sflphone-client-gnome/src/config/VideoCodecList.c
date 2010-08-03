@@ -28,7 +28,7 @@
  *  as that of the covered work.
  */
 
-#include "videocodeclist.h"
+#include "VideoCodecList.h"
 #include "codeclibrary.h"
 
 G_DEFINE_TYPE (VideoCodecList, video_codec_list, SFL_TYPE_CODEC_LIST)

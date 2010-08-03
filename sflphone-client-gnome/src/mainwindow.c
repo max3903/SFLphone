@@ -40,9 +40,8 @@
 #include <contacts/searchbar.h>
 #include <assistant.h>
 
-#include <widget/gtkscrollbook.h>
-#include <widget/minidialog.h>
-#include <widget/videopane.h>
+#include <widget/PidginScrollBook.h>
+#include <widget/PidginMiniDialog.h>
 
 #include <gtk/gtk.h>
 #include <eel-gconf-extensions.h>

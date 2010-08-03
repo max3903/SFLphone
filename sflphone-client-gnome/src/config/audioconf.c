@@ -34,7 +34,7 @@
 
 #include "account.h"
 
-#include "codeclist.h"
+#include "CodecList.h"
 
 #include <string.h>
 

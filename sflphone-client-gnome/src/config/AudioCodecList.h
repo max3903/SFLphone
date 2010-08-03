@@ -28,30 +28,40 @@
  *  as that of the covered work.
  */
 
-#include "audiocodeclist.h"
-#include "codeclibrary.h"
+#ifndef __AUDIO_CODEC_LIST_H__
+#define __AUDIO_CODEC_LIST_H__
 
-G_DEFINE_TYPE (AudioCodecList, audio_codec_list, SFL_TYPE_CODEC_LIST)
+#include "CodecList.h"
 
-static void
-audio_codec_list_init (AudioCodecList* self)
-{
-  /* Nothing */
-}
+#include <glib-object.h>
+#include <gtk/gtk.h>
 
-static void
-audio_codec_list_class_init (AudioCodecListClass* klass)
-{
-  CodecListClass* base_class = SFL_CODEC_LIST_CLASS(klass);
+G_BEGIN_DECLS
+#define SFL_TYPE_AUDIO_CODEC_LIST            (audio_codec_list_get_type ())
+#define SFL_AUDIO_CODEC_LIST(obj)            (G_TYPE_CHECK_INSTANCE_CAST ((obj), SFL_TYPE_AUDIO_CODEC_LIST, AudioCodecList))
+#define SFL_AUDIO_CODEC_LIST_CLASS(klass)    (G_TYPE_CHECK_CLASS_CAST ((klass), SFL_TYPE_AUDIO_CODEC_LIST, AudioCodecListClass))
+#define SFL_IS_AUDIO_CODEC_LIST(obj)         (G_TYPE_CHECK_INSTANCE_TYPE ((obj), SFL_TYPE_AUDIO_CODEC_LIST))
+#define SFL_IS_AUDIO_CODEC_LIST_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass), SFL_TYPE_AUDIO_CODEC_LIST))
+#define SFL_GET_AUDIO_CODEC_LIST_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS ((obj), SFL_TYPE_AUDIO_CODEC_LIST, AudioCodecListClass))
 
-  base_class->load_codecs = codec_library_load_audio_codecs_by_account;
-  base_class->save_codecs = codec_library_set_audio;
-  base_class->get_codecs = codec_library_get_audio_codecs;
-}
+typedef struct {
+  CodecList parent;
+} AudioCodecList;
 
-AudioCodecList*
-audio_codec_list_new (account_t* account)
-{
-  return g_object_new (SFL_TYPE_AUDIO_CODEC_LIST, "account", account, NULL);
-}
+typedef struct {
+  CodecListClass parent_class;
+} AudioCodecListClass;
 
+/**
+ * @return The GType corresponding to a CodecList widget.
+ */
+GType audio_codec_list_get_type (void);
+
+/**
+ * @param account The account for which this widget should display codecs for.
+ * @return a new instance of a CodecList widget.
+ */
+AudioCodecList* audio_codec_list_new (account_t* account);
+G_END_DECLS
+
+#endif

@@ -39,7 +39,9 @@
 #include <zrtpadvanceddialog.h>
 #include <tlsadvanceddialog.h>
 #include <audioconf.h>
-#include <audiocodeclist.h>
+#include <AudioCodecList.h>
+#include <VideoCodecList.h>
+#include <VideoConfAccount.h>
 
 // From version 2.16, gtk provides the functionalities libsexy used to provide
 #if GTK_CHECK_VERSION(2,16,0)
@@ -54,6 +56,8 @@
 #include <config.h>
 #include <gtk/gtk.h>
 
+static const int DEFAULT_SPACING = 10;
+static const int AUDIO_CODEC_LIST_DEFAULT_HEIGHT = 200;
 /**
  * TODO: tidy this up
  * by storing these variables
@@ -332,8 +336,8 @@ create_basic_tab (account_t **a)
       table = gtk_table_new (8, 2, FALSE);
     }
 
-  gtk_table_set_row_spacings (GTK_TABLE(table), 10);
-  gtk_table_set_col_spacings (GTK_TABLE(table), 10);
+  gtk_table_set_row_spacings (GTK_TABLE(table), DEFAULT_SPACING);
+  gtk_table_set_col_spacings (GTK_TABLE(table), DEFAULT_SPACING);
   gtk_widget_show (table);
   gtk_container_add (GTK_CONTAINER( frame), table);
 
@@ -489,7 +493,7 @@ create_basic_tab (account_t **a)
       GTK_EXPAND | GTK_FILL, GTK_EXPAND | GTK_FILL, 0, 0);
 
   gtk_widget_show_all (table);
-  gtk_container_set_border_width (GTK_CONTAINER(table), 10);
+  gtk_container_set_border_width (GTK_CONTAINER(table), DEFAULT_SPACING);
 
   *a = currentAccount;
   return frame;
@@ -873,8 +877,8 @@ create_credential_widget (account_t **a)
 
   /* Credentials tree view */
   gnome_main_section_new_with_table (_("Credential"), &frame, &table, 1, 1);
-  gtk_container_set_border_width (GTK_CONTAINER(table), 10);
-  gtk_table_set_row_spacings (GTK_TABLE(table), 10);
+  gtk_container_set_border_width (GTK_CONTAINER(table), DEFAULT_SPACING);
+  gtk_table_set_row_spacings (GTK_TABLE(table), DEFAULT_SPACING);
 
   scrolledWindowCredential = gtk_scrolled_window_new (NULL, NULL);
   gtk_scrolled_window_set_policy (
@@ -935,7 +939,7 @@ create_credential_widget (account_t **a)
   fill_treeview_with_credential (credentialStore, *a);
 
   /* Credential Buttons */
-  hbox = gtk_hbox_new (FALSE, 10);
+  hbox = gtk_hbox_new (FALSE, DEFAULT_SPACING);
   gtk_table_attach_defaults (GTK_TABLE(table), hbox, 0, 3, 1, 2);
 
   addButton = gtk_button_new_from_stock (GTK_STOCK_ADD);
@@ -990,9 +994,9 @@ create_security_widget (account_t **a)
     }
 
   gnome_main_section_new_with_table (_("Security"), &frame, &table, 2, 3);
-  gtk_container_set_border_width (GTK_CONTAINER(table), 10);
-  gtk_table_set_row_spacings (GTK_TABLE(table), 10);
-  gtk_table_set_col_spacings (GTK_TABLE(table), 10);
+  gtk_container_set_border_width (GTK_CONTAINER(table), DEFAULT_SPACING);
+  gtk_table_set_row_spacings (GTK_TABLE(table), DEFAULT_SPACING);
+  gtk_table_set_col_spacings (GTK_TABLE(table), DEFAULT_SPACING);
 
   /* TLS subsection */
   sipTlsAdvancedButton = gtk_button_new_from_stock (GTK_STOCK_EDIT);
@@ -1060,8 +1064,8 @@ create_security_tab (account_t **a)
   GtkWidget * ret;
   GtkWidget * hbox;
 
-  ret = gtk_vbox_new (FALSE, 10);
-  gtk_container_set_border_width (GTK_CONTAINER(ret), 10);
+  ret = gtk_vbox_new (FALSE, DEFAULT_SPACING);
+  gtk_container_set_border_width (GTK_CONTAINER(ret), DEFAULT_SPACING);
 
   // Credentials frame
   frame = create_credential_widget (a);
@@ -1093,7 +1097,7 @@ create_registration_expire (account_t **a)
     }
 
   gnome_main_section_new_with_table (_("Registration"), &frame, &table, 2, 3);
-  gtk_container_set_border_width (GTK_CONTAINER(table), 10);
+  gtk_container_set_border_width (GTK_CONTAINER(table), DEFAULT_SPACING);
   gtk_table_set_row_spacings (GTK_TABLE (table), 5);
 
   label = gtk_label_new_with_mnemonic (_("Registration expire"));
@@ -1131,7 +1135,7 @@ create_network (account_t **a)
 
   gnome_main_section_new_with_table (_("Network Interface"), &frame, &table, 2,
       3);
-  gtk_container_set_border_width (GTK_CONTAINER(table), 10);
+  gtk_container_set_border_width (GTK_CONTAINER(table), DEFAULT_SPACING);
   gtk_table_set_row_spacings (GTK_TABLE(table), 5);
 
   /**
@@ -1274,7 +1278,7 @@ create_published_address (account_t **a)
 
   gnome_main_section_new_with_table (_("Published address"), &frame, &table, 2,
       3);
-  gtk_container_set_border_width (GTK_CONTAINER(table), 10);
+  gtk_container_set_border_width (GTK_CONTAINER(table), DEFAULT_SPACING);
   gtk_table_set_row_spacings (GTK_TABLE (table), 5);
 
   useStunCheckBox = gtk_check_button_new_with_mnemonic (_("Using STUN"));
@@ -1364,8 +1368,8 @@ create_advanced_tab (account_t **a)
 
   GtkWidget *ret, *frame;
 
-  ret = gtk_vbox_new (FALSE, 10);
-  gtk_container_set_border_width (GTK_CONTAINER(ret), 10);
+  ret = gtk_vbox_new (FALSE, DEFAULT_SPACING);
+  gtk_container_set_border_width (GTK_CONTAINER(ret), DEFAULT_SPACING);
 
   frame = create_registration_expire (a);
   gtk_box_pack_start (GTK_BOX (ret), frame, FALSE, FALSE, 0);
@@ -1412,8 +1416,8 @@ create_codecs_configuration (account_t **a)
   gpointer p;
 
   // Create the audio codec list
-  GtkWidget* audio_vbox = gtk_vbox_new (FALSE, 10);
-  gtk_container_set_border_width (GTK_CONTAINER(audio_vbox), 10);
+  GtkWidget* audio_vbox = gtk_vbox_new (FALSE, DEFAULT_SPACING);
+  gtk_container_set_border_width (GTK_CONTAINER(audio_vbox), DEFAULT_SPACING);
 
   // GtkWidget* audio_codec_list = create_audio_codec_box (a);
   audio_codec_list = audio_codec_list_new(*a);
@@ -1422,7 +1426,7 @@ create_codecs_configuration (account_t **a)
   GtkWidget *codecs;
   gnome_main_section_new (_("Audio"), &codecs);
   gtk_box_pack_start (GTK_BOX(audio_vbox), codecs, FALSE, FALSE, 0);
-  gtk_widget_set_size_request (GTK_WIDGET (codecs), -1, 200);
+  gtk_widget_set_size_request (GTK_WIDGET (codecs), -1, AUDIO_CODEC_LIST_DEFAULT_HEIGHT);
   gtk_container_add (GTK_CONTAINER (codecs), audio_codec_list);
 
   // Add DTMF type selection for SIP account only
@@ -1531,7 +1535,7 @@ show_account_window (account_t * account)
   notebook = gtk_notebook_new ();
 
   gtk_box_pack_start (GTK_BOX (dialog->vbox), notebook, TRUE, TRUE, 0);
-  gtk_container_set_border_width (GTK_CONTAINER(notebook), 10);
+  gtk_container_set_border_width (GTK_CONTAINER(notebook), DEFAULT_SPACING);
   gtk_widget_show (notebook);
 
   // We do not need the global settings for the IP2IP account
@@ -1553,10 +1557,10 @@ show_account_window (account_t * account)
   gtk_notebook_page_num (GTK_NOTEBOOK (notebook), codecs_tab);
 
   // Video codecs
-  GtkWidget* video_codec_list = video_codec_list_new(account);
-  gtk_notebook_append_page (GTK_NOTEBOOK (notebook), video_codec_list, gtk_label_new (
+  VideoConfAccount* video_tab = video_conf_account_new(account);
+  gtk_notebook_append_page (GTK_NOTEBOOK (notebook), GTK_WIDGET(video_tab), gtk_label_new (
       _("Video")));
-  gtk_notebook_page_num (GTK_NOTEBOOK (notebook), video_codec_list);
+  gtk_notebook_page_num (GTK_NOTEBOOK (notebook), GTK_WIDGET(video_tab));
 
   // Get current protocol for this account protocol
   gchar *currentProtocol = "SIP";
@@ -1815,7 +1819,7 @@ show_account_window (account_t * account)
       dbus_set_account_details (currentAccount);
     }
 
-  codec_list_save(SFL_CODEC_LIST(video_codec_list));
+  video_conf_account_save(video_tab);
 
   codec_list_save(SFL_CODEC_LIST(audio_codec_list));
 
@@ -1829,8 +1833,8 @@ create_direct_ip_calls_tab (account_t **a)
   GtkWidget *ret, *frame, *label;
   gchar *description;
 
-  ret = gtk_vbox_new (FALSE, 10);
-  gtk_container_set_border_width (GTK_CONTAINER(ret), 10);
+  ret = gtk_vbox_new (FALSE, DEFAULT_SPACING);
+  gtk_container_set_border_width (GTK_CONTAINER(ret), DEFAULT_SPACING);
 
   description
       = g_markup_printf_escaped (
