@@ -6,7 +6,8 @@ libwidget_la_SOURCES = \
 		PidginScrollBook.c \
 		PidginMiniDialog.c \
 		VideoCairo.c \
-		SFLMessageBar.c
+		SFLMessageBar.c \
+		SFLMainSection.c
 				
 libwidget_la_LDFLAGS = @DEPS_LDFLAGS@
 libwidget_la_LIDADD = ./util/libutil.la					  

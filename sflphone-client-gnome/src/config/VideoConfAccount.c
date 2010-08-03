@@ -32,6 +32,7 @@
 #include "VideoCodecList.h"
 
 #include "widget/SFLMessageBar.h"
+#include "widget/SFLMainSection.h"
 
 #include "sflphone_const.h"
 
@@ -137,8 +138,7 @@ video_conf_account_realize (GtkWidget* self)
   if (priv->account)
     {
       priv->video_codec_list = video_codec_list_new (priv->account);
-      gtk_container_add (GTK_CONTAINER (priv->codecs_section),
-          priv->video_codec_list);
+      sfl_main_section_set_content(SFL_MAIN_SECTION(priv->codecs_section), GTK_WIDGET(priv->video_codec_list));
       gtk_widget_show_all (GTK_WIDGET(self));
     }
 }
@@ -177,23 +177,21 @@ video_conf_account_init (VideoConfAccount* self)
   gtk_widget_set_no_show_all (GTK_INFO_BAR(priv->message_bar), TRUE);
 
   // Codec List is created on realization as the account property is not yet available.
-  gnome_main_section_new (_("Codecs"), &priv->codecs_section);
-
-  priv->always_offer_vdo_checkbox = gtk_check_button_new_with_label (
-      _("Always offer video when establishing phone call"));
+  priv->codecs_section = sfl_main_section_new_with_label(_("Codecs"));
 
   // Video devices
-  gnome_main_section_new (_("Devices"), &priv->devices_section);
+  priv->devices_section = sfl_main_section_new_with_label(_("Devices"));
 
   priv->video_conf_device = video_conf_device_new();
   gtk_widget_show(GTK_WIDGET(priv->video_conf_device));
-  gtk_container_add (GTK_CONTAINER (priv->devices_section), priv->video_conf_device);
+
+  sfl_main_section_set_content(SFL_MAIN_SECTION(priv->devices_section), GTK_WIDGET(priv->video_conf_device));
 
   // Calls
-  gnome_main_section_new (_("Calls"), &priv->calls_section);
-
-  gtk_container_add (GTK_CONTAINER (priv->calls_section),
-      priv->always_offer_vdo_checkbox);
+  priv->calls_section = sfl_main_section_new_with_label(_("Calls"));
+  priv->always_offer_vdo_checkbox = gtk_check_button_new_with_label (
+      _("Always offer video when establishing phone call"));
+  sfl_main_section_set_content(SFL_MAIN_SECTION(priv->calls_section), GTK_WIDGET(priv->always_offer_vdo_checkbox));
 
   // Pack everything up
   gtk_box_pack_start (GTK_BOX(self), priv->message_bar, TRUE, TRUE,
@@ -222,5 +220,13 @@ video_conf_account_save (VideoConfAccount* self)
 {
   VideoConfAccountPrivate* priv = GET_PRIVATE(self);
 
+  // Save the video codecs over dbus
   codec_list_save (SFL_CODEC_LIST(priv->video_codec_list));
+
+//  typedef struct {
+//    gboolean always_offer;
+//    gchar* preferred_device;
+//    gchar* preferred_width;
+//    gchar* preferred_height;
+//  } video_settings_t;
 }

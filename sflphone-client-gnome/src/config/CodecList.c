@@ -470,6 +470,9 @@ void
 codec_list_save (CodecList* widget)
 {
   CodecListPrivate* priv = GET_PRIVATE(widget);
+  if (!priv) {
+    return;
+  }
 
   if (priv->account)
     {

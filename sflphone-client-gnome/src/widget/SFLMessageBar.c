@@ -98,16 +98,18 @@ sfl_message_bar_init (SFLMessageBar *self)
   GtkWidget* vbox = gtk_vbox_new (FALSE, 0);
   SFLMessageBarPrivate* priv = GET_PRIVATE((SFLMessageBar*) self);
   priv->info_bar_title = gtk_label_new ("");
+  gtk_label_set_line_wrap(GTK_LABEL(priv->info_bar_title), TRUE);
   priv->info_bar_message = gtk_label_new ("");
+  gtk_label_set_line_wrap(GTK_LABEL(priv->info_bar_message), TRUE);
 
   gtk_box_pack_start (GTK_BOX(vbox), priv->info_bar_title, TRUE, TRUE, DEFAULT_SPACING);
   gtk_box_pack_start (GTK_BOX(vbox), priv->info_bar_message, TRUE, TRUE, DEFAULT_SPACING);
   gtk_widget_show_all (GTK_WIDGET(vbox));
 
-  // Get the content area
+  //gtk_info_bar_add_button (GTK_INFO_BAR(self), GTK_STOCK_OK, GTK_RESPONSE_OK);
+  //g_signal_connect (self, "response", G_CALLBACK (gtk_widget_hide), NULL);
+
   GtkWidget* content_area = gtk_info_bar_get_content_area (GTK_INFO_BAR (self));
-  gtk_info_bar_add_button (GTK_INFO_BAR(self), GTK_STOCK_OK, GTK_RESPONSE_OK);
-  g_signal_connect (self, "response", G_CALLBACK (gtk_widget_hide), NULL);
   gtk_container_add (GTK_CONTAINER (content_area), vbox);
 }
 
