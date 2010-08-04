@@ -46,6 +46,8 @@ Account::Account (const AccountID& accountID, std::string type) :
 	, _ringtoneEnabled(true)
 	, _displayName("")
 	, _useragent("SFLphone")
+	, _preferredVideoDevice("")
+	, _alwaysOfferVideo(false)
 {
 	setRegistrationState (Unregistered);
 }
@@ -92,6 +94,36 @@ void Account::loadCodecs (void) {
 	} else {
 		setActiveVideoCodecs (Manager::instance ().unserialize (_codecVideoSerialized));
 	}
+}
+
+void Account::setAlwaysOfferVideo(bool policy)
+{
+	_alwaysOfferVideo = policy;
+}
+
+bool Account::isAlwaysOfferVideo()
+{
+	return _alwaysOfferVideo;
+}
+
+void Account::setPreferredVideoDevice(const std::string& device)
+{
+	_preferredVideoDevice = device;
+}
+
+std::string Account::getPreferredVideoDevice()
+{
+	return _preferredVideoDevice;
+}
+
+void Account::setPreferredVideoFormat(const sfl::VideoFormat& format)
+{
+	_preferredVideoFormat = format;
+}
+
+sfl::VideoFormat Account::getPreferredVideoFormat()
+{
+	return _preferredVideoFormat;
 }
 
 CodecOrder& Account::getActiveVideoCodecs() {

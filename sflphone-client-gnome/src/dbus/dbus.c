@@ -1314,11 +1314,12 @@ dbus_get_all_audio_codecs ()
 
       audio_codec_t* codec = g_new(audio_codec_t, 1);
 
-      dbus_g_type_struct_get (&elem, 0, &codec->identifier, 1, &codec->clock_rate, 2, &codec->payload,
-          3, &codec->mime_type, 4, &codec->mime_subtype, 5, &codec->bitrate, 6,
-          &codec->bandwidth, 7, &codec->description, G_MAXUINT);
+      dbus_g_type_struct_get (&elem, 0, &codec->identifier, 1,
+          &codec->clock_rate, 2, &codec->payload, 3, &codec->mime_type, 4,
+          &codec->mime_subtype, 5, &codec->bitrate, 6, &codec->bandwidth, 7,
+          &codec->description, G_MAXUINT);
 
-     codec->is_active = FALSE;
+      codec->is_active = FALSE;
 
       ret = g_list_append (ret, codec);
     }
@@ -1353,11 +1354,12 @@ dbus_get_all_video_codecs ()
 
       video_codec_t* codec = g_new(video_codec_t, 1);
 
-      dbus_g_type_struct_get (&elem, 0, &codec->identifier, 1, &codec->clock_rate, 2, &codec->payload,
-          3, &codec->mime_type, 4, &codec->mime_subtype, 5, &codec->bitrate, 6,
-          &codec->bandwidth, 7, &codec->description, G_MAXUINT);
+      dbus_g_type_struct_get (&elem, 0, &codec->identifier, 1,
+          &codec->clock_rate, 2, &codec->payload, 3, &codec->mime_type, 4,
+          &codec->mime_subtype, 5, &codec->bitrate, 6, &codec->bandwidth, 7,
+          &codec->description, G_MAXUINT);
 
-     codec->is_active = FALSE;
+      codec->is_active = FALSE;
 
       ret = g_list_append (ret, codec);
     }
@@ -1392,7 +1394,8 @@ dbus_get_active_audio_codecs (gchar* accountID)
 
   DEBUG("Fetching active audio codecs for account \"%s\" ...", accountID);
 
-  org_sflphone_SFLphone_ConfigurationManager_get_all_active_audio_codecs(configurationManagerProxy, accountID, &audio_codecs, &error);
+  org_sflphone_SFLphone_ConfigurationManager_get_all_active_audio_codecs (
+      configurationManagerProxy, accountID, &audio_codecs, &error);
   if (error != NULL)
     {
       ERROR("Failed to retrieve active audio codecs for account \"%s\" over Dbus", accountID);
@@ -1405,23 +1408,25 @@ dbus_get_active_audio_codecs (gchar* accountID)
   int i;
   for (i = 0; i < audio_codecs->len; i++)
     {
-      GValue elem = { 0 };
+      GValue elem =
+        { 0 };
       g_value_init (&elem, DBUS_AUDIO_CODEC_TYPE);
       g_value_set_static_boxed (&elem, g_ptr_array_index(audio_codecs, i));
 
       audio_codec_t* codec = g_new(audio_codec_t, 1);
-      dbus_g_type_struct_get (&elem, 0, &codec->identifier, 1, &codec->clock_rate, 2, &codec->payload,
-          3, &codec->mime_type, 4, &codec->mime_subtype, 5, &codec->bitrate, 6,
-          &codec->bandwidth, 7, &codec->description, G_MAXUINT);
+      dbus_g_type_struct_get (&elem, 0, &codec->identifier, 1,
+          &codec->clock_rate, 2, &codec->payload, 3, &codec->mime_type, 4,
+          &codec->mime_subtype, 5, &codec->bitrate, 6, &codec->bandwidth, 7,
+          &codec->description, G_MAXUINT);
 
       DEBUG("Audio codec %s/%s %d (payload number %d)\nDescription : \"%s\"\nBandwidth : %f\nBitrate : %f",
-                      codec->mime_type,
-                      codec->mime_subtype,
-                      codec->clock_rate,
-                      codec->payload,
-                      codec->description,
-                      codec->bandwidth,
-                      codec->bitrate);
+          codec->mime_type,
+          codec->mime_subtype,
+          codec->clock_rate,
+          codec->payload,
+          codec->description,
+          codec->bandwidth,
+          codec->bitrate);
 
       codec->is_active = TRUE;
 
@@ -1436,7 +1441,8 @@ dbus_set_active_audio_codecs (const gchar** list, const gchar *accountID)
 {
   DEBUG("Sending active audio codec list for account %s ...", accountID)
   GError *error = NULL;
-  org_sflphone_SFLphone_ConfigurationManager_set_active_audio_codecs (configurationManagerProxy, list, accountID, &error);
+  org_sflphone_SFLphone_ConfigurationManager_set_active_audio_codecs (
+      configurationManagerProxy, list, accountID, &error);
 
   if (error)
     {
@@ -1455,7 +1461,8 @@ dbus_get_active_video_codecs (gchar* accountID)
 
   DEBUG("Fetching active video codecs for account \"%s\" ...", accountID);
 
-  org_sflphone_SFLphone_ConfigurationManager_get_all_active_video_codecs(configurationManagerProxy, accountID, &video_codecs, &error);
+  org_sflphone_SFLphone_ConfigurationManager_get_all_active_video_codecs (
+      configurationManagerProxy, accountID, &video_codecs, &error);
   if (error != NULL)
     {
       ERROR("Failed to retrieve active video codecs for account \"%s\" over Dbus", accountID);
@@ -1468,23 +1475,25 @@ dbus_get_active_video_codecs (gchar* accountID)
   int i;
   for (i = 0; i < video_codecs->len; i++)
     {
-      GValue elem = { 0 };
+      GValue elem =
+        { 0 };
       g_value_init (&elem, DBUS_VIDEO_CODEC_TYPE);
       g_value_set_static_boxed (&elem, g_ptr_array_index(video_codecs, i));
 
       video_codec_t* codec = g_new(video_codec_t, 1);
-      dbus_g_type_struct_get (&elem, 0, &codec->identifier, 1, &codec->clock_rate, 2, &codec->payload,
-          3, &codec->mime_type, 4, &codec->mime_subtype, 5, &codec->bitrate, 6,
-          &codec->bandwidth, 7, &codec->description, G_MAXUINT);
+      dbus_g_type_struct_get (&elem, 0, &codec->identifier, 1,
+          &codec->clock_rate, 2, &codec->payload, 3, &codec->mime_type, 4,
+          &codec->mime_subtype, 5, &codec->bitrate, 6, &codec->bandwidth, 7,
+          &codec->description, G_MAXUINT);
 
       DEBUG("Video codec %s/%s %d (payload number %d)\nDescription : \"%s\"\nBandwidth : %f\nBitrate : %f",
-                      codec->mime_type,
-                      codec->mime_subtype,
-                      codec->clock_rate,
-                      codec->payload,
-                      codec->description,
-                      codec->bandwidth,
-                      codec->bitrate);
+          codec->mime_type,
+          codec->mime_subtype,
+          codec->clock_rate,
+          codec->payload,
+          codec->description,
+          codec->bandwidth,
+          codec->bitrate);
 
       codec->is_active = TRUE;
 
@@ -1499,7 +1508,8 @@ dbus_set_active_video_codecs (const gchar** list, const gchar *accountID)
 {
   DEBUG("Sending active video codec list for account %s ...", accountID)
   GError *error = NULL;
-  org_sflphone_SFLphone_ConfigurationManager_set_active_video_codecs(configurationManagerProxy, list, accountID, &error);
+  org_sflphone_SFLphone_ConfigurationManager_set_active_video_codecs (
+      configurationManagerProxy, list, accountID, &error);
 
   if (error)
     {
@@ -1507,6 +1517,121 @@ dbus_set_active_video_codecs (const gchar** list, const gchar *accountID)
           error->message);
       g_error_free (error);
     }
+}
+
+void
+dbus_set_video_settings (const gchar* accountID,
+    video_settings_t* video_settings)
+{
+  DEBUG("Setting video for accontID %s", accountID)
+
+  // Resolution field
+  GValueArray* resolution = g_value_array_new (2);
+  GValue width =
+    { 0 };
+  g_value_init (&width, G_TYPE_UINT);
+  g_value_set_uint (&width, video_settings->resolution.width);
+
+  GValue height =
+    { 0 };
+  g_value_init (&height, G_TYPE_UINT);
+  g_value_set_uint (&height, video_settings->resolution.height);
+
+  g_value_array_append (resolution, &width);
+  g_value_array_append (resolution, &height);
+
+  GValue resolution_struct =
+    { 0 };
+  g_value_init (&resolution_struct, G_TYPE_VALUE_ARRAY);
+  g_value_set_boxed (&resolution_struct, resolution);
+
+  // Frame rate field
+  GValueArray* framerate = g_value_array_new (2);
+  GValue numerator =
+    { 0 };
+  g_value_init (&numerator, G_TYPE_UINT);
+  g_value_set_uint (&numerator, video_settings->framerate.numerator);
+
+  GValue denominator =
+    { 0 };
+  g_value_init (&denominator, G_TYPE_UINT);
+  g_value_set_uint (&denominator, video_settings->framerate.denominator);
+
+  g_value_array_append (framerate, &numerator);
+  g_value_array_append (framerate, &denominator);
+
+  GValue framerate_struct =
+    { 0 };
+  g_value_init (&framerate_struct, G_TYPE_VALUE_ARRAY);
+  g_value_set_boxed (&framerate_struct, framerate);
+
+  // Device field
+  GValue device =
+    { 0 };
+  g_value_init (&device, G_TYPE_STRING);
+  g_value_set_string (&device, video_settings->device);
+
+  // "Always offer video" option
+  GValue always_offer_video =
+    { 0 };
+  g_value_init (&always_offer_video, G_TYPE_BOOLEAN);
+  g_value_set_boolean (&always_offer_video, video_settings->always_offer_video);
+
+  // Build the GValueArray that represent the structure over DBus.
+  GValueArray* settings = g_value_array_new (4);
+  g_value_array_append (settings, &resolution_struct);
+  g_value_array_append (settings, &framerate_struct);
+  g_value_array_append (settings, &device);
+  g_value_array_append (settings, &always_offer_video);
+
+  GError* error = NULL;
+  org_sflphone_SFLphone_ConfigurationManager_set_video_settings (
+      configurationManagerProxy, accountID, settings, &error);
+  if (error)
+    {
+      ERROR ("Failed to call setVideoSettings on ConfigurationManager: %s",
+          error->message);
+      g_error_free (error);
+    }
+}
+
+video_settings_t*
+dbus_get_video_settings (const gchar* accountID)
+{
+  GError* error = NULL;
+  GValueArray* settings;
+  org_sflphone_SFLphone_ConfigurationManager_get_video_settings(configurationManagerProxy, accountID, &settings, &error);
+  if (error)
+      {
+        ERROR ("Failed to call getVideoSettings on ConfigurationManager: %s", error->message);
+        g_error_free (error);
+      }
+
+  GValueArray* resolution_struct = g_value_get_boxed(g_value_array_get_nth(settings, 0));
+  GValue* width = g_value_array_get_nth(resolution_struct, 0);
+  GValue* height = g_value_array_get_nth(resolution_struct, 1);
+
+  GValueArray* framerate_struct = g_value_get_boxed(g_value_array_get_nth(settings, 1));
+  GValue* numerator = g_value_array_get_nth(framerate_struct, 0);
+  GValue* denominator = g_value_array_get_nth(framerate_struct, 1);
+
+  GValue* device = g_value_array_get_nth(settings, 2);
+  GValue* always_offer_video = g_value_array_get_nth(settings, 3);
+
+  video_settings_t* video_settings = video_settings_new();
+  video_settings_set_width(video_settings, g_value_get_uint(width));
+  video_settings_set_height(video_settings, g_value_get_uint(height));
+
+
+  video_settings_set_numerator(video_settings, g_value_get_uint(numerator));
+  video_settings_set_denominator(video_settings, g_value_get_uint(denominator));
+
+  video_settings_set_device(video_settings, g_value_get_string(device));
+  video_settings_set_always_offer_video(video_settings, g_value_get_boolean(always_offer_video));
+
+  video_settings_print(video_settings);
+
+  return video_settings;
 }
 
 /**

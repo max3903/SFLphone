@@ -31,6 +31,8 @@
 #ifndef __VIDEO_CONF_DEVICE_H__
 #define __VIDEO_CONF_DEVICE_H__
 
+#include "account.h"
+
 #include <glib-object.h>
 #include <gtk/gtk.h>
 
@@ -60,6 +62,37 @@ video_conf_device_get_type (void);
  */
 VideoConfDevice*
 video_conf_device_new (void);
+
+/**
+ * @param account The account object.
+ * @return a new instance of a VideoConfDevice widget configured from the settings found for the given account.
+ */
+VideoConfDevice*
+video_conf_device_new_from_account(account_t* account);
+
+/**
+ * Set the value in the widget from an account.
+ * @param account The account object.
+ */
+void video_conf_device_set_from_account(VideoConfDevice* device, account_t* account);
+
+/**
+ * Initilializes the widgets with the suggested values.
+ * If the values are not available, defaults will be used.
+ *
+ * @param name The device name.
+ * @param width The preferred frame width.
+ * @param height The preferred frame height.
+ * @param numerator The numerator in the framerate value.
+ * @param denominator The denominator in the framerate value.
+ */
+void video_conf_device_set_value(VideoConfDevice* device, const gchar* name, resolution_t resolution, framerate_t framerate);
+
+/**
+ * Save the current widget state into the video settings of some account object.
+ * @param account The account object containing the video_settings_t structure.
+ */
+void video_conf_device_save(VideoConfDevice* device, account_t* account);
 G_END_DECLS
 
 #endif

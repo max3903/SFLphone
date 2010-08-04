@@ -130,16 +130,23 @@ video_conf_account_finalize (GObject* object)
 static void
 video_conf_account_realize (GtkWidget* self)
 {
-  DEBUG("Realizing ....");
+  DEBUG("Realizing VideoConfAccount ...");
   GTK_WIDGET_CLASS(video_conf_account_parent_class)->realize (self);
 
   VideoConfAccountPrivate* priv = GET_PRIVATE(self);
 
   if (priv->account)
     {
+      // Display the codec list
       priv->video_codec_list = video_codec_list_new (priv->account);
       sfl_main_section_set_content(SFL_MAIN_SECTION(priv->codecs_section), GTK_WIDGET(priv->video_codec_list));
       gtk_widget_show_all (GTK_WIDGET(self));
+
+      // Set checkbox
+      gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(priv->always_offer_vdo_checkbox), priv->account->video_settings->always_offer_video);
+
+      // Set the VideoConfWidget
+      video_conf_device_set_from_account(priv->video_conf_device, priv->account);
     }
 }
 
@@ -168,19 +175,28 @@ video_conf_account_class_init (VideoConfAccountClass *klass)
 }
 
 static void
+always_offer_video_toggled_cb(GtkWidget* checkbox, gpointer data)
+{
+  VideoConfAccount* self = (VideoConfAccount*) data;
+  VideoConfAccountPrivate* priv = GET_PRIVATE(self);
+
+  priv->account->video_settings->always_offer_video = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(checkbox));
+}
+
+static void
 video_conf_account_init (VideoConfAccount* self)
 {
   VideoConfAccountPrivate* priv = GET_PRIVATE(self);
 
   // Message bar
   priv->message_bar = sfl_message_bar_new();
-  gtk_widget_set_no_show_all (GTK_INFO_BAR(priv->message_bar), TRUE);
+  gtk_widget_set_no_show_all (GTK_WIDGET(priv->message_bar), TRUE);
 
   // Codec List is created on realization as the account property is not yet available.
-  priv->codecs_section = sfl_main_section_new_with_label(_("Codecs"));
+  priv->codecs_section = GTK_WIDGET(sfl_main_section_new_with_label(_("Codecs")));
 
   // Video devices
-  priv->devices_section = sfl_main_section_new_with_label(_("Devices"));
+  priv->devices_section = GTK_WIDGET(sfl_main_section_new_with_label(_("Devices")));
 
   priv->video_conf_device = video_conf_device_new();
   gtk_widget_show(GTK_WIDGET(priv->video_conf_device));
@@ -188,22 +204,25 @@ video_conf_account_init (VideoConfAccount* self)
   sfl_main_section_set_content(SFL_MAIN_SECTION(priv->devices_section), GTK_WIDGET(priv->video_conf_device));
 
   // Calls
-  priv->calls_section = sfl_main_section_new_with_label(_("Calls"));
+  priv->calls_section = GTK_WIDGET(sfl_main_section_new_with_label(_("Calls")));
   priv->always_offer_vdo_checkbox = gtk_check_button_new_with_label (
       _("Always offer video when establishing phone call"));
+
+  g_signal_connect(G_OBJECT(priv->always_offer_vdo_checkbox), "toggled", G_CALLBACK (always_offer_video_toggled_cb), self);
+
   sfl_main_section_set_content(SFL_MAIN_SECTION(priv->calls_section), GTK_WIDGET(priv->always_offer_vdo_checkbox));
 
   // Pack everything up
-  gtk_box_pack_start (GTK_BOX(self), priv->message_bar, TRUE, TRUE,
+  gtk_box_pack_start (GTK_BOX(self), GTK_WIDGET(priv->message_bar), TRUE, TRUE,
       DEFAULT_SPACING);
 
-  gtk_box_pack_start (GTK_BOX(self), priv->codecs_section, TRUE, TRUE,
+  gtk_box_pack_start (GTK_BOX(self), GTK_WIDGET(priv->codecs_section), TRUE, TRUE,
       DEFAULT_SPACING);
 
-  gtk_box_pack_start (GTK_BOX(self), priv->calls_section, TRUE, TRUE,
+  gtk_box_pack_start (GTK_BOX(self), GTK_WIDGET(priv->calls_section), TRUE, TRUE,
       DEFAULT_SPACING);
 
-  gtk_box_pack_start (GTK_BOX(self), priv->devices_section, TRUE, FALSE,
+  gtk_box_pack_start (GTK_BOX(self), GTK_WIDGET(priv->devices_section), TRUE, FALSE,
       DEFAULT_SPACING);
 
   gtk_widget_show_all (GTK_WIDGET(self));
@@ -223,10 +242,6 @@ video_conf_account_save (VideoConfAccount* self)
   // Save the video codecs over dbus
   codec_list_save (SFL_CODEC_LIST(priv->video_codec_list));
 
-//  typedef struct {
-//    gboolean always_offer;
-//    gchar* preferred_device;
-//    gchar* preferred_width;
-//    gchar* preferred_height;
-//  } video_settings_t;
+  // Save the video settings over dbus
+  video_settings_saves(priv->account->video_settings, priv->account->accountID);
 }

@@ -62,6 +62,110 @@ typedef enum
    IP2IP_PROFILE_STATUS
 } account_state_t;
 
+/**
+ * Utility structure for holding a video frame resolution.
+ */
+typedef struct
+{
+  guint width;
+  guint height;
+} resolution_t;
+
+/**
+ * Utility structure for holding a video frame rate.
+ */
+typedef struct
+{
+  guint numerator;
+  guint denominator;
+} framerate_t;
+
+/**
+ * @return a new string representing this framerate.
+ */
+gchar* framerate_to_string(framerate_t* rate);
+
+/**
+ * @param rate The string representation of the frame rate ("num"/"denom")
+ * @return a framerate structure for the given string. The structure must be freed by the user.
+ */
+framerate_t* framerate_new_from_string(const gchar* rate);
+
+/**
+ * Utility structure for holding the video settings per account.
+ */
+typedef struct {
+  resolution_t resolution;
+
+  framerate_t framerate;
+
+  gchar* device;
+
+  gboolean always_offer_video;
+
+  GMutex* mutex;
+} video_settings_t;
+
+/**
+ * @return a new instance of a video settings object.
+ */
+video_settings_t* video_settings_new();
+
+/**
+ * @param settings A video settings object to free.
+ */
+void video_settings_free(video_settings_t* settings);
+
+/**
+ * @param settings A video settings object to print.
+ */
+void video_settings_print(video_settings_t* settings);
+
+/**
+ * @param accountID The account id on which to save those settings for.
+ */
+void video_settings_saves(video_settings_t* settings, const gchar* accountID);
+
+/**
+ * @param device The device to set in the structure.
+ */
+void video_settings_set_device(video_settings_t* settings, gchar* device);
+
+/**
+ * @param resolution The device to set in the structure.
+ */
+void video_settings_set_resolution(video_settings_t* settings, resolution_t* resolution);
+
+/**
+ * @param width The desired width.
+ */
+void video_settings_set_width(video_settings_t* settings, guint width);
+
+/**
+ * @param height The desired height.
+ */
+void video_settings_set_height(video_settings_t* settings, guint height);
+
+/**
+ * @param framerate The device to set in the structure.
+ */
+void video_settings_set_framerate(video_settings_t* settings, framerate_t* framerate);
+
+/**
+ * @param numerator The desired numerator, in the framerate structure.
+ */
+void video_settings_set_numerator(video_settings_t* settings, guint numerator);
+
+/**
+ * @param denominator The desired denominator, in the framerate structure.
+ */
+void video_settings_set_denominator(video_settings_t* settings, guint denominator);
+
+/**
+ * @param offer TRUE if video should be offered on every call.
+ */
+void video_settings_set_always_offer_video(video_settings_t* settings, gboolean offer);
+
 /** @struct account_t
   * @brief Account information.
   * This struct holds information about an account.  All values are stored in the
@@ -81,6 +185,8 @@ typedef struct  {
         /* The codec list */
         codec_library_t* codecs;
         guint _messages_number;
+
+        video_settings_t* video_settings;
 } account_t;
 
 /**

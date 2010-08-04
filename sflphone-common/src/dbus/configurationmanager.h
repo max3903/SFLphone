@@ -48,11 +48,43 @@
  * 		bandwidth,
  * 		additional information (description)
  */
-typedef ::DBus::Struct<std::string, uint32_t, uint8_t, std::string, std::string,
-		double, double, std::string> DbusAudioCodec;
+typedef ::DBus::Struct<std::string, uint32_t, uint8_t, std::string,
+		std::string, double, double, std::string> DbusAudioCodec;
 
-typedef ::DBus::Struct<std::string, uint32_t, uint8_t, std::string, std::string,
-		double, double, std::string> DbusVideoCodec;
+typedef ::DBus::Struct<std::string, uint32_t, uint8_t, std::string,
+		std::string, double, double, std::string> DbusVideoCodec;
+
+/**
+ * "always offer video (boolean)"
+ * "preferred device (string)"
+ * "preferred resolution (struct : uint uint)"
+ * "preferred framerate (struct : uint uint)"
+ */
+typedef ::DBus::Struct< ::DBus::Struct<uint32_t, uint32_t>,
+		::DBus::Struct<uint32_t, uint32_t>, std::string, bool> DbusVideoSettings;
+
+/**
+ * Note that this exception is not the same as the one
+ * in the "sfl" namespace. This exception is thrown
+ * over dbus.
+ */
+namespace DBus {
+
+/**
+ * This exception is thrown when some operation should be
+ * performed on some account that cannot be found.
+ */
+class NonexistentAccountException : public DBus::Error {
+public:
+	/**
+	 * @param accoundID The accountID that was attempted to obtain.
+	 */
+	NonexistentAccountException(const std::string& accountID) :
+		DBus::Error ("NonexistentAccountException", (std::string("Account id \"") + accountID + std::string("\" cannot be found.")).c_str()) {
+	}
+};
+
+}
 
 class ConfigurationManager: public org::sflphone::SFLphone::ConfigurationManager_adaptor,
 		public DBus::IntrospectableAdaptor,
@@ -64,6 +96,66 @@ public:
 
 private:
 	std::vector<std::string> shortcutsKeys;
+
+	/**
+	 * Utility structure helping to convert from Dbus struct to something more human-readable.
+	 * TODO Do the same for codecs.
+	 */
+	struct VideoSettings {
+		VideoSettings() {
+			resolution.width = 0;
+			resolution.height = 0;
+
+			framerate.numerator = 0;
+			framerate.denominator = 1;
+
+			device = "";
+			alwaysOfferVideo = false;
+		}
+
+		/**
+		 * Construct a VideoSettings object from a Dbus structure.
+		 * @param settings The Dbus representation of this object.
+		 */
+		VideoSettings(const DbusVideoSettings& settings) {
+			resolution.width = settings._1._1;
+			resolution.height = settings._1._2;
+
+			framerate.numerator = settings._2._1;
+			framerate.denominator = settings._2._2;
+
+			device = settings._3;
+			alwaysOfferVideo = settings._4;
+		}
+
+		/**
+		 * @return The Dbus structure representing this object.
+		 */
+		DbusVideoSettings toDbusType() {
+			DbusVideoSettings settings;
+			settings._1._1 = resolution.width;
+			settings._1._2 = resolution.height;
+			settings._2._1 = framerate.numerator;
+			settings._2._2 = framerate.denominator;
+			settings._3  = device;
+			settings._4 = alwaysOfferVideo;
+			return settings;
+		}
+
+		bool alwaysOfferVideo;
+
+		std::string device;
+
+		struct {
+			uint32_t width;
+			uint32_t height;
+		} resolution;
+
+		struct {
+			uint32_t numerator;
+			uint32_t denominator;
+		} framerate;
+	};
 
 public:
 	/**
@@ -133,25 +225,48 @@ public:
 	 * @param accountID A string representing the account for which to return the list of active codec.
 	 * @return A Dbus Array containing all of the video codecs for the given account.
 	 */
-	std::vector<DbusAudioCodec> getAllActiveAudioCodecs(const std::string& accountID);
+	std::vector<DbusAudioCodec> getAllActiveAudioCodecs(
+			const std::string& accountID);
 
 	/**
 	 * @param accountID A string representing the account for which to return the list of active codec.
 	 * @return A Dbus Array containing all of the video codecs for the given account.
 	 */
-	std::vector<DbusAudioCodec> getAllActiveVideoCodecs(const std::string& accountID);
+	std::vector<DbusAudioCodec> getAllActiveVideoCodecs(
+			const std::string& accountID);
 
 	/**
 	 * @param codecIdentifiers A vector containing all of the audio codec identifiers, in some specified order.
 	 * @param accountID The account identifier for which to set the new active codec list.
+	 * TODO Change the order of arguments.
 	 */
-	void setActiveAudioCodecs(const std::vector<std::string>& codecIdentifiers, const std::string& accountID);
+	void setActiveAudioCodecs(const std::vector<std::string>& codecIdentifiers,
+			const std::string& accountID);
 
 	/**
 	 * @param codecIdentifiers A vector containing all of the video codec identifiers, in some specified order.
 	 * @param accountID The account identifier for which to set the new active codec list.
+	 * TODO Change the order of arguments.
 	 */
-	void setActiveVideoCodecs(const std::vector<std::string>& codecIdentifiers, const std::string& accountID);
+	void setActiveVideoCodecs(const std::vector<std::string>& codecIdentifiers,
+			const std::string& accountID);
+
+	/**
+	 * @param settings A structure containing members of the form :
+	 * 			"always offer video (boolean)"
+	 * 			"preferred device (string)"
+	 * 			"preferred resolution (struct : uint uint)"
+	 * 			"preferred framerate (struct : uint uint)"
+	 * @param accountID The account identifier for which to set the video settings.
+	 * @throw NonexistentAccountException if the given account id cannot be found.
+	 */
+	void setVideoSettings(const std::string& accountID,
+			const DbusVideoSettings& settings) throw(DBus::NonexistentAccountException);
+
+	/**
+	 * @param accountID The account identifier for which to set the video settings.
+	 */
+	DbusVideoSettings getVideoSettings(const std::string& accountID) throw(DBus::NonexistentAccountException);
 
 	void removeAccount(const std::string& accoundID);
 	void deleteAllCredential(const std::string& accountID);
@@ -210,7 +325,8 @@ public:
 
 	std::string getRingtoneChoice(const std::string& accountID);
 
-	void setRingtoneChoice(const std::string& accountID, const std::string& tone);
+	void setRingtoneChoice(const std::string& accountID,
+			const std::string& tone);
 
 	std::string getRecordPath(void);
 	void setRecordPath(const std::string& recPath);

@@ -493,7 +493,6 @@
 	   <method name="setActiveAudioCodecs" tp:name-for-bindings="setActiveAudioCodecs">
 		   <tp:docstring>
 		   </tp:docstring>
-		   <annotation name="com.trolltech.QtDBus.QtTypeName.In0" value="VectorString"/>
 		   <arg type="as" name="list" direction="in">
 			   <tp:docstring>
 			   A dbus array structure containing the codecs identifiers set by the user.
@@ -509,7 +508,6 @@
 	   <method name="setActiveVideoCodecs" tp:name-for-bindings="setActiveVideoCodecs">
 		   <tp:docstring>
 		   </tp:docstring>
-		   <annotation name="com.trolltech.QtDBus.QtTypeName.In0" value="VectorString"/>
 		   <arg type="as" name="list" direction="in">
 			   <tp:docstring>
 			   A dbus array structure containing the codecs identifiers set by the user.
@@ -518,6 +516,44 @@
 		   <arg type="s" name="accountID" direction="in">
 			   <tp:docstring>
 			   The account id on which to set those codecs.
+			   </tp:docstring>
+		   </arg>
+	   </method>
+	   	   
+	   <method name="setVideoSettings" tp:name-for-bindings="setVideoSettings">
+		   <tp:docstring>
+		   </tp:docstring>
+		   <arg type="s" name="accountID" direction="in">
+			   <tp:docstring>
+			  	The account id on which those video settings should apply.
+			   </tp:docstring>
+		   </arg>
+		   <arg type="((uu)(uu)sb)" name="settings" direction="in">
+			   <tp:docstring>
+			   A DBus structure containing members of the form :
+					"preferred resolution (struct : uint uint)"
+					"preferred framerate (struct : uint uint)"
+					"preferred device (string)"
+					"always offer video (boolean)"
+			   </tp:docstring>
+		   </arg>
+	   </method>
+	   
+	   <method name="getVideoSettings" tp:name-for-bindings="getVideoSettings">
+		   <tp:docstring>
+		   </tp:docstring>
+		   <arg type="s" name="accountID" direction="in">
+			   <tp:docstring>
+			  	The account id on which to retrieve the video settings for.
+			   </tp:docstring>
+		   </arg>
+		   <arg type="((uu)(uu)sb)" name="settings" direction="out">
+			   <tp:docstring>
+			   A DBus structure containing members of the form :
+					"preferred resolution (struct : uint uint)"
+					"preferred framerate (struct : uint uint)"
+					"preferred device (string)"
+					"always offer video (boolean)"
 			   </tp:docstring>
 		   </arg>
 	   </method>

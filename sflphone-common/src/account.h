@@ -344,6 +344,36 @@ public:
 		_useragent = ua;
 	}
 
+	/**
+	 * @param policy If set to true, video will be offered on every call.
+	 */
+	void setAlwaysOfferVideo(bool policy);
+
+	/**
+	 * @return true If video will be offered on every call.
+	 */
+	bool isAlwaysOfferVideo();
+
+	/**
+	 * @param device The video device to choose from if available.
+	 */
+	void setPreferredVideoDevice(const std::string& device);
+
+	/**
+	 * @return The identifier for the preferred video device configured for this account.
+	 */
+	std::string getPreferredVideoDevice();
+
+	/**
+	 * @param format The preferred video format to use.
+	 */
+	void setPreferredVideoFormat(const sfl::VideoFormat& format);
+
+	/**
+	 * @return The preferred video format for the a given video device.
+	 */
+	sfl::VideoFormat getPreferredVideoFormat();
+
 private:
 	// copy constructor
 	Account(const Account& rh);
@@ -473,6 +503,12 @@ protected: // Should become private !
 	 */
 	std::string _useragent;
 
+	// Video settings
+	bool _alwaysOfferVideo;
+
+	std::string _preferredVideoDevice;
+
+	sfl::VideoFormat _preferredVideoFormat;
 };
 
 #endif

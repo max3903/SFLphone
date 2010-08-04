@@ -44,21 +44,13 @@
 #include <stdint.h>
 
 /**
- * Utility structure for holding a video frame resolution.
- */
-typedef struct
-{
-  gint width;
-  gint height;
-} resolution_t;
-
-/**
  * Utility structure for holding a (shm : token) key pair.
  */
 typedef struct {
   gchar* shm;
   gchar* token;
 } video_key_t;
+
 
 /** @file dbus.h
  * @brief General DBus functions wrappers.
@@ -708,6 +700,17 @@ dbus_video_start_local_capture (const gchar * device, gint width, gint height,
  * @param FALSE if an error occured.
  */
 gboolean dbus_video_stop_local_capture(gchar* device, gchar* token);
+
+/**
+ * @param accountID The account identifier for which to set those parameters for.
+ * @param settings The video setting structure containing the parameters to set.
+ */
+void dbus_set_video_settings(const gchar* accountID, video_settings_t* settings);
+
+/**
+ * @param accountID The account identifier for which to get the video settings for.
+ */
+video_settings_t* dbus_get_video_settings (const gchar* accountID);
 
 GHashTable* dbus_get_shortcuts(void);
 

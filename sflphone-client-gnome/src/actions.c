@@ -209,12 +209,9 @@ sflphone_fill_account_list (void)
   gchar** array;
   gchar** accountID;
   unsigned int i;
-  int count;
   GQueue *codeclist;
 
   DEBUG("SFLphone: Fill account list");
-
-  count = current_account_get_message_number ();
 
   account_list_clear ();
 
@@ -244,6 +241,8 @@ sflphone_fill_account_list (void)
         break;
       }
       account->properties = details;
+
+      account->video_settings = dbus_get_video_settings(account->accountID);
 
       /* As this function might be called numerous time, we should free the
        * previously allocated space to avoid memory leaks.
@@ -322,6 +321,8 @@ sflphone_fill_account_list (void)
 
       account->protocol_state_description = g_hash_table_lookup (details, REGISTRATION_STATE_DESCRIPTION);
     }
+
+  int count = current_account_get_message_number ();
 
   // Set the current account message number
   current_account_set_message_number (count);

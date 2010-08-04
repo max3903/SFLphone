@@ -648,6 +648,52 @@ void ConfigurationManager::setActiveVideoCodecs(
 	account->setActiveVideoCodecs(ordering);
 }
 
+
+
+void ConfigurationManager::setVideoSettings(const std::string& accountID, const DbusVideoSettings& settings) throw(DBus::NonexistentAccountException)
+{
+	Account* account = Manager::instance().getAccount(accountID);
+	if (!account) {
+		throw DBus::NonexistentAccountException(accountID);
+	}
+
+	VideoSettings videoSettings(settings);
+
+	// Always offer video
+	account->setAlwaysOfferVideo(videoSettings.alwaysOfferVideo);
+
+	// Video device name
+	account->setPreferredVideoDevice(videoSettings.device);
+
+	// Video format
+	sfl::VideoFormat format;
+	format.setFramerate(videoSettings.framerate.numerator, videoSettings.framerate.denominator);
+	format.setWidth(videoSettings.resolution.width);
+	format.setHeight(videoSettings.resolution.height);
+
+	account->setPreferredVideoFormat(format);
+}
+
+DbusVideoSettings ConfigurationManager::getVideoSettings(const std::string& accountID) throw(DBus::NonexistentAccountException)
+{
+	Account* account = Manager::instance().getAccount(accountID);
+	if (!account) {
+		throw DBus::NonexistentAccountException(accountID);
+	}
+
+	// Build a VideoSettings structure.
+	VideoSettings videoSettings;
+	sfl::VideoFormat format = account->getPreferredVideoFormat();
+	videoSettings.resolution.width = format.getWidth();
+	videoSettings.resolution.height = format.getHeight();
+	videoSettings.framerate.numerator = format.getPreferredFrameRate().getNumerator();
+	videoSettings.framerate.denominator = format.getPreferredFrameRate().getDenominator();
+	videoSettings.device = account->getPreferredVideoDevice();
+	videoSettings.alwaysOfferVideo = account->isAlwaysOfferVideo();
+
+	return videoSettings.toDbusType();
+}
+
 std::vector<std::string> ConfigurationManager::getAudioPluginList() {
 
 	std::vector<std::string> v;
