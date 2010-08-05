@@ -54,6 +54,9 @@
 #define DBUS_STRUCT_INT_INT (dbus_g_type_get_struct ("GValueArray", G_TYPE_INT, G_TYPE_INT, G_TYPE_INVALID))
 #define DBUS_AUDIO_CODEC_TYPE (dbus_g_type_get_struct ("GValueArray", G_TYPE_STRING, G_TYPE_UINT, G_TYPE_UCHAR, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_DOUBLE, G_TYPE_DOUBLE, G_TYPE_STRING, G_TYPE_INVALID))
 #define DBUS_VIDEO_CODEC_TYPE (dbus_g_type_get_struct ("GValueArray", G_TYPE_STRING, G_TYPE_UINT, G_TYPE_UCHAR, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_DOUBLE, G_TYPE_DOUBLE, G_TYPE_STRING, G_TYPE_INVALID))
+#define DBUS_VIDEO_SETTINGS_TYPE (dbus_g_type_get_struct ("GValueArray", dbus_g_type_get_struct ("GValueArray", G_TYPE_UINT, G_TYPE_UINT, G_TYPE_INVALID), dbus_g_type_get_struct ("GValueArray", G_TYPE_UINT, G_TYPE_UINT, G_TYPE_INVALID), G_TYPE_STRING, G_TYPE_BOOLEAN, G_TYPE_INVALID))
+#define DBUS_VIDEO_RESOLUTION_TYPE (dbus_g_type_get_struct ("GValueArray", G_TYPE_UINT, G_TYPE_UINT, G_TYPE_INVALID))
+#define DBUS_VIDEO_FRAMERATE_TYPE (dbus_g_type_get_struct ("GValueArray", G_TYPE_UINT, G_TYPE_UINT, G_TYPE_INVALID))
 
 DBusGConnection * connection;
 DBusGProxy * callManagerProxy;
@@ -1523,76 +1526,58 @@ void
 dbus_set_video_settings (const gchar* accountID,
     video_settings_t* video_settings)
 {
-  DEBUG("Setting video for accontID %s", accountID)
+  DEBUG("Setting video for account id %s", accountID)
 
-  // Resolution field
-  GValueArray* resolution = g_value_array_new (2);
-  GValue width =
+  GValue elem =
     { 0 };
-  g_value_init (&width, G_TYPE_UINT);
-  g_value_set_uint (&width, video_settings->resolution.width);
+  g_value_init (&elem, DBUS_VIDEO_SETTINGS_TYPE);
+  g_value_take_boxed (&elem, dbus_g_type_specialized_construct (
+      DBUS_VIDEO_SETTINGS_TYPE));
 
-  GValue height =
+  // Set resolution
+  GValue resolution =
     { 0 };
-  g_value_init (&height, G_TYPE_UINT);
-  g_value_set_uint (&height, video_settings->resolution.height);
+  g_value_init (&resolution, DBUS_VIDEO_RESOLUTION_TYPE);
+  g_value_take_boxed (&resolution, dbus_g_type_specialized_construct (
+      DBUS_VIDEO_RESOLUTION_TYPE));
 
-  g_value_array_append (resolution, &width);
-  g_value_array_append (resolution, &height);
+  dbus_g_type_struct_set (&resolution,
+      0, video_settings_get_width (video_settings),
+      1, video_settings_get_height (video_settings),
+      G_MAXUINT);
 
-  GValue resolution_struct =
+  // Set framerate
+  GValue framerate =
     { 0 };
-  g_value_init (&resolution_struct, G_TYPE_VALUE_ARRAY);
-  g_value_set_boxed (&resolution_struct, resolution);
+  g_value_init (&framerate, DBUS_VIDEO_FRAMERATE_TYPE);
+  g_value_take_boxed (&framerate, dbus_g_type_specialized_construct (
+      DBUS_VIDEO_FRAMERATE_TYPE));
 
-  // Frame rate field
-  GValueArray* framerate = g_value_array_new (2);
-  GValue numerator =
-    { 0 };
-  g_value_init (&numerator, G_TYPE_UINT);
-  g_value_set_uint (&numerator, video_settings->framerate.numerator);
+  dbus_g_type_struct_set (&framerate,
+      0, video_settings_get_numerator (video_settings),
+      1, video_settings_get_denominator (video_settings),
+      G_MAXUINT);
 
-  GValue denominator =
-    { 0 };
-  g_value_init (&denominator, G_TYPE_UINT);
-  g_value_set_uint (&denominator, video_settings->framerate.denominator);
-
-  g_value_array_append (framerate, &numerator);
-  g_value_array_append (framerate, &denominator);
-
-  GValue framerate_struct =
-    { 0 };
-  g_value_init (&framerate_struct, G_TYPE_VALUE_ARRAY);
-  g_value_set_boxed (&framerate_struct, framerate);
-
-  // Device field
-  GValue device =
-    { 0 };
-  g_value_init (&device, G_TYPE_STRING);
-  g_value_set_string (&device, video_settings->device);
-
-  // "Always offer video" option
-  GValue always_offer_video =
-    { 0 };
-  g_value_init (&always_offer_video, G_TYPE_BOOLEAN);
-  g_value_set_boolean (&always_offer_video, video_settings->always_offer_video);
-
-  // Build the GValueArray that represent the structure over DBus.
-  GValueArray* settings = g_value_array_new (4);
-  g_value_array_append (settings, &resolution_struct);
-  g_value_array_append (settings, &framerate_struct);
-  g_value_array_append (settings, &device);
-  g_value_array_append (settings, &always_offer_video);
+  // Set other properties
+  dbus_g_type_struct_set (&elem,
+      0, (GValueArray*) g_value_get_boxed (&resolution),
+      1, (GValueArray*) g_value_get_boxed (&framerate),
+      2, video_settings_get_device (video_settings),
+      3, video_settings_get_always_offer_video (video_settings),
+      G_MAXUINT);
 
   GError* error = NULL;
   org_sflphone_SFLphone_ConfigurationManager_set_video_settings (
-      configurationManagerProxy, accountID, settings, &error);
+      configurationManagerProxy, accountID, (GValueArray*) g_value_get_boxed (
+          &elem), &error);
   if (error)
     {
       ERROR ("Failed to call setVideoSettings on ConfigurationManager: %s",
           error->message);
       g_error_free (error);
     }
+
+  DEBUG("Video settings sent.");
 }
 
 video_settings_t*
@@ -1600,36 +1585,50 @@ dbus_get_video_settings (const gchar* accountID)
 {
   GError* error = NULL;
   GValueArray* settings;
-  org_sflphone_SFLphone_ConfigurationManager_get_video_settings(configurationManagerProxy, accountID, &settings, &error);
+  org_sflphone_SFLphone_ConfigurationManager_get_video_settings (
+      configurationManagerProxy, accountID, &settings, &error);
   if (error)
-      {
-        ERROR ("Failed to call getVideoSettings on ConfigurationManager: %s", error->message);
-        g_error_free (error);
-      }
+    {
+      ERROR ("Failed to call getVideoSettings on ConfigurationManager: %s", error->message);
+      g_error_free (error);
+    }
 
-  GValueArray* resolution_struct = g_value_get_boxed(g_value_array_get_nth(settings, 0));
-  GValue* width = g_value_array_get_nth(resolution_struct, 0);
-  GValue* height = g_value_array_get_nth(resolution_struct, 1);
+  GValueArray* resolution_struct = (GValueArray *) g_value_get_boxed (
+      g_value_array_get_nth (settings, 0));
+  if (resolution_struct->n_values != 2)
+    {
+      ERROR("Wrong data format while getting video settings (%s:%d)", __FILE__, __LINE__);
+      return NULL;
+    }
+  GValue* width = g_value_array_get_nth (resolution_struct, 0);
+  GValue* height = g_value_array_get_nth (resolution_struct, 1);
 
-  GValueArray* framerate_struct = g_value_get_boxed(g_value_array_get_nth(settings, 1));
-  GValue* numerator = g_value_array_get_nth(framerate_struct, 0);
-  GValue* denominator = g_value_array_get_nth(framerate_struct, 1);
+  GValueArray* framerate_struct = (GValueArray *) g_value_get_boxed (
+      g_value_array_get_nth (settings, 1));
+  if (framerate_struct->n_values != 2)
+    {
+      ERROR("Wrong data format while getting video settings (%s:%d)", __FILE__, __LINE__);
+      return NULL;
+    }
+  GValue* numerator = g_value_array_get_nth (framerate_struct, 0);
+  GValue* denominator = g_value_array_get_nth (framerate_struct, 1);
 
-  GValue* device = g_value_array_get_nth(settings, 2);
-  GValue* always_offer_video = g_value_array_get_nth(settings, 3);
+  GValue* device = g_value_array_get_nth (settings, 2);
+  GValue* always_offer_video = g_value_array_get_nth (settings, 3);
 
-  video_settings_t* video_settings = video_settings_new();
-  video_settings_set_width(video_settings, g_value_get_uint(width));
-  video_settings_set_height(video_settings, g_value_get_uint(height));
+  video_settings_t* video_settings = video_settings_new ();
+  video_settings_set_width (video_settings, g_value_get_uint (width));
+  video_settings_set_height (video_settings, g_value_get_uint (height));
 
+  video_settings_set_numerator (video_settings, g_value_get_uint (numerator));
+  video_settings_set_denominator (video_settings,
+      g_value_get_uint (denominator));
 
-  video_settings_set_numerator(video_settings, g_value_get_uint(numerator));
-  video_settings_set_denominator(video_settings, g_value_get_uint(denominator));
+  video_settings_set_device (video_settings, g_value_get_string (device));
+  video_settings_set_always_offer_video (video_settings, g_value_get_boolean (
+      always_offer_video));
 
-  video_settings_set_device(video_settings, g_value_get_string(device));
-  video_settings_set_always_offer_video(video_settings, g_value_get_boolean(always_offer_video));
-
-  video_settings_print(video_settings);
+  video_settings_print (video_settings);
 
   return video_settings;
 }

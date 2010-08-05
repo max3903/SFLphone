@@ -132,6 +132,11 @@ void video_settings_saves(video_settings_t* settings, const gchar* accountID);
 void video_settings_set_device(video_settings_t* settings, gchar* device);
 
 /**
+ * @return The video device.
+ */
+gchar* video_settings_get_device (video_settings_t* settings);
+
+/**
  * @param resolution The device to set in the structure.
  */
 void video_settings_set_resolution(video_settings_t* settings, resolution_t* resolution);
@@ -142,9 +147,19 @@ void video_settings_set_resolution(video_settings_t* settings, resolution_t* res
 void video_settings_set_width(video_settings_t* settings, guint width);
 
 /**
+ * @return The preferred width.
+ */
+guint video_settings_get_width(video_settings_t* settings);
+
+/**
  * @param height The desired height.
  */
 void video_settings_set_height(video_settings_t* settings, guint height);
+
+/**
+ * @return The preferred height.
+ */
+guint video_settings_get_height(video_settings_t* settings);
 
 /**
  * @param framerate The device to set in the structure.
@@ -157,14 +172,29 @@ void video_settings_set_framerate(video_settings_t* settings, framerate_t* frame
 void video_settings_set_numerator(video_settings_t* settings, guint numerator);
 
 /**
+ * @return The preferred numerator.
+ */
+guint video_settings_get_numerator(video_settings_t* settings);
+
+/**
  * @param denominator The desired denominator, in the framerate structure.
  */
 void video_settings_set_denominator(video_settings_t* settings, guint denominator);
 
 /**
+ * @return The preferred denominator.
+ */
+guint video_settings_get_denominator(video_settings_t* settings);
+
+/**
  * @param offer TRUE if video should be offered on every call.
  */
 void video_settings_set_always_offer_video(video_settings_t* settings, gboolean offer);
+
+/**
+ * @return TRUE the "always offer video" property is enabled.
+ */
+gboolean video_settings_get_always_offer_video (video_settings_t* settings);
 
 /** @struct account_t
   * @brief Account information.
@@ -194,6 +224,11 @@ typedef struct  {
  * @return a new and initialized account object.
  */
 account_t* account_new(gchar* accountID);
+
+/**
+ * @param account An existing instance of an account object to initialize.
+ */
+gboolean account_init (account_t* account);
 
 /**
  * @param account The account to free

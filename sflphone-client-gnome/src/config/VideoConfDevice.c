@@ -102,10 +102,7 @@ on_resolutions_combo_changed_cb (GtkWidget* widget, gpointer self)
 {
   VideoConfDevicePrivate* priv = GET_PRIVATE((VideoConfDevice*) self);
 
-  DEBUG("Callback on_resolutions_combo_changed_cb");
-
-  GtkTreeModel* model = gtk_combo_box_get_model (
-      GTK_COMBO_BOX(priv->devices_combo));
+  // Get the active name in the device combo box
   GtkTreeIter iter;
   if (gtk_combo_box_get_active_iter (GTK_COMBO_BOX(priv->devices_combo), &iter)
       != TRUE)
@@ -113,16 +110,17 @@ on_resolutions_combo_changed_cb (GtkWidget* widget, gpointer self)
       return;
     }
   gchar* device_name;
-  gtk_tree_model_get (model, &iter, 0, &device_name, -1);
+  gtk_tree_model_get (GTK_TREE_MODEL(priv->devices_store), &iter, COLUMN_NAME, &device_name, -1);
 
-  model = gtk_combo_box_get_model (GTK_COMBO_BOX(priv->resolutions_combo));
+  // Get the active resolution the the resolutions combo box
   gtk_combo_box_get_active_iter (GTK_COMBO_BOX(priv->resolutions_combo), &iter);
-
   resolution_t* resolution;
-  gtk_tree_model_get (model, &iter, 1, &resolution, -1);
+  gtk_tree_model_get (GTK_TREE_MODEL(priv->resolutions_store), &iter, COLUMN_RESOLUTION_POINTER, &resolution, -1);
 
+  // Clear the framerates
   gtk_list_store_clear (priv->framerates_store);
 
+  // Get the corresponding framerates over dbus
   gchar** framerates = NULL;
   framerates = dbus_video_get_framerates (device_name, resolution->width,
       resolution->height);
@@ -155,31 +153,33 @@ on_devices_combo_changed_cb (GtkWidget* widget, gpointer self)
   if (index >= 0)
     {
       // Get the supported resolutions
-      GtkTreeModel* model;
       GtkTreeIter iter_device_name;
-      gchar* device_name;
-
-      model = gtk_combo_box_get_model (GTK_COMBO_BOX(widget));
       gtk_combo_box_get_active_iter (GTK_COMBO_BOX(widget), &iter_device_name);
-      gtk_tree_model_get (model, &iter_device_name, 0, &device_name, -1);
+      gchar* device_name;
+      gtk_tree_model_get (GTK_TREE_MODEL(priv->devices_store), &iter_device_name, COLUMN_NAME, &device_name, -1);
 
+      // Get the corresponding resolutions
       GList* resolutions = NULL;
       resolutions = dbus_video_get_resolution_for_device (device_name);
 
+      // Clear the resolutions
       gtk_list_store_clear (priv->resolutions_store);
 
+      // Fill the resolutions comobo
       GList* li;
       GtkTreeIter iter_resolutions;
       for (li = resolutions; li != NULL; li = g_list_next(li))
         {
+          gtk_list_store_append (priv->resolutions_store, &iter_resolutions);
+
+          // Format as a string
           resolution_t* resolution = li->data;
           gchar* resolution_str = g_strdup_printf ("%d x %d",
               resolution->width, resolution->height);
 
-          gtk_list_store_append (priv->resolutions_store, &iter_resolutions);
-
-          gtk_list_store_set (priv->resolutions_store, &iter_resolutions, 0,
-              resolution_str, 1, resolution, -1);
+          // Store both string and pointer
+          gtk_list_store_set (priv->resolutions_store, &iter_resolutions, COLUMN_RESOLUTION_STRING,
+              resolution_str, COLUMN_RESOLUTION_POINTER, resolution, -1);
 
           g_free (resolution_str);
         }
@@ -305,16 +305,14 @@ devices_combo_find_by_name (GtkTreeModel* model, GtkTreeIter* user_iter,  const 
   gboolean valid = gtk_tree_model_get_iter_first (model, user_iter);
   while (valid)
     {
-      gchar* colum_name;
-      gtk_tree_model_get (model, user_iter, COLUMN_NAME, &name, -1);
+      gchar* column_name;
+      gtk_tree_model_get (model, user_iter, COLUMN_NAME, &column_name, -1);
 
-      if (g_strcmp0 (name, colum_name) == 0)
+      if (g_strcmp0 (name, column_name) == 0)
         {
-          g_free (colum_name);
           return TRUE;
         }
 
-      g_free (colum_name);
       valid = gtk_tree_model_iter_next (model, user_iter);
     }
 
@@ -334,7 +332,6 @@ resolution_combo_box_find(GtkTreeModel* model, GtkTreeIter* user_iter, resolutio
         return TRUE;
       }
 
-      g_free (res);
       valid = gtk_tree_model_iter_next (model, user_iter);
     }
 
@@ -352,11 +349,8 @@ framerate_combo_box_find(GtkTreeModel* model, GtkTreeIter* user_iter, gchar* use
 
       if (g_strcmp0 (framerate, user_rate) == 0)
         {
-          g_free (framerate);
           return TRUE;
         }
-
-      g_free (framerate);
 
       valid = gtk_tree_model_iter_next (model, user_iter);
     }
@@ -397,7 +391,7 @@ video_conf_device_set_value (VideoConfDevice* device, const gchar* name,
 
   // Framerate combo
   gchar* rate_str = framerate_to_string(&framerate);
-  if (framerate_combo_box_find(GTK_TREE_MODEL(priv->framerates_combo), &iter, rate_str)) {
+  if (framerate_combo_box_find(GTK_TREE_MODEL(priv->framerates_store), &iter, rate_str)) {
     gtk_combo_box_set_active_iter (GTK_COMBO_BOX(priv->framerates_combo), &iter);
   }
 
@@ -436,7 +430,12 @@ void video_conf_device_save(VideoConfDevice* self, account_t* account) {
   gtk_tree_model_get (model, &iter, 0, &rate, -1);
   framerate_t* framerate = framerate_new_from_string(rate);
 
+  DEBUG("Saving device %s", device_name);
   video_settings_set_device(account->video_settings, device_name);
+  DEBUG("Saving resolution %d x %d", resolution->width, resolution->height);
   video_settings_set_resolution(account->video_settings, resolution);
+  DEBUG("Saving framerate %d/%d", framerate->numerator, framerate->denominator);
   video_settings_set_framerate(account->video_settings, framerate);
+
+  video_settings_saves(account->video_settings, account->accountID);
 }

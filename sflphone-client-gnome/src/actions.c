@@ -206,125 +206,29 @@ hashtable_free (gpointer key, gpointer value, gpointer user_data)
 void
 sflphone_fill_account_list (void)
 {
-  gchar** array;
-  gchar** accountID;
-  unsigned int i;
-  GQueue *codeclist;
-
   DEBUG("SFLphone: Fill account list");
 
   account_list_clear ();
 
-  array = (gchar **) dbus_account_list ();
+  gchar** array = (gchar **) dbus_account_list ();
   if (array)
     {
+      gchar** accountID;
       for (accountID = array; *accountID; accountID++)
         {
           account_t* account = account_new(*accountID);
+
           account_list_add(account);
+
+          account_init (account);
+
           DEBUG("Account %s added.", account->accountID);
         }
       g_strfreev (array);
     }
 
-  for (i = 0; i < account_list_get_size (); i++)
-    {
-      account_t* account = account_list_get_nth (i);
-      if (account == NULL) {
-        ERROR("Could not get account #%d", i);
-        break;
-      }
-
-      GHashTable * details = (GHashTable *) dbus_account_details (account->accountID);
-      if (details == NULL) {
-        ERROR("Could not get account details for account \"%s\"", account->accountID);
-        break;
-      }
-      account->properties = details;
-
-      account->video_settings = dbus_get_video_settings(account->accountID);
-
-      /* As this function might be called numerous time, we should free the
-       * previously allocated space to avoid memory leaks.
-       */
-
-      /* Fill the actual array of credentials */
-      int number_of_credential = dbus_get_number_of_credential (account->accountID);
-      if (number_of_credential)
-        {
-          account->credential_information = g_ptr_array_new ();
-        }
-      else
-        {
-          account->credential_information = NULL;
-        }
-
-      int credential_index;
-      for (credential_index = 0; credential_index < number_of_credential; credential_index++)
-        {
-          GHashTable * credential_information = dbus_get_credential (account->accountID, credential_index);
-          g_ptr_array_add (account->credential_information, credential_information);
-        }
-
-      gchar * status = g_hash_table_lookup (details, REGISTRATION_STATUS);
-      if (strcmp (status, "REGISTERED") == 0)
-        {
-          account->state = ACCOUNT_STATE_REGISTERED;
-        }
-      else if (strcmp (status, "UNREGISTERED") == 0)
-        {
-          account->state = ACCOUNT_STATE_UNREGISTERED;
-        }
-      else if (strcmp (status, "TRYING") == 0)
-        {
-          account->state = ACCOUNT_STATE_TRYING;
-        }
-      else if (strcmp (status, "ERROR") == 0)
-        {
-          account->state = ACCOUNT_STATE_ERROR;
-        }
-      else if (strcmp (status, "ERROR_AUTH") == 0)
-        {
-          account->state = ACCOUNT_STATE_ERROR_AUTH;
-        }
-      else if (strcmp (status, "ERROR_NETWORK") == 0)
-        {
-          account->state = ACCOUNT_STATE_ERROR_NETWORK;
-        }
-      else if (strcmp (status, "ERROR_HOST") == 0)
-        {
-          account->state = ACCOUNT_STATE_ERROR_HOST;
-        }
-      else if (strcmp (status, "ERROR_CONF_STUN") == 0)
-        {
-          account->state = ACCOUNT_STATE_ERROR_CONF_STUN;
-        }
-      else if (strcmp (status, "ERROR_EXIST_STUN") == 0)
-        {
-          account->state = ACCOUNT_STATE_ERROR_EXIST_STUN;
-        }
-      else if (strcmp (status, "READY") == 0)
-        {
-          account->state = IP2IP_PROFILE_STATUS;
-        }
-      else
-        {
-          account->state = ACCOUNT_STATE_INVALID;
-        }
-
-      gchar * code = NULL;
-      code = g_hash_table_lookup (details, REGISTRATION_STATE_CODE);
-      if (code != NULL)
-        {
-          account->protocol_state_code = atoi (code);
-        }
-
-      account->protocol_state_description = g_hash_table_lookup (details, REGISTRATION_STATE_DESCRIPTION);
-    }
-
-  int count = current_account_get_message_number ();
-
   // Set the current account message number
+  int count = current_account_get_message_number();
   current_account_set_message_number (count);
 
   sflphone_fill_codec_list ();

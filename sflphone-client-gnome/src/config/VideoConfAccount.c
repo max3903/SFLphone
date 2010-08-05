@@ -180,7 +180,7 @@ always_offer_video_toggled_cb(GtkWidget* checkbox, gpointer data)
   VideoConfAccount* self = (VideoConfAccount*) data;
   VideoConfAccountPrivate* priv = GET_PRIVATE(self);
 
-  priv->account->video_settings->always_offer_video = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(checkbox));
+  video_settings_set_always_offer_video(priv->account->video_settings, gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(checkbox)));
 }
 
 static void
@@ -242,6 +242,7 @@ video_conf_account_save (VideoConfAccount* self)
   // Save the video codecs over dbus
   codec_list_save (SFL_CODEC_LIST(priv->video_codec_list));
 
+  DEBUG("************************************************* SAVING")
   // Save the video settings over dbus
-  video_settings_saves(priv->account->video_settings, priv->account->accountID);
+  video_conf_device_save(SFL_VIDEO_CONF_DEVICE(priv->video_conf_device), priv->account);
 }

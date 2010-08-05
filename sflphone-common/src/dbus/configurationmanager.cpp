@@ -660,14 +660,19 @@ void ConfigurationManager::setVideoSettings(const std::string& accountID, const 
 	VideoSettings videoSettings(settings);
 
 	// Always offer video
+	_debug("Settings video parameters for account %s : always offer video : %d", accountID.c_str(), videoSettings.alwaysOfferVideo);
 	account->setAlwaysOfferVideo(videoSettings.alwaysOfferVideo);
 
 	// Video device name
+	_debug("Settings video parameters for account %s : preferred device name : %s", accountID.c_str(), videoSettings.device.c_str());
 	account->setPreferredVideoDevice(videoSettings.device);
 
 	// Video format
 	sfl::VideoFormat format;
+	_debug("Settings video parameters for account %s : preferred framerate : %d/%d", accountID.c_str(), videoSettings.framerate.numerator, videoSettings.framerate.denominator);
 	format.setFramerate(videoSettings.framerate.numerator, videoSettings.framerate.denominator);
+
+	_debug("Settings video parameters for account %s : preferred resolution : %d x %d", accountID.c_str(), videoSettings.resolution.width, videoSettings.resolution.height);
 	format.setWidth(videoSettings.resolution.width);
 	format.setHeight(videoSettings.resolution.height);
 
