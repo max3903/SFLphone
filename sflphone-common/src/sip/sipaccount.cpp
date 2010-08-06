@@ -36,9 +36,14 @@
 #include <pwd.h>
 #include <sstream>
 
-// CredentialItem::CredentialItem() {}
-
-// CredentialItem::~CredentialItem() {}
+     const char* SIPAccount::ALWAYS_OFFER_VIDEO = "alwaysOfferVideo";
+     const char* SIPAccount::PREFERRED_VIDEO_DEVICE = "preferredVideoDevice";
+     const char* SIPAccount::PREFERRED_VIDEO_RESOLUTION = "preferredVideoResolution";
+     const char* SIPAccount::PREFERRED_VIDEO_FRAMERATE = "preferredVideoFramerate";
+     const char* SIPAccount::PREFERRED_WIDTH = "width";
+     const char* SIPAccount::PREFERRED_HEIGHT = "height";
+     const char* SIPAccount::PREFERRED_NUMERATOR = "numerator";
+     const char* SIPAccount::PREFERRED_DENOMINATOR = "denominator";
 
 Credentials::Credentials() : credentialCount(0) {}
 
@@ -237,31 +242,32 @@ void SIPAccount::serialize(Conf::YamlEmitter *emitter) {
   accountmap.setKeyValue(dtmfTypeKey, &dtmfType);
   accountmap.setKeyValue(displayNameKey, &displayName);
 
-  // Codecs
+  // Audio
   Conf::ScalarNode audioCodecs(getAudioCodecsSerialized());
-  Conf::ScalarNode videoCodecs(getVideoCodecsSerialized());
-
   accountmap.setKeyValue(audioCodecsKey, &audioCodecs);
-  accountmap.setKeyValue(videoCodecsKey, &videoCodecs);
 
   // Ringtone
   accountmap.setKeyValue(ringtonePathKey, &ringtonePath);
   accountmap.setKeyValue(ringtoneEnabledKey, &ringtoneEnabled);
 
+  // SRTP
   accountmap.setKeyValue(srtpKey, &srtpmap);
   srtpmap.setKeyValue(srtpEnableKey, &srtpenabled);
   srtpmap.setKeyValue(keyExchangeKey, &keyExchange);
   srtpmap.setKeyValue(rtpFallbackKey, &rtpFallback);
   
+  // ZRTP
   accountmap.setKeyValue(zrtpKey, &zrtpmap);
   zrtpmap.setKeyValue(displaySasKey, &displaySas);
   zrtpmap.setKeyValue(displaySasOnceKey, &displaySasOnce);
   zrtpmap.setKeyValue(helloHashEnabledKey, &helloHashEnabled);
   zrtpmap.setKeyValue(notSuppWarningKey, &notSuppWarning);
 
+  // Credentials
   accountmap.setKeyValue(credKey, &credentialmap);
   credentialmap.setKeyValue(credentialCountKey, &count);
 
+  // TLS
   accountmap.setKeyValue(tlsKey, &tlsmap);
   tlsmap.setKeyValue(tlsPortKey, &tlsport);
   tlsmap.setKeyValue(certificateKey, &certificate);
@@ -276,6 +282,32 @@ void SIPAccount::serialize(Conf::YamlEmitter *emitter) {
   tlsmap.setKeyValue(serverKey, &server);
   tlsmap.setKeyValue(verifyClientKey, &verifyclient);
   tlsmap.setKeyValue(verifyServerKey, &verifyserver);
+
+  // Video
+  Conf::MappingNode videoSection(NULL);
+  accountmap.setKeyValue("video", &videoSection);
+  videoSection.setKeyValue(ALWAYS_OFFER_VIDEO, new Conf::ScalarNode(isAlwaysOfferVideo() ? "true" : "false"));
+  videoSection.setKeyValue(PREFERRED_VIDEO_DEVICE, new Conf::ScalarNode(getPreferredVideoDevice()));
+  videoSection.setKeyValue("codecs", new Conf::ScalarNode(getVideoCodecsSerialized()));
+  Conf::MappingNode resolutionSection(NULL);
+  videoSection.setKeyValue(PREFERRED_VIDEO_RESOLUTION, &resolutionSection);
+	  std::stringstream ss;
+	  ss << getPreferredVideoFormat().getWidth();
+	  resolutionSection.setKeyValue(PREFERRED_WIDTH, new Conf::ScalarNode(ss.str()));
+
+	  ss.str("");
+	  ss << getPreferredVideoFormat().getHeight();
+	  resolutionSection.setKeyValue(PREFERRED_HEIGHT, new Conf::ScalarNode(ss.str()));
+
+  Conf::MappingNode framerateSection(NULL);
+  videoSection.setKeyValue(PREFERRED_VIDEO_FRAMERATE, &framerateSection);
+	  ss.str("");
+	  ss << getPreferredVideoFormat().getPreferredFrameRate().getNumerator();
+	  framerateSection.setKeyValue(PREFERRED_NUMERATOR, new Conf::ScalarNode(ss.str()));
+
+	  ss.str("");
+	  ss << getPreferredVideoFormat().getPreferredFrameRate().getDenominator();
+	  framerateSection.setKeyValue(PREFERRED_DENOMINATOR, new Conf::ScalarNode(ss.str()));
 
   try{
     emitter->serializeAccount(&accountmap);
@@ -300,7 +332,6 @@ void SIPAccount::unserialize(Conf::MappingNode *map)
 
    // Codecs
   setAudioCodecsSerialized((map->getScalarNode(audioCodecsKey))->getValue());
-  setVideoCodecsSerialized((map->getScalarNode(videoCodecsKey))->getValue());
 
   _ringtonePath = (map->getScalarNode(ringtonePathKey))->getValue();
   _ringtoneEnabled = (map->getScalarNode(ringtoneEnabledKey))->toBoolean();
@@ -335,9 +366,9 @@ void SIPAccount::unserialize(Conf::MappingNode *map)
     throw SipAccountException("Did not found SRTP map.");
   }
 
-  _srtpEnabled = (map->getScalarNode(srtpEnableKey))->toBoolean();
-  _srtpKeyExchange = (map->getScalarNode(keyExchangeKey))->getValue();
-  _srtpFallback = (map->getScalarNode(rtpFallbackKey))->toBoolean();
+  _srtpEnabled = (srtpMap->getScalarNode(srtpEnableKey))->toBoolean();
+  _srtpKeyExchange = (srtpMap->getScalarNode(keyExchangeKey))->getValue();
+  _srtpFallback = (srtpMap->getScalarNode(rtpFallbackKey))->toBoolean();
 
   // ZRTP submap
   Conf::MappingNode* zrtpMap = (Conf::MappingNode *)(map->getValue(zrtpKey));
@@ -345,10 +376,10 @@ void SIPAccount::unserialize(Conf::MappingNode *map)
     throw SipAccountException("Did not found ZRTP map.");
   }
 
-  _zrtpDisplaySas = (map->getScalarNode(displaySasKey))->toBoolean();
-  _zrtpDisplaySasOnce = (map->getScalarNode(displaySasOnceKey))->toBoolean();
-  _zrtpHelloHash = (map->getScalarNode(helloHashEnabledKey))->toBoolean();
-  _zrtpNotSuppWarning = (map->getScalarNode(notSuppWarningKey))->toBoolean();
+  _zrtpDisplaySas = (zrtpMap->getScalarNode(displaySasKey))->toBoolean();
+  _zrtpDisplaySasOnce = (zrtpMap->getScalarNode(displaySasOnceKey))->toBoolean();
+  _zrtpHelloHash = (zrtpMap->getScalarNode(helloHashEnabledKey))->toBoolean();
+  _zrtpNotSuppWarning = (zrtpMap->getScalarNode(notSuppWarningKey))->toBoolean();
 
   // TLS submap
   Conf::MappingNode* tlsMap = (Conf::MappingNode *)(map->getValue(tlsKey));
@@ -356,20 +387,53 @@ void SIPAccount::unserialize(Conf::MappingNode *map)
     throw SipAccountException("Did not found TLS map.");
   }
 
-  _tlsEnable = (map->getScalarNode(tlsEnableKey))->getValue();
-  _tlsPortStr = (map->getScalarNode(tlsPortKey))->getValue();
-  _tlsCertificateFile = (map->getScalarNode(certificateKey))->getValue();
-  _tlsCaListFile = (map->getScalarNode(calistKey))->getValue();
-  _tlsCiphers = (map->getScalarNode(ciphersKey))->getValue();
-  _tlsMethod = (map->getScalarNode(methodKey))->getValue();
-  _tlsNegotiationTimeoutSec = (map->getScalarNode(timeoutKey))->getValue();
-  _tlsNegotiationTimeoutMsec = (map->getScalarNode(timeoutKey))->getValue(); // FIXME Wrong key
-  _tlsPassword = (map->getScalarNode(tlsPasswordKey))->getValue();
-  _tlsPrivateKeyFile = (map->getScalarNode(privateKeyKey))->getValue();
-  _tlsRequireClientCertificate = (map->getScalarNode(requireCertifKey))->toBoolean();
-  _tlsServerName = (map->getScalarNode(serverKey))->getValue();
-  _tlsVerifyServer = (map->getScalarNode(verifyClientKey))->toBoolean();
-  _tlsVerifyClient = (map->getScalarNode(verifyServerKey))->toBoolean();
+  _tlsEnable = (tlsMap->getScalarNode(tlsEnableKey))->getValue();
+  _tlsPortStr = (tlsMap->getScalarNode(tlsPortKey))->getValue();
+  _tlsCertificateFile = (tlsMap->getScalarNode(certificateKey))->getValue();
+  _tlsCaListFile = (tlsMap->getScalarNode(calistKey))->getValue();
+  _tlsCiphers = (tlsMap->getScalarNode(ciphersKey))->getValue();
+  _tlsMethod = (tlsMap->getScalarNode(methodKey))->getValue();
+  _tlsNegotiationTimeoutSec = (tlsMap->getScalarNode(timeoutKey))->getValue();
+  _tlsNegotiationTimeoutMsec = (tlsMap->getScalarNode(timeoutKey))->getValue(); // FIXME Wrong key
+  _tlsPassword = (tlsMap->getScalarNode(tlsPasswordKey))->getValue();
+  _tlsPrivateKeyFile = (tlsMap->getScalarNode(privateKeyKey))->getValue();
+  _tlsRequireClientCertificate = (tlsMap->getScalarNode(requireCertifKey))->toBoolean();
+  _tlsServerName = (tlsMap->getScalarNode(serverKey))->getValue();
+  _tlsVerifyServer = (tlsMap->getScalarNode(verifyClientKey))->toBoolean();
+  _tlsVerifyClient = (tlsMap->getScalarNode(verifyServerKey))->toBoolean();
+
+  // Video submap
+  Conf::MappingNode* videoSection = (Conf::MappingNode *)(map->getValue("video"));
+  if(!videoSection) {
+    throw SipAccountException("Did not found video map.");
+  }
+  setAlwaysOfferVideo((videoSection->getScalarNode(ALWAYS_OFFER_VIDEO))->toBoolean());
+  setPreferredVideoDevice((videoSection->getScalarNode(PREFERRED_VIDEO_DEVICE))->getValue());
+
+  Conf::MappingNode* resolutionSection = (Conf::MappingNode *)(videoSection->getValue(PREFERRED_VIDEO_RESOLUTION));
+  if(!resolutionSection) {
+    throw SipAccountException("Did not found resolution map.");
+  }
+  uint width = (resolutionSection->getScalarNode(PREFERRED_WIDTH))->toInt();
+  uint height = (resolutionSection->getScalarNode(PREFERRED_HEIGHT))->toInt();
+
+  Conf::MappingNode* framerateSection = (Conf::MappingNode *)(videoSection->getValue(PREFERRED_VIDEO_FRAMERATE));
+  if(!framerateSection) {
+    throw SipAccountException("Did not found framerate map.");
+  }
+  uint num = (framerateSection->getScalarNode(PREFERRED_NUMERATOR))->toInt();
+  uint denom = (framerateSection->getScalarNode(PREFERRED_DENOMINATOR))->toInt();
+
+  sfl::VideoFormat format;
+  format.setWidth(width);
+  format.setHeight(height);
+  sfl::FrameRate rate(num, denom);
+  format.setPreferredFrameRate(rate);
+
+  setPreferredVideoFormat(format);
+
+  setVideoCodecsSerialized((videoSection->getScalarNode(videoCodecsKey))->getValue());
+
 }
 
 

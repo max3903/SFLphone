@@ -385,70 +385,116 @@ class SIPAccount : public Account
          * actually using.
          * @return pj_uint16 The port used for that account
          */   
-        inline pj_uint16_t getLocalPort(void) { return (pj_uint16_t) _localPort; }
-        
-        /** 
+        inline pj_uint16_t getLocalPort(void) { return (pj_uint16_t)((((((((((_localPort))))))))));
+    }
+
+    /** 
          * Set the new port on which this account is running over.
          * @pram port The port used by this account.
          */
-        inline void setLocalPort(pj_uint16_t port) { _localPort = port; }
-                
-        /**
+    inline void setLocalPort(pj_uint16_t port)
+    {
+        _localPort = port;
+    }
+
+    /**
          * Get the published port, which is the port to be advertised as the port
          * for the chosen SIP transport.
          * @return pj_uint16 The port used for that account
-         */   
-        inline pj_uint16_t getPublishedPort(void) { return (pj_uint16_t) _publishedPort; }
-        
-        /** 
+         */
+    inline pj_uint16_t getPublishedPort(void)
+    {
+        return (pj_uint16_t)((((((((((_publishedPort))))))))));
+    }
+
+    /** 
          * Set the published port, which is the port to be advertised as the port
          * for the chosen SIP transport.
          * @pram port The port used by this account.
          */
-        inline void setPublishedPort(pj_uint16_t port) { _publishedPort = port; }
+    inline void setPublishedPort(pj_uint16_t port)
+    {
+        _publishedPort = port;
+    }
 
-	/**
+    /**
          * Get the local port for TLS listener.
          * @return pj_uint16 The port used for that account
-         */   
-        inline pj_uint16_t getTlsListenerPort(void) { return (pj_uint16_t) _tlsListenerPort; }
-        
-        /** 
+         */
+    inline pj_uint16_t getTlsListenerPort(void)
+    {
+        return (pj_uint16_t)((((((((((_tlsListenerPort))))))))));
+    }
+
+    /** 
          * Set the local port for TLS listener.
          * @pram port The port used for TLS listener.
          */
-        inline void setTlsListenerPort(pj_uint16_t port) { _tlsListenerPort = port; }
-                
-        /**
+    inline void setTlsListenerPort(pj_uint16_t port)
+    {
+        _tlsListenerPort = port;
+    }
+
+    /**
          * Get the public IP address set by the user for this account.
          * If this setting is not provided, the local bound adddress
          * will be used.
          * @return std::string The public IPV4 address formatted in the standard dot notation.
          */
-        inline std::string getPublishedAddress(void) { return _publishedIpAddress; }
-        
-        /**
+    inline std::string getPublishedAddress(void)
+    {
+        return _publishedIpAddress;
+    }
+
+    /**
          * Set the public IP address to be used in Contact header.
          * @param The public IPV4 address in the standard dot notation.
          * @return void
          */
-        inline void setPublishedAddress(const std::string& publishedIpAddress) { _publishedIpAddress = publishedIpAddress; }
+    inline void setPublishedAddress(const std::string & publishedIpAddress)
+    {
+        _publishedIpAddress = publishedIpAddress;
+    }
 
-	inline std::string getServiceRoute(void) { return _serviceRoute; }
+    inline std::string getServiceRoute(void)
+    {
+        return _serviceRoute;
+    }
 
-	inline void setServiceRoute(std::string route) { _serviceRoute = route; }
-        
-        /**
+    inline void setServiceRoute(std::string route)
+    {
+        _serviceRoute = route;
+    }
+
+    /**
          * Get the chosen transport type.
          * @return pjsip_transport_type_e Transport type chosen by the user for this account.
          */
-        inline pjsip_transport_type_e getTransportType(void) { return _transportType; }
-        
-        inline pjsip_transport* getAccountTransport (void) { return _transport; }
+    inline pjsip_transport_type_e getTransportType(void)
+    {
+        return _transportType;
+    }
 
-        inline void setAccountTransport (pjsip_transport *transport) { _transport = transport; }
+    inline pjsip_transport *getAccountTransport(void)
+    {
+        return _transport;
+    }
 
-        std::string getTransportMapKey(void);
+    inline void setAccountTransport(pjsip_transport *transport)
+    {
+        _transport = transport;
+    }
+
+    std::string getTransportMapKey(void);
+    static const char* ALWAYS_OFFER_VIDEO;
+    static const char* PREFERRED_VIDEO_DEVICE;
+    static const char* PREFERRED_VIDEO_RESOLUTION;
+    static const char* PREFERRED_VIDEO_FRAMERATE;
+    static const char* PREFERRED_WIDTH;
+    static const char* PREFERRED_HEIGHT;
+    static const char* PREFERRED_NUMERATOR;
+    static const char* PREFERRED_DENOMINATOR;
+
 
         DtmfType getDtmfType(void) { return _dtmfType; }
         void setDtmfType(DtmfType type) { _dtmfType = type; }
