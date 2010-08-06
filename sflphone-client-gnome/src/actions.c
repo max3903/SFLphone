@@ -118,26 +118,30 @@ _is_direct_call (callable_obj_t * c)
 void
 status_bar_display_account ()
 {
-  gchar* msg;
-  account_t* acc;
+gchar* msg;
+account_t* acc;
 
-  statusbar_pop_message (__MSG_ACCOUNT_DEFAULT);
+statusbar_pop_message(__MSG_ACCOUNT_DEFAULT);
 
-  acc = account_list_get_current ();
-  if (acc)
-    {
-      status_tray_icon_online (TRUE);
-      msg = g_markup_printf_escaped ("%s %s (%s)", _("Using account"),
-          (gchar*) g_hash_table_lookup (acc->properties, ACCOUNT_ALIAS),
-          (gchar*) g_hash_table_lookup (acc->properties, ACCOUNT_TYPE));
-    }
-  else
-    {
-      status_tray_icon_online (FALSE);
-      msg = g_markup_printf_escaped (_("No registered accounts"));
-    }
-  statusbar_push_message (msg, __MSG_ACCOUNT_DEFAULT);
-  g_free (msg);
+DEBUG("status_bar_display_account begin");
+
+acc = account_list_get_current ();
+if(acc){
+    status_tray_icon_online(TRUE);
+    msg = g_markup_printf_escaped("%s %s (%s)" ,
+            _("Using account"),
+            (gchar*)g_hash_table_lookup( acc->properties , ACCOUNT_ALIAS),
+            (gchar*)g_hash_table_lookup( acc->properties , ACCOUNT_TYPE));
+}
+else
+{
+    status_tray_icon_online(FALSE);
+    msg = g_markup_printf_escaped(_("No registered accounts"));
+}
+statusbar_push_message( msg, NULL,  __MSG_ACCOUNT_DEFAULT);
+g_free(msg);
+
+DEBUG("status_bar_display_account_end");
 }
 
 gboolean
@@ -535,30 +539,29 @@ sflphone_unset_transfert ()
 }
 
 void
-sflphone_display_transfer_status (const gchar* message)
+sflphone_display_transfer_status(const gchar* message)
 {
-  statusbar_push_message (message, __MSG_ACCOUNT_DEFAULT);
+  statusbar_push_message( message , NULL, __MSG_ACCOUNT_DEFAULT);
 }
 
 void
 sflphone_incoming_call (callable_obj_t * c)
 {
-  gchar *msg = "";
+    gchar *msg = "";
 
-  c->_history_state = MISSED;
-  calllist_add (current_calls, c);
-  calllist_add (history, c);
-  calltree_add_call (current_calls, c, NULL);
-  update_actions ();
-  calltree_display (current_calls);
+c->_history_state = MISSED;
+calllist_add ( current_calls, c );
+calllist_add( history, c );
+calltree_add_call( current_calls, c, NULL);
+update_actions();
+calltree_display (current_calls);
 
-  // Change the status bar if we are dealing with a direct SIP call
-  if (_is_direct_call (c))
-    {
-      msg = g_markup_printf_escaped (_("Direct SIP call"));
-      statusbar_pop_message (__MSG_ACCOUNT_DEFAULT);
-      statusbar_push_message (msg, __MSG_ACCOUNT_DEFAULT);
-      g_free (msg);
+    // Change the status bar if we are dealing with a direct SIP call
+if(_is_direct_call(c)) {
+            msg = g_markup_printf_escaped (_("Direct SIP call"));
+    statusbar_pop_message(__MSG_ACCOUNT_DEFAULT);
+    statusbar_push_message( msg , NULL, __MSG_ACCOUNT_DEFAULT);
+    g_free(msg);
     }
 }
 

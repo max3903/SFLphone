@@ -242,7 +242,7 @@ video_conf_account_save (VideoConfAccount* self)
   // Save the video codecs over dbus
   codec_list_save (SFL_CODEC_LIST(priv->video_codec_list));
 
-  DEBUG("************************************************* SAVING")
+  DEBUG("************************************************* SAVING");
   // Save the video settings over dbus
   video_conf_device_save(SFL_VIDEO_CONF_DEVICE(priv->video_conf_device), priv->account);
 }

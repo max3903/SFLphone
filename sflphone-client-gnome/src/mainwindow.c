@@ -423,11 +423,12 @@ g_free(status_current_message);
 status_current_message = g_strdup(left_hand_message);
 
 // Format message according to right hand member
-if(right_hand_message)
-message_to_display = g_strdup_printf("%s           %s",
+if(right_hand_message) {
+  message_to_display = g_strdup_printf("%s           %s",
                                  left_hand_message, right_hand_message);
-else
-message_to_display = g_strdup(left_hand_message);
+} else {
+  message_to_display = g_strdup(left_hand_message);
+}
 
 // Push into the statusbar
 gtk_statusbar_push (GTK_STATUSBAR(statusBar), id, message_to_display);

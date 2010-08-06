@@ -289,7 +289,7 @@ swap_link_down (GList* codec)
       link_down->data = tmp;
       DEBUG("Link down now %s", ((codec_t*)link_down->data)->codec.mime_subtype);
     } else {
-      ERROR("Next link is NULL.")
+      ERROR("Next link is NULL.");
     }
 }
 
