@@ -38,7 +38,9 @@ test_SOURCES = \
 	GstEncoderTest.h \
 	GstEncoderTest.cpp \
 	GstDecoderTest.h \
-	GstDecoderTest.cpp
+	GstDecoderTest.cpp \
+	ringtonetest.h \
+	ringtonetest.cpp
 
 LLIBS=$(CPPUNIT_LIBS) \
 	../src/sflphoned-logger.o \

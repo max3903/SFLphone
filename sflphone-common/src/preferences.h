@@ -72,137 +72,94 @@ const Conf::Key urlCommandKey ("urlCommand"); //:		x-www-browser
 const Conf::Key urlSipFieldKey ("urlSipField"); //:		X-sflphone-url
 
 // audio preferences
-const Conf::Key alsamapKey ("alsa");
-const Conf::Key pulsemapKey ("pulse");
-const Conf::Key cardinKey ("cardin");// : 0
-const Conf::Key cardoutKey ("cardout");// 0
-const Conf::Key cardringKey ("cardring");// : 0
-const Conf::Key framesizeKey ("framesize");// : 20
-const Conf::Key pluginKey ("plugin"); //: default
-const Conf::Key smplrateKey ("smplrate");//: 44100
-const Conf::Key devicePlaybackKey ("devicePlayback");//:
-const Conf::Key deviceRecordKey ("deviceRecord");// :
-const Conf::Key deviceRingtoneKey ("deviceRingtone");// :
-const Conf::Key recordpathKey ("recordpath");//: /home/msavard/Bureau
-const Conf::Key volumemicKey ("volumemic");//:  100
-const Conf::Key volumespkrKey ("volumespkr");//: 100
+const Conf::Key alsamapKey("alsa");
+const Conf::Key pulsemapKey("pulse");
+const Conf::Key cardinKey("cardin");// : 0
+const Conf::Key cardoutKey("cardout");// 0
+const Conf::Key cardringKey("cardring");// : 0
+const Conf::Key framesizeKey("framesize");// : 20
+const Conf::Key pluginKey("plugin"); //: default
+const Conf::Key smplrateKey("smplrate");//: 44100
+const Conf::Key devicePlaybackKey("devicePlayback");//:
+const Conf::Key deviceRecordKey("deviceRecord");// :
+const Conf::Key deviceRingtoneKey("deviceRingtone");// :
+const Conf::Key recordpathKey("recordpath");//: /home/msavard/Bureau
+const Conf::Key volumemicKey("volumemic");//:  100
+const Conf::Key volumespkrKey("volumespkr");//: 100
+
+// shortcut preferences
+const Conf::Key hangupShortKey("hangUp");
+const Conf::Key pickupShortKey("pickUp");
+const Conf::Key popupShortKey("popupWindow");
+const Conf::Key toggleHoldShortKey("toggleHold");
+const Conf::Key togglePickupHangupShortKey("togglePickupHangup");
 
 
-class Preferences : public Serializable
-{
+class Preferences : public Serializable {
 
-    public:
+ public:
 
-        Preferences();
+  Preferences();
 
-        ~Preferences();
+  ~Preferences();
 
-        virtual void serialize (Conf::YamlEmitter *emitter);
+  virtual void serialize(Conf::YamlEmitter *emitter);
 
-        virtual void unserialize (Conf::MappingNode *map);
+  virtual void unserialize(Conf::MappingNode *map);
 
+  std::string getAccountOrder(void) { return _accountOrder; }
+  void setAccountOrder(std::string ord) { _accountOrder = ord; }
 
-        std::string getAccountOrder (void) {
-            return _accountOrder;
-        }
-        void setAccountOrder (std::string ord) {
-            _accountOrder = ord;
-        }
+  int getAudioApi(void) { return _audioApi; }
+  void setAudioApi(int api) { _audioApi = api; }
 
-        int getAudioApi (void) {
-            return _audioApi;
-        }
-        void setAudioApi (int api) {
-            _audioApi = api;
-        }
+  int getHistoryLimit(void) { return _historyLimit; }
+  void setHistoryLimit(int lim) { _historyLimit = lim; }
 
-        int getHistoryLimit (void) {
-            return _historyLimit;
-        }
-        void setHistoryLimit (int lim) {
-            _historyLimit = lim;
-        }
+  int getHistoryMaxCalls(void) { return _historyMaxCalls; }
+  void setHistoryMaxCalls(int max) { _historyMaxCalls = max; }
 
-        int getHistoryMaxCalls (void) {
-            return _historyMaxCalls;
-        }
-        void setHistoryMaxCalls (int max) {
-            _historyMaxCalls = max;
-        }
+  bool getNotifyMails(void) { return _notifyMails; }
+  void setNotifyMails(bool mails) { _notifyMails = mails; }
 
-        bool getNotifyMails (void) {
-            return _notifyMails;
-        }
-        void setNotifyMails (bool mails) {
-            _notifyMails = mails;
-        }
+  std::string getZoneToneChoice(void) { return _zoneToneChoice; }
+  void setZoneToneChoice(std::string str) { _zoneToneChoice = str; }
 
-        std::string getZoneToneChoice (void) {
-            return _zoneToneChoice;
-        }
-        void setZoneToneChoice (std::string str) {
-            _zoneToneChoice = str;
-        }
+  int getRegistrationExpire(void) { return _registrationExpire; }
+  void setRegistrationExpire(int exp) { _registrationExpire = exp; }
 
-        int getRegistrationExpire (void) {
-            return _registrationExpire;
-        }
-        void setRegistrationExpire (int exp) {
-            _registrationExpire = exp;
-        }
+  int getPortNum(void) { return _portNum; }
+  void setPortNum(int port) { _portNum = port; }
 
-        int getPortNum (void) {
-            return _portNum;
-        }
-        void setPortNum (int port) {
-            _portNum = port;
-        }
+  bool getSearchBarDisplay(void) { return _searchBarDisplay; }
+  void setSearchBarDisplay(bool search) { _searchBarDisplay = search; }
 
-        bool getSearchBarDisplay (void) {
-            return _searchBarDisplay;
-        }
-        void setSearchBarDisplay (bool search) {
-            _searchBarDisplay = search;
-        }
+  bool getZeroConfenable(void) { return _zeroConfenable; }
+  void setZeroConfenable(bool enable) { _zeroConfenable = enable; }
 
-        bool getZeroConfenable (void) {
-            return _zeroConfenable;
-        }
-        void setZeroConfenable (bool enable) {
-            _zeroConfenable = enable;
-        }
+  bool getMd5Hash(void) { return _md5Hash; }
+  void setMd5Hash(bool md5) { _md5Hash = md5; }
 
-        bool getMd5Hash (void) {
-            return _md5Hash;
-        }
-        void setMd5Hash (bool md5) {
-            _md5Hash = md5;
-        }
+ private:
 
-    private:
+  // account order
+  std::string _accountOrder;
 
-        // account order
-        std::string _accountOrder;
-
-        int _audioApi;
-        int _historyLimit;
-        int _historyMaxCalls;
-        bool _notifyMails;
-        std::string _zoneToneChoice;
-        int _registrationExpire;
-        int _portNum;
-        bool _searchBarDisplay;
-        bool _zeroConfenable;
-        bool _md5Hash;
-
+  int _audioApi;
+  int _historyLimit;
+  int _historyMaxCalls;
+  bool _notifyMails;
+  std::string _zoneToneChoice;
+  int _registrationExpire;
+  int _portNum;
+  bool _searchBarDisplay;
+  bool _zeroConfenable;
+  bool _md5Hash;
 };
-
 
 class VoipPreference : public Serializable
 {
-
     public:
-
         VoipPreference();
 
         ~VoipPreference();
@@ -266,9 +223,7 @@ class VoipPreference : public Serializable
 
 class AddressbookPreference : public Serializable
 {
-
     public:
-
         AddressbookPreference();
 
         ~AddressbookPreference();
@@ -525,6 +480,47 @@ class AudioPreference : public Serializable
         std::string _recordpath; //: /home/msavard/Bureau
         int _volumemic; //:  100
         int _volumespkr; //: 100
+
+};
+
+
+class ShortcutPreferences : public Serializable {
+
+ public:
+
+  ShortcutPreferences();
+
+  ~ShortcutPreferences();
+
+  virtual void serialize(Conf::YamlEmitter *emitter);
+
+  virtual void unserialize(Conf::MappingNode *map);
+
+  void setShortcuts(std::map<std::string, std::string> shortcut);
+  std::map<std::string, std::string> getShortcuts(void);
+
+  std::string getHangup(void) { return _hangup; }
+  void setHangup(std::string hangup) { _hangup = hangup; }
+
+  std::string getPickup(void) { return _pickup; }
+  void setPickup(std::string pickup) { _pickup = pickup; }
+
+  std::string getPopup(void) { return _popup; }
+  void setPopup(std::string popup) { _popup = popup; }
+
+  std::string getToggleHold(void) { return _toggleHold; }
+  void setToggleHold(std::string hold) { _toggleHold = hold; }
+
+  std::string getTogglePickupHangup(void) { return _togglePickupHangup; }
+  void setTogglePickupHangup(std::string toggle) { _togglePickupHangup = toggle; }
+
+ private:
+
+  std::string _hangup;
+  std::string _pickup;
+  std::string _popup;
+  std::string _toggleHold;
+  std::string _togglePickupHangup;
 
 };
 

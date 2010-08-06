@@ -511,7 +511,7 @@ SFLDataFormat EchoCancel::estimatePower (SFLDataFormat *data, SFLDataFormat *amp
     float memFactor = 1.0 - _alpha;
 
     for (int i = 0; i < size; i++) {
-        mem = (SFLDataFormat) (memFactor* (float) mem + fabs (_alpha* (float) data[i]));
+        mem = (SFLDataFormat) (memFactor* (float) mem + abs (_alpha* (float) data[i]));
         ampl[i] = mem;
     }
 

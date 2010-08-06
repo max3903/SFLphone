@@ -44,6 +44,20 @@ addressbook_search(GtkEntry* entry)
 {
 
     const gchar* query = gtk_entry_get_text(GTK_ENTRY (entry));
+    DEBUG("Addressbook: Search %s", query);
+
+
+    AddressBook_Config *addressbook_config;
+
+    activateWaitingLayer();
+
+    addressbook_config_load_parameters(&addressbook_config);
+
+    // search_by_contacts(gtk_entry_get_text(GTK_ENTRY(entry)), addressbook_config->max_results, &handler_async_search, addressbook_config);
+
+    search_async_by_contacts(gtk_entry_get_text(GTK_ENTRY (entry)), addressbook_config->max_results, &handler_async_search, addressbook_config);
+
+   /*
     if (strlen(query) >= 3) {
 
         AddressBook_Config *addressbook_config;
@@ -54,10 +68,12 @@ addressbook_search(GtkEntry* entry)
 	// Load the address book parameters
 	addressbook_config_load_parameters(&addressbook_config);
       
-	// Start the asynchronous search as soon as we have an entry */
+	// Start the asynchronous search as soon as we have an entry 
 	search_async(gtk_entry_get_text(GTK_ENTRY (entry)), addressbook_config->max_results, &handler_async_search, addressbook_config);
 
     }
+    */
+
 }
 
 /**
@@ -109,18 +125,18 @@ addressbook_config_books()
 
   if (list) {
 
-      for (config_book_uid = list; *config_book_uid; config_book_uid++) {
+    for (config_book_uid = list; *config_book_uid; config_book_uid++) {
+	
+      // Get corresponding book data
+      book_data = books_get_book_data_by_uid(*config_book_uid);
 
-          // Get corresponding book data
-          book_data = books_get_book_data_by_uid(*config_book_uid);
-
-          // If book_data exists
-          if (book_data != NULL) {
-
-              book_data->active = TRUE;
-	  }
-      }
-      g_strfreev(list);
+      // If book_data exists
+      if (book_data)
+	book_data->active = TRUE;
+      else
+	ERROR("Addressbook: Error: Could not open book"); 
+    }
+    g_strfreev(list);
   }
 
   // Update buttons
@@ -133,6 +149,8 @@ addressbook_config_books()
 GSList *
 addressbook_get_books_data()
 {
+  DEBUG("Addressboook: Get books data");
+
   addressbook_config_books();
   return books_data;
 }
@@ -144,6 +162,8 @@ addressbook_get_books_data()
 void
 addressbook_init()
 {
+  DEBUG("Addressbook: Initialize addressbook");
+  
   // Call books initialization
   init(&addressbook_config_books);
 }
@@ -160,11 +180,12 @@ handler_async_search(GList *hits, gpointer user_data)
   AddressBook_Config *addressbook_config;
   callable_obj_t *j;
 
+  DEBUG("Addressbook: callback async search");
+
   // freeing calls
-  while ((j = (callable_obj_t *) g_queue_pop_tail(contacts->callQueue)) != NULL)
-    {
-      free_callable_obj_t(j);
-    }
+  while ((j = (callable_obj_t *) g_queue_pop_tail(contacts->callQueue)) != NULL) {
+    free_callable_obj_t(j);
+  }
 
   // Retrieve the address book parameters
   addressbook_config = (AddressBook_Config*) user_data;
@@ -175,6 +196,8 @@ handler_async_search(GList *hits, gpointer user_data)
 
   for (i = hits; i != NULL; i = i->next)
     {
+      DEBUG("while");
+      
       Hit *entry;
       entry = i->data;
       if (entry)

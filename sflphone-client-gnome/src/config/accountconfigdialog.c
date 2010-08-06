@@ -213,7 +213,7 @@ getNewCredential (GHashTable * properties)
 
   if (valid == FALSE)
     {
-      DEBUG("Gtk tree model iter is not valid.")
+      DEBUG("Gtk tree model iter is not valid.");
       return NULL;
     }
 
@@ -1143,7 +1143,6 @@ create_network (account_t **a)
    * Retreive the list of IP interface from the
    * the daemon and build the combo box.
    */
-
   GtkListStore * ipInterfaceListStore;
   GtkTreeIter iter;
 
@@ -1365,7 +1364,7 @@ create_advanced_tab (account_t **a)
 {
 
   // Build the advanced tab, to appear on the account configuration panel
-  DEBUG("Config: Build advanced tab")
+  DEBUG("Config: Build advanced tab");
 
   GtkWidget *ret, *frame;
 

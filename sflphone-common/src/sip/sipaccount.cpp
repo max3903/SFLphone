@@ -85,8 +85,6 @@ void Credentials::unserialize (Conf::MappingNode *map)
     }
 }
 
-
-
 SIPAccount::SIPAccount (const AccountID& accountID)
         : Account (accountID, "SIP")
         , _routeSet ("")
@@ -139,21 +137,14 @@ SIPAccount::SIPAccount (const AccountID& accountID)
     _stunServerName.ptr = NULL;
     _stunServerName.slen = 0;
     _stunPort = 0;
-
-    // IP2IP settings must be loaded before singleton instantiation, cannot call it here...
-
-    // _link = SipVoipLink::instance ("");
-
-    /* Represents the number of SIP accounts connected the same link */
-    // dynamic_cast<SipVoipLink*> (_link)->incrementClients();
-
 }
 
 SIPAccount::~SIPAccount()
 {
     /* One SIP account less connected to the sip voiplink */
-    if (_accountID != "default")
+    if (_accountID != "default") {
         dynamic_cast<SipVoipLink*> (_link)->decrementClients();
+    }
 
     /* Delete accounts-related information */
     _regc = NULL;
@@ -276,6 +267,9 @@ void SIPAccount::serialize (Conf::YamlEmitter *emitter)
     credentialmap.setKeyValue (credentialCountKey, &count);
 
     // TLS
+    accountmap.setKeyValue (credKey, &credentialmap);
+    credentialmap.setKeyValue (credentialCountKey, &count);
+
     accountmap.setKeyValue (tlsKey, &tlsmap);
     tlsmap.setKeyValue (tlsPortKey, &tlsport);
     tlsmap.setKeyValue (certificateKey, &certificate);
@@ -323,7 +317,6 @@ void SIPAccount::serialize (Conf::YamlEmitter *emitter)
         _error ("ConfigTree: %s", e.what());
     }
 }
-
 
 void SIPAccount::unserialize (Conf::MappingNode *map)
 {
@@ -449,7 +442,6 @@ void SIPAccount::unserialize (Conf::MappingNode *map)
     setPreferredVideoFormat (format);
 
     setVideoCodecsSerialized ( (videoSection->getScalarNode (videoCodecsKey))->getValue());
-
 }
 
 

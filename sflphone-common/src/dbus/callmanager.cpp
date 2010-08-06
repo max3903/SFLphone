@@ -46,8 +46,10 @@ CallManager::CallManager (DBus::Connection& connection) :
 {
 }
 
-void CallManager::placeCall (const std::string& accountID,
-                             const std::string& callID, const std::string& to)   // Check if a destination number is available
+void
+CallManager::placeCall (const std::string& accountID,
+                        const std::string& callID,
+                        const std::string& to)     // Check if a destination number is available
 {
 
     if (to == "")
@@ -56,8 +58,9 @@ void CallManager::placeCall (const std::string& accountID,
         Manager::instance().outgoingCall (accountID, callID, to);
 }
 
-void CallManager::placeCallFirstAccount (const std::string& callID,
-        const std::string& to)
+void
+CallManager::placeCallFirstAccount (const std::string& callID,
+                                    const std::string& to)
 {
 
     if (to == "") {
@@ -90,8 +93,7 @@ void CallManager::placeCallFirstAccount (const std::string& callID,
     } else {
         _error ("AccountOrder is empty");
         // If accountOrder is empty fallback on accountList (which has no preference order)
-        std::vector<std::string> accountList =
-            Manager::instance().getAccountList();
+        std::vector< std::string > accountList = Manager::instance().getAccountList();
         iter = accountList.begin();
 
         _error ("AccountList size: %d", accountList.size());

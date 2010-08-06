@@ -36,19 +36,20 @@
 GQueue * accountQueue;
 
 /* GCompareFunc to compare a accountID (gchar* and a account_t) */
-gint
-is_accountID_struct (gconstpointer a, gconstpointer b)
-{
+gint is_accountID_struct ( gconstpointer a, gconstpointer b) {
 
-  account_t * c = (account_t*) a;
-  if (strcmp (c->accountID, (gchar*) b) == 0)
-    {
-      return 0;
-    }
-  else
-    {
-      return 1;
-    }
+	if(!a || !b)
+	  return 1;
+
+	account_t * c = (account_t*)a;
+	if(strcmp(c->accountID, (gchar*) b) == 0)
+	{
+		return 0;
+	}
+	else
+	{
+		return 1;
+	}
 }
 
 /* GCompareFunc to get current call (gchar* and a account_t) */
@@ -153,7 +154,7 @@ account_list_get_current ()
   // No account registered
   if (account_list_get_registered_accounts () == 0)
     {
-      ERROR("No account registered.")
+      ERROR("No account registered.");
       return NULL;
     }
 

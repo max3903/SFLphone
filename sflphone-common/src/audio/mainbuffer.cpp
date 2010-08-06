@@ -259,7 +259,6 @@ void MainBuffer::unBindCallID (CallId call_id1, CallId call_id2)
 
 void MainBuffer::unBindHalfDuplexOut (CallId process_id, CallId call_id)
 {
-
     removeCallIDfromSet (process_id, call_id);
 
     RingBuffer* ringbuffer = getRingBuffer (call_id);
@@ -283,9 +282,7 @@ void MainBuffer::unBindHalfDuplexOut (CallId process_id, CallId call_id)
         if (callid_set->empty())
             removeCallIDSet (process_id);
     }
-
 }
-
 
 void MainBuffer::unBindAll (CallId call_id)
 {
@@ -316,7 +313,6 @@ void MainBuffer::unBindAll (CallId call_id)
 
 void MainBuffer::unBindAllHalfDuplexOut (CallId process_id)
 {
-
     CallIDSet* callid_set = getCallIDSet (process_id);
 
     if (!callid_set)
@@ -331,6 +327,7 @@ void MainBuffer::unBindAllHalfDuplexOut (CallId process_id)
 
     while (iter_set != temp_set.end()) {
         CallId call_id_in_set = *iter_set;
+
         unBindCallID (process_id, call_id_in_set);
 
         iter_set++;

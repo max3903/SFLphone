@@ -43,6 +43,7 @@
 #include <libebook/e-book.h>
 #include <sflphone_const.h>
 
+
 #define EMPTY_ENTRY     "empty"
 
 G_BEGIN_DECLS
@@ -104,11 +105,23 @@ void
 init(OpenAsyncHandler);
 
 /**
- * Asynchronous search function
+ * Asynchronous search function (without the get_contacts method)
  */
 void
 search_async(const char *query, int max_results, SearchAsyncHandler handler,
     gpointer user_data);
+
+/**
+ * Synchronous query to EDS using get_contacts method. Block the application until a result is received.
+ */
+void
+search_by_contacts(const char *query, int max_results, SearchAsyncHandler handler, gpointer user_data);
+
+/**
+ * Asynchronous query to EDS using get contact method.
+ */
+void
+search_async_by_contacts(const char *query, int max_results, SearchAsyncHandler handler, gpointer user_data);
 
 /**
  * Retrieve the specified information from the contact

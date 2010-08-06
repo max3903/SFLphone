@@ -258,7 +258,6 @@ void YamlEmitter::serializeHooksPreference (MappingNode *map)
 
 }
 
-
 void YamlEmitter::serializeAudioPreference (MappingNode *map)
 {
     std::string preferencestr ("audio");
@@ -266,6 +265,36 @@ void YamlEmitter::serializeAudioPreference (MappingNode *map)
     int preferenceid, preferencemapping;
 
     _debug ("YamlEmitter: Serialize hooks preferences");
+
+    if (map->getType() != MAPPING)
+        throw YamlEmitterException ("Node type is not a mapping while writing preferences");
+
+    if ( (preferenceid = yaml_document_add_scalar (&document, NULL, (yaml_char_t *) preferencestr.c_str(), -1, YAML_PLAIN_SCALAR_STYLE)) == 0)
+        throw YamlEmitterException ("Could not add scalar to document");
+
+    if ( (preferencemapping = yaml_document_add_mapping (&document, NULL, YAML_BLOCK_MAPPING_STYLE)) == 0)
+        throw YamlEmitterException ("Could not add mapping to document");
+
+    if (!yaml_document_append_mapping_pair (&document, topLevelMapping, preferenceid, preferencemapping))
+        throw YamlEmitterException ("Could not add mapping pair to top leve mapping");
+
+    Mapping *internalmap = map->getMapping();
+    Mapping::iterator iter = internalmap->begin();
+
+    while (iter != internalmap->end()) {
+        addMappingItem (preferencemapping, iter->first, iter->second);
+        iter++;
+    }
+
+}
+
+void YamlEmitter::serializeShortcutPreference (MappingNode *map)
+{
+    std::string preferencestr ("shortcuts");
+
+    int preferenceid, preferencemapping;
+
+    _debug ("YamlEmitter: Serialize shortcuts preferences");
 
     if (map->getType() != MAPPING)
         throw YamlEmitterException ("Node type is not a mapping while writing preferences");
@@ -332,6 +361,7 @@ void YamlEmitter::addMappingItem (int mappingid, Key key, YamlNode *node)
     } else
         throw YamlEmitterException ("Unknown node type while adding mapping node");
 }
+
 
 
 }

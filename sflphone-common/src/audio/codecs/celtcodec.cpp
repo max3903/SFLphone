@@ -71,8 +71,7 @@ class Celt: public AudioCodec
             if (error != CELT_OK) {
                 switch (error) {
                     case CELT_BAD_ARG:
-                        printf (
-                            "Celt: Error: An (or more) invalid argument (e.g. out of range)\n");
+                        printf ("Celt: Error: An (or more) invalid argument (e.g. out of range)\n");
                         break;
                     case CELT_INVALID_MODE:
                         printf ("Celt: Error: The mode struct passed is invalid\n");
@@ -81,15 +80,13 @@ class Celt: public AudioCodec
                         printf ("Celt: Error: An internal error was detected\n");
                         break;
                     case CELT_CORRUPTED_DATA:
-                        printf (
-                            "Celt: Error: The data passed (e.g. compressed data to decoder) is corrupted\n");
+                        printf ("Celt: Error: The data passed (e.g. compressed data to decoder) is corrupted\n");
                         break;
                     case CELT_UNIMPLEMENTED:
                         printf ("Celt: Error: Invalid/unsupported request numbe\n");
                         break;
                     case CELT_INVALID_STATE:
-                        printf (
-                            "Celt: Error: An encoder or decoder structure is invalid or already freed\n");
+                        printf ("Celt: Error: An encoder or decoder structure is invalid or already freed\n");
                         break;
                     case CELT_ALLOC_FAIL:
                         printf ("Celt: Error: Memory allocation has failed\n");

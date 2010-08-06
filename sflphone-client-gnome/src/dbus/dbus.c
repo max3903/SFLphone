@@ -154,10 +154,10 @@ call_state_cb (DBusGProxy *proxy UNUSED, const gchar* callID, const gchar* state
               set_timestamp (&c->_time_stop);
               calltree_update_call (history, c, NULL);
             }
-          stop_notification ();
-          sflphone_hung_up (c);
-          calltree_update_call (history, c, NULL );
-          status_bar_display_account ();
+          stop_notification();
+          calltree_update_call(history, c, NULL);
+          status_bar_display_account();
+	  sflphone_hung_up(c);
         }
       else if (strcmp (state, "UNHOLD_CURRENT") == 0)
         {
@@ -1442,7 +1442,7 @@ dbus_get_active_audio_codecs (gchar* accountID)
 void
 dbus_set_active_audio_codecs (const gchar** list, const gchar *accountID)
 {
-  DEBUG("Sending active audio codec list for account %s ...", accountID)
+  DEBUG("Sending active audio codec list for account %s ...", accountID);
   GError *error = NULL;
   org_sflphone_SFLphone_ConfigurationManager_set_active_audio_codecs (
       configurationManagerProxy, list, accountID, &error);
@@ -1509,7 +1509,7 @@ dbus_get_active_video_codecs (gchar* accountID)
 void
 dbus_set_active_video_codecs (const gchar** list, const gchar *accountID)
 {
-  DEBUG("Sending active video codec list for account %s ...", accountID)
+  DEBUG("Sending active video codec list for account %s ...", accountID);
   GError *error = NULL;
   org_sflphone_SFLphone_ConfigurationManager_set_active_video_codecs (
       configurationManagerProxy, list, accountID, &error);
@@ -1526,7 +1526,7 @@ void
 dbus_set_video_settings (const gchar* accountID,
     video_settings_t* video_settings)
 {
-  DEBUG("Setting video for account id %s", accountID)
+  DEBUG("Setting video for account id %s", accountID);
 
   GValue elem =
     { 0 };
@@ -2621,7 +2621,8 @@ dbus_get_shortcuts (void)
 {
   GError *error = NULL;
   GHashTable * shortcuts;
-  if (!org_sflphone_SFLphone_ConfigurationManager_get_shortcuts (
+
+  if (!org_sflphone_SFLphone_ConfigurationManager_get_shortcuts(
       configurationManagerProxy, &shortcuts, &error))
     {
       if (error->domain == DBUS_GERROR && error->code

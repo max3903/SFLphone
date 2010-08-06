@@ -89,6 +89,8 @@ class YamlEmitter
 
         void serializeAudioPreference (MappingNode *map);
 
+        void serializeShortcutPreference(MappingNode *map);
+
         void writeAudio();
 
         void writeHooks();

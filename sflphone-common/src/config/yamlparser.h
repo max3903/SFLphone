@@ -104,8 +104,9 @@ class YamlParser
             return voiplinkSequence;
         }
 
-    private:
+        SequenceNode *getShortcutSequence(void) { return shortcutSequence; }
 
+ private:
         /**
          * Copy yaml parser event in event_to according to their type.
          */
@@ -164,6 +165,8 @@ class YamlParser
         SequenceNode *hooksSequence;
 
         SequenceNode *voiplinkSequence;
+
+  SequenceNode *shortcutSequence;
 
 };
 

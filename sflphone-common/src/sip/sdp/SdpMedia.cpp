@@ -154,11 +154,11 @@ std::string SdpMedia::getStreamDirectionStr (void)
     std::string value;
 
     // Test the range of the value
-
-    if (_stream_type >= 0 && _stream_type < DIR_COUNT)
+    if (_stream_type >= 0 && _stream_type < DIR_COUNT) {
         value = streamDirectionStr[_stream_type];
-    else
+    } else {
         value = "unknown";
+    }
 
     return value;
 }

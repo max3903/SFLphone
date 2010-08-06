@@ -29,8 +29,8 @@
  *  as that of the covered work.
  */
 
-
 #include "AudioCodec.h"
+
 extern "C" {
 #include <gsm/gsm.h>
 }

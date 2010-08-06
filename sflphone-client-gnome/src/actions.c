@@ -64,8 +64,9 @@ sflphone_notify_voice_mail (const gchar* accountID, guint count)
   id = g_strdup (accountID);
   current_id = account_list_get_current_id ();
 
-  if (g_strcasecmp (id, current_id) != 0 || account_list_get_size () == 0)
+  if (g_strcasecmp (id, current_id) != 0 || account_list_get_size () == 0) {
     return;
+  }
 
   // Set the number of voice messages for the current account
   current_account_set_message_number (count);
@@ -74,8 +75,9 @@ sflphone_notify_voice_mail (const gchar* accountID, guint count)
   // Update the voicemail tool button
   update_voicemail_status ();
 
-  if (current)
+  if (current) {
     notify_voice_mails (count, current);
+  }
 }
 
 /*
@@ -185,14 +187,20 @@ sflphone_ringing (callable_obj_t * c)
 void
 sflphone_hung_up (callable_obj_t * c)
 {
-  calllist_remove (current_calls, c->_callID);
-  calltree_remove_call (current_calls, c, NULL);
-  c->_state = CALL_STATE_DIALING;
-  call_remove_all_errors (c);
-  update_actions ();
+    DEBUG("SFLphone: Hung up");
+
+    calllist_remove( current_calls, c->_callID);
+    calltree_remove_call(current_calls, c, NULL);
+    c->_state = CALL_STATE_DIALING;
+    call_remove_all_errors(c);
+    update_actions();
+
 #if GTK_CHECK_VERSION(2,10,0)
   status_tray_icon_blink (FALSE);
 #endif
+    free_callable_obj_t(c);
+
+    calltree_update_clock();
 }
 
 static
@@ -290,7 +298,9 @@ sflphone_hang_up ()
   callable_obj_t * selectedCall = calltab_get_selected_call (current_calls);
   conference_obj_t * selectedConf = calltab_get_selected_conf (active_calltree);
 
-  if (selectedCall)
+    DEBUG("SFLphone: Hang up");
+
+    if(selectedCall)
     {
       switch (selectedCall->_state)
         {
@@ -341,7 +351,9 @@ sflphone_hang_up ()
       dbus_hang_up_conference (selectedConf);
     }
 
-  calltree_update_call (history, selectedCall, NULL);
+    calltree_update_call(history, selectedCall, NULL);
+
+    calltree_update_clock();
 }
 
 void
@@ -641,7 +653,7 @@ sflphone_new_call ()
   callable_obj_t * current_selected_call;
   gchar *peer_name, *peer_number;
 
-  DEBUG("sflphone_new_call");
+  DEBUG("Actions: Sflphone new call");
 
   current_selected_call = calltab_get_selected_call (current_calls);
 
@@ -813,114 +825,100 @@ _place_direct_call (const callable_obj_t * c)
   return 0;
 }
 
-static int
-_place_registered_call (callable_obj_t * c)
-{
+static int _place_registered_call(callable_obj_t * c) {
 
-  account_t * current = NULL;
-
-  if (c == NULL)
-    {
-      DEBUG("callable_obj_t is NULL in _place_registered_call");
-      return -1;
+    account_t * current = NULL;
+  
+    if(c == NULL) {
+        DEBUG("Actions: Callable_obj_t is NULL in _place_registered_call");
+        return -1;
     }
 
-  if (c->_state != CALL_STATE_DIALING)
-    {
-      return -1;
+    if (c->_state != CALL_STATE_DIALING) {
+        return -1;
     }
 
-  if (g_strcasecmp (c->_peer_number, "") == 0)
-    {
-      return -1;
+    if(g_strcasecmp(c->_peer_number, "") == 0) {
+        return -1;
+    }
+    
+    if( account_list_get_size() == 0 ) {
+        notify_no_accounts();
+        sflphone_fail(c);
+        return -1;
+    } 
+    
+    if( account_list_get_by_state( ACCOUNT_STATE_REGISTERED ) == NULL ) {
+        DEBUG("Actions: No registered account, cannot make a call");
+        notify_no_registered_accounts();
+        sflphone_fail(c);
+        return -1;
+    }
+    
+    DEBUG("Actions: Get account for this call");
+    if(g_strcasecmp(c->_accountID, "") != 0) {
+        DEBUG("Actions: Account %s already set for this call", c->_accountID);
+        current = account_list_get_by_id(c->_accountID);
+    } else {
+        DEBUG("Actions: No account set for this call, use first of the list");
+        current = account_list_get_current();
     }
 
-  if (account_list_get_size () == 0)
-    {
-      notify_no_accounts ();
-      sflphone_fail (c);
-      return -1;
-    }
+    if(current == NULL) { 
+        DEBUG("Actions: Unexpected condition: account_t is NULL in %s at %d for accountID %s", __FILE__, __LINE__, c->_accountID);
+        return -1;
+    }   
+                        
+    if(g_strcasecmp(g_hash_table_lookup( current->properties, "Status"),"REGISTERED")==0) {
+        /* The call is made with the current account */
+        // free memory for previous account id and get a new one
+        g_free(c->_accountID);
+        c->_accountID = g_strdup(current->accountID);
+        dbus_place_call(c);
+    } else {
+       /* Place the call with the first registered account
+        * and switch the current account.
+        * If we are here, we can be sure that there is at least one. 
+        */
+        current = account_list_get_by_state( ACCOUNT_STATE_REGISTERED );
+        g_free(c->_accountID);
+        c->_accountID = g_strdup(current->accountID);
+        dbus_place_call(c);
+        notify_current_account( current );
+    }        
 
-  if (account_list_get_by_state (ACCOUNT_STATE_REGISTERED) == NULL)
-    {
-      notify_no_registered_accounts ();
-      sflphone_fail (c);
-      return -1;
-    }
-
-  if (g_strcasecmp (c->_accountID, "") != 0)
-    {
-      current = account_list_get_by_id (c->_accountID);
-    }
-  else
-    {
-      current = account_list_get_current ();
-    }
-
-  if (current == NULL)
-    {
-      DEBUG("Unexpected condition: account_t is NULL in %s at %d for accountID %s", __FILE__, __LINE__, c->_accountID);
-      return -1;
-    }
-
-  if (g_strcasecmp (g_hash_table_lookup (current->properties, "Status"),
-      "REGISTERED") == 0)
-    {
-      /* The call is made with the current account */
-      c->_accountID = current->accountID;
-      dbus_place_call (c);
-    }
-  else
-    {
-      /* Place the call with the first registered account
-       * and switch the current account.
-       * If we are here, we can be sure that there is at least one.
-       */
-      current = account_list_get_by_state (ACCOUNT_STATE_REGISTERED);
-      c->_accountID = current->accountID;
-      dbus_place_call (c);
-      notify_current_account (current);
-    }
-
-  c->_history_state = OUTGOING;
-  calllist_add (history, c);
-  return 0;
+    c->_history_state = OUTGOING;
+    calllist_add(history, c);                
+    return 0;
 }
 
 void
-sflphone_place_call (callable_obj_t * c)
+sflphone_place_call ( callable_obj_t * c )
 {
-  gchar *msg = "";
+    gchar *msg = "";
 
-  DEBUG("Placing call with %s @ %s and accountid %s", c->_peer_name, c->_peer_number, c->_accountID);
+DEBUG("Actions: Placing call with %s @ %s and accountid %s", c->_peer_name, c->_peer_number, c->_accountID);
 
-  if (c == NULL)
-    {
-      DEBUG("Unexpected condition: callable_obj_t is null in %s at %d", __FILE__, __LINE__);
-      return;
-    }
+if(c == NULL) {
+    DEBUG("Actions: Unexpected condition: callable_obj_t is null in %s at %d", __FILE__, __LINE__);
+    return;
+}
 
-  if (_is_direct_call (c))
-    {
-      msg = g_markup_printf_escaped (_("Direct SIP call"));
-      statusbar_pop_message (__MSG_ACCOUNT_DEFAULT);
-      statusbar_push_message (msg, __MSG_ACCOUNT_DEFAULT);
-      g_free (msg);
-      if (_place_direct_call (c) < 0)
-        {
-          DEBUG("An error occured while placing direct call in %s at %d", __FILE__, __LINE__);
-          return;
-        }
+if(_is_direct_call(c)) {
+    msg = g_markup_printf_escaped (_("Direct SIP call"));
+    statusbar_pop_message(__MSG_ACCOUNT_DEFAULT);
+    statusbar_push_message( msg , NULL, __MSG_ACCOUNT_DEFAULT);
+    g_free(msg);
+    if(_place_direct_call(c) < 0) {
+        DEBUG("An error occured while placing direct call in %s at %d", __FILE__, __LINE__);
+        return;
     }
-  else
-    {
-      if (_place_registered_call (c) < 0)
-        {
-          DEBUG("An error occured while placing registered call in %s at %d", __FILE__, __LINE__);
-          return;
-        }
+} else {
+    if(_place_registered_call(c) < 0) {
+        DEBUG("An error occured while placing registered call in %s at %d", __FILE__, __LINE__);
+        return;
     }
+}
 }
 
 void

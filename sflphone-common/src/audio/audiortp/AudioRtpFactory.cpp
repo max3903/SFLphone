@@ -151,7 +151,6 @@ void AudioRtpFactory::start (AudioCodec* audiocodec)
     switch (_rtpSessionType) {
 
         case Sdes:
-
             if (static_cast<AudioSrtpSession *> (_rtpSession)->startRtpThread (
                         audiocodec) != 0) {
                 throw AudioRtpFactoryException (
@@ -172,13 +171,11 @@ void AudioRtpFactory::start (AudioCodec* audiocodec)
             break;
 
         case Zrtp:
-
             if (static_cast<AudioZrtpSession *> (_rtpSession)->startRtpThread (
                         audiocodec) != 0) {
                 throw AudioRtpFactoryException (
                     "RTP: Error: Failed to start AudioZrtpSession thread");
             }
-
             break;
     }
 }

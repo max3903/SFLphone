@@ -52,7 +52,6 @@ class Speex : public AudioCodec
             setFrameSize (160);
             setBitrate (24);
             setBandwidth (0);
-
             initSpeex();
         }
 

@@ -74,7 +74,6 @@ enum {
 	COLUMN_ACCOUNT_PTR,
 };
 
-
 /**
  * Show popup menu
  */
@@ -319,7 +318,7 @@ row_single_click(GtkTreeView *tree_view UNUSED, void * data UNUSED)
     }
 }
 
-	static gboolean
+static gboolean
 button_pressed(GtkWidget* widget, GdkEventButton *event, gpointer user_data UNUSED)
 {
     if (event->button == 3 && event->type == GDK_BUTTON_PRESS){
@@ -414,7 +413,7 @@ calltree_display_call_info(callable_obj_t * c, CallDisplayType display_type, gch
 
     case DISPLAY_TYPE_CALL_TRANSFER: 
 
-        DEBUG("CallTree: Display a call transfer")
+        DEBUG("CallTree: Display a call transfer");
 
         if(g_strcmp0("",c->_peer_name) == 0){
 	    description = g_markup_printf_escaped("<b>%s</b><i>%s</i>\n<i>Transfert to:%s</i> ",
@@ -682,10 +681,12 @@ calltree_remove_call (calltab_t* tab, callable_obj_t * c, GtkTreeIter *parent)
 		calltab_select_call(tab, NULL);
 	update_actions();
 
+	calltree_update_clock();
+
 	DEBUG("Calltre remove call ended");
 }
 
-	void
+void
 calltree_update_call (calltab_t* tab, callable_obj_t * c, GtkTreeIter *parent)
 {
     GdkPixbuf *pixbuf=NULL;
@@ -902,7 +903,7 @@ void calltree_add_call (calltab_t* tab, callable_obj_t * c, GtkTreeIter *parent)
 		}
 	} 
 
-	DEBUG("Added call key exchange is %s", key_exchange)
+	DEBUG("Added call key exchange is %s", key_exchange);
 
 	if( tab == current_calls )
 	{
@@ -1407,6 +1408,37 @@ void calltree_display (calltab_t *tab) {
 }
 
 
+void calltree_update_clock() {
+
+  callable_obj_t *c = calltab_get_selected_call(current_calls);
+
+  // if(!selected_call) {
+  if(!c) {
+    statusbar_update_clock("");
+    return;
+  }
+
+  // if(!(selected_call->_timestr)) {
+  if(!(c->_timestr)) {
+    statusbar_update_clock("");
+    return;
+  }
+
+  if( (c->_state != CALL_STATE_INVALID) &&
+      (c->_state != CALL_STATE_INCOMING) &&
+      (c->_state != CALL_STATE_RINGING) &&
+      (c->_state != CALL_STATE_DIALING) &&
+      (c->_state != CALL_STATE_FAILURE) &&
+      (c->_state != CALL_STATE_BUSY) ) { 
+
+    // TODO this make the whole thing crash...
+    // calltree_update_call(current_calls, c, NULL);
+    statusbar_update_clock(c->_timestr);
+  }
+  else {
+    statusbar_update_clock("");
+  }
+}
 
 
 static void drag_begin_cb(GtkWidget *widget, GdkDragContext *dc, gpointer data)

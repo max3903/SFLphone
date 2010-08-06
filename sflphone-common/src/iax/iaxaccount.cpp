@@ -63,6 +63,7 @@ void IAXAccount::serialize (Conf::YamlEmitter *emitter)
     Conf::ScalarNode mailbox ("97");
 
     Conf::ScalarNode codecs (_codecAudioSerialized);
+
     Conf::ScalarNode displayName (_displayName);
 
     accountmap.setKeyValue (aliasKey, &alias);
@@ -138,8 +139,6 @@ void IAXAccount::unserialize (Conf::MappingNode *map)
         _enabled = (val->getValue().compare ("true") == 0) ? true : false;
         val = NULL;
     }
-
-    //  val = (Conf::ScalarNode *)(map->getValue(mailboxKey));
 
     val = (Conf::ScalarNode *) (map->getValue (audioCodecsKey));
 

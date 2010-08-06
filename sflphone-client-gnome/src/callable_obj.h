@@ -35,6 +35,7 @@
 #include <glib/gprintf.h>
 #include <stdlib.h>
 #include <time.h>
+#include <pthread.h>
 
 /**
  * @enum history_state
@@ -109,7 +110,9 @@ typedef struct  {
     gchar* _confID;                 // The conference ID (NULL if don't participate to a conference)
     gchar* _accountID;              // The account the call is made with
     time_t _time_start;             // The timestamp the call was initiating
+    time_t _time_current;           // Clock increment to display call's elapsed time
     time_t _time_stop;              // The timestamp the call was over
+    gchar _timestr[20];             // The timestamp as a string format for disply in statusbar  
     history_state_t _history_state; // The history state if necessary
     srtp_state_t _srtp_state;       // The state of security on the call 
     gchar* _srtp_cipher;            // Cipher used for the srtp session
@@ -117,6 +120,7 @@ typedef struct  {
     gboolean _zrtp_confirmed;       // Override real state. Used for hold/unhold 
                                     // since rtp session is killed each time and 
                                     // libzrtpcpp does not remember state (yet?)
+
     /**
      * The information about the person we are talking
      */
@@ -148,6 +152,12 @@ typedef struct  {
 
     /* The audio codec used for this call, if applicable */
     gchar *_audio_codec;
+
+    // thread id to increment clock
+    // pthread_t tid;
+    GThread *tid;
+
+    int clockStarted;
 
 } callable_obj_t;
 
@@ -186,9 +196,6 @@ gchar* call_get_peer_name (const gchar*);
  * @return The number of the caller
  */
 gchar* call_get_peer_number (const gchar*);
-
-
-
 
 void
 attach_thumbnail (callable_obj_t *, GdkPixbuf *);
