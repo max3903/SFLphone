@@ -32,140 +32,143 @@
 #include <cstdio>
 #include <celt/celt.h>
 
-class Celt: public AudioCodec {
+class Celt: public AudioCodec
+{
 
-public:
-	Celt(int payload = 0) :
-		AudioCodec(payload, "celt") {
+    public:
+        Celt (int payload = 0) :
+                AudioCodec (payload, "celt") {
 
-		setClockRate(32000);
-		setChannel(1);
-		setFrameSize(320); // fixed frameSize, TODO: support variable size from 64 to 512
-		setBitrate(0);
-		setBandwidth(0);
+            setClockRate (32000);
+            setChannel (1);
+            setFrameSize (320); // fixed frameSize, TODO: support variable size from 64 to 512
+            setBitrate (0);
+            setBandwidth (0);
 
-		initCelt();
-	}
+            initCelt();
+        }
 
-	Celt(const Celt& other) :
-		AudioCodec(other) {
-		setClockRate(other.getClockRate());
-		setChannel(other.getChannel());
-		setFrameSize(other.getFrameSize());
-		setBitrate(other.getBitRate());
-		setBandwidth(other.getBandwidth());
+        Celt (const Celt& other) :
+                AudioCodec (other) {
+            setClockRate (other.getClockRate());
+            setChannel (other.getChannel());
+            setFrameSize (other.getFrameSize());
+            setBitrate (other.getBitRate());
+            setBandwidth (other.getBandwidth());
 
-		initCelt();
-	}
+            initCelt();
+        }
 
-	Celt(const Celt&);
-	Celt& operator=(const Celt&);
+        Celt (const Celt&);
+        Celt& operator= (const Celt&);
 
-	void initCelt() {
+        void initCelt() {
 
-		int error = 0;
+            int error = 0;
 
-		_mode = celt_mode_create(_clockRate, _frameSize, &error);
+            _mode = celt_mode_create (_clockRate, _frameSize, &error);
 
-		if (error != CELT_OK) {
-			switch (error) {
-			case CELT_BAD_ARG:
-				printf(
-						"Celt: Error: An (or more) invalid argument (e.g. out of range)\n");
-				break;
-			case CELT_INVALID_MODE:
-				printf("Celt: Error: The mode struct passed is invalid\n");
-				break;
-			case CELT_INTERNAL_ERROR:
-				printf("Celt: Error: An internal error was detected\n");
-				break;
-			case CELT_CORRUPTED_DATA:
-				printf(
-						"Celt: Error: The data passed (e.g. compressed data to decoder) is corrupted\n");
-				break;
-			case CELT_UNIMPLEMENTED:
-				printf("Celt: Error: Invalid/unsupported request numbe\n");
-				break;
-			case CELT_INVALID_STATE:
-				printf(
-						"Celt: Error: An encoder or decoder structure is invalid or already freed\n");
-				break;
-			case CELT_ALLOC_FAIL:
-				printf("Celt: Error: Memory allocation has failed\n");
-				break;
-			default:
-				printf("Celt: Error");
-			}
+            if (error != CELT_OK) {
+                switch (error) {
+                    case CELT_BAD_ARG:
+                        printf (
+                            "Celt: Error: An (or more) invalid argument (e.g. out of range)\n");
+                        break;
+                    case CELT_INVALID_MODE:
+                        printf ("Celt: Error: The mode struct passed is invalid\n");
+                        break;
+                    case CELT_INTERNAL_ERROR:
+                        printf ("Celt: Error: An internal error was detected\n");
+                        break;
+                    case CELT_CORRUPTED_DATA:
+                        printf (
+                            "Celt: Error: The data passed (e.g. compressed data to decoder) is corrupted\n");
+                        break;
+                    case CELT_UNIMPLEMENTED:
+                        printf ("Celt: Error: Invalid/unsupported request numbe\n");
+                        break;
+                    case CELT_INVALID_STATE:
+                        printf (
+                            "Celt: Error: An encoder or decoder structure is invalid or already freed\n");
+                        break;
+                    case CELT_ALLOC_FAIL:
+                        printf ("Celt: Error: Memory allocation has failed\n");
+                        break;
+                    default:
+                        printf ("Celt: Error");
+                }
 
-		}
+            }
 
-		if (_mode == NULL) {
-			printf("Celt: Error: Failed to create Celt mode");
-		}
+            if (_mode == NULL) {
+                printf ("Celt: Error: Failed to create Celt mode");
+            }
 
-		// bytes_per_packet = 1024;
-		// if (bytes_per_packet < 0 || bytes_per_packet > MAX_PACKET)
-		// {
-		//     printf ("bytes per packet must be between 0 and %d");
-		// }
+            // bytes_per_packet = 1024;
+            // if (bytes_per_packet < 0 || bytes_per_packet > MAX_PACKET)
+            // {
+            //     printf ("bytes per packet must be between 0 and %d");
+            // }
 
-		// celt_mode_info(mode, CELT_GET_FRAME_SIZE, &frame_size);
-		// celt_mode_info(mode, CELT_GET_NB_CHANNELS, &_channel);
+            // celt_mode_info(mode, CELT_GET_FRAME_SIZE, &frame_size);
+            // celt_mode_info(mode, CELT_GET_NB_CHANNELS, &_channel);
 
-		_enc = celt_encoder_create(_mode, _channel, &error);
+            _enc = celt_encoder_create (_mode, _channel, &error);
 
-		_dec = celt_decoder_create(_mode, _channel, &error);
+            _dec = celt_decoder_create (_mode, _channel, &error);
 
-		celt_encoder_ctl(_enc, CELT_SET_COMPLEXITY(2));
-		celt_decoder_ctl(_dec, CELT_SET_COMPLEXITY(2));
+            celt_encoder_ctl (_enc, CELT_SET_COMPLEXITY (2));
+            celt_decoder_ctl (_dec, CELT_SET_COMPLEXITY (2));
 
-		celt_encoder_ctl(_enc, CELT_SET_PREDICTION(2));
-		celt_decoder_ctl(_dec, CELT_SET_PREDICTION(2));
+            celt_encoder_ctl (_enc, CELT_SET_PREDICTION (2));
+            celt_decoder_ctl (_dec, CELT_SET_PREDICTION (2));
 
-	}
+        }
 
-	~Celt() {
-		terminateCelt();
-	}
+        ~Celt() {
+            terminateCelt();
+        }
 
-	void terminateCelt() {
+        void terminateCelt() {
 
-		celt_encoder_destroy(_enc);
-		celt_decoder_destroy(_dec);
+            celt_encoder_destroy (_enc);
+            celt_decoder_destroy (_dec);
 
-		celt_mode_destroy(_mode);
-	}
+            celt_mode_destroy (_mode);
+        }
 
-	virtual int decode(short *dst, unsigned char *src, unsigned int size) {
-		int err = 0;
-		err = celt_decode(_dec, src, size, (celt_int16*) dst);
-		return _frameSize * sizeof(celt_int16);
-	}
+        virtual int decode (short *dst, unsigned char *src, unsigned int size) {
+            int err = 0;
+            err = celt_decode (_dec, src, size, (celt_int16*) dst);
+            return _frameSize * sizeof (celt_int16);
+        }
 
-	virtual int encode(unsigned char *dst, short *src, unsigned int size) {
-		int len = 0;
-		len = celt_encode(_enc, (celt_int16*) src, (celt_int16 *) src, dst, 40);
-		// returns the number of bytes writen
-		return len;
-	}
+        virtual int encode (unsigned char *dst, short *src, unsigned int size) {
+            int len = 0;
+            len = celt_encode (_enc, (celt_int16*) src, (celt_int16 *) src, dst, 40);
+            // returns the number of bytes writen
+            return len;
+        }
 
-private:
+    private:
 
-	CELTMode *_mode;
+        CELTMode *_mode;
 
-	CELTEncoder *_enc;
-	CELTDecoder *_dec;
+        CELTEncoder *_enc;
+        CELTDecoder *_dec;
 
-	celt_int32 _celt_frame_size;
-	celt_int32 skip;
+        celt_int32 _celt_frame_size;
+        celt_int32 skip;
 
 };
 
 // the class factories
-extern "C" sfl::Codec* create() {
-	return new Celt(115);
+extern "C" sfl::Codec* create()
+{
+    return new Celt (115);
 }
 
-extern "C" void destroy(sfl::Codec* a) {
-	delete a;
+extern "C" void destroy (sfl::Codec* a)
+{
+    delete a;
 }

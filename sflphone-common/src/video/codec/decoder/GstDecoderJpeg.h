@@ -38,31 +38,33 @@
 
 #include "video/codec/mime/MimeParametersJpeg.h"
 
-namespace sfl {
+namespace sfl
+{
 
-class GstDecoderJpeg: public MimeParametersJpeg, public GstDecoder {
-protected:
-	/**
-	 * @Override
-	 */
-	GstElement* getHead();
+class GstDecoderJpeg: public MimeParametersJpeg, public GstDecoder
+{
+    protected:
+        /**
+         * @Override
+         */
+        GstElement* getHead();
 
-	/**
-	 * @Override
-	 */
-	GstElement* getTail();
+        /**
+         * @Override
+         */
+        GstElement* getTail();
 
-	/**
-	 * @Override
-	 */
-	void buildFilter(Pipeline& pipeline) throw (MissingPluginException);
+        /**
+         * @Override
+         */
+        void buildFilter (Pipeline& pipeline) throw (MissingPluginException);
 
-private:
+    private:
 
-	void init() throw (VideoDecodingException, MissingPluginException);
+        void init() throw (VideoDecodingException, MissingPluginException);
 
-	GstElement* jpegdec;
-	GstElement* rtpjpegdepay;
+        GstElement* jpegdec;
+        GstElement* rtpjpegdepay;
 };
 
 }

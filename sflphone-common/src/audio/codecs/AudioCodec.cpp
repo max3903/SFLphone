@@ -32,69 +32,82 @@
 
 #include "AudioCodec.h"
 
-AudioCodec::AudioCodec(uint8 payload, const std::string &codecName) :
-	_codecName(codecName), _clockRate(8000), _channel(1), _bitrate(0.0),
-			_bandwidth(0), _payload(payload), _hasDynamicPayload(false) {
-	init(payload, _clockRate);
+AudioCodec::AudioCodec (uint8 payload, const std::string &codecName) :
+        _codecName (codecName), _clockRate (8000), _channel (1), _bitrate (0.0),
+        _bandwidth (0), _payload (payload), _hasDynamicPayload (false)
+{
+    init (payload, _clockRate);
 }
 
-AudioCodec::AudioCodec(const AudioCodec& codec) :
-	_codecName(codec._codecName), _clockRate(codec._clockRate), _channel(
-			codec._channel), _bitrate(codec._bitrate), _bandwidth(
-			codec._bandwidth), _payload(codec._payload), _hasDynamicPayload(
-			false) {
-	init(codec._payload, codec._clockRate);
+AudioCodec::AudioCodec (const AudioCodec& codec) :
+        _codecName (codec._codecName), _clockRate (codec._clockRate), _channel (
+            codec._channel), _bitrate (codec._bitrate), _bandwidth (
+                codec._bandwidth), _payload (codec._payload), _hasDynamicPayload (
+                    false)
+{
+    init (codec._payload, codec._clockRate);
 }
 
-void AudioCodec::init(uint8 payloadType, uint32 clockRate) {
-	_payloadFormat = new ost::DynamicPayloadFormat(payloadType, clockRate);
+void AudioCodec::init (uint8 payloadType, uint32 clockRate)
+{
+    _payloadFormat = new ost::DynamicPayloadFormat (payloadType, clockRate);
 
-	_hasDynamicPayload = (_payload >= 96 && _payload <= 127) ? true : false;
+    _hasDynamicPayload = (_payload >= 96 && _payload <= 127) ? true : false;
 
-	// If g722 (payload 9), we need to init libccrtp symetric sessions with using
-	// dynamic payload format. This way we get control on rtp clockrate.
+    // If g722 (payload 9), we need to init libccrtp symetric sessions with using
+    // dynamic payload format. This way we get control on rtp clockrate.
 
-	if (_payload == 9) {
-		_hasDynamicPayload = true;
-	}
+    if (_payload == 9) {
+        _hasDynamicPayload = true;
+    }
 }
 
-std::string AudioCodec::getMimeType() const {
-	return "audio";
+std::string AudioCodec::getMimeType() const
+{
+    return "audio";
 }
 
-std::string AudioCodec::getMimeSubtype() const {
-	return _codecName;
+std::string AudioCodec::getMimeSubtype() const
+{
+    return _codecName;
 }
 
-const ost::PayloadFormat& AudioCodec::getPayloadFormat() {
-	return (*_payloadFormat);
+const ost::PayloadFormat& AudioCodec::getPayloadFormat()
+{
+    return (*_payloadFormat);
 }
 
-uint8 AudioCodec::getPayloadType(void) const {
-	return _payload;
+uint8 AudioCodec::getPayloadType (void) const
+{
+    return _payload;
 }
 
-bool AudioCodec::hasDynamicPayload(void) {
-	return _hasDynamicPayload;
+bool AudioCodec::hasDynamicPayload (void)
+{
+    return _hasDynamicPayload;
 }
 
-uint32 AudioCodec::getClockRate(void) const {
-	return _clockRate;
+uint32 AudioCodec::getClockRate (void) const
+{
+    return _clockRate;
 }
 
-unsigned AudioCodec::getFrameSize(void) const {
-	return _frameSize;
+unsigned AudioCodec::getFrameSize (void) const
+{
+    return _frameSize;
 }
 
-uint8 AudioCodec::getChannel(void) const {
-	return _channel;
+uint8 AudioCodec::getChannel (void) const
+{
+    return _channel;
 }
 
-double AudioCodec::getBitRate(void) const {
-	return _bitrate;
+double AudioCodec::getBitRate (void) const
+{
+    return _bitrate;
 }
 
-double AudioCodec::getBandwidth(void) const {
-	return _bandwidth;
+double AudioCodec::getBandwidth (void) const
+{
+    return _bandwidth;
 }

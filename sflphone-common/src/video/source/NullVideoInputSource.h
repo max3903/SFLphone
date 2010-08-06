@@ -35,44 +35,46 @@
 #include "VideoInputSource.h"
 #include "video/source/VideoFormat.h"
 
-namespace sfl {
-class NullVideoInputSource : public VideoInputSource  {
-public:
-	NullVideoInputSource() : VideoInputSource() {};
-	/**
-	 * @Override
-	 */
-	void open(VideoDevicePtr device) throw (VideoDeviceIOException) {
-		_warn("Opening NullVideoInputSource");
-	}
-	/**
-	 * @Override
-	 */
-	void close() throw (VideoDeviceIOException) {
-		_warn("Closing NullVideoInputSource");
-	}
-	/**
-	 * @Override
-	 */
-	void grabFrame() throw (VideoDeviceIOException) {
-		_warn("Grabing frame on NullVideoInputSource");
-	}
-	/**
-	 * @Override
-	 */
-	std::vector<VideoDevicePtr> enumerateDevices() {
-		std::vector<VideoDevicePtr> emptyVector;
-		return emptyVector;
-	}
-	/**
-	 * @Override
-	 */
-	VideoFormat getOutputFormat() const {
-		return defaultFormat;
-	}
+namespace sfl
+{
+class NullVideoInputSource : public VideoInputSource
+{
+    public:
+        NullVideoInputSource() : VideoInputSource() {};
+        /**
+         * @Override
+         */
+        void open (VideoDevicePtr device) throw (VideoDeviceIOException) {
+            _warn ("Opening NullVideoInputSource");
+        }
+        /**
+         * @Override
+         */
+        void close() throw (VideoDeviceIOException) {
+            _warn ("Closing NullVideoInputSource");
+        }
+        /**
+         * @Override
+         */
+        void grabFrame() throw (VideoDeviceIOException) {
+            _warn ("Grabing frame on NullVideoInputSource");
+        }
+        /**
+         * @Override
+         */
+        std::vector<VideoDevicePtr> enumerateDevices() {
+            std::vector<VideoDevicePtr> emptyVector;
+            return emptyVector;
+        }
+        /**
+         * @Override
+         */
+        VideoFormat getOutputFormat() const {
+            return defaultFormat;
+        }
 
-private:
-	VideoFormat defaultFormat;
+    private:
+        VideoFormat defaultFormat;
 };
 }
 #endif

@@ -29,24 +29,28 @@
 
 #include "GstDecoderTheora.h"
 
-namespace sfl {
+namespace sfl
+{
 
-void GstDecoderTheora::buildFilter(Pipeline& pipeline)
-		throw (MissingPluginException) {
+void GstDecoderTheora::buildFilter (Pipeline& pipeline)
+throw (MissingPluginException)
+{
 
-	rtptheoradepay = pipeline.addElement("rtptheoradepay");
+    rtptheoradepay = pipeline.addElement ("rtptheoradepay");
 
-	GstElement* previous = pipeline.addElement("theoraparse", rtptheoradepay);
+    GstElement* previous = pipeline.addElement ("theoraparse", rtptheoradepay);
 
-	theoradec = pipeline.addElement("theoradec", previous);
+    theoradec = pipeline.addElement ("theoradec", previous);
 }
 
-GstElement* GstDecoderTheora::getHead() {
-	return rtptheoradepay;
+GstElement* GstDecoderTheora::getHead()
+{
+    return rtptheoradepay;
 }
 
-GstElement* GstDecoderTheora::getTail() {
-	return theoradec;
+GstElement* GstDecoderTheora::getTail()
+{
+    return theoradec;
 }
 
 }

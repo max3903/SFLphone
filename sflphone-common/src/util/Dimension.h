@@ -29,26 +29,26 @@
 #ifndef __SFL_DIMENSION_H__
 #define __SFL_DIMENSION_H__
 
-namespace sfl {
+namespace sfl
+{
 
-class Dimension {
-public:
-	Dimension(int width, int height) : width(width), height(height) {}
-	virtual ~Dimension() {};
+class Dimension
+{
+    public:
+        Dimension (int width, int height) : width (width), height (height) {}
+        virtual ~Dimension() {};
 
-    int getHeight() const
-    {
-        return height;
-    }
+        int getHeight() const {
+            return height;
+        }
 
-    int getWidth() const
-    {
-        return width;
-    }
+        int getWidth() const {
+            return width;
+        }
 
-private:
-	int width;
-	int height;
+    private:
+        int width;
+        int height;
 };
 }
 #endif

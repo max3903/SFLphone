@@ -111,9 +111,4 @@ noinst_HEADERS = \
 		Codec.h	\
 		CodecFactory.h	
 
-indent:
-	@echo "Indenting code:"
-	if [ -f $(ASTYLERC) ] ; then \
-		$(indent) --options=$(ASTYLERC) --recursive *.cpp *.h; \
-	fi
-
+all:	indent

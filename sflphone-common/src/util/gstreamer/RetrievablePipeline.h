@@ -35,78 +35,81 @@
 
 #include <gst/app/gstappsink.h>
 #include "logger.h"
-namespace sfl {
+namespace sfl
+{
 
 /**
  * This type of observer gets called when some data can be retrieve in a non-blocking fashion.
  */
-class RetrievablePipelineObserver : public Observer {
-public:
-	virtual void onNewBuffer(GstBuffer* buffer) = 0;
+class RetrievablePipelineObserver : public Observer
+{
+    public:
+        virtual void onNewBuffer (GstBuffer* buffer) = 0;
 };
 
-class RetrievablePipeline : public Pipeline, public AbstractObservable<GstBuffer*, RetrievablePipelineObserver> {
-public:
-	/**
-	 * @param bin Part of the pipeline in which the data will flow through from the previous elements.
-	 * @precondition The "pipeline" argument must be existing.
-	 */
-	RetrievablePipeline(Pipeline& bin);
+class RetrievablePipeline : public Pipeline, public AbstractObservable<GstBuffer*, RetrievablePipelineObserver>
+{
+    public:
+        /**
+         * @param bin Part of the pipeline in which the data will flow through from the previous elements.
+         * @precondition The "pipeline" argument must be existing.
+         */
+        RetrievablePipeline (Pipeline& bin);
 
-	/**
-	 * @param bin Part of the pipeline in which the data will flow through from the previous elements.
-	 * @param caps The caps that this source should have.
-	 * @precondition The "pipeline" argument must be existing.
-	 */
-	RetrievablePipeline(Pipeline& bin, GstCaps* caps);
+        /**
+         * @param bin Part of the pipeline in which the data will flow through from the previous elements.
+         * @param caps The caps that this source should have.
+         * @precondition The "pipeline" argument must be existing.
+         */
+        RetrievablePipeline (Pipeline& bin, GstCaps* caps);
 
-	/**
-	 * @param bin Part of the pipeline in which the data will flow through from the previous elements.
-	 * @param caps The caps that this source should have.
-	 * @param maxBuffers The number of buffers that can be queued at the sink.
-	 * @precondition The "pipeline" argument must be existing.
-	 */
-	RetrievablePipeline(Pipeline& bin, GstCaps* caps, uint maxBuffers);
+        /**
+         * @param bin Part of the pipeline in which the data will flow through from the previous elements.
+         * @param caps The caps that this source should have.
+         * @param maxBuffers The number of buffers that can be queued at the sink.
+         * @precondition The "pipeline" argument must be existing.
+         */
+        RetrievablePipeline (Pipeline& bin, GstCaps* caps, uint maxBuffers);
 
-	/**
-	 * @param source The element from which the retrievable endpoint should receive data from.
-	 */
-	void setSource(GstElement* source);
+        /**
+         * @param source The element from which the retrievable endpoint should receive data from.
+         */
+        void setSource (GstElement* source);
 
-	/**
-	 * @param caps The caps this element should have.
-	 */
-	void setCaps(GstCaps* caps);
+        /**
+         * @param caps The caps this element should have.
+         */
+        void setCaps (GstCaps* caps);
 
-	/**
-	 * @return The caps set at the source.
-	 */
-	GstCaps* getCaps();
+        /**
+         * @return The caps set at the source.
+         */
+        GstCaps* getCaps();
 
-protected:
-	/**
-	 * Simple dispatch for this observer type.
-	 */
-	void notify(RetrievablePipelineObserver* observer, GstBuffer* data) {
-		_debug("Notifying observers");
-		observer->onNewBuffer(data);
-	}
+    protected:
+        /**
+         * Simple dispatch for this observer type.
+         */
+        void notify (RetrievablePipelineObserver* observer, GstBuffer* data) {
+            _debug ("Notifying observers");
+            observer->onNewBuffer (data);
+        }
 
-	void notify(RetrievablePipelineObserver* observer, const std::string& name, GstBuffer* data){};
+        void notify (RetrievablePipelineObserver* observer, const std::string& name, GstBuffer* data) {};
 
-	/**
-	 * Helper method for constructors.
-	 */
-	void init(GstCaps* caps, Pipeline& pipeline);
+        /**
+         * Helper method for constructors.
+         */
+        void init (GstCaps* caps, Pipeline& pipeline);
 
-private:
-	static GstFlowReturn onNewBuffer(GstAppSink* sink, gpointer data);
-	static GstFlowReturn onNewPreroll(GstAppSink* sink, gpointer data);
-	static GstFlowReturn onNewBufferList(GstAppSink* sink, gpointer data);
-	static void onEos(GstAppSink* sink, gpointer data);
+    private:
+        static GstFlowReturn onNewBuffer (GstAppSink* sink, gpointer data);
+        static GstFlowReturn onNewPreroll (GstAppSink* sink, gpointer data);
+        static GstFlowReturn onNewBufferList (GstAppSink* sink, gpointer data);
+        static void onEos (GstAppSink* sink, gpointer data);
 
-	GstElement* appsink;
-	static unsigned numberInstances;
+        GstElement* appsink;
+        static unsigned numberInstances;
 };
 }
 

@@ -44,120 +44,147 @@ class AudioCodec;
 class Sdp;
 class AudioRtp;
 
-namespace sfl {
-    class AudioRtpFactory;
-    class VideoDevice;
+namespace sfl
+{
+class AudioRtpFactory;
+class VideoDevice;
 }
 
 /**
  * @file sipcall.h
- * @brief SipCall are SIP implementation of a normal Call 
+ * @brief SipCall are SIP implementation of a normal Call
  */
 class SipCall : public Call
 {
-  public:
+    public:
 
-    /**
-     * Constructor
-     * @param id	The call identifier
-     * @param type  The type of the call. Could be Incoming
-     *						 Outgoing
-     */
-    SipCall(const CallId& id, Call::CallType type, pj_pool_t *pool );
+        /**
+         * Constructor
+         * @param id	The call identifier
+         * @param type  The type of the call. Could be Incoming
+         *						 Outgoing
+         */
+        SipCall (const CallId& id, Call::CallType type, pj_pool_t *pool);
 
-    /**
-     * Destructor
-     */
-    ~SipCall();
+        /**
+         * Destructor
+         */
+        ~SipCall();
 
-    /** 
-     * Call Identifier
-     * @return int  SIP call id
-     */
-    int  getCid() { return _cid; }
-    
-    /** 
-     * Call Identifier
-     * @param cid SIP call id
-     */
-    void setCid(int cid) { _cid = cid ; } 
-    
-    /** 
-     * Domain identifier
-     * @return int  SIP domain id
-     */
-    int  getDid() { return _did; }
-    
-    /** 
-     * Domain identifier
-     * @param did SIP domain id
-     */
-    void setDid(int did) { _did = did; } 
-    
-    /** 
-     * Transaction identifier
-     * @return int  SIP transaction id
-     */
-    int  getTid() { return _tid; }
-    
-    /** 
-     * Transaction identifier
-     * @param tid SIP transaction id
-     */
-    void setTid(int tid) { _tid = tid; } 
+        /**
+         * Call Identifier
+         * @return int  SIP call id
+         */
+        int  getCid() {
+            return _cid;
+        }
 
-    void setXferSub(pjsip_evsub* sub) {_xferSub = sub;}
+        /**
+         * Call Identifier
+         * @param cid SIP call id
+         */
+        void setCid (int cid) {
+            _cid = cid ;
+        }
 
-    pjsip_evsub *getXferSub() {return _xferSub;}
-    
-    void setInvSession(pjsip_inv_session* inv) {_invSession = inv;}
+        /**
+         * Domain identifier
+         * @return int  SIP domain id
+         */
+        int  getDid() {
+            return _did;
+        }
 
-    pjsip_inv_session *getInvSession() {return _invSession;}
-    
-    /**
-     * @return The SDP session object used for this call.
-     */
-    Sdp* getLocalSDP (void) { return _localSdp; }
+        /**
+         * Domain identifier
+         * @param did SIP domain id
+         */
+        void setDid (int did) {
+            _did = did;
+        }
 
-    /**
-     * @para localSdp The SDP session object to use in this call.
-     */
-    void setLocalSDP (Sdp* localSdp) { _localSdp = localSdp; }
+        /**
+         * Transaction identifier
+         * @return int  SIP transaction id
+         */
+        int  getTid() {
+            return _tid;
+        }
 
-    /** Returns a pointer to the AudioRtp object */
-    inline sfl::AudioRtpFactory * getAudioRtp(void) { return _audiortp; }
+        /**
+         * Transaction identifier
+         * @param tid SIP transaction id
+         */
+        void setTid (int tid) {
+            _tid = tid;
+        }
 
-    /**
-     * @return true If the user has set a video device to offer in the upcoming session.
-     */
-    bool isVideoEnabled();
+        void setXferSub (pjsip_evsub* sub) {
+            _xferSub = sub;
+        }
 
-    /**
-     * @param device The video device that the user has chosen for this call.
-     */
-    void setVideoDevice(sfl::VideoDevice& device);
+        pjsip_evsub *getXferSub() {
+            return _xferSub;
+        }
 
-  private:
-    int _cid;
-    int _did;
-    int _tid;
+        void setInvSession (pjsip_inv_session* inv) {
+            _invSession = inv;
+        }
 
-    // Copy Constructor
-    SipCall(const SipCall& rh);
+        pjsip_inv_session *getInvSession() {
+            return _invSession;
+        }
 
-    // Assignment Operator
-    SipCall& operator=( const SipCall& rh);
+        /**
+         * @return The SDP session object used for this call.
+         */
+        Sdp* getLocalSDP (void) {
+            return _localSdp;
+        }
 
-    /** Starting sound */
-    sfl::AudioRtpFactory* _audiortp;
+        /**
+         * @para localSdp The SDP session object to use in this call.
+         */
+        void setLocalSDP (Sdp* localSdp) {
+            _localSdp = localSdp;
+        }
 
-    pjsip_evsub *_xferSub;
-    
-	pjsip_inv_session *_invSession;
-    
-	Sdp* _localSdp;
+        /** Returns a pointer to the AudioRtp object */
+        inline sfl::AudioRtpFactory * getAudioRtp (void) {
+            return _audiortp;
+        }
 
-	sfl::VideoDevice* _videoDevice;
+        /**
+         * @return true If the user has set a video device to offer in the upcoming session.
+         */
+        bool isVideoEnabled();
+
+        /**
+         * @param device The video device that the user has chosen for this call.
+         */
+        void setVideoDevice (sfl::VideoDevice& device);
+
+    private:
+        int _cid;
+        int _did;
+        int _tid;
+
+        // Copy Constructor
+        SipCall (const SipCall& rh);
+
+        // Assignment Operator
+        SipCall& operator= (const SipCall& rh);
+
+        /** Starting sound */
+        sfl::AudioRtpFactory* _audiortp;
+
+        pjsip_evsub *_xferSub;
+
+        pjsip_inv_session *_invSession;
+
+        Sdp* _localSdp;
+
+        sfl::VideoDevice* _videoDevice;
 
 };
 

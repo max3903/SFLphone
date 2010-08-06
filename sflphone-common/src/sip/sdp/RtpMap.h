@@ -32,58 +32,60 @@
 #include <string>
 #include <stdlib.h>
 
-namespace sfl {
+namespace sfl
+{
 /**
  * Unmutable class for holding the attributes of a a=rtpmap SDP line.
  */
-class RtpMap {
-public:
-	/**
-	 * @param payloadType The static or dynamic payload type. For example : 98
-	 * @param codec The codec name. Eg: H264
-	 * @param clockRate The clock rate for this codec. Eg: 9000
-	 * @param param Optional parameters for this codec.
-	 */
-	RtpMap(const std::string& payloadType, const std::string& codec,
-			unsigned clockRate, const std::string param) {
-		this->payloadType = atoi(payloadType.c_str());
-		this->codec = codec;
-		this->clockRate = clockRate;
-		this->param = param;
-	}
+class RtpMap
+{
+    public:
+        /**
+         * @param payloadType The static or dynamic payload type. For example : 98
+         * @param codec The codec name. Eg: H264
+         * @param clockRate The clock rate for this codec. Eg: 9000
+         * @param param Optional parameters for this codec.
+         */
+        RtpMap (const std::string& payloadType, const std::string& codec,
+                unsigned clockRate, const std::string param) {
+            this->payloadType = atoi (payloadType.c_str());
+            this->codec = codec;
+            this->clockRate = clockRate;
+            this->param = param;
+        }
 
-	/**
-	 * @return The clock rate for this codec.
-	 */
-	unsigned getClockRate() const {
-		return clockRate;
-	}
+        /**
+         * @return The clock rate for this codec.
+         */
+        unsigned getClockRate() const {
+            return clockRate;
+        }
 
-	/**
-	 * @return The codec name.
-	 */
-	std::string getCodecName() const {
-		return codec;
-	}
+        /**
+         * @return The codec name.
+         */
+        std::string getCodecName() const {
+            return codec;
+        }
 
-	/**
-	 * @return Optional parameters for this codec.
-	 */
-	std::string getParam() const {
-		return param;
-	}
-	/**
-	 * @return The static or dynamic payload type.
-	 */
-	unsigned getPayloadType() const {
-		return payloadType;
-	}
+        /**
+         * @return Optional parameters for this codec.
+         */
+        std::string getParam() const {
+            return param;
+        }
+        /**
+         * @return The static or dynamic payload type.
+         */
+        unsigned getPayloadType() const {
+            return payloadType;
+        }
 
-private:
-	unsigned payloadType;
-	std::string codec;
-	unsigned clockRate;
-	std::string param;
+    private:
+        unsigned payloadType;
+        std::string codec;
+        unsigned clockRate;
+        std::string param;
 };
 }
 #endif

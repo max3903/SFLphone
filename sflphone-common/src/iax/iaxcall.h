@@ -39,108 +39,114 @@
 
 /**
  * @file: iaxcall.h
- * @brief IAXCall are IAX implementation of a normal Call 
+ * @brief IAXCall are IAX implementation of a normal Call
  */
 
 class IAXCall : public Call
 {
-public:
-    /**
-     * Constructor
-     * @param id  The unique ID of the call
-     * @param type  The type of the call
-     */
-    IAXCall(const CallId& id, Call::CallType type);
+    public:
+        /**
+         * Constructor
+         * @param id  The unique ID of the call
+         * @param type  The type of the call
+         */
+        IAXCall (const CallId& id, Call::CallType type);
 
-    /**
-     * Destructor
-     */
-    ~IAXCall();
+        /**
+         * Destructor
+         */
+        ~IAXCall();
 
-    /** 
-     * @return iax_session* The session pointer or NULL
-     */
-    struct iax_session* getSession() { return _session; }
+        /**
+         * @return iax_session* The session pointer or NULL
+         */
+        struct iax_session* getSession() {
+            return _session;
+        }
 
-    /** 
-     * Set the session pointer 
-     * @param session the session pointer to assign
-     */
-    void setSession(struct iax_session* session) { _session = session; }
+        /**
+         * Set the session pointer
+         * @param session the session pointer to assign
+         */
+        void setSession (struct iax_session* session) {
+            _session = session;
+        }
 
-    /**
-     * Set format (one single bit)
-     * This function sets the _audioCodec variable with the correct
-     * codec.
-     * @param format  The format representing the codec
-     */
-    void setFormat(int format);
+        /**
+         * Set format (one single bit)
+         * This function sets the _audioCodec variable with the correct
+         * codec.
+         * @param format  The format representing the codec
+         */
+        void setFormat (int format);
 
-    /**
-     * Get format for the voice codec used
-     * @return int  Bitmask for codecs defined in iax/frame.h
-     */
-    int getFormat() { return _asteriskFormat; }
+        /**
+         * Get format for the voice codec used
+         * @return int  Bitmask for codecs defined in iax/frame.h
+         */
+        int getFormat() {
+            return _asteriskFormat;
+        }
 
 
-    /**
-     * @return int  The bitwise list of supported formats
-     */
-    int getSupportedFormat (std::string accountID);
+        /**
+         * @return int  The bitwise list of supported formats
+         */
+        int getSupportedFormat (std::string accountID);
 
-    /**
-     * Return a format (int) with the first matching codec selected.
-     * 
-     * This considers the order of the appearance in the PayloadTypeToCodecNameMap,
-     * thus, the order of preference.
-     *
-     * NOTE: Everything returned is bound to the content of the local
-     *       PayloadTypeToCodecNameMap, so it won't return format values that aren't valid
-     *       in this call context.
-     *
-     * @param needles  The format(s) (bitwise) you are looking for to match
-     * @return int  The matching format, thus 0 if none matches
-     */
-    int getFirstMatchingFormat(int needles, std::string accountID);
+        /**
+         * Return a format (int) with the first matching codec selected.
+         *
+         * This considers the order of the appearance in the PayloadTypeToCodecNameMap,
+         * thus, the order of preference.
+         *
+         * NOTE: Everything returned is bound to the content of the local
+         *       PayloadTypeToCodecNameMap, so it won't return format values that aren't valid
+         *       in this call context.
+         *
+         * @param needles  The format(s) (bitwise) you are looking for to match
+         * @return int  The matching format, thus 0 if none matches
+         */
+        int getFirstMatchingFormat (int needles, std::string accountID);
 
-    /** 
-     * Get internal codec Map: initialization only, not protected 
-     * @return CodecFactory	The codec map
-     */
-    CodecFactory& getCodecMap();
+        /**
+         * Get internal codec Map: initialization only, not protected
+         * @return CodecFactory	The codec map
+         */
+        CodecFactory& getCodecMap();
 
-    /** 
-     * Return audio codec [mutex protected]
-     * @return the AudioCodec used for this call.
-     */
-    AudioCodec* getAudioCodec();
+        /**
+         * Return audio codec [mutex protected]
+         * @return the AudioCodec used for this call.
+         */
+        AudioCodec* getAudioCodec();
 
-private:
-    /** Each call is associated with an iax_session */
-    struct iax_session* _session;
+    private:
+        /** Each call is associated with an iax_session */
+        struct iax_session* _session;
 
-    /** 
-     * Set the audio codec used.  [not protected] 
-     * @param subtype The codec MIME subtype.
-     */
-    void setAudioCodec(const std::string& subtype);
+        /**
+         * Set the audio codec used.  [not protected]
+         * @param subtype The codec MIME subtype.
+         */
+        void setAudioCodec (const std::string& subtype);
 
-    std::map<int, std::string> astMacroToMimeType;
-    typedef std::map<int, std::string>::iterator AstMacroToMimeTypeIterator;
+        std::map<int, std::string> astMacroToMimeType;
+        typedef std::map<int, std::string>::iterator AstMacroToMimeTypeIterator;
 
-    std::map<std::string, int> mimeTypeToAstMacro;
-    typedef std::map<std::string, int>::iterator MimeTypeToAstMacroIterator;
+        std::map<std::string, int> mimeTypeToAstMacro;
+        typedef std::map<std::string, int>::iterator MimeTypeToAstMacroIterator;
 
-    /**
-     * Keep it simple for now (no such thing as conflicting dynamic payloads in SDP to the horizon).
-     */
-    AudioCodec* _audioCodec;
+        /**
+         * Keep it simple for now (no such thing as conflicting dynamic payloads in SDP to the horizon).
+         */
+        AudioCodec* _audioCodec;
 
-    /**
-     * Format currently in use in the conversation,
-     * sent in each outgoing voice packet.
-     */
-    int _asteriskFormat;
+        /**
+         * Format currently in use in the conversation,
+         * sent in each outgoing voice packet.
+         */
+        int _asteriskFormat;
 };
 
 #endif

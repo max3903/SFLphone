@@ -41,117 +41,120 @@
 
 #include <map>
 
-namespace sfl {
+namespace sfl
+{
 
 /**
  * Extends VideoEncoder, and implements RetrievablePipelineObserver
  */
-class GstEncoder: public VideoEncoder, protected Filter {
-public:
-	GstEncoder() throw (VideoEncodingException, MissingPluginException);
+class GstEncoder: public VideoEncoder, protected Filter
+{
+    public:
+        GstEncoder() throw (VideoEncodingException, MissingPluginException);
 
-	/**
-	 * @Override
-	 */
-	GstEncoder(VideoInputSource& source) throw (VideoDecodingException,
-			MissingPluginException);
-	/**
-	 * @param source The video source from which to capture data from.
-	 * @param maxFrameQueued The maximum number of frames to be queued before starting to drop the following ones.
-	 * @throw VideoEncodingException if an error occurs while opening the video decoder.
-	 */
-	GstEncoder(VideoInputSource& source, unsigned maxFrameQueued)
-			throw (VideoDecodingException, MissingPluginException);
+        /**
+         * @Override
+         */
+        GstEncoder (VideoInputSource& source) throw (VideoDecodingException,
+                MissingPluginException);
+        /**
+         * @param source The video source from which to capture data from.
+         * @param maxFrameQueued The maximum number of frames to be queued before starting to drop the following ones.
+         * @throw VideoEncodingException if an error occurs while opening the video decoder.
+         */
+        GstEncoder (VideoInputSource& source, unsigned maxFrameQueued)
+        throw (VideoDecodingException, MissingPluginException);
 
-	~GstEncoder();
+        ~GstEncoder();
 
-	/**
-	 * @Override
-	 */
-	void encode(const VideoFrame* frame) throw (VideoEncodingException);
+        /**
+         * @Override
+         */
+        void encode (const VideoFrame* frame) throw (VideoEncodingException);
 
-	/**
-	 * @Override
-	 */
-	void setVideoInputSource(VideoInputSource& videoSource);
+        /**
+         * @Override
+         */
+        void setVideoInputSource (VideoInputSource& videoSource);
 
-	/**
-	 * @Override
-	 */
-	void activate();
+        /**
+         * @Override
+         */
+        void activate();
 
-	/**
-	 * @Override
-	 */
-	void deactivate();
+        /**
+         * @Override
+         */
+        void deactivate();
 
-	/**
-	 * @Override
-	 */
-	void setParameter(const std::string& name, const std::string& value);
+        /**
+         * @Override
+         */
+        void setParameter (const std::string& name, const std::string& value);
 
-	/**
-	 * @Override
-	 */
-	std::string getParameter(const std::string& name);
+        /**
+         * @Override
+         */
+        std::string getParameter (const std::string& name);
 
-	static const unsigned MAX_FRAME_QUEUED = 10;
+        static const unsigned MAX_FRAME_QUEUED = 10;
 
-private:
+    private:
 
-	unsigned maxFrameQueued;
+        unsigned maxFrameQueued;
 
-	/**
-	 * Helper method for constructors.
-	 */
-	void init() throw (VideoDecodingException, MissingPluginException);
+        /**
+         * Helper method for constructors.
+         */
+        void init() throw (VideoDecodingException, MissingPluginException);
 
-	InjectablePipeline* injectableEnd;
-	RetrievablePipeline* retrievableEnd;
+        InjectablePipeline* injectableEnd;
+        RetrievablePipeline* retrievableEnd;
 
-	/**
-	 * Observer object for NAL units produced by this encoder.
-	 * We only re-broadcast the event externally.
-	 */
-	class PipelineEventObserver: public RetrievablePipelineObserver {
-	public:
-		PipelineEventObserver(GstEncoder* encoder) :
-			parent(encoder) {
-		}
-		GstEncoder* parent;
-		/**
-		 * @Override
-		 */
-		void onNewBuffer(GstBuffer* buffer) {
-			_debug("NAL unit produced at the sink ...");
-			// _debug("Caps on buffer at the SINK %" GST_PTR_FORMAT, gst_buffer_get_caps(buffer));
+        /**
+         * Observer object for NAL units produced by this encoder.
+         * We only re-broadcast the event externally.
+         */
+        class PipelineEventObserver: public RetrievablePipelineObserver
+        {
+            public:
+                PipelineEventObserver (GstEncoder* encoder) :
+                        parent (encoder) {
+                }
+                GstEncoder* parent;
+                /**
+                 * @Override
+                 */
+                void onNewBuffer (GstBuffer* buffer) {
+                    _debug ("NAL unit produced at the sink ...");
+                    // _debug("Caps on buffer at the SINK %" GST_PTR_FORMAT, gst_buffer_get_caps(buffer));
 
-			GstBuffer* payload = gst_rtp_buffer_get_payload_buffer(buffer);
-			uint32 timestamp = gst_rtp_buffer_get_timestamp(buffer);
+                    GstBuffer* payload = gst_rtp_buffer_get_payload_buffer (buffer);
+                    uint32 timestamp = gst_rtp_buffer_get_timestamp (buffer);
 
-			uint8* payloadData = GST_BUFFER_DATA(payload);
-			uint payloadSize = GST_BUFFER_SIZE(payload);
+                    uint8* payloadData = GST_BUFFER_DATA (payload);
+                    uint payloadSize = GST_BUFFER_SIZE (payload);
 
-			std::pair<uint32, Buffer<uint8> > nalUnit(timestamp,
-					Buffer<uint8> (payloadData, payloadSize));
+                    std::pair<uint32, Buffer<uint8> > nalUnit (timestamp,
+                            Buffer<uint8> (payloadData, payloadSize));
 
-			_debug("Notifying buffer of size %d with timestamp %u", payloadSize, timestamp);
-			parent->notifyAll(nalUnit);
-		}
-	};
-	PipelineEventObserver* outputObserver;
+                    _debug ("Notifying buffer of size %d with timestamp %u", payloadSize, timestamp);
+                    parent->notifyAll (nalUnit);
+                }
+        };
+        PipelineEventObserver* outputObserver;
 
-	/**
-	 * Holds a list of codec-specific parameters. This is needed because the video source
-	 * cannot be set at object creation is some cases. Then if setVideoSource() occurs after setParameters(),
-	 * then the latter will fail as the GstCaps had not been created yet at that point.
-	 */
-	std::list<std::pair<std::string, std::string> > parameters;
+        /**
+         * Holds a list of codec-specific parameters. This is needed because the video source
+         * cannot be set at object creation is some cases. Then if setVideoSource() occurs after setParameters(),
+         * then the latter will fail as the GstCaps had not been created yet at that point.
+         */
+        std::list<std::pair<std::string, std::string> > parameters;
 
-	/**
-	 * Given that a video input source was set, configure the corresponding caps on the appsrc element.
-	 */
-	void configureSource();
+        /**
+         * Given that a video input source was set, configure the corresponding caps on the appsrc element.
+         */
+        void configureSource();
 };
 
 }

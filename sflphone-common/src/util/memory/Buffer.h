@@ -31,7 +31,8 @@
 
 #include <memory>
 
-namespace sfl {
+namespace sfl
+{
 /**
  * Thread UNSAFE general data buffer.
  *
@@ -41,33 +42,38 @@ namespace sfl {
  * @see sfl#ManagedBuffer
  */
 template<class T>
-class Buffer {
-public:
-	/**
-	 * @param buffer A pointer to the buffer that is actually holding the data.
-	 * @param size The size of the buffer.
-	 * @postcondition The buffer provided by the user is NOT copied into this object.
-	 */
-	Buffer(T* buffer, size_t size) {
-		this->buffer = buffer;
-		this->size = size;
-	}
+class Buffer
+{
+    public:
+        /**
+         * @param buffer A pointer to the buffer that is actually holding the data.
+         * @param size The size of the buffer.
+         * @postcondition The buffer provided by the user is NOT copied into this object.
+         */
+        Buffer (T* buffer, size_t size) {
+            this->buffer = buffer;
+            this->size = size;
+        }
 
-	virtual ~Buffer() {};
+        virtual ~Buffer() {};
 
-	/**
-	 * @return A pointer to the buffer kept in this object.
-	 */
-	inline T* getBuffer() { return buffer; }
+        /**
+         * @return A pointer to the buffer kept in this object.
+         */
+        inline T* getBuffer() {
+            return buffer;
+        }
 
-	/**
-	 * @return The size of the buffer kept in this object.
-	 */
-	inline size_t getSize() { return size; }
+        /**
+         * @return The size of the buffer kept in this object.
+         */
+        inline size_t getSize() {
+            return size;
+        }
 
-private:
-	T* buffer;
-	size_t size;
+    private:
+        T* buffer;
+        size_t size;
 };
 }
 

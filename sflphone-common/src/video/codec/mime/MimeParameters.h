@@ -32,44 +32,46 @@
 
 #include <ccrtp/rtp.h>
 
-namespace sfl {
+namespace sfl
+{
 
 /**
  * Interface for exposing MIME parameters in SDP offer/answer model.
  */
-class MimeParameters {
-public:
-	/**
-	 * @return The mimesubtype for this codec. Eg. : "video"
-	 */
-	virtual std::string getMimeType() const = 0;
+class MimeParameters
+{
+    public:
+        /**
+         * @return The mimesubtype for this codec. Eg. : "video"
+         */
+        virtual std::string getMimeType() const = 0;
 
-	/**
-	 * @return The mimesubtype for this codec. Eg. : "theora"
-	 */
-	virtual std::string getMimeSubtype() const = 0;
+        /**
+         * @return The mimesubtype for this codec. Eg. : "theora"
+         */
+        virtual std::string getMimeSubtype() const = 0;
 
-	/**
-	 * @return payload type numeric identifier.
-	 */
-	virtual uint8 getPayloadType() const = 0;
+        /**
+         * @return payload type numeric identifier.
+         */
+        virtual uint8 getPayloadType() const = 0;
 
-	/**
-	 * @return RTP clock rate in Hz.
-	 */
-	virtual uint32 getClockRate() const = 0;
+        /**
+         * @return RTP clock rate in Hz.
+         */
+        virtual uint32 getClockRate() const = 0;
 
-	/**
-	 * @param name The name that identifies the MIME parameter.
-	 * @param value The value this parameter should have.
-	 */
-	virtual void setParameter(const std::string& name, const std::string& value) = 0;
+        /**
+         * @param name The name that identifies the MIME parameter.
+         * @param value The value this parameter should have.
+         */
+        virtual void setParameter (const std::string& name, const std::string& value) = 0;
 
-	/**
-	 * @param name The name that identifies the MIME parameter.
-	 * @return The value that is set for this parameter.
-	 */
-	virtual std::string getParameter(const std::string& name) = 0;
+        /**
+         * @param name The name that identifies the MIME parameter.
+         * @return The value that is set for this parameter.
+         */
+        virtual std::string getParameter (const std::string& name) = 0;
 };
 
 }

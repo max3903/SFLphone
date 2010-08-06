@@ -31,8 +31,7 @@
 
 
 #include "AudioCodec.h"
-extern "C"
-{
+extern "C" {
 #include <gsm/gsm.h>
 }
 
@@ -46,11 +45,11 @@ class Gsm : public AudioCodec
     public:
         // _payload should be 3
         Gsm (int payload=3) : AudioCodec (payload, "GSM"), _decode_gsmhandle (NULL), _encode_gsmhandle (NULL) {
-    		setClockRate(8000);
-    		setChannel(1);
-    		setFrameSize(160);
-    		setBitrate(13.3);
-    		setBandwidth(29.2);
+            setClockRate (8000);
+            setChannel (1);
+            setFrameSize (160);
+            setBitrate (13.3);
+            setBandwidth (29.2);
 
             if (! (_decode_gsmhandle = gsm_create()))
                 printf ("ERROR: decode_gsm_create");
@@ -59,12 +58,12 @@ class Gsm : public AudioCodec
                 printf ("AudioCodec: ERROR: encode_gsm_create");
         }
 
-        Gsm (const Gsm& other)  : AudioCodec(other) {
-    		setClockRate(other.getClockRate());
-    		setChannel(other.getChannel());
-    		setFrameSize(other.getFrameSize());
-    		setBitrate(other.getBitRate());
-    		setBandwidth(other.getBandwidth());
+        Gsm (const Gsm& other)  : AudioCodec (other) {
+            setClockRate (other.getClockRate());
+            setChannel (other.getChannel());
+            setFrameSize (other.getFrameSize());
+            setBitrate (other.getBitRate());
+            setBandwidth (other.getBandwidth());
 
             if (! (_decode_gsmhandle = gsm_create()))
                 printf ("ERROR: decode_gsm_create");
@@ -100,14 +99,14 @@ class Gsm : public AudioCodec
          * @Override
          */
         std::string getDescription() const {
-        	return "GSM codec. Based on libgsm, (C) Jutta Degener and Carsten Bormann, Technische Universitaet Berlin.";
+            return "GSM codec. Based on libgsm, (C) Jutta Degener and Carsten Bormann, Technische Universitaet Berlin.";
         }
 
         /**
          * @Override
          */
         Gsm* clone() const {
-        	return new Gsm(*this);
+            return new Gsm (*this);
         }
 
     private:

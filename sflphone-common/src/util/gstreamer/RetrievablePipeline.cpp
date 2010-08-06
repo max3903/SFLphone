@@ -31,101 +31,114 @@
 
 #include <sstream>
 
-namespace sfl {
+namespace sfl
+{
 unsigned int RetrievablePipeline::numberInstances = 0;
 
-GstFlowReturn RetrievablePipeline::onNewBuffer(GstAppSink* sink, gpointer data) {
-	RetrievablePipeline* self = (RetrievablePipeline*) data;
+GstFlowReturn RetrievablePipeline::onNewBuffer (GstAppSink* sink, gpointer data)
+{
+    RetrievablePipeline* self = (RetrievablePipeline*) data;
 
-	_debug("New buffer has arrived ...");
+    _debug ("New buffer has arrived ...");
 
-	GstBuffer* buffer = gst_app_sink_pull_buffer(GST_APP_SINK(self->appsink));
-	if (buffer == NULL) {
-		_warn("Pulled a NULL buffer");
-	}
+    GstBuffer* buffer = gst_app_sink_pull_buffer (GST_APP_SINK (self->appsink));
 
-	self->notifyAll(buffer);
+    if (buffer == NULL) {
+        _warn ("Pulled a NULL buffer");
+    }
 
-	return GST_FLOW_OK;
+    self->notifyAll (buffer);
+
+    return GST_FLOW_OK;
 }
 
-GstFlowReturn RetrievablePipeline::onNewPreroll(GstAppSink *sink,
-		gpointer user_data) {
-	_debug("New preroll buffer is available");
-	return GST_FLOW_OK;
+GstFlowReturn RetrievablePipeline::onNewPreroll (GstAppSink *sink,
+        gpointer user_data)
+{
+    _debug ("New preroll buffer is available");
+    return GST_FLOW_OK;
 }
 
-GstFlowReturn RetrievablePipeline::onNewBufferList(GstAppSink *sink,
-		gpointer user_data) {
-	_debug("New buffer list is available");
-	return GST_FLOW_OK;
+GstFlowReturn RetrievablePipeline::onNewBufferList (GstAppSink *sink,
+        gpointer user_data)
+{
+    _debug ("New buffer list is available");
+    return GST_FLOW_OK;
 }
 
-void RetrievablePipeline::onEos(GstAppSink *sink, gpointer user_data) {
-	_warn("Got EOS on pipeline at appsink");
+void RetrievablePipeline::onEos (GstAppSink *sink, gpointer user_data)
+{
+    _warn ("Got EOS on pipeline at appsink");
 }
 
-void RetrievablePipeline::init(GstCaps* caps, Pipeline& pipeline) {
-	// Create new appsink
-	gchar* name = gst_element_get_name(getGstPipeline());
+void RetrievablePipeline::init (GstCaps* caps, Pipeline& pipeline)
+{
+    // Create new appsink
+    gchar* name = gst_element_get_name (getGstPipeline());
 
-	std::stringstream ss;
-	ss << name;
-	ss << "_retrievable_";
-	ss << numberInstances;
+    std::stringstream ss;
+    ss << name;
+    ss << "_retrievable_";
+    ss << numberInstances;
 
-	appsink = gst_element_factory_make("appsink", (ss.str()).c_str());
+    appsink = gst_element_factory_make ("appsink", (ss.str()).c_str());
 
-	gst_app_sink_set_max_buffers(GST_APP_SINK(appsink), 2); // FIXME Hardcoded
-	gst_app_sink_set_drop(GST_APP_SINK(appsink), FALSE);
+    gst_app_sink_set_max_buffers (GST_APP_SINK (appsink), 2); // FIXME Hardcoded
+    gst_app_sink_set_drop (GST_APP_SINK (appsink), FALSE);
 
-	// Configure callbacks for the appsink
-	GstAppSinkCallbacks sinkCallbacks;
-	sinkCallbacks.eos = RetrievablePipeline::onEos;
-	sinkCallbacks.new_preroll = RetrievablePipeline::onNewPreroll;
-	sinkCallbacks.new_buffer = RetrievablePipeline::onNewBuffer;
-	sinkCallbacks.new_buffer_list = RetrievablePipeline::onNewBufferList;
+    // Configure callbacks for the appsink
+    GstAppSinkCallbacks sinkCallbacks;
+    sinkCallbacks.eos = RetrievablePipeline::onEos;
+    sinkCallbacks.new_preroll = RetrievablePipeline::onNewPreroll;
+    sinkCallbacks.new_buffer = RetrievablePipeline::onNewBuffer;
+    sinkCallbacks.new_buffer_list = RetrievablePipeline::onNewBufferList;
 
-	gst_app_sink_set_callbacks(GST_APP_SINK(appsink), &sinkCallbacks, this,
-			NULL);
+    gst_app_sink_set_callbacks (GST_APP_SINK (appsink), &sinkCallbacks, this,
+                                NULL);
 
-	_debug("Callbacks configured on appsink");
+    _debug ("Callbacks configured on appsink");
 
-	// Add to the existing pipeline
-	gst_bin_add_many(GST_BIN(getGstPipeline()), appsink, NULL);
+    // Add to the existing pipeline
+    gst_bin_add_many (GST_BIN (getGstPipeline()), appsink, NULL);
 }
 
-void RetrievablePipeline::setSource(GstElement* source) {
-	if (gst_element_link(source, appsink) == FALSE) {
-		throw VideoDecodingException(
-				"Failed to append appsink to the existing pipeline.");
-	}
+void RetrievablePipeline::setSource (GstElement* source)
+{
+    if (gst_element_link (source, appsink) == FALSE) {
+        throw VideoDecodingException (
+            "Failed to append appsink to the existing pipeline.");
+    }
 }
 
-void RetrievablePipeline::setCaps(GstCaps* caps) {
-	gst_app_sink_set_caps(GST_APP_SINK(appsink), caps);
+void RetrievablePipeline::setCaps (GstCaps* caps)
+{
+    gst_app_sink_set_caps (GST_APP_SINK (appsink), caps);
 }
 
-GstCaps* RetrievablePipeline::getCaps() {
-	return  gst_app_sink_get_caps(GST_APP_SINK(appsink));
+GstCaps* RetrievablePipeline::getCaps()
+{
+    return  gst_app_sink_get_caps (GST_APP_SINK (appsink));
 }
 
-RetrievablePipeline::RetrievablePipeline(Pipeline& pipeline) :
-	Pipeline(pipeline.getGstPipeline()) {
-	init(NULL, pipeline);
+RetrievablePipeline::RetrievablePipeline (Pipeline& pipeline) :
+        Pipeline (pipeline.getGstPipeline())
+{
+    init (NULL, pipeline);
 }
 
-RetrievablePipeline::RetrievablePipeline(Pipeline& pipeline, GstCaps* caps) :
-	Pipeline(pipeline.getGstPipeline()) {
-	init(caps, pipeline);
+RetrievablePipeline::RetrievablePipeline (Pipeline& pipeline, GstCaps* caps) :
+        Pipeline (pipeline.getGstPipeline())
+{
+    init (caps, pipeline);
 }
 
-RetrievablePipeline::RetrievablePipeline(Pipeline& pipeline, GstCaps* caps,
-		uint maxBuffers) :
-	Pipeline(pipeline.getGstPipeline()) {
+RetrievablePipeline::RetrievablePipeline (Pipeline& pipeline, GstCaps* caps,
+        uint maxBuffers) :
+        Pipeline (pipeline.getGstPipeline())
+{
 
-	init(caps, pipeline);
-	gst_app_sink_set_max_buffers(GST_APP_SINK(appsink), maxBuffers);
+    init (caps, pipeline);
+    gst_app_sink_set_max_buffers (GST_APP_SINK (appsink), maxBuffers);
 }
 
 }

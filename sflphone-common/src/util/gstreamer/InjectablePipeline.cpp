@@ -32,171 +32,191 @@
 
 #include <sstream>
 
-namespace sfl {
+namespace sfl
+{
 
 unsigned InjectablePipeline::numberInstances = 0;
 
-void InjectablePipeline::setCaps(GstCaps* caps) {
-	gst_app_src_set_caps(GST_APP_SRC(appsrc), caps);
+void InjectablePipeline::setCaps (GstCaps* caps)
+{
+    gst_app_src_set_caps (GST_APP_SRC (appsrc), caps);
 }
 
-GstCaps* InjectablePipeline::getCaps() {
-	return gst_app_src_get_caps(GST_APP_SRC(appsrc));
+GstCaps* InjectablePipeline::getCaps()
+{
+    return gst_app_src_get_caps (GST_APP_SRC (appsrc));
 }
 
-void InjectablePipeline::setMaxQueueSize(size_t size) {
-	gst_app_src_set_max_bytes(GST_APP_SRC(appsrc), size);
+void InjectablePipeline::setMaxQueueSize (size_t size)
+{
+    gst_app_src_set_max_bytes (GST_APP_SRC (appsrc), size);
 }
 
-void InjectablePipeline::setField(const std::string& name, const std::string& value) {
-	GValue gstValue;
-	memset(&gstValue, 0, sizeof(GValue));
-	g_value_init(&gstValue, G_TYPE_STRING);
-	g_value_set_string(&gstValue, value.c_str());
+void InjectablePipeline::setField (const std::string& name, const std::string& value)
+{
+    GValue gstValue;
+    memset (&gstValue, 0, sizeof (GValue));
+    g_value_init (&gstValue, G_TYPE_STRING);
+    g_value_set_string (&gstValue, value.c_str());
 
-	GstCaps* caps = gst_app_src_get_caps(GST_APP_SRC(appsrc));
+    GstCaps* caps = gst_app_src_get_caps (GST_APP_SRC (appsrc));
 
-	caps = gst_caps_make_writable(caps);
+    caps = gst_caps_make_writable (caps);
 
-	// Note that this method set the value in all structures.
-	_debug("Setting field %s=%s on caps", name.c_str(), value.c_str());
-	gst_caps_set_value (caps, name.c_str(), &gstValue);
+    // Note that this method set the value in all structures.
+    _debug ("Setting field %s=%s on caps", name.c_str(), value.c_str());
+    gst_caps_set_value (caps, name.c_str(), &gstValue);
 
-	gst_app_src_set_caps(GST_APP_SRC(appsrc), caps); // Might not have to do that.
+    gst_app_src_set_caps (GST_APP_SRC (appsrc), caps); // Might not have to do that.
 
-	_debug("New altered caps on injectable element %" GST_PTR_FORMAT, caps);
+    _debug ("New altered caps on injectable element %" GST_PTR_FORMAT, caps);
 
 }
 
-std::string InjectablePipeline::getField(const std::string& name) {
-	GstCaps* caps = gst_app_src_get_caps(GST_APP_SRC(appsrc));
+std::string InjectablePipeline::getField (const std::string& name)
+{
+    GstCaps* caps = gst_app_src_get_caps (GST_APP_SRC (appsrc));
 
-	// We take for granted that the first structure is the one of interest
-	GstStructure* structure = gst_caps_get_structure(caps, 0);
+    // We take for granted that the first structure is the one of interest
+    GstStructure* structure = gst_caps_get_structure (caps, 0);
 
-	// Try to find a field with the given name
-	const GValue*  value = gst_structure_get_value(structure, name.c_str());
+    // Try to find a field with the given name
+    const GValue*  value = gst_structure_get_value (structure, name.c_str());
 
-	// Convert the value to string
-	gchar* valueStr;
-	if ((valueStr = gst_value_serialize(value)) == NULL) {
-		// TODO throw
-	}
+    // Convert the value to string
+    gchar* valueStr;
 
-	return std::string((char*)valueStr);
+    if ( (valueStr = gst_value_serialize (value)) == NULL) {
+        // TODO throw
+    }
+
+    return std::string ( (char*) valueStr);
 }
 
-void InjectablePipeline::onEnoughData() {
-	_debug("Appsrc queue has enough data");
-	enoughData = true;
-	notifyAll(NULL, "onEnoughData");
+void InjectablePipeline::onEnoughData()
+{
+    _debug ("Appsrc queue has enough data");
+    enoughData = true;
+    notifyAll (NULL, "onEnoughData");
 }
 
-void InjectablePipeline::enough_data_cb(GstAppSrc *src, gpointer data) {
-	InjectablePipeline* self = (InjectablePipeline*) data;
-	self->onEnoughData();
+void InjectablePipeline::enough_data_cb (GstAppSrc *src, gpointer data)
+{
+    InjectablePipeline* self = (InjectablePipeline*) data;
+    self->onEnoughData();
 }
 
-void InjectablePipeline::onNeedData() {
-	_debug("Appsrc queue needs more data");
-	enoughData = false;
-	notifyAll(NULL, "onNeedData");
+void InjectablePipeline::onNeedData()
+{
+    _debug ("Appsrc queue needs more data");
+    enoughData = false;
+    notifyAll (NULL, "onNeedData");
 }
 
-void InjectablePipeline::need_data_cb(GstAppSrc *src, guint length,
-		gpointer data) {
-	InjectablePipeline* self = (InjectablePipeline*) data;
-	self->onNeedData();
+void InjectablePipeline::need_data_cb (GstAppSrc *src, guint length,
+                                       gpointer data)
+{
+    InjectablePipeline* self = (InjectablePipeline*) data;
+    self->onNeedData();
 }
 
-void InjectablePipeline::inject(GstBuffer* data) {
-	if (enoughData == false) {
-		_debug("Injecting buffer ...");
-		if (gst_app_src_push_buffer(GST_APP_SRC(appsrc), data) != GST_FLOW_OK) {
-			_warn("Failed to push buffer.");
-		}
-	} else {
-		_warn("Dropping buffer. Not enough space in input queue.");
-	}
+void InjectablePipeline::inject (GstBuffer* data)
+{
+    if (enoughData == false) {
+        _debug ("Injecting buffer ...");
+
+        if (gst_app_src_push_buffer (GST_APP_SRC (appsrc), data) != GST_FLOW_OK) {
+            _warn ("Failed to push buffer.");
+        }
+    } else {
+        _warn ("Dropping buffer. Not enough space in input queue.");
+    }
 }
 
-void InjectablePipeline::stop() {
-	_warn("Sending EOS message from injectable endpoint (%s:%d)", __FILE__, __LINE__);
-	gst_app_src_end_of_stream(GST_APP_SRC(appsrc));
-	Pipeline::stop();
+void InjectablePipeline::stop()
+{
+    _warn ("Sending EOS message from injectable endpoint (%s:%d)", __FILE__, __LINE__);
+    gst_app_src_end_of_stream (GST_APP_SRC (appsrc));
+    Pipeline::stop();
 }
 
-void InjectablePipeline::init(GstCaps* caps, Pipeline& pipeline,
-		size_t maxQueueSize) {
-	gst_init(0, NULL);
+void InjectablePipeline::init (GstCaps* caps, Pipeline& pipeline,
+                               size_t maxQueueSize)
+{
+    gst_init (0, NULL);
 
-	// Let the data be queued initially
-	enoughData = false;
+    // Let the data be queued initially
+    enoughData = false;
 
-	// Create the appsrc (the injectable element)
-	gchar* name = gst_element_get_name(getGstPipeline());
+    // Create the appsrc (the injectable element)
+    gchar* name = gst_element_get_name (getGstPipeline());
 
-	std::stringstream ss;
-	ss << name;
-	ss << "_injectable_";
-	ss << numberInstances;
+    std::stringstream ss;
+    ss << name;
+    ss << "_injectable_";
+    ss << numberInstances;
 
-	appsrc = gst_element_factory_make("appsrc", (ss.str()).c_str());
+    appsrc = gst_element_factory_make ("appsrc", (ss.str()).c_str());
 
-	if (appsrc == NULL) {
-		throw MissingGstPluginException(
-				"Plugin \"appsrc\" could not be found. "
-					"Check your install (you need gst-plugins-base). "
-					"Run gst-inspect to get the list of available plugins");
-	}
+    if (appsrc == NULL) {
+        throw MissingGstPluginException (
+            "Plugin \"appsrc\" could not be found. "
+            "Check your install (you need gst-plugins-base). "
+            "Run gst-inspect to get the list of available plugins");
+    }
 
-	g_object_set(G_OBJECT(appsrc), "do-timestamp", TRUE, NULL);
+    g_object_set (G_OBJECT (appsrc), "do-timestamp", TRUE, NULL);
 
-	// Install the callbacks
-	GstAppSrcCallbacks sourceCallbacks;
-	sourceCallbacks.need_data = InjectablePipeline::need_data_cb;
-	sourceCallbacks.enough_data = InjectablePipeline::enough_data_cb;
-	sourceCallbacks.seek_data = NULL;
-	gst_app_src_set_callbacks(GST_APP_SRC(appsrc), &sourceCallbacks, this, NULL);
+    // Install the callbacks
+    GstAppSrcCallbacks sourceCallbacks;
+    sourceCallbacks.need_data = InjectablePipeline::need_data_cb;
+    sourceCallbacks.enough_data = InjectablePipeline::enough_data_cb;
+    sourceCallbacks.seek_data = NULL;
+    gst_app_src_set_callbacks (GST_APP_SRC (appsrc), &sourceCallbacks, this, NULL);
 
-	// Set a maximum amount amount of bytes the queue can hold
-	gst_app_src_set_stream_type(GST_APP_SRC(appsrc), GST_APP_STREAM_TYPE_STREAM);
-	gst_app_src_set_max_bytes(GST_APP_SRC(appsrc), maxQueueSize);
+    // Set a maximum amount amount of bytes the queue can hold
+    gst_app_src_set_stream_type (GST_APP_SRC (appsrc), GST_APP_STREAM_TYPE_STREAM);
+    gst_app_src_set_max_bytes (GST_APP_SRC (appsrc), maxQueueSize);
 
-	// Set the caps on the source
-	if (caps != NULL) {
-		gst_app_src_set_caps(GST_APP_SRC(appsrc), caps);
-	}
+    // Set the caps on the source
+    if (caps != NULL) {
+        gst_app_src_set_caps (GST_APP_SRC (appsrc), caps);
+    }
 
-	// Add to the existing pipeline
-	gst_bin_add(GST_BIN(getGstPipeline()), appsrc);
+    // Add to the existing pipeline
+    gst_bin_add (GST_BIN (getGstPipeline()), appsrc);
 }
 
-void InjectablePipeline::setSink(GstElement* sink) {
-	if (gst_element_link(appsrc, sink) == FALSE) {
-		throw GstException("Failed to prepend appsrc to head.");
-	}
+void InjectablePipeline::setSink (GstElement* sink)
+{
+    if (gst_element_link (appsrc, sink) == FALSE) {
+        throw GstException ("Failed to prepend appsrc to head.");
+    }
 }
 
-InjectablePipeline::InjectablePipeline(Pipeline& pipeline) :
-	Pipeline(pipeline.getGstPipeline()) {
-	init(NULL, pipeline, MAX_QUEUE_SIZE);
+InjectablePipeline::InjectablePipeline (Pipeline& pipeline) :
+        Pipeline (pipeline.getGstPipeline())
+{
+    init (NULL, pipeline, MAX_QUEUE_SIZE);
 }
 
-InjectablePipeline::InjectablePipeline(Pipeline& pipeline, size_t maxQueueSize) :
-	Pipeline(pipeline.getGstPipeline()) {
-	init(NULL, pipeline, maxQueueSize);
+InjectablePipeline::InjectablePipeline (Pipeline& pipeline, size_t maxQueueSize) :
+        Pipeline (pipeline.getGstPipeline())
+{
+    init (NULL, pipeline, maxQueueSize);
 }
 
-InjectablePipeline::InjectablePipeline(Pipeline& pipeline, GstCaps* caps) :
-	Pipeline(pipeline.getGstPipeline()) {
-	init(caps, pipeline, MAX_QUEUE_SIZE);
+InjectablePipeline::InjectablePipeline (Pipeline& pipeline, GstCaps* caps) :
+        Pipeline (pipeline.getGstPipeline())
+{
+    init (caps, pipeline, MAX_QUEUE_SIZE);
 }
 
-InjectablePipeline::InjectablePipeline(Pipeline& pipeline, GstCaps* caps,
-		size_t maxQueueSize) :
-	Pipeline(pipeline.getGstPipeline()) {
-	init(caps, pipeline, maxQueueSize);
+InjectablePipeline::InjectablePipeline (Pipeline& pipeline, GstCaps* caps,
+                                        size_t maxQueueSize) :
+        Pipeline (pipeline.getGstPipeline())
+{
+    init (caps, pipeline, maxQueueSize);
 }
 
 }

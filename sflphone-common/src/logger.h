@@ -36,10 +36,10 @@
 
 namespace Logger
 {
-	void log(const int, const char*, ...);
+void log (const int, const char*, ...);
 
-	void setConsoleLog(bool);
-	void setDebugMode(bool);
+void setConsoleLog (bool);
+void setDebugMode (bool);
 };
 
 #define _error(...)	Logger::log(LOG_ERR, __VA_ARGS__)
@@ -69,7 +69,8 @@ namespace Logger
 #define WHITE "\033[01;37m"
 #define END_COLOR "\033[0m"
 
-namespace sfl {
+namespace sfl
+{
 #define ERROR ost::slog("sflphoned", Slog::classDaemon, Slog::levelError)
 #define ALERT ost::slog("sflphoned", Slog::classDaemon, Slog::levelAlert)
 #define CRITICAL ost::slog("sflphoned", Slog::classDaemon, Slog::levelCritical)

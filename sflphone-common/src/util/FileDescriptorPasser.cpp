@@ -18,97 +18,103 @@
 	int fd[n]; \
     }
 
-namespace sfl {
-FileDescriptorPasser::FileDescriptorPasser(
-		const std::string& abstractNamespace, int fd) :
-	serverSocket(0), fdPassed(fd), path(abstractNamespace), ready(false) {
-	setCancel(cancelDeferred);
+namespace sfl
+{
+FileDescriptorPasser::FileDescriptorPasser (
+    const std::string& abstractNamespace, int fd) :
+        serverSocket (0), fdPassed (fd), path (abstractNamespace), ready (false)
+{
+    setCancel (cancelDeferred);
 }
 
 FileDescriptorPasser::~FileDescriptorPasser()
 {
-	_debug("************ Destructor called");
-	terminate();
+    _debug ("************ Destructor called");
+    terminate();
 }
 
-void FileDescriptorPasser::initial() {
-	_debug("Initializing thread %s", __FILE__);
+void FileDescriptorPasser::initial()
+{
+    _debug ("Initializing thread %s", __FILE__);
 
-	serverSocket = socket(PF_UNIX, SOCK_STREAM, 0);
+    serverSocket = socket (PF_UNIX, SOCK_STREAM, 0);
 
-	struct sockaddr_un server_address = { AF_UNIX, "\0org.sflphone.eventfd" };
+    struct sockaddr_un server_address = { AF_UNIX, "\0org.sflphone.eventfd" };
 
-	if (bind(serverSocket, (struct sockaddr *) &server_address,
-			sizeof server_address) < 0) {
-		_error("Failed to bind() %s:%d: %s", __FILE__, __LINE__, strerror(errno));
-	}
+    if (bind (serverSocket, (struct sockaddr *) &server_address,
+              sizeof server_address) < 0) {
+        _error ("Failed to bind() %s:%d: %s", __FILE__, __LINE__, strerror (errno));
+    }
 
-	if (listen(serverSocket, 1) < 0) {
-		_error("Failed to listen() %s:%d: %s", __FILE__, __LINE__, strerror(errno));
-	}
+    if (listen (serverSocket, 1) < 0) {
+        _error ("Failed to listen() %s:%d: %s", __FILE__, __LINE__, strerror (errno));
+    }
 
-	ready = true;
+    ready = true;
 }
 
-int FileDescriptorPasser::sendFd(int clientfd) {
-	struct msghdr msg;
-	struct cmsghdr *cmsg;
-	union {
-		struct cmsghdr hdr;
-		unsigned char buf[CMSG_SPACE(sizeof(int))];
-	} cmsgbuf;
+int FileDescriptorPasser::sendFd (int clientfd)
+{
+    struct msghdr msg;
+    struct cmsghdr *cmsg;
+    union {
+        struct cmsghdr hdr;
+        unsigned char buf[CMSG_SPACE (sizeof (int)) ];
+    } cmsgbuf;
 
-	memset(&msg, 0, sizeof(msg));
-	msg.msg_name = NULL;
-	msg.msg_namelen = 0;
-	msg.msg_control = &cmsgbuf.buf;
-	msg.msg_controllen = sizeof(cmsgbuf.buf);
+    memset (&msg, 0, sizeof (msg));
+    msg.msg_name = NULL;
+    msg.msg_namelen = 0;
+    msg.msg_control = &cmsgbuf.buf;
+    msg.msg_controllen = sizeof (cmsgbuf.buf);
 
-	struct iovec nothing_ptr;
-	char nothing;
-	nothing_ptr.iov_base = &nothing;
-	nothing_ptr.iov_len = 1;
-	msg.msg_iov = &nothing_ptr;
-	msg.msg_iovlen = 1;
+    struct iovec nothing_ptr;
+    char nothing;
+    nothing_ptr.iov_base = &nothing;
+    nothing_ptr.iov_len = 1;
+    msg.msg_iov = &nothing_ptr;
+    msg.msg_iovlen = 1;
 
-	cmsg = CMSG_FIRSTHDR(&msg);
-	cmsg->cmsg_len = CMSG_LEN(sizeof(int));
-	cmsg->cmsg_level = SOL_SOCKET;
-	cmsg->cmsg_type = SCM_RIGHTS;
-	*(int *) CMSG_DATA(cmsg) = fdPassed;
+    cmsg = CMSG_FIRSTHDR (&msg);
+    cmsg->cmsg_len = CMSG_LEN (sizeof (int));
+    cmsg->cmsg_level = SOL_SOCKET;
+    cmsg->cmsg_type = SCM_RIGHTS;
+    * (int *) CMSG_DATA (cmsg) = fdPassed;
 
-	return sendmsg(clientfd, &msg, 0);
+    return sendmsg (clientfd, &msg, 0);
 }
 
-void FileDescriptorPasser::run() {
+void FileDescriptorPasser::run()
+{
 
-	_debug("Starting FD passer %s", path.c_str());
+    _debug ("Starting FD passer %s", path.c_str());
 
-	while (isRunning()) {
-		struct sockaddr_un clientAddress;
-		socklen_t clientAddressLength = sizeof clientAddress;
+    while (isRunning()) {
+        struct sockaddr_un clientAddress;
+        socklen_t clientAddressLength = sizeof clientAddress;
 
-		_debug("Accepting ...");
-		int clientConnection = accept(serverSocket,
-				(struct sockaddr *) &clientAddress, &clientAddressLength);
-		_debug("Client accepted.");
+        _debug ("Accepting ...");
+        int clientConnection = accept (serverSocket,
+                                       (struct sockaddr *) &clientAddress, &clientAddressLength);
+        _debug ("Client accepted.");
 
-		if (sendFd(clientConnection) < 0) {
-			_error("Failed to sendFd() %s:%d: %s", __FILE__, __LINE__, strerror(errno));
-		}
+        if (sendFd (clientConnection) < 0) {
+            _error ("Failed to sendFd() %s:%d: %s", __FILE__, __LINE__, strerror (errno));
+        }
 
-		::close(clientConnection);
+        ::close (clientConnection);
 
-		yield();
-	}
+        yield();
+    }
 
-	_debug ("FD passer thread exited.");
+    _debug ("FD passer thread exited.");
 }
 
-void FileDescriptorPasser::final() {
-	_debug("*************** Closing socket");
-	::close(serverSocket);
-	ready = false;
+void FileDescriptorPasser::final()
+{
+    _debug ("*************** Closing socket");
+    ::close (serverSocket);
+    ready = false;
 }
 
 }

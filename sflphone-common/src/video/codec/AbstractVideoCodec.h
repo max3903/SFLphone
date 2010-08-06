@@ -36,7 +36,8 @@
 
 #include <map>
 
-namespace sfl {
+namespace sfl
+{
 
 /**
  * Forward declaration
@@ -45,98 +46,100 @@ class VideoFrame;
 class VideoInputSource;
 
 template<class EncoderType, class DecoderType>
-class AbstractVideoCodec: public virtual VideoCodec {
-public:
-	AbstractVideoCodec() :
-		VideoCodec() {
-		encoder = new EncoderType();
-		decoder = new DecoderType();
-	}
+class AbstractVideoCodec: public virtual VideoCodec
+{
+    public:
+        AbstractVideoCodec() :
+                VideoCodec() {
+            encoder = new EncoderType();
+            decoder = new DecoderType();
+        }
 
-	virtual ~AbstractVideoCodec() {
-	}
-	;
+        virtual ~AbstractVideoCodec() {
+        }
+        ;
 
-	void setEncoderVideoSource(VideoInputSource* source) {
-		encoder->setVideoInputSource(*source);
-	}
+        void setEncoderVideoSource (VideoInputSource* source) {
+            encoder->setVideoInputSource (*source);
+        }
 
-	/**
-	 * @Override
-	 */
-	void addVideoFrameEncodedObserver(VideoFrameEncodedObserver& observer) {
-		encoder->addObserver(&observer);
-	}
+        /**
+         * @Override
+         */
+        void addVideoFrameEncodedObserver (VideoFrameEncodedObserver& observer) {
+            encoder->addObserver (&observer);
+        }
 
-	/**
-	 * @Override
-	 */
-	void addVideoFrameDecodedObserver(VideoFrameDecodedObserver& observer) {
-		decoder->addObserver(&observer);
-	}
+        /**
+         * @Override
+         */
+        void addVideoFrameDecodedObserver (VideoFrameDecodedObserver& observer) {
+            decoder->addObserver (&observer);
+        }
 
-	/**
-	 * @Override
-	 */
-	inline void decode(Buffer<uint8>& data) throw (VideoDecodingException) {
-		decoder->decode(data);
-	}
+        /**
+         * @Override
+         */
+        inline void decode (Buffer<uint8>& data) throw (VideoDecodingException) {
+            decoder->decode (data);
+        }
 
-	/**
-	 * @Override
-	 */
-	void encode(const VideoFrame* frame) throw (VideoEncodingException) {
-		encoder->encode(frame);
-	}
+        /**
+         * @Override
+         */
+        void encode (const VideoFrame* frame) throw (VideoEncodingException) {
+            encoder->encode (frame);
+        }
 
-	/**
-	 * @Override
-	 */
-	void deactivate() {
-		encoder->deactivate();
-		decoder->deactivate();
-	}
+        /**
+         * @Override
+         */
+        void deactivate() {
+            encoder->deactivate();
+            decoder->deactivate();
+        }
 
-	/**
-	 * @Override
-	 */
-	void activate() {
-		encoder->activate();
-		decoder->activate();
-	}
+        /**
+         * @Override
+         */
+        void activate() {
+            encoder->activate();
+            decoder->activate();
+        }
 
-	/**
-	 * @Override
-	 */
-	void setParameter(const std::string& name, const std::string& value) {
-		encoder->setParameter(name, value);
-		decoder->setParameter(name, value);
-	}
+        /**
+         * @Override
+         */
+        void setParameter (const std::string& name, const std::string& value) {
+            encoder->setParameter (name, value);
+            decoder->setParameter (name, value);
+        }
 
-	/**
-	 * @Override
-	 */
-	std::string getParameter(const std::string& name) {
-		std::string valueEncoder = encoder->getParameter(name);
-		std::string valueDecoder = decoder->getParameter(name);
-		if (valueEncoder != valueDecoder) {
-			_warn("Decoder and encoder do not agree on MIME parameter %s. Decoder set with %s ; Encoder %s", name.c_str(), valueDecoder.c_str(), valueEncoder.c_str());
-		}
+        /**
+         * @Override
+         */
+        std::string getParameter (const std::string& name) {
+            std::string valueEncoder = encoder->getParameter (name);
+            std::string valueDecoder = decoder->getParameter (name);
 
-		return valueEncoder;
-	}
+            if (valueEncoder != valueDecoder) {
+                _warn ("Decoder and encoder do not agree on MIME parameter %s. Decoder set with %s ; Encoder %s", name.c_str(), valueDecoder.c_str(), valueEncoder.c_str());
+            }
 
-private:
-	// Impose constraint on the type. Something that we can do in Java, and other languages, but not that easily in C++.
-	typedef typename EncoderType::IsDerivedFromVideoEncoder
-			DerivedFromEncoderGuard;
+            return valueEncoder;
+        }
 
-	typedef typename DecoderType::IsDerivedFromVideoDecoder
-			DerivedFromDecoderGuard;
+    private:
+        // Impose constraint on the type. Something that we can do in Java, and other languages, but not that easily in C++.
+        typedef typename EncoderType::IsDerivedFromVideoEncoder
+        DerivedFromEncoderGuard;
 
-	EncoderType* encoder;
+        typedef typename DecoderType::IsDerivedFromVideoDecoder
+        DerivedFromDecoderGuard;
 
-	DecoderType* decoder;
+        EncoderType* encoder;
+
+        DecoderType* decoder;
 
 };
 

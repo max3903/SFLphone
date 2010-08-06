@@ -39,321 +39,355 @@
 
 CodecFactory* CodecFactory::instance = 0;
 
-CodecFactory& CodecFactory::getInstance() {
-	if (instance == 0) {
-		instance = new CodecFactory();
-	}
+CodecFactory& CodecFactory::getInstance()
+{
+    if (instance == 0) {
+        instance = new CodecFactory();
+    }
 
-	return *instance;
+    return *instance;
 }
 
 CodecFactory::CodecFactory() :
-	_cache(), _codecInMemory(), _codecsMap() {
-	init();
-}
-
-CodecFactory::~CodecFactory() {
-	deleteHandlePointer();
-}
-
-std::vector<std::string> CodecFactory::getAllMimeSubtypes() {
-	std::vector<std::string> output;
-	IdentifierToCodecInstanceMapIterator it;
-	for (it = _codecsMap.begin(); it != _codecsMap.end(); it++) {
-		output.push_back(((*it).second)->getMimeSubtype());
-	}
-
-	return output;
-}
-
-const sfl::Codec* CodecFactory::getCodec(const std::string& id)
+        _cache(), _codecInMemory(), _codecsMap()
 {
-	IdentifierToCodecInstanceMap::iterator iter = _codecsMap.find(id);
-
-	if (iter != _codecsMap.end()) {
-		// _debug("Found codec %i _codecsMap from codec descriptor", payload);
-		return (iter->second);
-	}
-
-	_error ("Error cannot find codec %i in Codec Factory", id.c_str());
-
-	return NULL;
+    init();
 }
 
-sfl::Codec* CodecFactory::getCodecInstance(const std::string& id)
+CodecFactory::~CodecFactory()
 {
-	const sfl::Codec* codec = getCodec(id);
-	if (codec != NULL) {
-		return codec->clone();
-	}
-
-	return NULL;
+    deleteHandlePointer();
 }
 
-const sfl::Codec* CodecFactory::getCodecByMimeSubtype(const std::string& mimeSubtype) {
-	IdentifierToCodecInstanceMap::iterator it;
-	for (it = _codecsMap.begin() ; it != _codecsMap.end(); it++) {
-		if (((*it).second)->getMimeSubtype() == mimeSubtype) {
-			return (*it).second;
-		}
-	}
+std::vector<std::string> CodecFactory::getAllMimeSubtypes()
+{
+    std::vector<std::string> output;
+    IdentifierToCodecInstanceMapIterator it;
 
-	return NULL; // TODO throw something instead.
+    for (it = _codecsMap.begin(); it != _codecsMap.end(); it++) {
+        output.push_back ( ( (*it).second)->getMimeSubtype());
+    }
+
+    return output;
 }
 
-const sfl::Codec* CodecFactory::getCodecByPayloadType(ost::PayloadType type) {
-	IdentifierToCodecInstanceMap::iterator it;
-	for (it = _codecsMap.begin() ; it != _codecsMap.end(); it++) {
-		if (((*it).second)->getPayloadType() == type) {
-			return (*it).second;
-		}
-	}
+const sfl::Codec* CodecFactory::getCodec (const std::string& id)
+{
+    IdentifierToCodecInstanceMap::iterator iter = _codecsMap.find (id);
 
-	return NULL; // TODO throw something instead.
+    if (iter != _codecsMap.end()) {
+        // _debug("Found codec %i _codecsMap from codec descriptor", payload);
+        return (iter->second);
+    }
+
+    _error ("Error cannot find codec %i in Codec Factory", id.c_str());
+
+    return NULL;
 }
 
-const sfl::Codec* CodecFactory::getCodecByPayloadFormat(const ost::PayloadFormat& format) {
-	IdentifierToCodecInstanceMap::iterator it;
-	for (it = _codecsMap.begin() ; it != _codecsMap.end(); it++) {
-		sfl::Codec* codec = (*it).second;
-		if (codec->getPayloadType() == format.getPayloadType()
-				&&
-			codec->getClockRate() == format.getRTPClockRate()) {
-			return (*it).second;
-		}
-	}
+sfl::Codec* CodecFactory::getCodecInstance (const std::string& id)
+{
+    const sfl::Codec* codec = getCodec (id);
 
-	return NULL; // TODO throw something instead.
+    if (codec != NULL) {
+        return codec->clone();
+    }
+
+    return NULL;
+}
+
+const sfl::Codec* CodecFactory::getCodecByMimeSubtype (const std::string& mimeSubtype)
+{
+    IdentifierToCodecInstanceMap::iterator it;
+
+    for (it = _codecsMap.begin() ; it != _codecsMap.end(); it++) {
+        if ( ( (*it).second)->getMimeSubtype() == mimeSubtype) {
+            return (*it).second;
+        }
+    }
+
+    return NULL; // TODO throw something instead.
+}
+
+const sfl::Codec* CodecFactory::getCodecByPayloadType (ost::PayloadType type)
+{
+    IdentifierToCodecInstanceMap::iterator it;
+
+    for (it = _codecsMap.begin() ; it != _codecsMap.end(); it++) {
+        if ( ( (*it).second)->getPayloadType() == type) {
+            return (*it).second;
+        }
+    }
+
+    return NULL; // TODO throw something instead.
+}
+
+const sfl::Codec* CodecFactory::getCodecByPayloadFormat (const ost::PayloadFormat& format)
+{
+    IdentifierToCodecInstanceMap::iterator it;
+
+    for (it = _codecsMap.begin() ; it != _codecsMap.end(); it++) {
+        sfl::Codec* codec = (*it).second;
+
+        if (codec->getPayloadType() == format.getPayloadType()
+                &&
+                codec->getClockRate() == format.getRTPClockRate()) {
+            return (*it).second;
+        }
+    }
+
+    return NULL; // TODO throw something instead.
 }
 
 std::vector<const AudioCodec*> CodecFactory::getAllAudioCodecs()
 {
-	std::vector<const AudioCodec*> output;
+    std::vector<const AudioCodec*> output;
 
-	IdentifierToCodecInstanceMap::iterator it;
-	for (it = _codecsMap.begin(); it != _codecsMap.end(); it++) {
-		if (((*it).second)->getMimeType() == "audio") {
-			const AudioCodec* codec = static_cast<AudioCodec*>((*it).second);
-			output.push_back(codec);
-		}
-	}
+    IdentifierToCodecInstanceMap::iterator it;
 
-	return output;
+    for (it = _codecsMap.begin(); it != _codecsMap.end(); it++) {
+        if ( ( (*it).second)->getMimeType() == "audio") {
+            const AudioCodec* codec = static_cast<AudioCodec*> ( (*it).second);
+            output.push_back (codec);
+        }
+    }
+
+    return output;
 }
 
 std::vector<const sfl::VideoCodec*> CodecFactory::getAllVideoCodecs()
 {
-	std::vector<const sfl::VideoCodec*> output;
+    std::vector<const sfl::VideoCodec*> output;
 
-	IdentifierToCodecInstanceMap::iterator it;
-	for (it = _codecsMap.begin(); it != _codecsMap.end(); it++) {
-		if (((*it).second)->getMimeType() == "video") {
-			const sfl::VideoCodec* codec = dynamic_cast<sfl::VideoCodec*>((*it).second);
-			output.push_back(codec);
-		}
-	}
+    IdentifierToCodecInstanceMap::iterator it;
 
-	return output;
+    for (it = _codecsMap.begin(); it != _codecsMap.end(); it++) {
+        if ( ( (*it).second)->getMimeType() == "video") {
+            const sfl::VideoCodec* codec = dynamic_cast<sfl::VideoCodec*> ( (*it).second);
+            output.push_back (codec);
+        }
+    }
+
+    return output;
 }
 
 CodecOrder CodecFactory::getDefaultAudioCodecOrder()
 {
-	CodecOrder output;
+    CodecOrder output;
 
-	IdentifierToCodecInstanceMap::iterator it;
-	for (it = _codecsMap.begin(); it != _codecsMap.end(); it++) {
-		if (((*it).second)->getMimeType() == "audio") {
-			output.push_back(((*it).second)->hashCode());
-		}
-	}
+    IdentifierToCodecInstanceMap::iterator it;
 
-	return output;
+    for (it = _codecsMap.begin(); it != _codecsMap.end(); it++) {
+        if ( ( (*it).second)->getMimeType() == "audio") {
+            output.push_back ( ( (*it).second)->hashCode());
+        }
+    }
+
+    return output;
 }
 
 CodecOrder CodecFactory::getDefaultVideoCodecOrder()
 {
-	CodecOrder output;
+    CodecOrder output;
 
-	IdentifierToCodecInstanceMap::iterator it;
-	for (it = _codecsMap.begin(); it != _codecsMap.end(); it++) {
-		if (((*it).second)->getMimeType() == "video") {
-			output.push_back(((*it).second)->hashCode());
-		}
-	}
+    IdentifierToCodecInstanceMap::iterator it;
 
-	return output;
+    for (it = _codecsMap.begin(); it != _codecsMap.end(); it++) {
+        if ( ( (*it).second)->getMimeType() == "video") {
+            output.push_back ( ( (*it).second)->hashCode());
+        }
+    }
+
+    return output;
 }
 
-void CodecFactory::init() {
-	std::vector<sfl::Codec*> codecs = scanCodecDirectory();
+void CodecFactory::init()
+{
+    std::vector<sfl::Codec*> codecs = scanCodecDirectory();
 
-	std::sort(codecs.begin(), codecs.end(), CodecComparator);
+    std::sort (codecs.begin(), codecs.end(), CodecComparator);
 
-	if (codecs.size() != 0) {
-		std::vector<sfl::Codec*>::iterator it;
-		for (it = codecs.begin(); it != codecs.end(); it++) {
-			sfl::Codec* codec = *it;
-			std::string id = (*it)->hashCode();
-			_codecsMap.insert(std::pair<std::string, sfl::Codec*>(id, codec));
-		}
-	} else {
-		_error("No plugin could be found.");
-		// TODO Throw something.
-	}
+    if (codecs.size() != 0) {
+        std::vector<sfl::Codec*>::iterator it;
+
+        for (it = codecs.begin(); it != codecs.end(); it++) {
+            sfl::Codec* codec = *it;
+            std::string id = (*it)->hashCode();
+            _codecsMap.insert (std::pair<std::string, sfl::Codec*> (id, codec));
+        }
+    } else {
+        _error ("No plugin could be found.");
+        // TODO Throw something.
+    }
 }
 
-bool CodecFactory::isAlreadyInCache(std::string lib) {
-	int i;
+bool CodecFactory::isAlreadyInCache (std::string lib)
+{
+    int i;
 
-	for (i = 0; (unsigned int) i < _cache.size(); i++) {
-		if (_cache[i] == lib) {
-			return true;
-		}
-	}
+    for (i = 0; (unsigned int) i < _cache.size(); i++) {
+        if (_cache[i] == lib) {
+            return true;
+        }
+    }
 
-	return false;
+    return false;
 }
 
-bool CodecFactory::isLibraryValid(std::string lib) {
+bool CodecFactory::isLibraryValid (std::string lib)
+{
 
-	// The name of the shared library seems valid  <==> it looks like libcodec_xxx.so
-	// We check this
-	std::string begin = SFL_CODEC_VALID_PREFIX;
-	std::string end = SFL_CODEC_VALID_EXTEN;
+    // The name of the shared library seems valid  <==> it looks like libcodec_xxx.so
+    // We check this
+    std::string begin = SFL_CODEC_VALID_PREFIX;
+    std::string end = SFL_CODEC_VALID_EXTEN;
 
-	// First : check the length of the file name.
-	// If it is shorter than begin.length() + end.length() , not a SFL shared library
+    // First : check the length of the file name.
+    // If it is shorter than begin.length() + end.length() , not a SFL shared library
 
-	if (lib.length() <= begin.length() + end.length())
-		return false;
+    if (lib.length() <= begin.length() + end.length())
+        return false;
 
-	// Second: check the extension of the file name.
-	// If it is different than SFL_CODEC_VALID_EXTEN , not a SFL shared library
-	if (lib.substr(lib.length() - end.length(), lib.length()) != end)
-		return false;
+    // Second: check the extension of the file name.
+    // If it is different than SFL_CODEC_VALID_EXTEN , not a SFL shared library
+    if (lib.substr (lib.length() - end.length(), lib.length()) != end)
+        return false;
 
 #ifdef HAVE_SPEEX_CODEC
-	// Nothing special
+    // Nothing special
 #else
-	if (lib.substr(begin.length(), lib.length() - begin.length() - end.length())
-			== SPEEX_STRING_DESCRIPTION)
-		return false;
+
+    if (lib.substr (begin.length(), lib.length() - begin.length() - end.length())
+            == SPEEX_STRING_DESCRIPTION)
+        return false;
 
 #endif
 
 #ifdef HAVE_GSM_CODEC
-	// Nothing special
+    // Nothing special
 #else
-	if (lib.substr(begin.length(), lib.length() - begin.length() - end.length())
-			== GSM_STRING_DESCRIPTION)
-		return false;
+
+    if (lib.substr (begin.length(), lib.length() - begin.length() - end.length())
+            == GSM_STRING_DESCRIPTION)
+        return false;
 
 #endif
 
 #ifdef BUILD_ILBC
-	// Nothing special
+    // Nothing special
 #else
-	if (lib.substr(begin.length(), lib.length() - begin.length() - end.length())
-			== ILBC_STRING_DESCRIPTION)
-		return false;
+
+    if (lib.substr (begin.length(), lib.length() - begin.length() - end.length())
+            == ILBC_STRING_DESCRIPTION)
+        return false;
 
 #endif
 
-	if (lib.substr(0, begin.length()) == begin)
-		if (lib.substr(lib.length() - end.length(), end.length()) == end)
-			return true;
-		else
-			return false;
-	else
-		return false;
+    if (lib.substr (0, begin.length()) == begin)
+        if (lib.substr (lib.length() - end.length(), end.length()) == end)
+            return true;
+        else
+            return false;
+    else
+        return false;
 }
 
-void CodecFactory::deleteHandlePointer(void) {
-	_debug("CodecDesccriptor: Delete codec handle pointers");
+void CodecFactory::deleteHandlePointer (void)
+{
+    _debug ("CodecDesccriptor: Delete codec handle pointers");
 
-	for (int i = 0; (unsigned int) i < _codecInMemory.size(); i++) {
-		unloadCodec(_codecInMemory[i]);
-	}
+    for (int i = 0; (unsigned int) i < _codecInMemory.size(); i++) {
+        unloadCodec (_codecInMemory[i]);
+    }
 
-	_codecInMemory.clear();
+    _codecInMemory.clear();
 }
 
-std::vector<sfl::Codec*> CodecFactory::scanCodecDirectory(void) {
+std::vector<sfl::Codec*> CodecFactory::scanCodecDirectory (void)
+{
 
-	std::vector<sfl::Codec*> codecs;
-	std::string tmp;
-	int i;
+    std::vector<sfl::Codec*> codecs;
+    std::string tmp;
+    int i;
 
-	std::string libDir = std::string(CODECS_DIR).append("/");
-	std::string homeDir = std::string(HOMEDIR) + DIR_SEPARATOR_STR + "."
-			+ PROGDIR + "/";
-	std::vector<std::string> dirToScan;
-	dirToScan.push_back(homeDir);
-	dirToScan.push_back(libDir);
+    std::string libDir = std::string (CODECS_DIR).append ("/");
+    std::string homeDir = std::string (HOMEDIR) + DIR_SEPARATOR_STR + "."
+                          + PROGDIR + "/";
+    std::vector<std::string> dirToScan;
+    dirToScan.push_back (homeDir);
+    dirToScan.push_back (libDir);
 
-	for (i = 0; (unsigned int) i < dirToScan.size(); i++) {
-		std::string dirStr = dirToScan[i];
+    for (i = 0; (unsigned int) i < dirToScan.size(); i++) {
+        std::string dirStr = dirToScan[i];
 
-		_debug ("CodecDescriptor: Scanning %s to find audio codecs....", dirStr.c_str());
+        _debug ("CodecDescriptor: Scanning %s to find audio codecs....", dirStr.c_str());
 
-		DIR *dir = opendir(dirStr.c_str());
-		if (dir) {
-			dirent *dirStruct;
-			while ((dirStruct = readdir(dir))) {
-				tmp = dirStruct->d_name;
-				if (!(tmp == CURRENT_DIR || tmp == PARENT_DIR)) {
-					if (isLibraryValid(tmp) && !isAlreadyInCache(tmp)) {
-						_cache.push_back(tmp);
+        DIR *dir = opendir (dirStr.c_str());
 
-						_debug("Library %s added to the cache.", tmp.c_str());
+        if (dir) {
+            dirent *dirStruct;
 
-						sfl::Codec* audioCodec = loadCodec(dirStr.append(tmp));
+            while ( (dirStruct = readdir (dir))) {
+                tmp = dirStruct->d_name;
 
-						codecs.push_back(audioCodec);
+                if (! (tmp == CURRENT_DIR || tmp == PARENT_DIR)) {
+                    if (isLibraryValid (tmp) && !isAlreadyInCache (tmp)) {
+                        _cache.push_back (tmp);
 
-						_debug("Codec %s/%s %d (%s) loaded.",
-								audioCodec->getMimeType().c_str(),
-								audioCodec->getMimeSubtype().c_str(),
-								audioCodec->getClockRate(),
-								audioCodec->getDescription().c_str());
+                        _debug ("Library %s added to the cache.", tmp.c_str());
 
-						dirStr = dirToScan[i];
-					}
-				}
-			}
-		}
+                        sfl::Codec* audioCodec = loadCodec (dirStr.append (tmp));
 
-		closedir(dir);
-	}
+                        codecs.push_back (audioCodec);
 
-	return codecs;
+                        _debug ("Codec %s/%s %d (%s) loaded.",
+                                audioCodec->getMimeType().c_str(),
+                                audioCodec->getMimeSubtype().c_str(),
+                                audioCodec->getClockRate(),
+                                audioCodec->getDescription().c_str());
+
+                        dirStr = dirToScan[i];
+                    }
+                }
+            }
+        }
+
+        closedir (dir);
+    }
+
+    return codecs;
 }
 
-sfl::Codec* CodecFactory::loadCodec(std::string path) {
-	CodecHandlePointer p;
-	void* codecHandle = dlopen(path.c_str(), RTLD_LAZY);
-	if (!codecHandle) {
-		_error("%s", dlerror());
-	}
+sfl::Codec* CodecFactory::loadCodec (std::string path)
+{
+    CodecHandlePointer p;
+    void* codecHandle = dlopen (path.c_str(), RTLD_LAZY);
 
-	create_t* createCodec = (create_t*) dlsym(codecHandle, "create");
-	if (createCodec == NULL) {
-		_error("%s (%s:%d)", dlerror(), __FILE__, __LINE__);
-	}
+    if (!codecHandle) {
+        _error ("%s", dlerror());
+    }
 
-	sfl::Codec* codec = createCodec();
-	_codecInMemory.push_back(CodecHandlePointer(codec, codecHandle));
+    create_t* createCodec = (create_t*) dlsym (codecHandle, "create");
 
-	return codec;
+    if (createCodec == NULL) {
+        _error ("%s (%s:%d)", dlerror(), __FILE__, __LINE__);
+    }
+
+    sfl::Codec* codec = createCodec();
+    _codecInMemory.push_back (CodecHandlePointer (codec, codecHandle));
+
+    return codec;
 }
 
-void CodecFactory::unloadCodec(CodecHandlePointer p) {
-	destroy_t* destroyCodec = (destroy_t*) dlsym(p.second, "destroy");
-	if (destroyCodec == NULL) {
-		_error("%s (%s:%d)", dlerror(), __FILE__, __LINE__);
-	}
+void CodecFactory::unloadCodec (CodecHandlePointer p)
+{
+    destroy_t* destroyCodec = (destroy_t*) dlsym (p.second, "destroy");
 
-	destroyCodec(p.first);
+    if (destroyCodec == NULL) {
+        _error ("%s (%s:%d)", dlerror(), __FILE__, __LINE__);
+    }
 
-	dlclose(p.second);
+    destroyCodec (p.first);
+
+    dlclose (p.second);
 }

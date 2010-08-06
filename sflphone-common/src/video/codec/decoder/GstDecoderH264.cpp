@@ -29,24 +29,28 @@
 
 #include "GstDecoderH264.h"
 
-namespace sfl {
+namespace sfl
+{
 
-void GstDecoderH264::buildFilter(Pipeline& pipeline)
-		throw (MissingPluginException) {
+void GstDecoderH264::buildFilter (Pipeline& pipeline)
+throw (MissingPluginException)
+{
 
-	rtph264depay = pipeline.addElement("rtph264depay");
+    rtph264depay = pipeline.addElement ("rtph264depay");
 
-	GstElement* previous = pipeline.addElement("h264parse", rtph264depay);
+    GstElement* previous = pipeline.addElement ("h264parse", rtph264depay);
 
-	ffdec_h264 = pipeline.addElement("ffdec_h264", previous);
+    ffdec_h264 = pipeline.addElement ("ffdec_h264", previous);
 }
 
-GstElement* GstDecoderH264::getHead() {
-	return rtph264depay;
+GstElement* GstDecoderH264::getHead()
+{
+    return rtph264depay;
 }
 
-GstElement* GstDecoderH264::getTail() {
-	return ffdec_h264;
+GstElement* GstDecoderH264::getTail()
+{
+    return ffdec_h264;
 }
 
 

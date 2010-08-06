@@ -29,32 +29,36 @@
 
 #include "GstEncoderH264.h"
 
-namespace sfl {
+namespace sfl
+{
 
-void GstEncoderH264::buildFilter(Pipeline& pipeline)
-		throw (MissingPluginException) {
+void GstEncoderH264::buildFilter (Pipeline& pipeline)
+throw (MissingPluginException)
+{
 
-	x264enc = pipeline.addElement("x264enc");
+    x264enc = pipeline.addElement ("x264enc");
 
-	// Generate byte stream format of NALU
-	g_object_set(G_OBJECT(x264enc), "byte-stream", TRUE, NULL);
+    // Generate byte stream format of NALU
+    g_object_set (G_OBJECT (x264enc), "byte-stream", TRUE, NULL);
 
-	// Enable automatic multithreading
-	g_object_set(G_OBJECT(x264enc), "threads", 0, NULL);
+    // Enable automatic multithreading
+    g_object_set (G_OBJECT (x264enc), "threads", 0, NULL);
 
-	// Set default bitrate
-	g_object_set(G_OBJECT(x264enc), "bitrate", 300, NULL);
+    // Set default bitrate
+    g_object_set (G_OBJECT (x264enc), "bitrate", 300, NULL);
 
-	rtph264pay = pipeline.addElement("rtph264pay", x264enc);
+    rtph264pay = pipeline.addElement ("rtph264pay", x264enc);
 
 }
 
-GstElement* GstEncoderH264::getHead() {
-	return x264enc;
+GstElement* GstEncoderH264::getHead()
+{
+    return x264enc;
 }
 
-GstElement* GstEncoderH264::getTail() {
-	return rtph264pay;
+GstElement* GstEncoderH264::getTail()
+{
+    return rtph264pay;
 }
 
 }

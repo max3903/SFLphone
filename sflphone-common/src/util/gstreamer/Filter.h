@@ -33,17 +33,19 @@
 #include "Pipeline.h"
 #include "video/VideoExceptions.h"
 
-namespace sfl {
+namespace sfl
+{
 /**
  * A filter object is simply a set of Gstreamer Elements within a pipeline.
  */
-class Filter {
-public:
-	virtual GstElement* getHead() = 0;
+class Filter
+{
+    public:
+        virtual GstElement* getHead() = 0;
 
-	virtual GstElement* getTail() = 0;
+        virtual GstElement* getTail() = 0;
 
-	virtual void buildFilter(Pipeline& pipeline) throw (MissingPluginException) = 0;
+        virtual void buildFilter (Pipeline& pipeline) throw (MissingPluginException) = 0;
 };
 
 }

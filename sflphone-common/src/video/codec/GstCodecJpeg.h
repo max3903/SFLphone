@@ -35,7 +35,8 @@
 #include "video/codec/decoder/GstDecoderJpeg.h"
 #include "video/codec/mime/MimeParametersJpeg.h"
 
-namespace sfl {
+namespace sfl
+{
 class GstCodecJpeg: public MimeParametersJpeg, public AbstractVideoCodec<GstEncoderJpeg, GstDecoderJpeg> {};
 }
 

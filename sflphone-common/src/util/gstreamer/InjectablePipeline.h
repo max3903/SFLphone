@@ -36,22 +36,24 @@
 
 #include <gst/app/gstappsrc.h>
 
-namespace sfl {
+namespace sfl
+{
 
 /**
  * Observer type for InjectablePipeline.
  */
-class InjectablePipelineObserver : public Observer {
-public:
-	/**
-	 * This method is called no more data is needed in the incoming queue (when it's full).
-	 */
-	virtual void onNeedData() = 0;
+class InjectablePipelineObserver : public Observer
+{
+    public:
+        /**
+         * This method is called no more data is needed in the incoming queue (when it's full).
+         */
+        virtual void onNeedData() = 0;
 
-	/**
-	 * This method is called when the incoming queue is empty and elements downstream need more data.
-	 */
-	virtual void onEnoughData() = 0;
+        /**
+         * This method is called when the incoming queue is empty and elements downstream need more data.
+         */
+        virtual void onEnoughData() = 0;
 };
 
 /**
@@ -60,140 +62,141 @@ public:
  *
  * Uses appsrc -> * user defined *
  */
-class InjectablePipeline : public Pipeline, public AbstractObservable<void*, InjectablePipelineObserver> {
-public:
-	/**
-	 * @param pipeline Part of the pipeline in which the data will flow through from the source.
-	 * @precondition The "pipeline" argument must be existing.
-	 */
-	InjectablePipeline(Pipeline& pipeline);
+class InjectablePipeline : public Pipeline, public AbstractObservable<void*, InjectablePipelineObserver>
+{
+    public:
+        /**
+         * @param pipeline Part of the pipeline in which the data will flow through from the source.
+         * @precondition The "pipeline" argument must be existing.
+         */
+        InjectablePipeline (Pipeline& pipeline);
 
-	/**
-	 * @param pipeline Part of the pipeline in which the data will flow through from the source.
-	 * @param maxQueueSize The maximum amount of bytes that can be queued at the source.
-	 * @precondition The "pipeline" argument must be existing.
-	 */
-	InjectablePipeline(Pipeline& pipeline, size_t maxQueueSize);
+        /**
+         * @param pipeline Part of the pipeline in which the data will flow through from the source.
+         * @param maxQueueSize The maximum amount of bytes that can be queued at the source.
+         * @precondition The "pipeline" argument must be existing.
+         */
+        InjectablePipeline (Pipeline& pipeline, size_t maxQueueSize);
 
-	/**
-	 * @param pipeline Part of the pipeline in which the data will flow through from the source.
-	 * @param caps The caps that this source should have.
-	 * @precondition The "pipeline" argument must be existing.
-	 */
-	InjectablePipeline(Pipeline& pipeline, GstCaps* caps);
+        /**
+         * @param pipeline Part of the pipeline in which the data will flow through from the source.
+         * @param caps The caps that this source should have.
+         * @precondition The "pipeline" argument must be existing.
+         */
+        InjectablePipeline (Pipeline& pipeline, GstCaps* caps);
 
-	/**
-	 * @param pipeline Part of the pipeline in which the data will flow through from the source.
-	 * @param caps The caps that this source should have.
-	 * @param maxQueueSize The maximum amount of bytes that can be queued at the source.
-	 * @precondition The "pipeline" argument must be existing.
-	 */
-	InjectablePipeline(Pipeline& middle, GstCaps* caps, size_t maxQueueSize);
+        /**
+         * @param pipeline Part of the pipeline in which the data will flow through from the source.
+         * @param caps The caps that this source should have.
+         * @param maxQueueSize The maximum amount of bytes that can be queued at the source.
+         * @precondition The "pipeline" argument must be existing.
+         */
+        InjectablePipeline (Pipeline& middle, GstCaps* caps, size_t maxQueueSize);
 
-	virtual ~InjectablePipeline() {};;
+        virtual ~InjectablePipeline() {};;
 
-	/**
-	 * @Override
-	 */
-	void stop();
+        /**
+         * @Override
+         */
+        void stop();
 
-	/**
-	 * Set the caps at the source.
-	 * @param caps The caps to set at the source.
-	 */
-	void setCaps(GstCaps* caps);
+        /**
+         * Set the caps at the source.
+         * @param caps The caps to set at the source.
+         */
+        void setCaps (GstCaps* caps);
 
-	/**
-	 * @return The caps set at the source.
-	 */
-	GstCaps* getCaps();
+        /**
+         * @return The caps set at the source.
+         */
+        GstCaps* getCaps();
 
-	/**
-	 * Set the value of a field identified by "name".
-	 * @param name The field name.
-	 * @param value The value this field should be set to.
-	 * @postcondition  If the field does not exist, it is created.
-	 * If the field exists, the previous value is replaced.
-	 * Set in all structures of caps.
-	 */
-	void setField(const std::string& name, const std::string& value);
+        /**
+         * Set the value of a field identified by "name".
+         * @param name The field name.
+         * @param value The value this field should be set to.
+         * @postcondition  If the field does not exist, it is created.
+         * If the field exists, the previous value is replaced.
+         * Set in all structures of caps.
+         */
+        void setField (const std::string& name, const std::string& value);
 
-	/**
-	 * @param name The field name.
-	 * @return The value for this field on the first structure of the caps at the source.
-	 */
-	std::string getField(const std::string& name);
+        /**
+         * @param name The field name.
+         * @return The value for this field on the first structure of the caps at the source.
+         */
+        std::string getField (const std::string& name);
 
-	/**
-	 * Inject the given buffer into the pipeline.
-	 * @param data The data to inject downstream.
-	 * @postcondition The data gets queued until those elements downstream can process it.
-	 */
-	void inject(GstBuffer* data);
+        /**
+         * Inject the given buffer into the pipeline.
+         * @param data The data to inject downstream.
+         * @postcondition The data gets queued until those elements downstream can process it.
+         */
+        void inject (GstBuffer* data);
 
-	/**
-	 * Link the given element to the source, so that "sink" becomes a sink for the source.
-	 * @param sink The target sink element for the source.
-	 */
-	void setSink(GstElement* sink);
+        /**
+         * Link the given element to the source, so that "sink" becomes a sink for the source.
+         * @param sink The target sink element for the source.
+         */
+        void setSink (GstElement* sink);
 
-	/**
-	 * @param maxQueueSize The maximum amount of bytes that can be queued at the source.
-	 */
-	void setMaxQueueSize(size_t size);
+        /**
+         * @param maxQueueSize The maximum amount of bytes that can be queued at the source.
+         */
+        void setMaxQueueSize (size_t size);
 
-	/**
-	 * The maximum default amount of bytes that can be queued at the source.
-	 */
-	static const size_t MAX_QUEUE_SIZE = 10000000;
+        /**
+         * The maximum default amount of bytes that can be queued at the source.
+         */
+        static const size_t MAX_QUEUE_SIZE = 10000000;
 
-protected:
-	/**
-	 * @Override
-	 */
-	void notify(InjectablePipelineObserver* observer, const std::string& name, void* data) {
-		if (name == "onFeedData") {
-			observer->onEnoughData();
-		} else if (name == "onNeedData") {
-			observer->onNeedData();
-		}
-	}
+    protected:
+        /**
+         * @Override
+         */
+        void notify (InjectablePipelineObserver* observer, const std::string& name, void* data) {
+            if (name == "onFeedData") {
+                observer->onEnoughData();
+            } else if (name == "onNeedData") {
+                observer->onNeedData();
+            }
+        }
 
-	void notify(InjectablePipelineObserver* observer, void* data) {};
+        void notify (InjectablePipelineObserver* observer, void* data) {};
 
-	/**
-	 * This method is called no more data is needed in the incoming queue (when it's full).
-	 * The default behaviour is to inhibit further calls to sfl#InjectablePipeline#inject.
-	 */
-	void onEnoughData();
+        /**
+         * This method is called no more data is needed in the incoming queue (when it's full).
+         * The default behaviour is to inhibit further calls to sfl#InjectablePipeline#inject.
+         */
+        void onEnoughData();
 
-	/**
-	 * This method is called when the incoming queue is empty and elements downstream need more data.
-	 * The default behaviour is to un-inhibit further calls to sfl#InjectablePipeline#inject.
-	 */
-	void onNeedData();
+        /**
+         * This method is called when the incoming queue is empty and elements downstream need more data.
+         * The default behaviour is to un-inhibit further calls to sfl#InjectablePipeline#inject.
+         */
+        void onNeedData();
 
-private:
-	/**
-	 * Low-level callback to allow dispatching to the actual object, rather than being just
-	 * handled at the class level.
-	 */
-	static void enough_data_cb(GstAppSrc *src, gpointer data);
+    private:
+        /**
+         * Low-level callback to allow dispatching to the actual object, rather than being just
+         * handled at the class level.
+         */
+        static void enough_data_cb (GstAppSrc *src, gpointer data);
 
-	/**
-	 * Low-level callback to allow dispatching to the actual object, rather than being just
-	 * handled at the class level.
-	 */
-	static void need_data_cb(GstAppSrc *src, guint length, gpointer user_data);
+        /**
+         * Low-level callback to allow dispatching to the actual object, rather than being just
+         * handled at the class level.
+         */
+        static void need_data_cb (GstAppSrc *src, guint length, gpointer user_data);
 
-	/**
-	 * Helper method for constructors.
-	 */
-	void init(GstCaps* caps, Pipeline& pipeline, size_t maxQueueSize);
+        /**
+         * Helper method for constructors.
+         */
+        void init (GstCaps* caps, Pipeline& pipeline, size_t maxQueueSize);
 
-	bool enoughData;
-	GstElement* appsrc;
-	static unsigned numberInstances;
+        bool enoughData;
+        GstElement* appsrc;
+        static unsigned numberInstances;
 };
 
 }

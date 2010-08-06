@@ -24,63 +24,65 @@
 #include <stdint.h>
 #include <string.h>
 
-namespace sfl {
+namespace sfl
+{
 /**
  * This class represents a captured frame.
  */
-class VideoFrame {
-public:
-	/**
-	 * @param frame The frame data.
-	 * @param size The frame size.
-	 * @param height The frame height.
-	 * @param width The frame width.
-	 */
-	VideoFrame(const uint8_t* frame, const size_t size, unsigned int depth,
-			unsigned int height, unsigned int width);
+class VideoFrame
+{
+    public:
+        /**
+         * @param frame The frame data.
+         * @param size The frame size.
+         * @param height The frame height.
+         * @param width The frame width.
+         */
+        VideoFrame (const uint8_t* frame, const size_t size, unsigned int depth,
+                    unsigned int height, unsigned int width);
 
-	~VideoFrame();
+        ~VideoFrame();
 
-	/**
-	 * @return The frame data.
-	 */
-	const uint8_t *getFrame() const {
-		return frame;
-	}
-	/**
-	 * @return The frame height.
-	 */
-	unsigned int getHeight() const {
-		return height;
-	}
+        /**
+         * @return The frame data.
+         */
+        const uint8_t *getFrame() const {
+            return frame;
+        }
+        /**
+         * @return The frame height.
+         */
+        unsigned int getHeight() const {
+            return height;
+        }
 
-	/**
-	 * @return The frame width.
-	 */
-	unsigned int getWidth() const {
-		return width;
-	}
+        /**
+         * @return The frame width.
+         */
+        unsigned int getWidth() const {
+            return width;
+        }
 
-	/**
-	 * @return The frame depth in bytes (eg: 3 bytes)
-	 */
-	unsigned int getDepth() const {
-		return depth;
-	}
+        /**
+         * @return The frame depth in bytes (eg: 3 bytes)
+         */
+        unsigned int getDepth() const {
+            return depth;
+        }
 
-	/**
-	 * @return The buffer size.
-	 */
-	size_t getSize() const {
-		return size;
-	}
+        /**
+         * @return The buffer size.
+         */
+        size_t getSize() const {
+            return size;
+        }
 
-private:
-	uint8_t* frame;
-	size_t size;
-	unsigned int height;
-	unsigned int width;
-	unsigned int depth;
+    private:
+        uint8_t* frame;
+        size_t size;
+        unsigned int height;
+        unsigned int width;
+        unsigned int depth;
 };
 }
 #endif

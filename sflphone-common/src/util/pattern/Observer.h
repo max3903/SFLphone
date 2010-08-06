@@ -30,16 +30,18 @@
 #ifndef __SFL_OBSERVER_H__
 #define __SFL_OBSERVER_H__
 
-namespace sfl {
+namespace sfl
+{
 /**
  * Tagging interface for observers objects.
  * Base of objects.
  * @see AbstractObservable
  */
-class Observer {
-public:
-	Observer() {};
-	~Observer() {};
+class Observer
+{
+    public:
+        Observer() {};
+        ~Observer() {};
 };
 }
 

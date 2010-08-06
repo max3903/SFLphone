@@ -32,7 +32,8 @@
 
 #include "MimeParameters.h"
 
-namespace sfl {
+namespace sfl
+{
 /**
  *
  *  MIME media type name: video
@@ -43,35 +44,40 @@ namespace sfl {
  *
  *  Optional parameters: None
  */
-class MimeParametersJpeg : public virtual MimeParameters {
-public:
-	/**
-	 * @Override
-	 */
-	std::string getMimeType() const { return "video"; }
+class MimeParametersJpeg : public virtual MimeParameters
+{
+    public:
+        /**
+         * @Override
+         */
+        std::string getMimeType() const {
+            return "video";
+        }
 
-	/**
-	 * @Override
-	 */
-	std::string getMimeSubtype() const { return "JPEG"; }
+        /**
+         * @Override
+         */
+        std::string getMimeSubtype() const {
+            return "JPEG";
+        }
 
-	/**
-	 * @Override
-	 */
-	uint8 getPayloadType() const {
-		return 96;
-	}
+        /**
+         * @Override
+         */
+        uint8 getPayloadType() const {
+            return 96;
+        }
 
-	/**
-	 * @Override
-	 */
-	uint32 getClockRate() const {
-		return 90000;
-	}
+        /**
+         * @Override
+         */
+        uint32 getClockRate() const {
+            return 90000;
+        }
 
-protected:
-	MimeParametersJpeg() {};
-	inline virtual ~MimeParametersJpeg() {}
+    protected:
+        MimeParametersJpeg() {};
+        inline virtual ~MimeParametersJpeg() {}
 };
 }
 

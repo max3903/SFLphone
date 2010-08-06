@@ -45,14 +45,14 @@ SipCall::SipCall (const CallId& id, Call::CallType type, pj_pool_t *pool) : Call
         , _invSession (NULL)
         , _localSdp (0)
 {
-	_debug ("SIPCall: Create new call %s", id.c_str());
+    _debug ("SIPCall: Create new call %s", id.c_str());
 
     _localSdp = new Sdp (pool);
 }
 
 SipCall::~SipCall()
 {
-	_debug ("SIPCall: Delete call");
+    _debug ("SIPCall: Delete call");
 
     delete _audiortp;
     _audiortp = 0;
@@ -60,10 +60,12 @@ SipCall::~SipCall()
     _localSdp = 0;
 }
 
-bool SipCall::isVideoEnabled() {
-	return false;
+bool SipCall::isVideoEnabled()
+{
+    return false;
 }
 
-void SipCall::setVideoDevice(sfl::VideoDevice& device){
-	_videoDevice = &device;
+void SipCall::setVideoDevice (sfl::VideoDevice& device)
+{
+    _videoDevice = &device;
 }

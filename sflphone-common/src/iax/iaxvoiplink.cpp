@@ -410,18 +410,18 @@ IAXVoIPLink::sendRegister (AccountID id)
     IAXAccount *account;
     bool result;
 
-    _debug("IAX: Sending registration");
+    _debug ("IAX: Sending registration");
 
     result = false;
     account = dynamic_cast<IAXAccount *> (getAccountPtr());
 
     if (account->getHostname().empty()) {
-        _error("IAX: Error: Account hostname is empty");
+        _error ("IAX: Error: Account hostname is empty");
         return false;
     }
 
     if (account->getUsername().empty()) {
-        _error("IAX: Error: Account username is empty");
+        _error ("IAX: Error: Account username is empty");
         return false;
     }
 
@@ -681,7 +681,7 @@ std::string
 IAXVoIPLink::getCurrentCodecName()
 {
     IAXCall* call = getIAXCall (Manager::instance().getCurrentCallId());
-	return call->getAudioCodec()->getMimeSubtype();
+    return call->getAudioCodec()->getMimeSubtype();
 }
 
 
@@ -910,8 +910,9 @@ IAXVoIPLink::iaxHandleVoiceEvent (iax_event* event, IAXCall* call)
     }
 
     AudioCodec* audioCodec = call->getAudioCodec();
+
     if (!audioCodec) {
-    	_error("No audio codec while handling IAX voice packet. (%s:%d)", __FILE__, __LINE__);
+        _error ("No audio codec while handling IAX voice packet. (%s:%d)", __FILE__, __LINE__);
         return;
     }
 

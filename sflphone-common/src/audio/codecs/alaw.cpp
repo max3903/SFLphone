@@ -39,19 +39,19 @@ class Alaw : public AudioCodec
         // 8 PCMA A 8000 1 [RFC3551]
         Alaw (int payload=0)
                 : AudioCodec (payload, "PCMA") {
-    		setClockRate(8000);
-    		setChannel(1);
-    		setFrameSize(160);
-    		setBitrate(64);
-    		setBandwidth(80);
+            setClockRate (8000);
+            setChannel (1);
+            setFrameSize (160);
+            setBitrate (64);
+            setBandwidth (80);
         }
 
-        Alaw(const Alaw& other) : AudioCodec(other) {
-    		setClockRate(other.getClockRate());
-    		setChannel(other.getChannel());
-    		setFrameSize(other.getFrameSize());
-    		setBitrate(other.getBitRate());
-    		setBandwidth(other.getBandwidth());
+        Alaw (const Alaw& other) : AudioCodec (other) {
+            setClockRate (other.getClockRate());
+            setChannel (other.getChannel());
+            setFrameSize (other.getFrameSize());
+            setBitrate (other.getBitRate());
+            setBandwidth (other.getBandwidth());
         }
 
         virtual ~Alaw() {}
@@ -142,15 +142,15 @@ class Alaw : public AudioCodec
          * @Override
          */
         std::string getDescription() const {
-        	return "audio/PCMA 8000 (\"alaw\") codec.";
+            return "audio/PCMA 8000 (\"alaw\") codec.";
         }
 
         /**
          * @Override
          */
-    	Alaw* clone() const {
-    		return new Alaw(*this);
-    	}
+        Alaw* clone() const {
+            return new Alaw (*this);
+        }
 
 };
 

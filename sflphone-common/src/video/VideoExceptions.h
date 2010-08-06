@@ -31,25 +31,28 @@
 
 #include <stdexcept>
 
-namespace sfl {
+namespace sfl
+{
 /**
  * This exception is thrown when a video frame cannot be decoded.
  */
-class VideoDecodingException: public std::runtime_error {
-public:
-	VideoDecodingException(const std::string& msg) :
-		std::runtime_error(msg) {
-	}
+class VideoDecodingException: public std::runtime_error
+{
+    public:
+        VideoDecodingException (const std::string& msg) :
+                std::runtime_error (msg) {
+        }
 };
 
 /**
  * This exception is thrown when a video frame cannot be encoded.
  */
-class VideoEncodingException: public std::runtime_error {
-public:
-	VideoEncodingException(const std::string& msg) :
-		std::runtime_error(msg) {
-	}
+class VideoEncodingException: public std::runtime_error
+{
+    public:
+        VideoEncodingException (const std::string& msg) :
+                std::runtime_error (msg) {
+        }
 };
 
 /**
@@ -58,31 +61,34 @@ public:
  * outside of this file into a class-neutral and separated file. It could
  * also be made a supertype of MissingGstPluginException.
  */
-class MissingPluginException: public std::runtime_error {
-public:
-	MissingPluginException(const std::string& msg) :
-		std::runtime_error(msg) {
-	}
+class MissingPluginException: public std::runtime_error
+{
+    public:
+        MissingPluginException (const std::string& msg) :
+                std::runtime_error (msg) {
+        }
 };
 
 /**
  * This exception is thrown when an expected plugin is missing from gstreamer.
  */
-class MissingGstPluginException: public MissingPluginException {
-public:
-	MissingGstPluginException(const std::string& msg) :
-		MissingPluginException(msg) {
-	}
+class MissingGstPluginException: public MissingPluginException
+{
+    public:
+        MissingGstPluginException (const std::string& msg) :
+                MissingPluginException (msg) {
+        }
 };
 
 /**
  * This exception is thrown when a gstreamer exception occurs.
  */
-class GstException: public std::runtime_error {
-public:
-	GstException(const std::string& msg) :
-		std::runtime_error(msg) {
-	}
+class GstException: public std::runtime_error
+{
+    public:
+        GstException (const std::string& msg) :
+                std::runtime_error (msg) {
+        }
 };
 
 }

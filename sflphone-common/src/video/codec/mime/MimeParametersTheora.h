@@ -32,89 +32,119 @@
 
 #include "MimeParameters.h"
 
-namespace sfl {
+namespace sfl
+{
 /**
  *
  * MIME media type name: video
  *
  * MIME subtype: theora
  */
-class MimeParametersTheora : public virtual MimeParameters {
-public:
-	/**
-	 * @Override
-	 */
-	std::string getMimeType() const { return "video"; }
+class MimeParametersTheora : public virtual MimeParameters
+{
+    public:
+        /**
+         * @Override
+         */
+        std::string getMimeType() const {
+            return "video";
+        }
 
-	/**
-	 * @Override
-	 */
-	std::string getMimeSubtype() const { return "theora"; }
+        /**
+         * @Override
+         */
+        std::string getMimeSubtype() const {
+            return "theora";
+        }
 
-	/**
-	 * @Override
-	 */
-	uint8 getPayloadType() const {
-		return 96;
-	}
+        /**
+         * @Override
+         */
+        uint8 getPayloadType() const {
+            return 96;
+        }
 
-	/**
-	 * @Override
-	 */
-	uint32 getClockRate() const {
-		return 90000;
-	}
+        /**
+         * @Override
+         */
+        uint32 getClockRate() const {
+            return 90000;
+        }
 
-	/**
-	 * Determines the chroma subsampling format.
-	 */
-	void setSampling(const std::string& value) { setParameter("sampling", value); }
-	std::string getSampling() { return getParameter("sampling"); }
+        /**
+         * Determines the chroma subsampling format.
+         */
+        void setSampling (const std::string& value) {
+            setParameter ("sampling", value);
+        }
+        std::string getSampling() {
+            return getParameter ("sampling");
+        }
 
-	/**
-	 * Determines the number of pixels per line.  This is an
-     * integer between 1 and 1048561 and MUST be in multiples of 16.
-	 */
-	void setWidth(const std::string& value) { setParameter("width", value); }
-	std::string getWidth() { return getParameter("width"); }
+        /**
+         * Determines the number of pixels per line.  This is an
+         * integer between 1 and 1048561 and MUST be in multiples of 16.
+         */
+        void setWidth (const std::string& value) {
+            setParameter ("width", value);
+        }
+        std::string getWidth() {
+            return getParameter ("width");
+        }
 
-	/**
-	 * Determines the number of lines per frame encoded.  This is
-     * an integer between 1 and 1048561 and MUST be in multiples of 16.
-	 */
-	void setHeight(const std::string& value) { setParameter("height", value); }
-	std::string getHeight() { return getParameter("height"); }
+        /**
+         * Determines the number of lines per frame encoded.  This is
+         * an integer between 1 and 1048561 and MUST be in multiples of 16.
+         */
+        void setHeight (const std::string& value) {
+            setParameter ("height", value);
+        }
+        std::string getHeight() {
+            return getParameter ("height");
+        }
 
-	/**
-	 * Indicates the delivery methods in use, the
-     * possible values are: inline, in_band, out_band/specific_name
-     * Where "specific_name" is the name of the out of band delivery method.
-	 */
-	void setDeliveryMethod(const std::string& value) { setParameter("delivery-method", value); }
-	std::string getDeliveryMethod() { return getParameter("delivery-method"); }
+        /**
+         * Indicates the delivery methods in use, the
+         * possible values are: inline, in_band, out_band/specific_name
+         * Where "specific_name" is the name of the out of band delivery method.
+         */
+        void setDeliveryMethod (const std::string& value) {
+            setParameter ("delivery-method", value);
+        }
+        std::string getDeliveryMethod() {
+            return getParameter ("delivery-method");
+        }
 
-	/**
-	 * The base16 [11] (hexadecimal) representation of the Packed Headers (Section 3.2.1).
-	 */
-	void setConfiguration(const std::string& value) { setParameter("configuration", value); }
-	std::string getConfiguration() { return getParameter("configuration"); }
+        /**
+         * The base16 [11] (hexadecimal) representation of the Packed Headers (Section 3.2.1).
+         */
+        void setConfiguration (const std::string& value) {
+            setParameter ("configuration", value);
+        }
+        std::string getConfiguration() {
+            return getParameter ("configuration");
+        }
 
-	/**
-	 * The URI of the configuration headers in case of
-     * out of band transmission.  In the form of
-     * "protocol://path/to/resource/".  Depending on the specific
-     * method the single ident packets could be retrieved by their
-     * number or aggregated in a single stream, aggregates MAY be
-     * compressed using gzip [12] or bzip2 [14] and an sha1 [13]
-     * checksum MAY be provided in the form of
-     * "protocol://path/to/resource/aggregated.bz2!sha1hash"
-	 */
-	void setConfigurationUri(const std::string& value) { setParameter("configuration-uri", value); }
-	std::string getConfigurationUri() { return getParameter("configuration-uri"); }
+        /**
+         * The URI of the configuration headers in case of
+         * out of band transmission.  In the form of
+         * "protocol://path/to/resource/".  Depending on the specific
+         * method the single ident packets could be retrieved by their
+         * number or aggregated in a single stream, aggregates MAY be
+         * compressed using gzip [12] or bzip2 [14] and an sha1 [13]
+         * checksum MAY be provided in the form of
+         * "protocol://path/to/resource/aggregated.bz2!sha1hash"
+         */
+        void setConfigurationUri (const std::string& value) {
+            setParameter ("configuration-uri", value);
+        }
+        std::string getConfigurationUri() {
+            return getParameter ("configuration-uri");
+        }
 
-protected:
-	MimeParametersTheora() {};
-	inline virtual ~MimeParametersTheora() {}
+    protected:
+        MimeParametersTheora() {};
+        inline virtual ~MimeParametersTheora() {}
 };
 }
 

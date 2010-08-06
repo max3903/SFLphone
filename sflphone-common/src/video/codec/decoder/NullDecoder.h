@@ -33,44 +33,46 @@
 
 #include "video/codec/mime/MimeParametersNull.h"
 
-namespace sfl {
+namespace sfl
+{
 /**
  * Null object pattern for the VideoDecoder class of objects.
  */
-class NullDecoder: public MimeParametersNull, public VideoDecoder {
-public:
-	NullDecoder() : VideoDecoder() {}
+class NullDecoder: public MimeParametersNull, public VideoDecoder
+{
+    public:
+        NullDecoder() : VideoDecoder() {}
 
-	virtual ~NullDecoder() {}
+        virtual ~NullDecoder() {}
 
-	/**
-	 * @Override
-	 */
-	void decode(Buffer<uint8>& data) throw (VideoDecodingException) {
-		_error("No decoder for decoding %d bytes of data", data.getSize());
-	}
+        /**
+         * @Override
+         */
+        void decode (Buffer<uint8>& data) throw (VideoDecodingException) {
+            _error ("No decoder for decoding %d bytes of data", data.getSize());
+        }
 
-	/**
-	 * @Override
-	 */
-	void setOutputFormat(VideoFormat& format) {
-	}
-
-
-	/**
-	 * @Override
-	 */
-	void activate() {
-		_warn("Activating the NullDecoder");
-	}
+        /**
+         * @Override
+         */
+        void setOutputFormat (VideoFormat& format) {
+        }
 
 
-	/**
-	 * @Override
-	 */
-	void deactivate() {
-		_warn("Deactivating the NullDecoder");
-	}
+        /**
+         * @Override
+         */
+        void activate() {
+            _warn ("Activating the NullDecoder");
+        }
+
+
+        /**
+         * @Override
+         */
+        void deactivate() {
+            _warn ("Deactivating the NullDecoder");
+        }
 };
 }
 

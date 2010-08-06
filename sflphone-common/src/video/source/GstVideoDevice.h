@@ -28,71 +28,73 @@
 #include <string>
 #include <functional>
 
-namespace sfl {
+namespace sfl
+{
 
 /**
  * Function object for converting a VideoSourceType to the corresponding Gstreamer source.
  * For example : V4L2 is provided by v4l2src in Gstreamer.
  */
 struct VideoSourceTypeToGstSourceString: public std::unary_function<
-		std::string, VideoSourceType> {
-	std::string operator()(VideoSourceType type) const {
-		switch (type) {
-		case V4L:
-			return std::string("v4lsrc");
-		case V4L2:
-			return std::string("v4l2src");
-		case DV1394:
-			return std::string("dv1394src");
-		case XIMAGE:
-			return std::string("ximagesrc");
-		case TEST:
-			return std::string("videotestsrc");
-		case IMAGE:
-		case NONE:
-		default:
-			return std::string("undefined");
-		}
-	}
+            std::string, VideoSourceType> {
+    std::string operator() (VideoSourceType type) const {
+        switch (type) {
+            case V4L:
+                return std::string ("v4lsrc");
+            case V4L2:
+                return std::string ("v4l2src");
+            case DV1394:
+                return std::string ("dv1394src");
+            case XIMAGE:
+                return std::string ("ximagesrc");
+            case TEST:
+                return std::string ("videotestsrc");
+            case IMAGE:
+            case NONE:
+            default:
+                return std::string ("undefined");
+        }
+    }
 };
 
 /**
  * Specialisation of the VideoDevice type to hold additional information needed by Gstreamer.
  */
-class GstVideoDevice: public VideoDevice {
-public:
-	/**
-	 * Builds a GST pipeline automatically.
-	 *
-	 * @param type One of the available source type (eg. V4L2)
-	 * @param formats The video formats that this device supports.
-	 * @param device The device identifier (eg: /dev/video0).
-	 * @param name The representative, and unique name of this device.
-	 */
-	GstVideoDevice(VideoSourceType type, std::vector<VideoFormat> formats,
-			const std::string& device, const std::string& name);
+class GstVideoDevice: public VideoDevice
+{
+    public:
+        /**
+         * Builds a GST pipeline automatically.
+         *
+         * @param type One of the available source type (eg. V4L2)
+         * @param formats The video formats that this device supports.
+         * @param device The device identifier (eg: /dev/video0).
+         * @param name The representative, and unique name of this device.
+         */
+        GstVideoDevice (VideoSourceType type, std::vector<VideoFormat> formats,
+                        const std::string& device, const std::string& name);
 
-	/**
-	 * Copy constructor.
-	 * @param other The object to copy from.
-	 */
-	GstVideoDevice(const GstVideoDevice& other);
+        /**
+         * Copy constructor.
+         * @param other The object to copy from.
+         */
+        GstVideoDevice (const GstVideoDevice& other);
 
-	~GstVideoDevice() {}
+        ~GstVideoDevice() {}
 
-	/**
-	 * @return The string representation of the Gstreamer pipeline needed to access this device, based on the VideoFormat.
-	 */
-	std::string getGstPipeline() const;
+        /**
+         * @return The string representation of the Gstreamer pipeline needed to access this device, based on the VideoFormat.
+         */
+        std::string getGstPipeline() const;
 
-	/**
-	 * @param pipeline A string that represents the GST graph.
-	 */
-	void setGstPipeline(const std::string& pipeline);
+        /**
+         * @param pipeline A string that represents the GST graph.
+         */
+        void setGstPipeline (const std::string& pipeline);
 
-private:
-	std::string gstreamerPipeline;
-	VideoSourceTypeToGstSourceString typeToSource;
+    private:
+        std::string gstreamerPipeline;
+        VideoSourceTypeToGstSourceString typeToSource;
 };
 
 /**

@@ -29,19 +29,23 @@
 
 #include "GstEncoderJpeg.h"
 
-namespace sfl {
+namespace sfl
+{
 
-void GstEncoderJpeg::buildFilter(Pipeline& pipeline)
-		throw (MissingPluginException) {
-	jpegenc = pipeline.addElement("jpegenc");
-	rtpjpegpay = pipeline.addElement("rtpjpegpay", jpegenc);
+void GstEncoderJpeg::buildFilter (Pipeline& pipeline)
+throw (MissingPluginException)
+{
+    jpegenc = pipeline.addElement ("jpegenc");
+    rtpjpegpay = pipeline.addElement ("rtpjpegpay", jpegenc);
 }
 
-GstElement* GstEncoderJpeg::getHead() {
-	return jpegenc;
+GstElement* GstEncoderJpeg::getHead()
+{
+    return jpegenc;
 }
 
-GstElement* GstEncoderJpeg::getTail() {
-	return rtpjpegpay;
+GstElement* GstEncoderJpeg::getTail()
+{
+    return rtpjpegpay;
 }
 }

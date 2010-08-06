@@ -38,54 +38,57 @@
 #include "util/pattern/AbstractObservable.h"
 #include "util/memory/Buffer.h"
 
-namespace sfl {
+namespace sfl
+{
 
 /**
  * The client that wants to get access to decoded frame must
  * implement this interface.
  */
-class VideoFrameDecodedObserver : public Observer {
-public:
-	/**
-	 * @param frame The new frame that was decoded.
-	 */
-	virtual void onNewFrameDecoded(Buffer<uint8_t>& data) = 0;
+class VideoFrameDecodedObserver : public Observer
+{
+    public:
+        /**
+         * @param frame The new frame that was decoded.
+         */
+        virtual void onNewFrameDecoded (Buffer<uint8_t>& data) = 0;
 };
 
 /**
  * Abstract base class for every video decoder.
  */
-class VideoDecoder : public virtual MimeParameters, public VideoPlugin, public AbstractObservable<Buffer<uint8_t>&, VideoFrameDecodedObserver> {
-public:
-	/**
-	 * @param buffer A buffer containing the depayloaded data.
-	 * @throw VideoDecodingException if the frame cannot be decoded.
-	 */
-	virtual void decode(Buffer<uint8>& data)
-			throw (VideoDecodingException) = 0;
+class VideoDecoder : public virtual MimeParameters, public VideoPlugin, public AbstractObservable<Buffer<uint8_t>&, VideoFrameDecodedObserver>
+{
+    public:
+        /**
+         * @param buffer A buffer containing the depayloaded data.
+         * @throw VideoDecodingException if the frame cannot be decoded.
+         */
+        virtual void decode (Buffer<uint8>& data)
+        throw (VideoDecodingException) = 0;
 
-	/**
-	 * @format The VideoFormat describing the desired output format in which to retrieve the decoded video frames.
-	 */
-	virtual void setOutputFormat(VideoFormat& format) = 0;
+        /**
+         * @format The VideoFormat describing the desired output format in which to retrieve the decoded video frames.
+         */
+        virtual void setOutputFormat (VideoFormat& format) = 0;
 
-    typedef int IsDerivedFromVideoDecoder;
+        typedef int IsDerivedFromVideoDecoder;
 
-protected:
-	/**
-	 * Simple dispatch for the VideoFrameDecodedObserver type.
-	 * @Override
-	 */
-	void notify(VideoFrameDecodedObserver* observer, Buffer<uint8_t>& data) {
-		observer->onNewFrameDecoded(data);
-	}
+    protected:
+        /**
+         * Simple dispatch for the VideoFrameDecodedObserver type.
+         * @Override
+         */
+        void notify (VideoFrameDecodedObserver* observer, Buffer<uint8_t>& data) {
+            observer->onNewFrameDecoded (data);
+        }
 
-	// FIXME Should not need to do that.
-	void notify(VideoFrameDecodedObserver* observer, const std::string& name, Buffer<uint8_t>& data) {}
+        // FIXME Should not need to do that.
+        void notify (VideoFrameDecodedObserver* observer, const std::string& name, Buffer<uint8_t>& data) {}
 
-	VideoDecoder() {};
+        VideoDecoder() {};
 
-	inline virtual ~VideoDecoder() {}
+        inline virtual ~VideoDecoder() {}
 };
 
 }

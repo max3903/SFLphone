@@ -23,48 +23,54 @@
 #include <cc++/thread.h>
 #include <sys/socket.h>
 
-namespace sfl {
-class FileDescriptorPasser: public ost::Thread {
-public:
-	/**
-	 * Construct a new instance of a server that will let client applications to
-	 * be passed a file descriptor using unix domain. This class takes the form
-	 * of a thread. Once started, it will go into an accept() loop, replying to
-	 * a connection with the file descriptor to pass.
-	 * @param abstractNamespace The abstract namespace in the UNIX domain that is refering to this server instance. Eg. org.sflphone.eventfd
-	 * @param fd The file descriptor to send to every client.
-	 */
-	FileDescriptorPasser(const std::string& abstractNamespace, int fd);
+namespace sfl
+{
+class FileDescriptorPasser: public ost::Thread
+{
+    public:
+        /**
+         * Construct a new instance of a server that will let client applications to
+         * be passed a file descriptor using unix domain. This class takes the form
+         * of a thread. Once started, it will go into an accept() loop, replying to
+         * a connection with the file descriptor to pass.
+         * @param abstractNamespace The abstract namespace in the UNIX domain that is refering to this server instance. Eg. org.sflphone.eventfd
+         * @param fd The file descriptor to send to every client.
+         */
+        FileDescriptorPasser (const std::string& abstractNamespace, int fd);
 
-	~FileDescriptorPasser();
+        ~FileDescriptorPasser();
 
-	/**
-	 * @return The namespace for that running instance.
-	 */
-	std::string getAbstractNamespace() { return path; };
+        /**
+         * @return The namespace for that running instance.
+         */
+        std::string getAbstractNamespace() {
+            return path;
+        };
 
-	bool isReady() { return ready; };
+        bool isReady() {
+            return ready;
+        };
 
-protected:
-	/**
-	 * @Override
-	 */
-	void run();
-	/**
-	 * @Override
-	 */
-	void initial();
-	/**
-	 * @Override
-	 */
-	void final();
-private:
-	int sendFd(int clientFd);
+    protected:
+        /**
+         * @Override
+         */
+        void run();
+        /**
+         * @Override
+         */
+        void initial();
+        /**
+         * @Override
+         */
+        void final();
+    private:
+        int sendFd (int clientFd);
 
-	std::string path;
-	int serverSocket;
-	int fdPassed;
-	bool ready;
+        std::string path;
+        int serverSocket;
+        int fdPassed;
+        bool ready;
 };
 }
 #endif

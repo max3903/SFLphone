@@ -36,7 +36,8 @@
 #include <map>
 #include <exception>
 
-namespace Conf {
+namespace Conf
+{
 
 class YamlNode;
 
@@ -45,209 +46,216 @@ typedef std::string Value;
 typedef std::list<YamlNode *> Sequence;
 typedef std::map<Key, YamlNode *> Mapping;
 
-class YamlNodeException: public std::exception {
+class YamlNodeException: public std::exception
+{
 
-public:
-	YamlNodeException(const std::string& str = "") throw () :
-		errstr(str) {
-	}
+    public:
+        YamlNodeException (const std::string& str = "") throw () :
+                errstr (str) {
+        }
 
-	virtual ~YamlNodeException() throw () {
-	}
+        virtual ~YamlNodeException() throw () {
+        }
 
-	virtual const char *what() const throw () {
-		std::string expt("YamlNodeException occured: ");
-		expt.append(errstr);
+        virtual const char *what() const throw () {
+            std::string expt ("YamlNodeException occured: ");
+            expt.append (errstr);
 
-		return expt.c_str();
-	}
-private:
-	std::string errstr;
+            return expt.c_str();
+        }
+    private:
+        std::string errstr;
 
 };
 
 enum NodeType {
-	DOCUMENT, SCALAR, MAPPING, SEQUENCE
+    DOCUMENT, SCALAR, MAPPING, SEQUENCE
 };
 
-class YamlNode {
+class YamlNode
+{
 
-public:
+    public:
 
-	YamlNode(NodeType t, YamlNode *top = NULL) :
-		type(t), topNode(top) {
-	}
+        YamlNode (NodeType t, YamlNode *top = NULL) :
+                type (t), topNode (top) {
+        }
 
-	virtual inline ~YamlNode() {
-	}
+        virtual inline ~YamlNode() {
+        }
 
-	NodeType getType() {
-		return type;
-	}
+        NodeType getType() {
+            return type;
+        }
 
-	YamlNode *getTopNode() {
-		return topNode;
-	}
+        YamlNode *getTopNode() {
+            return topNode;
+        }
 
-private:
+    private:
 
-	NodeType type;
+        NodeType type;
 
-	YamlNode *topNode;
+        YamlNode *topNode;
 };
 
-class YamlDocument: YamlNode {
+class YamlDocument: YamlNode
+{
 
-public:
+    public:
 
-	YamlDocument(YamlNode* top = NULL) :
-		YamlNode(DOCUMENT, top) {
-	}
+        YamlDocument (YamlNode* top = NULL) :
+                YamlNode (DOCUMENT, top) {
+        }
 
-	~YamlDocument() {
-	}
+        ~YamlDocument() {
+        }
 
-	void addNode(YamlNode *node);
+        void addNode (YamlNode *node);
 
-	YamlNode *popNode(void);
+        YamlNode *popNode (void);
 
-	Sequence *getSequence(void) {
-		return &doc;
-	}
+        Sequence *getSequence (void) {
+            return &doc;
+        }
 
-private:
+    private:
 
-	Sequence doc;
-
-};
-
-class SequenceNode: public YamlNode {
-
-public:
-
-	SequenceNode(YamlNode *top) :
-		YamlNode(SEQUENCE, top) {
-	}
-
-	~SequenceNode() {
-	}
-
-	Sequence *getSequence() {
-		return &seq;
-	}
-
-	void addNode(YamlNode *node);
-
-private:
-
-	Sequence seq;
+        Sequence doc;
 
 };
 
-class ScalarNode: public YamlNode {
+class SequenceNode: public YamlNode
+{
 
-public:
+    public:
 
-	ScalarNode(Value v = "", YamlNode *top = NULL) :
-		YamlNode(SCALAR, top), val(v) {
-	}
+        SequenceNode (YamlNode *top) :
+                YamlNode (SEQUENCE, top) {
+        }
 
-	~ScalarNode() {
-	}
+        ~SequenceNode() {
+        }
 
-	Value getValue() {
-		return val;
-	}
+        Sequence *getSequence() {
+            return &seq;
+        }
 
-	void setValue(Value v) {
-		val = v;
-	}
+        void addNode (YamlNode *node);
 
-	bool toBoolean() {
-		if (val == "true") {
-			return true;
-		}
+    private:
 
-		return false;
-	}
-
-	int toInt() {
-		return atoi(val.c_str());
-	}
-private:
-
-	Value val;
+        Sequence seq;
 
 };
 
-class MappingNode: public YamlNode {
+class ScalarNode: public YamlNode
+{
 
-public:
+    public:
 
-	MappingNode(YamlNode *top) :
-		YamlNode(MAPPING, top) {
-	}
+        ScalarNode (Value v = "", YamlNode *top = NULL) :
+                YamlNode (SCALAR, top), val (v) {
+        }
 
-	~MappingNode() {
-	}
+        ~ScalarNode() {
+        }
 
-	Mapping *getMapping() {
-		return &map;
-	}
+        Value getValue() {
+            return val;
+        }
 
-	void addNode(YamlNode *node);
+        void setValue (Value v) {
+            val = v;
+        }
 
-	void setTmpKey(Key key) {
-		tmpKey = key;
-	}
+        bool toBoolean() {
+            if (val == "true") {
+                return true;
+            }
 
-	void setKeyValue(Key key, YamlNode *value);
+            return false;
+        }
 
-	void removeKeyValue(Key key);
+        int toInt() {
+            return atoi (val.c_str());
+        }
+    private:
 
-	/**
-	 * @return the value for this node, or a NullScalarNode if the given key cannot be found.
-	 */
-	ScalarNode* getScalarNode(Key key);
+        Value val;
 
-	YamlNode* getValue(Key key);
+};
 
-private:
+class MappingNode: public YamlNode
+{
 
-	Mapping map;
+    public:
 
-	Key tmpKey;
+        MappingNode (YamlNode *top) :
+                YamlNode (MAPPING, top) {
+        }
+
+        ~MappingNode() {
+        }
+
+        Mapping *getMapping() {
+            return &map;
+        }
+
+        void addNode (YamlNode *node);
+
+        void setTmpKey (Key key) {
+            tmpKey = key;
+        }
+
+        void setKeyValue (Key key, YamlNode *value);
+
+        void removeKeyValue (Key key);
+
+        /**
+         * @return the value for this node, or a NullScalarNode if the given key cannot be found.
+         */
+        ScalarNode* getScalarNode (Key key);
+
+        YamlNode* getValue (Key key);
+
+    private:
+
+        Mapping map;
+
+        Key tmpKey;
 
 };
 
 /**
  * Singleton for a "null object" pattern.
  */
-class NullScalarNode: public ScalarNode {
-public:
-	/**
-	 * @Override
-	 */
-	Value getValue() {
-		return "";
-	}
+class NullScalarNode: public ScalarNode
+{
+    public:
+        /**
+         * @Override
+         */
+        Value getValue() {
+            return "";
+        }
 
-	/**
-	 * @return an instance of the null scalar node.
-	 */
-	static NullScalarNode* getInstance() {
-		if (instance == 0) {
-			instance = new NullScalarNode();
-		}
+        /**
+         * @return an instance of the null scalar node.
+         */
+        static NullScalarNode* getInstance() {
+            if (instance == 0) {
+                instance = new NullScalarNode();
+            }
 
-		return instance;
-	}
+            return instance;
+        }
 
-	virtual inline ~NullScalarNode() {}
+        virtual inline ~NullScalarNode() {}
 
-protected:
-	NullScalarNode(Value v = "", YamlNode *top = NULL) : ScalarNode(v, top){}
-	static NullScalarNode* instance;
+    protected:
+        NullScalarNode (Value v = "", YamlNode *top = NULL) : ScalarNode (v, top) {}
+        static NullScalarNode* instance;
 };
 
 }

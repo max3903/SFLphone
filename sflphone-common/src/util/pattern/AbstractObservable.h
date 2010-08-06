@@ -35,64 +35,68 @@
 #include "Observable.h"
 #include "Observer.h"
 
-namespace sfl {
+namespace sfl
+{
 template<class PushedDataType, class ObserverType>
-class AbstractObservable: public Observable<PushedDataType, ObserverType> {
-public:
-	/**
-	 * @Override
-	 */
-	void addObserver(ObserverType* observer) {
-		observers.push_back(observer);
-	}
+class AbstractObservable: public Observable<PushedDataType, ObserverType>
+{
+    public:
+        /**
+         * @Override
+         */
+        void addObserver (ObserverType* observer) {
+            observers.push_back (observer);
+        }
 
-	/**
-	 * @Override
-	 */
-	void removeObserver(ObserverType* observer) {
-		std::remove(observers.begin(), observers.end(), observer);
-	}
+        /**
+         * @Override
+         */
+        void removeObserver (ObserverType* observer) {
+            std::remove (observers.begin(), observers.end(), observer);
+        }
 
-	/**
-	 * @Override
-	 */
-	void clearObservers() {
-		observers.erase(observers.begin(), observers.end());
-	}
+        /**
+         * @Override
+         */
+        void clearObservers() {
+            observers.erase (observers.begin(), observers.end());
+        }
 
-	/**
-	 * @Override
-	 */
-	bool isObserver(ObserverType* observer) {
-		if (std::find(observers.begin(), observers.end(), observer) != observers.end()) {
-			return true;
-		}
+        /**
+         * @Override
+         */
+        bool isObserver (ObserverType* observer) {
+            if (std::find (observers.begin(), observers.end(), observer) != observers.end()) {
+                return true;
+            }
 
-		return false;
-	}
+            return false;
+        }
 
-	/**
-	 * @Override
-	 */
-	void notifyAll(PushedDataType data) {
-		typename std::vector<ObserverType*>::iterator it;
-		for (it = observers.begin(); it < observers.end(); it++) {
-			notify((*it), data);
-		}
-	}
+        /**
+         * @Override
+         */
+        void notifyAll (PushedDataType data) {
+            typename std::vector<ObserverType*>::iterator it;
 
-	/**
-	 * @Override
-	 */
-	void notifyAll(PushedDataType data, const std::string& name) {
-		typename std::vector<ObserverType*>::iterator it;
-		for (it = observers.begin(); it < observers.end(); it++) {
-			notify((*it), name, data);
-		}
-	}
+            for (it = observers.begin(); it < observers.end(); it++) {
+                notify ( (*it), data);
+            }
+        }
 
-private:
-	std::vector<ObserverType*> observers;
+        /**
+         * @Override
+         */
+        void notifyAll (PushedDataType data, const std::string& name) {
+            typename std::vector<ObserverType*>::iterator it;
+
+            for (it = observers.begin(); it < observers.end(); it++) {
+                notify ( (*it), name, data);
+            }
+        }
+
+    private:
+        std::vector<ObserverType*> observers;
 };
 }
 

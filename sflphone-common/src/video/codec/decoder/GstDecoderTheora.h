@@ -38,31 +38,33 @@
 
 #include "video/codec/mime/MimeParametersTheora.h"
 
-namespace sfl {
+namespace sfl
+{
 
-class GstDecoderTheora: public MimeParametersTheora, public GstDecoder {
-protected:
-	/**
-	 * @Override
-	 */
-	GstElement* getHead();
+class GstDecoderTheora: public MimeParametersTheora, public GstDecoder
+{
+    protected:
+        /**
+         * @Override
+         */
+        GstElement* getHead();
 
-	/**
-	 * @Override
-	 */
-	GstElement* getTail();
+        /**
+         * @Override
+         */
+        GstElement* getTail();
 
-	/**
-	 * @Override
-	 */
-	void buildFilter(Pipeline& pipeline) throw (MissingPluginException);
+        /**
+         * @Override
+         */
+        void buildFilter (Pipeline& pipeline) throw (MissingPluginException);
 
-private:
+    private:
 
-	void init() throw (VideoDecodingException, MissingPluginException);
+        void init() throw (VideoDecodingException, MissingPluginException);
 
-	GstElement* rtptheoradepay;
-	GstElement* theoradec;
+        GstElement* rtptheoradepay;
+        GstElement* theoradec;
 };
 
 }

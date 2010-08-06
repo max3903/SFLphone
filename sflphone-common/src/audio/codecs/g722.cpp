@@ -50,11 +50,11 @@ class G722 : public AudioCodec
 
         G722 (int payload=9)
                 : AudioCodec (payload, "G722") {
-    		setClockRate(16000);
-    		setChannel(1);
-    		setFrameSize(320);
-    		setBitrate(64);
-    		setBandwidth(80);
+            setClockRate (16000);
+            setChannel (1);
+            setFrameSize (320);
+            setBitrate (64);
+            setBandwidth (80);
 
             decode_s = new g722_decode_state_t;
             encode_s = new g722_encode_state_t;
@@ -63,15 +63,15 @@ class G722 : public AudioCodec
             g722_encode_init ();
         }
 
-        G722 (const G722& other) : AudioCodec(other){
-    		setClockRate(other.getClockRate());
-    		setChannel(other.getChannel());
-    		setFrameSize(other.getFrameSize());
-    		setBitrate(other.getBitRate());
-    		setBandwidth(other.getBandwidth());
+        G722 (const G722& other) : AudioCodec (other) {
+            setClockRate (other.getClockRate());
+            setChannel (other.getChannel());
+            setFrameSize (other.getFrameSize());
+            setBitrate (other.getBitRate());
+            setBandwidth (other.getBandwidth());
 
-    		decode_s = new g722_decode_state_t(*other.decode_s);
-            encode_s = new g722_encode_state_t(*other.encode_s);
+            decode_s = new g722_decode_state_t (*other.decode_s);
+            encode_s = new g722_encode_state_t (*other.encode_s);
         }
 
         virtual int decode (short *dst, unsigned char *src, unsigned int size) {
@@ -802,15 +802,15 @@ class G722 : public AudioCodec
          * @Override
          */
         std::string getDescription() const {
-        	return "G722 codec. Most of the code comes from Steve Underwood (<steveu@coppice.org>) for the Asterisk project.";
+            return "G722 codec. Most of the code comes from Steve Underwood (<steveu@coppice.org>) for the Asterisk project.";
         }
 
         /**
          * @Override
          */
         G722* clone() const {
-    		return new G722(*this);
-    	}
+            return new G722 (*this);
+        }
 
     private:
 

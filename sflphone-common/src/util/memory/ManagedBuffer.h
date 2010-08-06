@@ -31,7 +31,8 @@
 
 #include <memory>
 
-namespace sfl {
+namespace sfl
+{
 /**
  * Thread UNSAFE general data buffer, with automatic memory de-allocation using shared_ptr.
  *
@@ -40,33 +41,38 @@ namespace sfl {
  * @see sfl#Buffer
  */
 template<class T>
-class ManagedBuffer {
-public:
-	/**
-	 * @param buffer A pointer to the buffer that is actually holding the data.
-	 * @param size The size of the buffer.
-	 * @postcondition The buffer provided by the user is NOT copied into this object.
-	 */
-	ManagedBuffer(T* buffer, size_t size) {
-		this->buffer = std::shared_ptr<T>(buffer);
-		this->size = size;
-	}
+class ManagedBuffer
+{
+    public:
+        /**
+         * @param buffer A pointer to the buffer that is actually holding the data.
+         * @param size The size of the buffer.
+         * @postcondition The buffer provided by the user is NOT copied into this object.
+         */
+        ManagedBuffer (T* buffer, size_t size) {
+            this->buffer = std::shared_ptr<T> (buffer);
+            this->size = size;
+        }
 
-	virtual ~ManagedBuffer() {};
+        virtual ~ManagedBuffer() {};
 
-	/**
-	 * @return A pointer to the buffer kept in this object.
-	 */
-	inline T* getBuffer() { return buffer.get(); }
+        /**
+         * @return A pointer to the buffer kept in this object.
+         */
+        inline T* getBuffer() {
+            return buffer.get();
+        }
 
-	/**
-	 * @return The size of the buffer kept in this object.
-	 */
-	inline size_t getSize() { return size; }
+        /**
+         * @return The size of the buffer kept in this object.
+         */
+        inline size_t getSize() {
+            return size;
+        }
 
-private:
-	std::shared_ptr<T> buffer;
-	size_t size;
+    private:
+        std::shared_ptr<T> buffer;
+        size_t size;
 };
 }
 

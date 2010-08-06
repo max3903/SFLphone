@@ -29,22 +29,26 @@
 
 #include "GstEncoderTheora.h"
 
-namespace sfl {
+namespace sfl
+{
 
-void GstEncoderTheora::buildFilter(Pipeline& pipeline)
-		throw (MissingPluginException) {
+void GstEncoderTheora::buildFilter (Pipeline& pipeline)
+throw (MissingPluginException)
+{
 
-	theoraenc = pipeline.addElement("theoraenc");
-	rtptheorapay = pipeline.addElement("rtptheorapay", theoraenc);
+    theoraenc = pipeline.addElement ("theoraenc");
+    rtptheorapay = pipeline.addElement ("rtptheorapay", theoraenc);
 
 }
 
-GstElement* GstEncoderTheora::getHead() {
-	return theoraenc;
+GstElement* GstEncoderTheora::getHead()
+{
+    return theoraenc;
 }
 
-GstElement* GstEncoderTheora::getTail() {
-	return rtptheorapay;
+GstElement* GstEncoderTheora::getTail()
+{
+    return rtptheorapay;
 }
 
 }

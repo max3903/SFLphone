@@ -33,39 +33,41 @@
 
 #include "video/codec/mime/MimeParametersNull.h"
 
-namespace sfl {
+namespace sfl
+{
 /**
  * Null object pattern for the VideoEncoder class of objects.
  */
-class NullEncoder: public VideoEncoder,  public MimeParametersNull {
-public:
-	NullEncoder() :
-		VideoEncoder() {
-	}
-	;
-	virtual ~NullEncoder() {
-	}
+class NullEncoder: public VideoEncoder,  public MimeParametersNull
+{
+    public:
+        NullEncoder() :
+                VideoEncoder() {
+        }
+        ;
+        virtual ~NullEncoder() {
+        }
 
-	/**
-	 * @Override
-	 */
-	void encode(const VideoFrame* frame) throw (VideoEncodingException) {
-		_error("No encoder for encoding %d bytes of data", frame->getSize());
-	}
+        /**
+         * @Override
+         */
+        void encode (const VideoFrame* frame) throw (VideoEncodingException) {
+            _error ("No encoder for encoding %d bytes of data", frame->getSize());
+        }
 
-	/**
-	 * @Override
-	 */
-	void activate() {
-		_warn("Activating the NullEncoder");
-	}
+        /**
+         * @Override
+         */
+        void activate() {
+            _warn ("Activating the NullEncoder");
+        }
 
-	/**
-	 * @Override
-	 */
-	void deactivate() {
-		_warn("Deactivating the NullEncoder");
-	}
+        /**
+         * @Override
+         */
+        void deactivate() {
+            _warn ("Deactivating the NullEncoder");
+        }
 };
 }
 

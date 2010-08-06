@@ -45,21 +45,21 @@ class Speex : public AudioCodec
                 _speex_dec_state(),
                 _speex_enc_state(),
                 _speex_frame_size() {
-    		setClockRate(32000);
-    		setChannel(1);
-    		setFrameSize(640);
-    		setBitrate(0);
-    		setBandwidth(0);
+            setClockRate (32000);
+            setChannel (1);
+            setFrameSize (640);
+            setBitrate (0);
+            setBandwidth (0);
 
             initSpeex();
         }
 
-        Speex (const Speex& other) : AudioCodec(other) {
-    		setClockRate(other.getClockRate());
-    		setChannel(other.getChannel());
-    		setFrameSize(other.getFrameSize());
-    		setBitrate(other.getBitRate());
-    		setBandwidth(other.getBandwidth());
+        Speex (const Speex& other) : AudioCodec (other) {
+            setClockRate (other.getClockRate());
+            setChannel (other.getChannel());
+            setFrameSize (other.getFrameSize());
+            setBitrate (other.getBitRate());
+            setBandwidth (other.getBandwidth());
 
             initSpeex();
         }
@@ -128,13 +128,15 @@ class Speex : public AudioCodec
          * @Override
          */
         std::string getDescription() const {
-        	return "audio/speex 32000 (\"ultra wide band\") codec. Based on libspeex, by Jean-Marc Valin.";
+            return "audio/speex 32000 (\"ultra wide band\") codec. Based on libspeex, by Jean-Marc Valin.";
         }
 
         /**
          * @Override
          */
-        Speex* clone() const { return new Speex(*this); }
+        Speex* clone() const {
+            return new Speex (*this);
+        }
 
     private:
         const SpeexMode* _speexModePtr;

@@ -40,95 +40,98 @@
 
 #include <list>
 
-namespace sfl {
+namespace sfl
+{
 
 /**
  * Extends VideoDecoder
  */
-class GstDecoder : public VideoDecoder, protected Filter {
-public:
-	/**
-	 * @Override
-	 */
-	GstDecoder() throw(VideoDecodingException, MissingPluginException);
-	/**
-	 * @param maxFrameQueued The maximum number of frames to be queued before starting to drop the following ones.
-	 * @throw VideoEncodingException if an error occurs while opening the video decoder.
-	 */
-	GstDecoder(VideoFormat& outputFormat) throw(VideoDecodingException, MissingPluginException);
+class GstDecoder : public VideoDecoder, protected Filter
+{
+    public:
+        /**
+         * @Override
+         */
+        GstDecoder() throw (VideoDecodingException, MissingPluginException);
+        /**
+         * @param maxFrameQueued The maximum number of frames to be queued before starting to drop the following ones.
+         * @throw VideoEncodingException if an error occurs while opening the video decoder.
+         */
+        GstDecoder (VideoFormat& outputFormat) throw (VideoDecodingException, MissingPluginException);
 
-	/**
-	 * Delete the endpoints and stop the pipeline.
-	 */
-	~GstDecoder();
+        /**
+         * Delete the endpoints and stop the pipeline.
+         */
+        ~GstDecoder();
 
-	/**
-	 * @Override
-	 */
-	void setOutputFormat(VideoFormat& format);
+        /**
+         * @Override
+         */
+        void setOutputFormat (VideoFormat& format);
 
-	/**
-	 * @Override
-	 */
-	void decode(Buffer<uint8>& data) throw(VideoDecodingException);
+        /**
+         * @Override
+         */
+        void decode (Buffer<uint8>& data) throw (VideoDecodingException);
 
-	/**
-	 * @Override
-	 */
-	void activate();
+        /**
+         * @Override
+         */
+        void activate();
 
-	/**
-	 * @Override
-	 */
-	void deactivate();
+        /**
+         * @Override
+         */
+        void deactivate();
 
-	/**
-	 * @Override
-	 */
-	void setParameter(const std::string& name, const std::string& value);
+        /**
+         * @Override
+         */
+        void setParameter (const std::string& name, const std::string& value);
 
-	/**
-	 * @Override
-	 */
-	std::string getParameter(const std::string& name);
+        /**
+         * @Override
+         */
+        std::string getParameter (const std::string& name);
 
-private:
-	VideoFormat outputVideoFormat;
+    private:
+        VideoFormat outputVideoFormat;
 
-	/**
-	 * This method contains virtual methods and therefore cannot be called from the constructor.
-	 * Therefore, it's rather being called in the activate() method.
-	 */
-	void init() throw(VideoDecodingException, MissingPluginException);
+        /**
+         * This method contains virtual methods and therefore cannot be called from the constructor.
+         * Therefore, it's rather being called in the activate() method.
+         */
+        void init() throw (VideoDecodingException, MissingPluginException);
 
-	InjectablePipeline* injectableEnd;
-	RetrievablePipeline* retrievableEnd;
+        InjectablePipeline* injectableEnd;
+        RetrievablePipeline* retrievableEnd;
 
-	/**
-	 * Observer object for raw video frames produced by this decoder.
-	 * We only re-broadcast the event externally.
-	 */
-	class PipelineEventObserver : public RetrievablePipelineObserver {
-	public:
-		PipelineEventObserver(GstDecoder* encoder) : parent(encoder) {}
-		GstDecoder* parent;
-		/**
-		 * @Override
-		 */
-		void onNewBuffer(GstBuffer* buffer) {
-			_debug("Video frame decoded to raw format ...");
-			// parent->notifyAll(nalUnit);
-		}
-	};
-	PipelineEventObserver* outputObserver;
+        /**
+         * Observer object for raw video frames produced by this decoder.
+         * We only re-broadcast the event externally.
+         */
+        class PipelineEventObserver : public RetrievablePipelineObserver
+        {
+            public:
+                PipelineEventObserver (GstDecoder* encoder) : parent (encoder) {}
+                GstDecoder* parent;
+                /**
+                 * @Override
+                 */
+                void onNewBuffer (GstBuffer* buffer) {
+                    _debug ("Video frame decoded to raw format ...");
+                    // parent->notifyAll(nalUnit);
+                }
+        };
+        PipelineEventObserver* outputObserver;
 
-	/**
-	 * Holds a list of codec-specific parameters. This is needed because init() can't be called
-	 * within the constructor because it contains pure virtual functions. Therefore, init() only
-	 * gets called when activate() is called. But if the user calls setParameters() before that,
-	 * we might end up into big troubles.
-	 */
-	std::list<std::pair<std::string, std::string> > parameters;
+        /**
+         * Holds a list of codec-specific parameters. This is needed because init() can't be called
+         * within the constructor because it contains pure virtual functions. Therefore, init() only
+         * gets called when activate() is called. But if the user calls setParameters() before that,
+         * we might end up into big troubles.
+         */
+        std::list<std::pair<std::string, std::string> > parameters;
 };
 
 }

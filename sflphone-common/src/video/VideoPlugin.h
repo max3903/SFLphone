@@ -33,24 +33,26 @@
 
 #include <ccrtp/rtp.h>
 
-namespace sfl {
+namespace sfl
+{
 /**
  * Interface for video encoders and decoders.
  * Might be used for audio codec also in the future.
  */
-class VideoPlugin {
-public:
-	/**
-	 * Activate an instance of a codec.
-	 */
-	virtual void activate() = 0;
-	/**
-	 * Deactivate an instance of a codec.
-	 */
-	virtual void deactivate() = 0;
-protected:
-	VideoPlugin() {};
-	inline virtual ~VideoPlugin() {}
+class VideoPlugin
+{
+    public:
+        /**
+         * Activate an instance of a codec.
+         */
+        virtual void activate() = 0;
+        /**
+         * Deactivate an instance of a codec.
+         */
+        virtual void deactivate() = 0;
+    protected:
+        VideoPlugin() {};
+        inline virtual ~VideoPlugin() {}
 };
 }
 

@@ -32,31 +32,39 @@
 
 #include "MimeParameters.h"
 
-namespace sfl {
+namespace sfl
+{
 
-class MimeParametersNull : public virtual MimeParameters {
-public:
-	std::string getMimeType() const { return "video"; }
+class MimeParametersNull : public virtual MimeParameters
+{
+    public:
+        std::string getMimeType() const {
+            return "video";
+        }
 
-	std::string getMimeSubtype() const { return "NULL"; }
+        std::string getMimeSubtype() const {
+            return "NULL";
+        }
 
-	/**
-	 * @Override
-	 */
-	uint8 getPayloadType() const {
-		return 96;
-	}
+        /**
+         * @Override
+         */
+        uint8 getPayloadType() const {
+            return 96;
+        }
 
-	/**
-	 * @Override
-	 */
-	uint32 getClockRate() const {
-		return 90000;
-	}
+        /**
+         * @Override
+         */
+        uint32 getClockRate() const {
+            return 90000;
+        }
 
-	void setParameter(const std::string& name, const std::string& value) {}
+        void setParameter (const std::string& name, const std::string& value) {}
 
-	std::string getParameter(const std::string& name) { return ""; }
+        std::string getParameter (const std::string& name) {
+            return "";
+        }
 };
 
 }

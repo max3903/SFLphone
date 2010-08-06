@@ -29,24 +29,28 @@
 
 #include "GstDecoderJpeg.h"
 
-namespace sfl {
+namespace sfl
+{
 
-void GstDecoderJpeg::buildFilter(Pipeline& pipeline)
-		throw (MissingPluginException) {
+void GstDecoderJpeg::buildFilter (Pipeline& pipeline)
+throw (MissingPluginException)
+{
 
-	rtpjpegdepay = pipeline.addElement("rtpjpegdepay");
+    rtpjpegdepay = pipeline.addElement ("rtpjpegdepay");
 
-	GstElement* previous = pipeline.addElement("jpegparse", rtpjpegdepay);
+    GstElement* previous = pipeline.addElement ("jpegparse", rtpjpegdepay);
 
-	jpegdec = pipeline.addElement("jpegdec", previous);
+    jpegdec = pipeline.addElement ("jpegdec", previous);
 }
 
-GstElement* GstDecoderJpeg::getHead() {
-	return rtpjpegdepay;
+GstElement* GstDecoderJpeg::getHead()
+{
+    return rtpjpegdepay;
 }
 
-GstElement* GstDecoderJpeg::getTail() {
-	return jpegdec;
+GstElement* GstDecoderJpeg::getTail()
+{
+    return jpegdec;
 }
 
 }

@@ -31,61 +31,63 @@
 
 #include "Observer.h"
 #include "logger.h"
-namespace sfl {
+namespace sfl
+{
 /**
  * Interface for an Observable type.
  */
 template<class PushedDataType, class ObserverType>
-class Observable {
-public:
-	/**
-	 * @param observer The observer object to be notify by this observable object.
-	 */
-	virtual void addObserver(ObserverType* observer) = 0;
+class Observable
+{
+    public:
+        /**
+         * @param observer The observer object to be notify by this observable object.
+         */
+        virtual void addObserver (ObserverType* observer) = 0;
 
-	/**
-	 * @param observer The observer object to be removed.
-	 */
-	virtual void removeObserver(ObserverType* observer) = 0;
+        /**
+         * @param observer The observer object to be removed.
+         */
+        virtual void removeObserver (ObserverType* observer) = 0;
 
-	/**
-	 * @postcondition The observer list will be empty.
-	 */
-	virtual void clearObservers() = 0;
+        /**
+         * @postcondition The observer list will be empty.
+         */
+        virtual void clearObservers() = 0;
 
-	/**
-	 * @param observer The observer to check for.
-	 * @return true if the given observer is currently registered on this subject.
-	 */
-	virtual bool isObserver(ObserverType* observer) = 0;
+        /**
+         * @param observer The observer to check for.
+         * @return true if the given observer is currently registered on this subject.
+         */
+        virtual bool isObserver (ObserverType* observer) = 0;
 
-	/**
-	 * @param data The data to be pushed to the observers.
-	 */
-	virtual void notifyAll(PushedDataType data) = 0;
+        /**
+         * @param data The data to be pushed to the observers.
+         */
+        virtual void notifyAll (PushedDataType data) = 0;
 
-	/**
-	 * @param data The data to be pushed to the observers.
-	 * @param name The method name to call.
-	 */
-	virtual void notifyAll(PushedDataType data, const std::string& name) = 0;
+        /**
+         * @param data The data to be pushed to the observers.
+         * @param name The method name to call.
+         */
+        virtual void notifyAll (PushedDataType data, const std::string& name) = 0;
 
-protected:
-	/**
-	 * This method must be overridden by the user, as in the template design pattern.
-	 * The implementer will use this as a way to call the appropriate "notify()" type of method
-	 * on the observer. That way, multiple inheritance on the Observer derived types won't cause
-	 * any conflicts.
-	 * @see AbstractObservable#notifyAll
-	 */
-	virtual void notify(ObserverType* observer, PushedDataType data) = 0;
+    protected:
+        /**
+         * This method must be overridden by the user, as in the template design pattern.
+         * The implementer will use this as a way to call the appropriate "notify()" type of method
+         * on the observer. That way, multiple inheritance on the Observer derived types won't cause
+         * any conflicts.
+         * @see AbstractObservable#notifyAll
+         */
+        virtual void notify (ObserverType* observer, PushedDataType data) = 0;
 
-	/**
-	 * Optional method that the implementer can override in order to call a specific method
-	 * on the observer.
-	 * @param name The method name to call.
-	 */
-	virtual void notify(ObserverType* observer, const std::string& name, PushedDataType data) = 0;
+        /**
+         * Optional method that the implementer can override in order to call a specific method
+         * on the observer.
+         * @param name The method name to call.
+         */
+        virtual void notify (ObserverType* observer, const std::string& name, PushedDataType data) = 0;
 };
 }
 #endif

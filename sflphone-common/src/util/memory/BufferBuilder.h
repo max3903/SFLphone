@@ -34,16 +34,18 @@
 #include <stdexcept>
 #include <string.h>
 
-namespace sfl {
+namespace sfl
+{
 
 /**
  * Thrown when an operation would have to go out of bound.
  */
-class MemoryAllocationException: public std::runtime_error {
-public:
-	MemoryAllocationException(const std::string& msg) :
-		std::runtime_error(msg) {
-	}
+class MemoryAllocationException: public std::runtime_error
+{
+    public:
+        MemoryAllocationException (const std::string& msg) :
+                std::runtime_error (msg) {
+        }
 };
 
 /**
@@ -51,76 +53,80 @@ public:
  * will cause the current write index to move each time.
  */
 template <class T>
-class BufferBuilder {
-public:
-	BufferBuilder() : size(0) {}
-	virtual ~BufferBuilder() {};
+class BufferBuilder
+{
+    public:
+        BufferBuilder() : size (0) {}
+        virtual ~BufferBuilder() {};
 
-	/**
-	 * Push a piece of data into the queue.
-	 * @param data A pointer to the data.
-	 * @param size The size corresponding to this buffer.
-	 * @postcondition The data will be kept in this object as long as the object exists and be assembled into
-	 * a continuous buffer when getContinuousBuffer() is called.
-	 * @see BufferBuilder#getContinuousBuffer
-	 */
-	void push(const T* data, size_t size) {
-		slices.push_back(std::pair<const T*, size_t>(data, size));
-		this->size += size;
-	}
+        /**
+         * Push a piece of data into the queue.
+         * @param data A pointer to the data.
+         * @param size The size corresponding to this buffer.
+         * @postcondition The data will be kept in this object as long as the object exists and be assembled into
+         * a continuous buffer when getContinuousBuffer() is called.
+         * @see BufferBuilder#getContinuousBuffer
+         */
+        void push (const T* data, size_t size) {
+            slices.push_back (std::pair<const T*, size_t> (data, size));
+            this->size += size;
+        }
 
-	/**
-	 * @return the amount of data that was declared so far to be in all of the buffers.
-	 */
-	size_t getSize() {
-		return size;
-	}
+        /**
+         * @return the amount of data that was declared so far to be in all of the buffers.
+         */
+        size_t getSize() {
+            return size;
+        }
 
-	/**
-	 * @return A new buffer containing all of the buffers in the order in which they were inserted.
-	 */
-	T* getContinuousBuffer() throw(MemoryAllocationException){
+        /**
+         * @return A new buffer containing all of the buffers in the order in which they were inserted.
+         */
+        T* getContinuousBuffer() throw (MemoryAllocationException) {
 
-		T* buffer = new T[size];
-		if (buffer == NULL) {
-			throw MemoryAllocationException("Could not create buffer.");
-		}
+            T* buffer = new T[size];
 
-		Iterator it;
-		size_t index = 0;
-		for (it = slices.begin(); it != slices.end(); it++) {
-			memcpy(buffer + index, (*it).first, (*it).second);
-			index += (*it).second;
-		}
+            if (buffer == NULL) {
+                throw MemoryAllocationException ("Could not create buffer.");
+            }
 
-		return buffer;
-	}
+            Iterator it;
+            size_t index = 0;
 
-	/**
-	 * Remove all of the elements in the queue but does not clear the memory allocated for the data
-	 * referred to by the pointers.
-	 */
-	void clear() {
-		slices.clear();
-		size = 0;
-	}
+            for (it = slices.begin(); it != slices.end(); it++) {
+                memcpy (buffer + index, (*it).first, (*it).second);
+                index += (*it).second;
+            }
 
-	/**
-	 * Remove and free (calls the constructor) for every element in the queue.
-	 */
-	void dispose() {
-		Iterator it;
-		for (it = slices.begin(); it != slices.end(); it++) {
-			delete const_cast<T*>((*it).first);
-		}
+            return buffer;
+        }
 
-		clear();
-	}
+        /**
+         * Remove all of the elements in the queue but does not clear the memory allocated for the data
+         * referred to by the pointers.
+         */
+        void clear() {
+            slices.clear();
+            size = 0;
+        }
 
-private:
-	std::list<std::pair<const T*, size_t> > slices;
-	typedef typename std::list<std::pair<const T*, size_t> >::iterator Iterator;
-	size_t size;
+        /**
+         * Remove and free (calls the constructor) for every element in the queue.
+         */
+        void dispose() {
+            Iterator it;
+
+            for (it = slices.begin(); it != slices.end(); it++) {
+                delete const_cast<T*> ( (*it).first);
+            }
+
+            clear();
+        }
+
+    private:
+        std::list<std::pair<const T*, size_t> > slices;
+        typedef typename std::list<std::pair<const T*, size_t> >::iterator Iterator;
+        size_t size;
 };
 
 }

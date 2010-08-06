@@ -31,148 +31,162 @@
 #include "util/gstreamer/InjectablePipeline.h"
 #include "util/gstreamer/RetrievablePipeline.h"
 
-namespace sfl {
-GstEncoder::GstEncoder() throw (VideoEncodingException, MissingPluginException) :
-	VideoEncoder(), maxFrameQueued(MAX_FRAME_QUEUED), injectableEnd(NULL), retrievableEnd(NULL) {
-}
-
-GstEncoder::GstEncoder(VideoInputSource& source) throw (VideoDecodingException,
-		MissingPluginException) :
-	VideoEncoder(source), maxFrameQueued(MAX_FRAME_QUEUED), injectableEnd(NULL), retrievableEnd(NULL) {
-}
-
-GstEncoder::GstEncoder(VideoInputSource& source, unsigned maxFrameQueued)
-		throw (VideoDecodingException, MissingPluginException) :
-	VideoEncoder(source), maxFrameQueued(maxFrameQueued), injectableEnd(NULL), retrievableEnd(NULL) {
-}
-
-void GstEncoder::setVideoInputSource(VideoInputSource& videoSource)
+namespace sfl
 {
-	VideoEncoder::setVideoInputSource(videoSource);
-	if (injectableEnd != NULL) {
-		configureSource();
-	}
+GstEncoder::GstEncoder() throw (VideoEncodingException, MissingPluginException) :
+        VideoEncoder(), maxFrameQueued (MAX_FRAME_QUEUED), injectableEnd (NULL), retrievableEnd (NULL)
+{
 }
 
-void GstEncoder::setParameter(const std::string& name, const std::string& value) {
-	if (injectableEnd == NULL) {
-		// Wait for the source to be set, creating the caps at the same time.
-		parameters.push_back(std::pair<std::string, std::string>(name, value));
-	} else {
-		// Apply the parameter immediately to the caps.
-		injectableEnd->setField(name, value);
-	}
+GstEncoder::GstEncoder (VideoInputSource& source) throw (VideoDecodingException,
+        MissingPluginException) :
+        VideoEncoder (source), maxFrameQueued (MAX_FRAME_QUEUED), injectableEnd (NULL), retrievableEnd (NULL)
+{
 }
 
-std::string GstEncoder::getParameter(const std::string& name) {
-	return injectableEnd->getField(name); // FIXME Param might not exists
+GstEncoder::GstEncoder (VideoInputSource& source, unsigned maxFrameQueued)
+throw (VideoDecodingException, MissingPluginException) :
+        VideoEncoder (source), maxFrameQueued (maxFrameQueued), injectableEnd (NULL), retrievableEnd (NULL)
+{
 }
 
-void GstEncoder::configureSource() {
-	// Create the new caps for this video source
-	VideoFormat format = getVideoInputSource()->getOutputFormat();
-	std::ostringstream caps;
-	caps << "video/x-raw-rgb" << ",format=(fourcc)" << GST_STR_FOURCC(
-			format.getFourcc().c_str()) << ",height=(int)"
-			<< format.getHeight() << ",width=(int)" << format.getWidth()
-			<< ",bpp=(int)" << 32 << ",depth=(int)" << 32
-			<< ",endianness=(int)" << 4321 << ",red_mask=(int)" << 65280
-			<< ",green_mask=(int)" << 16711680 << ",blue_mask=(int)"
-			<< -16777216 << ",framerate=(fraction)"
-			<< format.getPreferredFrameRate().getNumerator() << "/"
-			<< format.getPreferredFrameRate().getDenominator();
+void GstEncoder::setVideoInputSource (VideoInputSource& videoSource)
+{
+    VideoEncoder::setVideoInputSource (videoSource);
 
-	GstCaps* sourceCaps = gst_caps_from_string((caps.str()).c_str());
-	_debug("Setting caps %s on encoder source", caps.str().c_str());
+    if (injectableEnd != NULL) {
+        configureSource();
+    }
+}
 
-	// Set the new maximum size on the input queue
-	injectableEnd->setMaxQueueSize(10 /** Frames */ * format.getWidth() * format.getHeight() * 32); // FIXME Hardcoding !
+void GstEncoder::setParameter (const std::string& name, const std::string& value)
+{
+    if (injectableEnd == NULL) {
+        // Wait for the source to be set, creating the caps at the same time.
+        parameters.push_back (std::pair<std::string, std::string> (name, value));
+    } else {
+        // Apply the parameter immediately to the caps.
+        injectableEnd->setField (name, value);
+    }
+}
 
-	// Append the optional parameters (if any)
-	std::list<std::pair<std::string, std::string> >::iterator it;
-	for (it = parameters.begin(); it != parameters.end(); it++) {
-		GValue gstValue;
-		memset(&gstValue, 0, sizeof(GValue));
-		g_value_init(&gstValue, G_TYPE_STRING);
-		g_value_set_string(&gstValue, ((*it).second).c_str());
+std::string GstEncoder::getParameter (const std::string& name)
+{
+    return injectableEnd->getField (name); // FIXME Param might not exists
+}
 
-		gst_caps_set_value(sourceCaps, (*it).first.c_str(), &gstValue);
-	}
+void GstEncoder::configureSource()
+{
+    // Create the new caps for this video source
+    VideoFormat format = getVideoInputSource()->getOutputFormat();
+    std::ostringstream caps;
+    caps << "video/x-raw-rgb" << ",format=(fourcc)" << GST_STR_FOURCC (
+        format.getFourcc().c_str()) << ",height=(int)"
+    << format.getHeight() << ",width=(int)" << format.getWidth()
+    << ",bpp=(int)" << 32 << ",depth=(int)" << 32
+    << ",endianness=(int)" << 4321 << ",red_mask=(int)" << 65280
+    << ",green_mask=(int)" << 16711680 << ",blue_mask=(int)"
+    << -16777216 << ",framerate=(fraction)"
+    << format.getPreferredFrameRate().getNumerator() << "/"
+    << format.getPreferredFrameRate().getDenominator();
 
-	_debug("Caps on encoder %" GST_PTR_FORMAT, sourceCaps);
+    GstCaps* sourceCaps = gst_caps_from_string ( (caps.str()).c_str());
+    _debug ("Setting caps %s on encoder source", caps.str().c_str());
 
-	injectableEnd->setCaps(sourceCaps);
+    // Set the new maximum size on the input queue
+    injectableEnd->setMaxQueueSize (10 /** Frames */ * format.getWidth() * format.getHeight() * 32); // FIXME Hardcoding !
+
+    // Append the optional parameters (if any)
+    std::list<std::pair<std::string, std::string> >::iterator it;
+
+    for (it = parameters.begin(); it != parameters.end(); it++) {
+        GValue gstValue;
+        memset (&gstValue, 0, sizeof (GValue));
+        g_value_init (&gstValue, G_TYPE_STRING);
+        g_value_set_string (&gstValue, ( (*it).second).c_str());
+
+        gst_caps_set_value (sourceCaps, (*it).first.c_str(), &gstValue);
+    }
+
+    _debug ("Caps on encoder %" GST_PTR_FORMAT, sourceCaps);
+
+    injectableEnd->setCaps (sourceCaps);
 
 }
 
-void GstEncoder::init() throw (VideoDecodingException, MissingPluginException) {
-	gst_init(0, NULL);
+void GstEncoder::init() throw (VideoDecodingException, MissingPluginException)
+{
+    gst_init (0, NULL);
 
-	// Create a new pipeline
-	Pipeline pipeline(std::string("sfl_") + getMimeSubtype() + std::string("_encoding"));
-	pipeline.setPrefix("sfl_encoder_");
+    // Create a new pipeline
+    Pipeline pipeline (std::string ("sfl_") + getMimeSubtype() + std::string ("_encoding"));
+    pipeline.setPrefix ("sfl_encoder_");
 
-	GstElement* ffmpegcolorspace = pipeline.addElement("ffmpegcolorspace");
-	GstElement* videoscale =
-			pipeline.addElement("videoscale", ffmpegcolorspace);
+    GstElement* ffmpegcolorspace = pipeline.addElement ("ffmpegcolorspace");
+    GstElement* videoscale =
+        pipeline.addElement ("videoscale", ffmpegcolorspace);
 
-	// Ask the derived child to take care of building the encoding portion of the pipeline itself. A knowledge that we
-	// can't have at this point in the object hierarchy (template design pattern).
-	buildFilter(pipeline);
+    // Ask the derived child to take care of building the encoding portion of the pipeline itself. A knowledge that we
+    // can't have at this point in the object hierarchy (template design pattern).
+    buildFilter (pipeline);
 
-	// Link the VideoScale element to the head of the filter
-	pipeline.link(videoscale, getHead());
+    // Link the VideoScale element to the head of the filter
+    pipeline.link (videoscale, getHead());
 
-	// Add an injectable endpoint
-	injectableEnd = new InjectablePipeline(pipeline);
+    // Add an injectable endpoint
+    injectableEnd = new InjectablePipeline (pipeline);
 
-	// Configure with VideoInputSource
-	configureSource();
+    // Configure with VideoInputSource
+    configureSource();
 
-	// Add a retrievable endpoint
-	retrievableEnd = new RetrievablePipeline(pipeline);
-	outputObserver = new PipelineEventObserver(this);
-	retrievableEnd->addObserver(outputObserver);
+    // Add a retrievable endpoint
+    retrievableEnd = new RetrievablePipeline (pipeline);
+    outputObserver = new PipelineEventObserver (this);
+    retrievableEnd->addObserver (outputObserver);
 
-	// Connect both endpoints to the graph.
-	injectableEnd->setSink(ffmpegcolorspace);
-	retrievableEnd->setSource(getTail());
+    // Connect both endpoints to the graph.
+    injectableEnd->setSink (ffmpegcolorspace);
+    retrievableEnd->setSource (getTail());
 }
 
-GstEncoder::~GstEncoder() {
-	deactivate();
+GstEncoder::~GstEncoder()
+{
+    deactivate();
 
-	delete retrievableEnd;
-	delete injectableEnd;
+    delete retrievableEnd;
+    delete injectableEnd;
 }
 
-void GstEncoder::encode(const VideoFrame* frame) throw (VideoEncodingException) {
-	GstBuffer* buffer = gst_buffer_new();
-	GST_BUFFER_SIZE(buffer) = frame->getSize();
-	GST_BUFFER_DATA(buffer) = (guint8*) frame->getFrame();
+void GstEncoder::encode (const VideoFrame* frame) throw (VideoEncodingException)
+{
+    GstBuffer* buffer = gst_buffer_new();
+    GST_BUFFER_SIZE (buffer) = frame->getSize();
+    GST_BUFFER_DATA (buffer) = (guint8*) frame->getFrame();
 
-	_info("Encoding frame of raw size %d", GST_BUFFER_SIZE(buffer));
+    _info ("Encoding frame of raw size %d", GST_BUFFER_SIZE (buffer));
 
-	injectableEnd->inject(buffer);
+    injectableEnd->inject (buffer);
 }
 
-void GstEncoder::activate() {
-	VideoEncoder::activate();
-	_info("Activating Gstreamer Encoder");
+void GstEncoder::activate()
+{
+    VideoEncoder::activate();
+    _info ("Activating Gstreamer Encoder");
 
-	init();
+    init();
 
-	retrievableEnd->start();
+    retrievableEnd->start();
 }
 
-void GstEncoder::deactivate() {
-	VideoEncoder::deactivate();
-	_info("Deactivating encoder");
+void GstEncoder::deactivate()
+{
+    VideoEncoder::deactivate();
+    _info ("Deactivating encoder");
 
-	clearObservers();
+    clearObservers();
 
-	retrievableEnd->removeObserver(outputObserver);
-	retrievableEnd->stop();
+    retrievableEnd->removeObserver (outputObserver);
+    retrievableEnd->stop();
 }
 
 }

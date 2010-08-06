@@ -36,130 +36,141 @@
 #include "CodecFactory.h"
 
 Account::Account (const AccountID& accountID, std::string type) :
-	_accountID (accountID)
-	, _link (NULL)
-	, _enabled (true)
-	, _type (type)
-	, _codecAudioSerialized("")
-	, _codecVideoSerialized("")
-	, _ringtonePath("/usr/share/sflphone/ringtones/konga.ul")
-	, _ringtoneEnabled(true)
-	, _displayName("")
-	, _useragent("SFLphone")
-	, _preferredVideoDevice("")
-	, _alwaysOfferVideo(false)
+        _accountID (accountID)
+        , _link (NULL)
+        , _enabled (true)
+        , _type (type)
+        , _codecAudioSerialized ("")
+        , _codecVideoSerialized ("")
+        , _ringtonePath ("/usr/share/sflphone/ringtones/konga.ul")
+        , _ringtoneEnabled (true)
+        , _displayName ("")
+        , _useragent ("SFLphone")
+        , _preferredVideoDevice ("")
+        , _alwaysOfferVideo (false)
 {
-	setRegistrationState (Unregistered);
+    setRegistrationState (Unregistered);
 }
 
 Account::~Account()
 {
 }
 
-void Account::loadConfig() {
+void Account::loadConfig()
+{
 
-  // If IAX is not supported, do not register this account	
+    // If IAX is not supported, do not register this account
 #ifndef USE_IAX
-  if (_type == "IAX")
-    _enabled = false;
+
+    if (_type == "IAX")
+        _enabled = false;
+
 #endif
 
-  loadCodecs ();
+    loadCodecs ();
 }
 
-void Account::setRegistrationState (RegistrationState state) {
-
-	if (state != _registrationState) {
-		_debug ("Account: set registration state");
-		_registrationState = state;
-
-		// Notify the client
-		Manager::instance().connectionStatusNotification();
-	}
-}
-
-void Account::loadCodecs (void) {
-	_debug("Serialized codecs : %s", _codecAudioSerialized.c_str());
-
-    if(_codecAudioSerialized == "") {
-		_info ("No audio codecs were configured for this account. Using the default list.");
-		setActiveAudioCodecs(CodecFactory::getInstance().getDefaultAudioCodecOrder());
-	} else {
-		setActiveAudioCodecs (Manager::instance ().unserialize (_codecAudioSerialized));
-	}
-
-    if(_codecVideoSerialized == "") {
-		_info ("No video codecs were configured for this account. Using the default list.");
-		setActiveVideoCodecs(CodecFactory::getInstance().getDefaultVideoCodecOrder());
-	} else {
-		setActiveVideoCodecs (Manager::instance ().unserialize (_codecVideoSerialized));
-	}
-}
-
-void Account::setAlwaysOfferVideo(bool policy)
+void Account::setRegistrationState (RegistrationState state)
 {
-	_alwaysOfferVideo = policy;
+
+    if (state != _registrationState) {
+        _debug ("Account: set registration state");
+        _registrationState = state;
+
+        // Notify the client
+        Manager::instance().connectionStatusNotification();
+    }
+}
+
+void Account::loadCodecs (void)
+{
+    _debug ("Serialized codecs : %s", _codecAudioSerialized.c_str());
+
+    if (_codecAudioSerialized == "") {
+        _info ("No audio codecs were configured for this account. Using the default list.");
+        setActiveAudioCodecs (CodecFactory::getInstance().getDefaultAudioCodecOrder());
+    } else {
+        setActiveAudioCodecs (Manager::instance ().unserialize (_codecAudioSerialized));
+    }
+
+    if (_codecVideoSerialized == "") {
+        _info ("No video codecs were configured for this account. Using the default list.");
+        setActiveVideoCodecs (CodecFactory::getInstance().getDefaultVideoCodecOrder());
+    } else {
+        setActiveVideoCodecs (Manager::instance ().unserialize (_codecVideoSerialized));
+    }
+}
+
+void Account::setAlwaysOfferVideo (bool policy)
+{
+    _alwaysOfferVideo = policy;
 }
 
 bool Account::isAlwaysOfferVideo()
 {
-	return _alwaysOfferVideo;
+    return _alwaysOfferVideo;
 }
 
-void Account::setPreferredVideoDevice(const std::string& device)
+void Account::setPreferredVideoDevice (const std::string& device)
 {
-	_preferredVideoDevice = device;
+    _preferredVideoDevice = device;
 }
 
 std::string Account::getPreferredVideoDevice()
 {
-	return _preferredVideoDevice;
+    return _preferredVideoDevice;
 }
 
-void Account::setPreferredVideoFormat(const sfl::VideoFormat& format)
+void Account::setPreferredVideoFormat (const sfl::VideoFormat& format)
 {
-	_preferredVideoFormat = format;
+    _preferredVideoFormat = format;
 }
 
 sfl::VideoFormat Account::getPreferredVideoFormat()
 {
-	return _preferredVideoFormat;
+    return _preferredVideoFormat;
 }
 
-CodecOrder& Account::getActiveVideoCodecs() {
-	return _codecVideoOrder;
-}
-
-CodecOrder& Account::getActiveAudioCodecs() {
-	return _codecAudioOrder;
-}
-
-void Account::setActiveVideoCodecs(CodecOrder codecs) {
-	_codecVideoOrder = codecs;
-	_codecVideoSerialized = Manager::instance().serialize(codecs);
-	_debug("Setting active video codecs : %s", _codecVideoSerialized.c_str());
-}
-
-void Account::setActiveAudioCodecs(CodecOrder codecs) {
-	_codecAudioOrder = codecs;
-	_codecAudioSerialized = Manager::instance().serialize(codecs);
-	_debug("Setting active audio codecs : %s", _codecAudioSerialized.c_str());
-}
-
-std::string Account::getAudioCodecsSerialized() {
-	return _codecAudioSerialized;
-}
-
-void Account::setAudioCodecsSerialized(const std::string& audioCodecs)
+CodecOrder& Account::getActiveVideoCodecs()
 {
-	_codecAudioSerialized = audioCodecs;
+    return _codecVideoOrder;
 }
 
-void Account::setVideoCodecsSerialized(const std::string& videoCodecs)
+CodecOrder& Account::getActiveAudioCodecs()
 {
-	_codecVideoSerialized = videoCodecs;
+    return _codecAudioOrder;
 }
 
-std::string Account::getVideoCodecsSerialized() {
-	return _codecVideoSerialized;
+void Account::setActiveVideoCodecs (CodecOrder codecs)
+{
+    _codecVideoOrder = codecs;
+    _codecVideoSerialized = Manager::instance().serialize (codecs);
+    _debug ("Setting active video codecs : %s", _codecVideoSerialized.c_str());
+}
+
+void Account::setActiveAudioCodecs (CodecOrder codecs)
+{
+    _codecAudioOrder = codecs;
+    _codecAudioSerialized = Manager::instance().serialize (codecs);
+    _debug ("Setting active audio codecs : %s", _codecAudioSerialized.c_str());
+}
+
+std::string Account::getAudioCodecsSerialized()
+{
+    return _codecAudioSerialized;
+}
+
+void Account::setAudioCodecsSerialized (const std::string& audioCodecs)
+{
+    _codecAudioSerialized = audioCodecs;
+}
+
+void Account::setVideoCodecsSerialized (const std::string& videoCodecs)
+{
+    _codecVideoSerialized = videoCodecs;
+}
+
+std::string Account::getVideoCodecsSerialized()
+{
+    return _codecVideoSerialized;
 }

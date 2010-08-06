@@ -35,103 +35,111 @@
 
 IAXCall::IAXCall (const CallId& id, Call::CallType type) : Call (id, type), _session (NULL)
 {
-	mimeTypeToAstMacro["PCMU"] = AST_FORMAT_ULAW;
-	mimeTypeToAstMacro["GSM"] = AST_FORMAT_GSM;
-	mimeTypeToAstMacro["PCMA"] = AST_FORMAT_ALAW;
-	mimeTypeToAstMacro["ILBC"] = AST_FORMAT_ILBC;
-	mimeTypeToAstMacro["SPEEX"] = AST_FORMAT_SPEEX;
+    mimeTypeToAstMacro["PCMU"] = AST_FORMAT_ULAW;
+    mimeTypeToAstMacro["GSM"] = AST_FORMAT_GSM;
+    mimeTypeToAstMacro["PCMA"] = AST_FORMAT_ALAW;
+    mimeTypeToAstMacro["ILBC"] = AST_FORMAT_ILBC;
+    mimeTypeToAstMacro["SPEEX"] = AST_FORMAT_SPEEX;
 
-	astMacroToMimeType[AST_FORMAT_ULAW] = "PCMU";
-	astMacroToMimeType[AST_FORMAT_GSM] = "GSM";
-	astMacroToMimeType[AST_FORMAT_ALAW] = "PCMA";
-	astMacroToMimeType[AST_FORMAT_ILBC] = "ILBC";
-	astMacroToMimeType[AST_FORMAT_SPEEX] = "SPEEX";
+    astMacroToMimeType[AST_FORMAT_ULAW] = "PCMU";
+    astMacroToMimeType[AST_FORMAT_GSM] = "GSM";
+    astMacroToMimeType[AST_FORMAT_ALAW] = "PCMA";
+    astMacroToMimeType[AST_FORMAT_ILBC] = "ILBC";
+    astMacroToMimeType[AST_FORMAT_SPEEX] = "SPEEX";
 }
 
 IAXCall::~IAXCall()
 {
-	_session = NULL; // just to be sure to don't have unknown pointer, do not delete it!
+    _session = NULL; // just to be sure to don't have unknown pointer, do not delete it!
 }
 
-	void
+void
 IAXCall::setFormat (int format)
 {
-	AstMacroToMimeTypeIterator it = astMacroToMimeType.find(format);
-	if (it == astMacroToMimeType.end()) {
-		_error("Failed to set set asterisk format %d in IAX call", format);
-		return;
-	}
+    AstMacroToMimeTypeIterator it = astMacroToMimeType.find (format);
 
-	setAudioCodec((*it).second);
-	_asteriskFormat = format;
+    if (it == astMacroToMimeType.end()) {
+        _error ("Failed to set set asterisk format %d in IAX call", format);
+        return;
+    }
+
+    setAudioCodec ( (*it).second);
+    _asteriskFormat = format;
 }
 
-	int
+int
 IAXCall::getSupportedFormat (std::string accountID)
 {
-	_info ("IAX get supported format: ");
+    _info ("IAX get supported format: ");
 
-	Account* account = Manager::instance().getAccount(accountID);
-	CodecOrder codecsIdentifier;
-	if (account != NULL) {
-		codecsIdentifier = account->getActiveAudioCodecs();
-	}
-	else {
-		_error ("No IAx account could be found");
-		return 0;
-	}
+    Account* account = Manager::instance().getAccount (accountID);
+    CodecOrder codecsIdentifier;
 
-	CodecFactory& factory = CodecFactory::getInstance();
-	CodecOrder::const_iterator it;
+    if (account != NULL) {
+        codecsIdentifier = account->getActiveAudioCodecs();
+    } else {
+        _error ("No IAx account could be found");
+        return 0;
+    }
 
-	int format = 0;
-	for (it = codecsIdentifier.begin(); it != codecsIdentifier.end(); it++) {
-		const sfl::Codec* codec = factory.getCodec(*it);
+    CodecFactory& factory = CodecFactory::getInstance();
+    CodecOrder::const_iterator it;
 
-		MimeTypeToAstMacroIterator it = mimeTypeToAstMacro.find(codec->getMimeSubtype());
-		if (it != mimeTypeToAstMacro.end()) {
-			format |= (*it).second;
-		}
-	}
+    int format = 0;
 
-	return format;
+    for (it = codecsIdentifier.begin(); it != codecsIdentifier.end(); it++) {
+        const sfl::Codec* codec = factory.getCodec (*it);
+
+        MimeTypeToAstMacroIterator it = mimeTypeToAstMacro.find (codec->getMimeSubtype());
+
+        if (it != mimeTypeToAstMacro.end()) {
+            format |= (*it).second;
+        }
+    }
+
+    return format;
 }
 
-int IAXCall::getFirstMatchingFormat (int needles, std::string accountID) {
-	_debug ("IAX get first matching codec: ");
+int IAXCall::getFirstMatchingFormat (int needles, std::string accountID)
+{
+    _debug ("IAX get first matching codec: ");
 
-	Account* account = Manager::instance().getAccount (accountID);
-	CodecOrder activeCodecs;
-	if (account != NULL) {
-		activeCodecs = account->getActiveAudioCodecs();
-	} else {
-		_error ("No IAX account could be found");
-	}
+    Account* account = Manager::instance().getAccount (accountID);
+    CodecOrder activeCodecs;
 
-	CodecFactory& codecFactory = CodecFactory::getInstance();
-	CodecOrder::const_iterator it;
-	for (it = activeCodecs.begin(); it != activeCodecs.end(); it++) {
-		const sfl::Codec* codec = codecFactory.getCodec(*it);
-		MimeTypeToAstMacroIterator it = mimeTypeToAstMacro.find(codec->getMimeSubtype());
-		if (it != mimeTypeToAstMacro.end()) {
-			if ((*it).second & needles) {
-				return (*it).second;
-			}
-		}
-	}
+    if (account != NULL) {
+        activeCodecs = account->getActiveAudioCodecs();
+    } else {
+        _error ("No IAX account could be found");
+    }
 
-	return 0;
+    CodecFactory& codecFactory = CodecFactory::getInstance();
+    CodecOrder::const_iterator it;
+
+    for (it = activeCodecs.begin(); it != activeCodecs.end(); it++) {
+        const sfl::Codec* codec = codecFactory.getCodec (*it);
+        MimeTypeToAstMacroIterator it = mimeTypeToAstMacro.find (codec->getMimeSubtype());
+
+        if (it != mimeTypeToAstMacro.end()) {
+            if ( (*it).second & needles) {
+                return (*it).second;
+            }
+        }
+    }
+
+    return 0;
 }
 
-void IAXCall::setAudioCodec(const std::string& subtype) {
-	CodecFactory& factory = CodecFactory::getInstance();
-	const sfl::Codec* codec = factory.getCodecByMimeSubtype(subtype);
-	_audioCodec = (static_cast<const AudioCodec*>(codec))->clone();
+void IAXCall::setAudioCodec (const std::string& subtype)
+{
+    CodecFactory& factory = CodecFactory::getInstance();
+    const sfl::Codec* codec = factory.getCodecByMimeSubtype (subtype);
+    _audioCodec = (static_cast<const AudioCodec*> (codec))->clone();
 }
 
 AudioCodec* IAXCall::getAudioCodec()
 {
-	return _audioCodec;
+    return _audioCodec;
 }
 
 

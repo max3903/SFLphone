@@ -38,7 +38,8 @@
 
 #include "util/memory/Buffer.h"
 
-namespace sfl {
+namespace sfl
+{
 
 /**
  * A VideoCodec is a pair that consists of a video encoder and a video decoder.
@@ -50,20 +51,21 @@ namespace sfl {
  * A lot of the public methods made available below are just meant to hide delegates.
  */
 
-class VideoCodec : public virtual Codec, public VideoPlugin {
-public:
-	VideoCodec() {};
-	virtual ~VideoCodec() {};
+class VideoCodec : public virtual Codec, public VideoPlugin
+{
+    public:
+        VideoCodec() {};
+        virtual ~VideoCodec() {};
 
-	virtual void encode(const VideoFrame* frame) throw(VideoEncodingException) = 0;
+        virtual void encode (const VideoFrame* frame) throw (VideoEncodingException) = 0;
 
-	virtual void decode(Buffer<uint8>& data) throw (VideoDecodingException) = 0;
+        virtual void decode (Buffer<uint8>& data) throw (VideoDecodingException) = 0;
 
-	virtual void setEncoderVideoSource(VideoInputSource* source) = 0;
+        virtual void setEncoderVideoSource (VideoInputSource* source) = 0;
 
-	virtual void addVideoFrameEncodedObserver(VideoFrameEncodedObserver& observer) = 0;
+        virtual void addVideoFrameEncodedObserver (VideoFrameEncodedObserver& observer) = 0;
 
-	virtual void addVideoFrameDecodedObserver(VideoFrameDecodedObserver& observer) = 0;
+        virtual void addVideoFrameDecodedObserver (VideoFrameDecodedObserver& observer) = 0;
 };
 
 }

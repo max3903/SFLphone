@@ -38,31 +38,33 @@
 
 #include "video/codec/mime/MimeParametersH264.h"
 
-namespace sfl {
+namespace sfl
+{
 
-class GstDecoderH264: public MimeParametersH264, public GstDecoder {
-protected:
-	/**
-	 * @Override
-	 */
-	GstElement* getHead();
+class GstDecoderH264: public MimeParametersH264, public GstDecoder
+{
+    protected:
+        /**
+         * @Override
+         */
+        GstElement* getHead();
 
-	/**
-	 * @Override
-	 */
-	GstElement* getTail();
+        /**
+         * @Override
+         */
+        GstElement* getTail();
 
-	/**
-	 * @Override
-	 */
-	void buildFilter(Pipeline& pipeline) throw (MissingPluginException);
+        /**
+         * @Override
+         */
+        void buildFilter (Pipeline& pipeline) throw (MissingPluginException);
 
-private:
+    private:
 
-	void init() throw (VideoDecodingException, MissingPluginException);
+        void init() throw (VideoDecodingException, MissingPluginException);
 
-	GstElement* rtph264depay;
-	GstElement* ffdec_h264;
+        GstElement* rtph264depay;
+        GstElement* ffdec_h264;
 };
 
 }

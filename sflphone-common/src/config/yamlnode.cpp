@@ -31,77 +31,76 @@
 #include "yamlnode.h"
 #include "src/global.h"
 
-namespace Conf {
+namespace Conf
+{
 
 NullScalarNode* NullScalarNode::instance = 0;
 
-void YamlDocument::addNode(YamlNode *node)
+void YamlDocument::addNode (YamlNode *node)
 {
-  Sequence::iterator it = doc.end();
-  doc.insert(it, node);
+    Sequence::iterator it = doc.end();
+    doc.insert (it, node);
 }
 
 YamlNode *YamlDocument::popNode()
 {
-  Sequence::iterator it = doc.begin();
-  YamlNode *node = doc.front();
+    Sequence::iterator it = doc.begin();
+    YamlNode *node = doc.front();
 
-  //removed element's destructor is called
-  doc.pop_front();
+    //removed element's destructor is called
+    doc.pop_front();
 
-  return node;
+    return node;
 }
 
-void MappingNode::addNode(YamlNode *node) 
+void MappingNode::addNode (YamlNode *node)
 {
-  Mapping::iterator it = map.end();
-  map.insert(it, std::pair<Key, YamlNode *>(tmpKey, node)); 
+    Mapping::iterator it = map.end();
+    map.insert (it, std::pair<Key, YamlNode *> (tmpKey, node));
 }
 
-void MappingNode::setKeyValue(Key key, YamlNode *value) 
+void MappingNode::setKeyValue (Key key, YamlNode *value)
 {
-  Mapping::iterator it = map.end();
-  map.insert(it, std::pair<Key, YamlNode *>(key, value)); 
+    Mapping::iterator it = map.end();
+    map.insert (it, std::pair<Key, YamlNode *> (key, value));
 }
 
-void MappingNode::removeKeyValue(Key key)
+void MappingNode::removeKeyValue (Key key)
 {
 
-Mapping::iterator it = map.find(key);
-  map.erase(it);
+    Mapping::iterator it = map.find (key);
+    map.erase (it);
 }
 
-ScalarNode* MappingNode::getScalarNode(Key key)
+ScalarNode* MappingNode::getScalarNode (Key key)
 {
-  Mapping::iterator it = map.find(key);
+    Mapping::iterator it = map.find (key);
 
-  if(it != map.end()) {
-    return (Conf::ScalarNode *) (it->second);
-  }
-  else {
-    _debug("MappingNode: Could not find %s", key.c_str());
-    return (Conf::ScalarNode *) NullScalarNode::getInstance();
-  }
+    if (it != map.end()) {
+        return (Conf::ScalarNode *) (it->second);
+    } else {
+        _debug ("MappingNode: Could not find %s", key.c_str());
+        return (Conf::ScalarNode *) NullScalarNode::getInstance();
+    }
 }
 
-YamlNode* MappingNode::getValue(Key key)
+YamlNode* MappingNode::getValue (Key key)
 {
-  Mapping::iterator it = map.find(key);
+    Mapping::iterator it = map.find (key);
 
-  if(it != map.end()) {
-    return it->second;
-  }
-  else {
-    _debug("MappingNode: Could not find %s", key.c_str());
-    return NULL;
-  }
+    if (it != map.end()) {
+        return it->second;
+    } else {
+        _debug ("MappingNode: Could not find %s", key.c_str());
+        return NULL;
+    }
 }
 
 
-void SequenceNode::addNode(YamlNode *node)
+void SequenceNode::addNode (YamlNode *node)
 {
-  Sequence::iterator it = seq.end();
-  seq.insert(it, node);
+    Sequence::iterator it = seq.end();
+    seq.insert (it, node);
 }
 
 }
