@@ -1849,11 +1849,6 @@ create_direct_ip_calls_tab (account_t **a)
       _("This profile is used when you want to reach a remote peer simply by typing a sip URI of the form \"sip:remotepeer\". The settings you define here will also be used if no account can be matched to an incoming or outgoing call."));
   gtk_box_pack_start (GTK_BOX (ret), GTK_WIDGET(message_bar), FALSE, FALSE, 0);
 
-  GtkRequisition requisition;
-  gtk_widget_size_request (GTK_WIDGET (ret), &requisition);
-  gtk_widget_set_size_request (GTK_WIDGET (label), 350, -1);
-  gtk_label_set_line_wrap (GTK_LABEL (label), TRUE);
-
   GtkWidget* frame = create_network (a);
   gtk_box_pack_start (GTK_BOX (ret), frame, FALSE, FALSE, 0);
 
