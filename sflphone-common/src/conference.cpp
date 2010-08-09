@@ -105,14 +105,13 @@ void Conference::remove (CallId participant_id)
 
 void Conference::bindParticipant (CallId participant_id)
 {
-
     if (_nbParticipant >= 1) {
         ParticipantSet::iterator iter = _participants.begin();
 
         while (iter != _participants.end()) {
 
             if (participant_id != (*iter)) {
-                Manager::instance().getAudioDriver()->getMainBuffer()->bindCallID (participant_id, *iter);
+                Manager::instance().getAudioDriver()->getMainBuffer()->bindCallId (participant_id, *iter);
             }
 
             iter++;
@@ -120,9 +119,7 @@ void Conference::bindParticipant (CallId participant_id)
 
     }
 
-
-    Manager::instance().getAudioDriver()->getMainBuffer()->bindCallID (participant_id);
-
+    Manager::instance().getAudioDriver()->getMainBuffer()->bindCallId (participant_id);
 }
 
 

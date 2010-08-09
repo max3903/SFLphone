@@ -97,7 +97,7 @@ pjsip_tpfactory *_localTlsListener = NULL;
 
 /** A map to retreive SFLphone internal call id
  *  Given a SIP call ID (usefull for transaction sucha as transfer)*/
-std::map<std::string, CallId> transferCallID;
+std::map<std::string, CallId> transferCallId;
 
 const pj_str_t STR_USER_AGENT = { (char*) "User-Agent", 10 };
 
@@ -334,7 +334,7 @@ void SipVoipLink::terminate()
 
 }
 
-void SipVoipLink::terminateSIPCall()
+void SipVoipLink::terminateSipCall()
 {
     ost::MutexLock m (_callMapMutex);
     CallMap::iterator iter = _callMap.begin();
@@ -359,7 +359,7 @@ void SipVoipLink::terminateOneCall (const CallId& id)
 {
     _debug ("UserAgent: Terminate call %s", id.c_str());
 
-    SipCall *call = getSIPCall (id);
+    SipCall *call = getSipCall (id);
 
     if (call) {
         // terminate the sip call
@@ -818,10 +818,10 @@ bool SipVoipLink::answer (const CallId& id)
 
     _debug ("UserAgent: Answering call %s", id.c_str());
 
-    SipCall *call = getSIPCall (id);
+    SipCall *call = getSipCall (id);
 
     if (call == 0) {
-        _debug ("UserAgent: SIPCall %s doesn't exists while answering", id.c_str());
+        _debug ("UserAgent: SipCall %s doesn't exists while answering", id.c_str());
         return false;
     }
 
@@ -873,7 +873,7 @@ bool SipVoipLink::hangup (const CallId& id)
     pjsip_tx_data *tdata = NULL;
     SipCall* call;
 
-    call = getSIPCall (id);
+    call = getSipCall (id);
 
     if (call == 0) {
         _debug ("! SIP Error: Call doesn't exist");
@@ -919,7 +919,7 @@ bool SipVoipLink::peerHungup (const CallId& id)
 
     _info ("UserAgent: Peer hungup");
 
-    call = getSIPCall (id);
+    call = getSipCall (id);
 
     if (call == 0) {
         _warn ("UserAgent: Call doesn't exist");
@@ -959,7 +959,7 @@ bool SipVoipLink::cancel (const CallId& id)
 {
     _info ("UserAgent: Cancel call %s", id.c_str());
 
-    SipCall* call = getSIPCall (id);
+    SipCall* call = getSipCall (id);
 
     if (!call) {
         _warn ("UserAgent: Error: Call doesn't exist");
@@ -978,7 +978,7 @@ bool SipVoipLink::onhold (const CallId& id)
     pj_status_t status;
     SipCall* call;
 
-    call = getSIPCall (id);
+    call = getSipCall (id);
 
     if (call == 0) {
         _debug ("! SIP Error: call doesn't exist");
@@ -1045,7 +1045,7 @@ bool SipVoipLink::offhold (const CallId& id)
     SipCall *call;
     pj_status_t status;
 
-    call = getSIPCall (id);
+    call = getSipCall (id);
 
     if (call == 0) {
         _debug ("! SIP Error: Call doesn't exist");
@@ -1083,7 +1083,7 @@ bool SipVoipLink::transfer (const CallId& id, const std::string& to)
     AccountID account_id;
     SIPAccount * account = NULL;
 
-    call = getSIPCall (id);
+    call = getSipCall (id);
     call->stopRecording();
     account_id = Manager::instance().getAccountFromCall (id);
     account = dynamic_cast<SIPAccount *> (Manager::instance().getAccount (
@@ -1139,9 +1139,9 @@ bool SipVoipLink::transfer (const CallId& id, const std::string& to)
     }
 
     // Put SIP call id in map in order to retrieve call during transfer callback
-    std::string callidtransfer (call->getInvSession()->dlg->call_id->id.ptr, call->getInvSession()->dlg->call_id->id.slen);
-    _debug ("%s", callidtransfer.c_str());
-    transferCallID.insert (std::pair<std::string, CallID> (callidtransfer, call->getCallId()));
+    std::string CallIdtransfer (call->getInvSession()->dlg->call_id->id.ptr, call->getInvSession()->dlg->call_id->id.slen);
+    _debug ("%s", CallIdtransfer.c_str());
+    transferCallId.insert (std::pair<std::string, CallId> (CallIdtransfer, call->getCallId()));
 
     /* Send. */
     status = pjsip_xfer_send_request (sub, tdata);
@@ -1171,7 +1171,7 @@ bool SipVoipLink::refuse (const CallId& id)
 
     _debug ("UserAgent: Refuse call %s", id.c_str());
 
-    call = getSIPCall (id);
+    call = getSipCall (id);
 
     if (call == 0) {
         _error ("UserAgent: Error: Call doesn't exist");
@@ -1212,7 +1212,7 @@ std::string SipVoipLink::getCurrentCodecName()
     SipCall *call;
     std::string name = "";
 
-    call = getSIPCall (Manager::instance().getCurrentCallId());
+    call = getSipCall (Manager::instance().getCurrentCallId());
 
     const sfl::Codec* audioCodec = NULL;
 
@@ -1229,7 +1229,7 @@ std::string SipVoipLink::getCurrentCodecName()
 
 bool SipVoipLink::carryingDTMFdigits (const CallId& id, char code)
 {
-    SipCall *call = getSIPCall (id);
+    SipCall *call = getSipCall (id);
 
     if (!call) {
         _error ("UserAgent: Error: Call doesn't exist while sending DTMF");
@@ -1463,7 +1463,7 @@ bool SipVoipLink::SIPStartCall (SipCall* call, const std::string& subject UNUSED
     return true;
 }
 
-void SipVoipLink::SIPCallServerFailure (SipCall *call)
+void SipVoipLink::SipCallServerFailure (SipCall *call)
 {
     if (call != 0) {
         _error ("UserAgent: Error: Server error!");
@@ -1477,7 +1477,7 @@ void SipVoipLink::SIPCallServerFailure (SipCall *call)
     }
 }
 
-void SipVoipLink::SIPCallClosed (SipCall *call)
+void SipVoipLink::SipCallClosed (SipCall *call)
 {
     _info ("UserAgent: Closing call");
 
@@ -1500,7 +1500,7 @@ void SipVoipLink::SIPCallClosed (SipCall *call)
 
 }
 
-void SipVoipLink::SIPCallReleased (SipCall *call)
+void SipVoipLink::SipCallReleased (SipCall *call)
 {
     if (!call) {
         return;
@@ -1518,7 +1518,7 @@ void SipVoipLink::SIPCallReleased (SipCall *call)
     removeCall (id);
 }
 
-void SipVoipLink::SIPCallAnswered (SipCall *call, pjsip_rx_data *rdata)
+void SipVoipLink::SipCallAnswered (SipCall *call, pjsip_rx_data *rdata)
 {
 
     _info ("UserAgent: SIP call answered");
@@ -1539,7 +1539,7 @@ void SipVoipLink::SIPCallAnswered (SipCall *call, pjsip_rx_data *rdata)
 }
 
 SipCall*
-SipVoipLink::getSIPCall (const CallId& id)
+SipVoipLink::getSipCall (const CallId& id)
 {
     Call* call = getCall (id);
 
@@ -3092,7 +3092,7 @@ void call_on_state_changed (pjsip_inv_session *inv, pjsip_event *e)
     // After we sent or received a ACK - The connection is established
     else if (inv->state == PJSIP_INV_STATE_CONFIRMED) {
 
-        link->SIPCallAnswered (call, rdata);
+        link->SipCallAnswered (call, rdata);
 
     } else if (inv->state == PJSIP_INV_STATE_DISCONNECTED) {
 
@@ -3109,14 +3109,14 @@ void call_on_state_changed (pjsip_inv_session *inv, pjsip_event *e)
             // The call terminates normally - BYE / CANCEL
             case PJSIP_SC_OK:
             case PJSIP_SC_REQUEST_TERMINATED:
-                link->SIPCallClosed (call);
+                link->SipCallClosed (call);
                 break;
 
             case PJSIP_SC_DECLINE:
                 _debug ("UserAgent: Call %s is declined", call->getCallId().c_str());
 
                 if (inv->role == PJSIP_ROLE_UAC)
-                    link->SIPCallServerFailure (call);
+                    link->SipCallServerFailure (call);
 
                 break;
             case PJSIP_SC_NOT_FOUND:            /* peer not found */
@@ -3128,11 +3128,11 @@ void call_on_state_changed (pjsip_inv_session *inv, pjsip_event *e)
             case PJSIP_SC_FORBIDDEN:
             case PJSIP_SC_REQUEST_PENDING:
             case PJSIP_SC_ADDRESS_INCOMPLETE:
-                link->SIPCallServerFailure (call);
+                link->SipCallServerFailure (call);
                 break;
 
             default:
-                link->SIPCallServerFailure (call);
+                link->SipCallServerFailure (call);
                 _error ("UserAgent: Unhandled call state. This is probably a bug.");
                 break;
         }
@@ -3649,7 +3649,7 @@ pj_bool_t SipVoipLink::mod_on_rx_request (pjsip_rx_data *rdata)
     _info ("UserAgent: Create a new call");
 
     // Generate a new call ID for the incoming call!
-    id = Manager::instance().getNewCallID();
+    id = Manager::instance().getNewCallId();
 
     call = new SipCall (id, Call::Incoming, _pool);
 
@@ -3977,7 +3977,7 @@ void onCallTransfered (pjsip_inv_session *inv, pjsip_rx_data *rdata)
     AccountID accId = Manager::instance().getAccountFromCall (
                           existing_call->getCallId());
 
-    CallId newCallId = Manager::instance().getNewCallID();
+    CallId newCallId = Manager::instance().getNewCallId();
 
     if (!Manager::instance().outgoingCall (accId, newCallId, tmp)) {
 
@@ -4113,9 +4113,9 @@ void xfer_func_cb (pjsip_evsub *sub, pjsip_event *event)
 
         // Get call coresponding to this transaction
         std::string transferID (r_data->msg_info.cid->id.ptr, r_data->msg_info.cid->id.slen);
-        std::map<std::string, CallID>::iterator it = transferCallID.find (transferID);
-        CallID cid = it->second;
-        SIPCall *call = dynamic_cast<SIPCall *> (link->getCall (cid));
+        std::map<std::string, CallId>::iterator it = transferCallId.find (transferID);
+        CallId cid = it->second;
+        SipCall *call = dynamic_cast<SipCall *> (link->getCall (cid));
 
         if (!call) {
             _warn ("UserAgent:  Call with id %s doesn't exit!", cid.c_str());
@@ -4233,8 +4233,8 @@ void SipVoipLink::on_create_offer (pjsip_inv_session *inv,
     SipCall * call = NULL;
     call = reinterpret_cast<SipCall*> (inv->mod_data[_mod_ua.id]);
 
-    CallId callid = call->getCallId();
-    AccountID accountid = Manager::instance().getAccountFromCall (callid);
+    CallId CallId = call->getCallId();
+    AccountID accountid = Manager::instance().getAccountFromCall (CallId);
 
     SIPAccount *account =
         dynamic_cast<SIPAccount *> (Manager::instance().getAccount (

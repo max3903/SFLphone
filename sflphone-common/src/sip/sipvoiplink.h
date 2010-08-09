@@ -213,7 +213,7 @@ class SipVoipLink: public VoIPLink
         /**
          * Terminate every call not hangup | brutal | Protected by mutex
          */
-        void terminateSIPCall();
+        void terminateSipCall();
 
         /**
          * Terminate only one call
@@ -239,26 +239,26 @@ class SipVoipLink: public VoIPLink
          * Tell the user that the call was answered
          * @param
          */
-        void SIPCallAnswered (SipCall *call, pjsip_rx_data *rdata);
+        void SipCallAnswered (SipCall *call, pjsip_rx_data *rdata);
 
         /**
          * Handling 5XX/6XX error
          * @param
          */
-        void SIPCallServerFailure (SipCall *call);
+        void SipCallServerFailure (SipCall *call);
 
         /**
          * Peer close the connection
          * @param
          */
-        void SIPCallClosed (SipCall *call);
+        void SipCallClosed (SipCall *call);
 
         /**
          * The call pointer was released
          * If the call was not cleared before, report an error
          * @param
          */
-        void SIPCallReleased (SipCall *call);
+        void SipCallReleased (SipCall *call);
 
         /**
          * Handle a re-invite request by the remote peer.
@@ -272,7 +272,7 @@ class SipVoipLink: public VoIPLink
          * @param id  The call identifier
          * @return SipCall*	  A pointer on SipCall object
          */
-        SipCall* getSIPCall (const CallId& id);
+        SipCall* getSipCall (const CallId& id);
 
         /** when we init the listener, how many times we try to bind a port? */
         int _nbTryListenAddr;

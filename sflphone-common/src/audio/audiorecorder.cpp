@@ -69,10 +69,8 @@ void AudioRecorder::run (void)
         int availBytes = mbuffer->availForGet (recorderId);
 
         if (availBytes > 0) {
-
-            int got = mbuffer->getData (buffer, availBytes, 100, recorderId);
-
-            int availBytesAfter = mbuffer->availForGet (recorderId);
+            //int got = mbuffer->getData (buffer, availBytes, 100, recorderId);
+            //int availBytesAfter = mbuffer->availForGet (recorderId);
 
             arecord->recData (buffer, availBytes/sizeof (SFLDataFormat));
         }

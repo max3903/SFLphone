@@ -1075,7 +1075,7 @@ IAXVoIPLink::iaxHandlePrecallEvent (iax_event* event)
             // We've got an incoming call! Yikes!
             _debug ("> IAX_EVENT_CONNECT (receive)");
 
-            id = Manager::instance().getNewCallID();
+            id = Manager::instance().getNewCallId();
 
             call = new IAXCall (id, Call::Incoming);
 

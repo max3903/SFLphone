@@ -317,7 +317,7 @@ sfl::AudioZrtpSession * CallManager::getAudioZrtpSession (
         throw CallManagerException();
     }
 
-    SipCall *call = link->getSIPCall (callID);
+    SipCall *call = link->getSipCall (callID);
 
     sfl::AudioRtpFactory * audioRtp = NULL;
     audioRtp = call->getAudioRtp();

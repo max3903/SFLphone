@@ -486,7 +486,6 @@ AudioPreference::AudioPreference() : _cardin (atoi (ALSA_DFT_CARD)) // ALSA_DFT_
         , _recordpath ("") // DFT_RECORD_PATH
         , _volumemic (atoi (DFT_VOL_SPKR_STR)) // DFT_VOL_SPKR_STR
         , _volumespkr (atoi (DFT_VOL_MICRO_STR)) // DFT_VOL_MICRO_STR
-        , _volumespkr (atoi (DFT_VOL_MICRO_STR))   // DFT_VOL_MICRO_STR
 {
 	/* Nothing */
 }

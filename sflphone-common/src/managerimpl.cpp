@@ -384,7 +384,7 @@ bool ManagerImpl::hangupCall (const CallId& call_id)
 
     if (participToConference (call_id)) {
 
-        Conference *conf = getConferenceFromCallID (call_id);
+        Conference *conf = getConferenceFromCallId (call_id);
 
         if (conf != NULL) {
             // remove this participant
@@ -785,7 +785,7 @@ void ManagerImpl::removeConference (const ConfID& conference_id)
 
     if (iter_p != participants.end()) {
 
-        _audiodriver->getMainBuffer()->bindCallID (*iter_p, default_id);
+        _audiodriver->getMainBuffer()->bindCallId (*iter_p, default_id);
     }
 
     // Then remove the conference from the conference map
@@ -800,7 +800,7 @@ void ManagerImpl::removeConference (const ConfID& conference_id)
 }
 
 Conference*
-ManagerImpl::getConferenceFromCallID (const CallId& call_id)
+ManagerImpl::getConferenceFromCallId (const CallId& call_id)
 {
     AccountID account_id;
     Call* call = NULL;
@@ -1034,7 +1034,7 @@ void ManagerImpl::addMainParticipant (const CallId& conference_id)
         ParticipantSet::iterator iter_participant = participants.begin();
 
         while (iter_participant != participants.end()) {
-            _audiodriver->getMainBuffer()->bindCallID (*iter_participant,
+            _audiodriver->getMainBuffer()->bindCallId (*iter_participant,
                     default_id);
 
             iter_participant++;
@@ -1175,7 +1175,7 @@ void ManagerImpl::detachParticipant (const CallId& call_id,
         // TODO: add conference_id as a second parameter
         ConferenceMap::iterator iter = _conferencemap.find (call->getConfId());
 
-        Conference *conf = getConferenceFromCallID (call_id);
+        Conference *conf = getConferenceFromCallId (call_id);
 
         if (conf != NULL) {
 
@@ -1406,7 +1406,7 @@ void ManagerImpl::addStream (const CallId& call_id)
         _debug ("Manager: Add stream to call");
 
         // bind to main
-        getAudioDriver()->getMainBuffer()->bindCallID (call_id);
+        getAudioDriver()->getMainBuffer()->bindCallId (call_id);
 
         // _audiodriver->getMainBuffer()->flush(default_id);
         _audiodriver->flushUrgent();
@@ -1592,7 +1592,7 @@ void ManagerImpl::removeWaitingCall (const CallId& id)
 
 bool ManagerImpl::isWaitingCall (const CallId& id)
 {
-    CallIDSet::iterator iter = _waitingCall.find (id);
+    CallIdSet::iterator iter = _waitingCall.find (id);
 
     if (iter != _waitingCall.end()) {
         return false;
@@ -1725,7 +1725,7 @@ void ManagerImpl::peerHungupCall (const CallId& call_id)
 
     if (participToConference (call_id)) {
 
-        Conference *conf = getConferenceFromCallID (call_id);
+        Conference *conf = getConferenceFromCallId (call_id);
 
         if (conf != NULL) {
 
@@ -1810,7 +1810,7 @@ void ManagerImpl::callFailure (const CallId& call_id)
 
         _debug ("Manager: Call %s participating to a conference failed", call_id.c_str());
 
-        Conference *conf = getConferenceFromCallID (call_id);
+        Conference *conf = getConferenceFromCallId (call_id);
 
         if (conf != NULL) {
             // remove this participant
@@ -2177,19 +2177,6 @@ void ManagerImpl::initConfigFile (bool load_user_value, std::string alternate)
             _error ("Manager: %s", e.what());
         }
     }
-}
-
-/**
- * Initialization: Main Thread
- */
-void ManagerImpl::initAudioCodec (void)
-{
-    _info ("Manager: Init audio codecs");
-
-    /* Init list of all supported codecs by the application.
-     * This is a global list. Every account will inherit it.
-     */
-    _codecDescriptorMap.init();
 }
 
 /*
@@ -3498,7 +3485,7 @@ bool ManagerImpl::removeCallAccount (const CallId& callID)
     return false;
 }
 
-CallId ManagerImpl::getNewCallID ()
+CallId ManagerImpl::getNewCallId ()
 {
     std::ostringstream random_id ("s");
     random_id << (unsigned) rand();

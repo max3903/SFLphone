@@ -43,9 +43,9 @@
 
 typedef std::map<CallId, RingBuffer*> RingBufferMap;
 
-typedef std::set<CallId> CallIDSet;
+typedef std::set<CallId> CallIdSet;
 
-typedef std::map<CallId, CallIDSet*> CallIDMap;
+typedef std::map<CallId, CallIdSet*> CallIdMap;
 
 class MainBuffer
 {
@@ -62,18 +62,18 @@ class MainBuffer
             return _internalSamplingRate;
         }
 
-        CallIDSet* getCallIDSet (CallId call_id);
+        CallIdSet* getCallIdSet (CallId call_id);
 
-        bool createCallIDSet (CallId set_id);
+        bool createCallIdSet (CallId set_id);
 
-        bool removeCallIDSet (CallId set_id);
+        bool removeCallIdSet (CallId set_id);
 
         /**
          * Add a new call id to this set
          */
-        void addCallIDtoSet (CallId set_id, CallId call_id);
+        void addCallIdtoSet (CallId set_id, CallId call_id);
 
-        void removeCallIDfromSet (CallId set_id, CallId call_id);
+        void removeCallIdfromSet (CallId set_id, CallId call_id);
 
         /**
          * Create a new ringbuffer with default readpointer
@@ -82,7 +82,7 @@ class MainBuffer
 
         bool removeRingBuffer (CallId call_id);
 
-        void bindCallID (CallId call_id1, CallId call_id2 = default_id);
+        void bindCallId (CallId call_id1, CallId call_id2 = default_id);
 
         /**
          * Add a new call_id to unidirectional outgoing stream
@@ -94,7 +94,7 @@ class MainBuffer
         /**
          * Unbind two calls
          */
-        void unBindCallID (CallId call_id1, CallId call_id2 = default_id);
+        void unBindCallId (CallId call_id1, CallId call_id2 = default_id);
 
         void unBindHalfDuplexOut (CallId process_id, CallId call_id = default_id);
 
@@ -136,7 +136,7 @@ class MainBuffer
 
         RingBufferMap _ringBufferMap;
 
-        CallIDMap _callIDMap;
+        CallIdMap _callIDMap;
 
         SFLDataFormat* mixBuffer;
 

@@ -411,32 +411,6 @@ std::vector<std::string> ConfigurationManager::getRingtoneList()
     return ret;
 }
 
-/**
- * Send the list of all codecs loaded to the client through DBus.
- * Can stay global, as only the active codecs will be set per accounts
- */
-std::vector<std::string> ConfigurationManager::getCodecList (void)
-{
-
-    std::vector<std::string> list;
-
-    CodecsMap codecs = Manager::instance().getCodecDescriptorMap().getCodecsMap();
-    CodecsMap::iterator iter = codecs.begin();
-
-    while (iter != codecs.end()) {
-        std::stringstream ss;
-
-        if (iter->second != NULL) {
-            ss << iter->first;
-            list.push_back ( (ss.str()).data());
-        }
-
-        iter++;
-    }
-
-    return list;
-}
-
 std::vector<std::string> ConfigurationManager::getSupportedTlsMethod (void)
 {
     std::vector<std::string> method;
@@ -1012,7 +986,7 @@ std::string ConfigurationManager::getAddrFromInterfaceName (
     const std::string& interface)
 {
 
-    std::string address = SIPVoIPLink::instance ("")->getInterfaceAddrFromName (
+    std::string address = SipVoipLink::instance ("")->getInterfaceAddrFromName (
                               interface);
 
     return address;
@@ -1022,8 +996,8 @@ std::vector<std::string> ConfigurationManager::getAllIpInterface (void)
 {
 
     std::vector<std::string> vector;
-    SIPVoIPLink * sipLink = NULL;
-    sipLink = SIPVoIPLink::instance ("");
+    SipVoipLink * sipLink = NULL;
+    sipLink = SipVoipLink::instance ("");
 
     if (sipLink != NULL) {
         vector = sipLink->getAllIpInterface();
@@ -1035,8 +1009,8 @@ std::vector<std::string> ConfigurationManager::getAllIpInterface (void)
 std::vector<std::string> ConfigurationManager::getAllIpInterfaceByName (void)
 {
     std::vector<std::string> vector;
-    SIPVoIPLink * sipLink = NULL;
-    sipLink = SIPVoIPLink::instance ("");
+    SipVoipLink * sipLink = NULL;
+    sipLink = SipVoipLink::instance ("");
 
     if (sipLink != NULL) {
         vector = sipLink->getAllIpInterfaceByName();
@@ -1048,14 +1022,12 @@ std::vector<std::string> ConfigurationManager::getAllIpInterfaceByName (void)
 
 std::map<std::string, std::string> ConfigurationManager::getShortcuts()
 {
-
     return Manager::instance().shortcutPreferences.getShortcuts();
 }
 
 void ConfigurationManager::setShortcuts (
     const std::map<std::string, std::string>& shortcutsMap)
 {
-
     std::map<std::string, std::string> map_cpy = shortcutsMap;
     /*
       std::map<std::string, std::string> map_cpy = shortcutsMap;
