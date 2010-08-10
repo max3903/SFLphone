@@ -33,8 +33,20 @@
 #include "manager.h"
 #include "global.h" // for _debug
 
-IAXCall::IAXCall (const CallId& id, Call::CallType type) : Call (id, type), _session (NULL)
+IAXCall::IAXCall (CallId id, Call::CallType type) : Call(id, type)
 {
+	init();
+}
+
+IAXCall::IAXCall (Call::CallType type) :
+	Call (type)
+{
+		init();
+}
+
+void IAXCall::init()
+{
+	_session = NULL;
     mimeTypeToAstMacro["PCMU"] = AST_FORMAT_ULAW;
     mimeTypeToAstMacro["GSM"] = AST_FORMAT_GSM;
     mimeTypeToAstMacro["PCMA"] = AST_FORMAT_ALAW;

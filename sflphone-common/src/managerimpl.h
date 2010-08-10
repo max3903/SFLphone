@@ -1046,12 +1046,6 @@ public:
 	}
 
 	/**
-	 * Return a new random CallId that is not present in the list
-	 * @return CallId A brand new CallId
-	 */
-	CallId getNewCallId();
-
-	/**
 	 * Get the current call id
 	 * @return CallId	The call id or ""
 	 */
@@ -1301,6 +1295,12 @@ public:
 		return &_mainBuffer;
 	}
 
+    /**
+     * Return a new random callid that is not present in the list
+     * @return CallID A brand new callid
+     */
+    CallId getNewCallId();
+
 	/**
 	 * Tell if there is a current call processed
 	 * @return bool True if there is a current call
@@ -1385,7 +1385,7 @@ private:
 	/**
 	 * Check if the call is a classic call or a direct IP-to-IP call
 	 */
-	void check_call_configuration(const CallId& id, const std::string& to,
+	void checkCallConfiguration(const CallId& id, const std::string& to,
 			Call::CallConfiguration *callConfig);
 
 	Conf::YamlParser *parser;

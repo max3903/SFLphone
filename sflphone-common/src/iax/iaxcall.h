@@ -47,10 +47,16 @@ class IAXCall : public Call
     public:
         /**
          * Constructor
-         * @param id  The unique ID of the call
          * @param type  The type of the call
          */
-        IAXCall (const CallId& id, Call::CallType type);
+        IAXCall (Call::CallType type);
+
+        /**
+         * Constructor
+         * @param id The call id.
+         * @param type  The type of the call
+         */
+        IAXCall (CallId id, Call::CallType type);
 
         /**
          * Destructor
@@ -122,6 +128,11 @@ class IAXCall : public Call
         AudioCodec* getAudioCodec();
 
     private:
+        /**
+         * Helper function for constructor.
+         */
+        void init();
+
         /** Each call is associated with an iax_session */
         struct iax_session* _session;
 

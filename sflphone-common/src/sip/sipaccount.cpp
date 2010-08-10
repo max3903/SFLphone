@@ -743,16 +743,13 @@ std::map<std::string, std::string> SIPAccount::getAccountDetails()
 
 }
 
-
 // void SIPAccount::setVoIPLink(VoIPLink *link) {
 void SIPAccount::setVoIPLink()
 {
-
     _link = SipVoipLink::instance ("");
     dynamic_cast<SipVoipLink*> (_link)->incrementClients();
 
 }
-
 
 int SIPAccount::initCredential (void)
 {

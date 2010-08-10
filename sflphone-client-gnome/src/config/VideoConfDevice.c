@@ -411,7 +411,9 @@ void video_conf_device_save(VideoConfDevice* self, account_t* account) {
   GtkTreeModel* model = gtk_combo_box_get_model (GTK_COMBO_BOX(priv->devices_combo));
 
   GtkTreeIter iter;
-  gtk_combo_box_get_active_iter (GTK_COMBO_BOX(priv->devices_combo), &iter);
+  if (gtk_combo_box_get_active_iter (GTK_COMBO_BOX(priv->devices_combo), &iter) != TRUE) {
+    return;
+  }
   gchar* device_name;
   gtk_tree_model_get (model, &iter, COLUMN_NAME, &device_name, -1);
 

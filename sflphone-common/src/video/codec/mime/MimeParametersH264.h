@@ -42,14 +42,14 @@ class MimeParametersH264 : public virtual MimeParameters
          * @Override
          */
         std::string getMimeType() const {
-            return "video";
+            return std::string("video");
         }
 
         /**
          * @Override
          */
         std::string getMimeSubtype() const {
-            return "H264";
+            return std::string("H264");
         }
 
         /**

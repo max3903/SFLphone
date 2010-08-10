@@ -215,7 +215,6 @@ void ManagerImpl::switchCall (const CallId& id)
 bool ManagerImpl::outgoingCall (const std::string& account_id,
                                 const CallId& call_id, const std::string& to)
 {
-
     std::string pattern, to_cleaned;
     Call::CallConfiguration callConfig;
     SipVoipLink *siplink;
@@ -224,15 +223,16 @@ bool ManagerImpl::outgoingCall (const std::string& account_id,
 
     CallId current_call_id = getCurrentCallId();
 
-    if (hookPreference.getNumberEnabled())
-        _cleaner->set_phone_number_prefix (hookPreference.getNumberAddPrefix());
-    else
-        _cleaner->set_phone_number_prefix ("");
+    if (hookPreference.getNumberEnabled()) {
+        _cleaner->setPhoneNumberPrefix (hookPreference.getNumberAddPrefix());
+    } else {
+        _cleaner->setPhoneNumberPrefix ("");
+    }
 
     to_cleaned = _cleaner->clean (to);
 
     /* Check what kind of call we are dealing with */
-    check_call_configuration (call_id, to_cleaned, &callConfig);
+    checkCallConfiguration (call_id, to_cleaned, &callConfig);
 
     // in any cases we have to detach from current communication
     if (hasCurrentCall()) {
@@ -988,7 +988,7 @@ void ManagerImpl::addParticipant (const CallId& call_id, const CallId& conferenc
             conf->bindParticipant (call_id);
         }
 
-        // _dbus->getCallManager()->conferenceChanged(conference_id, conf->getStateStr());
+        // _dbus->getCallManager()->conferenceChanged(conference_id, conf->getStateAsString());
 
         ParticipantSet participants = conf->getParticipantList();
 
@@ -3492,6 +3492,7 @@ CallId ManagerImpl::getNewCallId ()
 
     // when it's not found, it return ""
     // generate, something like s10000s20000s4394040
+
     while (getAccountFromCall (random_id.str()) != ACCOUNT_NULL) {
         random_id.clear();
         random_id << "s";
@@ -3832,7 +3833,7 @@ void ManagerImpl::setHookSettings (const std::map<std::string, std::string>& set
     saveConfig();
 }
 
-void ManagerImpl::check_call_configuration (const CallId& id,
+void ManagerImpl::checkCallConfiguration (const CallId& id,
         const std::string &to, Call::CallConfiguration *callConfig)
 {
     Call::CallConfiguration config;
@@ -3913,7 +3914,7 @@ std::map<std::string, std::string> ManagerImpl::getCallDetails (const CallId& ca
         call_details.insert (std::pair<std::string, std::string> ("PEER_NUMBER", call->getPeerNumber()));
         call_details.insert (std::pair<std::string, std::string> ("PEER_NAME", call->getPeerName()));
         call_details.insert (std::pair<std::string, std::string> ("DISPLAY_NAME", call->getDisplayName()));
-        call_details.insert (std::pair<std::string, std::string> ("CALL_STATE", call->getStateStr()));
+        call_details.insert (std::pair<std::string, std::string> ("CALL_STATE", call->getStateAsString()));
         call_details.insert (std::pair<std::string, std::string> ("CALL_TYPE", type.str()));
     } else {
         _error ("Manager: Error: getCallDetails()");

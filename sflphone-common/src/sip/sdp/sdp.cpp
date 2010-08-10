@@ -58,7 +58,7 @@ static const pj_str_t STR_CRYPTO = { (char*) "crypto", 6 };
 Sdp::Sdp (pj_pool_t *pool) :
         _initialMedias(), _negotiatedMedias (0), _negotiator (NULL), _ip_addr (""),
         _local_offer (NULL), _negotiated_offer (NULL), _pool (NULL),
-        _local_extern_audio_port (0)
+        _publishedAudioPort (0)
 {
     _pool = pool;
 }
@@ -74,9 +74,7 @@ void Sdp::setMediaDescriptorLine (SdpMedia *media, pjmedia_sdp_media** p_med)
     pjmedia_sdp_media* med;
     pjmedia_sdp_rtpmap rtpmap;
     pjmedia_sdp_attr *attr;
-    const sfl::Codec* codec;
     int count, i;
-    std::string tmp;
 
     med = PJ_POOL_ZALLOC_T (_pool, pjmedia_sdp_media);
 
@@ -101,44 +99,46 @@ void Sdp::setMediaDescriptorLine (SdpMedia *media, pjmedia_sdp_media** p_med)
 
     // Add the payload list
     for (i = 0; i < count; i++) {
-        codec = media->getMediaCodecList() [i]; // FIXME is copying the whole array every time.
-        tmp = this->inToString (codec->getPayloadType());
-        _debug ("%s", tmp.c_str());
-        pj_strdup2 (_pool, &med->desc.fmt[i], tmp.c_str());
+        const sfl::Codec* codec = media->getMediaCodecList() [i]; // FIXME is copying the whole array every time.
+        std::string payloadType = intToString (codec->getPayloadType());
+        pj_strdup2 (_pool, &med->desc.fmt[i], payloadType.c_str());
+
 
         // Add a rtpmap field for each codec
         // We could add one only for dynamic payloads because the codecs with static RTP payloads
         // are entirely defined in the RFC 3351, but if we want to add other attributes like an asymmetric
         // connection, the rtpmap attribute will be useful to specify for which codec it is applicable
         rtpmap.pt = med->desc.fmt[i];
-        rtpmap.enc_name = pj_str ( (char*) codec->getMimeSubtype().c_str());
+        pj_strdup2(_pool, &rtpmap.enc_name, codec->getMimeSubtype().c_str());
 
-        // G722 require G722/8000 media description even if it is 16000 codec
-        if (codec->getPayloadType() == 9) {
-            rtpmap.clock_rate = 8000;
-        } else {
-            rtpmap.clock_rate = codec->getClockRate();
-        }
+        // Set clock rate
+        rtpmap.clock_rate = codec->getClockRate();
 
-        // Add the channel number only if different from 1
+        // Set audio specific options
         if (codec->getMimeType() == "audio") {
             const AudioCodec* audioCodec =
                 static_cast<const AudioCodec*> (codec);
 
-            if (audioCodec->getChannel() > 1)
+            // G722 require G722/8000 media description even if it is 16000 codec
+            if (audioCodec->getPayloadType() == 9) {
+                rtpmap.clock_rate = 8000;
+            }
+
+            // Add the channel number only if different from 1
+            if (audioCodec->getChannel() > 1) {
                 rtpmap.param = pj_str ( (char*) audioCodec->getChannel());
-            else
+            } else {
                 rtpmap.param.slen = 0;
+            }
         }
 
         pjmedia_sdp_rtpmap_to_attr (_pool, &rtpmap, &attr);
-
+        _debug("%.*s", attr->value.slen, attr->value.ptr);
         med->attr[med->attr_count++] = attr;
     }
 
     // Add the direction stream
     attr = (pjmedia_sdp_attr*) pj_pool_zalloc (_pool, sizeof (pjmedia_sdp_attr));
-
     pj_strdup2 (_pool, &attr->name, media->getStreamDirectionStr().c_str());
 
     med->attr[med->attr_count++] = attr;
@@ -549,6 +549,22 @@ void Sdp::setNegotiatedSdp (const pjmedia_sdp_session *sdp)
     }
 }
 
+void Sdp::setPublishedAudioPort (int port) {
+    _publishedAudioPort = port;
+}
+
+int Sdp::getPublishedAudioPort (void) {
+    return _publishedAudioPort;
+}
+
+void Sdp::setPublishedVideoPort (int port) {
+    _publishedVideoPort = port;
+}
+
+int Sdp::getPublishedVideoPort (void) {
+    return _publishedVideoPort;
+}
+
 const sfl::Codec* Sdp::getFirstCodec (void)
 {
     _debug ("SDP: Getting session medias. (%s:%d)", __FILE__, __LINE__);
@@ -582,9 +598,8 @@ pj_status_t Sdp::startNegotiation()
     return status;
 }
 
-void Sdp::toString (void)
+std::string Sdp::toString (void)
 {
-
     std::ostringstream sdp;
     int count, i;
 
@@ -614,9 +629,7 @@ void Sdp::toString (void)
         sdp << _local_offer->media[0]->desc.fmt[i].ptr << " ";
     }
 
-    sdp << "\n";
-
-    _debug ("LOCAL SDP: \n%s", sdp.str().c_str());
+    return sdp.str();
 }
 
 void Sdp::setLocalMediaCapabilities (MimeType mime, CodecOrder selectedCodecs)
@@ -631,7 +644,7 @@ void Sdp::setLocalMediaCapabilities (MimeType mime, CodecOrder selectedCodecs)
         }
         case MIME_TYPE_VIDEO: {
             media = new SdpMedia (MIME_TYPE_VIDEO);
-            // media->setPort(getPublishedVideoPort()); TODO Add this method !
+            media->setPort(getPublishedVideoPort());
             break;
         }
         default:
@@ -643,10 +656,8 @@ void Sdp::setLocalMediaCapabilities (MimeType mime, CodecOrder selectedCodecs)
     CodecFactory& factory = CodecFactory::getInstance();
 
     CodecOrder::iterator it;
-
     for (it = selectedCodecs.begin(); it != selectedCodecs.end(); it++) {
         const sfl::Codec* codec = factory.getCodec ( (*it));
-
         if (codec != NULL) {
             media->addCodec (codec);
         }
@@ -655,22 +666,7 @@ void Sdp::setLocalMediaCapabilities (MimeType mime, CodecOrder selectedCodecs)
     _initialMedias.push_back (media);
 }
 
-void Sdp::setPortOnAllMedia (int port)
-{
-    std::vector<SdpMedia*> medias;
-    int i, size;
-
-    setPublishedAudioPort (port);
-
-    medias = getLocalMediaCap();
-    size = medias.size();
-
-    for (i = 0; i < size; i++) {
-        medias[i]->setPort (port);
-    }
-}
-
-std::string Sdp::inToString (int value)
+std::string Sdp::intToString (int value)
 {
     std::ostringstream result;
     result << value;

@@ -1143,14 +1143,10 @@ IAXVoIPLink::iaxHandlePrecallEvent (iax_event* event)
             Manager::instance().peerHungupCall (id);
             removeCall (id);
             break;
-
         case IAX_EVENT_TIMEOUT: // timeout for an unknown session
-
             break;
-
         case IAX_IE_MSGCOUNT:
             break;
-
         default:
             _debug ("IAXVoIPLink::iaxHandlePrecallEvent: Unknown event type (in precall): %d", event->etype);
     }

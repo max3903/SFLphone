@@ -95,6 +95,11 @@ class SipVoipLink: public VoIPLink
         SipVoipLink& operator= (const SipVoipLink& rh);
 
         /**
+         * @return a pointer to the memory pool used by pjsip.
+         */
+        pj_pool_t* getMemoryPool();
+
+        /**
          * Try to initiate the pjsip engine/thread and set config
          * @return bool True if OK
          */
@@ -419,16 +424,6 @@ class SipVoipLink: public VoIPLink
         bool pjsip_shutdown (void);
 
         pj_status_t stunServerResolve (AccountID id);
-
-        /**
-         * Create the SDP offer for some given call and account.
-         * If the user has enabled video for this call, then
-         * video codecs will be added in the offer.
-         *
-         * @param call The call in which the offer will be sent.
-         * @param account The account that is used for placing the call.
-         */
-        void createSdpOffer (SipCall* call, SIPAccount* account);
 
         /**
          * Function used to create a new sip transport or get an existing one from the map.

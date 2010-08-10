@@ -56,7 +56,7 @@ void RtpTest::setUp()
 
     sipcall->setLocalIp ("127.0.0.1");
     sipcall->setLocalAudioPort (RANDOM_LOCAL_PORT);
-    sipcall->setLocalExternAudioPort (RANDOM_LOCAL_PORT);
+    sipcall->setPublishedAudioPort (RANDOM_LOCAL_PORT);
 }
 
 bool RtpTest::pjsipInit()

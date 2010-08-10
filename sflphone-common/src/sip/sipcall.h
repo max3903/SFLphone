@@ -29,8 +29,8 @@
  *  shall include the source code for the parts of OpenSSL used as well
  *  as that of the covered work.
  */
-#ifndef SIPCALL_H
-#define SIPCALL_H
+#ifndef __SIPCALL_H__
+#define __SIPCALL_H__
 
 #include "call.h"
 
@@ -40,12 +40,12 @@
 /**
  * Forward declarations
  */
+class AudioRtp;
 class AudioCodec;
 class Sdp;
-class AudioRtp;
+class SIPAccount;
 
-namespace sfl
-{
+namespace sfl {
 class AudioRtpFactory;
 class VideoDevice;
 }
@@ -54,138 +54,135 @@ class VideoDevice;
  * @file sipcall.h
  * @brief SipCall are SIP implementation of a normal Call
  */
-class SipCall : public Call
-{
-    public:
+class SipCall: public Call {
+public:
+	/**
+	 * Constructor
+	 * @param id The call id.
+	 * @param type  The type of the call. Could be Incoming or Outgoing
+	 * @param account The account under which this call is placed.
+	 */
+	SipCall(CallId id, Call::CallType type, SIPAccount* account);
 
-        /**
-         * Constructor
-         * @param id	The call identifier
-         * @param type  The type of the call. Could be Incoming
-         *						 Outgoing
-         */
-        SipCall (const CallId& id, Call::CallType type, pj_pool_t *pool);
+	/**
+	 * Constructor
+	 * @param type  The type of the call. Could be Incoming or Outgoing
+	 * @param account The account under which this call is placed.
+	 */
+	SipCall(Call::CallType type, SIPAccount* account);
 
-        /**
-         * Destructor
-         */
-        ~SipCall();
+	/**
+	 * Destructor
+	 */
+	~SipCall();
 
-        /**
-         * Call Identifier
-         * @return int  SIP call id
-         */
-        int  getCid() {
-            return _cid;
-        }
+	/**
+	 * Call Identifier
+	 * @return int  SIP call id
+	 */
+	int getCid();
 
-        /**
-         * Call Identifier
-         * @param cid SIP call id
-         */
-        void setCid (int cid) {
-            _cid = cid ;
-        }
+	/**
+	 * Call Identifier
+	 * @param cid SIP call id
+	 */
+	void setCid(int cid);
 
-        /**
-         * Domain identifier
-         * @return int  SIP domain id
-         */
-        int  getDid() {
-            return _did;
-        }
+	/**
+	 * Domain identifier
+	 * @return int  SIP domain id
+	 */
+	int getDid();
 
-        /**
-         * Domain identifier
-         * @param did SIP domain id
-         */
-        void setDid (int did) {
-            _did = did;
-        }
+	/**
+	 * Domain identifier
+	 * @param did SIP domain id
+	 */
+	void setDid(int did);
 
-        /**
-         * Transaction identifier
-         * @return int  SIP transaction id
-         */
-        int  getTid() {
-            return _tid;
-        }
+	/**
+	 * Transaction identifier
+	 * @return int  SIP transaction id
+	 */
+	int getTid();
 
-        /**
-         * Transaction identifier
-         * @param tid SIP transaction id
-         */
-        void setTid (int tid) {
-            _tid = tid;
-        }
+	/**
+	 * Transaction identifier
+	 * @param tid SIP transaction id
+	 */
+	void setTid(int tid);
 
-        void setXferSub (pjsip_evsub* sub) {
-            _xferSub = sub;
-        }
+	void setXferSub(pjsip_evsub* sub);
 
-        pjsip_evsub *getXferSub() {
-            return _xferSub;
-        }
+	pjsip_evsub *getXferSub();
 
-        void setInvSession (pjsip_inv_session* inv) {
-            _invSession = inv;
-        }
+	/**
+	 * @param inv The invite session structure used by pjsip.
+	 */
+	void setInvSession(pjsip_inv_session* inv);
 
-        pjsip_inv_session *getInvSession() {
-            return _invSession;
-        }
+	/**
+	 * @return the invite session structure.
+	 */
+	pjsip_inv_session* getInvSession();
 
-        /**
-         * @return The SDP session object used for this call.
-         */
-        Sdp* getLocalSDP (void) {
-            return _localSdp;
-        }
+	/**
+	 * @Override
+	 */
+	void setPublishedAudioPort(unsigned int port);
 
-        /**
-         * @para localSdp The SDP session object to use in this call.
-         */
-        void setLocalSDP (Sdp* localSdp) {
-            _localSdp = localSdp;
-        }
+	/**
+	 * @Override
+	 */
+	void setPublishedVideoPort(unsigned int port);
 
-        /** Returns a pointer to the AudioRtp object */
-        inline sfl::AudioRtpFactory * getAudioRtp (void) {
-            return _audiortp;
-        }
+	/**
+	 * @return The SDP session object used for this call.
+	 */
+	Sdp* getLocalSDP(void);
 
-        /**
-         * @return true If the user has set a video device to offer in the upcoming session.
-         */
-        bool isVideoEnabled();
+	/** Returns a pointer to the AudioRtp object */
+	sfl::AudioRtpFactory* getAudioRtp(void);
 
-        /**
-         * @param device The video device that the user has chosen for this call.
-         */
-        void setVideoDevice (sfl::VideoDevice& device);
+	/**
+	 * @return true If the user has set a video device to offer in the upcoming session.
+	 */
+	bool isVideoEnabled();
 
-    private:
-        int _cid;
-        int _did;
-        int _tid;
+	/**
+	 * @param device The video device that the user has chosen for this call.
+	 */
+	void setVideoDevice(sfl::VideoDevice& device);
 
-        // Copy Constructor
-        SipCall (const SipCall& rh);
+private:
+    /**
+     * Helper function for constructor.
+     */
+	void init(Call::CallType type, SIPAccount* account);
 
-        // Assignment Operator
-        SipCall& operator= (const SipCall& rh);
+	int _cid;
+	int _did;
+	int _tid;
 
-        /** Starting sound */
-        sfl::AudioRtpFactory* _audiortp;
+	bool _video_enabled;
 
-        pjsip_evsub *_xferSub;
+	// Copy Constructor
+	SipCall(const SipCall& rh);
 
-        pjsip_inv_session *_invSession;
+	// Assignment Operator
+	SipCall& operator=(const SipCall& rh);
 
-        Sdp* _localSdp;
+	pjsip_evsub *_xferSub;
 
-        sfl::VideoDevice* _videoDevice;
+	pjsip_inv_session *_invSession;
 
+	Sdp* _sdpSession;
+
+	sfl::AudioRtpFactory* _audiortp;
+
+	sfl::VideoDevice* _videoDevice;
+
+	SIPAccount* _account;
 };
 
 #endif

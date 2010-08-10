@@ -78,8 +78,6 @@ class AudioRtpFactory
         AudioRtpFactory (SipCall * ca);
         ~AudioRtpFactory();
 
-        void initAudioRtpConfig (SipCall *ca);
-
         /**
          * 	Lazy instantiation method. Create a new RTP session of a given
          * type according to the content of the configuration file.
@@ -180,6 +178,8 @@ class AudioRtpFactory
         void sendDtmfDigit (int digit);
 
     private:
+        void initAudioRtpConfig (SipCall *ca);
+
         void * _rtpSession;
         RtpMethod _rtpSessionType;
         ost::Mutex _audioRtpThreadMutex;

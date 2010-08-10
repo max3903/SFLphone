@@ -99,6 +99,9 @@ void AudioRtpFactory::initAudioRtpConfig (SipCall *ca)
 
 void AudioRtpFactory::initAudioRtpSession (SipCall * ca)
 {
+	// Init configuration
+	initAudioRtpConfig(ca);
+
     ost::MutexLock m (_audioRtpThreadMutex);
 
     _debug ("Srtp enable: %d ", _srtpEnabled);

@@ -209,29 +209,25 @@ class Sdp
          */
         void setNegotiatedSdp (const pjmedia_sdp_session *sdp);
 
-        /*
-         * Attribute the specified port to every medias provided
-         * This is valid only because we are using one media
-         * We should change this to support multiple medias
-         *
-         * @param port  The media port
-         */
-        void setPortOnAllMedia (int port);
-
         /**
          * @param port The audio port (published/STUNed) of the upcoming RTP session.
          */
-        void setPublishedAudioPort (int port) {
-            _local_extern_audio_port = port;
-        }
+        void setPublishedAudioPort (int port);
 
         /**
-         * @param port The audio port (published/STUNed) of the upcoming RTP session.
+         * @return port The audio port (published/STUNed) of the upcoming RTP session.
          */
-        int getPublishedAudioPort (void) {
-            return _local_extern_audio_port;
-        }
+        int getPublishedAudioPort (void);
 
+        /**
+         * @param port The video port (published/STUNed) of the upcoming RTP session.
+         */
+        void setPublishedVideoPort (int port);
+
+        /**
+         * @return port The video port (published/STUNed) of the upcoming RTP session.
+         */
+        int getPublishedVideoPort (void);
         /**
          * @param ip The remote IP address
          */
@@ -271,7 +267,7 @@ class Sdp
         void getRemoteSdpCryptoFromOffer (const pjmedia_sdp_session* remote_sdp,
                                           CryptoOffer& crypto_offer);
 
-        void toString (void);
+        std::string toString (void);
 
     private:
         /** Codec Map */
@@ -320,7 +316,9 @@ class Sdp
         pj_pool_t *_pool;
 
         /** Local audio port */
-        int _local_extern_audio_port;
+        int _publishedAudioPort;
+
+        int _publishedVideoPort;
 
         /** Remote audio port */
         unsigned int _remote_audio_port;
@@ -421,7 +419,7 @@ class Sdp
          */
         void sdpAddMediaDescription();
 
-        std::string inToString (int value);
+        std::string intToString (int value);
 
         void setRemoteIpFromSdp (const pjmedia_sdp_session *r_sdp);
 
