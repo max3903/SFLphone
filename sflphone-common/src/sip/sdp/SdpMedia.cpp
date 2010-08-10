@@ -113,13 +113,33 @@ void SdpMedia::setMediaType (int type)
 
 void SdpMedia::addCodec (const sfl::Codec* codec)
 {
-    _codecList.push_back (codec);
+
+    std::pair<std::set<uint8>::iterator, bool> ret;
+    ret = _payloadList.insert(codec->getPayloadType());
+
+    if (ret.second == false) {
+    	// A element with that payload was already present in the set. Find a suitable codec.
+    	uint8 nonConflictingPayload = 96;
+	    ret = _payloadList.insert(nonConflictingPayload);
+    	while(ret.second == false) {
+    		nonConflictingPayload += 1;
+    		if (nonConflictingPayload == 128) {
+    			return;
+    		}
+    	    ret = _payloadList.insert(nonConflictingPayload);
+    	}
+
+    	_codecList.push_back(new CodecPayloadDecorator(codec, nonConflictingPayload));
+    } else {
+        _codecList.push_back (codec);
+    }
 }
 
 void SdpMedia::clearCodecList (void)
 {
     // Erase every codecs from the list
     _codecList.clear();
+    _payloadList.clear();
 }
 
 int SdpMedia::getPort() const

@@ -132,6 +132,7 @@ void Sdp::setMediaDescriptorLine (SdpMedia *media, pjmedia_sdp_media** p_med)
             }
         }
 
+        // Convert the rtpmap structure into an SDP attribute
         pjmedia_sdp_rtpmap_to_attr (_pool, &rtpmap, &attr);
         _debug("%.*s", attr->value.slen, attr->value.ptr);
         med->attr[med->attr_count++] = attr;
@@ -504,9 +505,8 @@ void Sdp::setNegotiatedSdp (const pjmedia_sdp_session *sdp)
 
         // Try to match the returned media with the media in the initial offer
         InitialMediasIterator it = std::find_if (_initialMedias.begin(), _initialMedias.end(), IsSameMedia (mediaType, port));
-
         if (it == _initialMedias.end()) {
-            _error ("A media of type %s was received in the SDP answer, but was not specified in the initial offer.", mediaType.c_str());
+            _error ("A media of type \"%s\" was received in the SDP answer, but was not specified in the initial offer.", mediaType.c_str());
             continue;
         }
 
