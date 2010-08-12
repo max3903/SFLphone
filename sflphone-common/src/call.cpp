@@ -158,8 +158,9 @@ void Call::setLocalAudioPort(unsigned int port) {
 	_localAudioPort = port;
 }
 
-void Call::setPublishedAudioPort(unsigned int port) {
-	_publishedAudioPort = port;
+unsigned int Call::getLocalAudioPort() {
+	ost::MutexLock m(_callMutex);
+	return _localAudioPort;
 }
 
 void Call::setLocalVideoPort (unsigned int port)
@@ -167,9 +168,18 @@ void Call::setLocalVideoPort (unsigned int port)
 	_localVideoPort = port;
 }
 
+unsigned int Call::getLocalVideoPort() {
+	return _localVideoPort;
+}
+
+void Call::setPublishedAudioPort(unsigned int port) {
+	_publishedAudioPort = port;
+}
+
 unsigned int Call::getPublishedAudioPort() {
 	return _publishedAudioPort;
 }
+
 
 void Call::setPublishedVideoPort(unsigned int port) {
 	_publishedVideoPort = port;
@@ -192,11 +202,6 @@ const std::string&
 Call::getLocalIp() {
 	ost::MutexLock m(_callMutex);
 	return _localIPAddress;
-}
-
-unsigned int Call::getLocalAudioPort() {
-	ost::MutexLock m(_callMutex);
-	return _localAudioPort;
 }
 
 void Call::setAudioStart(bool start) {

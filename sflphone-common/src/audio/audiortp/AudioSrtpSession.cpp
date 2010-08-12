@@ -195,7 +195,6 @@ std::string AudioSrtpSession::getBase64ConcatenatedKeys()
 
 void AudioSrtpSession::unBase64ConcatenatedKeys (std::string base64keys)
 {
-
     _remoteMasterKeyLength = sfl::CryptoSuites[1].masterKeyLength / 8;
     _remoteMasterSaltLength = sfl::CryptoSuites[1].masterSaltLength / 8;
 

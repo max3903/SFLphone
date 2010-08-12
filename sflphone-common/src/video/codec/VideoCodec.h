@@ -61,7 +61,7 @@ class VideoCodec : public virtual Codec, public VideoPlugin
 
         virtual void decode (Buffer<uint8>& data) throw (VideoDecodingException) = 0;
 
-        virtual void setEncoderVideoSource (VideoInputSource* source) = 0;
+        virtual void setVideoInputFormat(const VideoFormat& format) = 0;
 
         virtual void addVideoFrameEncodedObserver (VideoFrameEncodedObserver& observer) = 0;
 

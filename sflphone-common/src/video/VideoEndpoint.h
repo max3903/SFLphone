@@ -20,11 +20,15 @@
 #ifndef __SFL_VIDEO_ENDPOINT_H___
 #define __SFL_VIDEO_ENDPOINT_H___
 
-#include <sys/eventfd.h>
+#include "util/InetSocketAddress.h"
 #include "video/source/VideoInputSource.h"
+#include "video/rtp/VideoRtpSessionSimple.h"
 
 #include <set>
+#include <map>
 #include <stdexcept>
+
+#include <sys/eventfd.h>
 
 namespace sfl
 {
@@ -56,7 +60,6 @@ class InvalidTokenException: public std::invalid_argument
 class VideoEndpoint: public VideoFrameObserver
 {
     public:
-
         /**
          * Constructor for a video endpoint.
          * @param src The mandatory video input source for this endpoint.
@@ -71,19 +74,34 @@ class VideoEndpoint: public VideoFrameObserver
         VideoInputSource* getVideoInputSource();
 
         /**
-         * Sends the VideoInputSource to the remote RTP peer.
+         * @param address The address to listen on.
+         * @postcondition An RTP session will be available for future calls referencing to "local".
+         * TODO Support secured sessions.
          */
-        void sendRtpData();
+        void createRtpSession(sfl::InetSocketAddress local);
 
         /**
-         * Receive video from remote RTP peer.
+         * Add a unicast destination for receiving and sending video data.
+         * @param local The local address on which some RTP session is bound to.
+         * @param address The destination address to add to the RTP session.
+         * @precondition A VideoRtpSession bound to "local" should be available.
+         * @see sfl#VideoEndpoint#createRtpsession
          */
-        void receiveRtpData();
+        void addDestination(const InetSocketAddress& localAddress, const InetSocketAddress& destinationAddress);
 
         /**
-         * @return The name for the shared memory allocated for frames capture.
+         * @param local The local address to bind to.
+         * @param negotiatedCodecs A codec list of size at least 1, containing the supported and negotiated video codecs.
+         * @precondition A VideoRtpSession bound to "local" should be available.
+         * @see sfl#VideoEndpoint#createRtpsession
          */
-        std::string getShmName();
+        void startRtpSession(const InetSocketAddress& local, std::vector<const sfl::VideoCodec*> negotiatedCodecs);
+
+        /**
+         * @return The RTP session bound to the given socket.
+         * TODO To implement (needed for SRTP, to retrieve crypto params).
+         */
+        sfl::VideoRtpSessionSimple* getRtpSession(sfl::InetSocketAddress local);
 
         /**
          * Start local capture, and issuing a token for accessing a given video source.
@@ -121,6 +139,11 @@ class VideoEndpoint: public VideoFrameObserver
          * @see VideoEndpoint#capture
          */
         std::string requestTokenForSource();
+
+        /**
+         * @return The name for the shared memory allocated for frames capture.
+         */
+        std::string getShmName();
 
         /**
          * @return The name for the fd passer.
@@ -163,6 +186,12 @@ class VideoEndpoint: public VideoFrameObserver
         void broadcastNewFrameEvent();
 
         /**
+         * Send a video frame accross multiple RTP sessions.
+         * @param frame The frame to encode then send over RTP.
+         */
+        void sendInAllRtpSession(const VideoFrame* frame);
+
+        /**
          * Compute a hash digest for the given name.
          */
         std::string getDigest (const std::string& name);
@@ -172,13 +201,28 @@ class VideoEndpoint: public VideoFrameObserver
          */
         std::string generateToken();
 
-        static const useconds_t BUSY_WAIT_TIME = 500;
+        // Socket Address key) : Video RTP Session (value)
+        std::map<sfl::InetSocketAddress, VideoRtpSessionSimple*> socketAddressToVideoRtpSessionMap;
+        typedef std::map<sfl::InetSocketAddress, VideoRtpSessionSimple*>::iterator SocketAddressToVideoRtpSessionIterator;
+        typedef std::pair<sfl::InetSocketAddress, VideoRtpSessionSimple*> SocketAddressToVideoRtpSessionEntry;
+
+        // The token set
         std::set<std::string> sourceTokens;
+
+        // The *unique* video source for this endpoint
         VideoInputSource* videoSource;
+
+        // Instance of a local server in the UNIX domain for passing FD.
         FileDescriptorPasser* sourceEventFdPasser;
+
+        // The shared memory segment where frames are written to
         SharedMemoryPosix* shmVideoSource;
+
         int eventFileDescriptor;
+
         bool capturing;
+
+        static const useconds_t BUSY_WAIT_TIME = 500;
 };
 
 }

@@ -269,6 +269,11 @@ class Call: public Recordable
         void setLocalVideoPort (unsigned int port);
 
         /**
+         * @return The local video port.
+         */
+        unsigned int getLocalVideoPort();
+
+        /**
          * Set the video port that remote will see.
          * @param port  The external video port
          */

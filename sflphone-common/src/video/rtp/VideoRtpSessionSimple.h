@@ -72,49 +72,35 @@ class VideoRtpSessionSimple: public ost::RTPSession
          * from the current one is detected in the RTP stream, a lookup table will be read in order to find a codec that
          * corresponds to the payload type.
          *
-         * Multiple video codecs might be accepted from
-         * the answerer. Therefore, dynamic configuration based on the RTP stream must be performed.
+         * Multiple video codecs might be accepted from the answerer. Therefore, dynamic configuration based on
+         * the RTP stream must be performed.
          *
-         * @param rtpmap The Rtmap object object holding the information of a "a=rtpmap" line of SDP.
+         * @param payloadType The payload type from SDP referring to this codec.
          *
-         * @param fmtp The Fmtp object holding the information of a "a=fmtp" line of SDP for some corresponding "a=rtpmap".
+         * @param codec A codec instance, pre-configured from the "a=fmtp" SDP line.
          *
-         * @throw MissingPluginException if either the decoder, the encoder, or both are missing.
-         *
-         * @postcondition The first codec registered (temporally) is set as the selected codec. Subsequent calls to this method
-         * will only prepare ("cue") other possible session codecs.
+		 * @postcondition The first codec registered (temporally) is set as the selected codec. Subsequent calls to this method
+         * will only prepare ("cue") other possible session codecs. A new codec clone will be created from the given one.
          */
-        void addSessionCodec (const RtpMap& rtpmap, const Fmtp& fmtp)
-        throw (MissingPluginException);
-
-        /**
-         * Register an instance of some video codec.
-         * @param codec The instance of some video codec to be made available for this session.
-         */
-        void registerCodec (VideoCodec* codec);
-
-        /**
-         * @param mime The mimetype identifying the codec to remove.
-         * @postcondition The codec won't be available from that point on.
-         */
-        void unregisterCodec (const std::string& mime);
-
-        /**
-         * @param mime The mime subtype identifying the codec to retrieve.
-         * @return The VideoCodecs corresponding to the mime type.
-         */
-        VideoCodec* getCodec (const std::string& mime);
+        void addSessionCodec(ost::PayloadType payloadType, const sfl::VideoCodec* codec);
 
         /**
          * @param source The video source that will provide raw frames to the encoder, producing RTP packets that get sent in this session.
          */
-        void setVideoSource (VideoInputSource& source);
+        void setVideoInputFormat (const VideoFormat& format);
 
         /**
          * Start sending and receiving in this session.
          * @Override ost#Thread#start
          */
         void start();
+
+        /**
+         * Encode (asynchronously) then send the given video frame.
+         * @param frame The video frame to send.
+         * @precondition A video codec should have been added to the session codec.
+         */
+        void sendPayloaded(const VideoFrame* frame);
 
         ~VideoRtpSessionSimple();
 
@@ -130,18 +116,11 @@ class VideoRtpSessionSimple: public ost::RTPSession
         bool onRTPPacketRecv (ost::IncomingRTPPkt& packet);
 
         /**
-         * @param codec The new codec to be used.
-         * @param config The configuration obtained from SDP to pass to the codec.
-         * @postcondition The codec will be used for encoding and decoding during the session.
+         * @param pt The payload type identifying the codec to use.
+         * @precondition A video codec instance must exists for the given payload type and have been added via the
+         * VideoRtpSessionSimple#addSessionCodec() method
          */
-        void setCodec (const RtpMap& rtpmap, const Fmtp& fmtp, VideoCodec* codec);
-
-        /**
-         * @param pt The payload type corresponding to the codec to load.
-         * @precondition A codec should have been declared for the given payload type.
-         * @postcondition The codec will be used for encoding and decoding during the session.
-         */
-        void setCodec (ost::PayloadType pt);
+        void setActiveCodec(ost::PayloadType pt);
 
     private:
         /**
@@ -169,38 +148,9 @@ class VideoRtpSessionSimple: public ost::RTPSession
         };
         EncoderObserver* encoderObserver;
 
-        /**
-         * This is the table that maintains the list of video codecs that are available to us.
-         * This should eventually move into some kind of PluginManager (that already exists but
-         * is not yet integrated).
-         *
-         * Mapping : (mime_subtype => VideoCodec*)
-         */
-        typedef std::map<std::string, VideoCodec*>::iterator AvailableCodecIterator;
-        typedef std::pair<std::string, VideoCodec*> AvailableCodecEntry;
-        std::map<std::string, VideoCodec*> availableCodecs;
-
-        /**
-         * This is the table that maintains the list of video codecs that might be used during the
-         * rtp session. Those are obtained after SDP negotiation. Normally, only the first one
-         * would be used, but "hot swapping" the codec during the session is something admissible.
-         *
-         * Mapping : (payload_type => VideoCodec*) (payload type can be static or dynamic).
-         */
-        struct SessionCodecConfiguration {
-            SessionCodecConfiguration (const RtpMap& rtpmap, const Fmtp& fmtp,
-                                       VideoCodec* codec) :
-                    rtpmap (rtpmap), fmtp (fmtp), codec (codec) {
-            }
-
-            const RtpMap& rtpmap;
-            const Fmtp& fmtp;
-            VideoCodec* codec;
-        };
-
-        typedef std::map<ost::PayloadType, SessionCodecConfiguration>::iterator SessionCodecIterator;
-        typedef std::pair<ost::PayloadType, SessionCodecConfiguration> SessionCodecEntry;
-        std::map<ost::PayloadType, SessionCodecConfiguration> sessionsCodecs;
+        typedef std::map<ost::PayloadType, VideoCodec*>::iterator SessionCodecIterator;
+        typedef std::pair<ost::PayloadType, VideoCodec*> SessionCodecEntry;
+        std::map<ost::PayloadType, VideoCodec*> sessionsCodecs;
 
         /**
          * The main active codec being used.
@@ -208,9 +158,9 @@ class VideoRtpSessionSimple: public ost::RTPSession
         VideoCodec* activeCodec;
 
         /**
-         * The main active video source being used by the codec.
+         * The video format in which the video frames are expected to be received.
          */
-        VideoInputSource* activeVideoSource;
+        VideoFormat currentVideoFormat;
 };
 }
 #endif

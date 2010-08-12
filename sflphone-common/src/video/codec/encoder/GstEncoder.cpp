@@ -33,30 +33,27 @@
 
 namespace sfl
 {
-GstEncoder::GstEncoder() throw (VideoEncodingException, MissingPluginException) :
-        VideoEncoder(), maxFrameQueued (MAX_FRAME_QUEUED), injectableEnd (NULL), retrievableEnd (NULL)
+GstEncoder::GstEncoder() :
+		VideoEncoder(){}
+
+GstEncoder::GstEncoder(const VideoFormat& format) throw (VideoEncodingException, MissingPluginException) :
+        VideoEncoder(format), maxFrameQueued (MAX_FRAME_QUEUED), injectableEnd (NULL), retrievableEnd (NULL)
 {
 }
 
-GstEncoder::GstEncoder (VideoInputSource& source) throw (VideoDecodingException,
-        MissingPluginException) :
-        VideoEncoder (source), maxFrameQueued (MAX_FRAME_QUEUED), injectableEnd (NULL), retrievableEnd (NULL)
-{
-}
-
-GstEncoder::GstEncoder (VideoInputSource& source, unsigned maxFrameQueued)
+GstEncoder::GstEncoder (const VideoFormat& format, unsigned maxFrameQueued)
 throw (VideoDecodingException, MissingPluginException) :
-        VideoEncoder (source), maxFrameQueued (maxFrameQueued), injectableEnd (NULL), retrievableEnd (NULL)
+        VideoEncoder (format), maxFrameQueued (maxFrameQueued), injectableEnd (NULL), retrievableEnd (NULL)
 {
 }
 
-void GstEncoder::setVideoInputSource (VideoInputSource& videoSource)
+void GstEncoder::setVideoInputFormat(const VideoFormat& format)
 {
-    VideoEncoder::setVideoInputSource (videoSource);
+	VideoEncoder::setVideoInputFormat(format);
 
-    if (injectableEnd != NULL) {
-        configureSource();
-    }
+	if (injectableEnd != NULL) {
+		configureSource();
+	}
 }
 
 void GstEncoder::setParameter (const std::string& name, const std::string& value)
@@ -78,7 +75,7 @@ std::string GstEncoder::getParameter (const std::string& name)
 void GstEncoder::configureSource()
 {
     // Create the new caps for this video source
-    VideoFormat format = getVideoInputSource()->getOutputFormat();
+    VideoFormat format = getVideoInputFormat();
     std::ostringstream caps;
     caps << "video/x-raw-rgb" << ",format=(fourcc)" << GST_STR_FOURCC (
         format.getFourcc().c_str()) << ",height=(int)"
@@ -147,6 +144,9 @@ void GstEncoder::init() throw (VideoDecodingException, MissingPluginException)
     // Connect both endpoints to the graph.
     injectableEnd->setSink (ffmpegcolorspace);
     retrievableEnd->setSource (getTail());
+
+    // Configure the source with the input format
+    configureSource();
 }
 
 GstEncoder::~GstEncoder()

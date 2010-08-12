@@ -59,8 +59,11 @@ class AbstractVideoCodec: public virtual VideoCodec
         }
         ;
 
-        void setEncoderVideoSource (VideoInputSource* source) {
-            encoder->setVideoInputSource (*source);
+        /**
+         * @Override
+         */
+        void setVideoInputFormat(const VideoFormat& format) {
+        	encoder->setVideoInputFormat(format);
         }
 
         /**

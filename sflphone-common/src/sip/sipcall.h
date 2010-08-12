@@ -34,6 +34,8 @@
 
 #include "call.h"
 
+#include "video/source/VideoFormat.h"
+
 #include <pjsip-simple/evsub.h>
 #include <pjsip_ua.h>
 
@@ -152,7 +154,22 @@ public:
 	/**
 	 * @param device The video device that the user has chosen for this call.
 	 */
-	void setVideoDevice(sfl::VideoDevice& device);
+	void setVideoDevice(const std::string& device);
+
+	/**
+	 * @return The video device to use for a video call.
+	 */
+	std::string getVideoDevice();
+
+	/**
+	 * @param format The video format to use.
+	 */
+	void setVideoFormat(sfl::VideoFormat format);
+
+	/**
+	 * @return The video format chosen for the source device.
+	 */
+	sfl::VideoFormat getVideoFormat();
 
 private:
     /**
@@ -164,7 +181,7 @@ private:
 	int _did;
 	int _tid;
 
-	bool _video_enabled;
+	bool _videoEnabled;
 
 	// Copy Constructor
 	SipCall(const SipCall& rh);
@@ -172,17 +189,19 @@ private:
 	// Assignment Operator
 	SipCall& operator=(const SipCall& rh);
 
-	pjsip_evsub *_xferSub;
+	std::string _videoDevice;
 
-	pjsip_inv_session *_invSession;
+	sfl::VideoFormat _videoFormat;
 
 	Sdp* _sdpSession;
 
+	SIPAccount* _account;
+
 	sfl::AudioRtpFactory* _audiortp;
 
-	sfl::VideoDevice* _videoDevice;
+	pjsip_evsub* _xferSub;
 
-	SIPAccount* _account;
+	pjsip_inv_session* _invSession;
 };
 
 #endif

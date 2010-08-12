@@ -50,19 +50,15 @@ namespace sfl
 class GstEncoder: public VideoEncoder, protected Filter
 {
     public:
-        GstEncoder() throw (VideoEncodingException, MissingPluginException);
+		GstEncoder();
+
+        GstEncoder(const VideoFormat& format) throw (VideoEncodingException, MissingPluginException);
 
         /**
-         * @Override
-         */
-        GstEncoder (VideoInputSource& source) throw (VideoDecodingException,
-                MissingPluginException);
-        /**
-         * @param source The video source from which to capture data from.
          * @param maxFrameQueued The maximum number of frames to be queued before starting to drop the following ones.
          * @throw VideoEncodingException if an error occurs while opening the video decoder.
          */
-        GstEncoder (VideoInputSource& source, unsigned maxFrameQueued)
+        GstEncoder (const VideoFormat& format, unsigned maxFrameQueued)
         throw (VideoDecodingException, MissingPluginException);
 
         ~GstEncoder();
@@ -75,17 +71,17 @@ class GstEncoder: public VideoEncoder, protected Filter
         /**
          * @Override
          */
-        void setVideoInputSource (VideoInputSource& videoSource);
-
-        /**
-         * @Override
-         */
         void activate();
 
         /**
          * @Override
          */
         void deactivate();
+
+        /**
+         * @Override
+         */
+    	void setVideoInputFormat(const VideoFormat& format);
 
         /**
          * @Override

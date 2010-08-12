@@ -1,12 +1,11 @@
 /*
- *  Copyright (C) 2010 Savoir-Faire Linux inc.
+ *  Copyright (C) 2004, 2005, 2006, 2009, 2008, 2009, 2010 Savoir-Faire Linux Inc.
  *  Author: Pierre-Luc Bacon <pierre-luc.bacon@savoirfairelinux.com>
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation; either version 3 of the License, or
  *  (at your option) any later version.
- *
  *  This program is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -15,6 +14,17 @@
  *  You should have received a copy of the GNU General Public License
  *  along with this program; if not, write to the Free Software
  *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ *
+ *  Additional permission under GNU GPL version 3 section 7:
+ *
+ *  If you modify this program, or any covered work, by linking or
+ *  combining it with the OpenSSL project's OpenSSL library (or a
+ *  modified version of that library), containing parts covered by the
+ *  terms of the OpenSSL or SSLeay licenses, Savoir-Faire Linux Inc.
+ *  grants you additional permission to convey the resulting work.
+ *  Corresponding Source for a non-source form of such a combination
+ *  shall include the source code for the parts of OpenSSL used as well
+ *  as that of the covered work.
  */
 
 #ifndef _SFL_VIDEO_MANAGER_H_
@@ -23,6 +33,8 @@
 #include "videomanager-glue.h"
 #include "video/VideoEndpoint.h"
 #include "video/source/VideoInputSource.h"
+
+#include "sip/sipcall.h"
 
 #include <map>
 #include <dbus-c++/dbus.h>
@@ -119,6 +131,22 @@ class VideoManager: public org::sflphone::SFLphone::VideoManager_adaptor,
          */
         std::string getEventFdPasserNamespace (const std::string& device);
 
+        /**
+         * Kept unexposed over DBus.
+         *
+         * @param call The SipCall object containing the SdpSession.
+         * Instantiate (if needed) and prepare a VideoRtpSession for sending data.
+         * Once the the SDP answer is received, the session will be configured with the negotiated codec.
+         */
+        void stageRtpSession(SipCall* call);
+
+        /**
+         * Kept unexposed over DBus.
+         * @param call The SipCall object containing the SdpSession.
+         * @param negotiatedCodecs A list containing at least one negotiated VideoCodec.
+         */
+        void startRtpSession(SipCall* call, std::vector<const sfl::VideoCodec*> negotiatedCodecs);
+
     private :
         /**
          * @param device The device corresponding to the VideoEndpoint
@@ -128,9 +156,13 @@ class VideoManager: public org::sflphone::SFLphone::VideoManager_adaptor,
 
         // Key : device name. Value : Corresponding VideoEndpoint
         std::map<std::string, sfl::VideoEndpoint*> videoEndpoints;
+        typedef std::map<std::string, sfl::VideoEndpoint*>::iterator DeviceNameToVideoEndpointIterator;
+        typedef std::pair<std::string, sfl::VideoEndpoint*> DeviceNameToVideoEndpointEntry;
 
         // Key : device id. Value : Corresponding VideoDevice
         std::map<std::string, sfl::VideoDevicePtr> videoDevices;
+        typedef	std::map<std::string, sfl::VideoDevicePtr>::iterator DeviceIdToVideoDevicePtrIterator;
+        typedef	std::pair<std::string, sfl::VideoDevicePtr> DeviceIdToVideoDevicePtrEntry;
 };
 
 #endif//CONTACTMANAGER_H

@@ -31,137 +31,104 @@
 
 #include "video/VideoPlugin.h"
 #include "video/VideoExceptions.h"
-
-#include "video/source/VideoInputSource.h"
-#include "video/source/NullVideoInputSource.h"
+#include "video/source/VideoFrame.h"
+#include "video/source/VideoFormat.h"
 
 #include "video/codec/mime/MimeParameters.h"
 
 #include "util/pattern/AbstractObservable.h"
 #include "util/memory/Buffer.h"
 
-namespace sfl
-{
+namespace sfl {
 
 /**
  * The client that wants to get access to encoded frame must
  * implement this interface.
  */
-class VideoFrameEncodedObserver : public Observer
-{
-    public:
-        /**
-         * @param frame The new frame, or NAL unit, that was encoded. The implementer will
-         * then use this data and send it over the network.
-         */
-        virtual void onNewFrameEncoded (std::pair<uint32, Buffer<uint8> >& data) = 0;
+class VideoFrameEncodedObserver: public Observer {
+public:
+	/**
+	 * @param frame The new frame, or NAL unit, that was encoded. The implementer will
+	 * then use this data and send it over the network.
+	 */
+	virtual void onNewFrameEncoded(std::pair<uint32, Buffer<uint8> >& data) = 0;
 };
 
 /**
  * Abstract base class for every video encoder.
  */
-class VideoEncoder : public virtual MimeParameters, public VideoPlugin, public AbstractObservable<std::pair<uint32, Buffer<uint8> >&, VideoFrameEncodedObserver>
-{
-    public:
+class VideoEncoder: public virtual MimeParameters,
+		public VideoPlugin,
+		public AbstractObservable<std::pair<uint32, Buffer<uint8> >&,
+				VideoFrameEncodedObserver> {
+public:
+	/**
+	 * Constructor for VideoEncoder type, taking no video format parameter.
+	 * @see sfl#VideoEncoder#setSource;
+	 */
+	VideoEncoder() throw (VideoEncodingException, MissingPluginException) {}
 
-        /**
-         * Initialize the video encoder with no video source.
-         * @see sfl#VideoEncoder#setSource;
-         */
-        VideoEncoder() throw (VideoEncodingException, MissingPluginException) : source (new NullVideoInputSource()) {};
+	/**
+	 * @param format The video format in which the frames are expected to be received.
+	 * @see sfl#VideoEncoder#setSource;
+	 */
+	VideoEncoder(const VideoFormat& format) throw (VideoEncodingException, MissingPluginException) :
+		format(format) {}
 
-        /**
-         * @param source The video source from which to capture data from.
-         * @throw VideoEncodingException if an error occurs while opening the video decoder.
-         */
-        VideoEncoder (VideoInputSource& videoSource) throw (VideoEncodingException, MissingPluginException) : source (&videoSource) {};
+	virtual inline ~VideoEncoder() {};
 
-        ~VideoEncoder() {
-            // source.removeVideoFrameObserver(&sourceObserver);
-        };
+	/**
+	 * @param format The video format in which the frames are expected to be received.
+	 */
+	void setVideoInputFormat(const VideoFormat& format) {
+		this->format = format;
+	}
 
-        /**
-         * Concrete encoders must provide an implementation of this method in order to
-         * encode the given frame.
-         * @param frame The video frame to be encoded, then sent (but not in this object) through the
-         * RTP stack.
-         */
-        virtual void encode (const VideoFrame* frame) throw (VideoEncodingException) = 0;
+	/**
+	 * @return The video format in which the frames are expected to be received.
+	 */
+	VideoFormat getVideoInputFormat() {
+		return format;
+	}
 
-        /**
-         * @param source The video source from which to capture data from.
-         */
-        void setVideoInputSource (VideoInputSource& videoSource) {
-            source = &videoSource;
-        }
+	/**
+	 * Concrete encoders must provide an implementation of this method in order to
+	 * encode the given frame.
+	 * @param frame The video frame to be encoded, then sent (but not in this object) through the
+	 * RTP stack.
+	 */
+	virtual void
+			encode(const VideoFrame* frame) throw (VideoEncodingException) = 0;
 
-        /**
-         * @return VideoInputSource set for this encoder.
-         */
-        VideoInputSource* getVideoInputSource() {
-            return source;
-        }
+	typedef int IsDerivedFromVideoEncoder;
 
-        typedef int IsDerivedFromVideoEncoder;
+	/**
+	 * @Override
+	 */
+	virtual void activate() = 0;
 
-    private:
-        /**
-         * Used internally to get notified when a new frame becomes available for encoding.
-         */
-        class SourceObserver : public VideoFrameObserver
-        {
-            public:
-                SourceObserver (VideoEncoder* parent) : parent (parent) {};
-                VideoEncoder* parent;
+	/**
+	 * @Override
+	 */
+	virtual void deactivate() = 0;
 
-                /**
-                 * @Override
-                 */
-                void onNewFrame (const VideoFrame* frame) {
-                    parent->encode (frame);
-                }
-        };
+private:
+	/**
+	 * Simple dispatch for the VideoFrameDecodedObserver type.
+	 * @Override
+	 */
+	void notify(VideoFrameEncodedObserver* observer, std::pair<uint32, Buffer<
+			uint8> >& data) {
+		observer->onNewFrameEncoded(data);
+	}
 
-    public:
-        /**
-         * Activate the encoder. Must be overriden by the implementer.
-         * @postcondition If a source has been specified and is capturing, then the data will get processed and be emitted by the encoder.
-         */
-        virtual void activate() {
-            _info ("Activating VideoEncoder");
+	// FIXME Should not need to do that.
+	void notify(VideoFrameEncodedObserver* observer, const std::string& name,
+			std::pair<uint32, Buffer<uint8> >& data) {
+	}
+	;
 
-            if (source != NULL) {
-                videoSourceObserver = new SourceObserver (this);
-                source->addVideoFrameObserver (videoSourceObserver);
-            }
-        }
-
-        /**
-         * Deactivate the encoder
-         * @postcondition No more frame will get processed nor data emitted from that moment on. All observers will be flushed.
-         */
-        virtual void deactivate() {
-            _info ("Deactivating VideoEncoder");
-
-            if (source != NULL) {
-                source->removeVideoFrameObserver (videoSourceObserver);
-            }
-        }
-
-    private:
-        /**
-         * Simple dispatch for the VideoFrameDecodedObserver type.
-         * @Override
-         */
-        void notify (VideoFrameEncodedObserver* observer, std::pair<uint32, Buffer<uint8> >& data) {
-            observer->onNewFrameEncoded (data);
-        }
-
-        // FIXME Should not need to do that.
-        void notify (VideoFrameEncodedObserver* observer, const std::string& name, std::pair<uint32, Buffer<uint8> >& data) {};
-
-        SourceObserver* videoSourceObserver;
-        VideoInputSource* source;
+	VideoFormat format;
 };
 
 }

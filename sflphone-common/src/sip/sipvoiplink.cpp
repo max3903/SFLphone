@@ -34,19 +34,19 @@
 
 #include "sipvoiplink.h"
 
+#include "sipcall.h"
+#include "sipaccount.h"
 #include "sip/sdp/sdp.h"
 #include "sdp/SdesNegotiator.h"
 
-#include "sipcall.h"
-#include "sipaccount.h"
-
-#include "audio/audiortp/AudioRtpFactory.h"
+#include "dbus/dbusmanager.h"
+#include "dbus/callmanager.h"
+#include "dbus/videomanager.h"
 
 #include "manager.h"
 #include "eventthread.h"
 
-#include "dbus/dbusmanager.h"
-#include "dbus/callmanager.h"
+#include "audio/audiortp/AudioRtpFactory.h"
 
 #include "pjsip/sip_endpoint.h"
 #include "pjsip/sip_transport_tls.h"
@@ -724,12 +724,17 @@ bool SipVoipLink::newIpToIpCall (const CallId& id, const std::string& to)
 
         _debug ("UserAgent: TO uri for IP2IP call: %s", toUri.c_str());
 
-        // Audio Rtp Session must be initialized before creating initial offer in SDP session
-        // since SDES require crypto attribute.
+        // Audio RTP Session must be initialized before creating initial
+        // offer in SDP session since SDES requires crypto attribute.
         try {
             call->getAudioRtp()->initAudioRtpSession (call);
         } catch (...) { // FIXME Be more specific
             _debug ("UserAgent: Unable to create RTP Session in new IP2IP call (%s:%d)", __FILE__, __LINE__);
+        }
+
+        // Stage the video RTP session
+        if (call->isVideoEnabled()) {
+        	DBusManager::instance().getVideoManager()->stageRtpSession(call);
         }
 
         // Init TLS transport if enabled
@@ -817,10 +822,6 @@ bool SipVoipLink::newIpToIpCall (const CallId& id, const std::string& to)
 
         // set_transport methods increment transport's ref_count
         status = pjsip_dlg_set_transport (dialog, tp);
-
-        // decrement transport's ref count
-        // pjsip_transport_dec_ref(account->getAccountTransport());
-
         if (status != PJ_SUCCESS) {
             _error ("UserAgent: Error: Failed to set the transport for an IP2IP call");
             return status;
@@ -900,8 +901,9 @@ bool SipVoipLink::answer (const CallId& id)
         // Terminate the call
         _debug ("SIPVoIPLink::answer: fail terminate call %s ",call->getCallId().c_str());
 
-        if (call->getAudioRtp())
+        if (call->getAudioRtp()) {
             call->getAudioRtp()->stop();
+        }
 
         terminateOneCall (call->getCallId());
 
@@ -1370,14 +1372,13 @@ std::string SipVoipLink::getCurrentCodecName()
 
     call = getSipCall (Manager::instance().getCurrentCallId());
 
-    const sfl::Codec* audioCodec = NULL;
-
     if (call) {
-        audioCodec = call->getLocalSDP()->getFirstCodec();
-    }
+        const sfl::Codec* audioCodec = NULL;
+        audioCodec = call->getLocalSDP()->getFirstNegotiatedAudioCodec();
 
-    if (audioCodec) {
-        name = audioCodec->getMimeSubtype();
+        if (audioCodec) {
+        	name = audioCodec->getMimeSubtype();
+        }
     }
 
     return name;
@@ -1687,8 +1688,9 @@ void SipVoipLink::SipCallServerFailure (SipCall *call)
         terminateOneCall (id);
         removeCall (id);
 
-        if (call->getAudioRtp())
+        if (call->getAudioRtp()) {
             call->getAudioRtp()->stop();
+        }
     }
 }
 
@@ -2708,7 +2710,6 @@ pj_status_t SipVoipLink::createAlternateUdpTransport (AccountID id)
     account->setAccountTransport (transport);
 
     if (transport) {
-
         _debug ("UserAgent: Initial ref count: %s %s (refcnt=%i)", transport->obj_name, transport->info,
                 (int) pj_atomic_get (transport->ref_cnt));
 
@@ -3397,22 +3398,16 @@ void call_on_media_update (pjsip_inv_session *inv, pj_status_t status)
 {
     _debug ("UserAgent: Call media update");
 
-    const pjmedia_sdp_session *local_sdp;
-    const pjmedia_sdp_session *remote_sdp;
-
-    SipVoipLink * link = NULL;
-    SipCall * call;
-
-    call = reinterpret_cast<SipCall *> (inv->mod_data[getModId() ]);
-
+    // Get the SipCall from the callback data
+    SipCall* call = reinterpret_cast<SipCall *> (inv->mod_data[getModId() ]);
     if (!call) {
         _debug ("UserAgent: Call declined by peer, SDP negotiation stopped");
         return;
     }
 
-    link = dynamic_cast<SipVoipLink *> (Manager::instance().getAccountLink (
+    // Get the SipVoipLink object (self)
+    SipVoipLink* link = dynamic_cast<SipVoipLink *> (Manager::instance().getAccountLink (
                                             ACCOUNT_NULL));
-
     if (link == NULL) {
         _warn ("UserAgent: Error: Failed to get sip link");
         return;
@@ -3426,11 +3421,15 @@ void call_on_media_update (pjsip_inv_session *inv, pj_status_t status)
     }
 
     if (!inv->neg) {
+    	_warn("Neg. was NULL (%s:%d)", __FILE__, __LINE__);
         return;
     }
 
     // Get the new sdp, result of the negotiation
+    const pjmedia_sdp_session* local_sdp;
     pjmedia_sdp_neg_get_active_local (inv->neg, &local_sdp);
+
+    const pjmedia_sdp_session* remote_sdp;
     pjmedia_sdp_neg_get_active_remote (inv->neg, &remote_sdp);
 
     // Clean the resulting sdp offer to create a new one (in case of a reinvite)
@@ -3442,11 +3441,10 @@ void call_on_media_update (pjsip_inv_session *inv, pj_status_t status)
     call->getLocalSDP()->setNegotiatedSdp (local_sdp);
 
     // Set remote ip / port
-    call->getLocalSDP()->setMediaTransportFromRemoteSdp (remote_sdp);
-
+    call->getLocalSDP()->setMediaFromSdpAnswer (remote_sdp);
     try {
         call->getAudioRtp()->updateDestinationIpAddress();
-    } catch (...) { // TODO Be more specific. This is useless.
+    } catch (...) { // TODO Be more specific. More though love. This is useless.
     }
 
     // Get the crypto attribute containing srtp's cryptographic context (keys, cipher)
@@ -3511,34 +3509,24 @@ void call_on_media_update (pjsip_inv_session *inv, pj_status_t status)
         _debug ("UserAgent: SDES not initialized for this call\n");
     }
 
-    Sdp *sdpSession = call->getLocalSDP();
-
+    Sdp* sdpSession = call->getLocalSDP();
     if (!sdpSession) {
-        _error ("Failed to retrieve the sdp session");
+        _error ("Failed to retrieve the SDP session");
         return; // FIXME Be a bit more severe please !
     }
 
     // Get a fresh instance of the codec that will handle the media
-    const sfl::Codec* firstCodec = sdpSession->getFirstCodec();
-
-    if (!firstCodec) {
+    const AudioCodec* audioCodec = sdpSession->getFirstNegotiatedAudioCodec();
+    if (!audioCodec) {
         _error ("Failed to retrieve the audio codec for the session");
-        return; // FIXME Be a bit more severe please !
+        return; // FIXME Be a bit more severe ! More tough love.
     }
 
-    const AudioCodec* audioCodec;
-
-    if (firstCodec->getMimeType() == "audio") {
-        audioCodec = dynamic_cast<const AudioCodec*> (firstCodec);
-    }
-
-    _info ("Creating new instance of codec type \"%s/%s\"", firstCodec->getMimeType().c_str(), firstCodec->getMimeSubtype().c_str());
-
+    _info ("Creating new instance of codec type \"%s/%s\"", audioCodec->getMimeType().c_str(), audioCodec->getMimeSubtype().c_str());
     AudioCodec* rtpCodec = audioCodec->clone();
-
     if (rtpCodec == NULL) {
-        _error ("UserAgent: No audiocodec found");
-        return; // FIXME Be a bit more severe please !
+        _error ("UserAgent: Failed to create new instance of codec (%s:%d)", __FILE__, __LINE__);
+        return; // FIXME Be a bit more severe ! More tough love.
     }
 
     // Start the RTP with the codec
@@ -3549,10 +3537,17 @@ void call_on_media_update (pjsip_inv_session *inv, pj_status_t status)
     } catch (sfl::AudioRtpFactoryException& rtpException) {
         _error ("UserAgent: Error: %s", rtpException.what());
     }
+
+    // Start the video session
+    if (call->isVideoEnabled()) {
+        std::vector<const sfl::VideoCodec*> videoCodecs = sdpSession->getNegotiatedVideoCodecs();
+        DBusManager::instance().getVideoManager()->startRtpSession(call, videoCodecs);
+    }
 }
 
 void call_on_forked (pjsip_inv_session *inv, pjsip_event *e)
 {
+	/* Nothing */
 }
 
 void call_on_tsx_changed (pjsip_inv_session *inv, pjsip_transaction *tsx,

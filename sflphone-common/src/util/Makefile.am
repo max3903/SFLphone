@@ -9,7 +9,8 @@ libutil_la_SOURCES = \
 		
 noinst_HEADERS = \
 		FileDescriptorPasser.h \
-		Dimension.h
+		Dimension.h \
+		InetSocketAddress.h
 		
 libutil_la_LIBADD = \
 		ipc/libipcutil.la \

@@ -58,8 +58,13 @@ void SipCall::init(Call::CallType type, SIPAccount* account)
 	_sdpSession = 0;
 	_account  = account;
 
-	_video_enabled = account->isAlwaysOfferVideo();
+	_videoEnabled = account->isAlwaysOfferVideo();
 	_debug("Always offer video : %d", account->isAlwaysOfferVideo());
+
+	// By default, load the video settings from the account.
+	// Those could be overridden later.
+	_videoDevice = account->getPreferredVideoDevice();
+	_videoFormat = account->getPreferredVideoFormat();
 
 	// Create an SDP object.
 	SipVoipLink* link = SipVoipLink::instance(account->getAccountID());
@@ -102,10 +107,13 @@ void SipCall::init(Call::CallType type, SIPAccount* account)
 
 	if (isVideoEnabled()) {
 		// Set the video ports
-		setLocalVideoPort(callLocalAudioPort);
-		setPublishedVideoPort(callLocalExternAudioPort);
-		_debug ("            Local video port : %d", callLocalAudioPort);
-		_debug ("            Published video port : %d", callLocalExternAudioPort);
+		unsigned int callLocalVideoPort = RANDOM_LOCAL_PORT;
+		unsigned int callLocalExternVideoPort = callLocalVideoPort;
+
+		setLocalVideoPort(callLocalVideoPort);
+		setPublishedVideoPort(callLocalExternVideoPort);
+		_debug ("            Local video port : %d", callLocalVideoPort);
+		_debug ("            Published video port : %d", callLocalExternVideoPort);
 
 		// Add video capabilities
 		_sdpSession->setLocalMediaCapabilities(MIME_TYPE_VIDEO,
@@ -183,9 +191,24 @@ sfl::AudioRtpFactory* SipCall::getAudioRtp(void) {
 }
 
 bool SipCall::isVideoEnabled() {
-	return _video_enabled;
+	return _videoEnabled;
 }
 
-void SipCall::setVideoDevice(sfl::VideoDevice& device) {
-	_videoDevice = &device;
+void SipCall::setVideoDevice(const std::string& device) {
+	_videoDevice = device;
+}
+
+std::string SipCall::getVideoDevice()
+{
+	return _videoDevice;
+}
+
+void SipCall::setVideoFormat(sfl::VideoFormat format)
+{
+	_videoFormat = format;
+}
+
+sfl::VideoFormat SipCall::getVideoFormat()
+{
+	return _videoFormat;
 }
