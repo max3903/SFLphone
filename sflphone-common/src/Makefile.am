@@ -3,7 +3,7 @@ include ../globals.mak
 libexecdir=$(libdir)/sflphone
 libexec_PROGRAMS = sflphoned
 
-SUBDIRS = dbus audio video util config plug-in hooks history sip iax plugin
+SUBDIRS = dbus audio video util config plug-in hooks history sip iax
 
 # Add here the cpp files to be build with sflphone
 sflphoned_SOURCES = \
@@ -18,7 +18,6 @@ sflphoned_SOURCES = \
 		accountcreator.cpp \
 		call.cpp \
 		account.cpp \
-		logger.cpp \
 		numbercleaner.cpp 
 
 # Redefine the USE_IAX variable here, so that it could be used in managerimpl

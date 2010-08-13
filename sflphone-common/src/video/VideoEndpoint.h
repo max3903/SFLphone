@@ -78,7 +78,7 @@ class VideoEndpoint: public VideoFrameObserver
          * @postcondition An RTP session will be available for future calls referencing to "local".
          * TODO Support secured sessions.
          */
-        void createRtpSession(sfl::InetSocketAddress local);
+        void createRtpSession(const sfl::InetSocketAddress& address);
 
         /**
          * Add a unicast destination for receiving and sending video data.
@@ -202,9 +202,9 @@ class VideoEndpoint: public VideoFrameObserver
         std::string generateToken();
 
         // Socket Address key) : Video RTP Session (value)
-        std::map<sfl::InetSocketAddress, VideoRtpSessionSimple*> socketAddressToVideoRtpSessionMap;
-        typedef std::map<sfl::InetSocketAddress, VideoRtpSessionSimple*>::iterator SocketAddressToVideoRtpSessionIterator;
-        typedef std::pair<sfl::InetSocketAddress, VideoRtpSessionSimple*> SocketAddressToVideoRtpSessionEntry;
+        std::map<InetSocketAddress, VideoRtpSessionSimple*> socketAddressToVideoRtpSessionMap;
+        typedef std::map<InetSocketAddress, VideoRtpSessionSimple*>::iterator SocketAddressToVideoRtpSessionIterator;
+        typedef std::pair<InetSocketAddress, VideoRtpSessionSimple*> SocketAddressToVideoRtpSessionEntry;
 
         // The token set
         std::set<std::string> sourceTokens;

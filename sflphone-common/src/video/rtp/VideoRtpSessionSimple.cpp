@@ -113,7 +113,7 @@ bool VideoRtpSessionSimple::onRTPPacketRecv (ost::IncomingRTPPkt& packet)
     // Make sure that a decoder has been configured for this payload type
     if (getCurrentPayloadType() != packet.getPayloadType()) {
         _warn ("New payload type detected during RTP session. Switching to new codec with payload type %d", packet.getPayloadType());
-        setActiveCodec(packet.getPayloadType());
+        //setActiveCodec(packet.getPayloadType());
     }
 
     // Extract RTP packet

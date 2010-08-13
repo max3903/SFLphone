@@ -96,23 +96,6 @@ std::string VideoEndpoint::getDigest(const std::string& name) {
 	return buffer.str();
 }
 
-void VideoEndpoint::createRtpSession(sfl::InetSocketAddress address) {
-
-	SocketAddressToVideoRtpSessionIterator socketIt = socketAddressToVideoRtpSessionMap.find(address);
-	if (socketIt == socketAddressToVideoRtpSessionMap.end()) {
-		// TODO throw UnavailableSomethingException
-	}
-
-	ost::InetHostAddress localAddress = address.getAddress();
-	sfl::VideoRtpSessionSimple* rtpSession = new sfl::VideoRtpSessionSimple(localAddress, address.getPort());
-
-	// Set input format
-	rtpSession->setVideoInputFormat(videoSource->getOutputFormat());
-
-	socketAddressToVideoRtpSessionMap.insert(SocketAddressToVideoRtpSessionEntry(address, rtpSession));
-}
-
-
 VideoInputSource* VideoEndpoint::getVideoInputSource() {
 	return videoSource;
 }
@@ -188,6 +171,26 @@ void VideoEndpoint::onNewFrame(const VideoFrame* frame) {
 	// Notify other processes
 	broadcastNewFrameEvent();
 }
+
+void VideoEndpoint::createRtpSession(const sfl::InetSocketAddress& address) {
+
+	SocketAddressToVideoRtpSessionIterator socketIt = socketAddressToVideoRtpSessionMap.find(address);
+	if (socketIt != socketAddressToVideoRtpSessionMap.end()) {
+		// TODO throw UnavailableSomethingException
+		_warn("Some RTP session bound to socket on %s was found.", address.toString().c_str());
+	}
+
+	_debug("No RTP session bound to socket on %s could be found, creating new one ...", address.toString().c_str());
+
+	ost::InetHostAddress localAddress = address.getAddress();
+	sfl::VideoRtpSessionSimple* rtpSession = new sfl::VideoRtpSessionSimple(localAddress, address.getPort());
+
+	// Set input format
+	rtpSession->setVideoInputFormat(videoSource->getOutputFormat());
+
+	socketAddressToVideoRtpSessionMap.insert(SocketAddressToVideoRtpSessionEntry(address, rtpSession));
+}
+
 
 void VideoEndpoint::startRtpSession(const InetSocketAddress& localAddress, std::vector<const sfl::VideoCodec*> negotiatedCodecs)
 {

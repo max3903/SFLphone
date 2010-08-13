@@ -105,12 +105,12 @@ public:
 	/**
 	 * @Override
 	 */
-	virtual void activate() = 0;
+	virtual void activate() {} ;
 
 	/**
 	 * @Override
 	 */
-	virtual void deactivate() = 0;
+	virtual void deactivate() {};
 
 private:
 	/**

@@ -80,6 +80,8 @@
 // Default account used to get default parametersa if requested by client (to build ne account)
 SIPAccount defaultAccount ("default");
 
+Logger* Logger::instance = 0;
+
 ManagerImpl::ManagerImpl (void) :
         _hasTriedToRegister (false), _config(), _currentCallId2(),
         _currentCallMutex(), _codecBuilder (NULL), _audiodriver (NULL),

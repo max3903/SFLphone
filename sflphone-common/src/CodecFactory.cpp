@@ -30,8 +30,10 @@
  *  shall include the source code for the parts of OpenSSL used as well
  *  as that of the covered work.
  */
-
 #include "CodecFactory.h"
+
+#include "video/codec/GstCodecH264.h"
+#include "video/codec/GstCodecTheora.h"
 
 #include <iostream>
 
@@ -201,9 +203,32 @@ CodecOrder CodecFactory::getDefaultVideoCodecOrder()
     return output;
 }
 
+std::vector<sfl::Codec*> CodecFactory::loadDefaultVideoCodecs() {
+	std::vector<sfl::Codec*> output;
+
+	sfl::Codec* codec;
+	try {
+		codec = new sfl::GstCodecH264();
+		output.push_back(codec);
+	} catch (sfl::MissingPluginException e) {
+		_error("%s", e.what());
+	}
+
+	try {
+		codec = new sfl::GstCodecTheora();
+		output.push_back(codec);
+	} catch (sfl::MissingPluginException e) {
+		_error("%s", e.what());
+	}
+
+	return output;
+}
+
 void CodecFactory::init()
 {
     std::vector<sfl::Codec*> codecs = scanCodecDirectory();
+    std::vector<sfl::Codec*> videoCodecs = loadDefaultVideoCodecs();
+    codecs.insert(codecs.end(), videoCodecs.begin(), videoCodecs.end());
 
     std::sort (codecs.begin(), codecs.end(), CodecComparator);
 

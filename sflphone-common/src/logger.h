@@ -32,24 +32,18 @@
 #define __LOGGER_H__
 
 #include <syslog.h>
-#include <cc++/slog.h>
+#include <stdarg.h>
+#include <string>
+#include <stdio.h>
 
-namespace Logger
-{
-void log (const int, const char*, ...);
+#define _error(...)	Logger::getInstance()->log(LOG_ERR, __VA_ARGS__)
+#define _warn(...)	Logger::getInstance()->log(LOG_WARNING, __VA_ARGS__)
+#define _info(...)	Logger::getInstance()->log(LOG_INFO, __VA_ARGS__)
+#define _debug(...)	Logger::getInstance()->log(LOG_DEBUG, __VA_ARGS__)
 
-void setConsoleLog (bool);
-void setDebugMode (bool);
-};
-
-#define _error(...)	Logger::log(LOG_ERR, __VA_ARGS__)
-#define _warn(...)	Logger::log(LOG_WARNING, __VA_ARGS__)
-#define _info(...)	Logger::log(LOG_INFO, __VA_ARGS__)
-#define _debug(...)	Logger::log(LOG_DEBUG, __VA_ARGS__)
-
-#define _debugException(...)	Logger::log(LOG_DEBUG, __VA_ARGS__)
-#define _debugInit(...)		Logger::log(LOG_DEBUG, __VA_ARGS__)
-#define _debugAlsa(...)		Logger::log(LOG_DEBUG, __VA_ARGS__)
+#define _debugException(...) Logger::getInstance()->log(LOG_DEBUG, __VA_ARGS__)
+#define _debugInit(...)		 Logger::getInstance()->log(LOG_DEBUG, __VA_ARGS__)
+#define _debugAlsa(...)		 Logger::getInstance()->log(LOG_DEBUG, __VA_ARGS__)
 
 #define BLACK "\033[22;30m"
 #define RED "\033[22;31m"
@@ -69,17 +63,100 @@ void setDebugMode (bool);
 #define WHITE "\033[01;37m"
 #define END_COLOR "\033[0m"
 
-namespace sfl
-{
-#define ERROR ost::slog("sflphoned", Slog::classDaemon, Slog::levelError)
-#define ALERT ost::slog("sflphoned", Slog::classDaemon, Slog::levelAlert)
-#define CRITICAL ost::slog("sflphoned", Slog::classDaemon, Slog::levelCritical)
-#define EMERGENCY ost::slog("sflphoned", Slog::classDaemon, Slog::levelEmergency)
-#define WARNING ost::slog("sflphoned", Slog::classDaemon, Slog::levelWarning)
-#define NOTICE ost::slog("sflphoned", Slog::classDaemon, Slog::levelNotice)
-#define INFO ost::slog("sflphoned", Slog::classDaemon, Slog::levelInfo)
-#define DEBUG ost::slog("sflphoned", Slog::classDaemon, Slog::levelDebug)
-}
+class Logger {
+public:
+	virtual inline ~Logger() {};
+
+	/**
+	 * Log some message under the given severity mode.
+	 * @param level The serverity level.
+	 * @param format The format string.
+	 * @param ... The variable argument list.
+	 */
+	void log (const int level, const char* format, ...){
+	    if (!debugMode && level == LOG_DEBUG)
+	        return;
+
+	    va_list ap;
+	    std::string prefix = "<> ";
+	    char buffer[4096];
+	    std::string message = "";
+	    std::string color_prefix = "";
+
+	    switch (level) {
+	        case LOG_ERR: {
+	            prefix = "<error> ";
+	            color_prefix = RED;
+	            break;
+	        }
+	        case LOG_WARNING: {
+	            prefix = "<warning> ";
+	            color_prefix = YELLOW;
+	            break;
+	        }
+	        case LOG_INFO: {
+	            prefix = "<info> ";
+	            color_prefix = GREEN;
+	            break;
+	        }
+	        case LOG_DEBUG: {
+	            prefix = "<debug> ";
+	            color_prefix = "";
+	            break;
+	        }
+	    }
+
+	    va_start (ap, format);
+	    vsprintf (buffer, format, ap);
+	    va_end (ap);
+
+	    message = buffer;
+	    message = prefix + message;
+
+	    syslog (level, "%s", message.c_str());
+
+	    if (consoleLog) {
+	        message = color_prefix + message + END_COLOR + "\n";
+	        fprintf (stderr, "%s", message.c_str());
+	    }
+	}
+
+	/**
+	 * @param c Will log to console if set to true.
+	 */
+	void setConsoleLog (bool c)
+	{
+	    consoleLog = c;
+	}
+
+	/**
+	 * @param d Will print debug message if set to true.
+	 */
+	void setDebugMode (bool d)
+	{
+	    debugMode = d;
+	}
+
+	/**
+	 * @return An instance of the Logger.
+	 */
+	static Logger* getInstance() {
+		if (instance == NULL) {
+			instance = new Logger();
+		}
+
+		return instance;
+	}
+
+protected:
+	Logger() : consoleLog(false), debugMode(false) {}
+
+private:
+	bool consoleLog;
+	bool debugMode;
+
+	static Logger* instance;
+};
 
 #endif
 

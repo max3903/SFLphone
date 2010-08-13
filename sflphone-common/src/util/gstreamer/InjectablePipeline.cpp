@@ -30,6 +30,7 @@
 #include "InjectablePipeline.h"
 #include "logger.h"
 
+#include <string.h>
 #include <sstream>
 
 namespace sfl

@@ -143,6 +143,11 @@ class CodecFactory
         } CodecComparator;
 
         /**
+         * @return A list of available video codecs from this code.
+         */
+        std::vector<sfl::Codec*> loadDefaultVideoCodecs();
+
+        /**
          * Initialiaze the map with all the supported codecs, even those inactive
          */
         void init();

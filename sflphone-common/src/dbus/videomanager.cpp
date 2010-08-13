@@ -222,8 +222,7 @@ void VideoManager::stopLocalCapture(const std::string& device,
 }
 
 std::string VideoManager::getEventFdPasserNamespace(const std::string& device) {
-	sfl::VideoEndpoint* endpt;
-
+	sfl::VideoEndpoint* endpt = NULL;
 	try {
 		endpt = getVideoEndpoint(device);
 	} catch (sfl::UnknownVideoDeviceException e) {
@@ -236,6 +235,8 @@ std::string VideoManager::getEventFdPasserNamespace(const std::string& device) {
 }
 
 void VideoManager::stageRtpSession(SipCall* call) {
+	_info("Staging video RTP session ...");
+
 	DeviceNameToVideoEndpointIterator it = videoEndpoints.find(call->getVideoDevice());
 	sfl::VideoEndpoint* endpoint;
 	if (it == videoEndpoints.end()) {
@@ -270,17 +271,20 @@ void VideoManager::stageRtpSession(SipCall* call) {
 }
 
 void VideoManager::startRtpSession(SipCall* call, std::vector<const sfl::VideoCodec*> negotiatedCodecs) {
+	_info("Starting video RTP session ...");
+
 	DeviceNameToVideoEndpointIterator it = videoEndpoints.find(call->getVideoDevice());
-	sfl::VideoEndpoint* endpoint;
 	if (it == videoEndpoints.end()) {
 		// TODO Throw UnstagedRtpSessionException
 		_error("Cannot find a video endpoint for device %s", call->getVideoDevice().c_str());
+		return;
 	}
 
 	// Add a destination
 	sfl::InetSocketAddress localAddress(call->getLocalIp(), call->getLocalVideoPort());
     sfl::InetSocketAddress destinationAddress(call->getLocalSDP()->getRemoteIp(), call->getLocalSDP()->getRemoteVideoPort());
 
+	sfl::VideoEndpoint* endpoint = (*it).second;
     endpoint->addDestination(localAddress, destinationAddress);
 
     // Configure the RTP session with the given codec list (at least of size 1) and start sending data.
