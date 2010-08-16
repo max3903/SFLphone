@@ -226,12 +226,12 @@ void DelayDetection::process (SFLDataFormat *inputData, int nbBytes)
       _debug("micSeg: %.10f", _captureDataDown[i]);
     */
 
-    _debug ("_spkrDownSize: %d, _micDownSize: %d", _spkrDownSize, _micDownSize);
+    //_debug ("_spkrDownSize: %d, _micDownSize: %d", _spkrDownSize, _micDownSize);
     crossCorrelate (_spkrReferenceDown, _captureDataDown, _correlationResult, _micDownSize, _spkrDownSize);
 
     int maxIndex = getMaxIndex (_correlationResult, _spkrDownSize);
 
-    _debug ("MaxIndex: %d", maxIndex);
+    //_debug ("MaxIndex: %d", maxIndex);
 
     // reset();
 }
@@ -245,8 +245,6 @@ void DelayDetection::process (SFLDataFormat *micData, SFLDataFormat *spkrData, S
 
 void DelayDetection::crossCorrelate (float *ref, float *seg, float *res, int refSize, int segSize)
 {
-
-    _debug ("CrossCorrelate");
 
     int counter = 0;
 

@@ -207,6 +207,8 @@ void VideoEndpoint::startRtpSession(const InetSocketAddress& localAddress, std::
 		// Note that there should be no risk of conflicting payload types as this is taken care in the SdpMedia object.
 		rtpSession->addSessionCodec((*codecIt)->getPayloadType(), (*codecIt));
 	}
+
+	// Start sending/receiving RTP packets
 	rtpSession->start();
 }
 

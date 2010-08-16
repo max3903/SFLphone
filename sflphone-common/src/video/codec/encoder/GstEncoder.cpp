@@ -163,7 +163,7 @@ void GstEncoder::encode (const VideoFrame* frame) throw (VideoEncodingException)
     GST_BUFFER_SIZE (buffer) = frame->getSize();
     GST_BUFFER_DATA (buffer) = (guint8*) frame->getFrame();
 
-    _info ("Encoding frame of raw size %d", GST_BUFFER_SIZE (buffer));
+    //_info ("Encoding frame of raw size %d", GST_BUFFER_SIZE (buffer));
 
     injectableEnd->inject (buffer);
 }

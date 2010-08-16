@@ -33,6 +33,8 @@
 #include "util/gstreamer/Pipeline.h"
 #include "util/pattern/AbstractObservable.h"
 
+#include <cc++/thread.h>
+
 #include <gst/app/gstappsink.h>
 #include "logger.h"
 namespace sfl
@@ -91,7 +93,7 @@ class RetrievablePipeline : public Pipeline, public AbstractObservable<GstBuffer
          * Simple dispatch for this observer type.
          */
         void notify (RetrievablePipelineObserver* observer, GstBuffer* data) {
-            _debug ("Notifying observers");
+            //_debug ("Notifying observers");
             observer->onNewBuffer (data);
         }
 
@@ -110,6 +112,8 @@ class RetrievablePipeline : public Pipeline, public AbstractObservable<GstBuffer
 
         GstElement* appsink;
         static unsigned numberInstances;
+
+        ost::Mutex bufferCapsLock;
 };
 }
 

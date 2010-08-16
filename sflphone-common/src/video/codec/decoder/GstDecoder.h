@@ -119,7 +119,7 @@ class GstDecoder : public VideoDecoder, protected Filter
                  * @Override
                  */
                 void onNewBuffer (GstBuffer* buffer) {
-                    _debug ("Video frame decoded to raw format ...");
+                    //_debug ("Video frame decoded to raw format ...");
                     // parent->notifyAll(nalUnit);
                 }
         };

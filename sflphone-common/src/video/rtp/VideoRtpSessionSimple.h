@@ -139,8 +139,8 @@ class VideoRtpSessionSimple: public ost::RTPSession
                 }
                 VideoRtpSessionSimple* parent;
                 void onNewFrameEncoded (std::pair<uint32, Buffer<uint8> >& data) {
-                    _debug ("Sending NAL unit over RTP");
-                    _debug ("Size %d", (data.second).getSize());
+                    //_debug ("Sending NAL unit over RTP");
+                    //_debug ("Size %d", (data.second).getSize());
                     parent->sendImmediate (data.first /* timestamp */,
                                            (data.second).getBuffer() /* payload */,
                                            (data.second).getSize() /* payload size */);

@@ -206,20 +206,21 @@ CodecOrder CodecFactory::getDefaultVideoCodecOrder()
 std::vector<sfl::Codec*> CodecFactory::loadDefaultVideoCodecs() {
 	std::vector<sfl::Codec*> output;
 
-	sfl::Codec* codec;
+	sfl::VideoCodec* codec;
 	try {
 		codec = new sfl::GstCodecH264();
+		codec->activate();
 		output.push_back(codec);
 	} catch (sfl::MissingPluginException e) {
 		_error("%s", e.what());
 	}
 
-	try {
-		codec = new sfl::GstCodecTheora();
-		output.push_back(codec);
-	} catch (sfl::MissingPluginException e) {
-		_error("%s", e.what());
-	}
+//	try {
+//		codec = new sfl::GstCodecTheora();
+//		output.push_back(codec);
+//	} catch (sfl::MissingPluginException e) {
+//		_error("%s", e.what());
+//	}
 
 	return output;
 }

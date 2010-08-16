@@ -30,7 +30,63 @@
 #ifndef __SFL_MIME_PARAMETERS_H__
 #define __SFL_MIME_PARAMETERS_H__
 
+/**
+ * Start a new payload format definition.
+ */
+#define MIME_PAYLOAD_FORMAT_DEFINITION( mime, subtype, payloadType, clock ) \
+	class MimeParameters##subtype: public virtual MimeParameters \
+	{ \
+		public: \
+        inline virtual ~MimeParameters##subtype() {} \
+        std::string getMimeType() const { \
+            return std::string( mime ); \
+        } \
+        std::string getMimeSubtype() const { \
+            return std::string( #subtype ); \
+        } \
+        uint8 getPayloadType() const { \
+            return payloadType; \
+        } \
+        uint32 getClockRate() const { \
+            return clock; \
+        } \
+	    MimeParameters##subtype() {
+
+/**
+ * Defines an optional parameter.
+ */
+#define MIME_PARAMETER(name)	\
+	addDefaultParameter( name );
+
+/**
+ * Defines an optional parameter.
+ */
+#define MIME_PARAMETER_OPTIONAL(name) \
+	addOptionalParameter( name );
+
+/**
+ * Defines a default parameter that may, or may not, be required.
+ */
+#define MIME_PARAMETER_DEFAULT(name) \
+	addDefaultParameter( name ) \
+
+/**
+ * Defines a required parameter. The value of this parameter
+ * should be obtained when sending the initial SDP offer.
+ */
+#define MIME_PARAMETER_REQUIRED(name) \
+	addRequiredParameter( name )
+
+/**
+ * End a payload format definition.
+ */
+#define MIME_PAYLOAD_FORMAT_DEFINITION_END() \
+        } \
+	}; \
+
 #include <ccrtp/rtp.h>
+#include <vector>
+#include <map>
 
 namespace sfl
 {
@@ -72,6 +128,62 @@ class MimeParameters
          * @return The value that is set for this parameter.
          */
         virtual std::string getParameter (const std::string& name) = 0;
+
+        /**
+         * @return A map (param. name : value) containing the codec specific parameters.
+         */
+        std::map<std::string, std::string> getDefaultParameters() {
+        	std::map<std::string, std::string> output;
+        	std::vector<std::string>::iterator it;
+        	for (it = defaultParameters.begin(); it != defaultParameters.end(); it++) {
+        		output.insert(std::pair<std::string, std::string>(*it, getParameter(*it)));
+        	}
+
+        	return output;
+        }
+
+        /**
+         * @return A string containing the codec specific parameters, formatted by default as :
+         * "PARAM_LIST : PARAM_NAME = VALUE SEMI_COLON PARAM_LIST | PARAM_END
+         *  PARAM_END : empty"
+         */
+        virtual std::string getDefaultParametersFormatted() {
+        	std::string output;
+
+        	std::map<std::string, std::string> paramList = getDefaultParameters();
+        	std::map<std::string, std::string>::iterator it;
+        	for (it = paramList.begin(); it != paramList.end(); it++) {
+        		output.append("; " + (*it).first + "=" + (*it).second);
+        	}
+
+        	return output;
+        }
+
+    protected:
+        /**
+         * @param name The name for the default parameter to add.
+         */
+        void addDefaultParameter(const std::string& name) {
+        	defaultParameters.push_back(name);
+        }
+
+        /**
+         * @param name The name for the required parameter to add.
+         */
+        void addRequiredParameter(const std::string& name) {
+        	requiredParameters.push_back(name);
+        }
+
+        /**
+         * @param name The name for the optional parameter to add.
+         */
+        void addOptionalParameter(const std::string& name) {
+        	optionalParameters.push_back(name);
+        }
+
+        std::vector<std::string> defaultParameters;
+        std::vector<std::string> requiredParameters;
+        std::vector<std::string> optionalParameters;
 };
 
 }

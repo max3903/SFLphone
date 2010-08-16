@@ -134,7 +134,7 @@ GstDecoder::~GstDecoder()
 void GstDecoder::decode (Buffer<uint8>& data)
 throw (VideoDecodingException)
 {
-    _debug ("Decoding RTP packet ...");
+    //_debug ("Decoding RTP packet ...");
 
     // Convert the raw decrypted packet to a GstBuffer that can be sent downstream in the pipeline.
     // TODO Figure out if we can avoid copying the data.

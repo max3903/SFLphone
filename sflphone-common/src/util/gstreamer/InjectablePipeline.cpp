@@ -86,17 +86,21 @@ std::string InjectablePipeline::getField (const std::string& name)
 
     // Convert the value to string
     gchar* valueStr;
-
+    std::string output;
     if ( (valueStr = gst_value_serialize (value)) == NULL) {
         // TODO throw
+    	_warn("Field %s could not be found", name.c_str());
+    	output = std::string("");
+    } else {
+    	output = std::string(valueStr);
     }
 
-    return std::string ( (char*) valueStr);
+    return output;
 }
 
 void InjectablePipeline::onEnoughData()
 {
-    _debug ("Appsrc queue has enough data");
+    //_debug ("Appsrc queue has enough data");
     enoughData = true;
     notifyAll (NULL, "onEnoughData");
 }
@@ -109,7 +113,7 @@ void InjectablePipeline::enough_data_cb (GstAppSrc *src, gpointer data)
 
 void InjectablePipeline::onNeedData()
 {
-    _debug ("Appsrc queue needs more data");
+    //_debug ("Appsrc queue needs more data");
     enoughData = false;
     notifyAll (NULL, "onNeedData");
 }
@@ -124,7 +128,7 @@ void InjectablePipeline::need_data_cb (GstAppSrc *src, guint length,
 void InjectablePipeline::inject (GstBuffer* data)
 {
     if (enoughData == false) {
-        _debug ("Injecting buffer ...");
+       // _debug ("Injecting buffer ...");
 
         if (gst_app_src_push_buffer (GST_APP_SRC (appsrc), data) != GST_FLOW_OK) {
             _warn ("Failed to push buffer.");

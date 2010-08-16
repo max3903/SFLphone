@@ -3425,10 +3425,11 @@ void call_on_media_update (pjsip_inv_session *inv, pj_status_t status)
         return;
     }
 
-    // Get the new sdp, result of the negotiation
+    // Get the negotiated (updated locally) answer
     const pjmedia_sdp_session* local_sdp;
     pjmedia_sdp_neg_get_active_local (inv->neg, &local_sdp);
 
+    // Get the raw answer
     const pjmedia_sdp_session* remote_sdp;
     pjmedia_sdp_neg_get_active_remote (inv->neg, &remote_sdp);
 
@@ -3511,14 +3512,14 @@ void call_on_media_update (pjsip_inv_session *inv, pj_status_t status)
 
     Sdp* sdpSession = call->getLocalSDP();
     if (!sdpSession) {
-        _error ("Failed to retrieve the SDP session");
+        _error ("Failed to retrieve the SDP session (%s:%d)", __FILE__, __LINE__);
         return; // FIXME Be a bit more severe please !
     }
 
     // Get a fresh instance of the codec that will handle the media
     const AudioCodec* audioCodec = sdpSession->getFirstNegotiatedAudioCodec();
     if (!audioCodec) {
-        _error ("Failed to retrieve the audio codec for the session");
+        _error ("Failed to retrieve the audio codec for the session (%s:%d)", __FILE__, __LINE__);
         return; // FIXME Be a bit more severe ! More tough love.
     }
 

@@ -299,6 +299,10 @@ void Sdp::setMediaDescriptorLine(SdpMedia *media, pjmedia_sdp_media** p_med) {
 		pjmedia_sdp_rtpmap_to_attr(_pool, &rtpmap, &attr);
 		_debug("%.*s", attr->value.slen, attr->value.ptr);
 		med->attr[med->attr_count++] = attr;
+
+		std::string params = const_cast<sfl::Codec*>(codec)->getDefaultParametersFormatted();
+		_debug("************************* default params \"%s\"", params.c_str());
+
 	}
 
 	// Add the direction stream
