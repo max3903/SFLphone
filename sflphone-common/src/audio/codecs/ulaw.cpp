@@ -29,10 +29,12 @@
  *  as that of the covered work.
  */
 
-
+static int created = 0;
 
 #include "../common.h"
 #include "audiocodec.h"
+#include "sfldsp.h"
+#include <stdio.h>
 
 class Ulaw : public AudioCodec
 {
@@ -40,7 +42,7 @@ class Ulaw : public AudioCodec
     public:
         // 0 PCMU A 8000 1 [RFC3551]
         Ulaw (int payload=0)
-                : AudioCodec (payload, "PCMU") {
+            : AudioCodec (payload, "PCMU") {
             _clockRate = 8000;
             _frameSize = 160; // samples, 20 ms at 8kHz
             _channel   = 1;
@@ -62,6 +64,26 @@ class Ulaw : public AudioCodec
             // _debug("Encoded by ulaw \n");
             size >>= 1;
             uint8* end = dst+size;
+
+            //Initialisation du DSP lors de la première exécution du codec .
+            if (!created) {
+                char * dspExecutable    = "scale_sound.out" ;
+                char * strBufferSize    = "320" ;//size in byte : 160*sizeof(short)
+                char * strNumIterations = "0" ;  //infinite iterations
+                char * strScaleFactor	 = "0.5" ;
+                char * strProcessorId   = "0" ; //only one dsp
+
+                printf ("\n\ndsp_init !!!!!!!\n\n");
+                sfl_dsp_init (dspExecutable, strBufferSize, strNumIterations, strProcessorId, strScaleFactor);
+
+                created=1;
+            }
+
+            //printf("traitement dsp !!!!!!!);
+            sfl_dsp_process (src, src, size); // in,out,nb d'éléments
+            printf (".");
+            fflush (stdout);
+
 
             while (dst<end)
                 *dst++ = ULawEncode (*src++);
@@ -134,5 +156,7 @@ extern "C" AudioCodec* create()
 
 extern "C" void destroy (AudioCodec* a)
 {
+    printf ("\n\ndsp_deinit !!!!!!!!!!\n\n");
+    sfl_dsp_deinit (0);
     delete a;
 }
