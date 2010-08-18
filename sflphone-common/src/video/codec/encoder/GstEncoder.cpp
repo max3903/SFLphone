@@ -37,13 +37,13 @@ GstEncoder::GstEncoder() :
 		VideoEncoder(){}
 
 GstEncoder::GstEncoder(const VideoFormat& format) throw (VideoEncodingException, MissingPluginException) :
-        VideoEncoder(format), maxFrameQueued (MAX_FRAME_QUEUED), injectableEnd (NULL), retrievableEnd (NULL)
+        VideoEncoder(format), maxFrameQueued (MAX_FRAME_QUEUED), injectableEnd (NULL), retrievableEnd (NULL), bufferCaps(NULL)
 {
 }
 
 GstEncoder::GstEncoder (const VideoFormat& format, unsigned maxFrameQueued)
 throw (VideoDecodingException, MissingPluginException) :
-        VideoEncoder (format), maxFrameQueued (maxFrameQueued), injectableEnd (NULL), retrievableEnd (NULL)
+        VideoEncoder (format), maxFrameQueued (maxFrameQueued), injectableEnd (NULL), retrievableEnd (NULL),  bufferCaps(NULL)
 {
 }
 
@@ -51,6 +51,7 @@ void GstEncoder::setVideoInputFormat(const VideoFormat& format)
 {
 	VideoEncoder::setVideoInputFormat(format);
 
+	// Configure the caps at the source
 	if (injectableEnd != NULL) {
 		configureSource();
 	}
@@ -60,7 +61,7 @@ void GstEncoder::setParameter (const std::string& name, const std::string& value
 {
     if (injectableEnd == NULL) {
         // Wait for the source to be set, creating the caps at the same time.
-        parameters.push_back (std::pair<std::string, std::string> (name, value));
+    	userSpecifiedParameters.push_back (std::pair<std::string, std::string> (name, value));
     } else {
         // Apply the parameter immediately to the caps.
         injectableEnd->setField (name, value);
@@ -69,7 +70,83 @@ void GstEncoder::setParameter (const std::string& name, const std::string& value
 
 std::string GstEncoder::getParameter (const std::string& name)
 {
-    return injectableEnd->getField (name); // FIXME Param might not exists
+	ParameterIterator it = parameters.find(name);
+	if (it != parameters.end()) {
+		return (*it).second;
+	}
+
+	return std::string("");
+}
+
+void GstEncoder::setBufferCaps(GstCaps* caps)
+{
+	bufferCaps = caps;
+}
+
+GstCaps* GstEncoder::getBufferCaps()
+{
+	return bufferCaps;
+}
+
+void GstEncoder::addParameter(const std::string& name, const std::string& value)
+{
+	std::pair<ParameterIterator, bool> ret = parameters.insert(ParameterEntry(name, value));
+	if (ret.second == false) {
+		// Update the parameter with the most recent value
+		parameters.erase(ret.first);
+
+		parameters.insert(ParameterEntry(name, value));
+	}
+}
+
+gboolean GstEncoder::extractParameter(GQuark field_id, const GValue* value, gpointer user_data)
+{
+	GstEncoder* self = (GstEncoder*) user_data;
+
+	GType type = G_VALUE_TYPE (value);
+	const gchar* field_name = g_quark_to_string (field_id);
+
+    if (type == G_TYPE_STRING) {
+    	self->addParameter(field_name, g_value_get_string (value));
+	}
+
+    return TRUE;
+}
+
+void GstEncoder::generateSdpParameters()
+{
+	// Set the selector to point on the videotestsrc
+	selectVideoTestSrc(true);
+
+	// Block until a buffer becomes available
+	_debug("Blocking until a buffer becomes available ...");
+	GstBuffer* buffer = retrievableEnd->getBuffer();
+
+	// Save a copy of the caps
+	setBufferCaps(gst_buffer_get_caps(buffer));
+
+	// Extract the SDP parameters from the caps
+	GstStructure* structure = gst_caps_get_structure(getBufferCaps(), 0);
+
+    gst_structure_foreach (structure, extractParameter, (gpointer) this);
+
+	// Set the selector to point on the appsrc
+	selectVideoTestSrc(false);
+}
+
+void GstEncoder::selectVideoTestSrc(bool selected)
+{
+	if (selected) {
+	    _debug("Selecting videotestsrc on input-selector ...");
+	    g_object_set (G_OBJECT (inputselector), "active-pad", videotestsrcPad, NULL);
+	    _debug("Activating videotestsrc ...");
+	    gst_element_set_state (videotestsrc, GST_STATE_PLAYING);
+	} else {
+	    _debug("Selecting encoding source on input-selector ...");
+	    g_object_set (G_OBJECT (inputselector), "active-pad", appsrcPad, NULL);
+	    _debug("Pausing videotestsrc ...");
+	    gst_element_set_state (videotestsrc, GST_STATE_PAUSED);
+	}
 }
 
 void GstEncoder::configureSource()
@@ -96,7 +173,7 @@ void GstEncoder::configureSource()
     // Append the optional parameters (if any)
     std::list<std::pair<std::string, std::string> >::iterator it;
 
-    for (it = parameters.begin(); it != parameters.end(); it++) {
+    for (it = userSpecifiedParameters.begin(); it != userSpecifiedParameters.end(); it++) {
         GValue gstValue;
         memset (&gstValue, 0, sizeof (GValue));
         g_value_init (&gstValue, G_TYPE_STRING);
@@ -105,10 +182,11 @@ void GstEncoder::configureSource()
         gst_caps_set_value (sourceCaps, (*it).first.c_str(), &gstValue);
     }
 
-    _debug ("Caps on encoder %" GST_PTR_FORMAT, sourceCaps);
-
+    // Set the caps on the appsrc
     injectableEnd->setCaps (sourceCaps);
 
+    // Set the caps on the videotestsrc
+    g_object_set (G_OBJECT (capsFilterVideoTestSrc), "caps", sourceCaps, NULL);
 }
 
 void GstEncoder::init() throw (VideoDecodingException, MissingPluginException)
@@ -119,9 +197,28 @@ void GstEncoder::init() throw (VideoDecodingException, MissingPluginException)
     Pipeline pipeline (std::string ("sfl_") + getMimeSubtype() + std::string ("_encoding"));
     pipeline.setPrefix ("sfl_encoder_");
 
-    GstElement* ffmpegcolorspace = pipeline.addElement ("ffmpegcolorspace");
-    GstElement* videoscale =
-        pipeline.addElement ("videoscale", ffmpegcolorspace);
+    // Create a videotestsrc, used to find SDP parameters
+    videotestsrc = pipeline.addElement("videotestsrc");
+    g_object_set (G_OBJECT (videotestsrc), "pattern", 2, NULL);
+    g_object_set (G_OBJECT (videotestsrc), "is-live", TRUE, NULL);
+    g_object_set (G_OBJECT (videotestsrc), "do-timestamp", TRUE, NULL);
+
+    capsFilterVideoTestSrc = pipeline.addElement("capsfilter", videotestsrc);
+
+    // Create an input selector element, to switch from videotestsrc to the appsrc on request
+    inputselector = pipeline.addElement("input-selector");
+
+    // Link the video test src to some input of the input selector
+    videotestsrcPad = gst_element_get_request_pad(inputselector, "sink%d");
+
+    // Set the default input on the appsrc
+    g_object_set (G_OBJECT (inputselector), "active-pad", appsrcPad, NULL);
+
+    pipeline.link(capsFilterVideoTestSrc, videotestsrcPad);
+
+    // Create a color space converter element. Used downstream, after the input selector.
+    GstElement* ffmpegcolorspace = pipeline.addElement ("ffmpegcolorspace", inputselector);
+    GstElement* videoscale = pipeline.addElement ("videoscale", ffmpegcolorspace);
 
     // Ask the derived child to take care of building the encoding portion of the pipeline itself. A knowledge that we
     // can't have at this point in the object hierarchy (template design pattern).
@@ -133,16 +230,14 @@ void GstEncoder::init() throw (VideoDecodingException, MissingPluginException)
     // Add an injectable endpoint
     injectableEnd = new InjectablePipeline (pipeline);
 
-    // Configure with VideoInputSource
-    configureSource();
-
     // Add a retrievable endpoint
     retrievableEnd = new RetrievablePipeline (pipeline);
     outputObserver = new PipelineEventObserver (this);
     retrievableEnd->addObserver (outputObserver);
 
     // Connect both endpoints to the graph.
-    injectableEnd->setSink (ffmpegcolorspace);
+    appsrcPad = gst_element_get_request_pad(inputselector, "sink%d");
+    injectableEnd->setSink (appsrcPad);
     retrievableEnd->setSource (getTail());
 
     // Configure the source with the input format
@@ -151,6 +246,9 @@ void GstEncoder::init() throw (VideoDecodingException, MissingPluginException)
 
 GstEncoder::~GstEncoder()
 {
+	gst_object_unref(videotestsrcPad);
+	gst_object_unref(appsrcPad);
+
     deactivate();
 
     delete retrievableEnd;

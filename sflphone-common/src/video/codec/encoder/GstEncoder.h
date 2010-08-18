@@ -95,17 +95,75 @@ class GstEncoder: public VideoEncoder, protected Filter
 
         static const unsigned MAX_FRAME_QUEUED = 10;
 
+    protected:
+    	/**
+    	 * Generate SDP parameters from video input format.
+    	 * This method is not meant to be called by GstEncoder subclasses.
+    	 * @postcondition Some of the missing parameters should now be filled with values.
+    	 */
+    	void generateSdpParameters();
+
     private:
 
         unsigned maxFrameQueued;
+
+        InjectablePipeline* injectableEnd;
+
+        RetrievablePipeline* retrievableEnd;
+
+        std::map<std::string, std::string> parameters;
+        typedef std::pair<std::string, std::string> ParameterEntry;
+        typedef std::map<std::string, std::string>::iterator ParameterIterator;
+
+        GstCaps* bufferCaps;
+
+        GstElement* videotestsrc;
+
+        GstPad* videotestsrcPad;
+
+        GstElement* capsFilterVideoTestSrc;
+
+        GstPad* appsrcPad;
+
+        GstElement* inputselector;
 
         /**
          * Helper method for constructors.
          */
         void init() throw (VideoDecodingException, MissingPluginException);
 
-        InjectablePipeline* injectableEnd;
-        RetrievablePipeline* retrievableEnd;
+        /**
+         * Set the GstCaps structure that contains those parameters usable for SDP.
+         * Set only once.
+         * @param caps The GstCaps structure obtained from th GstBuffer at the sink element.
+         */
+        void setBufferCaps(GstCaps* caps);
+
+        /**
+         * @return The buffer caps, or NULL if those are not available.
+         */
+        GstCaps* getBufferCaps();
+
+        /**
+         * Add a parameter to the local parameter list.
+         * @param name The parameter name (the key in a map)
+         * @param value The value that this parameter takes.
+         */
+        void addParameter(const std::string& name, const std::string& value);
+
+        /**
+         * A function that will be called in gst_structure_foreach(), in generateSdpParameters().
+         * @param field_id the GQuark of the field name
+		 * @param value the GValue of the field
+		 * @param user_data user data (A pointer on the object instance)
+         */
+        static gboolean extractParameter(GQuark field_id, const GValue *value, gpointer user_data);
+
+        /**
+         * @param selected true if the videotestsrc element should be selected as input.
+         * If set to false, the appsrc will be selected.
+         */
+        void selectVideoTestSrc(bool selected);
 
         /**
          * Observer object for NAL units produced by this encoder.
@@ -122,9 +180,8 @@ class GstEncoder: public VideoEncoder, protected Filter
                  * @Override
                  */
                 void onNewBuffer (GstBuffer* buffer) {
-                    // _debug("Caps on buffer at the SINK %" GST_PTR_FORMAT, gst_buffer_get_caps(buffer));
-
                     GstBuffer* payload = gst_rtp_buffer_get_payload_buffer (buffer);
+
                     uint32 timestamp = gst_rtp_buffer_get_timestamp (buffer);
 
                     uint8* payloadData = GST_BUFFER_DATA (payload);
@@ -144,7 +201,7 @@ class GstEncoder: public VideoEncoder, protected Filter
          * cannot be set at object creation is some cases. Then if setVideoSource() occurs after setParameters(),
          * then the latter will fail as the GstCaps had not been created yet at that point.
          */
-        std::list<std::pair<std::string, std::string> > parameters;
+        std::list<std::pair<std::string, std::string> > userSpecifiedParameters;
 
         /**
          * Given that a video input source was set, configure the corresponding caps on the appsrc element.

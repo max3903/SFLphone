@@ -268,10 +268,6 @@ void VideoManager::stageRtpSession(SipCall* call) {
 
 	sfl::InetSocketAddress address(call->getLocalIp(), call->getLocalVideoPort());
 	endpoint->createRtpSession(address);
-
-	// Let some data flow into the pipeline (for the Gstreamer implementation) so that we can find parameter set
-	// we need to send into the SDP.
-	endpoint->capture();
 }
 
 void VideoManager::startRtpSession(SipCall* call, std::vector<const sfl::VideoCodec*> negotiatedCodecs) {

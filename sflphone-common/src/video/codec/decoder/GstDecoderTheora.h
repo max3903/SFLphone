@@ -41,7 +41,7 @@
 namespace sfl
 {
 
-class GstDecoderTheora: public MimeParametersTheora, public GstDecoder
+class GstDecoderTheora: public MimeParametersTHEORA, public GstDecoder
 {
     protected:
         /**

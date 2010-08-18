@@ -142,18 +142,28 @@ public:
 	 */
 	std::string getStreamDirectionStr();
 
+    /**
+     * Setting the VideoFormat is required for some codec such as Theora that must
+     * send width/height and subsampling parameters in SDP.
+     *
+     * @param format The video format in which the frames will be obtained.
+     * @postcondition Calling this method will trigger creation of SDP parameters on every
+     * available video codec.
+     */
+	void setVideoFormat(const sfl::VideoFormat& format);
+
 	/**
 	 * @return a string description of the current media
 	 */
 	std::string toString();
-private:
 
+private:
 	/* The type of media */
-	MediaType _media_type;
+	MediaType _mediaType;
 
 	/* The media codec vector */
-	std::vector<const sfl::Codec*> _codecList;
-	typedef std::vector<const sfl::Codec*>::iterator CodecListIterator;
+	std::vector<sfl::Codec*> _codecList;
+	typedef std::vector<sfl::Codec*>::iterator CodecListIterator;
 
 	/* We maintain this data structure to ensure uniqueness in payload types */
 	std::set<uint8> _payloadList;
@@ -162,7 +172,7 @@ private:
 	int _port;
 
 	/* The stream direction */
-	StreamDirection _stream_type;
+	StreamDirection _streamType;
 
 	/**
 	 * Payload predicate to match a payload type in a codec.
@@ -172,7 +182,7 @@ private:
 		IsSamePayload(ost::PayloadType pt) :
 			pt(pt) {
 		}
-		bool operator()(const sfl::Codec*& codec) const {
+		bool operator()(sfl::Codec*& codec) const {
 			return codec->getPayloadType() == pt;
 		}
 	private:

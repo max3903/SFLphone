@@ -51,6 +51,14 @@ throw (MissingPluginException)
 
 }
 
+void GstEncoderH264::setVideoInputFormat(const VideoFormat& format)
+{
+	GstEncoder::setVideoInputFormat(format);
+
+	generateSdpParameters();
+}
+
+
 GstElement* GstEncoderH264::getHead()
 {
     return x264enc;

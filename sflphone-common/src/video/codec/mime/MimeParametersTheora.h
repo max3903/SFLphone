@@ -40,90 +40,35 @@ namespace sfl
  *
  * MIME subtype: theora
  */
-class MimeParametersTheora : public virtual MimeParameters
-{
-    public:
-        /**
-         * @Override
-         */
-        std::string getMimeType() const {
-            return "video";
-        }
-
-        /**
-         * @Override
-         */
-        std::string getMimeSubtype() const {
-            return "theora";
-        }
-
-        /**
-         * @Override
-         */
-        uint8 getPayloadType() const {
-            return 96;
-        }
-
-        /**
-         * @Override
-         */
-        uint32 getClockRate() const {
-            return 90000;
-        }
-
+MIME_PAYLOAD_FORMAT_DEFINITION("video", THEORA, 96, 90000)
         /**
          * Determines the chroma subsampling format.
          */
-        void setSampling (const std::string& value) {
-            setParameter ("sampling", value);
-        }
-        std::string getSampling() {
-            return getParameter ("sampling");
-        }
+		MIME_PARAMETER_REQUIRED ("sampling");
 
         /**
          * Determines the number of pixels per line.  This is an
          * integer between 1 and 1048561 and MUST be in multiples of 16.
          */
-        void setWidth (const std::string& value) {
-            setParameter ("width", value);
-        }
-        std::string getWidth() {
-            return getParameter ("width");
-        }
+		MIME_PARAMETER_REQUIRED ("width");
 
         /**
          * Determines the number of lines per frame encoded.  This is
          * an integer between 1 and 1048561 and MUST be in multiples of 16.
          */
-        void setHeight (const std::string& value) {
-            setParameter ("height", value);
-        }
-        std::string getHeight() {
-            return getParameter ("height");
-        }
+		MIME_PARAMETER_REQUIRED ("height");
 
         /**
          * Indicates the delivery methods in use, the
          * possible values are: inline, in_band, out_band/specific_name
          * Where "specific_name" is the name of the out of band delivery method.
          */
-        void setDeliveryMethod (const std::string& value) {
-            setParameter ("delivery-method", value);
-        }
-        std::string getDeliveryMethod() {
-            return getParameter ("delivery-method");
-        }
+		MIME_PARAMETER_REQUIRED ("delivery-method");
 
         /**
          * The base16 [11] (hexadecimal) representation of the Packed Headers (Section 3.2.1).
          */
-        void setConfiguration (const std::string& value) {
-            setParameter ("configuration", value);
-        }
-        std::string getConfiguration() {
-            return getParameter ("configuration");
-        }
+		MIME_PARAMETER_REQUIRED ("configuration");
 
         /**
          * The URI of the configuration headers in case of
@@ -135,17 +80,8 @@ class MimeParametersTheora : public virtual MimeParameters
          * checksum MAY be provided in the form of
          * "protocol://path/to/resource/aggregated.bz2!sha1hash"
          */
-        void setConfigurationUri (const std::string& value) {
-            setParameter ("configuration-uri", value);
-        }
-        std::string getConfigurationUri() {
-            return getParameter ("configuration-uri");
-        }
-
-    protected:
-        MimeParametersTheora() {};
-        inline virtual ~MimeParametersTheora() {}
-};
+        MIME_PARAMETER_OPTIONAL ("configuration-uri");
+MIME_PAYLOAD_FORMAT_DEFINITION_END()
 }
 
 #endif

@@ -50,7 +50,6 @@ Recordable::~Recordable()
 
 void Recordable::initRecFileName()
 {
-
     recAudio.initFileName (getRecFileId());
 }
 

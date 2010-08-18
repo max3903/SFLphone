@@ -43,6 +43,12 @@ namespace sfl
 
 class GstEncoderH264: public MimeParametersH264, public GstEncoder
 {
+	public:
+		/**
+		 * @Override
+		 */
+		void setVideoInputFormat(const VideoFormat& format);
+
     protected:
         /**
          * @Override

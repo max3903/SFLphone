@@ -67,7 +67,7 @@ Sdp::~Sdp() {
 	// cleanLocalMediaCapabilities();
 }
 
-std::vector<SdpMedia*> Sdp::getLocalMediaCap () {
+std::vector<SdpMedia*> Sdp::getInitialMediaList () {
     return _initialMedias;
 }
 
@@ -161,11 +161,11 @@ void Sdp::sdpAddMediaDescription() {
 	int nb_media, i;
 
 	med = PJ_POOL_ZALLOC_T (_pool, pjmedia_sdp_media);
-	nb_media = getLocalMediaCap().size();
+	nb_media = getInitialMediaList().size();
 	this->_local_offer->media_count = nb_media;
 
 	for (i = 0; i < nb_media; i++) {
-		setMediaDescriptorLine(getLocalMediaCap()[i], &med);
+		setMediaDescriptorLine(getInitialMediaList()[i], &med);
 		this->_local_offer->media[i] = med;
 	}
 }
@@ -238,7 +238,6 @@ void Sdp::setMediaDescriptorLine(SdpMedia *media, pjmedia_sdp_media** p_med) {
 	pjmedia_sdp_media* med;
 	pjmedia_sdp_rtpmap rtpmap;
 	pjmedia_sdp_attr *attr;
-	int count, i;
 
 	med = PJ_POOL_ZALLOC_T (_pool, pjmedia_sdp_media);
 
@@ -258,12 +257,14 @@ void Sdp::setMediaDescriptorLine(SdpMedia *media, pjmedia_sdp_media** p_med) {
 	}
 
 	// Media format (RTP payload)
-	count = media->getMediaCodecList().size();
+	std::vector<const sfl::Codec*> codecList = media->getMediaCodecList();
+	int count = codecList.size();
 	med->desc.fmt_count = count;
 
 	// Add the payload list
+	int i;
 	for (i = 0; i < count; i++) {
-		const sfl::Codec* codec = media->getMediaCodecList()[i]; // FIXME is copying the whole array every time.
+		const sfl::Codec* codec = codecList[i];
 		std::string payloadType = intToString(codec->getPayloadType());
 		pj_strdup2(_pool, &med->desc.fmt[i], payloadType.c_str());
 
@@ -301,8 +302,7 @@ void Sdp::setMediaDescriptorLine(SdpMedia *media, pjmedia_sdp_media** p_med) {
 		med->attr[med->attr_count++] = attr;
 
 		std::string params = const_cast<sfl::Codec*>(codec)->getDefaultParametersFormatted();
-		_debug("************************* default params \"%s\"", params.c_str());
-
+		_debug("Default params \"%s\"", params.c_str());
 	}
 
 	// Add the direction stream
@@ -592,16 +592,28 @@ unsigned int Sdp::getRemoteVideoPort() {
     return _remoteVideoPort;
 }
 
+void Sdp::setVideoFormat(const sfl::VideoFormat& format)
+{
+	_debug("Setting video format on SDP media ...");
+
+	std::vector<SdpMedia*> mediaList = getInitialMediaList();
+	std::vector<SdpMedia*>::iterator it;
+	for (it = mediaList.begin(); it != mediaList.end(); it++) {
+		if ((*it)->getMediaType() == MIME_TYPE_VIDEO) {
+			(*it)->setVideoFormat(format);
+		}
+	}
+}
+
 const sfl::Codec* Sdp::getFirstCodec() {
 	_debug ("SDP: Getting session medias. (%s:%d)", __FILE__, __LINE__);
 
-	std::vector<SdpMedia*> media_list = getSessionMediaList();
+	std::vector<SdpMedia*> mediaList = getNegotiatedMediaList();
 	const sfl::Codec *codec = NULL;
-	if (media_list.size() > 0) {
-		int nb_codec = media_list[0]->getMediaCodecList().size();
-
-		if (nb_codec > 0) {
-			codec = media_list[0]->getMediaCodecList()[0];
+	if (mediaList.size() > 0) {
+		std::vector<const sfl::Codec*> codecs = mediaList[0]->getMediaCodecList();
+		if (codecs.size()) {
+			codec = codecs[0];
 		}
 	}
 
@@ -609,12 +621,11 @@ const sfl::Codec* Sdp::getFirstCodec() {
 }
 
 const AudioCodec* Sdp::getFirstNegotiatedAudioCodec() {
-	std::vector<SdpMedia*> media_list = getSessionMediaList();
+	std::vector<SdpMedia*> mediaList = getNegotiatedMediaList();
 	std::vector<SdpMedia*>::iterator it;
-	for (it = media_list.begin(); it != media_list.end(); it++) {
+	for (it = mediaList.begin(); it != mediaList.end(); it++) {
 		if ((*it)->getMediaType() == MIME_TYPE_AUDIO) {
-			std::vector<const sfl::Codec*> codecList =
-					(*it)->getMediaCodecList();
+			std::vector<const sfl::Codec*> codecList = (*it)->getMediaCodecList();
 			if (codecList.size() != 0) {
 				return dynamic_cast<const AudioCodec*> (codecList.at(0));
 			}
@@ -625,15 +636,15 @@ const AudioCodec* Sdp::getFirstNegotiatedAudioCodec() {
 }
 
 const sfl::VideoCodec* Sdp::getFirstNegotiatedVideoCodec() {
-	std::vector<SdpMedia*> media_list = getSessionMediaList();
+	std::vector<SdpMedia*> mediaList = getNegotiatedMediaList();
 	std::vector<SdpMedia*>::iterator it;
-	for (it = media_list.begin(); it != media_list.end(); it++) {
+	for (it = mediaList.begin(); it != mediaList.end(); it++) {
 		if ((*it)->getMediaType() == MIME_TYPE_VIDEO) {
-			std::vector<const sfl::Codec*> codecList =
-					(*it)->getMediaCodecList();
+			std::vector<const sfl::Codec*> codecList = (*it)->getMediaCodecList();
 			if (codecList.size() != 0) {
 				return dynamic_cast<const sfl::VideoCodec*> (codecList.at(0));
 			}
+
 		}
 	}
 
@@ -643,7 +654,7 @@ const sfl::VideoCodec* Sdp::getFirstNegotiatedVideoCodec() {
 std::vector<const sfl::VideoCodec*> Sdp::getNegotiatedVideoCodecs() {
 	std::vector<const sfl::VideoCodec*> output;
 
-	std::vector<SdpMedia*> mediaList = getSessionMediaList();
+	std::vector<SdpMedia*> mediaList = getNegotiatedMediaList();
 	std::vector<SdpMedia*>::iterator it;
 	for (it = mediaList.begin(); it != mediaList.end(); it++) {
 		if ((*it)->getMediaType() == MIME_TYPE_VIDEO) {
@@ -780,7 +791,7 @@ void Sdp::setMediaFromSdpAnswer(const pjmedia_sdp_session* remoteSdp) {
 	}
 }
 
-std::vector<SdpMedia*> Sdp::getSessionMediaList (void) {
+std::vector<SdpMedia*> Sdp::getNegotiatedMediaList (void) {
     return _negotiatedMedias;
 }
 
@@ -811,6 +822,8 @@ pjmedia_sdp_media* Sdp::getVideoSdpMedia(const pjmedia_sdp_session* remoteSdp) {
 			return remoteSdp->media[i];;
 		}
 	}
+
+	return NULL;
 }
 
 void Sdp::getRemoteSdpCryptoFromOffer(const pjmedia_sdp_session* remote_sdp,

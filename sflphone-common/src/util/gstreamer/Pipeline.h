@@ -133,6 +133,13 @@ class Pipeline
         void link (GstPad* src, GstElement* dst) throw (GstException);
 
         /**
+         * @param src A source element to link from
+         * @param dst The destination pad to link to.
+         * @throw GstException if the two elements can't be linked together.
+         */
+        void link (GstElement* src, GstPad* dst) throw (GstException);
+
+        /**
          * @param src A source pad to link from.
          * @param dst A destination pad to link to.
          * @throw GstException if the two elements can't be linked together.

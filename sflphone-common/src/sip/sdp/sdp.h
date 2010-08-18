@@ -73,7 +73,7 @@ class Sdp
          * Get the list of the local media capabilities.
          * @return std::vector<SdpMedia*>   the vector containing the different media
          */
-        std::vector<SdpMedia*> getLocalMediaCap (void);
+        std::vector<SdpMedia*> getInitialMediaList (void);
 
         /**
          * Get the sdp session information
@@ -265,13 +265,26 @@ class Sdp
          */
         unsigned int getRemoteVideoPort();
 
+        /**
+         * Setting the VideoFormat is required for some codec such as Theora that must
+         * send width/height and subsampling parameters in SDP.
+         *
+         * @param format The video format in which the frames will be obtained.
+         * @postcondition Calling this method will trigger creation of SDP parameters on every
+         * available video codec.
+         */
+        void setVideoFormat(const sfl::VideoFormat& format);
+
         void setMediaFromSdpAnswer (const pjmedia_sdp_session *remote_sdp);
 
-        std::vector<SdpMedia*> getSessionMediaList (void);
+        std::vector<SdpMedia*> getNegotiatedMediaList (void);
 
         void getRemoteSdpCryptoFromOffer (const pjmedia_sdp_session* remote_sdp,
                                           CryptoOffer& crypto_offer);
 
+        /**
+         * @return A textual description of the object.
+         */
         std::string toString (void);
 
     private:

@@ -34,7 +34,14 @@
 
 namespace sfl
 {
-
+/**
+ *
+ * MIME media type name: video
+ *
+ * MIME subtype: H264
+ *
+ * fmtp:96 profile-level-id=42801E; packetization-mode=1; sprop-parameter-sets=J0KAFJWgUH5A,KM4CvIA=
+ */
 MIME_PAYLOAD_FORMAT_DEFINITION("video", H264, 96, 90000)
 	/**
 	 *	A base16 [6] (hexadecimal) representation of the following three bytes in the sequence

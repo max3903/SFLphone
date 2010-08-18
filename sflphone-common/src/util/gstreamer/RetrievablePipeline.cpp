@@ -50,6 +50,11 @@ GstFlowReturn RetrievablePipeline::onNewBuffer (GstAppSink* sink, gpointer data)
     return GST_FLOW_OK;
 }
 
+GstBuffer* RetrievablePipeline::getBuffer()
+{
+	return gst_app_sink_pull_buffer (GST_APP_SINK (appsink));
+}
+
 GstFlowReturn RetrievablePipeline::onNewPreroll (GstAppSink *sink,
         gpointer user_data)
 {

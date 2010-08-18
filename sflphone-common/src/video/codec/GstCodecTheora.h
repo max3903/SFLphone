@@ -34,7 +34,7 @@
 
 namespace sfl
 {
-class GstCodecTheora: public virtual MimeParametersTheora, public AbstractVideoCodec<GstEncoderTheora, GstDecoderTheora>
+class GstCodecTheora: public virtual MimeParametersTHEORA, public AbstractVideoCodec<GstEncoderTheora, GstDecoderTheora>
 {
         double getBitRate() const {
             return 0; // VBR

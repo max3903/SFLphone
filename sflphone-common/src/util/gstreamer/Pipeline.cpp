@@ -213,8 +213,14 @@ void Pipeline::link (GstElement* src, GstElement* dst) throw (GstException)
 
 void Pipeline::link (GstPad* src, GstElement* dst) throw (GstException)
 {
-    GstPad *sinkPad = gst_element_get_static_pad (dst, "sink"); // TODO throw exception
+    GstPad* sinkPad = gst_element_get_static_pad (dst, "sink"); // TODO throw exception
     gst_pad_link (src, sinkPad);
+}
+
+void Pipeline::link (GstElement* src, GstPad* dst) throw (GstException)
+{
+    GstPad* sourcePad = gst_element_get_static_pad (src, "src"); // TODO throw exception
+    gst_pad_link (sourcePad, dst);
 }
 
 void Pipeline::link (GstPad* src, GstPad* dst) throw (GstException)

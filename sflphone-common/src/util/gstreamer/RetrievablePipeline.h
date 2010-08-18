@@ -74,6 +74,12 @@ class RetrievablePipeline : public Pipeline, public AbstractObservable<GstBuffer
         RetrievablePipeline (Pipeline& bin, GstCaps* caps, uint maxBuffers);
 
         /**
+         * This function blocks until a buffer or EOS becomes available.
+         * @return a GstBuffer or NULL when the appsink is stopped or EOS.
+         */
+        GstBuffer* getBuffer();
+
+        /**
          * @param source The element from which the retrievable endpoint should receive data from.
          */
         void setSource (GstElement* source);

@@ -48,6 +48,8 @@ SipCall::SipCall(Call::CallType type, SIPAccount* account) :
 
 void SipCall::init(Call::CallType type, SIPAccount* account)
 {
+	_debug("Creating new SIP call ... ");
+
 	// Init fields
 	_cid = 0;
 	_did = 0;
@@ -106,6 +108,7 @@ void SipCall::init(Call::CallType type, SIPAccount* account)
 			account->getActiveAudioCodecs());
 
 	if (isVideoEnabled()) {
+		_debug("Video is enabled. Initializing video properties in new SIP call ...");
 		// Set the video ports
 		unsigned int callLocalVideoPort = RANDOM_LOCAL_PORT;
 		unsigned int callLocalExternVideoPort = callLocalVideoPort;
@@ -118,6 +121,9 @@ void SipCall::init(Call::CallType type, SIPAccount* account)
 		// Add video capabilities
 		_sdpSession->setLocalMediaCapabilities(MIME_TYPE_VIDEO,
 				account->getActiveVideoCodecs());
+
+		// Add video format, might be required for some codecs to figure out some parameters.
+		_sdpSession->setVideoFormat(getVideoFormat());
 	}
 
 	_sdpSession->createInitialOffer();

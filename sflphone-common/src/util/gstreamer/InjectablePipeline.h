@@ -141,6 +141,12 @@ class InjectablePipeline : public Pipeline, public AbstractObservable<void*, Inj
         void setSink (GstElement* sink);
 
         /**
+         * Link the given element to the source, so that "sink" becomes a sink for the source.
+         * @param other The source pad on the element downstream.
+         */
+        void setSink (GstPad* other);
+
+        /**
          * @param maxQueueSize The maximum amount of bytes that can be queued at the source.
          */
         void setMaxQueueSize (size_t size);

@@ -29,7 +29,6 @@ FileDescriptorPasser::FileDescriptorPasser (
 
 FileDescriptorPasser::~FileDescriptorPasser()
 {
-    _debug ("************ Destructor called");
     terminate();
 }
 
@@ -86,7 +85,6 @@ int FileDescriptorPasser::sendFd (int clientfd)
 
 void FileDescriptorPasser::run()
 {
-
     _debug ("Starting FD passer %s", path.c_str());
 
     while (isRunning()) {
@@ -112,9 +110,9 @@ void FileDescriptorPasser::run()
 
 void FileDescriptorPasser::final()
 {
-    _debug ("*************** Closing socket");
     ::close (serverSocket);
     ready = false;
+    _debug ("Socket closed.");
 }
 
 }

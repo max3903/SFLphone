@@ -71,7 +71,6 @@ void InjectablePipeline::setField (const std::string& name, const std::string& v
     gst_app_src_set_caps (GST_APP_SRC (appsrc), caps); // Might not have to do that.
 
     _debug ("New altered caps on injectable element %" GST_PTR_FORMAT, caps);
-
 }
 
 std::string InjectablePipeline::getField (const std::string& name)
@@ -83,19 +82,19 @@ std::string InjectablePipeline::getField (const std::string& name)
 
     // Try to find a field with the given name
     const GValue*  value = gst_structure_get_value (structure, name.c_str());
+    if (!G_IS_VALUE(value)) {
+        // TODO throw
+    	_warn("Field \"%s\" could not be found", name.c_str());
+    	return std::string("");
+    }
 
     // Convert the value to string
     gchar* valueStr;
     std::string output;
     if ( (valueStr = gst_value_serialize (value)) == NULL) {
-        // TODO throw
-    	_warn("Field %s could not be found", name.c_str());
-    	output = std::string("");
-    } else {
-    	output = std::string(valueStr);
+    	_warn("Failed to unserialize data.");
     }
-
-    return output;
+    return std::string(valueStr);
 }
 
 void InjectablePipeline::onEnoughData()
@@ -197,6 +196,18 @@ void InjectablePipeline::setSink (GstElement* sink)
     if (gst_element_link (appsrc, sink) == FALSE) {
         throw GstException ("Failed to prepend appsrc to head.");
     }
+}
+
+void InjectablePipeline::setSink (GstPad* other)
+{
+    GstPad* sourcePad = gst_element_get_static_pad (appsrc, "src");
+    if (sourcePad == NULL) {
+        throw GstException ("Failed to obtain static pad on the source.");
+    }
+
+	if (gst_pad_link(sourcePad, other) != GST_PAD_LINK_OK) {
+        throw GstException ("Failed to prepend appsrc to pad.");
+	}
 }
 
 InjectablePipeline::InjectablePipeline (Pipeline& pipeline) :
