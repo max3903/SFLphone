@@ -51,14 +51,14 @@ MIME_PAYLOAD_FORMAT_DEFINITION("video", H264, 96, 90000)
 	 *	most significant bit, and 3) level_idc.  Note that reserved_zero_5bits is required to be
 	 *	equal to 0 in [1], but other values for it may be specified in the future by ITU-T or ISO/IEC.
 	 */
-	MIME_PARAMETER_DEFAULT("profile-level-id");
+	MIME_PARAMETER("profile-level-id");
 
 	/**
 	 * This parameter signals the properties of an
 	 * RTP payload type or the capabilities of a
 	 * receiver implementation.
 	 */
-	MIME_PARAMETER_DEFAULT ("packetization-mode");
+	MIME_PARAMETER ("packetization-mode");
 
 	/**
 	 * This parameter MAY be used to convey
@@ -67,7 +67,7 @@ MIME_PAYLOAD_FORMAT_DEFINITION("video", H264, 96, 90000)
 	 * parameter set NAL units) that MUST precede any
 	 * other NAL units in decoding order.
 	 */
-	MIME_PARAMETER_DEFAULT("sprop-parameter-sets");
+	MIME_PARAMETER("sprop-parameter-sets");
 
 	/**
 	 *  The value of max-mbps is an integer indicating the maximum macroblock processing rate in units

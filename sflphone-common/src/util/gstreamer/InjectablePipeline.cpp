@@ -84,7 +84,7 @@ std::string InjectablePipeline::getField (const std::string& name)
     const GValue*  value = gst_structure_get_value (structure, name.c_str());
     if (!G_IS_VALUE(value)) {
         // TODO throw
-    	_warn("Field \"%s\" could not be found", name.c_str());
+    	_debug("Field \"%s\" could not be found", name.c_str());
     	return std::string("");
     }
 

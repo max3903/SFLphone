@@ -53,22 +53,16 @@
 	    MimeParameters##subtype() {
 
 /**
- * Defines an optional parameter.
+ * An alias for MIME_PARAMETER_OPTIONAL
  */
 #define MIME_PARAMETER(name)	\
-	addDefaultParameter( name );
+	addOptionalParameter( name );
 
 /**
  * Defines an optional parameter.
  */
 #define MIME_PARAMETER_OPTIONAL(name) \
 	addOptionalParameter( name );
-
-/**
- * Defines a default parameter that may, or may not, be required.
- */
-#define MIME_PARAMETER_DEFAULT(name) \
-	addDefaultParameter( name ) \
 
 /**
  * Defines a required parameter. The value of this parameter
@@ -130,43 +124,39 @@ class MimeParameters
         virtual std::string getParameter (const std::string& name) = 0;
 
         /**
-         * @return A map (param. name : value) containing the codec specific parameters.
-         */
-        std::map<std::string, std::string> getDefaultParameters() {
-        	std::map<std::string, std::string> output;
-        	std::vector<std::string>::iterator it;
-        	for (it = defaultParameters.begin(); it != defaultParameters.end(); it++) {
-        		output.insert(std::pair<std::string, std::string>(*it, getParameter(*it)));
-        	}
-
-        	return output;
-        }
-
-        /**
          * @return A string containing the codec specific parameters, formatted by default as :
          * "PARAM_LIST : PARAM_NAME = VALUE SEMI_COLON PARAM_LIST | PARAM_END
          *  PARAM_END : empty"
          */
         virtual std::string getDefaultParametersFormatted() {
-        	std::string output;
+        	// TODO Instead of putting everything into the same vector,
+        	// enforce the required vs optional aspect. Unfilled required params. should
+        	// result in exception throwing.
+        	std::vector<std::string> paramList = requiredParameters;
+        	std::copy(optionalParameters.begin(), optionalParameters.end(), std::back_inserter(paramList));
 
-        	std::map<std::string, std::string> paramList = getDefaultParameters();
-        	std::map<std::string, std::string>::iterator it;
+        	std::string output("");
+        	std::vector<std::string>::iterator it;
+        	int numberParamsAppended = 0;
         	for (it = paramList.begin(); it != paramList.end(); it++) {
-        		output.append("; " + (*it).first + "=" + (*it).second);
+
+        		std::string name = *it;
+        		std::string value = getParameter(name);
+        		if (value != "") {
+        	   		if (numberParamsAppended != 0) {
+        	        	output.append("; ");
+        	        }
+
+        	   		output.append(name + "=" + value);
+
+        	   		numberParamsAppended += 1;
+        		}
         	}
 
         	return output;
         }
 
     protected:
-        /**
-         * @param name The name for the default parameter to add.
-         */
-        void addDefaultParameter(const std::string& name) {
-        	defaultParameters.push_back(name);
-        }
-
         /**
          * @param name The name for the required parameter to add.
          */
@@ -181,7 +171,6 @@ class MimeParameters
         	optionalParameters.push_back(name);
         }
 
-        std::vector<std::string> defaultParameters;
         std::vector<std::string> requiredParameters;
         std::vector<std::string> optionalParameters;
 };

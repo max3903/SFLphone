@@ -211,9 +211,6 @@ void GstEncoder::init() throw (VideoDecodingException, MissingPluginException)
     // Link the video test src to some input of the input selector
     videotestsrcPad = gst_element_get_request_pad(inputselector, "sink%d");
 
-    // Set the default input on the appsrc
-    g_object_set (G_OBJECT (inputselector), "active-pad", appsrcPad, NULL);
-
     pipeline.link(capsFilterVideoTestSrc, videotestsrcPad);
 
     // Create a color space converter element. Used downstream, after the input selector.
@@ -272,6 +269,8 @@ void GstEncoder::activate()
     _info ("Activating Gstreamer Encoder");
 
     init();
+
+    selectVideoTestSrc(false);
 
     retrievableEnd->start();
 }

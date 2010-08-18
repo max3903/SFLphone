@@ -122,14 +122,7 @@ class AbstractVideoCodec: public virtual VideoCodec
          * @Override
          */
         std::string getParameter (const std::string& name) {
-            std::string valueEncoder = encoder->getParameter (name);
-            std::string valueDecoder = decoder->getParameter (name);
-
-            if (valueEncoder != valueDecoder) {
-                _warn ("Decoder and encoder do not agree on MIME parameter %s. Decoder set with %s ; Encoder %s", name.c_str(), valueDecoder.c_str(), valueEncoder.c_str());
-            }
-
-            return valueEncoder;
+            return encoder->getParameter (name);
         }
 
     private:
