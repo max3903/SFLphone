@@ -128,7 +128,7 @@ class MimeParameters
          * "PARAM_LIST : PARAM_NAME = VALUE SEMI_COLON PARAM_LIST | PARAM_END
          *  PARAM_END : empty"
          */
-        virtual std::string getDefaultParametersFormatted() {
+        virtual std::string getParametersFormatted() {
         	// TODO Instead of putting everything into the same vector,
         	// enforce the required vs optional aspect. Unfilled required params. should
         	// result in exception throwing.

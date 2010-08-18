@@ -299,10 +299,22 @@ void Sdp::setMediaDescriptorLine(SdpMedia *media, pjmedia_sdp_media** p_med) {
 		// Convert the rtpmap structure into an SDP attribute
 		pjmedia_sdp_rtpmap_to_attr(_pool, &rtpmap, &attr);
 		_debug("%.*s", attr->value.slen, attr->value.ptr);
-		med->attr[med->attr_count++] = attr;
+		pjmedia_sdp_media_add_attr(med, attr);
 
-		std::string params = const_cast<sfl::Codec*>(codec)->getDefaultParametersFormatted();
-		_debug("Default params \"%s\"", params.c_str());
+		// We know it's OK to strip the const away in this very case,
+		// but maybe we should think about doing it differently
+		std::string params = const_cast<sfl::Codec*>(codec)->getParametersFormatted();
+		if (params != "") {
+			char* param = strdup(params.c_str()); // FIXME Have no idea how it could be freed.
+
+			_debug("a=fmtp \"%s\"", param);
+
+			pjmedia_sdp_fmtp fmtp;
+			fmtp.fmt = med->desc.fmt[i];
+			fmtp.fmt_param = pj_str(param);
+
+			pjmedia_sdp_media_add_attr(med, pjmedia_sdp_attr_clone(_pool, (pjmedia_sdp_attr*) &fmtp)); // FIXME Have no idea how it could be freed.
+		}
 	}
 
 	// Add the direction stream
