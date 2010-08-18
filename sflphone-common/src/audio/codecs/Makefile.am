@@ -58,6 +58,7 @@ libcodec_ulaw_so_SOURCES = ulaw.cpp
 libcodec_ulaw_so_CFLAGS = -fPIC -g -Wall
 libcodec_ulaw_so_CXXFLAGS = -fPIC -g -Wall
 libcodec_ulaw_so_LDFLAGS = --shared -lc
+am_libcodec_ulaw_so_OBJECTS = libcodec_ulaw_so-ulaw.$(OBJEXT) sfldsp.lib dsplink.lib
 
 libcodec_alaw_so_SOURCES = alaw.cpp
 libcodec_alaw_so_CFLAGS = -fPIC -g -Wall
