@@ -1,0 +1,5 @@
+2010/08/18
+
+This is a sflphone version who use DSP on OMAP3 with DSPlink.
+To build this software you need 2 files : sfldsp.lib and dsplink.lib.
+You can find these files or build instruction here : https://projects.savoirfairelinux.com/wiki/sflphone-c64xplus/SflPhone64x+
