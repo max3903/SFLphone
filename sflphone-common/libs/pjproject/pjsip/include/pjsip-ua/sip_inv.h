@@ -699,6 +699,19 @@ PJ_DECL(pj_status_t) pjsip_inv_set_sdp_answer(pjsip_inv_session *inv,
 
 
 /**
+ * Set the callback structure that contains pointer to functions to be
+ * called during negotiation.
+ *
+ * @param inv		The invite session.
+ * @param cb The callback structure.
+ * @param user_data User-specified data, to pass in each callback function invocation.
+ * @return PJ_SUCCESS on success, or the appropriate error code.
+ */
+PJ_DECL(pj_status_t) pjsip_inv_set_sdp_callback(pjsip_inv_session *inv,
+					      const pjsip_sdp_neg_callback *cb, void *user_data);
+
+
+/**
  * Create a SIP message to initiate invite session termination. Depending on 
  * the state of the session, this function may return CANCEL request, 
  * a non-2xx final response, a BYE request, or even no request. 

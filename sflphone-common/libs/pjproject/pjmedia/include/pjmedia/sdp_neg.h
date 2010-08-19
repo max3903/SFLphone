@@ -324,6 +324,59 @@ typedef struct pjmedia_sdp_neg pjmedia_sdp_neg;
 
 
 /**
+ * This structure contains callbacks to be registered by application to
+ * receive notifications from the negotiator so that the user can perform
+ * various application-specific validations during the SDP negotiation.
+ */
+typedef struct pjsip_sdp_neg_callback
+{
+    /**
+     * This callback is called when format-specific validation must be performed.
+     *
+     * @param offer The current offer.
+     *
+     * @param o_fmt_index The format index in the offer.
+     *
+     * @param answer The current answer.
+     *
+     * @param a_fmt_index The format index in the answer.
+     *
+     * @param modified_answered A pointer passed by the negotiator so that
+     * if modifications must be made in the answer, then those will be taken into
+     * account. To modify the current answer, one must first clone the media with
+     * #pjmedia_sdp_media_clone() the set the pointer to the modified media. If
+     * no changes were made, then the value of the pointer should be left to NULL.
+     * If the currrent SDP media can't be modified at some given point, then the
+     * argument will be NULL, and it's up to the caller to see if it is the case.
+     *
+     * @param user_data An optional pointer to some data specified by the user.
+     * @return PJ_FALSE if the format must be rejected (does not match), PJ_TRUE otherwise.
+     */
+    pj_bool_t (*on_format_negotiation)(const pjmedia_sdp_media *offer, unsigned o_med_idx,
+				      const pjmedia_sdp_media *answer, unsigned a_med_idx,
+				      pjmedia_sdp_media** modified_answered, void *user_data);
+
+    /**
+     * User-specified data, to pass in each callback function invocation.
+     */
+    void *user_data;
+
+} pjsip_sdp_neg_callback;
+
+/**
+ * Set the callback structure that contains pointer to functions to be
+ * called during negotiation.
+ *
+ * @param neg The SDP negotiator instance.
+ * @param cb The callback structure.
+ * @param user_data User-specified data, to pass in each callback function invocation.
+ * @return PJ_SUCCESS on success, or the appropriate error code.
+ */
+PJ_DECL(pj_status_t)
+pjmedia_sdp_neg_set_callback(pjmedia_sdp_neg *neg,
+				      const pjsip_sdp_neg_callback *cb,  void * user_data);
+
+/**
  * Get the state string description of the specified state.
  *
  * @param state		Negotiator state.
@@ -331,7 +384,6 @@ typedef struct pjmedia_sdp_neg pjmedia_sdp_neg;
  * @return		String description of the state.
  */
 PJ_DECL(const char*) pjmedia_sdp_neg_state_str(pjmedia_sdp_neg_state state);
-
 
 /**
  * Create the SDP negotiator with local offer. The SDP negotiator then
