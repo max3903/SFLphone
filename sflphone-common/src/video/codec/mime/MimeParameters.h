@@ -34,10 +34,8 @@
  * Start a new payload format definition.
  */
 #define MIME_PAYLOAD_FORMAT_DEFINITION( mime, subtype, payloadType, clock ) \
-	class MimeParameters##subtype: public virtual MimeParameters \
-	{ \
 		public: \
-        inline virtual ~MimeParameters##subtype() {} \
+		inline virtual ~MimeParameters##subtype() {}; \
         std::string getMimeType() const { \
             return std::string( mime ); \
         } \
@@ -55,35 +53,57 @@
 /**
  * An alias for MIME_PARAMETER_OPTIONAL
  */
-#define MIME_PARAMETER(name)	\
-	addOptionalParameter( name );
+#define MIME_PARAMETER(name, handler)	\
+	addOptionalParameter( name ); \
+	addHandler( name, handler );
 
 /**
  * Defines an optional parameter.
  */
-#define MIME_PARAMETER_OPTIONAL(name) \
-	addOptionalParameter( name );
+#define MIME_PARAMETER_OPTIONAL(name, handler) \
+	addOptionalParameter( name ); \
+	addHandler( name, handler );
 
 /**
  * Defines a required parameter. The value of this parameter
  * should be obtained when sending the initial SDP offer.
  */
-#define MIME_PARAMETER_REQUIRED(name) \
-	addRequiredParameter( name )
+#define MIME_PARAMETER_REQUIRED(name, handler) \
+	addRequiredParameter( name ); \
+	addHandler( name, handler );
 
 /**
  * End a payload format definition.
  */
 #define MIME_PAYLOAD_FORMAT_DEFINITION_END() \
-        } \
-	}; \
+        }
+
+#define MIME_PARAMETER_KEEP_IF_EQUAL MimeParameters::addParameterIfEqual
+
+#define MIME_PARAMETER_KEEP_MINIMUM MimeParameters::addParameterMinimum
+
+#define MIME_PARAMETER_KEEP_REMOTE MimeParameters::addParameterRemote
+
+#include "sip/sdp/Fmtp.h"
 
 #include <ccrtp/rtp.h>
+#include <algorithm>
+#include <stdexcept>
 #include <vector>
 #include <map>
 
 namespace sfl
 {
+
+/**
+ * This exception is thrown in cases where a given format cannot
+ * be parsed, or required pieces of information are missing.
+ */
+class SdpFormatNegotiationException: public std::runtime_error
+{
+	public:
+	SdpFormatNegotiationException (const std::string& msg) : std::runtime_error (msg) {}
+};
 
 /**
  * Interface for exposing MIME parameters in SDP offer/answer model.
@@ -163,6 +183,7 @@ class MimeParameters
         void addRequiredParameter(const std::string& name) {
         	requiredParameters.push_back(name);
         }
+        std::vector<std::string> requiredParameters;
 
         /**
          * @param name The name for the optional parameter to add.
@@ -170,9 +191,132 @@ class MimeParameters
         void addOptionalParameter(const std::string& name) {
         	optionalParameters.push_back(name);
         }
-
-        std::vector<std::string> requiredParameters;
         std::vector<std::string> optionalParameters;
+
+        /**
+         * Negotiation handler type.
+         * @param localParam The local parameter.
+         * @param remoteParam The remote parameter.
+         * @param offerer The specified format for the offerer.
+         * @param answerer The specified format for the answerer.
+         * @param negotiatedFmtp The format in which to make changes, if any.
+         * @throw SdpFormatNegotiationException if the format can't be processed because of missing options,
+         * or wrong formatting.
+         */
+        typedef void (*ParameterNegotiationHandler)(
+        		const sfl::SdpParameter& localParam,
+        		const sfl::SdpParameter& remoteParam,
+        		const sfl::Fmtp& offerer,
+        		const sfl::Fmtp& answerer,
+        		sfl::Fmtp& negotiatedFmtp);
+
+        std::map<std::string, ParameterNegotiationHandler> parameterHandlerTable;
+
+        typedef std::pair<std::string, ParameterNegotiationHandler> ParameterHandlerEntry;
+
+        typedef std::map<std::string, ParameterNegotiationHandler>::iterator ParameterHandlerIterator;
+
+        /**
+         * Add a negotiation handler for the given property.
+         * @param name The parameter name (eg: "profile-level-id")
+         * @param handler A pointer to the negotiation handler function;
+         */
+        void addHandler(const std::string& name, ParameterNegotiationHandler handler) {
+        	parameterHandlerTable.insert(ParameterHandlerEntry(name, handler));
+        }
+
+    public:
+
+        /**
+         * The default behavior if this method is not overriden is to return the format from
+         * the answerer.
+         * @param offerer The specified format for the offerer.
+         * @param answerer The specified format for the answerer.
+         * @return A format object containing the negotiated format.
+         * @throw SdpFormatNegotiationException if the format can't be processed because of missing options,
+         * or wrong formatting.
+         */
+        virtual sfl::Fmtp negotiate(const sfl::Fmtp& offerer, const sfl::Fmtp& answerer) throw(SdpFormatNegotiationException) {
+        	sfl::Fmtp::iterator itAnswerer;
+
+        	// This object will be built iteratively
+			sfl::Fmtp negotiatedFmtp(offerer.getPayloadType());
+
+			sfl::Fmtp::const_iterator it;
+			// Iterate over all of the properties in the answer
+    		for (it = answerer.begin(); it != answerer.end(); it++) {
+    			std::string propertyName = (*it).first;
+    			std::string valueAnswerer = (*it).second;
+
+    			// Find the corresponding property in the offer
+    			std::string valueOfferer;
+    			sfl::Fmtp::const_iterator itOfferer = offerer.getParameter(propertyName);
+    			if (it == offerer.end()) {
+    				valueOfferer = "";
+    			} else {
+    				valueOfferer = (*itOfferer).second;
+    			}
+
+    			// Find a suitable property handler
+        		ParameterHandlerIterator itHandler = parameterHandlerTable.find(propertyName);
+        		if (itHandler != parameterHandlerTable.end()) {
+        			((*itHandler).second)(sfl::SdpParameter(propertyName, valueOfferer),
+        					sfl::SdpParameter(propertyName, valueAnswerer),
+        					offerer, answerer, negotiatedFmtp);
+        		} else {
+        			_error("Could not find any handler for property \"%s\"", propertyName.c_str());
+        		}
+    		}
+
+    		return negotiatedFmtp;
+    	}
+
+    protected:
+        /**
+         * This handler makes
+         */
+        static void addParameterIfEqual(
+        		const sfl::SdpParameter& localParam,
+        		const sfl::SdpParameter& remoteParam,
+        		const sfl::Fmtp& offerer,
+        		const sfl::Fmtp& answerer,
+        		sfl::Fmtp& negotiatedFmtp)
+        {
+        	if (localParam.getValue() == remoteParam.getValue()) {
+        		negotiatedFmtp[localParam.getName()] = localParam.getValue();
+        	}
+        }
+
+        static void addParameterMinimum(
+        		const sfl::SdpParameter& localParam,
+        		const sfl::SdpParameter& remoteParam,
+        		const sfl::Fmtp& offerer,
+        		const sfl::Fmtp& answerer,
+        		sfl::Fmtp& negotiatedFmtp)
+        {
+    		long int localValue = strtol(localParam.getValue().c_str(), NULL, 16);
+    		if (localValue == 0 && errno == EINVAL) {
+    			// Throw
+    		}
+
+    		long int remoteValue = strtol(remoteParam.getValue().c_str(), NULL, 16);
+    		if (remoteValue == 0 && errno == EINVAL) {
+    			// Throw
+    		}
+
+    		long int minimumValue = std::min(localValue, remoteValue);
+    		negotiatedFmtp[localParam.getName()] = minimumValue;
+        }
+
+        static void addParameterRemote(
+        		const sfl::SdpParameter& localParam,
+        		const sfl::SdpParameter& remoteParam,
+        		const sfl::Fmtp& offerer,
+        		const sfl::Fmtp& answerer,
+        		sfl::Fmtp& negotiatedFmtp)
+        {
+        	negotiatedFmtp[remoteParam.getName()] = remoteParam.getValue();
+        }
 };
 
 }

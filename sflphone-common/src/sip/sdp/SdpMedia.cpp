@@ -114,6 +114,11 @@ const sfl::Codec* SdpMedia::getCodec (ost::PayloadType pt)
     return (*it);
 }
 
+const sfl::Codec* SdpMedia::operator[] (uint8 payloadType)
+{
+	return getCodec(payloadType);
+}
+
 std::vector<const sfl::Codec*> SdpMedia::getMediaCodecList()
 {
 	std::vector<const sfl::Codec*> output;

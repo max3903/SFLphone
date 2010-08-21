@@ -111,17 +111,45 @@ class Sdp
         void setSrtpMasterKey (const std::vector<std::string> lc);
 
         /**
+         * @param mime The mime type to search for
+         * @return The fist SDP media corresponding to the given mime type, or NULL.
+         */
+        SdpMedia* getInitialMedia(const std::string& mime);
+
+        /**
+         * @param mime The mime type to search for
+         * @param payload The payload type to search for.
+         * @return The codec with the given mime type, and payload type.
+         */
+        const sfl::Codec* getInitialCodec(const std::string& mime, const std::string& payload);
+
+        /**
          * Creates a new SdpMedia for the given mime type and selected codecs.
          * @param mime The mime type for this SDP media. Either audio, or video
          * @param selectedCodecs The codecs that the user has chosen.
          */
         void setLocalMediaCapabilities (MimeType mime, CodecOrder selectedCodecs);
 
-        /*
-         * On building an invite outside a dialog, build the local offer and create the
-         * SDP negociator instance with it.
+        /**
+         * This callback is called when format-specific validation must be performed.
+         *
+         * @param offer The current offer.
+         *
+         * @param answer The current answer.
+         *
+         * @param modified_answered A pointer passed by the negotiator so that
+         * if modifications must be made in the answer, then those will be taken into
+         * account. To modify the current answer, one must first clone the media with
+         * #pjmedia_sdp_media_clone() the set the pointer to the modified media. If
+         * no changes were made, then the value of the pointer should be left to NULL.
+         * If the currrent SDP media can't be modified at some given point, then the
+         * argument will be NULL, and it's up to the caller to see if it is the case.
+         *
+         * @return PJ_FALSE if the format must be rejected (does not match), PJ_TRUE otherwise.
          */
-        int createInitialOffer();
+        static pj_bool_t on_format_negotiation(const pjmedia_sdp_media *offer, unsigned o_fmt_index,
+			      const pjmedia_sdp_media *answer, unsigned a_fmt_index,
+			      pjmedia_sdp_media** modified_answered, void *user_data);
 
         /*
          * On receiving an invite outside a dialog, build the local offer and create the
@@ -129,18 +157,7 @@ class Sdp
          *
          * @param remote    The remote offer
          */
-        int receivingInitialOffer (pjmedia_sdp_session* remote);
-
-        /*
-         * On receiving a message, check if it contains SDP and negotiate. Should be used for
-         * SDP answer and offer but currently is only used for answer.
-         * SDP negociator instance with the remote offer.
-         *
-         * @param inv       The  the invitation
-         * @param rdata     The remote data
-         */
-
-        pj_status_t checkSdpAnswer (pjsip_inv_session *inv, pjsip_rx_data *rdata);
+        int receiveInitialOffer (pjmedia_sdp_session* remote);
 
         /**
          * Remove all media in the session media vector.
@@ -288,6 +305,8 @@ class Sdp
         std::string toString (void);
 
     private:
+        pj_pool_t* getPool();
+
         /** Codec Map */
         std::vector<SdpMedia*> _initialMedias;
         typedef std::vector<SdpMedia*>::iterator InitialMediasIterator;

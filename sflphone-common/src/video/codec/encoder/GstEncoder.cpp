@@ -270,8 +270,6 @@ void GstEncoder::activate()
 
     init();
 
-    selectVideoTestSrc(false);
-
     retrievableEnd->start();
 }
 

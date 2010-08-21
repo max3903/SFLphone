@@ -40,35 +40,36 @@ namespace sfl
  *
  * MIME subtype: theora
  */
+class MimeParametersTHEORA : public virtual MimeParameters {
 MIME_PAYLOAD_FORMAT_DEFINITION("video", THEORA, 96, 90000)
         /**
          * Determines the chroma subsampling format.
          */
-		MIME_PARAMETER_REQUIRED ("sampling");
+		MIME_PARAMETER_REQUIRED ("sampling", MIME_PARAMETER_KEEP_REMOTE);
 
         /**
          * Determines the number of pixels per line.  This is an
          * integer between 1 and 1048561 and MUST be in multiples of 16.
          */
-		MIME_PARAMETER_REQUIRED ("width");
+		MIME_PARAMETER_REQUIRED ("width", MIME_PARAMETER_KEEP_REMOTE);
 
         /**
          * Determines the number of lines per frame encoded.  This is
          * an integer between 1 and 1048561 and MUST be in multiples of 16.
          */
-		MIME_PARAMETER_REQUIRED ("height");
+		MIME_PARAMETER_REQUIRED ("height", MIME_PARAMETER_KEEP_REMOTE);
 
         /**
          * Indicates the delivery methods in use, the
          * possible values are: inline, in_band, out_band/specific_name
          * Where "specific_name" is the name of the out of band delivery method.
          */
-		MIME_PARAMETER_REQUIRED ("delivery-method");
+		MIME_PARAMETER_REQUIRED ("delivery-method", MIME_PARAMETER_KEEP_REMOTE);
 
         /**
          * The base16 [11] (hexadecimal) representation of the Packed Headers (Section 3.2.1).
          */
-		MIME_PARAMETER_REQUIRED ("configuration");
+		MIME_PARAMETER_REQUIRED ("configuration", MIME_PARAMETER_KEEP_REMOTE);
 
         /**
          * The URI of the configuration headers in case of
@@ -80,8 +81,10 @@ MIME_PAYLOAD_FORMAT_DEFINITION("video", THEORA, 96, 90000)
          * checksum MAY be provided in the form of
          * "protocol://path/to/resource/aggregated.bz2!sha1hash"
          */
-        MIME_PARAMETER_OPTIONAL ("configuration-uri");
+        MIME_PARAMETER_OPTIONAL ("configuration-uri", MIME_PARAMETER_KEEP_REMOTE);
 MIME_PAYLOAD_FORMAT_DEFINITION_END()
+};
+
 }
 
 #endif

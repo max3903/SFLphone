@@ -117,6 +117,13 @@ public:
 	const sfl::Codec* getCodec(ost::PayloadType pt);
 
 	/**
+	 * @param pt The payload type for the codec to look for.
+	 * @return The codec uniquely identified by the given payload type.
+	 * @see #getCodec()
+	 */
+	const sfl::Codec* operator[] (uint8 payloadType);
+
+	/**
 	 * @return the list of codecs
 	 */
 	std::vector<const sfl::Codec*> getMediaCodecList();

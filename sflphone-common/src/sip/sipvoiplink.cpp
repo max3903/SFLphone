@@ -796,6 +796,12 @@ bool SipVoipLink::newIpToIpCall (const CallId& id, const std::string& to)
         status = pjsip_inv_create_uac (dialog, call->getLocalSDP()->getLocalSdpSession(), 0, &inv);
         PJ_ASSERT_RETURN (status == PJ_SUCCESS, false);
 
+        // Set the callback function for negotiation
+        pjsip_sdp_neg_callback cb;
+        cb.on_format_negotiation = Sdp::on_format_negotiation;
+        status = pjsip_inv_set_sdp_callback(inv, &cb, call->getLocalSDP());
+        PJ_ASSERT_RETURN (status == PJ_SUCCESS, false);
+
         if (! (account->getServiceRoute().empty())) {
 
             _error ("UserAgent: Set Service-Route with %s", account->getServiceRoute().c_str());
@@ -2960,7 +2966,7 @@ pj_bool_t SipVoipLink::mod_on_rx_request (pjsip_rx_data *rdata)
     }
 
     // Initialises the negotiator with the remote sdp.
-    status = call->getLocalSDP()->receivingInitialOffer (remote_sdp);
+    status = call->getLocalSDP()->receiveInitialOffer(remote_sdp);
 
     if (status != PJ_SUCCESS) {
         delete call;
@@ -4124,7 +4130,7 @@ void on_rx_offer (pjsip_inv_session *inv, const pjmedia_sdp_session *offer)
     link = dynamic_cast<SipVoipLink *> (Manager::instance().getAccountLink (
                                             accId));
 
-    // call->getLocalSDP()->receivingInitialOffer ( (pjmedia_sdp_session*) offer, account->getActiveAudioCodecs ());
+    // call->getLocalSDP()->receiveInitialOffer ( (pjmedia_sdp_session*) offer, account->getActiveAudioCodecs ());
 
     status = pjsip_inv_set_sdp_answer (call->getInvSession(),
                                        call->getLocalSDP()->getLocalSdpSession());

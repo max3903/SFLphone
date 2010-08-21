@@ -32,71 +32,122 @@
 #include "logger.h"
 
 #include <cc++/tokenizer.h>
-
 #include <string>
+#include <map>
 
-namespace sfl
-{
+namespace sfl {
 
 /**
- * Unmutable class for holding the attributes of a a=fmtp SDP line.
+ * A utility class for holding SDP parameters.
  */
-class Fmtp
-{
-    public:
-        /**
-         * @param payloadType The static or dynamic payload type corresponding to some a=rtpmap line.
-         * @params params Codec specific parameters.
-         */
-        Fmtp (const std::string& payloadType, const std::string& params) {
-            this->payloadType = payloadType;
-            this->params = params;
-        }
+class SdpParameter: public std::pair<std::string, std::string> {
+public:
+	SdpParameter(const std::string& name, const std::string& value) :
+		std::pair<std::string, std::string>(name, value) {
+	}
+	;
+	inline ~SdpParameter() {
+	}
+	;
+	std::string getName() const {
+		return first;
+	}
+	std::string getValue() const {
+		return second;
+	}
+};
 
-        /**
-         * @return Codec specific parameters.
-         */
-        std::string getParams() const {
-            return params;
-        }
+/**
+ *  Class for holding the attributes of a a=fmtp SDP line.
+ */
+class Fmtp: public std::map<std::string, std::string> {
+public:
+	Fmtp(const std::string& payloadType) {
+		this->payloadType = payloadType;
+		params = "";
+	}
 
+	Fmtp() {
+		payloadType = "96";
+		params = "";
+	}
 
-        /**
-         * Split the params of a a=fmtp line into its individual parameter, separated by ";" tokens.
-         * Note that RFC4566 indicates no assumption about how this piece of data should be formatted.
-         * @return The param portion of the a=fmtp line, splitted into individual parameters in a "property-name:property-value" mapping.
-         */
-        std::map<std::string, std::string> getParamParsed() const {
-            std::map<std::string, std::string> properties;
+	/**
+	 * Split the params of a a=fmtp line into its individual parameter, separated by ";" tokens.
+	 * Note that RFC4566 indicates no assumption about how this piece of data should be formatted.
+	 *
+	 * @param payloadType The static or dynamic payload type corresponding to some a=rtpmap line.
+	 * @params params Codec specific parameters.
+	 */
+	Fmtp(const std::string& payloadType, const std::string& paramsUnparsed) {
+		this->payloadType = payloadType;
+		params = paramsUnparsed;
 
-            _debug ("Running tokenizer on \"%s\"", params.c_str());
+		ost::StringTokenizer paramsTokenizer(paramsUnparsed.c_str(), ";",
+				false, true);
+		ost::StringTokenizer::iterator it;
 
-            ost::StringTokenizer paramsTokenizer (params.c_str(), ";", false, true);
-            ost::StringTokenizer::iterator it;
+		for (it = paramsTokenizer.begin(); it != paramsTokenizer.end(); ++it) {
+			std::string param(*it);
+			size_t pos = param.find("=");
+			std::string value = param.substr(pos + 1); // FIXME Too naive !
+			std::string property = param.substr(0, pos); // FIXME Too naive !
 
-            for (it = paramsTokenizer.begin(); it != paramsTokenizer.end(); ++it) {
-                std::string param (*it);
-                _debug ("Found MIME parameter \"%s\"", param.c_str());
-                size_t pos = param.find ("=");
-                std::string value = param.substr (pos+1); // FIXME Too naive !
-                std::string property = param.substr (0, pos); // FIXME Too naive !
+			insert(std::pair<std::string, std::string>(property, value));
+		}
+	}
 
-                properties.insert (std::pair<std::string, std::string> (property, value));
-            }
+	/**
+	 * Given the list of parameters kept in this object,
+	 * create a formatted string that represents this list.
+	 * @return The formatted list of parameters.
+	 */
+	std::string getParametersFormatted() const {
+		std::string output = "";
+    	int numberParamsAppended = 0;
 
-            return properties;
-        }
+		const_iterator it;
+		for (it = begin(); it != end(); it++) {
+			std::string name = (*it).first;
+			std::string value = (*it).second;
+			if (numberParamsAppended != 0) {
+				output.append("; ");
+			}
 
-        /**
-         * @return The static or dynamic payload type corresponding to some a=rtpmap line.
-         */
-        std::string getPayloadType() const {
-            return payloadType;
-        }
+			output.append(name + "=" + value);
 
-    private:
-        std::string payloadType;
-        std::string params;
+			numberParamsAppended += 1;
+		}
+
+		return output;
+	}
+
+	/**
+	 * @return An iterator to the element, if the specified key value is found,
+	 * or Fmtp::end if the specified is not found in the parameter list.
+	 */
+	iterator getParameter(const std::string& paramName) {
+		return find(paramName);
+	}
+
+	/**
+	 * @return An iterator to the element, if the specified key value is found,
+	 * or Fmtp::end if the specified is not found in the parameter list.
+	 */
+	const_iterator getParameter(const std::string& paramName) const {
+		return find(paramName);
+	}
+
+	/**
+	 * @return The static or dynamic payload type corresponding to some a=rtpmap line.
+	 */
+	std::string getPayloadType() const {
+		return payloadType;
+	}
+
+private:
+	std::string payloadType;
+	std::string params;
 };
 
 }

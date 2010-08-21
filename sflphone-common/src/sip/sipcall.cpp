@@ -126,7 +126,7 @@ void SipCall::init(Call::CallType type, SIPAccount* account)
 		_sdpSession->setVideoFormat(getVideoFormat());
 	}
 
-	_sdpSession->createInitialOffer();
+	_sdpSession->createLocalOffer();
 }
 
 SipCall::~SipCall() {
