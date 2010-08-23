@@ -131,27 +131,6 @@ class Sdp
         void setLocalMediaCapabilities (MimeType mime, CodecOrder selectedCodecs);
 
         /**
-         * This callback is called when format-specific validation must be performed.
-         *
-         * @param offer The current offer.
-         *
-         * @param answer The current answer.
-         *
-         * @param modified_answered A pointer passed by the negotiator so that
-         * if modifications must be made in the answer, then those will be taken into
-         * account. To modify the current answer, one must first clone the media with
-         * #pjmedia_sdp_media_clone() the set the pointer to the modified media. If
-         * no changes were made, then the value of the pointer should be left to NULL.
-         * If the currrent SDP media can't be modified at some given point, then the
-         * argument will be NULL, and it's up to the caller to see if it is the case.
-         *
-         * @return PJ_FALSE if the format must be rejected (does not match), PJ_TRUE otherwise.
-         */
-        static pj_bool_t on_format_negotiation(const pjmedia_sdp_media *offer, unsigned o_fmt_index,
-			      const pjmedia_sdp_media *answer, unsigned a_fmt_index,
-			      pjmedia_sdp_media** modified_answered, void *user_data);
-
-        /*
          * On receiving an invite outside a dialog, build the local offer and create the
          * SDP negociator instance with the remote offer.
          *
@@ -169,7 +148,7 @@ class Sdp
          */
         void cleanLocalMediaCapabilities ();
 
-        /*
+        /**
          * Return a string description of the media added to the session,
          * ie the local media capabilities
          */
@@ -196,12 +175,19 @@ class Sdp
          */
         std::vector<const sfl::VideoCodec*> getNegotiatedVideoCodecs();
 
-        /*
-         * read accessor. Return the negotiated offer
+        /**
+         * Get the negotiated offer
          *
          * @return pjmedia_sdp_session  The negotiated offer
+         * @see #getRemoteAnswer()
          */
-        pjmedia_sdp_session* getNegotiatedOffer (void);
+        pjmedia_sdp_session* getNegotiatedOffer ();
+
+        /**
+         * @return The remote SDP answer.
+         * @see #getNegotiatedOffer()
+         */
+        const pjmedia_sdp_session* getRemoteAnswer();
 
         /*
          * Start the sdp negotiation.
@@ -209,7 +195,16 @@ class Sdp
          * @return pj_status_t  0 on success
          *                      1 otherwise
          */
-        pj_status_t startNegotiation (void);
+        pj_status_t startNegotiation ();
+
+        /**
+         * From the negotiated codec list and the remote SDP session,
+         * negotiate the codec formats.
+         * @return true if the format was negotiated successfully, false otherwise.
+         * @precondition #setNegotiatedSdp() and #setMediaFromSdpAnswer() must be called prior to this function.
+         * @postcondition The codecs will be set with the negotiated parameters.
+         */
+        bool negotiateFormat();
 
         /*
          * Retrieve the negotiated sdp offer from the sip payload.
@@ -336,21 +331,24 @@ class Sdp
         pjmedia_sdp_neg *_negotiator;
 
         /** IP address */
-        std::string _ip_addr;
+        std::string _ipAddress;
 
         /** Remote's IP address */
         std::string _remoteIpAddress;
 
         /** Local SDP */
-        pjmedia_sdp_session *_local_offer;
+        pjmedia_sdp_session* _localOffer;
+
+        /** The remote answer */
+        const pjmedia_sdp_session* _remoteAnswer;
 
         /* The negotiated SDP offer */
         // Explanation: each endpoint's offer is negotiated, and a new sdp offer results from this
         // negotiation, with the compatible media from each part
-        pjmedia_sdp_session *_negotiated_offer;
+        pjmedia_sdp_session* _negotiatedOffer;
 
         // The pool to allocate memory
-        pj_pool_t *_pool;
+        pj_pool_t* _pool;
 
         /** Local port */
         int _publishedAudioPort;
@@ -362,10 +360,10 @@ class Sdp
 
         unsigned int _remoteVideoPort;
 
-        std::string _zrtp_hello_hash;
+        std::string _zrtpHelloHash;
 
         /** "a=crypto" sdes local attributes obtained from AudioSrtpSession */
-        std::vector<std::string> _srtp_crypto;
+        std::vector<std::string> _srtpCrypto;
 
         /**
          * No copy constructor.
@@ -460,8 +458,6 @@ class Sdp
 
         std::string intToString (int value);
 
-        void setRemoteIpFromSdp (const pjmedia_sdp_session *r_sdp);
-
         /**
          * @param remote The SDP answer.
          * @return The first pjmedia_sdp_media of type "audio" in the given SDP session.
@@ -479,7 +475,7 @@ class Sdp
          *
          * @param media The media to add the srtp attribute to
          */
-        void sdpAddSdesAttribute (std::vector<std::string>& crypto);
+        void addSdesSdpAttribute (std::vector<std::string>& crypto);
 
         /*
          * Adds a zrtp-hash  attribute to
@@ -490,8 +486,12 @@ class Sdp
          * @param media The media to add the zrtp-hash attribute to
          * @param hash  The hash to which the attribute should be set to
          */
-        void sdpAddZrtpAttribute (pjmedia_sdp_media* media, std::string hash);
+        void addZrtpSdpAttribute (pjmedia_sdp_media* media, std::string hash);
 
+        /**
+         * @param The remote, unmodified, SDP answer.
+         */
+        void setRemoteSdpAnswer(const pjmedia_sdp_session* answer);
 };
 
 #endif

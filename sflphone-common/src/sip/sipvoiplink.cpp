@@ -796,12 +796,6 @@ bool SipVoipLink::newIpToIpCall (const CallId& id, const std::string& to)
         status = pjsip_inv_create_uac (dialog, call->getLocalSDP()->getLocalSdpSession(), 0, &inv);
         PJ_ASSERT_RETURN (status == PJ_SUCCESS, false);
 
-        // Set the callback function for negotiation
-        pjsip_sdp_neg_callback cb;
-        cb.on_format_negotiation = Sdp::on_format_negotiation;
-        status = pjsip_inv_set_sdp_callback(inv, &cb, call->getLocalSDP());
-        PJ_ASSERT_RETURN (status == PJ_SUCCESS, false);
-
         if (! (account->getServiceRoute().empty())) {
 
             _error ("UserAgent: Set Service-Route with %s", account->getServiceRoute().c_str());
@@ -3431,39 +3425,44 @@ void call_on_media_update (pjsip_inv_session *inv, pj_status_t status)
         return;
     }
 
-    // Get the negotiated (updated locally) answer
-    const pjmedia_sdp_session* local_sdp;
-    pjmedia_sdp_neg_get_active_local (inv->neg, &local_sdp);
-
-    // Get the raw answer
-    const pjmedia_sdp_session* remote_sdp;
-    pjmedia_sdp_neg_get_active_remote (inv->neg, &remote_sdp);
-
     // Clean the resulting sdp offer to create a new one (in case of a reinvite)
     call->getLocalSDP()->cleanSessionMedia();
 
     // Set the fresh negotiated one, no matter if that was an offer or answer.
     // The local sdp is updated in case of an answer, even if the remote sdp
     // is kept internally.
-    call->getLocalSDP()->setNegotiatedSdp (local_sdp);
+    const pjmedia_sdp_session* localSdp;
+    pjmedia_sdp_neg_get_active_local (inv->neg, &localSdp);
+
+    call->getLocalSDP()->setNegotiatedSdp (localSdp);
 
     // Set remote ip / port
-    call->getLocalSDP()->setMediaFromSdpAnswer (remote_sdp);
+    const pjmedia_sdp_session* remoteSdp;
+    pjmedia_sdp_neg_get_active_remote (inv->neg, &remoteSdp);
+
+    call->getLocalSDP()->setMediaFromSdpAnswer (remoteSdp);
     try {
         call->getAudioRtp()->updateDestinationIpAddress();
     } catch (...) { // TODO Be more specific. More though love. This is useless.
     }
 
+    // Negotiate the format attributes, if any
+    if (call->getLocalSDP()->negotiateFormat() == false) {
+        _warn ("Failed to negotiate formats");
+        link->hangup (call->getCallId());
+        Manager::instance().callFailure (call->getCallId());
+    }
+
     // Get the crypto attribute containing srtp's cryptographic context (keys, cipher)
     CryptoOffer crypto_offer;
-    call->getLocalSDP()->getRemoteSdpCryptoFromOffer (remote_sdp, crypto_offer);
+    call->getLocalSDP()->getRemoteSdpCryptoFromOffer (remoteSdp, crypto_offer);
 
     bool nego_success = false;
 
     if (!crypto_offer.empty()) {
         _debug ("UserAgent: Crypto attribute in SDP, init SRTP session");
 
-        // init local cryptografic capabilities for negotiation
+        // init local cryptographic capabilities for negotiation
         std::vector<sfl::CryptoSuiteDefinition>localCapabilities;
 
         for (int i = 0; i < 3; i++) {

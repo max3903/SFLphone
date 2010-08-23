@@ -176,6 +176,17 @@ class MimeParameters
         	return output;
         }
 
+        /**
+         * Calls #setParameter() in a loop for every parameters of the format object.
+         * @param format The format object containing the parameters to set.
+         */
+        void setParameters(const sfl::Fmtp& format) {
+        	sfl::Fmtp::const_iterator it;
+        	for (it = format.begin(); it != format.end(); it++) {
+        		setParameter((*it).first, (*it).second);
+        	}
+        }
+
     protected:
         /**
          * @param name The name for the required parameter to add.

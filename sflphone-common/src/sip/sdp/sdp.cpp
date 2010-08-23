@@ -58,7 +58,7 @@ static const pj_str_t STR_CRYPTO = { (char*) "crypto", 6 };
 
 void Sdp::sdpAddProtocol(void) {
 
-	this->_local_offer->origin.version = 0;
+	this->_localOffer->origin.version = 0;
 }
 
 void Sdp::sdpAddOrigin(void) {
@@ -66,27 +66,27 @@ void Sdp::sdpAddOrigin(void) {
 	pj_time_val tv;
 	pj_gettimeofday(&tv);
 
-	this->_local_offer->origin.user = pj_str(pj_gethostname()->ptr);
+	this->_localOffer->origin.user = pj_str(pj_gethostname()->ptr);
 	// Use Network Time Protocol format timestamp to ensure uniqueness.
-	this->_local_offer->origin.id = tv.sec + 2208988800UL;
+	this->_localOffer->origin.id = tv.sec + 2208988800UL;
 	// The type of network ( IN for INternet )
-	this->_local_offer->origin.net_type = STR_IN;
+	this->_localOffer->origin.net_type = STR_IN;
 	// The type of address
-	this->_local_offer->origin.addr_type = STR_IP4;
+	this->_localOffer->origin.addr_type = STR_IP4;
 	// The address of the machine from which the session was created
-	this->_local_offer->origin.addr = pj_str((char*) _ip_addr.c_str());
+	this->_localOffer->origin.addr = pj_str((char*) _ipAddress.c_str());
 }
 
 void Sdp::sdpAddSessionName(void) {
 
-	this->_local_offer->name = STR_SDP_NAME;
+	this->_localOffer->name = STR_SDP_NAME;
 }
 
 void Sdp::sdpAddConnectionInfo(void) {
 
-	this->_local_offer->conn->net_type = _local_offer->origin.net_type;
-	this->_local_offer->conn->addr_type = _local_offer->origin.addr_type;
-	this->_local_offer->conn->addr = _local_offer->origin.addr;
+	this->_localOffer->conn->net_type = _localOffer->origin.net_type;
+	this->_localOffer->conn->addr_type = _localOffer->origin.addr_type;
+	this->_localOffer->conn->addr = _localOffer->origin.addr;
 }
 
 void Sdp::sdpAddTiming(void) {
@@ -95,15 +95,15 @@ void Sdp::sdpAddTiming(void) {
 	// As the session is created and destroyed through an external signaling mean (SIP), the line
 	// should have a value of "0 0".
 
-	this->_local_offer->time.start = this->_local_offer->time.stop = 0;
+	this->_localOffer->time.start = this->_localOffer->time.stop = 0;
 }
 
 void Sdp::sdpAddAttributes() {
 	pjmedia_sdp_attr *a;
-	this->_local_offer->attr_count = 1;
+	this->_localOffer->attr_count = 1;
 	a = PJ_POOL_ZALLOC_T (_pool, pjmedia_sdp_attr);
 	a->name = STR_SENDRECV;
-	_local_offer->attr[0] = a;
+	_localOffer->attr[0] = a;
 }
 
 void Sdp::sdpAddMediaDescription() {
@@ -112,16 +112,16 @@ void Sdp::sdpAddMediaDescription() {
 	med = PJ_POOL_ZALLOC_T (_pool, pjmedia_sdp_media);
 
 	std::vector<SdpMedia*> mediaList = getInitialMediaList();
-	_local_offer->media_count = mediaList.size();
+	_localOffer->media_count = mediaList.size();
 
 	int i;
-	for (i = 0; i < _local_offer->media_count; i++) {
+	for (i = 0; i < _localOffer->media_count; i++) {
 		setMediaDescriptorLine(mediaList[i], &med);
-		_local_offer->media[i] = med;
+		_localOffer->media[i] = med;
 	}
 }
 
-void Sdp::sdpAddSdesAttribute(std::vector<std::string>& crypto) {
+void Sdp::addSdesSdpAttribute(std::vector<std::string>& crypto) {
 
 	// temporary buffer used to store crypto attribute
 	char tempbuf[256];
@@ -146,13 +146,13 @@ void Sdp::sdpAddSdesAttribute(std::vector<std::string>& crypto) {
 		pj_memcpy(attribute->value.ptr, tempbuf, attribute->value.slen + 1);
 
 		// get number of media for this SDP
-		int media_count = _local_offer->media_count;
+		int media_count = _localOffer->media_count;
 
 		// add crypto attribute to media
 		for (int i = 0; i < media_count; i++) {
-			if (pjmedia_sdp_media_add_attr(_local_offer->media[i], attribute)
+			if (pjmedia_sdp_media_add_attr(_localOffer->media[i], attribute)
 					!= PJ_SUCCESS) {
-				// if(pjmedia_sdp_attr_add(&(_local_offer->attr_count), _local_offer->attr, attribute) != PJ_SUCCESS){
+				// if(pjmedia_sdp_attr_add(&(_localOffer->attr_count), _localOffer->attr, attribute) != PJ_SUCCESS){
 				throw SdpException();
 			}
 		}
@@ -161,7 +161,7 @@ void Sdp::sdpAddSdesAttribute(std::vector<std::string>& crypto) {
 	}
 }
 
-void Sdp::sdpAddZrtpAttribute(pjmedia_sdp_media* media, std::string hash) {
+void Sdp::addZrtpSdpAttribute(pjmedia_sdp_media* media, std::string hash) {
 	pjmedia_sdp_attr *attribute;
 	char tempbuf[256];
 	int len;
@@ -189,12 +189,6 @@ std::string Sdp::intToString(int value) {
 	std::ostringstream result;
 	result << value;
 	return result.str();
-}
-
-void Sdp::setRemoteIpFromSdp(const pjmedia_sdp_session *r_sdp) {
-	std::string remote_ip(r_sdp->conn->addr.ptr, r_sdp->conn->addr.slen);
-	_info ("SDP: Remote IP from fetching SDP: %s", remote_ip.c_str());
-	this->setRemoteIp(remote_ip);
 }
 
 pjmedia_sdp_media* Sdp::getAudioSdpMedia(const pjmedia_sdp_session* remoteSdp) {
@@ -232,92 +226,6 @@ pj_pool_t* Sdp::getPool() {
 	return _pool;
 }
 
-pj_bool_t Sdp::on_format_negotiation(const pjmedia_sdp_media *offer,
-		unsigned o_fmt_idx, const pjmedia_sdp_media *answer,
-		unsigned a_fmt_idx, pjmedia_sdp_media** modified_answered,
-		void *user_data) {
-	Sdp* self = (Sdp*) user_data;
-
-	/* Parse offerer FMTP */
-	sfl::Fmtp fmtpOfferer;
-	pjmedia_sdp_fmtp fmtpAttribute;
-	const pjmedia_sdp_attr* attr_ofr = pjmedia_sdp_media_find_attr2(offer,
-			"fmtp", &offer->desc.fmt[o_fmt_idx]);
-	if (attr_ofr) {
-		if (pjmedia_sdp_attr_get_fmtp(attr_ofr, &fmtpAttribute) != PJ_SUCCESS)
-			/* Invalid fmtp format. */
-			return PJ_FALSE;
-
-		fmtpOfferer = sfl::Fmtp(std::string(fmtpAttribute.fmt.ptr,
-				fmtpAttribute.fmt.slen), std::string(
-				fmtpAttribute.fmt_param.ptr, fmtpAttribute.fmt_param.slen));
-	}
-
-	/* Parse answerer FMTP */
-	sfl::Fmtp fmtpAnswerer;
-	const pjmedia_sdp_attr* attr_ans = pjmedia_sdp_media_find_attr2(answer,
-			"fmtp", &answer->desc.fmt[a_fmt_idx]);
-	if (attr_ans) {
-		if (pjmedia_sdp_attr_get_fmtp(attr_ans, &fmtpAttribute) != PJ_SUCCESS)
-			/* Invalid fmtp format. */
-			return PJ_FALSE;
-
-		fmtpAnswerer = sfl::Fmtp(std::string(fmtpAttribute.fmt.ptr,
-				fmtpAttribute.fmt.slen), std::string(
-				fmtpAttribute.fmt_param.ptr, fmtpAttribute.fmt_param.slen));
-	}
-
-	// Get the corresponding codec from the offer
-	std::string mime(offer->desc.media.ptr, offer->desc.media.slen);
-	std::string payload(offer->desc.fmt[o_fmt_idx].ptr, offer->desc.fmt[o_fmt_idx].slen);
-
-	const sfl::Codec* codec = self->getInitialCodec(mime, payload);
-	if (codec) {
-		sfl::Fmtp negotiatedFormat(std::string(answer->desc.fmt[a_fmt_idx].ptr,
-				answer->desc.fmt[a_fmt_idx].slen));
-
-		// FIXME Stripping the const away. We know however that it won't impact the codec state undesirably
-		_debug("Calling the negotiation handler for the codec in the inital list...");
-
-		try {
-			negotiatedFormat = (const_cast<sfl::Codec*> (codec))->negotiate(
-					fmtpOfferer, fmtpAnswerer);
-		} catch (sfl::SdpFormatNegotiationException e) {
-			_error("%s", e.what());
-			return PJ_FALSE;
-		}
-
-		_debug("Offerer format %s", fmtpOfferer.getParametersFormatted().c_str());
-		_debug("Answerer format %s", fmtpAnswerer.getParametersFormatted().c_str());
-		_debug("Negotiated format %s", negotiatedFormat.getParametersFormatted().c_str());
-
-		// The format line has changed
-		if (negotiatedFormat != fmtpAnswerer) {
-			if (modified_answered) {
-				std::string formattedList = negotiatedFormat.getParametersFormatted();
-				std::string value = negotiatedFormat.getPayloadType()
-						+ std::string(" ") + formattedList;
-
-				// Set the new format in the pjmedia structure
-				(*modified_answered) = pjmedia_sdp_media_clone(self->getPool(), answer);
-
-				pjmedia_sdp_attr* attrNewMedia = pjmedia_sdp_media_find_attr2((*modified_answered),
-						"fmtp", &(*modified_answered)->desc.fmt[a_fmt_idx]);
-				if (attrNewMedia) {
-					_debug("Setting new negotiated format to \"%s\"", value.c_str());
-					attrNewMedia->value = pj_str(strdup(value.c_str()));
-				}
-			} else {
-				_debug("Modified_answer is NULL");
-			}
-		}
-	} else {
-		_error("Codec is NULL in (%s:%d) meaning that we failed to retrieve a codec from the initial list", __FILE__, __LINE__);
-	}
-
-	return PJ_TRUE;
-}
-
 SdpMedia* Sdp::getInitialMedia(const std::string& mime) {
 	_debug("Getting media %s", mime.c_str());
 	std::vector<SdpMedia*>::iterator it;
@@ -330,7 +238,8 @@ SdpMedia* Sdp::getInitialMedia(const std::string& mime) {
 	return NULL;
 }
 
-const sfl::Codec* Sdp::getInitialCodec(const std::string& mime, const std::string& payload) {
+const sfl::Codec* Sdp::getInitialCodec(const std::string& mime,
+		const std::string& payload) {
 	_debug("Getting initial media %s %s", mime.c_str(), payload.c_str());
 	SdpMedia* media = getInitialMedia(mime);
 	if (media) {
@@ -394,7 +303,7 @@ void Sdp::setMediaDescriptorLine(SdpMedia *media, pjmedia_sdp_media** p_med) {
 	med->desc.port = media->getPort();
 
 	// In case of sdes, media are tagged as "RTP/SAVP", RTP/AVP elsewhere
-	if (_srtp_crypto.empty()) {
+	if (_srtpCrypto.empty()) {
 		pj_strdup(_pool, &med->desc.transport, &STR_RTP_AVP);
 	} else {
 		pj_strdup(_pool, &med->desc.transport, &STR_RTP_SAVP);
@@ -467,9 +376,9 @@ void Sdp::setMediaDescriptorLine(SdpMedia *media, pjmedia_sdp_media** p_med) {
 	pj_strdup2(_pool, &attr->name, media->getStreamDirectionStr().c_str());
 	pjmedia_sdp_media_add_attr(med, attr);
 
-	if (!_zrtp_hello_hash.empty()) {
+	if (!_zrtpHelloHash.empty()) {
 		try {
-			sdpAddZrtpAttribute(med, _zrtp_hello_hash);
+			addZrtpSdpAttribute(med, _zrtpHelloHash);
 		} catch (...) { // TODO Catch more precisely
 			throw;
 		}
@@ -484,8 +393,8 @@ int Sdp::createLocalOffer() {
 	_info ("SDP: Create local offer");
 
 	// Create and initialize basic SDP session
-	this->_local_offer = PJ_POOL_ZALLOC_T (_pool, pjmedia_sdp_session);
-	this->_local_offer->conn = PJ_POOL_ZALLOC_T (_pool, pjmedia_sdp_conn);
+	this->_localOffer = PJ_POOL_ZALLOC_T (_pool, pjmedia_sdp_session);
+	this->_localOffer->conn = PJ_POOL_ZALLOC_T (_pool, pjmedia_sdp_conn);
 
 	// Initialize the fields of the struct
 	sdpAddProtocol();
@@ -495,22 +404,22 @@ int Sdp::createLocalOffer() {
 	sdpAddTiming();
 	sdpAddMediaDescription();
 
-	if (!_srtp_crypto.empty()) {
-		sdpAddSdesAttribute(_srtp_crypto);
+	if (!_srtpCrypto.empty()) {
+		addSdesSdpAttribute(_srtpCrypto);
 	}
 
 	// Validate the sdp session
-	return pjmedia_sdp_validate(this->_local_offer);
+	return pjmedia_sdp_validate(this->_localOffer);
 }
 
 void Sdp::setNegotiatedSdp(const pjmedia_sdp_session *sdp) {
-	_negotiated_offer = (pjmedia_sdp_session*) sdp;
-	unsigned nb_media = _negotiated_offer->media_count;
+	_negotiatedOffer = (pjmedia_sdp_session*) sdp;
+	unsigned nb_media = _negotiatedOffer->media_count;
 
 	// Iterate over all medias
 	unsigned i;
 	for (i = 0; i < nb_media; i++) {
-		pjmedia_sdp_media* returnedMedia = _negotiated_offer->media[i];
+		pjmedia_sdp_media* returnedMedia = _negotiatedOffer->media[i];
 
 		std::string mediaType(returnedMedia->desc.media.ptr,
 				returnedMedia->desc.media.slen);
@@ -555,37 +464,108 @@ void Sdp::setNegotiatedSdp(const pjmedia_sdp_session *sdp) {
 			// Format parameters might have changed, make sure that everything is still valid.
 			attribute = pjmedia_sdp_media_find_attr2(returnedMedia, "fmtp",
 					&rtpmap->pt);
-			if (attribute) {
-				pjmedia_sdp_fmtp fmtpAttribute;
-				if (pjmedia_sdp_attr_get_fmtp(attribute, &fmtpAttribute)
-						== PJ_SUCCESS) {
-					sfl::Fmtp fmtp(std::string(fmtpAttribute.fmt.ptr,
-							fmtpAttribute.fmt.slen), std::string(
-							fmtpAttribute.fmt_param.ptr,
-							fmtpAttribute.fmt_param.slen));
-
-					sfl::Codec* modifiedCodec = negotiatedCodec->clone();
-
-					sfl::Fmtp::iterator it;
-					for (it = fmtp.begin(); it != fmtp.end(); it++) {
-						_debug("Parameter in setNegotiatedSdp : %s = %s", (*it).first.c_str(), (*it).second.c_str());
-						// Set those parameters in the codec
-						// Note that since we have a validation function (callback), then we can be sure that
-						// that those options are correct.
-						modifiedCodec->setParameter((*it).first, (*it).second);
-					}
-
-					negotiatedCodec = modifiedCodec;
-				}
-			} else {
-				_error("No a=fmtp attribute in local offer");
-			}
 
 			negotiatedMedia->addCodec(negotiatedCodec);
 		}
 
 		_negotiatedMedias.push_back(negotiatedMedia);
 	}
+}
+
+bool Sdp::negotiateFormat() {
+	pjmedia_sdp_session* negotiatedLocalSdp = getNegotiatedOffer();
+	const pjmedia_sdp_session* remoteSdp = getRemoteAnswer();
+
+	// Since we take the first media and codec from the remote,
+	// match the remote media with the local media
+	// FIXME Make this non-specific to "video"
+	pjmedia_sdp_media* remoteMedia = getVideoSdpMedia(remoteSdp);
+	pjmedia_sdp_media* localMedia = NULL;
+	int i;
+	for (i = 0; i < negotiatedLocalSdp->media_count; i++) {
+		if ((pj_stricmp(&remoteMedia->desc.media,
+				&negotiatedLocalSdp->media[i]->desc.media) == 0)
+				&& ((pj_stricmp(&remoteMedia->desc.transport,
+						&negotiatedLocalSdp->media[i]->desc.transport)) == 0)) {
+			// We found the corresponding media in the local offer
+			localMedia = negotiatedLocalSdp->media[i];
+		}
+	}
+
+	if (localMedia == NULL) {
+		_warn("Failed to match media from remote to the local negotiated media");
+		return false;
+	}
+
+	// Find the corresponding SdpMedia
+	std::vector<SdpMedia*>::iterator it;
+	SdpMedia* negotiatedMedia = NULL;
+	for (it = _negotiatedMedias.begin(); it != _negotiatedMedias.end(); it++) {
+		if ((*it)->getMediaTypeStr() == std::string(remoteMedia->desc.media.ptr, remoteMedia->desc.media.slen)) {
+			negotiatedMedia = (*it);
+		}
+	}
+
+	if (negotiatedMedia == NULL) {
+		_warn("Failed to match the given media with the local negotiated media.");
+		return false;
+	}
+
+	// Negotiate the formats for all of codecs in the local SDP
+	// with the format in the remote answer
+	for (i = 0; i < localMedia->desc.fmt_count; i++) {
+		// Find the answerer a=fmtp line
+		sfl::Fmtp fmtpAnswerer;
+		pjmedia_sdp_fmtp fmtpAttribute;
+		const pjmedia_sdp_attr* attribute = pjmedia_sdp_media_find_attr2(
+				remoteMedia, "fmtp", &localMedia->desc.fmt[i]);
+		if (attribute) {
+			if (pjmedia_sdp_attr_get_fmtp(attribute, &fmtpAttribute)
+					!= PJ_SUCCESS) {
+				return false;
+			}
+
+			fmtpAnswerer = sfl::Fmtp(std::string(fmtpAttribute.fmt.ptr,
+					fmtpAttribute.fmt.slen), std::string(
+					fmtpAttribute.fmt_param.ptr, fmtpAttribute.fmt_param.slen));
+		}
+
+		// Get the offerer a=fmtp line
+		sfl::Fmtp fmtpOfferer;
+		attribute = pjmedia_sdp_media_find_attr2(localMedia, "fmtp",
+				&localMedia->desc.fmt[i]);
+		if (attribute) {
+			if (pjmedia_sdp_attr_get_fmtp(attribute, &fmtpAttribute) != PJ_SUCCESS) {
+				return false;
+			}
+
+			fmtpOfferer = sfl::Fmtp(std::string(fmtpAttribute.fmt.ptr,
+					fmtpAttribute.fmt.slen), std::string(
+					fmtpAttribute.fmt_param.ptr, fmtpAttribute.fmt_param.slen));
+		}
+
+		// Get an instance of a codec to negotiate the format with
+		ost::PayloadType pt = atoi(std::string(localMedia->desc.fmt[i].ptr, localMedia->desc.fmt[i].slen).c_str());
+		const sfl::Codec* codec = negotiatedMedia->getCodec(pt);
+
+		sfl::Fmtp negotiatedFormat;
+		// We give ourselves the right to strip the const away
+		sfl::Codec* modifiedCodec = const_cast<sfl::Codec*>(codec);
+		try {
+			negotiatedFormat = modifiedCodec->negotiate(fmtpOfferer, fmtpAnswerer);
+		} catch (sfl::SdpFormatNegotiationException e) {
+			_warn("%s", e.what());
+			return false;
+		}
+
+		modifiedCodec->setParameters(negotiatedFormat);
+
+		_debug("Offer : %s", fmtpOfferer.getParametersFormatted().c_str());
+		_debug("Answer : %s", fmtpAnswerer.getParametersFormatted().c_str());
+		_debug("Negotiation : %s", negotiatedFormat.getParametersFormatted().c_str());
+	}
+
+	return true;
 }
 
 int Sdp::receiveInitialOffer(pjmedia_sdp_session* remote) {
@@ -606,14 +586,29 @@ int Sdp::receiveInitialOffer(pjmedia_sdp_session* remote) {
 	return PJ_SUCCESS;
 }
 
+void Sdp::setRemoteSdpAnswer(const pjmedia_sdp_session* answer) {
+	_remoteAnswer = answer;
+}
+
 void Sdp::setMediaFromSdpAnswer(const pjmedia_sdp_session* remoteSdp) {
 	_info ("SDP: Fetching media from sdp ...");
 	if (!remoteSdp) {
 		return;
 	}
 
-	// Set the remote IP
-	setRemoteIpFromSdp(remoteSdp);
+	setRemoteSdpAnswer(remoteSdp);
+
+	/**
+	 * NOTE: There is a possibility that the sender have returned
+	 * multiple medias (on different ip/ports) However, we only take the
+	 * first available one.
+	 */
+
+	// Set the remote audio IP
+	std::string remoteIp(remoteSdp->conn->addr.ptr,
+			remoteSdp->conn->addr.slen);
+	_info ("SDP: Remote IP from fetching SDP: %s", remoteIp.c_str());
+	setRemoteIp(remoteIp);
 
 	// Set the remote audio port
 	pjmedia_sdp_media* media = getAudioSdpMedia(remoteSdp);
@@ -621,14 +616,17 @@ void Sdp::setMediaFromSdpAnswer(const pjmedia_sdp_session* remoteSdp) {
 		_error ("SDP: No audio media specified in SDP answer.");
 		return;
 	}
-
 	setRemoteAudioPort(media->desc.port);
 
+	// Set the remote video IP
 	media = getVideoSdpMedia(remoteSdp);
 	if (media == NULL) {
 		_debug ("SDP: No video media specified in SDP answer.");
 		return;
 	}
+
+	// Set the remote video port
+	setRemoteVideoPort(media->desc.port);
 }
 
 std::vector<SdpMedia*> Sdp::getInitialMediaList() {
@@ -637,23 +635,23 @@ std::vector<SdpMedia*> Sdp::getInitialMediaList() {
 }
 
 pjmedia_sdp_session* Sdp::getLocalSdpSession() {
-	return _local_offer;
+	return _localOffer;
 }
 
 void Sdp::setIpAddress(std::string ip_addr) {
-	_ip_addr = ip_addr;
+	_ipAddress = ip_addr;
 }
 
 std::string Sdp::getIpAddress(void) {
-	return _ip_addr;
+	return _ipAddress;
 }
 
 void Sdp::setZrtpHash(const std::string& hash) {
-	_zrtp_hello_hash = hash;
+	_zrtpHelloHash = hash;
 }
 
 void Sdp::setSrtpMasterKey(const std::vector<std::string> lc) {
-	_srtp_crypto = lc;
+	_srtpCrypto = lc;
 }
 
 std::string Sdp::mediaToString(void) {
@@ -831,14 +829,18 @@ std::vector<const sfl::VideoCodec*> Sdp::getNegotiatedVideoCodecs() {
 }
 
 pjmedia_sdp_session* Sdp::getNegotiatedOffer() {
-	return _negotiated_offer;
+	return _negotiatedOffer;
+}
+
+const pjmedia_sdp_session* Sdp::getRemoteAnswer() {
+	return _remoteAnswer;
 }
 
 pj_status_t Sdp::startNegotiation() {
 	pj_status_t status;
 
 	if (_negotiator) {
-		_info("********************************************************************* Starting SDP negotiation ...");
+		_info("Starting SDP negotiation ...");
 		status = pjmedia_sdp_neg_negotiate(_pool, _negotiator, 0);
 	} else {
 		status = !PJ_SUCCESS;
@@ -896,9 +898,9 @@ void Sdp::getRemoteSdpCryptoFromOffer(const pjmedia_sdp_session* remote_sdp,
 }
 
 Sdp::Sdp(pj_pool_t *pool) :
-	_initialMedias(), _negotiatedMedias(0), _negotiator(NULL), _ip_addr(""),
-			_local_offer(NULL), _negotiated_offer(NULL), _pool(NULL),
-			_publishedAudioPort(0) {
+	_initialMedias(), _negotiatedMedias(0), _negotiator(NULL), _ipAddress(""),
+			_localOffer(NULL), _remoteAnswer(NULL), _negotiatedOffer(NULL),
+			_pool(NULL), _publishedAudioPort(0) {
 	_pool = pool;
 }
 
@@ -911,30 +913,30 @@ std::string Sdp::toString(void) {
 	std::ostringstream sdp;
 	int count, i;
 
-	sdp << "origin= " << _local_offer->origin.user.ptr << "\n";
-	sdp << "origin.id= " << _local_offer->origin.id << "\n";
-	sdp << "origin.version= " << _local_offer->origin.version << "\n";
-	sdp << "origin.net_type= " << _local_offer->origin.net_type.ptr << "\n";
-	sdp << "origin.addr_type= " << _local_offer->origin.addr_type.ptr << "\n";
+	sdp << "origin= " << _localOffer->origin.user.ptr << "\n";
+	sdp << "origin.id= " << _localOffer->origin.id << "\n";
+	sdp << "origin.version= " << _localOffer->origin.version << "\n";
+	sdp << "origin.net_type= " << _localOffer->origin.net_type.ptr << "\n";
+	sdp << "origin.addr_type= " << _localOffer->origin.addr_type.ptr << "\n";
 
-	sdp << "name=" << _local_offer->name.ptr << "\n";
+	sdp << "name=" << _localOffer->name.ptr << "\n";
 
-	sdp << "conn.net_type=" << _local_offer->conn->net_type.ptr << "\n";
-	sdp << "conn.addr_type=" << _local_offer->conn->addr_type.ptr << "\n";
-	sdp << "conn.addr=" << _local_offer->conn->addr.ptr << "\n";
+	sdp << "conn.net_type=" << _localOffer->conn->net_type.ptr << "\n";
+	sdp << "conn.addr_type=" << _localOffer->conn->addr_type.ptr << "\n";
+	sdp << "conn.addr=" << _localOffer->conn->addr.ptr << "\n";
 
-	sdp << "start=" << _local_offer->time.start << "\n";
-	sdp << "stop=" << _local_offer->time.stop << "\n";
+	sdp << "start=" << _localOffer->time.start << "\n";
+	sdp << "stop=" << _localOffer->time.stop << "\n";
 
-	sdp << "attr_count=" << _local_offer->attr_count << "\n";
-	sdp << "media_count=" << _local_offer->media_count << "\n";
-	sdp << "m=" << _local_offer->media[0]->desc.media.ptr << " ";
-	sdp << _local_offer->media[0]->desc.port << " ";
-	sdp << _local_offer->media[0]->desc.transport.ptr << " ";
-	count = _local_offer->media[0]->desc.fmt_count;
+	sdp << "attr_count=" << _localOffer->attr_count << "\n";
+	sdp << "media_count=" << _localOffer->media_count << "\n";
+	sdp << "m=" << _localOffer->media[0]->desc.media.ptr << " ";
+	sdp << _localOffer->media[0]->desc.port << " ";
+	sdp << _localOffer->media[0]->desc.transport.ptr << " ";
+	count = _localOffer->media[0]->desc.fmt_count;
 
 	for (i = 0; i < count; i++) {
-		sdp << _local_offer->media[0]->desc.fmt[i].ptr << " ";
+		sdp << _localOffer->media[0]->desc.fmt[i].ptr << " ";
 	}
 
 	return sdp.str();
