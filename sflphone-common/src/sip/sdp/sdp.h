@@ -95,7 +95,7 @@ class Sdp
          * @param media The media to add to SDP
          * @param med   The structure to receive the media section
          */
-        void setMediaDescriptorLine (SdpMedia* media, pjmedia_sdp_media** p_med);
+        void createMediaDescriptionLine (SdpMedia* media, pjmedia_sdp_media** p_med);
 
         /* Set the zrtp hash that was previously calculated from the hello message in the zrtp layer.
          * This hash value is unique at the media level. Therefore, if video support is added, one would

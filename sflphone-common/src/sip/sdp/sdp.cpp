@@ -116,7 +116,7 @@ void Sdp::sdpAddMediaDescription() {
 
 	int i;
 	for (i = 0; i < _localOffer->media_count; i++) {
-		setMediaDescriptorLine(mediaList[i], &med);
+		createMediaDescriptionLine(mediaList[i], &med);
 		_localOffer->media[i] = med;
 	}
 }
@@ -226,6 +226,10 @@ pj_pool_t* Sdp::getPool() {
 	return _pool;
 }
 
+void Sdp::setRemoteSdpAnswer(const pjmedia_sdp_session* answer) {
+	_remoteAnswer = answer;
+}
+
 SdpMedia* Sdp::getInitialMedia(const std::string& mime) {
 	_debug("Getting media %s", mime.c_str());
 	std::vector<SdpMedia*>::iterator it;
@@ -287,7 +291,7 @@ void Sdp::setLocalMediaCapabilities(MimeType mime, CodecOrder selectedCodecs) {
 	_initialMedias.push_back(media);
 }
 
-void Sdp::setMediaDescriptorLine(SdpMedia *media, pjmedia_sdp_media** p_med) {
+void Sdp::createMediaDescriptionLine(SdpMedia *media, pjmedia_sdp_media** p_med) {
 	pjmedia_sdp_media* med;
 	pjmedia_sdp_rtpmap rtpmap;
 	pjmedia_sdp_attr *attr;
@@ -584,10 +588,6 @@ int Sdp::receiveInitialOffer(pjmedia_sdp_session* remote) {
 	PJ_ASSERT_RETURN (status == PJ_SUCCESS, 1); // FIXME Useless. Return pj_status and it will be alright.
 
 	return PJ_SUCCESS;
-}
-
-void Sdp::setRemoteSdpAnswer(const pjmedia_sdp_session* answer) {
-	_remoteAnswer = answer;
 }
 
 void Sdp::setMediaFromSdpAnswer(const pjmedia_sdp_session* remoteSdp) {

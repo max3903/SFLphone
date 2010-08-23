@@ -45,9 +45,6 @@ void VideoRtpSessionSimple::setActiveCodec(ost::PayloadType pt)
     activeCodec->deactivate();
     activeCodec = codec;
 
-    // Set the Video Source for this codec
-    activeCodec->setVideoInputFormat(currentVideoFormat);
-
     // Set the payload format in ccRTP from the information contained in the VideoCodec.
     ost::DynamicPayloadFormat format (activeCodec->getPayloadType(), activeCodec->getClockRate());
     setPayloadFormat (format);

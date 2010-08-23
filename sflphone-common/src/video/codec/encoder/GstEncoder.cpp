@@ -208,6 +208,9 @@ void GstEncoder::init() throw (VideoDecodingException, MissingPluginException)
     // Create an input selector element, to switch from videotestsrc to the appsrc on request
     inputselector = pipeline.addElement("input-selector");
 
+    // Link the appsrc to some input of the input selector
+    appsrcPad = gst_element_get_request_pad(inputselector, "sink%d");
+
     // Link the video test src to some input of the input selector
     videotestsrcPad = gst_element_get_request_pad(inputselector, "sink%d");
 
@@ -232,8 +235,6 @@ void GstEncoder::init() throw (VideoDecodingException, MissingPluginException)
     outputObserver = new PipelineEventObserver (this);
     retrievableEnd->addObserver (outputObserver);
 
-    // Connect both endpoints to the graph.
-    appsrcPad = gst_element_get_request_pad(inputselector, "sink%d");
     injectableEnd->setSink (appsrcPad);
     retrievableEnd->setSource (getTail());
 
@@ -266,11 +267,15 @@ void GstEncoder::encode (const VideoFrame* frame) throw (VideoEncodingException)
 void GstEncoder::activate()
 {
     VideoEncoder::activate();
-    _info ("Activating Gstreamer Encoder");
+    _info ("Activating encoder");
 
     init();
 
+    selectVideoTestSrc(false);
+
     retrievableEnd->start();
+
+    gst_element_set_state (videotestsrc, GST_STATE_PAUSED);
 }
 
 void GstEncoder::deactivate()
