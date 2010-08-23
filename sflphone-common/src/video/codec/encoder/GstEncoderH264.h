@@ -49,6 +49,11 @@ class GstEncoderH264: public MimeParametersH264, public GstEncoder
 		 */
 		void setVideoInputFormat(const VideoFormat& format);
 
+		/**
+		 * @Override
+		 */
+		std::string getParameter (const std::string& name);
+
     protected:
         /**
          * @Override

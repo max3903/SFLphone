@@ -28,6 +28,7 @@
  */
 
 #include "GstEncoderH264.h"
+#include <iostream>
 
 namespace sfl
 {
@@ -58,6 +59,20 @@ void GstEncoderH264::setVideoInputFormat(const VideoFormat& format)
 	generateSdpParameters();
 }
 
+std::string GstEncoderH264::getParameter (const std::string& name)
+{
+	// The "packetization-mode" SDP format property is known as
+	// "scan-mode" in Gstreamer.
+	if (name == "packetization-mode") {
+		int mode = 0;
+		g_object_get(rtph264pay, "scan-mode", &mode, NULL);
+		std::stringstream ss;
+		ss << mode;
+		return ss.str();
+	}
+
+	return GstEncoder::getParameter(name);
+}
 
 GstElement* GstEncoderH264::getHead()
 {

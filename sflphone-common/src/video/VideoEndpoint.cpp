@@ -213,7 +213,7 @@ void VideoEndpoint::startRtpSession(const InetSocketAddress& localAddress, std::
 }
 
 void VideoEndpoint::addDestination(const InetSocketAddress& localAddress, const InetSocketAddress& destinationAddress) {
-	_debug("Adding destination %s to RTP session bound on %s", destinationAddress.toString().c_str(), localAddress.toString().c_str());
+	_info("Adding destination %s to RTP session bound on %s", destinationAddress.toString().c_str(), localAddress.toString().c_str());
 
 	SocketAddressToVideoRtpSessionIterator socketIt = socketAddressToVideoRtpSessionMap.find(localAddress);
 
