@@ -171,6 +171,17 @@ public:
 	 */
 	sfl::VideoFormat getVideoFormat();
 
+	/**
+	 * Set the token obtained while accessing the video ressource.
+	 * @param token A valid token obtained while opening a video device.
+	 */
+	void setVideoToken(const std::string& token);
+
+	/**
+	 * @return The video token set for this call, or the empty string if none was set.
+	 */
+	std::string getVideoToken();
+
 private:
     /**
      * Helper function for constructor.
@@ -192,6 +203,8 @@ private:
 	std::string _videoDevice;
 
 	sfl::VideoFormat _videoFormat;
+
+	std::string _videoToken;
 
 	Sdp* _sdpSession;
 

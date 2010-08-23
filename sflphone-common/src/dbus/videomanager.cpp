@@ -289,6 +289,23 @@ void VideoManager::startRtpSession(SipCall* call, std::vector<const sfl::VideoCo
 
     // Configure the RTP session with the given codec list (at least of size 1) and start sending data.
     endpoint->startRtpSession(localAddress, negotiatedCodecs);
+
+    std::string token = endpoint->capture();
+    call->setVideoToken(token);
+}
+
+void VideoManager::stopRtpSession(SipCall* call)
+{
+	_info("Stopping video RTP session ...");
+
+	DeviceNameToVideoEndpointIterator it = videoEndpoints.find(call->getVideoDevice());
+	if (it == videoEndpoints.end()) {
+		_error("Cannot find a video endpoint for device %s", call->getVideoDevice().c_str());
+		return;
+	}
+
+	sfl::VideoEndpoint* endpoint = (*it).second;
+	endpoint->stopCapture(call->getVideoToken());
 }
 
 sfl::VideoEndpoint* VideoManager::getVideoEndpoint(const std::string& device)

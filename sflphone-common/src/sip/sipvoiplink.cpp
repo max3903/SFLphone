@@ -928,30 +928,31 @@ bool SipVoipLink::hangup (const CallId& id)
 
     // User hangup current call. Notify peer
     status = pjsip_inv_end_session (call->getInvSession(), 404, NULL, &tdata);
-
-    if (status != PJ_SUCCESS)
+    if (status != PJ_SUCCESS) {
+    	_error ("Failed to end invitation session. (%s:%d)", __FILE__, __LINE__);
         return false;
-
-    if (tdata == NULL)
-        return true;
-
-    // _debug("Some tdata info: %",);
-
-    status = pjsip_inv_send_msg (call->getInvSession(), tdata);
-
-    if (status != PJ_SUCCESS)
-        return false;
-
-    call->getInvSession()->mod_data[getModId() ] = NULL;
-
-    // Release RTP thread
-    if (Manager::instance().isCurrentCall (id)) {
-        _debug ("* SIP Info: Stopping AudioRTP for hangup");
-        call->getAudioRtp()->stop();
     }
+
+    if (tdata == NULL) {
+    	_error ("Failed to end invitation session. (%s:%d)", __FILE__, __LINE__);
+        return true;
+    }
+
+    // Send the message
+    status = pjsip_inv_send_msg (call->getInvSession(), tdata);
+    if (status != PJ_SUCCESS) {
+    	_error ("Failed to end invitation session. (%s:%d)", __FILE__, __LINE__);
+        return false;
+    }
+
+    call->getInvSession()->mod_data[getModId()] = NULL;
+
+    // Stop the video session, if any
+    DBusManager::instance().getVideoManager()->stopRtpSession(call);
 
     terminateOneCall (id);
 
+    // Remove the SipCall (stopping and destroying the audio rtp session)
     removeCall (id);
 
     return true;
@@ -1210,7 +1211,6 @@ void SipVoipLink::terminateOneCall (const CallId& id)
     SipCall *call = getSipCall (id);
 
     if (call) {
-        // terminate the sip call
         delete call;
         call = 0;
     }

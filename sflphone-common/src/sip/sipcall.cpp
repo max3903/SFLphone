@@ -67,6 +67,7 @@ void SipCall::init(Call::CallType type, SIPAccount* account)
 	// Those could be overridden later.
 	_videoDevice = account->getPreferredVideoDevice();
 	_videoFormat = account->getPreferredVideoFormat();
+	_videoToken = "";
 
 	// Create an SDP object.
 	SipVoipLink* link = SipVoipLink::instance(account->getAccountID());
@@ -218,3 +219,14 @@ sfl::VideoFormat SipCall::getVideoFormat()
 {
 	return _videoFormat;
 }
+
+void SipCall::setVideoToken(const std::string& token)
+{
+	_videoToken = token;
+}
+
+std::string SipCall::getVideoToken()
+{
+	return _videoToken;
+}
+

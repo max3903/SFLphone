@@ -147,6 +147,14 @@ class VideoManager: public org::sflphone::SFLphone::VideoManager_adaptor,
          */
         void startRtpSession(SipCall* call, std::vector<const sfl::VideoCodec*> negotiatedCodecs);
 
+        /**
+         * Stop the current RTP session, releasing access to the video device.
+         * @param The SipCall for which an RTP session must be stopped.
+         * @precondition An RTP session should be already running. #startRtpSession() has to be started prior to that.
+         * @see #startRtpSession()
+         */
+        void stopRtpSession(SipCall* call);
+
     private :
         /**
          * @param device The device corresponding to the VideoEndpoint
