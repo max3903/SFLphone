@@ -92,6 +92,14 @@ incoming_call_cb (DBusGProxy *proxy UNUSED, const gchar* accountID,
 }
 
 static void
+on_new_remote_video_stream_cb (DBusGProxy *proxy UNUSED, const gchar* callID,
+    const gchar* shm, void * foo  UNUSED ) {
+
+  DEBUG("New remote video stream %s %s", callID, shm);
+
+}
+
+static void
 zrtp_negotiation_failed_cb (DBusGProxy *proxy UNUSED, const gchar* callID,
     const gchar* reason, const gchar* severity, void * foo  UNUSED )
 {
@@ -694,6 +702,14 @@ connect_to_video_manager (DBusGConnection * connection)
       return NULL;
     }
   DEBUG ("DBus connected to VideoManager");
+
+  // onNewRemoteVideoStream signal
+  dbus_g_object_register_marshaller (g_cclosure_user_marshal_VOID__STRING_STRING,
+      G_TYPE_NONE, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_INVALID);
+  dbus_g_proxy_add_signal (videoProxy, "onNewRemoteVideoStream", G_TYPE_STRING, G_TYPE_STRING,
+      G_TYPE_INVALID);
+  dbus_g_proxy_connect_signal (videoProxy, "onNewRemoteVideoStream",
+      G_CALLBACK(on_new_remote_video_stream_cb), NULL, NULL);
 
   return videoProxy;
 }

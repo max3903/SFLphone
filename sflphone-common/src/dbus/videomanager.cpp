@@ -290,8 +290,12 @@ void VideoManager::startRtpSession(SipCall* call, std::vector<const sfl::VideoCo
     // Configure the RTP session with the given codec list (at least of size 1) and start sending data.
     endpoint->startRtpSession(localAddress, negotiatedCodecs);
 
+    // Start the video device and keep the token returned
     std::string token = endpoint->capture();
     call->setVideoToken(token);
+
+    // Broadcast the event
+    onNewRemoteVideoStream(call->getCallId(), endpoint->getShmName());
 }
 
 void VideoManager::stopRtpSession(SipCall* call)

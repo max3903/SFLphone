@@ -41,6 +41,13 @@ throw (MissingPluginException)
 
 }
 
+void GstEncoderTheora::setVideoInputFormat(const VideoFormat& format)
+{
+	GstEncoder::setVideoInputFormat(format);
+
+	generateSdpParameters();
+}
+
 GstElement* GstEncoderTheora::getHead()
 {
     return theoraenc;

@@ -71,6 +71,10 @@ std::string GstEncoderH264::getParameter (const std::string& name)
 		return ss.str();
 	}
 
+	if (name == "profile-level-id") {
+		return std::string("42801E");
+	}
+
 	return GstEncoder::getParameter(name);
 }
 

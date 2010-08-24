@@ -217,6 +217,7 @@ std::vector<sfl::Codec*> CodecFactory::loadDefaultVideoCodecs() {
 
 //	try {
 //		codec = new sfl::GstCodecTheora();
+//		codec->activate();
 //		output.push_back(codec);
 //	} catch (sfl::MissingPluginException e) {
 //		_error("%s", e.what());

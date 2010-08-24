@@ -41,8 +41,14 @@
 namespace sfl
 {
 
-class GstEncoderTheora: public MimeParametersTHEORA, public GstEncoder
+class GstEncoderTheora: public MimeParameterstheora, public GstEncoder
 {
+	public:
+    /**
+     * @Override
+     */
+    void setVideoInputFormat(const VideoFormat& format);
+
     protected:
         /**
          * @Override

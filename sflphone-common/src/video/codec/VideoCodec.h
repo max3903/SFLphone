@@ -46,9 +46,7 @@ namespace sfl
  * A VideoCodec object offers a complete set of properties that corresponds to the
  * set of parameters defined in its RFC (SDP params).
  *
- * Hence, encoding and decoding params must be the same for the two elements.
- *
- * A lot of the public methods made available below are just meant to hide delegates.
+ * Some of the public methods made available below are just meant to hide delegates.
  */
 
 class VideoCodec : public virtual Codec, public VideoPlugin

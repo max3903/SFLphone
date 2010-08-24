@@ -181,6 +181,7 @@ class GstEncoder: public VideoEncoder, protected Filter
                  */
                 void onNewBuffer (GstBuffer* buffer) {
                     GstBuffer* payload = gst_rtp_buffer_get_payload_buffer (buffer);
+                    GstCaps* caps = gst_buffer_get_caps(buffer);
 
                     uint32 timestamp = gst_rtp_buffer_get_timestamp (buffer);
 

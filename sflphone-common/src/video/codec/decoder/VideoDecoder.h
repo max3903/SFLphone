@@ -79,7 +79,7 @@ class VideoDecoder : public virtual MimeParameters, public VideoPlugin, public A
          * Simple dispatch for the VideoFrameDecodedObserver type.
          * @Override
          */
-        void notify (VideoFrameDecodedObserver* observer, Buffer<uint8_t>& data) {
+        inline void notify (VideoFrameDecodedObserver* observer, Buffer<uint8_t>& data) {
             observer->onNewFrameDecoded (data);
         }
 

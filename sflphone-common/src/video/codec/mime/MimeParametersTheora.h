@@ -40,8 +40,8 @@ namespace sfl
  *
  * MIME subtype: theora
  */
-class MimeParametersTHEORA : public virtual MimeParameters {
-MIME_PAYLOAD_FORMAT_DEFINITION("video", THEORA, 96, 90000)
+class MimeParameterstheora : public virtual MimeParameters {
+MIME_PAYLOAD_FORMAT_DEFINITION("video", theora, 96, 90000)
         /**
          * Determines the chroma subsampling format.
          */

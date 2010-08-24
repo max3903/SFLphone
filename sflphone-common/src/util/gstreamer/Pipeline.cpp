@@ -69,6 +69,17 @@ void Pipeline::stop() throw (GstException)
     _warn ("Video decoder stopped.");
 }
 
+bool Pipeline::isPlaying() throw (GstException)
+{
+    GstState state;
+    gst_element_get_state(pipeline, &state, NULL, 10);
+    if (state == GST_STATE_PLAYING) {
+    	return true;
+    }
+
+    return false;
+}
+
 void Pipeline::start() throw (GstException)
 {
     GstStateChangeReturn ret = gst_element_set_state (pipeline,

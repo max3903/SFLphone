@@ -318,6 +318,11 @@ void Sdp::createMediaDescriptionLine(SdpMedia *media, pjmedia_sdp_media** p_med)
 	int count = codecList.size();
 	med->desc.fmt_count = count;
 
+	// Add the direction stream
+	attr = (pjmedia_sdp_attr*) pj_pool_zalloc(_pool, sizeof(pjmedia_sdp_attr));
+	pj_strdup2(_pool, &attr->name, media->getStreamDirectionStr().c_str());
+	pjmedia_sdp_media_add_attr(med, attr);
+
 	// Add the payload list
 	int i;
 	for (i = 0; i < count; i++) {
@@ -375,10 +380,7 @@ void Sdp::createMediaDescriptionLine(SdpMedia *media, pjmedia_sdp_media** p_med)
 		}
 	}
 
-	// Add the direction stream
-	attr = (pjmedia_sdp_attr*) pj_pool_zalloc(_pool, sizeof(pjmedia_sdp_attr));
-	pj_strdup2(_pool, &attr->name, media->getStreamDirectionStr().c_str());
-	pjmedia_sdp_media_add_attr(med, attr);
+	_debug("Stream direction : %s", media->getStreamDirectionStr().c_str());
 
 	if (!_zrtpHelloHash.empty()) {
 		try {
@@ -533,6 +535,7 @@ bool Sdp::negotiateFormat() {
 					fmtpAttribute.fmt.slen), std::string(
 					fmtpAttribute.fmt_param.ptr, fmtpAttribute.fmt_param.slen));
 		}
+		_debug("Answer : %s", fmtpAnswerer.getParametersFormatted().c_str());
 
 		// Get the offerer a=fmtp line
 		sfl::Fmtp fmtpOfferer;
@@ -547,6 +550,7 @@ bool Sdp::negotiateFormat() {
 					fmtpAttribute.fmt.slen), std::string(
 					fmtpAttribute.fmt_param.ptr, fmtpAttribute.fmt_param.slen));
 		}
+		_debug("Offer : %s", fmtpOfferer.getParametersFormatted().c_str());
 
 		// Get an instance of a codec to negotiate the format with
 		ost::PayloadType pt = atoi(std::string(localMedia->desc.fmt[i].ptr, localMedia->desc.fmt[i].slen).c_str());
@@ -561,12 +565,9 @@ bool Sdp::negotiateFormat() {
 			_warn("%s", e.what());
 			return false;
 		}
+		_debug("Negotiation : %s", negotiatedFormat.getParametersFormatted().c_str());
 
 		modifiedCodec->setParameters(negotiatedFormat);
-
-		_debug("Offer : %s", fmtpOfferer.getParametersFormatted().c_str());
-		_debug("Answer : %s", fmtpAnswerer.getParametersFormatted().c_str());
-		_debug("Negotiation : %s", negotiatedFormat.getParametersFormatted().c_str());
 	}
 
 	return true;

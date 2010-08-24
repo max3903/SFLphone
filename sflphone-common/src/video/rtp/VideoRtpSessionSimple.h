@@ -48,7 +48,7 @@ namespace sfl
  * Implementers will want to be notified when video frames get decoded. Therefore, a VideoFrameDecodedObserver
  * can be registered (via the hidden decoder delegate) on the session object.
  */
-class VideoRtpSessionSimple: public ost::RTPSession
+class VideoRtpSessionSimple: public ost::RTPSession, public AbstractObservable<Buffer<uint8_t>&, VideoFrameDecodedObserver>
 {
     public:
         /**
@@ -137,15 +137,43 @@ class VideoRtpSessionSimple: public ost::RTPSession
                 EncoderObserver (VideoRtpSessionSimple* session) :
                         parent (session) {
                 }
-                VideoRtpSessionSimple* parent;
+
+            	/**
+            	 * @Override
+            	 */
                 void onNewFrameEncoded (std::pair<uint32, Buffer<uint8> >& data) {
-                    _debug ("Sending NAL unit of size %d over RTP", (data.second).getSize());
+                    //_debug ("Sending NAL unit of size %d over RTP", (data.second).getSize());
                     parent->sendImmediate (data.first /* timestamp */,
                                            (data.second).getBuffer() /* payload */,
                                            (data.second).getSize() /* payload size */);
                 }
+
+            private:
+                VideoRtpSessionSimple* parent;
         };
         EncoderObserver* encoderObserver;
+
+        /**
+         * Decoder observer, only meant to hide the observable mechanism at the decoder leve
+         * and make codec switching easier.
+         */
+        class DecoderObserver : public VideoFrameDecodedObserver
+        {
+			public:
+        	DecoderObserver (VideoRtpSessionSimple* session) :
+                    parent (session) {}
+
+        	/**
+        	 * @Override
+        	 */
+        	inline void onNewFrameDecoded (Buffer<uint8_t>& data) {
+        		parent->notifyAll(data);
+        	}
+
+			private:
+            VideoRtpSessionSimple* parent;
+        };
+        DecoderObserver* decoderObserver;
 
         typedef std::map<ost::PayloadType, VideoCodec*>::iterator SessionCodecIterator;
         typedef std::pair<ost::PayloadType, VideoCodec*> SessionCodecEntry;
@@ -160,6 +188,18 @@ class VideoRtpSessionSimple: public ost::RTPSession
          * The video format in which the video frames are expected to be received.
          */
         VideoFormat currentVideoFormat;
+
+        /**
+         * @Override
+         */
+        inline void notify (VideoFrameDecodedObserver* observer, Buffer<uint8_t>& data) {
+        	observer->onNewFrameDecoded(data);
+        }
+
+        /**
+         * @Override
+         */
+        void notify (VideoFrameDecodedObserver* observer, const std::string& name, Buffer<uint8_t>& data) {}
 };
 }
 #endif

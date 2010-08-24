@@ -40,10 +40,10 @@ class FileDescriptorPasser: public ost::Thread
     public:
         /**
          * Construct a new instance of a server that will let client applications to
-         * be passed a file descriptor using unix domain. This class takes the form
+         * be passed a file descriptor using Unix domain. This class takes the form
          * of a thread. Once started, it will go into an accept() loop, replying to
          * a connection with the file descriptor to pass.
-         * @param abstractNamespace The abstract namespace in the UNIX domain that is refering to this server instance. Eg. org.sflphone.eventfd
+         * @param abstractNamespace The abstract namespace in the UNIX domain that is referring to this server instance. Eg. org.sflphone.eventfd
          * @param fd The file descriptor to send to every client.
          */
         FileDescriptorPasser (const std::string& abstractNamespace, int fd);
@@ -53,13 +53,23 @@ class FileDescriptorPasser: public ost::Thread
         /**
          * @return The namespace for that running instance.
          */
-        std::string getAbstractNamespace() {
+        std::string getAbstractNamespace() const {
             return path;
         };
 
-        bool isReady() {
+        /**
+         * @return true if the server is up and running.
+         */
+        bool isReady() const {
             return ready;
         };
+
+        /**
+         * @return the file descriptor that is being passed by this server instance.
+         */
+        inline int getFileDescriptor() const {
+        	return fdPassed;
+        }
 
     protected:
         /**

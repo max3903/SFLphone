@@ -1284,15 +1284,13 @@ bool SipVoipLink::peerHungup (const CallId& id)
     _info ("UserAgent: Peer hungup");
 
     call = getSipCall (id);
-
-    if (call == 0) {
+    if (call == NULL) {
         _warn ("UserAgent: Call doesn't exist");
         return false;
     }
 
     // User hangup current call. Notify peer
     status = pjsip_inv_end_session (call->getInvSession(), 404, NULL, &tdata);
-
     if (status != PJ_SUCCESS)
         return false;
 
@@ -1300,17 +1298,13 @@ bool SipVoipLink::peerHungup (const CallId& id)
         return true;
 
     status = pjsip_inv_send_msg (call->getInvSession(), tdata);
-
     if (status != PJ_SUCCESS)
         return false;
 
     call->getInvSession()->mod_data[getModId() ] = NULL;
 
-    // Release RTP thread
-    if (Manager::instance().isCurrentCall (id)) {
-        _debug ("UserAgent: Stopping AudioRTP for hangup");
-        call->getAudioRtp()->stop();
-    }
+    // Stop video
+    DBusManager::instance().getVideoManager()->stopRtpSession(call);
 
     terminateOneCall (id);
 

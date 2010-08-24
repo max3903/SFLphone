@@ -31,6 +31,7 @@
 
 #include <vector>
 #include <algorithm>
+#include <cc++/thread.h>
 
 #include "Observable.h"
 #include "Observer.h"
@@ -45,31 +46,51 @@ class AbstractObservable: public Observable<PushedDataType, ObserverType>
          * @Override
          */
         void addObserver (ObserverType* observer) {
-            observers.push_back (observer);
+        	observersMutex.enterMutex();
+				observers.push_back (observer);
+	        observersMutex.leaveMutex();
         }
 
         /**
          * @Override
          */
         void removeObserver (ObserverType* observer) {
-            std::remove (observers.begin(), observers.end(), observer);
+        	observersMutex.enterMutex();
+				std::remove (observers.begin(), observers.end(), observer);
+		    observersMutex.leaveMutex();
         }
 
         /**
          * @Override
          */
         void clearObservers() {
-            observers.erase (observers.begin(), observers.end());
+        	observersMutex.enterMutex();
+				observers.erase (observers.begin(), observers.end());
+			observersMutex.leaveMutex();
+        }
+
+        /**
+         * @Override
+         */
+        int getNumberObservers() {
+        	observersMutex.enterMutex();
+				 int size = observers.size();
+			observersMutex.leaveMutex();
+
+			return size;
         }
 
         /**
          * @Override
          */
         bool isObserver (ObserverType* observer) {
+        	observersMutex.enterMutex();
             if (std::find (observers.begin(), observers.end(), observer) != observers.end()) {
+    			observersMutex.leaveMutex();
                 return true;
             }
 
+			observersMutex.leaveMutex();
             return false;
         }
 
@@ -79,9 +100,11 @@ class AbstractObservable: public Observable<PushedDataType, ObserverType>
         void notifyAll (PushedDataType data) {
             typename std::vector<ObserverType*>::iterator it;
 
+        	observersMutex.enterMutex();
             for (it = observers.begin(); it < observers.end(); it++) {
                 notify ( (*it), data);
             }
+			observersMutex.leaveMutex();
         }
 
         /**
@@ -90,13 +113,16 @@ class AbstractObservable: public Observable<PushedDataType, ObserverType>
         void notifyAll (PushedDataType data, const std::string& name) {
             typename std::vector<ObserverType*>::iterator it;
 
+        	observersMutex.enterMutex();
             for (it = observers.begin(); it < observers.end(); it++) {
                 notify ( (*it), name, data);
             }
+			observersMutex.leaveMutex();
         }
 
     private:
         std::vector<ObserverType*> observers;
+        ost::Mutex observersMutex;
 };
 }
 

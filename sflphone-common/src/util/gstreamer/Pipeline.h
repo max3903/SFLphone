@@ -63,6 +63,12 @@ class Pipeline
         void stop() throw (GstException);
 
         /**
+         * Blocking call (up to 10 sec).
+         * @return true if the pipeline is in state PLAYING.
+         */
+        bool isPlaying() throw (GstException);
+
+        /**
          * @param factoryName a named factory to instantiate
          * @return A pointer to the newly created filter.
          * @postcondition A new element of the given type is added to the bin.

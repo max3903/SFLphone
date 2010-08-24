@@ -56,6 +56,11 @@ class Observable
         virtual void clearObservers() = 0;
 
         /**
+         * @return the number of observers currently registered for notification.
+         */
+        virtual int getNumberObservers() = 0;
+
+        /**
          * @param observer The observer to check for.
          * @return true if the given observer is currently registered on this subject.
          */

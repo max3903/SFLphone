@@ -43,6 +43,7 @@ void VideoRtpSessionSimple::setActiveCodec(ost::PayloadType pt)
 	sfl::VideoCodec* codec = (*it).second;
 
     activeCodec->deactivate();
+
     activeCodec = codec;
 
     // Set the payload format in ccRTP from the information contained in the VideoCodec.
@@ -51,7 +52,10 @@ void VideoRtpSessionSimple::setActiveCodec(ost::PayloadType pt)
 
     // Register as a VideoFrameEncodedObserver so that encoded frames produced in the VideoCodec,
     // starting from the VideoSource, get dispatched internally and sent over the network immediately.
-    activeCodec->addVideoFrameEncodedObserver ( (*encoderObserver));
+    activeCodec->addVideoFrameEncodedObserver ((*encoderObserver));
+
+    // Register as a VideoFrameDecodedObserver
+    activeCodec->addVideoFrameDecodedObserver((*decoderObserver));
 
     activeCodec->activate();
 }
@@ -88,6 +92,7 @@ void VideoRtpSessionSimple::init()
 {
     // Fixed encoder for any video encoder type
     encoderObserver = new EncoderObserver (this);
+    decoderObserver = new DecoderObserver (this);
     activeCodec = new VideoCodecNull();
 
     // The default scheduling timeout to use when no data packets are waiting to be sent.

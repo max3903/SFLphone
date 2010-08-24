@@ -119,8 +119,8 @@ class GstDecoder : public VideoDecoder, protected Filter
                  * @Override
                  */
                 void onNewBuffer (GstBuffer* buffer) {
-                    //_debug ("Video frame decoded to raw format ...");
-                    // parent->notifyAll(nalUnit);
+                    Buffer<uint8_t> buf(GST_BUFFER_DATA(buffer), GST_BUFFER_SIZE(buffer));
+                    parent->notifyAll(buf);
                 }
         };
         PipelineEventObserver* outputObserver;

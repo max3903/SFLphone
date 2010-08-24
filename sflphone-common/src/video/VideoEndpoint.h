@@ -21,6 +21,8 @@
 #define __SFL_VIDEO_ENDPOINT_H___
 
 #include "util/InetSocketAddress.h"
+#include "util/FileDescriptorPasser.h"
+#include "util/ipc/SharedMemoryPosix.h"
 #include "video/source/VideoInputSource.h"
 #include "video/rtp/VideoRtpSessionSimple.h"
 
@@ -34,7 +36,6 @@ namespace sfl
 {
 
 class FileDescriptorPasser;
-class SharedMemoryPosix;
 
 /**
  * This exception is thrown when an invalid token is passed to some method.
@@ -172,9 +173,14 @@ class VideoEndpoint: public VideoFrameObserver
         static const eventfd_t NEW_FRAME_EVENT = 1;
 
         /**
-         * Set to "org.sflphone.event" by default.
+         * Set to "org.sflphone.eventfd.source" by default.
          */
-        static const std::string EVENT_NAMESPACE;
+        static const std::string EVENT_SOURCE_NAMESPACE;
+
+        /**
+         * Set to "org.sflphone.eventfd.rtp" by default.
+         */
+        static const std::string EVENT_STREAM_NAMESPACE;
 
         VideoEndpoint();
         virtual ~VideoEndpoint();
@@ -201,10 +207,86 @@ class VideoEndpoint: public VideoFrameObserver
          */
         std::string generateToken();
 
-        // Socket Address key) : Video RTP Session (value)
-        std::map<InetSocketAddress, VideoRtpSessionSimple*> socketAddressToVideoRtpSessionMap;
-        typedef std::map<InetSocketAddress, VideoRtpSessionSimple*>::iterator SocketAddressToVideoRtpSessionIterator;
-        typedef std::pair<InetSocketAddress, VideoRtpSessionSimple*> SocketAddressToVideoRtpSessionEntry;
+        /**
+         * This observer type is used for writing asynchronously into
+         * the shared memory segment allocated for a given RTP session.
+         */
+        class RtpStreamDecoderObserver: public VideoFrameDecodedObserver {
+        public:
+        	RtpStreamDecoderObserver(int fd, SharedMemoryPosix* shm) :
+        	 fd(fd), shm(shm) {}
+
+        	void onNewFrameDecoded (Buffer<uint8_t>& data) {
+        		if (data.getBuffer() == NULL) {
+        			_error ("Null frame in RtpStreamDecoderObserver"); // FIXME Should not happen.
+        			return;
+        		}
+
+        		// Make sure that the shared memory is still big enough to hold the new frame
+        		// Should be required once.
+        		if (shm->getSize() != data.getSize()) {
+        			_debug ("Truncating to %d", data.getSize());
+        			shm->truncate(data.getSize());
+        		}
+
+        		// Write into the shared memory segment
+        		memcpy(shm->getRegion(), data.getBuffer(), data.getSize());
+
+        		eventfd_write(fd, NEW_FRAME_EVENT);
+
+        		_debug("Wrote decoded frame of size %d in shm segment %s", data.getSize(), shm->getName().c_str());
+        	}
+        private:
+        	int fd;
+        	SharedMemoryPosix* shm;
+        };
+
+        /**
+         * This class is used to hold various information
+         * tied to an active RTP session.
+         */
+        class RtpSessionRecord {
+        public:
+        	RtpSessionRecord(SharedMemoryPosix* shm,
+        			FileDescriptorPasser* passer,
+        			VideoRtpSessionSimple* session,
+        			RtpStreamDecoderObserver* observer) :
+        	shm(shm), passer(passer), session(session), observer(observer){}
+
+            inline FileDescriptorPasser* getFileDescriptorPasser() const
+            {
+                return passer;
+            }
+
+            inline VideoRtpSessionSimple* getVideoRtpSession() const
+            {
+                return session;
+            }
+
+            inline SharedMemoryPosix* getSharedMemoryPosix() const
+            {
+                return shm;
+            }
+
+            inline RtpStreamDecoderObserver* getDecoderObserver() const
+            {
+                return observer;
+            }
+
+            inline int getEventFd() const {
+            	return passer->getFileDescriptor();
+            }
+
+        private:
+        	SharedMemoryPosix* shm;
+        	FileDescriptorPasser* passer;
+        	VideoRtpSessionSimple* session;
+        	RtpStreamDecoderObserver* observer;
+        };
+
+        std::map<InetSocketAddress, RtpSessionRecord> socketAddressToRtpSessionRecord;
+        typedef std::map<InetSocketAddress, RtpSessionRecord>::iterator SocketAddressToRtpSessionRecordIterator;
+        typedef std::pair<InetSocketAddress, RtpSessionRecord> SocketAddressToRtpSessionRecordEntry;
 
         // The token set
         std::set<std::string> sourceTokens;
@@ -218,7 +300,7 @@ class VideoEndpoint: public VideoFrameObserver
         // The shared memory segment where frames are written to
         SharedMemoryPosix* shmVideoSource;
 
-        int eventFileDescriptor;
+        int eventFileDescriptorSource;
 
         bool capturing;
 

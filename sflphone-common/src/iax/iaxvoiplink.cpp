@@ -766,7 +766,7 @@ IAXVoIPLink::iaxHandleCallEvent (iax_event* event, IAXCall* call)
                _debug("IAXVoIPLink::iaxHandleCallEvent, peer hangup have been called");
                std::string reason = "Dumped Call";
                _mutexIAX.enterMutex();
-               iax_hangup(call->getSession(), (char*)reason.c_str());
+               iax_hangup(call->getVideoRtpSession(), (char*)reason.c_str());
                _mutexIAX.leaveMutex();
                call->setSession(NULL);
                audiolayer->stopStream();

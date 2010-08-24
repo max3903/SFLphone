@@ -203,6 +203,7 @@ void SdpMedia::setVideoFormat(const sfl::VideoFormat& format)
 		if ((*it)->getMimeType() == "video") {
 			// As we will possibly modify the codec state by this operation,
 			// create a new instance and replace the codec at the current position.
+			_debug("Setting format on codec %s", (*it)->getMimeSubtype().c_str());
 			sfl::VideoCodec* videoCodec = dynamic_cast<sfl::VideoCodec*>((*it));
 			videoCodec->setVideoInputFormat(format);
 		}

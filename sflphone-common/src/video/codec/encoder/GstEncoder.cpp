@@ -139,13 +139,9 @@ void GstEncoder::selectVideoTestSrc(bool selected)
 	if (selected) {
 	    _debug("Selecting videotestsrc on input-selector ...");
 	    g_object_set (G_OBJECT (inputselector), "active-pad", videotestsrcPad, NULL);
-	    _debug("Activating videotestsrc ...");
-	    gst_element_set_state (videotestsrc, GST_STATE_PLAYING);
 	} else {
 	    _debug("Selecting encoding source on input-selector ...");
 	    g_object_set (G_OBJECT (inputselector), "active-pad", appsrcPad, NULL);
-	    _debug("Pausing videotestsrc ...");
-	    gst_element_set_state (videotestsrc, GST_STATE_PAUSED);
 	}
 }
 
@@ -259,8 +255,6 @@ void GstEncoder::encode (const VideoFrame* frame) throw (VideoEncodingException)
     GST_BUFFER_SIZE (buffer) = frame->getSize();
     GST_BUFFER_DATA (buffer) = (guint8*) frame->getFrame();
 
-    //_info ("Encoding frame of raw size %d", GST_BUFFER_SIZE (buffer));
-
     injectableEnd->inject (buffer);
 }
 
@@ -271,11 +265,7 @@ void GstEncoder::activate()
 
     init();
 
-    selectVideoTestSrc(false);
-
     retrievableEnd->start();
-
-    gst_element_set_state (videotestsrc, GST_STATE_PAUSED);
 }
 
 void GstEncoder::deactivate()

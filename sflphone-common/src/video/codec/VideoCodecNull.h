@@ -78,7 +78,7 @@ class VideoCodecNull: public MimeParametersNull, public AbstractVideoCodec<NullE
          * @Override
          */
         std::string getMimeSubtype() const {
-            return "";
+            return "NULL";
         }
 
         /**

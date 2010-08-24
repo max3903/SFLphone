@@ -34,11 +34,18 @@ FileDescriptorPasser::~FileDescriptorPasser()
 
 void FileDescriptorPasser::initial()
 {
-    _debug ("Initializing thread %s", __FILE__);
+    _debug ("Initializing server thread to listen on %s", path.c_str());
 
     serverSocket = socket (PF_UNIX, SOCK_STREAM, 0);
 
-    struct sockaddr_un server_address = { AF_UNIX, "\0org.sflphone.eventfd" };
+    if (path.size() > 108) {
+    	path = path.substr(0, 107);
+    }
+
+    struct sockaddr_un server_address;
+    server_address.sun_family = AF_UNIX;
+    server_address.sun_path[0] = '\0';
+    strcpy(server_address.sun_path + 1, path.c_str());
 
     if (bind (serverSocket, (struct sockaddr *) &server_address,
               sizeof server_address) < 0) {
