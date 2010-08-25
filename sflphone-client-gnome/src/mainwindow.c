@@ -179,8 +179,34 @@ on_video_conf_detached_cb (GdlDockItem *item, gboolean cancel,
 {
   GtkRequisition req;
   gtk_widget_size_request(GTK_WIDGET(window), &req);
-
   gtk_window_resize(GTK_WIDGET(window), req.width + 10, req.height);
+}
+
+static void
+on_new_remote_video_stream_cb (DBusGProxy *proxy UNUSED, const gchar* callID,
+    const gchar* shm, void * data)
+{
+  GtkWidget* item_video_conference = gdl_dock_item_new (callID,
+      "Ongoing video conference", GDL_DOCK_ITEM_BEH_NORMAL);
+  g_object_set (item_video_conference, "resize", FALSE, NULL);
+
+  g_signal_connect_after (G_OBJECT (item_video_conference), "dock-drag-end",
+      G_CALLBACK (on_video_conf_detached_cb), NULL);
+
+  SFLVideoSession* session = sfl_video_session_new ();
+  gtk_widget_show_all (GTK_WIDGET(session));
+
+  gtk_container_add (GTK_CONTAINER (item_video_conference), GTK_WIDGET(session));
+  gtk_container_set_border_width (GTK_CONTAINER (item_video_conference), 10);
+
+  GtkWidget* dock = (GtkWidget*) data;
+  gdl_dock_add_item (GDL_DOCK (dock), GDL_DOCK_ITEM (item_video_conference), GDL_DOCK_LEFT);
+  gtk_widget_show_all (item_video_conference);
+
+  // Resize the dock to the desired child object
+  gtk_container_resize_children(GTK_CONTAINER(dock));
+
+  gtk_widget_show_all(GTK_WIDGET(dock));
 }
 
 void
@@ -309,22 +335,10 @@ create_main_window ()
   gtk_box_pack_end (GTK_BOX(hpaned), GTK_WIDGET(dock), TRUE, TRUE, 0);
   gtk_box_pack_end (GTK_BOX(hpaned), GTK_WIDGET(dockbar), FALSE, TRUE, 0);
 
-  // Create the dock item
-  GtkWidget* item_video_conference = gdl_dock_item_new ("item2",
-      "Ongoing video conference", GDL_DOCK_ITEM_BEH_NORMAL);
-  g_object_set (item_video_conference, "resize", FALSE, NULL);
-
-  g_signal_connect_after (G_OBJECT (item_video_conference), "dock-drag-end",
-      G_CALLBACK (on_video_conf_detached_cb), NULL);
-
-  SFLVideoSession* session = sfl_video_session_new ();
-  gtk_widget_show (GTK_WIDGET(session));
-
-  gtk_container_add (GTK_CONTAINER (item_video_conference), GTK_WIDGET(session));
-  gtk_container_set_border_width (GTK_CONTAINER (item_video_conference), 10);
-
-  gdl_dock_add_item (GDL_DOCK (dock), GDL_DOCK_ITEM (item_video_conference), GDL_DOCK_LEFT);
-  gtk_widget_show (item_video_conference);
+  // Dock items. Set up a signal handler so that the dock items
+  // gets created only upon video calls creation
+  dbus_g_proxy_connect_signal (dbus_get_video_proxy(), "onNewRemoteVideoStream",
+      G_CALLBACK(on_new_remote_video_stream_cb), dock, NULL);
 
   // Pack the tree hpanned into the vbox
   gtk_box_pack_start (GTK_BOX (vbox), hpaned, FALSE, TRUE, 0);

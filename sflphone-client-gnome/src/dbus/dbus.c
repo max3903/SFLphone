@@ -58,11 +58,11 @@
 #define DBUS_VIDEO_RESOLUTION_TYPE (dbus_g_type_get_struct ("GValueArray", G_TYPE_UINT, G_TYPE_UINT, G_TYPE_INVALID))
 #define DBUS_VIDEO_FRAMERATE_TYPE (dbus_g_type_get_struct ("GValueArray", G_TYPE_UINT, G_TYPE_UINT, G_TYPE_INVALID))
 
-DBusGConnection * connection;
-DBusGProxy * callManagerProxy;
-DBusGProxy * configurationManagerProxy;
-DBusGProxy * videoManagerProxy;
-DBusGProxy * instanceProxy;
+static DBusGConnection * connection;
+static DBusGProxy * callManagerProxy;
+static DBusGProxy * configurationManagerProxy;
+static DBusGProxy * videoManagerProxy;
+static DBusGProxy * instanceProxy;
 
 static void
 incoming_call_cb (DBusGProxy *proxy UNUSED, const gchar* accountID,
@@ -89,14 +89,6 @@ incoming_call_cb (DBusGProxy *proxy UNUSED, const gchar* accountID,
   set_timestamp (&c->_time_start);
   notify_incoming_call (c);
   sflphone_incoming_call (c);
-}
-
-static void
-on_new_remote_video_stream_cb (DBusGProxy *proxy UNUSED, const gchar* callID,
-    const gchar* shm, void * foo  UNUSED ) {
-
-  DEBUG("New remote video stream %s %s", callID, shm);
-
 }
 
 static void
@@ -706,12 +698,18 @@ connect_to_video_manager (DBusGConnection * connection)
   // onNewRemoteVideoStream signal
   dbus_g_object_register_marshaller (g_cclosure_user_marshal_VOID__STRING_STRING,
       G_TYPE_NONE, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_INVALID);
+
   dbus_g_proxy_add_signal (videoProxy, "onNewRemoteVideoStream", G_TYPE_STRING, G_TYPE_STRING,
       G_TYPE_INVALID);
-  dbus_g_proxy_connect_signal (videoProxy, "onNewRemoteVideoStream",
-      G_CALLBACK(on_new_remote_video_stream_cb), NULL, NULL);
+
 
   return videoProxy;
+}
+
+DBusGProxy *
+dbus_get_video_proxy()
+{
+  return videoManagerProxy;
 }
 
 gboolean

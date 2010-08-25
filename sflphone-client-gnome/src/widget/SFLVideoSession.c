@@ -154,6 +154,8 @@ sfl_video_session_init (SFLVideoSession* self)
 
   // Start the spinner
   gtk_spinner_start(GTK_SPINNER(priv->spinner));
+
+  gtk_widget_show_all(GTK_WIDGET(priv->notebook));
 }
 
 SFLVideoSession*

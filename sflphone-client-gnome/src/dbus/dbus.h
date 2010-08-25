@@ -70,6 +70,12 @@ void
 dbus_clean ();
 
 /**
+ * @return a pointer on the video proxy.
+ */
+DBusGProxy*
+dbus_get_video_proxy();
+
+/**
  * CallManager - Hold a call
  * @param c The call to hold
  */
