@@ -286,7 +286,7 @@ create_main_window ()
           }
 
         // Pack the vbox_left_pane into the hpanned
-        gtk_box_pack_start(GTK_BOX(hpaned), vbox_left_pane, TRUE, TRUE, 0);
+        gtk_box_pack_start(GTK_BOX(hpaned), vbox_left_pane, FALSE, TRUE, 10);
         gtk_widget_set_size_request (vbox_left_pane, 240, 400);
 
         // Pack the video session into the right pane.
@@ -294,12 +294,11 @@ create_main_window ()
         GtkWidget* dockbar = gdl_dock_bar_new (GDL_DOCK (dock));
         gdl_dock_bar_set_style(GDL_DOCK_BAR(dockbar), GDL_DOCK_BAR_TEXT);
 
-        gtk_box_pack_start(GTK_BOX(hpaned), GTK_WIDGET(dock), TRUE, TRUE, 0);
-        gtk_box_pack_start(GTK_BOX(hpaned), GTK_WIDGET(dockbar), TRUE, TRUE, 0);
+        gtk_box_pack_start(GTK_BOX(hpaned), GTK_WIDGET(dock), FALSE, TRUE, 0);
+        gtk_box_pack_start(GTK_BOX(hpaned), GTK_WIDGET(dockbar), FALSE, TRUE, 0);
 
         // Create the dock item
-        GtkWidget* item2 = gdl_dock_item_new_with_stock ("item2", "Ongoing video conference",
-                                              GTK_STOCK_YES,
+        GtkWidget* item2 = gdl_dock_item_new ("item2", "Ongoing video conference",
                                               GDL_DOCK_ITEM_BEH_NORMAL);
         g_object_set (item2, "resize", FALSE, NULL);
 
