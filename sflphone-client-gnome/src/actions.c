@@ -222,17 +222,11 @@ void sflphone_fill_account_list (void)
     array = (gchar **) dbus_account_list();
 
     if (array) {
-        /*
-          if(!(*accountID))
-        DEBUG("hhhhhhhhhmmmmmmmmmmmm");
-        */
 
         for (accountID = array; *accountID; accountID++) {
             account_t * a = g_new0 (account_t,1);
             a->accountID = g_strdup (*accountID);
-            DEBUG ("------------------- Account ID %s", a->accountID);
             a->credential_information = NULL;
-            // TODO Clean codec list QUEUE
             account_list_add (a);
         }
 
@@ -1053,6 +1047,7 @@ sflphone_rec_call()
     conference_obj_t * selectedConf = calltab_get_selected_conf (current_calls);
 
     if (selectedCall) {
+        DEBUG ("SFLphone: Set record for selected call");
         dbus_set_record (selectedCall->_callID);
 
         switch (selectedCall->_state) {
@@ -1067,6 +1062,7 @@ sflphone_rec_call()
                 break;
         }
     } else if (selectedConf) {
+        DEBUG ("SFLphone: Set record for selected conf");
         dbus_set_record (selectedConf->_confID);
 
         switch (selectedConf->_state) {
@@ -1412,7 +1408,7 @@ sflphone_confirm_go_clear (callable_obj_t * c)
 void
 sflphone_call_state_changed (callable_obj_t * c, const gchar * description, const guint code)
 {
-    DEBUG ("sflphone_call_state_changed");
+    DEBUG ("SFLPhone: sflphone_call_state_changed");
 
     if (c == NULL) {
         DEBUG ("Panic callable obj is NULL in %s at %d", __FILE__, __LINE__);
@@ -1421,6 +1417,7 @@ sflphone_call_state_changed (callable_obj_t * c, const gchar * description, cons
         //DEBUG("sflphone_call_state_changed");
         c->_state_code_description = g_strdup (description);
         c->_state_code = code;
+        DEBUG ("SFLPhone: state code %d", c->_state_code);
     }
 
     calltree_update_call (current_calls, c, NULL);

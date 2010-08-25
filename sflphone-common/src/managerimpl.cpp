@@ -231,6 +231,11 @@ bool ManagerImpl::outgoingCall (const std::string& account_id,
     Call::CallConfiguration callConfig;
     SIPVoIPLink *siplink;
 
+    if (call_id.empty()) {
+        _debug ("Manager: New outgoing call abbort, missing callid");
+        return false;
+    }
+
     _debug ("Manager: New outgoing call %s to %s", call_id.c_str(), to.c_str());
 
     CallID current_call_id = getCurrentCallId();
@@ -2554,17 +2559,20 @@ bool ManagerImpl::getMd5CredentialHashing (void)
 void ManagerImpl::setRecordingCall (const CallID& id)
 {
 
-    Recordable* rec;
+    Recordable* rec = NULL;
 
     if (!isConference (id)) {
+        _debug ("Manager: Set recording for call %s", id.c_str());
         AccountID accountid = getAccountFromCall (id);
         rec = (Recordable *) getAccountLink (accountid)->getCall (id);
     } else {
+        _debug ("Manager: Ser recording for conference %s", id.c_str());
         ConferenceMap::iterator it = _conferencemap.find (id);
         rec = (Recordable *) it->second;
     }
 
-    rec->setRecording();
+    if (rec)
+        rec->setRecording();
 
 }
 
@@ -2574,7 +2582,12 @@ bool ManagerImpl::isRecording (const CallID& id)
     AccountID accountid = getAccountFromCall (id);
     Recordable* rec = (Recordable*) getAccountLink (accountid)->getCall (id);
 
-    return rec->isRecording();
+    bool ret = false;
+
+    if (rec)
+        ret = rec->isRecording();
+
+    return ret;
 }
 
 
@@ -2669,19 +2682,9 @@ std::string ManagerImpl::getCurrentAudioOutputPlugin (void)
 std::string ManagerImpl::getEchoCancelState (void)
 {
 
-    // echo canceller is disabled by default
-    bool isEnabled = false;
+    std::string state;
 
-    if (_audiodriver) {
-        isEnabled = _audiodriver->getEchoCancelState();
-    }
-
-    std::string state ("");
-
-    if (isEnabled)
-        state = "enabled";
-    else
-        state = "disabled";
+    state = audioPreference.getEchoCancel() ? "enabled" : "disabled";
 
     return state;
 }
@@ -2690,12 +2693,9 @@ void ManagerImpl::setEchoCancelState (std::string state)
 {
     _debug ("Manager: Set echo suppress state: %s", state.c_str());
 
-    bool isEnabled = false;
+    bool isEnabled = state == "enabled" ? true : false;
 
-    if (state.compare ("enabled") == 0)
-        isEnabled = true;
-    else
-        isEnabled = false;
+    audioPreference.setEchoCancel (isEnabled);
 
     if (_audiodriver) {
         _audiodriver->setEchoCancelState (isEnabled);
@@ -2707,18 +2707,9 @@ std::string ManagerImpl::getNoiseSuppressState (void)
 {
 
     // noise suppress disabled by default
-    bool isEnabled = false;
+    std::string state;
 
-    if (_audiodriver) {
-        isEnabled = _audiodriver->getNoiseSuppressState();
-    }
-
-    std::string state ("");
-
-    if (isEnabled)
-        state = "enabled";
-    else
-        state = "disabled";
+    state = audioPreference.getNoiseReduce() ? "enabled" : "disabled";
 
     return state;
 }
@@ -2727,12 +2718,9 @@ void ManagerImpl::setNoiseSuppressState (std::string state)
 {
     _debug ("Manager: Set noise suppress state: %s", state.c_str());
 
-    bool isEnabled = false;
+    bool isEnabled = state == "enabled" ? true : false;
 
-    if (state.compare ("enabled") == 0)
-        isEnabled = true;
-    else
-        isEnabled = false;
+    audioPreference.setNoiseReduce (isEnabled);
 
     if (_audiodriver) {
         _audiodriver->setNoiseSuppressState (isEnabled);
