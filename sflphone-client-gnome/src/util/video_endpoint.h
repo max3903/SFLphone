@@ -92,16 +92,29 @@ int sflphone_video_set_width(sflphone_video_endpoint_t* endpt, gint width);
 int sflphone_video_free(sflphone_video_endpoint_t* endpt);
 
 /**
+ * Open a given shared memory segment.
+ * @param endpt An existing sflphone_video_endpoint type of object.
+ * @param shm The shared memory segment to open.
+ */
+int sflphone_video_open(sflphone_video_endpoint_t* endpt, gchar* shm);
+
+/**
  * Open the video device.
  * @param endpt An existing sflphone_video_endpoint type of object.
  */
-int sflphone_video_open(sflphone_video_endpoint_t* endpt);
+int sflphone_video_open_device(sflphone_video_endpoint_t* endpt);
 
 /**
- * Close a video device.
+ * Closes a video shared memory segment.
  * @param endpt An existing sflphone_video_endpoint type of object.
  */
 int sflphone_video_close(sflphone_video_endpoint_t* endpt);
+
+/**
+ * Closes a video device.
+ * @param endpt An existing sflphone_video_endpoint type of object.
+ */
+int sflphone_video_close_device(sflphone_video_endpoint_t* endpt);
 
 /**
  * Register a callback function for asynchronous notification upon

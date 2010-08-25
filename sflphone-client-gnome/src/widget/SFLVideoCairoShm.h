@@ -34,6 +34,12 @@ sfl_video_cairo_shm_get_type (void);
 SFLVideoCairoShm*
 sfl_video_cairo_shm_new ();
 
+/**
+ * Start reading and displaying frames from the shared memory segment.
+ */
+int
+sfl_video_cairo_shm_start (SFLVideoCairoShm* self);
+
 G_END_DECLS
 
 #endif

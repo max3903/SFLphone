@@ -187,8 +187,37 @@ sfl_video_cairo_shm_init (SFLVideoCairoShm *self)
 
   DEBUG("Initializing video cairo shm widget ...");
 
+  // Create a new video endpoint for reading frames in the SHM
   priv->endpt = sflphone_video_init();
+}
 
+int
+sfl_video_cairo_shm_start (SFLVideoCairoShm* self)
+{
+  DEBUG("Starting video cairo capture");
+
+  SFLVideoCairoShmPrivate* priv = GET_PRIVATE(self);
+
+  if (sflphone_video_add_observer (priv->endpt, &on_new_frame_cb, self) < 0) {
+    ERROR("Failed to register as an observer and start video %s:%d", __FILE__, __LINE__);
+    return -1;
+  }
+
+  if (sflphone_video_open (priv->endpt, "asfasf") < 0) // FIXME !
+    {
+      ERROR("Failed to open and start video %s:%d", __FILE__, __LINE__);
+      return -1;
+    }
+
+  if (sflphone_video_start_async (priv->endpt) < 0)
+    {
+      ERROR("Failed to start video %s:%d", __FILE__, __LINE__);
+      return -1;
+    }
+
+  DEBUG("Registered as an observer");
+
+  priv->capturing = TRUE;
 }
 
 SFLVideoCairoShm*

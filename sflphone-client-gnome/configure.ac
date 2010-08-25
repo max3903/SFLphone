@@ -60,7 +60,8 @@ PKG_CHECK_MODULES(DEPS,     \
     glib-2.0 >= 2.2         \
     libebook-1.2 >= 2.22	\
 	libgnomeui-2.0			\
-	gnome-doc-utils
+	gnome-doc-utils \
+	gdl-1.0
 )
 
 AC_SUBST(DEPS_CFLAGS)

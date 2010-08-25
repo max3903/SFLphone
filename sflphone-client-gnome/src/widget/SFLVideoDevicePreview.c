@@ -2,14 +2,14 @@
 #include <string.h>
 #include <stdlib.h>
 
-#include "SFLVideoCairo.h"
+#include "SFLVideoDevicePreview.h"
 #include "util/video_endpoint.h"
 #include "sflphone_const.h"
 
-#define SFL_VIDEO_CAIRO_GET_PRIVATE(obj) (G_TYPE_INSTANCE_GET_PRIVATE ((obj), SFL_VIDEO_TYPE_CAIRO, SFLVideoCairoPrivate))
+#define SFL_VIDEO_DEVICE_PREVIEW_GET_PRIVATE(obj) (G_TYPE_INSTANCE_GET_PRIVATE ((obj), SFL_TYPE_VIDEO_DEVICE_PREVIEW, SFLVideoDevicePreviewPrivate))
 
-typedef struct _SFLVideoCairoPrivate SFLVideoCairoPrivate;
-struct _SFLVideoCairoPrivate
+typedef struct _SFLVideoDevicePreviewPrivate SFLVideoDevicePreviewPrivate;
+struct _SFLVideoDevicePreviewPrivate
 {
   cairo_surface_t* surface;
   unsigned char* image_data;
@@ -22,12 +22,12 @@ struct _SFLVideoCairoPrivate
   sflphone_video_endpoint_t* endpt;
 };
 
-static gpointer sfl_video_cairo_parent_class = NULL;
+static gpointer sfl_video_device_preview_parent_class = NULL;
 
 enum
 {
   PROP_SOURCE = 1, PROP_WIDTH, PROP_HEIGHT, PROP_FPS, LAST_PROPERTY
-} SFLVideoCairoProperties;
+} SFLVideoDevicePreviewProperties;
 
 static const int DEFAULT_NO_DEVICE_WIDTH = 320;
 static const int DEFAULT_NO_DEVICE_HEIGHT = 240;
@@ -35,9 +35,9 @@ static const int DEFAULT_BPP = 4;
 static const gchar* DEFAULT_FPS = "30/1";
 
 static void
-reallocate_buffer (SFLVideoCairo* self)
+reallocate_buffer (SFLVideoDevicePreview* self)
 {
-  SFLVideoCairoPrivate* priv = SFL_VIDEO_CAIRO_GET_PRIVATE((SFLVideoCairo*) self);
+  SFLVideoDevicePreviewPrivate* priv = SFL_VIDEO_DEVICE_PREVIEW_GET_PRIVATE((SFLVideoDevicePreview*) self);
 
   DEBUG("Reallocating buffers");
 
@@ -56,11 +56,11 @@ reallocate_buffer (SFLVideoCairo* self)
 }
 
 static void
-sfl_video_cairo_set_property (GObject *object, guint property_id,
+sfl_video_device_preview_set_property (GObject *object, guint property_id,
     const GValue *value, GParamSpec *pspec)
 {
-  SFLVideoCairo *self = SFL_VIDEO_CAIRO(object);
-  SFLVideoCairoPrivate *priv = SFL_VIDEO_CAIRO_GET_PRIVATE(self);
+  SFLVideoDevicePreview *self = SFL_VIDEO_DEVICE_PREVIEW(object);
+  SFLVideoDevicePreviewPrivate *priv = SFL_VIDEO_DEVICE_PREVIEW_GET_PRIVATE(self);
 
   DEBUG("Setting property.");
 
@@ -99,11 +99,11 @@ sfl_video_cairo_set_property (GObject *object, guint property_id,
 }
 
 static void
-sfl_video_cairo_get_property (GObject *object, guint property_id, GValue *value,
+sfl_video_device_preview_get_property (GObject *object, guint property_id, GValue *value,
     GParamSpec *pspec)
 {
-  SFLVideoCairo *self = SFL_VIDEO_CAIRO(object);
-  SFLVideoCairoPrivate *priv = SFL_VIDEO_CAIRO_GET_PRIVATE(self);
+  SFLVideoDevicePreview *self = SFL_VIDEO_DEVICE_PREVIEW(object);
+  SFLVideoDevicePreviewPrivate *priv = SFL_VIDEO_DEVICE_PREVIEW_GET_PRIVATE(self);
 
   switch (property_id)
     {
@@ -125,31 +125,31 @@ sfl_video_cairo_get_property (GObject *object, guint property_id, GValue *value,
 }
 
 void
-sfl_video_cairo_set_source (SFLVideoCairo* sfl_video_cairo, gchar* source)
+sfl_video_device_preview_set_source (SFLVideoDevicePreview* sfl_video_device_preview, gchar* source)
 {
   DEBUG("Setting source (%s)", source);
-  g_object_set (G_OBJECT(sfl_video_cairo), "source", source, NULL);
+  g_object_set (G_OBJECT(sfl_video_device_preview), "source", source, NULL);
 }
 
 void
-sfl_video_cairo_set_capture_width (SFLVideoCairo* sfl_video_cairo, gint width)
+sfl_video_device_preview_set_capture_width (SFLVideoDevicePreview* sfl_video_device_preview, gint width)
 {
   DEBUG("Setting width (%d)", width);
-  g_object_set (G_OBJECT(sfl_video_cairo), "width", width, NULL);
+  g_object_set (G_OBJECT(sfl_video_device_preview), "width", width, NULL);
 }
 
 void
-sfl_video_cairo_set_capture_height (SFLVideoCairo* sfl_video_cairo, gint height)
+sfl_video_device_preview_set_capture_height (SFLVideoDevicePreview* sfl_video_device_preview, gint height)
 {
   DEBUG("Setting height (%d)", height);
-  g_object_set (G_OBJECT(sfl_video_cairo), "height", height, NULL);
+  g_object_set (G_OBJECT(sfl_video_device_preview), "height", height, NULL);
 }
 
 void
-sfl_video_cairo_set_capture_framerate (SFLVideoCairo* sfl_video_cairo, gchar* fps)
+sfl_video_device_preview_set_capture_framerate (SFLVideoDevicePreview* sfl_video_device_preview, gchar* fps)
 {
   DEBUG("Setting frame rate (%s)", fps);
-  g_object_set (G_OBJECT(sfl_video_cairo), "fps", fps, NULL);
+  g_object_set (G_OBJECT(sfl_video_device_preview), "fps", fps, NULL);
 }
 
 static char*
@@ -199,7 +199,7 @@ gint iHeight /* height of image       */)
 }
 
 static void
-sfl_video_cairo_redraw_canvas (SFLVideoCairo* self)
+sfl_video_device_preview_redraw_canvas (SFLVideoDevicePreview* self)
 {
   GtkWidget *widget;
   GdkRegion *region;
@@ -222,19 +222,19 @@ on_new_frame_cb (uint8_t* frame, void* widget)
 {
   // DEBUG("Got frame");
 
-  SFLVideoCairoPrivate* priv = SFL_VIDEO_CAIRO_GET_PRIVATE((SFLVideoCairo*) widget);
+  SFLVideoDevicePreviewPrivate* priv = SFL_VIDEO_DEVICE_PREVIEW_GET_PRIVATE((SFLVideoDevicePreview*) widget);
 
   // Copy the frame into the image surface
   memcpy (priv->image_data, frame, priv->width * priv->height * DEFAULT_BPP);
 
   gtk_widget_queue_draw (GTK_WIDGET(widget));
-  //sfl_video_cairo_redraw_canvas((SFLVideoCairo*) widget);
+  //sfl_video_device_preview_redraw_canvas((SFLVideoDevicePreview*) widget);
 }
 
 static void
-sfl_video_cairo_init (SFLVideoCairo *self)
+sfl_video_device_preview_init (SFLVideoDevicePreview *self)
 {
-  SFLVideoCairoPrivate *priv = SFL_VIDEO_CAIRO_GET_PRIVATE(self);
+  SFLVideoDevicePreviewPrivate *priv = SFL_VIDEO_DEVICE_PREVIEW_GET_PRIVATE(self);
   DEBUG("Initializing cairo");
 
   priv->endpt = sflphone_video_init ();
@@ -254,22 +254,22 @@ sfl_video_cairo_init (SFLVideoCairo *self)
 }
 
 static void
-sfl_video_cairo_finalize (GObject *object)
+sfl_video_device_preview_finalize (GObject *object)
 {
-  SFLVideoCairo *self = SFL_VIDEO_CAIRO(object);
-  SFLVideoCairoPrivate *priv = SFL_VIDEO_CAIRO_GET_PRIVATE(self);
+  SFLVideoDevicePreview *self = SFL_VIDEO_DEVICE_PREVIEW(object);
+  SFLVideoDevicePreviewPrivate *priv = SFL_VIDEO_DEVICE_PREVIEW_GET_PRIVATE(self);
 
   free (priv->image_data);
   cairo_surface_destroy (priv->surface);
   g_free (priv->source);
 
-  G_OBJECT_CLASS (sfl_video_cairo_parent_class)->finalize (object);
+  G_OBJECT_CLASS (sfl_video_device_preview_parent_class)->finalize (object);
 }
 
 static gboolean
-sfl_video_cairo_expose (GtkWidget* cairo_video, GdkEventExpose* event)
+sfl_video_device_preview_expose (GtkWidget* cairo_video, GdkEventExpose* event)
 {
-  SFLVideoCairoPrivate* priv = SFL_VIDEO_CAIRO_GET_PRIVATE (cairo_video);
+  SFLVideoDevicePreviewPrivate* priv = SFL_VIDEO_DEVICE_PREVIEW_GET_PRIVATE (cairo_video);
 
   // Redraw on every expose event.
   cairo_t* cairo_context = gdk_cairo_create (cairo_video->window);
@@ -285,18 +285,18 @@ sfl_video_cairo_expose (GtkWidget* cairo_video, GdkEventExpose* event)
 }
 
 static void
-sfl_video_cairo_class_init (SFLVideoCairoClass *class)
+sfl_video_device_preview_class_init (SFLVideoDevicePreviewClass *class)
 {
   GObjectClass *obj_class;
   GtkWidgetClass *widget_class;
 
   obj_class = G_OBJECT_CLASS (class);
-  obj_class->get_property = sfl_video_cairo_get_property;
-  obj_class->set_property = sfl_video_cairo_set_property;
-  obj_class->finalize = sfl_video_cairo_finalize;
+  obj_class->get_property = sfl_video_device_preview_get_property;
+  obj_class->set_property = sfl_video_device_preview_set_property;
+  obj_class->finalize = sfl_video_device_preview_finalize;
 
   widget_class = GTK_WIDGET_CLASS (class);
-  widget_class->expose_event = sfl_video_cairo_expose;
+  widget_class->expose_event = sfl_video_device_preview_expose;
 
   g_object_class_install_property (obj_class, PROP_SOURCE, g_param_spec_string (
       "source", "source", "String specifying the source SHM for the video",
@@ -317,56 +317,56 @@ sfl_video_cairo_class_init (SFLVideoCairoClass *class)
       NULL, G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB
           | G_PARAM_READWRITE));
 
-  g_type_class_add_private (obj_class, sizeof(SFLVideoCairoPrivate));
+  g_type_class_add_private (obj_class, sizeof(SFLVideoDevicePreviewPrivate));
 }
 
 static void
-sfl_video_cairo_class_intern_init (gpointer klass)
+sfl_video_device_preview_class_intern_init (gpointer klass)
 {
-  sfl_video_cairo_parent_class = g_type_class_peek_parent (klass);
-  sfl_video_cairo_class_init ((SFLVideoCairoClass*) klass);
+  sfl_video_device_preview_parent_class = g_type_class_peek_parent (klass);
+  sfl_video_device_preview_class_init ((SFLVideoDevicePreviewClass*) klass);
 }
 
 GType
-sfl_video_cairo_get_type (void)
+sfl_video_device_preview_get_type (void)
 {
   static GType g_define_type_id = 0;
   if (g_define_type_id == 0)
     {
       static const GTypeInfo g_define_type_info =
-        { sizeof(SFLVideoCairoClass), (GBaseInitFunc) NULL,
+        { sizeof(SFLVideoDevicePreviewClass), (GBaseInitFunc) NULL,
             (GBaseFinalizeFunc) NULL,
-            (GClassInitFunc) sfl_video_cairo_class_intern_init,
+            (GClassInitFunc) sfl_video_device_preview_class_intern_init,
             (GClassFinalizeFunc) NULL, NULL, /* class_data */
-            sizeof(SFLVideoCairo), 0, /* n_preallocs */
-            (GInstanceInitFunc) sfl_video_cairo_init, NULL, };
+            sizeof(SFLVideoDevicePreview), 0, /* n_preallocs */
+            (GInstanceInitFunc) sfl_video_device_preview_init, NULL, };
       g_define_type_id = g_type_register_static (GTK_TYPE_DRAWING_AREA,
-          "SFLVideoCairo", &g_define_type_info, 0);
+          "SFLVideoDevicePreview", &g_define_type_info, 0);
     }
   return g_define_type_id;
 }
 
-SFLVideoCairo *
-sfl_video_cairo_new_with_source (const gchar *source)
+SFLVideoDevicePreview *
+sfl_video_device_preview_new_with_source (const gchar *source)
 {
-  DEBUG("Creating new SFLVideoCairo.");
-  return g_object_new (SFL_VIDEO_TYPE_CAIRO, "source", source, "width",
+  DEBUG("Creating new SFLVideoDevicePreview.");
+  return g_object_new (SFL_TYPE_VIDEO_DEVICE_PREVIEW, "source", source, "width",
       DEFAULT_NO_DEVICE_WIDTH, "height", DEFAULT_NO_DEVICE_HEIGHT, "fps",
       DEFAULT_FPS, NULL);
 }
 
-SFLVideoCairo*
-sfl_video_cairo_new ()
+SFLVideoDevicePreview*
+sfl_video_device_preview_new ()
 {
-  return sfl_video_cairo_new_with_source ("");
+  return sfl_video_device_preview_new_with_source ("");
 }
 
 int
-sfl_video_cairo_start (SFLVideoCairo* self)
+sfl_video_device_preview_start (SFLVideoDevicePreview* self)
 {
   DEBUG("Starting video cairo capture");
 
-  SFLVideoCairoPrivate* priv = SFL_VIDEO_CAIRO_GET_PRIVATE(self);
+  SFLVideoDevicePreviewPrivate* priv = SFL_VIDEO_DEVICE_PREVIEW_GET_PRIVATE(self);
 
   if (sflphone_video_add_observer (priv->endpt, &on_new_frame_cb, self) < 0) {
     ERROR("Failed to register as an observer and start video %s:%d", __FILE__, __LINE__);
@@ -391,11 +391,11 @@ sfl_video_cairo_start (SFLVideoCairo* self)
 }
 
 int
-sfl_video_cairo_stop (SFLVideoCairo* self)
+sfl_video_device_preview_stop (SFLVideoDevicePreview* self)
 {
   DEBUG("Stopping video cairo capture");
 
-  SFLVideoCairoPrivate* priv = SFL_VIDEO_CAIRO_GET_PRIVATE(self);
+  SFLVideoDevicePreviewPrivate* priv = SFL_VIDEO_DEVICE_PREVIEW_GET_PRIVATE(self);
 
   sflphone_video_remove_observer(priv->endpt, &on_new_frame_cb);
 
@@ -406,8 +406,8 @@ sfl_video_cairo_stop (SFLVideoCairo* self)
 }
 
 gboolean
-sfl_video_cairo_is_capturing(SFLVideoCairo* sfl_video_cairo)
+sfl_video_device_preview_is_capturing(SFLVideoDevicePreview* sfl_video_device_preview)
 {
-  SFLVideoCairoPrivate* priv = SFL_VIDEO_CAIRO_GET_PRIVATE(sfl_video_cairo);
+  SFLVideoDevicePreviewPrivate* priv = SFL_VIDEO_DEVICE_PREVIEW_GET_PRIVATE(sfl_video_device_preview);
   return priv->capturing;
 }
