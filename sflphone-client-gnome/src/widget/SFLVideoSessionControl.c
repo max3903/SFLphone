@@ -71,20 +71,39 @@ sfl_video_session_control_class_init (SFLVideoSessionControlClass *klass)
 }
 
 static void
+fullscreen_toggled_cb (GtkToggleToolButton *toolbutton, gpointer user_data)
+{
+  DEBUG("fullscreen toggled");
+
+  GtkWindow* window = gtk_widget_get_toplevel (GTK_WIDGET(toolbutton));
+  if (gtk_toggle_tool_button_get_active (toolbutton) == TRUE)
+    {
+      gtk_window_fullscreen (window);
+      gtk_tool_button_set_stock_id (GTK_TOOL_BUTTON(toolbutton), GTK_STOCK_LEAVE_FULLSCREEN);
+    } else {
+      gtk_window_unfullscreen (window);
+      gtk_tool_button_set_stock_id (GTK_TOOL_BUTTON(toolbutton), GTK_STOCK_FULLSCREEN);
+    }
+}
+
+static void
 sfl_video_session_control_init (SFLVideoSessionControl* self)
 {
   SFLVideoSessionControlPrivate* priv = GET_PRIVATE(self);
 
-  priv->record = gtk_tool_button_new_from_stock (GTK_STOCK_MEDIA_RECORD);
-  priv->pause = gtk_tool_button_new_from_stock (GTK_STOCK_MEDIA_PAUSE);
-  priv->fullscreen = gtk_tool_button_new_from_stock (
+  priv->record = gtk_toggle_tool_button_new_from_stock (GTK_STOCK_MEDIA_RECORD);
+  priv->pause = gtk_toggle_tool_button_new_from_stock (GTK_STOCK_MEDIA_PAUSE);
+  priv->fullscreen = gtk_toggle_tool_button_new_from_stock (
       GTK_STOCK_FULLSCREEN);
 
   gtk_toolbar_insert (GTK_TOOLBAR(self), GTK_TOOL_ITEM(priv->record), -1);
   gtk_toolbar_insert (GTK_TOOLBAR(self), GTK_TOOL_ITEM(priv->pause), -1);
   gtk_toolbar_insert (GTK_TOOLBAR(self), GTK_TOOL_ITEM(priv->fullscreen), -1);
 
-  gtk_toolbar_set_style(GTK_TOOLBAR(self), GTK_TOOLBAR_ICONS);
+  g_signal_connect(G_OBJECT(priv->fullscreen), "toggled",
+      G_CALLBACK(fullscreen_toggled_cb), NULL);
+
+  gtk_toolbar_set_style (GTK_TOOLBAR(self), GTK_TOOLBAR_ICONS);
 }
 
 SFLVideoSessionControl*

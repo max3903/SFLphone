@@ -184,7 +184,6 @@ sfl_video_cairo_shm_init (SFLVideoCairoShm *self)
   SFLVideoCairoShmPrivate *priv = GET_PRIVATE(self);
 
   gtk_widget_set_size_request (GTK_WIDGET(self), 320, 240);
-
   DEBUG("Initializing video cairo shm widget ...");
 
   // Create a new video endpoint for reading frames in the SHM

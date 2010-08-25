@@ -72,7 +72,6 @@ pthread_mutex_t statusbar_message_mutex;
 static gboolean
 window_configure_cb (GtkWidget *win, GdkEventConfigure *event)
 {
-
   int pos_x, pos_y;
 
   eel_gconf_set_integer (CONF_MAIN_WINDOW_WIDTH, event->width);
@@ -91,16 +90,18 @@ window_configure_cb (GtkWidget *win, GdkEventConfigure *event)
 static gboolean
 on_delete (GtkWidget * widget UNUSED, gpointer data UNUSED)
 {
-	if (eel_gconf_get_integer (SHOW_STATUSICON)) {
-		gtk_widget_hide (GTK_WIDGET( get_main_window() ));
-		set_minimized (TRUE);
-	}
-	else {
-		sflphone_quit ();
-	}
+  if (eel_gconf_get_integer (SHOW_STATUSICON))
+    {
+      gtk_widget_hide (GTK_WIDGET( get_main_window() ));
+      set_minimized (TRUE);
+    }
+  else
+    {
+      sflphone_quit ();
+    }
 
-	pthread_mutex_destroy(&statusbar_message_mutex);
-	return TRUE;
+  pthread_mutex_destroy (&statusbar_message_mutex);
+  return TRUE;
 }
 
 /** Ask the user if he wants to hangup current calls */
@@ -172,174 +173,189 @@ focus_on_mainwindow_in ()
   //  gtk_widget_grab_focus(GTK_WIDGET(window));
 }
 
+static void
+on_video_conf_detached_cb (GdlDockItem *item, gboolean cancel,
+    gpointer user_data)
+{
+  GtkRequisition req;
+  gtk_widget_size_request(GTK_WIDGET(window), &req);
+
+  gtk_window_resize(GTK_WIDGET(window), req.width + 10, req.height);
+}
+
 void
 create_main_window ()
 {
-	GtkWidget *widget;
-	gchar *path;
-	GError *error = NULL;
-	gboolean ret;
-	const char *window_title = "SFLphone VoIP Client";
-	int width, height, position_x, position_y;
+  GtkWidget *widget;
+  gchar *path;
+  GError *error = NULL;
+  gboolean ret;
+  const char *window_title = "SFLphone VoIP Client";
+  int width, height, position_x, position_y;
 
-	focus_is_on_calltree = FALSE;
-	focus_is_on_searchbar = FALSE;
+  focus_is_on_calltree = FALSE;
+  focus_is_on_searchbar = FALSE;
 
-	// Get configuration stored in gconf
-	width =  eel_gconf_get_integer (CONF_MAIN_WINDOW_WIDTH);
-	height =  eel_gconf_get_integer (CONF_MAIN_WINDOW_HEIGHT);
-	position_x =  eel_gconf_get_integer (CONF_MAIN_WINDOW_POSITION_X);
-	position_y =  eel_gconf_get_integer (CONF_MAIN_WINDOW_POSITION_Y);
+  // Get configuration stored in gconf
+  width = eel_gconf_get_integer (CONF_MAIN_WINDOW_WIDTH);
+  height = eel_gconf_get_integer (CONF_MAIN_WINDOW_HEIGHT);
+  position_x = eel_gconf_get_integer (CONF_MAIN_WINDOW_POSITION_X);
+  position_y = eel_gconf_get_integer (CONF_MAIN_WINDOW_POSITION_Y);
 
-	window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
-	gtk_container_set_border_width (GTK_CONTAINER (window), 0);
-	gtk_window_set_title (GTK_WINDOW (window), window_title);
-	gtk_window_set_default_size (GTK_WINDOW (window), width, height);
-	gtk_window_set_default_icon_from_file (LOGO,
-			NULL);
-	gtk_window_set_position (GTK_WINDOW(window) , GTK_WIN_POS_MOUSE);
+  window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
+  gtk_window_set_title (GTK_WINDOW (window), window_title);
+  gtk_window_set_default_size (GTK_WINDOW (window), width, height);
+  gtk_window_set_default_icon_from_file (LOGO, NULL);
+  gtk_window_set_position (GTK_WINDOW(window), GTK_WIN_POS_MOUSE);
+  //gtk_window_set_policy(GTK_WINDOW(window), TRUE, FALSE, TRUE);
 
-	/* Connect the destroy event of the window with our on_destroy function
-	 * When the window is about to be destroyed we get a notificaiton and
-	 * stop the main GTK loop
-	 */
-	g_signal_connect (G_OBJECT (window), "delete-event",
-			G_CALLBACK (on_delete), NULL);
+  /* Connect the destroy event of the window with our on_destroy function
+   * When the window is about to be destroyed we get a notificaiton and
+   * stop the main GTK loop
+   */
+  g_signal_connect (G_OBJECT (window), "delete-event",
+      G_CALLBACK (on_delete), NULL);
 
-	g_signal_connect (G_OBJECT (window), "key-release-event",
-			G_CALLBACK (on_key_released), NULL);
+  g_signal_connect (G_OBJECT (window), "key-release-event",
+      G_CALLBACK (on_key_released), NULL);
 
-        g_signal_connect_after (G_OBJECT (window), "focus-in-event",
-			G_CALLBACK (focus_on_mainwindow_in), NULL);
+  g_signal_connect_after (G_OBJECT (window), "focus-in-event",
+      G_CALLBACK (focus_on_mainwindow_in), NULL);
 
-	g_signal_connect_after (G_OBJECT (window), "focus-out-event",
-			G_CALLBACK (focus_on_mainwindow_out), NULL);
+  g_signal_connect_after (G_OBJECT (window), "focus-out-event",
+      G_CALLBACK (focus_on_mainwindow_out), NULL);
 
-	g_signal_connect_object (G_OBJECT (window), "configure-event",
-			G_CALLBACK (window_configure_cb), NULL, 0);
+  g_signal_connect_object (G_OBJECT (window), "configure-event",
+      G_CALLBACK (window_configure_cb), NULL, 0);
 
-	gtk_widget_set_name (window, "mainwindow");
+  gtk_widget_set_name (window, "mainwindow");
 
-	ret = uimanager_new (&ui_manager);
-	if (!ret)
-	{
-		ERROR ("Could not load xml GUI\n");
-		g_error_free (error);
-		exit (1);
-	}
+  ret = uimanager_new (&ui_manager);
+  if (!ret)
+    {
+      ERROR ("Could not load xml GUI\n");
+      g_error_free (error);
+      exit (1);
+    }
 
-	/* Create an accel group for window's shortcuts */
-	gtk_window_add_accel_group (GTK_WINDOW(window),
-			gtk_ui_manager_get_accel_group (ui_manager));
+  /* Create an accel group for window's shortcuts */
+  gtk_window_add_accel_group (GTK_WINDOW(window),
+      gtk_ui_manager_get_accel_group (ui_manager));
 
-	// This vbox holds the menu bar, the various tree views, and the status bar
-	vbox = gtk_vbox_new (FALSE /*homogeneous*/, 0 /*spacing*/);
+  // This vbox holds the menu bar, the various tree views, and the status bar
+  vbox = gtk_vbox_new (FALSE /*homogeneous*/, 0 /*spacing*/);
 
-	// Create the menus
-	create_menus (ui_manager, &widget);
-	gtk_box_pack_start (GTK_BOX (vbox), widget, FALSE /*expand*/, TRUE /*fill*/,
-			0 /*padding*/);
+  // Create the menus
+  create_menus (ui_manager, &widget);
+  gtk_box_pack_start (GTK_BOX (vbox), widget, FALSE /*expand*/, TRUE /*fill*/,
+      0 /*padding*/);
 
-	// Create the toolbar
-	create_toolbar_actions (ui_manager, &widget);
-	// Do not override GNOME user settings
-	gtk_box_pack_start (GTK_BOX (vbox), widget, FALSE /*expand*/, TRUE /*fill*/,
-			0 /*padding*/);
+  // Create the toolbar
+  create_toolbar_actions (ui_manager, &widget);
+  // Do not override GNOME user settings
+  gtk_box_pack_start (GTK_BOX (vbox), widget, FALSE /*expand*/, TRUE /*fill*/,
+      0 /*padding*/);
 
-	// Create an split pane. One one side : the tree view, and on the other the video conference, if any
-        GtkWidget* hpaned = gtk_hbox_new(FALSE, 0);
-        //gtk_widget_set_size_request (hpaned, 200, -1);
+  // Create an split pane. One one side : the tree view, and on the other the video conference, if any
+  GtkWidget* hpaned = gtk_hbox_new (FALSE, 0);
 
-        // Create tree views
-        GtkWidget* vbox_left_pane = gtk_vbox_new(FALSE, 0);
-        gtk_box_pack_start (GTK_BOX (vbox_left_pane), current_calls->tree, TRUE, TRUE, 0);
-        gtk_box_pack_start (GTK_BOX (vbox_left_pane), history->tree, TRUE, TRUE, 0);
-        gtk_box_pack_start (GTK_BOX (vbox_left_pane), contacts->tree, TRUE, TRUE, 0);
+  // Create tree views
+  GtkWidget* vbox_left_pane = gtk_vbox_new (FALSE, 0);
 
-        // Pack the scroll book into the subvbox, into the vbox_left_pane
-         embedded_error_notebook = PIDGIN_SCROLL_BOOK(pidgin_scroll_book_new());
-         subvbox = gtk_vbox_new (FALSE /*homogeneous*/, 5 /*spacing*/);
-         gtk_box_pack_start (GTK_BOX(subvbox), GTK_WIDGET(embedded_error_notebook), FALSE, TRUE, 0);
+  gtk_box_pack_start (GTK_BOX (vbox_left_pane), current_calls->tree, TRUE, TRUE, 0);
+  gtk_box_pack_start (GTK_BOX (vbox_left_pane), history->tree, TRUE, TRUE, 0);
+  gtk_box_pack_start (GTK_BOX (vbox_left_pane), contacts->tree, TRUE, TRUE, 0);
 
-         // Pack the subvbox into the vbox
-         gtk_box_pack_start (GTK_BOX (vbox_left_pane), subvbox, FALSE, TRUE, 0);
+  // Pack the scroll book into the subvbox, into the vbox_left_pane
+  embedded_error_notebook = PIDGIN_SCROLL_BOOK(pidgin_scroll_book_new());
+  subvbox = gtk_vbox_new (FALSE /*homogeneous*/, 5 /*spacing*/);
+  gtk_box_pack_start (GTK_BOX(subvbox), GTK_WIDGET(embedded_error_notebook),
+      FALSE, TRUE, 0);
 
-         g_signal_connect_object (G_OBJECT (window), "configure-event",
-                         G_CALLBACK (window_configure_cb), NULL, 0);
+  // Pack the subvbox into the vbox
+  gtk_box_pack_start (GTK_BOX (vbox_left_pane), subvbox, FALSE, TRUE, 0);
 
-         if (SHOW_VOLUME)
-         {
-                 speaker_control = create_slider ("speaker");
-                 gtk_box_pack_end (GTK_BOX (subvbox), speaker_control, FALSE, TRUE, 0);
+  g_signal_connect_object (G_OBJECT (window), "configure-event",
+      G_CALLBACK (window_configure_cb), NULL, 0);
 
-                 gtk_widget_show_all (speaker_control);
-                 mic_control = create_slider ("mic");
+  if (SHOW_VOLUME)
+    {
+      speaker_control = create_slider ("speaker");
+      gtk_box_pack_end (GTK_BOX (subvbox), speaker_control, FALSE, TRUE, 0);
 
-                 gtk_box_pack_end (GTK_BOX (subvbox), mic_control, FALSE, TRUE, 0);
-                 gtk_widget_show_all (mic_control);
-         }
+      gtk_widget_show_all (speaker_control);
+      mic_control = create_slider ("mic");
 
-         if (eel_gconf_get_boolean (CONF_SHOW_DIALPAD)){
-                  dialpad = create_dialpad();
-                  gtk_box_pack_end (GTK_BOX (subvbox), dialpad, FALSE, TRUE, 0);
-                  gtk_widget_show_all (dialpad);
-          }
+      gtk_box_pack_end (GTK_BOX (subvbox), mic_control, FALSE, TRUE, 0);
+      gtk_widget_show_all (mic_control);
+    }
 
-        // Pack the vbox_left_pane into the hpanned
-        gtk_box_pack_start(GTK_BOX(hpaned), vbox_left_pane, FALSE, TRUE, 10);
-        gtk_widget_set_size_request (vbox_left_pane, 240, 400);
+  if (eel_gconf_get_boolean (CONF_SHOW_DIALPAD))
+    {
+      dialpad = create_dialpad ();
+      gtk_box_pack_end (GTK_BOX (subvbox), dialpad, FALSE, TRUE, 0);
+      gtk_widget_show_all (dialpad);
+    }
 
-        // Pack the video session into the right pane.
-        GtkWidget* dock = gdl_dock_new ();
-        GtkWidget* dockbar = gdl_dock_bar_new (GDL_DOCK (dock));
-        gdl_dock_bar_set_style(GDL_DOCK_BAR(dockbar), GDL_DOCK_BAR_TEXT);
+  // Pack the vbox_left_pane into the hpanned
+  gtk_box_pack_start (GTK_BOX(hpaned), vbox_left_pane, TRUE, TRUE, 0);
+  gtk_widget_set_size_request (vbox_left_pane, 320, 480);
 
-        gtk_box_pack_start(GTK_BOX(hpaned), GTK_WIDGET(dock), FALSE, TRUE, 0);
-        gtk_box_pack_start(GTK_BOX(hpaned), GTK_WIDGET(dockbar), FALSE, TRUE, 0);
+  // Pack the video session into the right pane.
+  GtkWidget* dock = gdl_dock_new ();
+  GtkWidget* dockbar = gdl_dock_bar_new (GDL_DOCK (dock));
+  gdl_dock_bar_set_style (GDL_DOCK_BAR (dockbar), GDL_DOCK_BAR_TEXT);
 
-        // Create the dock item
-        GtkWidget* item2 = gdl_dock_item_new ("item2", "Ongoing video conference",
-                                              GDL_DOCK_ITEM_BEH_NORMAL);
-        g_object_set (item2, "resize", FALSE, NULL);
+  gtk_box_pack_end (GTK_BOX(hpaned), GTK_WIDGET(dock), TRUE, TRUE, 0);
+  gtk_box_pack_end (GTK_BOX(hpaned), GTK_WIDGET(dockbar), FALSE, TRUE, 0);
 
-        SFLVideoSession* session = sfl_video_session_new();
-        gtk_widget_show(GTK_WIDGET(session));
+  // Create the dock item
+  GtkWidget* item_video_conference = gdl_dock_item_new ("item2",
+      "Ongoing video conference", GDL_DOCK_ITEM_BEH_NORMAL);
+  g_object_set (item_video_conference, "resize", FALSE, NULL);
 
-        gtk_container_add (GTK_CONTAINER (item2), GTK_WIDGET(session));
-        gdl_dock_add_item (GDL_DOCK (dock), GDL_DOCK_ITEM (item2), GDL_DOCK_RIGHT);
-        gtk_widget_show (item2);
-        gdl_dock_placeholder_new ("ph2", GDL_DOCK_OBJECT (dock), GDL_DOCK_BOTTOM, FALSE);
+  g_signal_connect_after (G_OBJECT (item_video_conference), "dock-drag-end",
+      G_CALLBACK (on_video_conf_detached_cb), NULL);
 
-        // Pack the tree hpanned into the vbox
-        gtk_box_pack_start (GTK_BOX (vbox), hpaned, FALSE, TRUE, 0);
+  SFLVideoSession* session = sfl_video_session_new ();
+  gtk_widget_show (GTK_WIDGET(session));
 
-	/* Status bar */
-	statusBar = gtk_statusbar_new ();
-	gtk_box_pack_end (GTK_BOX (vbox), statusBar, FALSE, FALSE, 0);
-	gtk_container_add (GTK_CONTAINER (window), vbox);
+  gtk_container_add (GTK_CONTAINER (item_video_conference), GTK_WIDGET(session));
+  gtk_container_set_border_width (GTK_CONTAINER (item_video_conference), 10);
 
-        gtk_widget_show_all(vbox);
+  gdl_dock_add_item (GDL_DOCK (dock), GDL_DOCK_ITEM (item_video_conference), GDL_DOCK_LEFT);
+  gtk_widget_show (item_video_conference);
 
-	/* make sure that everything, window and label, are visible */
-	gtk_widget_show_all (window);
+  // Pack the tree hpanned into the vbox
+  gtk_box_pack_start (GTK_BOX (vbox), hpaned, FALSE, TRUE, 0);
 
-	/* dont't show the history */
-	gtk_widget_hide (history->tree);
+  /* Status bar */
+  statusBar = gtk_statusbar_new ();
+  gtk_box_pack_end (GTK_BOX (vbox), statusBar, FALSE, FALSE, 0);
+  gtk_container_add (GTK_CONTAINER (window), vbox);
 
-	/* dont't show the contact list */
-	gtk_widget_hide (contacts->tree);
+  gtk_widget_show_all (vbox);
 
-	searchbar_init (history);
-	searchbar_init (contacts);
+  /* make sure that everything, window and label, are visible */
+  gtk_widget_show_all (window);
 
-	/* don't show waiting layer */
-	gtk_widget_hide (waitingLayer);
+  /* dont't show the history */
+  gtk_widget_hide (history->tree);
 
-	pthread_mutex_init(&statusbar_message_mutex, NULL);
+  /* dont't show the contact list */
+  gtk_widget_hide (contacts->tree);
 
-	// Configuration wizard
-	if (account_list_get_size () == 1)
-	{
+  searchbar_init (history);
+  searchbar_init (contacts);
+
+  /* don't show waiting layer */
+  gtk_widget_hide (waitingLayer);
+
+  pthread_mutex_init (&statusbar_message_mutex, NULL);
+
+  // Configuration wizard
+  if (account_list_get_size () == 1)
+    {
 #if GTK_CHECK_VERSION(2,10,0)
       build_wizard ();
 #else
@@ -431,183 +447,188 @@ main_window_dialpad (gboolean state)
 void
 main_window_volume_controls (gboolean state)
 {
-if (state)
-{
-        speaker_control = create_slider ("speaker");
-        gtk_box_pack_end (GTK_BOX (subvbox), speaker_control, FALSE /*expand*/,
-                        TRUE /*fill*/, 0 /*padding*/);
-        gtk_widget_show_all (speaker_control);
-        mic_control = create_slider ("mic");
-        gtk_box_pack_end (GTK_BOX (subvbox), mic_control, FALSE /*expand*/,
-                        TRUE /*fill*/, 0 /*padding*/);
-        gtk_widget_show_all (mic_control);
-}
-else
-{
-        gtk_container_remove (GTK_CONTAINER(subvbox), speaker_control);
-        gtk_container_remove (GTK_CONTAINER(subvbox), mic_control);
-}
+  if (state)
+    {
+      speaker_control = create_slider ("speaker");
+      gtk_box_pack_end (GTK_BOX (subvbox), speaker_control, FALSE /*expand*/,
+          TRUE /*fill*/, 0 /*padding*/);
+      gtk_widget_show_all (speaker_control);
+      mic_control = create_slider ("mic");
+      gtk_box_pack_end (GTK_BOX (subvbox), mic_control, FALSE /*expand*/,
+          TRUE /*fill*/, 0 /*padding*/);
+      gtk_widget_show_all (mic_control);
+    }
+  else
+    {
+      gtk_container_remove (GTK_CONTAINER(subvbox), speaker_control);
+      gtk_container_remove (GTK_CONTAINER(subvbox), mic_control);
+    }
 }
 
 void
-statusbar_push_message (const gchar *left_hand_message, const gchar *right_hand_message, guint id)
+statusbar_push_message (const gchar *left_hand_message,
+    const gchar *right_hand_message, guint id)
 {
-// The actual message to be push in the statusbar
-gchar *message_to_display;
+  // The actual message to be push in the statusbar
+  gchar *message_to_display;
 
-pthread_mutex_lock(&statusbar_message_mutex);
+  pthread_mutex_lock (&statusbar_message_mutex);
 
-g_free(status_current_message);
-// store the left hand message so that it can be reused in case of clock update
-status_current_message = g_strdup(left_hand_message);
+  g_free (status_current_message);
+  // store the left hand message so that it can be reused in case of clock update
+  status_current_message = g_strdup (left_hand_message);
 
-// Format message according to right hand member
-if(right_hand_message) {
-  message_to_display = g_strdup_printf("%s           %s",
-                                 left_hand_message, right_hand_message);
-} else {
-  message_to_display = g_strdup(left_hand_message);
-}
+  // Format message according to right hand member
+  if (right_hand_message)
+    {
+      message_to_display = g_strdup_printf ("%s           %s",
+          left_hand_message, right_hand_message);
+    }
+  else
+    {
+      message_to_display = g_strdup (left_hand_message);
+    }
 
-// Push into the statusbar
-gtk_statusbar_push (GTK_STATUSBAR(statusBar), id, message_to_display);
+  // Push into the statusbar
+  gtk_statusbar_push (GTK_STATUSBAR(statusBar), id, message_to_display);
 
-g_free(message_to_display);
+  g_free (message_to_display);
 
-pthread_mutex_unlock(&statusbar_message_mutex);
+  pthread_mutex_unlock (&statusbar_message_mutex);
 }
 
 void
 statusbar_pop_message (guint id)
 {
-gtk_statusbar_pop (GTK_STATUSBAR(statusBar), id);
+  gtk_statusbar_pop (GTK_STATUSBAR(statusBar), id);
 }
 
 void
-statusbar_update_clock(gchar *msg)
-{ 
-gchar *message = NULL;
+statusbar_update_clock (gchar *msg)
+{
+  gchar *message = NULL;
 
-if(!msg) {
-statusbar_pop_message(__MSG_ACCOUNT_DEFAULT);
-statusbar_push_message(message, NULL, __MSG_ACCOUNT_DEFAULT);
-}
+  if (!msg)
+    {
+      statusbar_pop_message (__MSG_ACCOUNT_DEFAULT);
+      statusbar_push_message (message, NULL, __MSG_ACCOUNT_DEFAULT);
+    }
 
+  pthread_mutex_lock (&statusbar_message_mutex);
+  message = g_strdup (status_current_message);
+  pthread_mutex_unlock (&statusbar_message_mutex);
 
-pthread_mutex_lock(&statusbar_message_mutex);
-message = g_strdup(status_current_message);
-pthread_mutex_unlock(&statusbar_message_mutex);
+  if (message)
+    {
+      statusbar_pop_message (__MSG_ACCOUNT_DEFAULT);
+      statusbar_push_message (message, msg, __MSG_ACCOUNT_DEFAULT);
+    }
 
-if(message) {
-statusbar_pop_message(__MSG_ACCOUNT_DEFAULT);
-statusbar_push_message(message, msg, __MSG_ACCOUNT_DEFAULT);
-}
-
-g_free(message);
-message = NULL;
+  g_free (message);
+  message = NULL;
 
 }
 
 static void
 add_error_dialog (GtkWidget *dialog, callable_obj_t * call)
 {
-gtk_container_add (GTK_CONTAINER(embedded_error_notebook), dialog);
-call_add_error (call, dialog);
+  gtk_container_add (GTK_CONTAINER(embedded_error_notebook), dialog);
+  call_add_error (call, dialog);
 }
 
 static void
 destroy_error_dialog_cb (GtkObject *dialog, callable_obj_t * call)
 {
-call_remove_error (call, dialog);
+  call_remove_error (call, dialog);
 }
 
 void
 main_window_zrtp_not_supported (callable_obj_t * c)
 {
-account_t* account_details = NULL;
-gchar* warning_enabled = "";
+  account_t* account_details = NULL;
+  gchar* warning_enabled = "";
 
-account_details = account_list_get_by_id (c->_accountID);
-if (account_details != NULL)
-{
-        warning_enabled = g_hash_table_lookup (account_details->properties,
-                        ACCOUNT_ZRTP_NOT_SUPP_WARNING);
-        DEBUG("Warning Enabled %s", warning_enabled);
-}
-else
-{
-        DEBUG("Account is null callID %s", c->_callID);
-        GHashTable * properties = NULL;
-        sflphone_get_ip2ip_properties (&properties);
-        if (properties != NULL)
+  account_details = account_list_get_by_id (c->_accountID);
+  if (account_details != NULL)
+    {
+      warning_enabled = g_hash_table_lookup (account_details->properties,
+          ACCOUNT_ZRTP_NOT_SUPP_WARNING);
+      DEBUG("Warning Enabled %s", warning_enabled);
+    }
+  else
+    {
+      DEBUG("Account is null callID %s", c->_callID);
+      GHashTable * properties = NULL;
+      sflphone_get_ip2ip_properties (&properties);
+      if (properties != NULL)
         {
-                warning_enabled = g_hash_table_lookup (properties,
-                                ACCOUNT_ZRTP_NOT_SUPP_WARNING);
+          warning_enabled = g_hash_table_lookup (properties,
+              ACCOUNT_ZRTP_NOT_SUPP_WARNING);
         }
-}
+    }
 
-if (g_strcasecmp (warning_enabled, "true") == 0)
-{
-        PidginMiniDialog *mini_dialog;
-        gchar *desc = g_markup_printf_escaped (
-                        _("ZRTP is not supported by peer %s\n"), c->_peer_number);
-        mini_dialog = pidgin_mini_dialog_new (
-                        _("Secure Communication Unavailable"), desc,
-                        GTK_STOCK_DIALOG_WARNING);
-        pidgin_mini_dialog_add_button (mini_dialog, _("Continue"), NULL, NULL);
-        pidgin_mini_dialog_add_button (mini_dialog, _("Stop Call"),
-                        sflphone_hang_up, NULL);
+  if (g_strcasecmp (warning_enabled, "true") == 0)
+    {
+      PidginMiniDialog *mini_dialog;
+      gchar *desc = g_markup_printf_escaped (
+          _("ZRTP is not supported by peer %s\n"), c->_peer_number);
+      mini_dialog = pidgin_mini_dialog_new (
+          _("Secure Communication Unavailable"), desc,
+          GTK_STOCK_DIALOG_WARNING);
+      pidgin_mini_dialog_add_button (mini_dialog, _("Continue"), NULL, NULL);
+      pidgin_mini_dialog_add_button (mini_dialog, _("Stop Call"),
+          sflphone_hang_up, NULL);
 
-        g_signal_connect_after(mini_dialog, "destroy", (GCallback) destroy_error_dialog_cb, c);
+      g_signal_connect_after(mini_dialog, "destroy", (GCallback) destroy_error_dialog_cb, c);
 
-        add_error_dialog (GTK_WIDGET(mini_dialog), c);
-}
+      add_error_dialog (GTK_WIDGET(mini_dialog), c);
+    }
 }
 
 void
 main_window_zrtp_negotiation_failed (const gchar* callID, const gchar* reason,
-        const gchar* severity)
+    const gchar* severity)
 {
-gchar* peer_number = "(number unknown)";
-callable_obj_t * c = NULL;
-c = calllist_get (current_calls, callID);
-if (c != NULL)
-{
-        peer_number = c->_peer_number;
-}
+  gchar* peer_number = "(number unknown)";
+  callable_obj_t * c = NULL;
+  c = calllist_get (current_calls, callID);
+  if (c != NULL)
+    {
+      peer_number = c->_peer_number;
+    }
 
-PidginMiniDialog *mini_dialog;
-gchar
-        *desc =
-        g_markup_printf_escaped (
-                        _("A %s error forced the call with %s to fall under unencrypted mode.\nExact reason: %s\n"),
-                        severity, peer_number, reason);
-mini_dialog = pidgin_mini_dialog_new (_("ZRTP negotiation failed"), desc,
-                GTK_STOCK_DIALOG_WARNING);
-pidgin_mini_dialog_add_button (mini_dialog, _("Continue"), NULL, NULL);
-pidgin_mini_dialog_add_button (mini_dialog, _("Stop Call"), sflphone_hang_up,
-                NULL);
+  PidginMiniDialog *mini_dialog;
+  gchar
+      *desc =
+          g_markup_printf_escaped (
+              _("A %s error forced the call with %s to fall under unencrypted mode.\nExact reason: %s\n"),
+              severity, peer_number, reason);
+  mini_dialog = pidgin_mini_dialog_new (_("ZRTP negotiation failed"), desc,
+      GTK_STOCK_DIALOG_WARNING);
+  pidgin_mini_dialog_add_button (mini_dialog, _("Continue"), NULL, NULL);
+  pidgin_mini_dialog_add_button (mini_dialog, _("Stop Call"), sflphone_hang_up,
+      NULL);
 
-g_signal_connect_after(mini_dialog, "destroy", (GCallback) destroy_error_dialog_cb, c);
+  g_signal_connect_after(mini_dialog, "destroy", (GCallback) destroy_error_dialog_cb, c);
 
-add_error_dialog (GTK_WIDGET(mini_dialog), c);
+  add_error_dialog (GTK_WIDGET(mini_dialog), c);
 }
 
 void
 main_window_confirm_go_clear (callable_obj_t * c)
 {
-PidginMiniDialog *mini_dialog;
-gchar
-        *desc =
-        g_markup_printf_escaped (
-                        _("%s wants to stop using secure communication. Confirm will resume conversation without SRTP.\n"),
-                        c->_peer_number);
-mini_dialog = pidgin_mini_dialog_new (_("Confirm Go Clear"), desc,
-                GTK_STOCK_STOP);
-pidgin_mini_dialog_add_button (mini_dialog, _("Confirm"),
-                (PidginMiniDialogCallback) sflphone_set_confirm_go_clear, NULL);
-pidgin_mini_dialog_add_button (mini_dialog, _("Stop Call"), sflphone_hang_up,
-                NULL);
+  PidginMiniDialog *mini_dialog;
+  gchar
+      *desc =
+          g_markup_printf_escaped (
+              _("%s wants to stop using secure communication. Confirm will resume conversation without SRTP.\n"),
+              c->_peer_number);
+  mini_dialog = pidgin_mini_dialog_new (_("Confirm Go Clear"), desc,
+      GTK_STOCK_STOP);
+  pidgin_mini_dialog_add_button (mini_dialog, _("Confirm"),
+      (PidginMiniDialogCallback) sflphone_set_confirm_go_clear, NULL);
+  pidgin_mini_dialog_add_button (mini_dialog, _("Stop Call"), sflphone_hang_up,
+      NULL);
 
-add_error_dialog (GTK_WIDGET(mini_dialog), c);
+  add_error_dialog (GTK_WIDGET(mini_dialog), c);
 }
