@@ -5,9 +5,12 @@ noinst_LTLIBRARIES = libwidget.la
 libwidget_la_SOURCES = \
 		PidginScrollBook.c \
 		PidginMiniDialog.c \
-		VideoCairo.c \
+		SFLVideoCairo.c \
 		SFLMessageBar.c \
-		SFLMainSection.c
+		SFLMainSection.c \
+		SFLVideoSession.c \
+		SFLVideoSessionControl.c \
+		SFLVideoCairoShm.c
 				
 libwidget_la_LDFLAGS = @DEPS_LDFLAGS@
 libwidget_la_LIDADD = ./util/libutil.la					  

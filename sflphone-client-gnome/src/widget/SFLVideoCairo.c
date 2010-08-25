@@ -2,14 +2,14 @@
 #include <string.h>
 #include <stdlib.h>
 
-#include "VideoCairo.h"
+#include "SFLVideoCairo.h"
 #include "util/video_endpoint.h"
 #include "sflphone_const.h"
 
-#define VIDEO_CAIRO_GET_PRIVATE(obj) (G_TYPE_INSTANCE_GET_PRIVATE ((obj), VIDEO_TYPE_CAIRO, VideoCairoPrivate))
+#define SFL_VIDEO_CAIRO_GET_PRIVATE(obj) (G_TYPE_INSTANCE_GET_PRIVATE ((obj), SFL_VIDEO_TYPE_CAIRO, SFLVideoCairoPrivate))
 
-typedef struct _VideoCairoPrivate VideoCairoPrivate;
-struct _VideoCairoPrivate
+typedef struct _SFLVideoCairoPrivate SFLVideoCairoPrivate;
+struct _SFLVideoCairoPrivate
 {
   cairo_surface_t* surface;
   unsigned char* image_data;
@@ -22,12 +22,12 @@ struct _VideoCairoPrivate
   sflphone_video_endpoint_t* endpt;
 };
 
-static gpointer video_cairo_parent_class = NULL;
+static gpointer sfl_video_cairo_parent_class = NULL;
 
 enum
 {
   PROP_SOURCE = 1, PROP_WIDTH, PROP_HEIGHT, PROP_FPS, LAST_PROPERTY
-} VideoCairoProperties;
+} SFLVideoCairoProperties;
 
 static const int DEFAULT_NO_DEVICE_WIDTH = 320;
 static const int DEFAULT_NO_DEVICE_HEIGHT = 240;
@@ -35,9 +35,9 @@ static const int DEFAULT_BPP = 4;
 static const gchar* DEFAULT_FPS = "30/1";
 
 static void
-reallocate_buffer (VideoCairo* self)
+reallocate_buffer (SFLVideoCairo* self)
 {
-  VideoCairoPrivate* priv = VIDEO_CAIRO_GET_PRIVATE((VideoCairo*) self);
+  SFLVideoCairoPrivate* priv = SFL_VIDEO_CAIRO_GET_PRIVATE((SFLVideoCairo*) self);
 
   DEBUG("Reallocating buffers");
 
@@ -56,11 +56,11 @@ reallocate_buffer (VideoCairo* self)
 }
 
 static void
-video_cairo_set_property (GObject *object, guint property_id,
+sfl_video_cairo_set_property (GObject *object, guint property_id,
     const GValue *value, GParamSpec *pspec)
 {
-  VideoCairo *self = VIDEO_CAIRO(object);
-  VideoCairoPrivate *priv = VIDEO_CAIRO_GET_PRIVATE(self);
+  SFLVideoCairo *self = SFL_VIDEO_CAIRO(object);
+  SFLVideoCairoPrivate *priv = SFL_VIDEO_CAIRO_GET_PRIVATE(self);
 
   DEBUG("Setting property.");
 
@@ -99,11 +99,11 @@ video_cairo_set_property (GObject *object, guint property_id,
 }
 
 static void
-video_cairo_get_property (GObject *object, guint property_id, GValue *value,
+sfl_video_cairo_get_property (GObject *object, guint property_id, GValue *value,
     GParamSpec *pspec)
 {
-  VideoCairo *self = VIDEO_CAIRO(object);
-  VideoCairoPrivate *priv = VIDEO_CAIRO_GET_PRIVATE(self);
+  SFLVideoCairo *self = SFL_VIDEO_CAIRO(object);
+  SFLVideoCairoPrivate *priv = SFL_VIDEO_CAIRO_GET_PRIVATE(self);
 
   switch (property_id)
     {
@@ -125,31 +125,31 @@ video_cairo_get_property (GObject *object, guint property_id, GValue *value,
 }
 
 void
-video_cairo_set_source (VideoCairo* video_cairo, gchar* source)
+sfl_video_cairo_set_source (SFLVideoCairo* sfl_video_cairo, gchar* source)
 {
   DEBUG("Setting source (%s)", source);
-  g_object_set (G_OBJECT(video_cairo), "source", source, NULL);
+  g_object_set (G_OBJECT(sfl_video_cairo), "source", source, NULL);
 }
 
 void
-video_cairo_set_capture_width (VideoCairo* video_cairo, gint width)
+sfl_video_cairo_set_capture_width (SFLVideoCairo* sfl_video_cairo, gint width)
 {
   DEBUG("Setting width (%d)", width);
-  g_object_set (G_OBJECT(video_cairo), "width", width, NULL);
+  g_object_set (G_OBJECT(sfl_video_cairo), "width", width, NULL);
 }
 
 void
-video_cairo_set_capture_height (VideoCairo* video_cairo, gint height)
+sfl_video_cairo_set_capture_height (SFLVideoCairo* sfl_video_cairo, gint height)
 {
   DEBUG("Setting height (%d)", height);
-  g_object_set (G_OBJECT(video_cairo), "height", height, NULL);
+  g_object_set (G_OBJECT(sfl_video_cairo), "height", height, NULL);
 }
 
 void
-video_cairo_set_capture_framerate (VideoCairo* video_cairo, gchar* fps)
+sfl_video_cairo_set_capture_framerate (SFLVideoCairo* sfl_video_cairo, gchar* fps)
 {
   DEBUG("Setting frame rate (%s)", fps);
-  g_object_set (G_OBJECT(video_cairo), "fps", fps, NULL);
+  g_object_set (G_OBJECT(sfl_video_cairo), "fps", fps, NULL);
 }
 
 static char*
@@ -199,7 +199,7 @@ gint iHeight /* height of image       */)
 }
 
 static void
-video_cairo_redraw_canvas (VideoCairo* self)
+sfl_video_cairo_redraw_canvas (SFLVideoCairo* self)
 {
   GtkWidget *widget;
   GdkRegion *region;
@@ -222,19 +222,19 @@ on_new_frame_cb (uint8_t* frame, void* widget)
 {
   // DEBUG("Got frame");
 
-  VideoCairoPrivate* priv = VIDEO_CAIRO_GET_PRIVATE((VideoCairo*) widget);
+  SFLVideoCairoPrivate* priv = SFL_VIDEO_CAIRO_GET_PRIVATE((SFLVideoCairo*) widget);
 
   // Copy the frame into the image surface
   memcpy (priv->image_data, frame, priv->width * priv->height * DEFAULT_BPP);
 
   gtk_widget_queue_draw (GTK_WIDGET(widget));
-  //video_cairo_redraw_canvas((VideoCairo*) widget);
+  //sfl_video_cairo_redraw_canvas((SFLVideoCairo*) widget);
 }
 
 static void
-video_cairo_init (VideoCairo *self)
+sfl_video_cairo_init (SFLVideoCairo *self)
 {
-  VideoCairoPrivate *priv = VIDEO_CAIRO_GET_PRIVATE(self);
+  SFLVideoCairoPrivate *priv = SFL_VIDEO_CAIRO_GET_PRIVATE(self);
   DEBUG("Initializing cairo");
 
   priv->endpt = sflphone_video_init ();
@@ -254,22 +254,22 @@ video_cairo_init (VideoCairo *self)
 }
 
 static void
-video_cairo_finalize (GObject *object)
+sfl_video_cairo_finalize (GObject *object)
 {
-  VideoCairo *self = VIDEO_CAIRO(object);
-  VideoCairoPrivate *priv = VIDEO_CAIRO_GET_PRIVATE(self);
+  SFLVideoCairo *self = SFL_VIDEO_CAIRO(object);
+  SFLVideoCairoPrivate *priv = SFL_VIDEO_CAIRO_GET_PRIVATE(self);
 
   free (priv->image_data);
   cairo_surface_destroy (priv->surface);
   g_free (priv->source);
 
-  G_OBJECT_CLASS (video_cairo_parent_class)->finalize (object);
+  G_OBJECT_CLASS (sfl_video_cairo_parent_class)->finalize (object);
 }
 
 static gboolean
-video_cairo_expose (GtkWidget* cairo_video, GdkEventExpose* event)
+sfl_video_cairo_expose (GtkWidget* cairo_video, GdkEventExpose* event)
 {
-  VideoCairoPrivate* priv = VIDEO_CAIRO_GET_PRIVATE (cairo_video);
+  SFLVideoCairoPrivate* priv = SFL_VIDEO_CAIRO_GET_PRIVATE (cairo_video);
 
   // Redraw on every expose event.
   cairo_t* cairo_context = gdk_cairo_create (cairo_video->window);
@@ -285,18 +285,18 @@ video_cairo_expose (GtkWidget* cairo_video, GdkEventExpose* event)
 }
 
 static void
-video_cairo_class_init (VideoCairoClass *class)
+sfl_video_cairo_class_init (SFLVideoCairoClass *class)
 {
   GObjectClass *obj_class;
   GtkWidgetClass *widget_class;
 
   obj_class = G_OBJECT_CLASS (class);
-  obj_class->get_property = video_cairo_get_property;
-  obj_class->set_property = video_cairo_set_property;
-  obj_class->finalize = video_cairo_finalize;
+  obj_class->get_property = sfl_video_cairo_get_property;
+  obj_class->set_property = sfl_video_cairo_set_property;
+  obj_class->finalize = sfl_video_cairo_finalize;
 
   widget_class = GTK_WIDGET_CLASS (class);
-  widget_class->expose_event = video_cairo_expose;
+  widget_class->expose_event = sfl_video_cairo_expose;
 
   g_object_class_install_property (obj_class, PROP_SOURCE, g_param_spec_string (
       "source", "source", "String specifying the source SHM for the video",
@@ -317,63 +317,63 @@ video_cairo_class_init (VideoCairoClass *class)
       NULL, G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB
           | G_PARAM_READWRITE));
 
-  g_type_class_add_private (obj_class, sizeof(VideoCairoPrivate));
+  g_type_class_add_private (obj_class, sizeof(SFLVideoCairoPrivate));
 }
 
 static void
-video_cairo_class_intern_init (gpointer klass)
+sfl_video_cairo_class_intern_init (gpointer klass)
 {
-  video_cairo_parent_class = g_type_class_peek_parent (klass);
-  video_cairo_class_init ((VideoCairoClass*) klass);
+  sfl_video_cairo_parent_class = g_type_class_peek_parent (klass);
+  sfl_video_cairo_class_init ((SFLVideoCairoClass*) klass);
 }
 
 GType
-video_cairo_get_type (void)
+sfl_video_cairo_get_type (void)
 {
   static GType g_define_type_id = 0;
   if (g_define_type_id == 0)
     {
       static const GTypeInfo g_define_type_info =
-        { sizeof(VideoCairoClass), (GBaseInitFunc) NULL,
+        { sizeof(SFLVideoCairoClass), (GBaseInitFunc) NULL,
             (GBaseFinalizeFunc) NULL,
-            (GClassInitFunc) video_cairo_class_intern_init,
+            (GClassInitFunc) sfl_video_cairo_class_intern_init,
             (GClassFinalizeFunc) NULL, NULL, /* class_data */
-            sizeof(VideoCairo), 0, /* n_preallocs */
-            (GInstanceInitFunc) video_cairo_init, NULL, };
+            sizeof(SFLVideoCairo), 0, /* n_preallocs */
+            (GInstanceInitFunc) sfl_video_cairo_init, NULL, };
       g_define_type_id = g_type_register_static (GTK_TYPE_DRAWING_AREA,
-          "VideoCairo", &g_define_type_info, 0);
+          "SFLVideoCairo", &g_define_type_info, 0);
     }
   return g_define_type_id;
 }
 
-VideoCairo *
-video_cairo_new_with_source (const gchar *source)
+SFLVideoCairo *
+sfl_video_cairo_new_with_source (const gchar *source)
 {
-  DEBUG("Creating new VideoCairo.");
-  return g_object_new (VIDEO_TYPE_CAIRO, "source", source, "width",
+  DEBUG("Creating new SFLVideoCairo.");
+  return g_object_new (SFL_VIDEO_TYPE_CAIRO, "source", source, "width",
       DEFAULT_NO_DEVICE_WIDTH, "height", DEFAULT_NO_DEVICE_HEIGHT, "fps",
       DEFAULT_FPS, NULL);
 }
 
-VideoCairo*
-video_cairo_new ()
+SFLVideoCairo*
+sfl_video_cairo_new ()
 {
-  return video_cairo_new_with_source ("");
+  return sfl_video_cairo_new_with_source ("");
 }
 
 int
-video_cairo_start (VideoCairo* self)
+sfl_video_cairo_start (SFLVideoCairo* self)
 {
   DEBUG("Starting video cairo capture");
 
-  VideoCairoPrivate* priv = VIDEO_CAIRO_GET_PRIVATE(self);
+  SFLVideoCairoPrivate* priv = SFL_VIDEO_CAIRO_GET_PRIVATE(self);
 
   if (sflphone_video_add_observer (priv->endpt, &on_new_frame_cb, self) < 0) {
     ERROR("Failed to register as an observer and start video %s:%d", __FILE__, __LINE__);
     return -1;
   }
 
-  if (sflphone_video_open (priv->endpt) < 0)
+  if (sflphone_video_open_device (priv->endpt) < 0)
     {
       ERROR("Failed to open and start video %s:%d", __FILE__, __LINE__);
       return -1;
@@ -391,23 +391,23 @@ video_cairo_start (VideoCairo* self)
 }
 
 int
-video_cairo_stop (VideoCairo* self)
+sfl_video_cairo_stop (SFLVideoCairo* self)
 {
   DEBUG("Stopping video cairo capture");
 
-  VideoCairoPrivate* priv = VIDEO_CAIRO_GET_PRIVATE(self);
+  SFLVideoCairoPrivate* priv = SFL_VIDEO_CAIRO_GET_PRIVATE(self);
 
   sflphone_video_remove_observer(priv->endpt, &on_new_frame_cb);
 
   sflphone_video_stop_async (priv->endpt);
-  sflphone_video_close (priv->endpt);
+  sflphone_video_close_device (priv->endpt);
 
   priv->capturing = FALSE;
 }
 
 gboolean
-video_cairo_is_capturing(VideoCairo* video_cairo)
+sfl_video_cairo_is_capturing(SFLVideoCairo* sfl_video_cairo)
 {
-  VideoCairoPrivate* priv = VIDEO_CAIRO_GET_PRIVATE(video_cairo);
+  SFLVideoCairoPrivate* priv = SFL_VIDEO_CAIRO_GET_PRIVATE(sfl_video_cairo);
   return priv->capturing;
 }

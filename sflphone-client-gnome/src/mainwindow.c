@@ -43,6 +43,8 @@
 #include <widget/PidginScrollBook.h>
 #include <widget/PidginMiniDialog.h>
 
+#include <widget/SFLVideoSession.h>
+
 #include <gtk/gtk.h>
 #include <eel-gconf-extensions.h>
 
@@ -228,58 +230,82 @@ create_main_window ()
 	gtk_window_add_accel_group (GTK_WINDOW(window),
 			gtk_ui_manager_get_accel_group (ui_manager));
 
+	// This vbox holds the menu bar, the various tree views, and the status bar
 	vbox = gtk_vbox_new (FALSE /*homogeneous*/, 0 /*spacing*/);
-	subvbox = gtk_vbox_new (FALSE /*homogeneous*/, 5 /*spacing*/);
 
+	// Create the menus
 	create_menus (ui_manager, &widget);
 	gtk_box_pack_start (GTK_BOX (vbox), widget, FALSE /*expand*/, TRUE /*fill*/,
 			0 /*padding*/);
 
+	// Create the toolbar
 	create_toolbar_actions (ui_manager, &widget);
 	// Do not override GNOME user settings
 	gtk_box_pack_start (GTK_BOX (vbox), widget, FALSE /*expand*/, TRUE /*fill*/,
 			0 /*padding*/);
 
-	gtk_box_pack_start (GTK_BOX (vbox), current_calls->tree, TRUE /*expand*/,
-			TRUE /*fill*/, 0 /*padding*/);
-	gtk_box_pack_start (GTK_BOX (vbox), history->tree, TRUE /*expand*/,
-			TRUE /*fill*/, 0 /*padding*/);
-	gtk_box_pack_start (GTK_BOX (vbox), contacts->tree, TRUE /*expand*/,
-			TRUE /*fill*/, 0 /*padding*/);
+	// Create an split pane. One one side : the tree view, and on the other the video conference, if any
+        GtkWidget* hpaned = gtk_hpaned_new ();
+        //gtk_widget_set_size_request (hpaned, 200, -1);
 
-	g_signal_connect_object (G_OBJECT (window), "configure-event",
-			G_CALLBACK (window_configure_cb), NULL, 0);
-	gtk_box_pack_start (GTK_BOX (vbox), subvbox, FALSE /*expand*/,
-	  FALSE /*fill*/, 0 /*padding*/);
+        // Create tree views
+        GtkWidget* vbox_left_pane = gtk_vbox_new(FALSE, 0);
+        gtk_box_pack_start (GTK_BOX (vbox_left_pane), current_calls->tree, TRUE /*expand*/,
+                        TRUE /*fill*/, 0 /*padding*/);
+        gtk_box_pack_start (GTK_BOX (vbox_left_pane), history->tree, TRUE /*expand*/,
+                        TRUE /*fill*/, 0 /*padding*/);
+        gtk_box_pack_start (GTK_BOX (vbox_left_pane), contacts->tree, TRUE /*expand*/,
+                        TRUE /*fill*/, 0 /*padding*/);
 
-	embedded_error_notebook = PIDGIN_SCROLL_BOOK(pidgin_scroll_book_new());
-	gtk_box_pack_start (GTK_BOX(subvbox), GTK_WIDGET(embedded_error_notebook),
-			FALSE, FALSE, 0);
+        // Pack the scroll book into the subvbox, into the vbox_left_pane
+         embedded_error_notebook = PIDGIN_SCROLL_BOOK(pidgin_scroll_book_new());
+         subvbox = gtk_vbox_new (FALSE /*homogeneous*/, 5 /*spacing*/);
+         gtk_box_pack_start (GTK_BOX(subvbox), GTK_WIDGET(embedded_error_notebook), FALSE, TRUE, 0);
 
-	if (SHOW_VOLUME)
-	{
-		speaker_control = create_slider ("speaker");
-		gtk_box_pack_end (GTK_BOX (subvbox), speaker_control, FALSE /*expand*/,
-				TRUE /*fill*/, 0 /*padding*/);
-		gtk_widget_show_all (speaker_control);
-		mic_control = create_slider ("mic");
-		gtk_box_pack_end (GTK_BOX (subvbox), mic_control, FALSE /*expand*/,
-				TRUE /*fill*/, 0 /*padding*/);
-		gtk_widget_show_all (mic_control);
-	}
+         // Pack the subvbox into the vbox
+         gtk_box_pack_start (GTK_BOX (vbox_left_pane), subvbox, TRUE, FALSE, 0);
 
+         g_signal_connect_object (G_OBJECT (window), "configure-event",
+                         G_CALLBACK (window_configure_cb), NULL, 0);
+
+         if (SHOW_VOLUME)
+         {
+                 speaker_control = create_slider ("speaker");
+                 gtk_box_pack_end (GTK_BOX (subvbox), speaker_control, FALSE /*expand*/,
+                                 TRUE /*fill*/, 0 /*padding*/);
+                 gtk_widget_show_all (speaker_control);
+                 mic_control = create_slider ("mic");
+                 gtk_box_pack_end (GTK_BOX (subvbox), mic_control, FALSE /*expand*/,
+                                 TRUE /*fill*/, 0 /*padding*/);
+                 gtk_widget_show_all (mic_control);
+         }
+
+        // Pack the vbox_left_pane into the hpanned
+        gtk_paned_pack1 (GTK_PANED (hpaned), vbox_left_pane, TRUE, TRUE);
+        gtk_widget_set_size_request (vbox_left_pane, 240, 400);
+
+        // Pack the video session into the right pane.
+        SFLVideoSession* session = sfl_video_session_new();
+        gtk_widget_show(GTK_WIDGET(session));
+
+        gtk_paned_pack2 (GTK_PANED (hpaned), GTK_WIDGET(session), TRUE, TRUE);
+        //gtk_widget_set_size_request (GTK_WIDGET(session), 400, -1);
+
+        // Pack the tree hpanned into the vbox
+        gtk_box_pack_start (GTK_BOX (vbox), hpaned, FALSE, TRUE, 0);
 
 	if (eel_gconf_get_boolean (CONF_SHOW_DIALPAD)){
 		dialpad = create_dialpad();
-		gtk_box_pack_end (GTK_BOX (subvbox), dialpad, FALSE /*expand*/, TRUE /*fill*/, 0 /*padding*/);
+		gtk_box_pack_end (GTK_BOX (subvbox), dialpad, FALSE, TRUE /*fill*/, 0 /*padding*/);
 		gtk_widget_show_all (dialpad);
 	}
 
 	/* Status bar */
 	statusBar = gtk_statusbar_new ();
-	gtk_box_pack_start (GTK_BOX (vbox), statusBar, FALSE /*expand*/,
-			TRUE /*fill*/, 0 /*padding*/);
+	gtk_box_pack_end (GTK_BOX (vbox), statusBar, FALSE, FALSE, 0);
 	gtk_container_add (GTK_CONTAINER (window), vbox);
+
+        gtk_widget_show_all(vbox);
 
 	/* make sure that everything, window and label, are visible */
 	gtk_widget_show_all (window);
