@@ -72,6 +72,11 @@ class VideoDecoder : public virtual MimeParameters, public VideoPlugin, public A
          */
         virtual void setOutputFormat (VideoFormat& format) = 0;
 
+        /**
+         * @return The current output format.
+         */
+        virtual VideoFormat getOutputFormat() = 0;
+
         typedef int IsDerivedFromVideoDecoder;
 
     protected:

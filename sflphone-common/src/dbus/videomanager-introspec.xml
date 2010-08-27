@@ -128,20 +128,42 @@
 			Retreive the namespace of a running instance of a file descriptor passer in the UNIX domain. This so-called file descriptor passer
 			is only used for passing the fd corresponding to an eventfd() source. It would be possible with DBUS alone, but only 
 			starting from 1.3.
+			
 			</tp:docstring>
 			
 			<arg type="s" name="device" direction="in">
 			  <tp:docstring>
-			   The device of interest for event notifications (frame capture).
+			   The shared memory segment. (frame capture).
 			  </tp:docstring>
 			</arg>
 			
 			<arg type="s" name="path" direction="out">
 			  <tp:docstring>
-			  The namespace of a running instance of a file descriptor passer for the corresponding device.
+			  The namespace of a running instance of a file descriptor passer for the corresponding shm.
+			  Throws DBus::NoSuchShmException if the given shared memory segment can't be found.
 			  </tp:docstring>
 			</arg>
 		</method>   
+				
+		<method name="getShmInfo" tp:name-for-bindings="getShmInfo">
+			<tp:added version="0.9.9"/>
+			<tp:docstring>
+			Get the video format information for the frames that get written into the given shared memory segment.
+			</tp:docstring>
+			
+			<arg type="s" name="device" direction="in">
+			  <tp:docstring>
+				The path to an existing shared memory segment			  
+			  </tp:docstring>
+			</arg>
+			
+			<arg type="(uuu)" name="path" direction="out">
+			  <tp:docstring>
+			  A structure describing the shared memory segment. This one contains, in the following order : width, height, fourcc.
+			  Throws a NoSuchShmException if the given shm name cannot be found.
+			  </tp:docstring>
+			</arg>
+		</method> 	
 				
 	   <signal name="onNewRemoteVideoStream" tp:name-for-bindings="onNewRemoteVideoStream">
 	   	   <arg type="s" name="callId">

@@ -51,6 +51,14 @@ typedef struct {
   gchar* token;
 } video_key_t;
 
+/**
+ * Return type for VideoManager#getShmInfo()
+ */
+typedef struct {
+  guint width;
+  guint height;
+  guint fourcc;
+} video_shm_info;
 
 /** @file dbus.h
  * @brief General DBus functions wrappers.
@@ -682,6 +690,15 @@ GList*
 dbus_video_get_resolution_for_device (const gchar* device);
 
 /**
+ * Get the video format information for the frames that get written into the given shared memory segment.
+ * @param The path to an existing shared memory segment
+ * @return A structure describing the shared memory segment. This one contains, in the following order : width, height, fourcc.
+ *  A NULL pointer is returned if an error occurred.
+ */
+video_shm_info*
+dbus_get_video_shm_info (const gchar* shm);
+
+/**
  * Find out what framerates are supported for a device under some resolution and device.
  */
 gchar**
@@ -706,6 +723,13 @@ dbus_video_start_local_capture (const gchar * device, gint width, gint height,
  * @param FALSE if an error occured.
  */
 gboolean dbus_video_stop_local_capture(gchar* device, gchar* token);
+
+/**
+ * @param shm The shared memory segment.
+ * @return The address in the UNIX namespace to reach a file descriptor passer instance.
+ */
+gchar*
+dbus_video_get_fd_passer_namespace (gchar * shm);
 
 /**
  * @param accountID The account identifier for which to set those parameters for.

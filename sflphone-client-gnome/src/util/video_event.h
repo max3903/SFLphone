@@ -15,9 +15,9 @@ typedef enum {
  * This one will be used only once to transfer the file descriptor for the eventfd() channel.
  * @return A new instance of a sflphone_event_listener_t object. It's up to the user to free the object once finished.
  * NULL is returned in case of an error.
- * @param device The device for which to receive notifications.
+ * @param shm The shared memory segment allocated by the server for which to receive notifications for.
  */
-sflphone_event_listener_t* sflphone_eventfd_init(const char* device);
+sflphone_event_listener_t* sflphone_eventfd_init(const char* shm);
 
 /**
  * Blocking call for capturing new event.

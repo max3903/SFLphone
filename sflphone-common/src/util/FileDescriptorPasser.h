@@ -87,9 +87,9 @@ class FileDescriptorPasser: public ost::Thread
     private:
         int sendFd (int clientFd);
 
-        std::string path;
         int serverSocket;
         int fdPassed;
+        std::string path;
         bool ready;
 };
 }

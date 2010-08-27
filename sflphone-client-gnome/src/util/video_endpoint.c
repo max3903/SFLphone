@@ -118,7 +118,7 @@ sflphone_video_open (sflphone_video_endpoint_t* endpt, gchar* shm)
   endpt->frame = (uint8_t*) malloc (sflphone_shm_get_size (endpt->shm_frame));
 
   // Initialise event notification for frame capture.
-  endpt->event_listener = sflphone_eventfd_init (endpt->device);
+  endpt->event_listener = sflphone_eventfd_init (shm);
   if (endpt->event_listener == NULL)
     {
       return -1;
@@ -153,7 +153,7 @@ sflphone_video_open_device (sflphone_video_endpoint_t* endpt)
   endpt->frame = (uint8_t*) malloc (sflphone_shm_get_size (endpt->shm_frame));
 
   // Initialise event notification for frame capture.
-  endpt->event_listener = sflphone_eventfd_init (endpt->device);
+  endpt->event_listener = sflphone_eventfd_init (key->shm);
   if (endpt->event_listener == NULL)
     {
       return -1;

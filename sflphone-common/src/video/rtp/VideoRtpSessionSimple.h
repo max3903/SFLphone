@@ -90,6 +90,12 @@ class VideoRtpSessionSimple: public ost::RTPSession, public AbstractObservable<B
         void setVideoInputFormat (const VideoFormat& format);
 
         /**
+         * @return The video format in which the frames are decoded to.
+         * @precondition The session must be running and be decoding frames.
+         */
+        VideoFormat getVideoOutputFormat();
+
+        /**
          * Start sending and receiving in this session.
          * @Override ost#Thread#start
          */

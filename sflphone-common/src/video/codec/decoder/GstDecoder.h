@@ -72,6 +72,11 @@ class GstDecoder : public VideoDecoder, protected Filter
         /**
          * @Override
          */
+        VideoFormat getOutputFormat();
+
+        /**
+         * @Override
+         */
         void decode (Buffer<uint8>& data) throw (VideoDecodingException);
 
         /**

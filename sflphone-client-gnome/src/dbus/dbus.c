@@ -57,6 +57,7 @@
 #define DBUS_VIDEO_SETTINGS_TYPE (dbus_g_type_get_struct ("GValueArray", dbus_g_type_get_struct ("GValueArray", G_TYPE_UINT, G_TYPE_UINT, G_TYPE_INVALID), dbus_g_type_get_struct ("GValueArray", G_TYPE_UINT, G_TYPE_UINT, G_TYPE_INVALID), G_TYPE_STRING, G_TYPE_BOOLEAN, G_TYPE_INVALID))
 #define DBUS_VIDEO_RESOLUTION_TYPE (dbus_g_type_get_struct ("GValueArray", G_TYPE_UINT, G_TYPE_UINT, G_TYPE_INVALID))
 #define DBUS_VIDEO_FRAMERATE_TYPE (dbus_g_type_get_struct ("GValueArray", G_TYPE_UINT, G_TYPE_UINT, G_TYPE_INVALID))
+#define DBUS_VIDEO_SHM_INFO (dbus_g_type_get_struct ("GValueArray", G_TYPE_UINT, G_TYPE_UINT, G_TYPE_UINT, G_TYPE_INVALID))
 
 static DBusGConnection * connection;
 static DBusGProxy * callManagerProxy;
@@ -2746,6 +2747,28 @@ dbus_video_get_framerates (const gchar* device, const gint width,
   return array;
 }
 
+video_shm_info*
+dbus_get_video_shm_info (const gchar* shm)
+{
+  GError* error = NULL;
+  GValueArray* shmInfo = NULL;
+
+  org_sflphone_SFLphone_VideoManager_get_shm_info (videoManagerProxy, shm, &shmInfo, &error);
+  if (error != NULL)
+    {
+      ERROR ("Caught remote method (getShmInfo) exception %s", error->message);
+      g_error_free (error);
+      return NULL;
+    }
+
+  video_shm_info* info = g_new(video_shm_info, 1);
+  info->width = g_value_get_uint  (g_value_array_get_nth (shmInfo, 0));
+  info->height = g_value_get_uint (g_value_array_get_nth (shmInfo, 1));
+  info->fourcc = g_value_get_uint (g_value_array_get_nth (shmInfo, 2));
+
+  return info;
+}
+
 video_key_t*
 dbus_video_start_local_capture (const gchar * device, gint width, gint height,
     gchar* fps)
@@ -2785,13 +2808,13 @@ dbus_video_stop_local_capture (gchar* device, gchar* token)
 }
 
 gchar*
-dbus_video_get_fd_passer_namespace (gchar * device)
+dbus_video_get_fd_passer_namespace (gchar * shm)
 {
   GError *error = NULL;
   gchar *fdpasser = NULL;
 
   org_sflphone_SFLphone_VideoManager_get_event_fd_passer_namespace (
-      videoManagerProxy, device, &fdpasser, &error);
+      videoManagerProxy, shm, &fdpasser, &error);
   if (error != NULL)
     {
       ERROR ("Caught remote method (startLocalCapture) exception  %s: %s", dbus_g_error_get_name(error), error->message);

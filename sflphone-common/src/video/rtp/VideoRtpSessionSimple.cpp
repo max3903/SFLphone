@@ -77,6 +77,11 @@ void VideoRtpSessionSimple::setVideoInputFormat (const VideoFormat& format)
 	currentVideoFormat = format;
 }
 
+VideoFormat VideoRtpSessionSimple::getVideoOutputFormat()
+{
+	return activeCodec->getVideoOutputFormat();
+}
+
 void VideoRtpSessionSimple::start()
 {
     // Start the socket thread

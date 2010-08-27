@@ -151,6 +151,11 @@ void GstDecoder::setOutputFormat (VideoFormat& format)
     retrievableEnd->setCaps (convert (format));
 }
 
+VideoFormat GstDecoder::getOutputFormat()
+{
+	return outputVideoFormat;
+}
+
 void GstDecoder::activate()
 {
     _info ("Activating decoder");

@@ -50,6 +50,19 @@ class InvalidTokenException: public std::invalid_argument
 };
 
 /**
+ * This exception is thrown whenever a user attempts to
+ * refer to some shared memory segment that does not
+ * exists.
+ */
+class NoSuchShmException: public std::invalid_argument
+{
+    public:
+	NoSuchShmException (const std::string& msg) :
+                std::invalid_argument (msg) {
+        }
+};
+
+/**
  * This class is receiving video frames over RTP, writing them in
  * a dedicated shared memory segment, sending local frames from the VideoInputSource to
  * the remote RTP party as well as writing them in a shared memory segment for
@@ -94,9 +107,10 @@ class VideoEndpoint: public VideoFrameObserver
          * @param local The local address to bind to.
          * @param negotiatedCodecs A codec list of size at least 1, containing the supported and negotiated video codecs.
          * @precondition A VideoRtpSession bound to "local" should be available.
+         * @return The shared memory name where the remote video frames get written to.
          * @see sfl#VideoEndpoint#createRtpsession
          */
-        void startRtpSession(const InetSocketAddress& local, std::vector<const sfl::VideoCodec*> negotiatedCodecs);
+        std::string startRtpSession(const InetSocketAddress& local, std::vector<const sfl::VideoCodec*> negotiatedCodecs);
 
         /**
          * @return The RTP session bound to the given socket.
@@ -113,8 +127,8 @@ class VideoEndpoint: public VideoFrameObserver
          *
          * @return A unique token for the requester.
          * @throw VideoDeviceIOException If an error occur while starting video capture.
-         * @postcondition getShmName() will return the name for the shared memory segment.
-         * @see VideoEndpoint#getShmName
+         * @postcondition getSourceDeviceShmName() will return the name for the shared memory segment.
+         * @see VideoEndpoint#getSourceDeviceShmName
          */
         std::string capture() throw (VideoDeviceIOException);
 
@@ -142,14 +156,37 @@ class VideoEndpoint: public VideoFrameObserver
         std::string requestTokenForSource();
 
         /**
+         * @param shm The shared memory segment name to look presence for.
+         * @return true if the the given shared memory segment is owned by this object.
+         */
+        bool hasShm(const std::string& shm);
+
+        /**
          * @return The name for the shared memory allocated for frames capture.
          */
-        std::string getShmName();
+        std::string getSourceDeviceShmName();
+
+        /**
+         * @param shm A shared memory segment owned by this endpoint.
+         * @return A video format for the frames that are written into the given
+         * @precondition The given shared memory segment must exists, and be owned
+         * by the the current object.
+         * @throw NoSuchShmException if the shared memory segment cannot be found in this object.
+         */
+        sfl::VideoFormat getShmVideoFormat(const std::string& shm) throw(NoSuchShmException);
 
         /**
          * @return The name for the fd passer.
+         * @throw NoSuchShmException if the shared memory segment cannot be found in this object.
          */
-        std::string getFdPasserName();
+        std::string getFdPasserName() throw(NoSuchShmException);
+
+        /**
+         * @return The name for the fd passer for the given shm.
+         * @precondition The given shm must be existing.
+         * @throw NoSuchShmException if the shared memory segment cannot be found in this object.
+         */
+        std::string getFdPasserName(const std::string& shm) throw(NoSuchShmException);
 
         /**
          * @return true if this endpoint is capturing video from the local device.
@@ -234,7 +271,7 @@ class VideoEndpoint: public VideoFrameObserver
 
         		eventfd_write(fd, NEW_FRAME_EVENT);
 
-        		_debug("Wrote decoded frame of size %d in shm segment %s", data.getSize(), shm->getName().c_str());
+        		//_debug("Wrote decoded frame of size %d in shm segment %s", data.getSize(), shm->getName().c_str());
         	}
         private:
         	int fd;
@@ -287,6 +324,19 @@ class VideoEndpoint: public VideoFrameObserver
         std::map<InetSocketAddress, RtpSessionRecord> socketAddressToRtpSessionRecord;
         typedef std::map<InetSocketAddress, RtpSessionRecord>::iterator SocketAddressToRtpSessionRecordIterator;
         typedef std::pair<InetSocketAddress, RtpSessionRecord> SocketAddressToRtpSessionRecordEntry;
+
+        /**
+         * Used in std::find_if
+         */
+        struct HasSameShmName
+        {
+          explicit HasSameShmName(const std::string& name) : shm(name) {}
+
+          bool operator() (const std::pair<InetSocketAddress, RtpSessionRecord>& record) const
+          { return record.second.getSharedMemoryPosix()->getName() == shm; }
+
+          const std::string& shm;
+        };
 
         // The token set
         std::set<std::string> sourceTokens;

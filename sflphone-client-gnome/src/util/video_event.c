@@ -21,17 +21,29 @@ static int
 receive_eventfd (const char* namespace)
 {
   // Connect
-  struct sockaddr_un server_address =
-    { AF_UNIX, "\0org.sflphone.eventfd" };
+  struct sockaddr_un server_address;
+  server_address.sun_family = AF_UNIX;
+  // The '\0' character denotes an abstract namespace
+  server_address.sun_path[0] = '\0';
+
+  char* socket_path = strdup(namespace);
+  if (strlen (namespace) >= 108)
+    {
+      socket_path[106] = '\0';
+    }
+  strcpy (server_address.sun_path + 1, socket_path);
 
   int client_socket = socket (PF_UNIX, SOCK_STREAM, 0);
 
   if (connect (client_socket, (struct sockaddr *) &server_address,
-      sizeof server_address) < 0)
+      sizeof(server_address.sun_family) + strlen(socket_path) + 1) < 0)
     {
-      ERROR("While trying to connect event FD from %s : (%s)", namespace, strerror(errno));
+      ERROR("Failed to connect to the file descriptor passer on \"%s\" because \"%s\"", socket_path, strerror(errno));
+      free(socket_path);
       return -1;
     }
+
+  free(socket_path);
 
   // Receive the message and extract the fd
   struct msghdr msg;
@@ -55,13 +67,15 @@ receive_eventfd (const char* namespace)
   msg.msg_iov = &nothing_ptr;
   msg.msg_iovlen = 1;
 
-  if (recvmsg (client_socket, &msg, 0) == -1) {
-    ERROR("recvmsg() : %s:%d %s", __FILE__, __LINE__, strerror(errno));
-  }
+  if (recvmsg (client_socket, &msg, 0) == -1)
+    {
+      ERROR("recvmsg() : %s:%d %s", __FILE__, __LINE__, strerror(errno));
+    }
 
-  if ((msg.msg_flags & MSG_TRUNC) || (msg.msg_flags & MSG_CTRUNC)) {
-    ERROR("Control message truncated : %s:%d", __FILE__, __LINE__);
-  }
+  if ((msg.msg_flags & MSG_TRUNC) || (msg.msg_flags & MSG_CTRUNC))
+    {
+      ERROR("Control message truncated : %s:%d", __FILE__, __LINE__);
+    }
 
   int fd;
   for (cmsg = CMSG_FIRSTHDR(&msg); cmsg != NULL; cmsg = CMSG_NXTHDR(&msg, cmsg))
@@ -79,9 +93,9 @@ receive_eventfd (const char* namespace)
 }
 
 sflphone_event_listener_t *
-sflphone_eventfd_init (const char* device)
+sflphone_eventfd_init (const char* shm)
 {
-  char* fd_passer = dbus_video_get_fd_passer_namespace (device);
+  char* fd_passer = dbus_video_get_fd_passer_namespace (shm);
   if (fd_passer == NULL)
     {
       ERROR("Could not retreive namespace from dbus");

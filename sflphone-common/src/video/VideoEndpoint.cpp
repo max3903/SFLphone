@@ -11,8 +11,10 @@
 
 #include "logger.h"
 
+#include <algorithm>
 #include <iostream>
 #include <sstream>
+
 #include <cc++/digest.h>
 #include <uuid/uuid.h>
 
@@ -24,8 +26,10 @@
 
 namespace sfl {
 
-const std::string VideoEndpoint::EVENT_SOURCE_NAMESPACE = "org.sflphone.eventfd.device.";
-const std::string VideoEndpoint::EVENT_STREAM_NAMESPACE = "org.sflphone.eventfd.rtp.";
+const std::string VideoEndpoint::EVENT_SOURCE_NAMESPACE =
+		"org.sflphone.eventfd.device.";
+const std::string VideoEndpoint::EVENT_STREAM_NAMESPACE =
+		"org.sflphone.eventfd.rtp.";
 
 VideoEndpoint::VideoEndpoint(VideoInputSource* src) :
 	sourceTokens(), videoSource(src), capturing(false) {
@@ -50,8 +54,8 @@ VideoEndpoint::VideoEndpoint(VideoInputSource* src) :
 	// between different processes. Note that the client only has to do it once for each event source, and does
 	// *NOT* need permanent connection. It is only needed for passing the FD. At the time this was written, FD_TYPE
 	// is available in DBUS 1.3, but this one is not yet stable.
-	sourceEventFdPasser = new FileDescriptorPasser(EVENT_SOURCE_NAMESPACE + hash,
-			eventFileDescriptorSource);
+	sourceEventFdPasser = new FileDescriptorPasser(EVENT_SOURCE_NAMESPACE
+			+ hash, eventFileDescriptorSource);
 	sourceEventFdPasser->start();
 
 	while (!sourceEventFdPasser->isReady()) {
@@ -100,8 +104,44 @@ VideoInputSource* VideoEndpoint::getVideoInputSource() {
 	return videoSource;
 }
 
-std::string VideoEndpoint::getShmName() {
+std::string VideoEndpoint::getSourceDeviceShmName() {
 	return shmVideoSource->getName();
+}
+
+bool VideoEndpoint::hasShm(const std::string& shm)
+{
+	if (shmVideoSource->getName() == shm) {
+		return true;
+	}
+
+	// Search in all RtpSessionRecord, trying to find the shm
+	SocketAddressToRtpSessionRecordIterator it = std::find_if(
+			socketAddressToRtpSessionRecord.begin(),
+			socketAddressToRtpSessionRecord.end(), HasSameShmName(shm));
+	if (it != socketAddressToRtpSessionRecord.end()) {
+		return true;
+	}
+
+	return false;
+}
+
+sfl::VideoFormat VideoEndpoint::getShmVideoFormat(const std::string& shm)
+		throw (NoSuchShmException) {
+	if (shmVideoSource->getName() == shm) {
+		return videoSource->getOutputFormat();
+	}
+
+	// Search in all RtpSessionRecord, trying to find the shm
+	SocketAddressToRtpSessionRecordIterator it = std::find_if(
+			socketAddressToRtpSessionRecord.begin(),
+			socketAddressToRtpSessionRecord.end(), HasSameShmName(shm));
+	if (it == socketAddressToRtpSessionRecord.end()) {
+		throw NoSuchShmException(std::string(
+				"Cannot find shared memory segment \"") + shm + std::string(
+				"\" within any session."));
+	}
+
+	return ((*it).second).getVideoRtpSession()->getVideoOutputFormat();
 }
 
 std::string VideoEndpoint::requestTokenForSource() {
@@ -129,8 +169,28 @@ void VideoEndpoint::stopCapture(std::string token)
 	}
 }
 
-std::string VideoEndpoint::getFdPasserName() {
+std::string VideoEndpoint::getFdPasserName() throw(NoSuchShmException) {
 	return sourceEventFdPasser->getAbstractNamespace();
+}
+
+std::string VideoEndpoint::getFdPasserName(const std::string& shm) throw(NoSuchShmException)
+{
+	if (shmVideoSource->getName() == shm) {
+		return sourceEventFdPasser->getAbstractNamespace();
+	}
+
+	// Search in all RtpSessionRecord, trying to find the shm
+	SocketAddressToRtpSessionRecordIterator it = std::find_if(
+			socketAddressToRtpSessionRecord.begin(),
+			socketAddressToRtpSessionRecord.end(), HasSameShmName(shm));
+	if (it == socketAddressToRtpSessionRecord.end()) {
+		throw NoSuchShmException(std::string(
+				"Cannot find shared memory segment \"") + shm + std::string(
+				"\" within any session."));
+	}
+
+
+	return ((*it).second).getFileDescriptorPasser()->getAbstractNamespace();
 }
 
 bool VideoEndpoint::isCapturing() {
@@ -206,7 +266,8 @@ void VideoEndpoint::createRtpSession(const sfl::InetSocketAddress& address) {
 		_debug ("Failed to create an event file descriptor because (%s) (%s:%d)", strerror (errno), __FILE__, __LINE__);
 	}
 
-	RtpStreamDecoderObserver* observer = new RtpStreamDecoderObserver(fd, shmRtpStream);
+	RtpStreamDecoderObserver* observer = new RtpStreamDecoderObserver(fd,
+			shmRtpStream);
 
 	// Instantiate a decoder observer that will write into the SHM
 	rtpSession->addObserver(observer);
@@ -216,18 +277,19 @@ void VideoEndpoint::createRtpSession(const sfl::InetSocketAddress& address) {
 	// between different processes. Note that the client only has to do it once for each event source, and does
 	// *NOT* need permanent connection. It is only needed for passing the FD. At the time this was written, FD_TYPE
 	// is available in DBUS 1.3, but this one is not yet stable.
-	FileDescriptorPasser* passer = new FileDescriptorPasser(EVENT_STREAM_NAMESPACE
-			+ suffix, fd);
+	FileDescriptorPasser* passer = new FileDescriptorPasser(
+			EVENT_STREAM_NAMESPACE + suffix, fd);
 	passer->start();
 	while (!passer->isReady()) {
 		usleep(BUSY_WAIT_TIME);
 	}
 
 	socketAddressToRtpSessionRecord.insert(
-			SocketAddressToRtpSessionRecordEntry(address, RtpSessionRecord(shmRtpStream, passer, rtpSession, observer)));
+			SocketAddressToRtpSessionRecordEntry(address, RtpSessionRecord(
+					shmRtpStream, passer, rtpSession, observer)));
 }
 
-void VideoEndpoint::startRtpSession(const InetSocketAddress& localAddress,
+std::string VideoEndpoint::startRtpSession(const InetSocketAddress& localAddress,
 		std::vector<const sfl::VideoCodec*> negotiatedCodecs) {
 	// Find the RTP session identified by "localAddress"
 	SocketAddressToRtpSessionRecordIterator socketIt =
@@ -247,6 +309,8 @@ void VideoEndpoint::startRtpSession(const InetSocketAddress& localAddress,
 
 	// Start sending/receiving RTP packets
 	rtpSession->start();
+
+	return ((*socketIt).second).getSharedMemoryPosix()->getName();
 }
 
 void VideoEndpoint::addDestination(const InetSocketAddress& localAddress,

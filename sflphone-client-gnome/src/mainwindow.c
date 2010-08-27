@@ -178,8 +178,16 @@ on_video_conf_detached_cb (GdlDockItem *item, gboolean cancel,
     gpointer user_data)
 {
   GtkRequisition req;
-  gtk_widget_size_request(GTK_WIDGET(window), &req);
-  gtk_window_resize(GTK_WIDGET(window), req.width + 10, req.height);
+  gtk_widget_size_request (GTK_WIDGET(window), &req);
+  gtk_window_resize (GTK_WINDOW(window), req.width + 10, req.height);
+}
+
+void
+on_video_conf_minimized_cb (GdlDockObject *gdldockobject, gboolean arg1, gpointer user_data)
+{
+  if (arg1 == TRUE) {
+    gtk_container_resize_children (GTK_CONTAINER(vbox));
+  }
 }
 
 static void
@@ -190,23 +198,29 @@ on_new_remote_video_stream_cb (DBusGProxy *proxy UNUSED, const gchar* callID,
       "Ongoing video conference", GDL_DOCK_ITEM_BEH_NORMAL);
   g_object_set (item_video_conference, "resize", FALSE, NULL);
 
+  g_signal_connect_after (G_OBJECT (item_video_conference), "detach",
+        G_CALLBACK (on_video_conf_minimized_cb), NULL);
+
   g_signal_connect_after (G_OBJECT (item_video_conference), "dock-drag-end",
       G_CALLBACK (on_video_conf_detached_cb), NULL);
 
-  SFLVideoSession* session = sfl_video_session_new ();
+  INFO("A new remote video session stream is available in shm %s", shm);
+
+  SFLVideoSession* session = sfl_video_session_new (shm);
   gtk_widget_show_all (GTK_WIDGET(session));
 
   gtk_container_add (GTK_CONTAINER (item_video_conference), GTK_WIDGET(session));
   gtk_container_set_border_width (GTK_CONTAINER (item_video_conference), 10);
 
   GtkWidget* dock = (GtkWidget*) data;
-  gdl_dock_add_item (GDL_DOCK (dock), GDL_DOCK_ITEM (item_video_conference), GDL_DOCK_LEFT);
+  gdl_dock_add_item (GDL_DOCK (dock), GDL_DOCK_ITEM (item_video_conference),
+      GDL_DOCK_LEFT);
   gtk_widget_show_all (item_video_conference);
 
   // Resize the dock to the desired child object
-  gtk_container_resize_children(GTK_CONTAINER(dock));
+  gtk_container_resize_children (GTK_CONTAINER(dock));
 
-  gtk_widget_show_all(GTK_WIDGET(dock));
+  gtk_widget_show_all (GTK_WIDGET(dock));
 }
 
 void
@@ -288,7 +302,8 @@ create_main_window ()
   // Create tree views
   GtkWidget* vbox_left_pane = gtk_vbox_new (FALSE, 0);
 
-  gtk_box_pack_start (GTK_BOX (vbox_left_pane), current_calls->tree, TRUE, TRUE, 0);
+  gtk_box_pack_start (GTK_BOX (vbox_left_pane), current_calls->tree, TRUE,
+      TRUE, 0);
   gtk_box_pack_start (GTK_BOX (vbox_left_pane), history->tree, TRUE, TRUE, 0);
   gtk_box_pack_start (GTK_BOX (vbox_left_pane), contacts->tree, TRUE, TRUE, 0);
 
@@ -337,8 +352,9 @@ create_main_window ()
 
   // Dock items. Set up a signal handler so that the dock items
   // gets created only upon video calls creation
-  dbus_g_proxy_connect_signal (dbus_get_video_proxy(), "onNewRemoteVideoStream",
-      G_CALLBACK(on_new_remote_video_stream_cb), dock, NULL);
+  dbus_g_proxy_connect_signal (dbus_get_video_proxy (),
+      "onNewRemoteVideoStream", G_CALLBACK(on_new_remote_video_stream_cb),
+      dock, NULL);
 
   // Pack the tree hpanned into the vbox
   gtk_box_pack_start (GTK_BOX (vbox), hpaned, FALSE, TRUE, 0);

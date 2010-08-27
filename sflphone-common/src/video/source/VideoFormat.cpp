@@ -88,6 +88,10 @@ std::string VideoFormat::getFourcc() const
     return fourcc;
 }
 
+uint32_t VideoFormat::getFourccCode() const {
+	return FourCC(fourcc).getValue();
+}
+
 void VideoFormat::setWidth (const int& width)
 {
     this->width = width;

@@ -69,6 +69,13 @@ class AbstractVideoCodec: public virtual VideoCodec
         /**
          * @Override
          */
+        VideoFormat getVideoOutputFormat() {
+        	return decoder->getOutputFormat();
+        }
+
+        /**
+         * @Override
+         */
         void addVideoFrameEncodedObserver (VideoFrameEncodedObserver& observer) {
             encoder->addObserver (&observer);
         }

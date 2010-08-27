@@ -26,6 +26,8 @@
 #include <iterator>
 #include <stdexcept>
 
+#include <stdint.h>
+
 namespace sfl
 {
 
@@ -85,6 +87,18 @@ class FrameRate
         int denominator;
 };
 
+struct FourCC
+{
+	explicit FourCC(const std::string& code) : code(code) {};
+
+	uint32_t getValue() {
+		const char* str = code.c_str();
+		return (((((str[3] << 8) | str[2]) << 8) | str[1]) << 8) | str[0];
+	}
+
+	std::string code;
+};
+
 /**
  * A VideoFormat objects is used to hold various information about a video frame.
  */
@@ -141,9 +155,14 @@ class VideoFormat
         FrameRate getPreferredFrameRate() const;
 
         /**
-         * @return The FOURCC code corresponding to the image format in use.
+         * @return The FOURCC string corresponding to the image format in use.
          */
         std::string getFourcc() const;
+
+        /**
+         * @return The FOURCC code corresponding to the image format in use.
+         */
+        uint32_t getFourccCode() const;
 
         /**
          * @param mime The mimetype. Eg: video/x-raw-yuv
@@ -222,7 +241,7 @@ class VideoFormat
          */
         static const std::string DEFAULT_MIMETYPE;
         /**
-         * Set to ARGB
+         * Set to RGB
          */
         static const std::string DEFAULT_FOURCC;
         /**

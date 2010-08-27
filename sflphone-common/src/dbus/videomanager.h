@@ -64,6 +64,17 @@ class VideoIOException : public DBus::Error
 };
 
 /**
+ * @see sfl#UnknownVideoDeviceException
+ */
+class UnknownVideoDeviceException : public DBus::Error
+{
+    public:
+	UnknownVideoDeviceException (const sfl::UnknownVideoDeviceException e) :
+                DBus::Error ("UnknownVideoDeviceException", e.what()) {
+        }
+};
+
+/**
  * @see sfl#InvalidTokenException
  */
 class InvalidTokenException : public DBus::Error
@@ -74,7 +85,30 @@ class InvalidTokenException : public DBus::Error
         }
 };
 
+/**
+ * @see sfl#NoSuchShmException
+ */
+class NoSuchShmException : public DBus::Error
+{
+    public:
+	NoSuchShmException (const std::string& msg) :
+                DBus::Error ("NoSuchShmException", msg.c_str()) {
+        }
+	NoSuchShmException (const sfl::NoSuchShmException e) :
+                DBus::Error ("NoSuchShmException", e.what()) {
+        }
+};
+
 }
+
+/**
+ * A structure containing video information about a given shared memory segment.
+ * Fields are of the form :
+ * 	- width
+ * 	- height
+ *  - fourcc
+ */
+typedef ::DBus::Struct<uint32_t, uint32_t, uint32_t> DbusVideoShmInfo;
 
 class VideoManager: public org::sflphone::SFLphone::VideoManager_adaptor,
         public DBus::IntrospectableAdaptor,
@@ -126,10 +160,22 @@ class VideoManager: public org::sflphone::SFLphone::VideoManager_adaptor,
         void stopLocalCapture (const std::string& device, const std::string& token) throw (DBus::VideoIOException, DBus::InvalidTokenException);
 
         /**
-         * @param device The device of interest for event notifications (frame capture).
-         * @return The namespace of a running instance of a file descriptor passer for the corresponding device.
+         * @param shm The shared memory segment.
+         * @return The namespace of a running instance of a file descriptor passer for the corresponding shm.
+         * @throw DBus::NoSuchShmException if the given shared memory segment can't be found.
          */
-        std::string getEventFdPasserNamespace (const std::string& device);
+        std::string getEventFdPasserNamespace (const std::string& shm) throw(DBus::NoSuchShmException) ;
+
+        /**
+         * @param shm The path to an existing shared memory segment.
+         * @return A structure describing the shared memory segment. This one contains, in the following order :
+         *	- width
+         *	- height
+         *	- fourcc
+         * @precondition The memory segment must have been created by the application prior to this call.
+         * @throw DBus::NoSuchShmException if the given shared memory segment can't be found.
+         */
+        DbusVideoShmInfo getShmInfo(const std::string& shm) throw(DBus::NoSuchShmException);
 
         /**
          * Kept unexposed over DBus.
@@ -148,6 +194,7 @@ class VideoManager: public org::sflphone::SFLphone::VideoManager_adaptor,
         void startRtpSession(SipCall* call, std::vector<const sfl::VideoCodec*> negotiatedCodecs);
 
         /**
+         * Kept unexposed over DBus.
          * Stop the current RTP session, releasing access to the video device.
          * @param The SipCall for which an RTP session must be stopped.
          * @precondition An RTP session should be already running. #startRtpSession() has to be started prior to that.
@@ -161,6 +208,16 @@ class VideoManager: public org::sflphone::SFLphone::VideoManager_adaptor,
          * @return The video endpoint corresponding to the given device.
          */
         sfl::VideoEndpoint* getVideoEndpoint (const std::string& device) throw (sfl::UnknownVideoDeviceException);
+
+        struct HasSameShmName
+        {
+          explicit HasSameShmName(const std::string& name) : shm(name) {}
+
+          bool operator() (const std::pair<std::string, sfl::VideoEndpoint*>& endpoint) const
+          { return endpoint.second->hasShm(shm); }
+
+          const std::string& shm;
+        };
 
         // Key : device name. Value : Corresponding VideoEndpoint
         std::map<std::string, sfl::VideoEndpoint*> videoEndpoints;

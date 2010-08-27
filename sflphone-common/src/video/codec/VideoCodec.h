@@ -61,6 +61,8 @@ class VideoCodec : public virtual Codec, public VideoPlugin
 
         virtual void setVideoInputFormat(const VideoFormat& format) = 0;
 
+        virtual VideoFormat getVideoOutputFormat() = 0;
+
         virtual void addVideoFrameEncodedObserver (VideoFrameEncodedObserver& observer) = 0;
 
         virtual void addVideoFrameDecodedObserver (VideoFrameDecodedObserver& observer) = 0;

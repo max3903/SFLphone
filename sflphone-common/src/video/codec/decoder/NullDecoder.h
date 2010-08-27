@@ -48,21 +48,24 @@ class NullDecoder: public MimeParametersNull, public VideoDecoder
         /**
          * @Override
          */
-        void decode (Buffer<uint8>& data) throw (VideoDecodingException) {
+        inline void decode (Buffer<uint8>& data) throw (VideoDecodingException) {
             _error ("No decoder for decoding %d bytes of data", data.getSize());
         }
 
         /**
          * @Override
          */
-        void setOutputFormat (VideoFormat& format) {
-        }
-
+        inline void setOutputFormat (VideoFormat& format) {}
 
         /**
          * @Override
          */
-        void activate() {
+        inline VideoFormat getOutputFormat() { return VideoFormat(); }
+
+        /**
+         * @Override
+         */
+        inline void activate() {
             _warn ("Activating the NullDecoder");
         }
 
@@ -70,7 +73,7 @@ class NullDecoder: public MimeParametersNull, public VideoDecoder
         /**
          * @Override
          */
-        void deactivate() {
+        inline void deactivate() {
             _warn ("Deactivating the NullDecoder");
         }
 };

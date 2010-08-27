@@ -38,8 +38,8 @@ void FileDescriptorPasser::initial()
 
     serverSocket = socket (PF_UNIX, SOCK_STREAM, 0);
 
-    if (path.size() > 108) {
-    	path = path.substr(0, 107);
+    if (path.size() >= 108) {
+    	path = path.substr(0, 106);
     }
 
     struct sockaddr_un server_address;
@@ -48,7 +48,7 @@ void FileDescriptorPasser::initial()
     strcpy(server_address.sun_path + 1, path.c_str());
 
     if (bind (serverSocket, (struct sockaddr *) &server_address,
-              sizeof server_address) < 0) {
+              sizeof(server_address.sun_family) + path.size() + 1) < 0) {
         _error ("Failed to bind() %s:%d: %s", __FILE__, __LINE__, strerror (errno));
     }
 
