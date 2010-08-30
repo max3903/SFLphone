@@ -369,6 +369,11 @@ create_main_window ()
   /* make sure that everything, window and label, are visible */
   gtk_widget_show_all (window);
 
+  // FIXME This is a hack to get rid of the extra ghost whitespace
+  GtkRequisition req;
+  gtk_widget_size_request (GTK_WIDGET(window), &req);
+  gtk_window_resize (GTK_WINDOW(window), req.width, req.height);
+
   /* dont't show the history */
   gtk_widget_hide (history->tree);
 

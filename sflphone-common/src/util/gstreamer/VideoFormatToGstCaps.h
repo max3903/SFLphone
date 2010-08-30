@@ -40,7 +40,6 @@ namespace sfl
 {
 
 struct VideoFormatToGstCaps : public std::unary_function<VideoFormat&, GstCaps*> {
-
     /**
      * gst_video_format_from_fourcc has only partial definition.
      * @param fourcc The 32 bits encoding of the fourcc code.
@@ -103,6 +102,8 @@ struct VideoFormatToGstCaps : public std::unary_function<VideoFormat&, GstCaps*>
         FrameRate rate = format.getPreferredFrameRate();
         guint32 fourcc = GST_STR_FOURCC (format.getFourcc().c_str());
         GstVideoFormat fmt = GstVideoFormatFromFourcc (fourcc);
+        _debug("******** ROW STRIDE %d", gst_video_format_get_row_stride(fmt, 0, format.getWidth()));
+        _debug("Width %d height %d", format.getWidth(), format.getHeight());
         return gst_video_format_new_caps (fmt, format.getWidth(),
                                           format.getHeight(), rate.getNumerator(), rate.getDenominator(),
                                           1, 1);

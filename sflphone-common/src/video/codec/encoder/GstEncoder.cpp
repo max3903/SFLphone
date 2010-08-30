@@ -150,8 +150,8 @@ void GstEncoder::configureSource()
     // Create the new caps for this video source
     VideoFormat format = getVideoInputFormat();
     std::ostringstream caps;
-    caps << "video/x-raw-rgb" << ",format=(fourcc)" << GST_STR_FOURCC (
-        format.getFourcc().c_str()) << ",height=(int)"
+    caps << "video/x-raw-rgb" << ",format=(fourcc)" <<
+        format.getFourcc().c_str() << ",height=(int)"
     << format.getHeight() << ",width=(int)" << format.getWidth()
     << ",bpp=(int)" << 32 << ",depth=(int)" << 32
     << ",endianness=(int)" << 4321 << ",red_mask=(int)" << 65280

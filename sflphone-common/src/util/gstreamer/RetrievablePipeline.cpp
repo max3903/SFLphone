@@ -88,6 +88,7 @@ void RetrievablePipeline::init (GstCaps* caps, Pipeline& pipeline)
 
     gst_app_sink_set_max_buffers (GST_APP_SINK (appsink), 2); // FIXME Hardcoded
     gst_app_sink_set_drop (GST_APP_SINK (appsink), FALSE);
+    //gst_app_sink_set_caps(GST_APP_SINK (appsink), caps);
 
     // Configure callbacks for the appsink
     GstAppSinkCallbacks sinkCallbacks;

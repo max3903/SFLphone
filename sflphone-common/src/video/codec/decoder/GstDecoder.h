@@ -124,6 +124,7 @@ class GstDecoder : public VideoDecoder, protected Filter
                  * @Override
                  */
                 void onNewBuffer (GstBuffer* buffer) {
+                	_debug ("Caps on the decoded buffer written into the SHM %" GST_PTR_FORMAT, gst_buffer_get_caps(buffer));
                     Buffer<uint8_t> buf(GST_BUFFER_DATA(buffer), GST_BUFFER_SIZE(buffer));
                     parent->notifyAll(buf);
                 }

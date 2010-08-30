@@ -76,16 +76,15 @@ throw (VideoDecodingException, MissingPluginException)
     // can't have at this point in the object hierarchy (template design pattern).
     buildFilter (pipeline);
 
-    pipeline.addTee ("main_tee", getTail());
+//    pipeline.addTee ("main_tee", getTail());
+//    GstPad* debugBranch = pipeline.branch ("main_tee");
+//    GstElement* previous = pipeline.addElement ("queue", debugBranch);
+//    previous = pipeline.addElement ("ffmpegcolorspace", previous);
+//    previous = pipeline.addElement ("deinterlace", previous);
+//    pipeline.addElement ("autovideosink", previous);
+//    GstPad* outputBranch = pipeline.branch ("main_tee");
 
-    GstPad* debugBranch = pipeline.branch ("main_tee");
-    GstElement* previous = pipeline.addElement ("queue", debugBranch);
-    previous = pipeline.addElement ("ffmpegcolorspace", previous);
-    previous = pipeline.addElement ("deinterlace", previous);
-    pipeline.addElement ("autovideosink", previous);
-
-    GstPad* outputBranch = pipeline.branch ("main_tee");
-    previous = pipeline.addElement ("queue", outputBranch);
+    GstElement* previous = pipeline.addElement ("queue", getTail());
     previous = pipeline.addElement ("ffmpegcolorspace", previous);
     previous = pipeline.addElement ("deinterlace", previous);
     GstElement* videoscale = pipeline.addElement ("videoscale", previous);
@@ -114,9 +113,11 @@ throw (VideoDecodingException, MissingPluginException)
 
     // Add retrievable endpoint
     VideoFormatToGstCaps convert;
-    retrievableEnd = new RetrievablePipeline (pipeline, convert (outputVideoFormat));
+    retrievableEnd = new RetrievablePipeline (pipeline, convert(outputVideoFormat));
     outputObserver = new PipelineEventObserver (this);
     retrievableEnd->addObserver (outputObserver);
+
+    _debug ("Frames will be written in SHM with caps %" GST_PTR_FORMAT, convert(outputVideoFormat));
 
     // Connect both endpoints to the graph.
     injectableEnd->setSink (getHead());
@@ -147,6 +148,7 @@ throw (VideoDecodingException)
 
 void GstDecoder::setOutputFormat (VideoFormat& format)
 {
+    _debug("Setting output format on decoder to %s", format.toString().c_str());
     VideoFormatToGstCaps convert;
     retrievableEnd->setCaps (convert (format));
 }

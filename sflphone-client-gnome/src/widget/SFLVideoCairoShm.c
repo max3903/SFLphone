@@ -83,9 +83,10 @@ fourcc_to_video_cairo (uint32_t fourcc)
 {
   switch (fourcc)
     {
-  case FOURCC('R', 'G', 'B', 'A'):
+  case FOURCC('A', 'R', 'G', 'B'):
     return CAIRO_FORMAT_ARGB32;
-  case FOURCC('R','G','B','3'):
+  case FOURCC('R','G','B','x'):
+    DEBUG("USING RGB24");
     return CAIRO_FORMAT_RGB24;
   default:
     ERROR("No cairo format for fourcc value %d", fourcc);
@@ -141,6 +142,37 @@ cairo_dump_buffer (guchar* pucPixelBuffer, gint width, gint height,
 }
 
 static void
+premultiply_alpha(SFLVideoCairoShm* self, uint8_t* destination, uint8_t* source) {
+  SFLVideoCairoShmPrivate* priv = GET_PRIVATE(self);
+
+  unsigned short alpha;
+
+  int y;
+  for (y = 0; y < priv->height; y++)
+    {
+      int x;
+      for (x = 0; x < priv->width; x++)
+        {
+#if G_BYTE_ORDER == G_LITTLE_ENDIAN
+          alpha = source[3];
+          destination[0] = (source[0] * alpha + 128) / 255;
+          destination[1] = (source[1] * alpha + 128) / 255;
+          destination[2] = (source[2] * alpha + 128) / 255;
+          destination[3] = alpha;
+#else
+          alpha = source[0];
+          destination[0] = alpha;
+          destination[1] = (source[1] * alpha + 128) / 255;
+          destination[2] = (source[2] * alpha + 128) / 255;
+          destination[3] = (source[3] * alpha + 128) / 255;
+#endif
+          source += 4;
+          destination += 4;
+        }
+    }
+}
+
+static void
 on_new_frame_cb (uint8_t* frame, void* widget)
 {
   SFLVideoCairoShm* self = SFL_VIDEO_CAIRO_SHM(widget);
@@ -151,6 +183,10 @@ on_new_frame_cb (uint8_t* frame, void* widget)
     {
       return;
     }
+
+  if (fourcc_to_video_cairo(priv->fourcc) == CAIRO_FORMAT_ARGB32) {
+    //premultiply_alpha(self, priv->image_data, frame);
+  }
 
   // Copy the frame into the image surface
   memcpy (priv->image_data, frame, priv->width * priv->height * 4); // FIXME. Hardcoded value 4
@@ -218,12 +254,14 @@ sfl_video_cairo_shm_expose (GtkWidget* cairo_video, GdkEventExpose* event)
   GtkAllocation allocation;
   gtk_widget_get_allocation (cairo_video, &allocation);
 
-  DEBUG("Allocation %d %d image width %d %d\n", allocation.width, allocation.height, priv->width, priv->height);
-
-  cairo_set_source_rgb (cr, 0.0, 0.0, 0.0);
+  // Paint a black background
   cairo_rectangle (cr, 0, 0, allocation.width, allocation.height);
+  cairo_set_source_rgb (cr, 0.0, 0.0, 0.0);
+  cairo_fill (cr);
 
-  cairo_set_source_surface (cr, priv->surface, 0, 0);
+  // Paint in the middle
+  cairo_set_source_surface (cr, priv->surface, (allocation.width - priv->width)
+      / 2, (allocation.height - priv->height) / 2);
   cairo_paint (cr);
 
   // Get rid of the cairo context
@@ -316,11 +354,12 @@ sfl_video_cairo_shm_start (SFLVideoCairoShm *self)
       ERROR("A valid cairo format cannot be found for FOURCC value %d", priv->fourcc);
       return -1;
     }
-  priv->image_stride = cairo_format_stride_for_width (format, priv->width);
+  priv->image_stride = cairo_format_stride_for_width (CAIRO_FORMAT_ARGB32, priv->width);
+  DEBUG("Row stride : %d", priv->image_stride);
 
   // Create the cairo surface for data
   priv->surface = cairo_image_surface_create_for_data (priv->image_data,
-      format, priv->width, priv->height, priv->image_stride);
+      CAIRO_FORMAT_ARGB32, priv->width, priv->height, priv->image_stride);
 
   // Create a new endpoint
   priv->endpt = sflphone_video_init ();

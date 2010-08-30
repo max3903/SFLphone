@@ -9,7 +9,7 @@ namespace sfl
 {
 
 const std::string VideoFormat::DEFAULT_MIMETYPE = "video/x-raw-rgb";
-const std::string VideoFormat::DEFAULT_FOURCC = "RGBA";
+const std::string VideoFormat::DEFAULT_FOURCC = "ARGB";
 const FrameRate VideoFormat::DEFAULT_FRAMERATE = FrameRate (30, 1);
 const int VideoFormat::DEFAULT_WIDTH = 320;
 const int VideoFormat::DEFAULT_HEIGHT = 240;
@@ -89,6 +89,10 @@ std::string VideoFormat::getFourcc() const
 }
 
 uint32_t VideoFormat::getFourccCode() const {
+	if (fourcc == "RGB") {
+		return FourCC("RGB3").getValue();
+	}
+
 	return FourCC(fourcc).getValue();
 }
 
