@@ -83,11 +83,8 @@ throw (VideoDecodingException, MissingPluginException)
 //    previous = pipeline.addElement ("deinterlace", previous);
 //    pipeline.addElement ("autovideosink", previous);
 //    GstPad* outputBranch = pipeline.branch ("main_tee");
-
-    GstElement* previous = pipeline.addElement ("queue", getTail());
-    previous = pipeline.addElement ("ffmpegcolorspace", previous);
-    previous = pipeline.addElement ("deinterlace", previous);
-    GstElement* videoscale = pipeline.addElement ("videoscale", previous);
+    GstElement* previous = pipeline.addElement ("ffmpegcolorspace", getTail());
+    GstElement* capsfilter = pipeline.addElement ("capsfilter", previous);
 
     // Add injectable endpoint
     std::ostringstream caps;
@@ -112,16 +109,21 @@ throw (VideoDecodingException, MissingPluginException)
     }
 
     // Add retrievable endpoint
-    VideoFormatToGstCaps convert;
-    retrievableEnd = new RetrievablePipeline (pipeline, convert(outputVideoFormat));
+    retrievableEnd = new RetrievablePipeline (pipeline);
     outputObserver = new PipelineEventObserver (this);
     retrievableEnd->addObserver (outputObserver);
 
-    _debug ("Frames will be written in SHM with caps %" GST_PTR_FORMAT, convert(outputVideoFormat));
+    // Color space transform to RGBA if needed
+    GstCaps* outputCaps;
+    outputCaps = gst_caps_new_simple ("video/x-raw-rgb",
+         "format", GST_TYPE_FOURCC, GST_MAKE_FOURCC ('R', 'G', 'B', 'A'),
+         "bpp", G_TYPE_INT, 32, "depth", G_TYPE_INT, 32,
+         NULL);
+    g_object_set (G_OBJECT (capsfilter), "caps", outputCaps, NULL);
 
     // Connect both endpoints to the graph.
     injectableEnd->setSink (getHead());
-    retrievableEnd->setSource (videoscale);
+    retrievableEnd->setSource (capsfilter);
 }
 
 GstDecoder::~GstDecoder()
