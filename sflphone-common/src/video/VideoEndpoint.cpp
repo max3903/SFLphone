@@ -267,7 +267,7 @@ void VideoEndpoint::createRtpSession(const sfl::InetSocketAddress& address) {
 	}
 
 	RtpStreamDecoderObserver* observer = new RtpStreamDecoderObserver(fd,
-			shmRtpStream);
+			shmRtpStream, this);
 
 	// Instantiate a decoder observer that will write into the SHM
 	rtpSession->addObserver(observer);

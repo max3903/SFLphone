@@ -124,7 +124,8 @@ class GstDecoder : public VideoDecoder, protected Filter
                  * @Override
                  */
                 void onNewBuffer (GstBuffer* buffer) {
-                	_debug ("Caps on the decoded buffer written into the SHM %" GST_PTR_FORMAT, gst_buffer_get_caps(buffer));
+                	gst_caps_unref(parent->currentCaps);
+                	parent->currentCaps = gst_buffer_get_caps(buffer);
                     Buffer<uint8_t> buf(GST_BUFFER_DATA(buffer), GST_BUFFER_SIZE(buffer));
                     parent->notifyAll(buf);
                 }
@@ -138,6 +139,11 @@ class GstDecoder : public VideoDecoder, protected Filter
          * we might end up into big troubles.
          */
         std::list<std::pair<std::string, std::string> > parameters;
+
+        /**
+         * Holds the current caps, read on the buffer.
+         */
+        GstCaps* currentCaps;
 };
 
 }

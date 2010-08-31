@@ -23,6 +23,8 @@
 #include "util/InetSocketAddress.h"
 #include "util/FileDescriptorPasser.h"
 #include "util/ipc/SharedMemoryPosix.h"
+#include "util/pattern/AbstractObservable.h"
+
 #include "video/source/VideoInputSource.h"
 #include "video/rtp/VideoRtpSessionSimple.h"
 
@@ -63,6 +65,19 @@ class NoSuchShmException: public std::invalid_argument
 };
 
 /**
+ * Observer type for VideoEndpoint events.
+ */
+class VideoEndpointObserver : public Observer {
+public:
+	/**
+	 * This function is called when one when frames are written into
+	 * the shared memory segment.
+	 * @param shm The shared memory segment in which the frames get written to.
+	 */
+	virtual void onRemoteVideoStreamStarted(const std::string& shm) = 0;
+};
+
+/**
  * This class is receiving video frames over RTP, writing them in
  * a dedicated shared memory segment, sending local frames from the VideoInputSource to
  * the remote RTP party as well as writing them in a shared memory segment for
@@ -71,7 +86,7 @@ class NoSuchShmException: public std::invalid_argument
  * A video endpoint is unique to a given video source. In other words, only one source
  * can be defined in every instance, but multiple targets can be tied to it.
  */
-class VideoEndpoint: public VideoFrameObserver
+class VideoEndpoint: public VideoFrameObserver, public AbstractObservable<const std::string&, VideoEndpointObserver>
 {
     public:
         /**
@@ -250,8 +265,8 @@ class VideoEndpoint: public VideoFrameObserver
          */
         class RtpStreamDecoderObserver: public VideoFrameDecodedObserver {
         public:
-        	RtpStreamDecoderObserver(int fd, SharedMemoryPosix* shm) :
-        	 fd(fd), shm(shm) {}
+        	RtpStreamDecoderObserver(int fd, SharedMemoryPosix* shm, VideoEndpoint* parent) :
+        	 fd(fd), shm(shm), parent(parent), signalSent(false) {}
 
         	void onNewFrameDecoded (Buffer<uint8_t>& data) {
         		if (data.getBuffer() == NULL) {
@@ -269,6 +284,13 @@ class VideoEndpoint: public VideoFrameObserver
         		// Write into the shared memory segment
         		memcpy(shm->getRegion(), data.getBuffer(), data.getSize());
 
+        		// Notify the observers once if we have just written the first frame
+        		// and are about to broadcast the event over the eventfd channel.
+        		if (!signalSent) {
+        			parent->notifyAll(shm->getName());
+        			signalSent = true;
+        		}
+
         		eventfd_write(fd, NEW_FRAME_EVENT);
 
         		//_debug("Wrote decoded frame of size %d in shm segment %s", data.getSize(), shm->getName().c_str());
@@ -276,6 +298,8 @@ class VideoEndpoint: public VideoFrameObserver
         private:
         	int fd;
         	SharedMemoryPosix* shm;
+        	VideoEndpoint* parent;
+        	bool signalSent;
         };
 
         /**
@@ -337,6 +361,18 @@ class VideoEndpoint: public VideoFrameObserver
 
           const std::string& shm;
         };
+
+        /**
+         * @Override
+         */
+        void notify (VideoEndpointObserver* observer, const std::string& shm) {
+        	observer->onRemoteVideoStreamStarted(shm);
+        }
+
+        /**
+         * @Override
+         */
+        void notify (VideoEndpointObserver* observer, const std::string& name, const std::string& shm) {}
 
         // The token set
         std::set<std::string> sourceTokens;

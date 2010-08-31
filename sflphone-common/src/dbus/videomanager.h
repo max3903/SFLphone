@@ -209,20 +209,64 @@ class VideoManager: public org::sflphone::SFLphone::VideoManager_adaptor,
          */
         sfl::VideoEndpoint* getVideoEndpoint (const std::string& device) throw (sfl::UnknownVideoDeviceException);
 
+        /**
+         * Observer type for a given VideoEndpoint.
+         */
+        class EndpointObserver : public sfl::VideoEndpointObserver {
+        public:
+        	EndpointObserver(VideoManager* parent, CallId callId) : parent(parent), callId(callId) {}
+        	/**
+        	 * @Override
+        	 */
+        	void onRemoteVideoStreamStarted(const std::string& shm) {
+        		if (callId != "") {
+        			_debug("************************ Sending signal onRemoteVideoStreamStarted for shm %s and callid %s", shm.c_str(), callId.c_str());
+        			parent->onNewRemoteVideoStream(callId, shm);
+        		}
+        	}
+        private:
+        	VideoManager* parent;
+        	CallId callId;
+        };
+
+        /**
+         * This class is used for maintaining various information related to
+         * the VideoEndoint.
+         */
+        class EndpointRecord {
+        public:
+        	explicit EndpointRecord(sfl::VideoEndpoint* endpoint, sfl::VideoEndpointObserver* observer) :
+        	endpoint(endpoint), observer(observer) {}
+
+        	sfl::VideoEndpoint* getVideoEndpoint() const { return endpoint; }
+
+        	sfl::VideoEndpointObserver* getVideoEndpointObserver() const { return observer; }
+
+        	sfl::VideoEndpoint* operator ->() const {
+        		return endpoint;
+        	}
+        private:
+        	sfl::VideoEndpoint* endpoint;
+        	sfl::VideoEndpointObserver* observer;
+        };
+
+        /**
+         * Helper predicate used for std::find_if
+         */
         struct HasSameShmName
         {
           explicit HasSameShmName(const std::string& name) : shm(name) {}
 
-          bool operator() (const std::pair<std::string, sfl::VideoEndpoint*>& endpoint) const
-          { return endpoint.second->hasShm(shm); }
+          bool operator() (const std::pair<std::string, EndpointRecord>& endpoint) const
+          { return ((endpoint.second).getVideoEndpoint())->hasShm(shm); }
 
           const std::string& shm;
         };
 
         // Key : device name. Value : Corresponding VideoEndpoint
-        std::map<std::string, sfl::VideoEndpoint*> videoEndpoints;
-        typedef std::map<std::string, sfl::VideoEndpoint*>::iterator DeviceNameToVideoEndpointIterator;
-        typedef std::pair<std::string, sfl::VideoEndpoint*> DeviceNameToVideoEndpointEntry;
+        std::map<std::string, EndpointRecord> videoEndpoints;
+        typedef std::map<std::string, EndpointRecord>::iterator DeviceNameToEndpointRecordIterator;
+        typedef std::pair<std::string, EndpointRecord> DeviceNameToEndpointRecord;
 
         // Key : device id. Value : Corresponding VideoDevice
         std::map<std::string, sfl::VideoDevicePtr> videoDevices;

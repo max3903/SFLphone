@@ -83,7 +83,7 @@ fourcc_to_video_cairo (uint32_t fourcc)
 {
   switch (fourcc)
     {
-  case FOURCC('A', 'R', 'G', 'B'):
+  case FOURCC('R', 'G', 'B', 'A'):
     return CAIRO_FORMAT_ARGB32;
   case FOURCC('R','G','B','x'):
     DEBUG("USING RGB24");
@@ -184,9 +184,9 @@ on_new_frame_cb (uint8_t* frame, void* widget)
       return;
     }
 
-  if (fourcc_to_video_cairo(priv->fourcc) == CAIRO_FORMAT_ARGB32) {
-    //premultiply_alpha(self, priv->image_data, frame);
-  }
+//  if (fourcc_to_video_cairo(priv->fourcc) == CAIRO_FORMAT_ARGB32) {
+//    premultiply_alpha(self, priv->image_data, frame);
+//  }
 
   // Copy the frame into the image surface
   memcpy (priv->image_data, frame, priv->width * priv->height * 4); // FIXME. Hardcoded value 4
@@ -354,12 +354,12 @@ sfl_video_cairo_shm_start (SFLVideoCairoShm *self)
       ERROR("A valid cairo format cannot be found for FOURCC value %d", priv->fourcc);
       return -1;
     }
-  priv->image_stride = cairo_format_stride_for_width (CAIRO_FORMAT_ARGB32, priv->width);
+  priv->image_stride = cairo_format_stride_for_width (format, priv->width);
   DEBUG("Row stride : %d", priv->image_stride);
 
   // Create the cairo surface for data
   priv->surface = cairo_image_surface_create_for_data (priv->image_data,
-      CAIRO_FORMAT_ARGB32, priv->width, priv->height, priv->image_stride);
+      format, priv->width, priv->height, priv->image_stride);
 
   // Create a new endpoint
   priv->endpt = sflphone_video_init ();

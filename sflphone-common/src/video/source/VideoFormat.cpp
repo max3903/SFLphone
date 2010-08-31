@@ -132,7 +132,19 @@ void VideoFormat::setFramerate (const std::string& framerate)
 
 void VideoFormat::setFourcc (const std::string& fourcc)
 {
-    this->fourcc = fourcc;
+	this->fourcc = fourcc;
+}
+
+void VideoFormat::setFourcc (uint32_t fourcc)
+{
+    char fourccStr[5];
+    fourccStr[0] = fourcc;
+    fourccStr[1] = fourcc >> 8;
+    fourccStr[2] = fourcc >> 16;
+    fourccStr[3] = fourcc >> 24;
+    fourccStr[4] = '\0';
+
+	this->fourcc = std::string(fourccStr);
 }
 
 void VideoFormat::addFramerate (int numerator, int denominator)

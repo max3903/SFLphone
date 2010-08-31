@@ -205,6 +205,12 @@ class VideoFormat
         void setFourcc (const std::string& fourcc);
 
         /**
+         * @param fourcc The FOURCC code corresponding to the image format to use
+         * @precondition The FOURCC code must be consistent with the MIME type.
+         */
+        void setFourcc (uint32_t fourcc);
+
+        /**
          * A given video format may have multiple associated framerates.
          * @param numerator
          * @param denominator

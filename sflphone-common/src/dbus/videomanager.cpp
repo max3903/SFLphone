@@ -41,7 +41,6 @@ VideoManager::VideoManager(DBus::Connection& connection) :
 
 	// TODO make this refresh when device is disconnected.
 	std::vector<sfl::VideoDevicePtr>::iterator it;
-
 	for (it = devicesList.begin(); it < devicesList.end(); it++) {
 		videoDevices.insert(std::pair<std::string, sfl::VideoDevicePtr>(
 				(*it)->getName(), (*it)));
@@ -54,7 +53,6 @@ std::vector<std::string> VideoManager::enumerateDevices() {
 	std::vector<std::string> devices;
 
 	std::map<std::string, sfl::VideoDevicePtr>::iterator it;
-
 	for (it = videoDevices.begin(); it != videoDevices.end(); it++) {
 		devices.push_back(((*it).second)->getName());
 	}
@@ -124,12 +122,12 @@ std::vector<std::string> VideoManager::getFrameRates(const std::string& device,
 		const std::string& fps) throw (DBus::VideoIOException) {
 	_debug ("Starting video capture on DBus request.");
 	// The code below deals with a device that is already capturing.
-	DeviceNameToVideoEndpointIterator it = videoEndpoints.find(device);
+	DeviceNameToEndpointRecordIterator it = videoEndpoints.find(device);
 
 	if (it != videoEndpoints.end()) {
 		_debug ( (std::string ("Device ") + std::string ("is already mapped to some endpoint.")).c_str());
 
-		sfl::VideoEndpoint* runningEndpoint = (*it).second;
+		sfl::VideoEndpoint* runningEndpoint = ((*it).second).getVideoEndpoint();
 
 		// Paranoid check. Should always be the case.
 		if (!runningEndpoint->isCapturing()) {
@@ -169,10 +167,11 @@ std::vector<std::string> VideoManager::getFrameRates(const std::string& device,
 
 	// Keep the alive endpoint in our internal list.
 	sfl::VideoEndpoint* endpoint = new sfl::VideoEndpoint(videoSource);
+	EndpointObserver* observer = new EndpointObserver(this, "");
+	endpoint->addObserver(observer);
 
 	// Start capturing
 	std::string token;
-
 	try {
 		token = endpoint->capture();
 	} catch (sfl::VideoDeviceIOException& e) {
@@ -181,7 +180,7 @@ std::vector<std::string> VideoManager::getFrameRates(const std::string& device,
 	}
 
 	// Record (Device Name : Endpoint)
-	videoEndpoints.insert(DeviceNameToVideoEndpointEntry(device, endpoint));
+	videoEndpoints.insert(DeviceNameToEndpointRecord(device, EndpointRecord(endpoint, observer)));
 
 	// Send the path to the SHM as well as token to get access to this resource.
 	::DBus::Struct<std::string, std::string> reply;
@@ -196,7 +195,7 @@ std::vector<std::string> VideoManager::getFrameRates(const std::string& device,
 void VideoManager::stopLocalCapture(const std::string& device,
 		const std::string& token) throw (DBus::VideoIOException,
 		DBus::InvalidTokenException) {
-	std::map<std::string, sfl::VideoEndpoint*>::iterator it =
+	DeviceNameToEndpointRecordIterator it =
 			videoEndpoints.find(device);
 
 	_debug ("Stopping device %s with token %s", device.c_str(), token.c_str());
@@ -213,17 +212,16 @@ void VideoManager::stopLocalCapture(const std::string& device,
 		}
 
 		if (((*it).second)->isDisposable()) {
-			delete ((*it).second);
+			delete ((*it).second).getVideoEndpoint();
+			delete ((*it).second).getVideoEndpointObserver();
 			videoEndpoints.erase(it);
 			_debug ("Endpoint was disposable. Removed.");
 		}
 	}
-
 }
 
 std::string VideoManager::getEventFdPasserNamespace(const std::string& shm) throw(DBus::NoSuchShmException) {
-	sfl::VideoEndpoint* endpt = NULL;
-	DeviceNameToVideoEndpointIterator it = std::find_if(videoEndpoints.begin(),
+	DeviceNameToEndpointRecordIterator it = std::find_if(videoEndpoints.begin(),
 			videoEndpoints.end(), HasSameShmName(shm));
 	if (it == videoEndpoints.end()) {
 		throw DBus::NoSuchShmException(std::string("Shared memory segment \""
@@ -242,13 +240,14 @@ std::string VideoManager::getEventFdPasserNamespace(const std::string& shm) thro
 
 DbusVideoShmInfo VideoManager::getShmInfo(const std::string& shm)
 		throw (DBus::NoSuchShmException) {
-	DeviceNameToVideoEndpointIterator it = std::find_if(videoEndpoints.begin(),
+	DeviceNameToEndpointRecordIterator it = std::find_if(videoEndpoints.begin(),
 			videoEndpoints.end(), HasSameShmName(shm));
 	if (it == videoEndpoints.end()) {
 		throw DBus::NoSuchShmException(std::string("Shared memory segment \""
 				+ shm + "\" could not be found."));
 	}
 
+	_debug("**************** GET SHM INFO");
 	sfl::VideoFormat format;
 	try {
 		format = ((*it).second)->getShmVideoFormat(shm);
@@ -267,7 +266,7 @@ DbusVideoShmInfo VideoManager::getShmInfo(const std::string& shm)
 void VideoManager::stageRtpSession(SipCall* call) {
 	_info("Staging video RTP session ...");
 
-	DeviceNameToVideoEndpointIterator it = videoEndpoints.find(
+	DeviceNameToEndpointRecordIterator it = videoEndpoints.find(
 			call->getVideoDevice());
 	sfl::VideoEndpoint* endpoint;
 	if (it == videoEndpoints.end()) {
@@ -290,11 +289,13 @@ void VideoManager::stageRtpSession(SipCall* call) {
 
 		// Keep the alive endpoint in our internal list.
 		endpoint = new sfl::VideoEndpoint(videoSource);
+		EndpointObserver* observer = new EndpointObserver(this, call->getCallId());
+		endpoint->addObserver(observer);
 
 		// Record (Device Name : Endpoint)
-		videoEndpoints.insert(DeviceNameToVideoEndpointEntry(device, endpoint));
+		videoEndpoints.insert(DeviceNameToEndpointRecord(device, EndpointRecord(endpoint, observer)));
 	} else {
-		endpoint = (*it).second;
+		endpoint = ((*it).second).getVideoEndpoint();
 	}
 
 	sfl::InetSocketAddress address(call->getLocalIp(),
@@ -306,7 +307,7 @@ void VideoManager::startRtpSession(SipCall* call, std::vector<
 		const sfl::VideoCodec*> negotiatedCodecs) {
 	_info("Starting video RTP session ...");
 
-	DeviceNameToVideoEndpointIterator it = videoEndpoints.find(
+	DeviceNameToEndpointRecordIterator it = videoEndpoints.find(
 			call->getVideoDevice());
 	if (it == videoEndpoints.end()) {
 		// TODO Throw UnstagedRtpSessionException
@@ -321,43 +322,38 @@ void VideoManager::startRtpSession(SipCall* call, std::vector<
 			call->getLocalSDP()->getRemoteIp(),
 			call->getLocalSDP()->getRemoteVideoPort());
 
-	sfl::VideoEndpoint* endpoint = (*it).second;
+	sfl::VideoEndpoint* endpoint = ((*it).second).getVideoEndpoint();
 	endpoint->addDestination(localAddress, destinationAddress);
 
 	// Configure the RTP session with the given codec list (at least of size 1) and start sending data.
-	std::string remoteShm =endpoint->startRtpSession(localAddress, negotiatedCodecs);
+	std::string remoteShm = endpoint->startRtpSession(localAddress, negotiatedCodecs);
 
 	// Start the video device and keep the token returned
 	std::string token = endpoint->capture();
 	call->setVideoToken(token);
-
-	// Broadcast the event
-	onNewRemoteVideoStream(call->getCallId(), remoteShm);
 }
 
 void VideoManager::stopRtpSession(SipCall* call) {
 	_info("Stopping video RTP session ...");
-
-	DeviceNameToVideoEndpointIterator it = videoEndpoints.find(
+	DeviceNameToEndpointRecordIterator it = videoEndpoints.find(
 			call->getVideoDevice());
 	if (it == videoEndpoints.end()) {
 		_error("Cannot find a video endpoint for device %s", call->getVideoDevice().c_str());
 		return;
 	}
 
-	sfl::VideoEndpoint* endpoint = (*it).second;
+	sfl::VideoEndpoint* endpoint = ((*it).second).getVideoEndpoint();
 	endpoint->stopCapture(call->getVideoToken());
 }
 
 sfl::VideoEndpoint* VideoManager::getVideoEndpoint(const std::string& device)
 		throw (sfl::UnknownVideoDeviceException) {
-	std::map<std::string, sfl::VideoEndpoint*>::iterator it =
+	DeviceNameToEndpointRecordIterator it =
 			videoEndpoints.find(device);
-
 	if (it == videoEndpoints.end()) {
 		throw sfl::UnknownVideoDeviceException("Could not find device "
 				+ device + " in getVideoEndpoint");
 	}
 
-	return it->second;
+	return ((*it).second).getVideoEndpoint();
 }
