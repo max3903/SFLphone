@@ -103,6 +103,18 @@ class GstEncoder: public VideoEncoder, protected Filter
     	 */
     	void generateSdpParameters();
 
+        /**
+         * Add a parameter to the local parameter list.
+         * @param name The parameter name (the key in a map)
+         * @param value The value that this parameter takes.
+         */
+        void addParameter(const std::string& name, const std::string& value);
+
+        /**
+         * @return The buffer caps, or NULL if those are not available.
+         */
+        GstCaps* getBufferCaps();
+
     private:
 
         unsigned maxFrameQueued;
@@ -138,18 +150,6 @@ class GstEncoder: public VideoEncoder, protected Filter
          * @param caps The GstCaps structure obtained from th GstBuffer at the sink element.
          */
         void setBufferCaps(GstCaps* caps);
-
-        /**
-         * @return The buffer caps, or NULL if those are not available.
-         */
-        GstCaps* getBufferCaps();
-
-        /**
-         * Add a parameter to the local parameter list.
-         * @param name The parameter name (the key in a map)
-         * @param value The value that this parameter takes.
-         */
-        void addParameter(const std::string& name, const std::string& value);
 
         /**
          * A function that will be called in gst_structure_foreach(), in generateSdpParameters().
@@ -190,7 +190,7 @@ class GstEncoder: public VideoEncoder, protected Filter
                     std::pair<uint32, Buffer<uint8> > nalUnit (timestamp,
                             Buffer<uint8> (payloadData, payloadSize));
 
-                    //_debug ("Notifying buffer of size %d with timestamp %u", payloadSize, timestamp);
+                    _debug ("Notifying buffer of size %d with timestamp %u", payloadSize, timestamp);
                     parent->notifyAll (nalUnit);
                 }
         };
@@ -207,6 +207,8 @@ class GstEncoder: public VideoEncoder, protected Filter
          * Given that a video input source was set, configure the corresponding caps on the appsrc element.
          */
         void configureSource();
+
+        bool testSrc;
 };
 
 }

@@ -369,12 +369,21 @@ void Sdp::createMediaDescriptionLine(SdpMedia *media, pjmedia_sdp_media** p_med)
 				const_cast<sfl::Codec*> (codec)->getParametersFormatted();
 		if (params != "") {
 			std::string value = std::string(med->desc.fmt[i].ptr,
-					med->desc.fmt[i].slen) + std::string(" ") + params;
+				med->desc.fmt[i].slen) + std::string(" ") + params;
 
+			//std::string value = "96 profile-level-id=42801E; packetization-mode=1; sprop-parameter-sets=J0KAFJWgUH5A,KM4CvIA=";
+			_debug("Format \"%s\"", value.c_str());
 			attr = PJ_POOL_ALLOC_T(_pool, pjmedia_sdp_attr); // FIXME Have no idea how it could be freed.
-			attr->name.ptr = "fmtp";
-			attr->name.slen = 4;
+			attr->name = pj_str(strdup("fmtp"));
 			attr->value = pj_str(strdup(value.c_str()));
+
+			pjmedia_sdp_media_add_attr(med, attr); // FIXME Have no idea how it could be freed.
+		}
+
+		if (codec->getMimeType() == "video") {
+			attr = PJ_POOL_ALLOC_T(_pool, pjmedia_sdp_attr); // FIXME Have no idea how it could be freed.
+			attr->name = pj_str(strdup("framerate"));
+			attr->value = pj_str(strdup("30"));
 
 			pjmedia_sdp_media_add_attr(med, attr); // FIXME Have no idea how it could be freed.
 		}
@@ -507,7 +516,8 @@ bool Sdp::negotiateFormat() {
 	std::vector<SdpMedia*>::iterator it;
 	SdpMedia* negotiatedMedia = NULL;
 	for (it = _negotiatedMedias.begin(); it != _negotiatedMedias.end(); it++) {
-		if ((*it)->getMediaTypeStr() == std::string(remoteMedia->desc.media.ptr, remoteMedia->desc.media.slen)) {
+		if ((*it)->getMediaTypeStr() == std::string(
+				remoteMedia->desc.media.ptr, remoteMedia->desc.media.slen)) {
 			negotiatedMedia = (*it);
 		}
 	}
@@ -542,7 +552,8 @@ bool Sdp::negotiateFormat() {
 		attribute = pjmedia_sdp_media_find_attr2(localMedia, "fmtp",
 				&localMedia->desc.fmt[i]);
 		if (attribute) {
-			if (pjmedia_sdp_attr_get_fmtp(attribute, &fmtpAttribute) != PJ_SUCCESS) {
+			if (pjmedia_sdp_attr_get_fmtp(attribute, &fmtpAttribute)
+					!= PJ_SUCCESS) {
 				return false;
 			}
 
@@ -553,14 +564,16 @@ bool Sdp::negotiateFormat() {
 		_debug("Offer : %s", fmtpOfferer.getParametersFormatted().c_str());
 
 		// Get an instance of a codec to negotiate the format with
-		ost::PayloadType pt = atoi(std::string(localMedia->desc.fmt[i].ptr, localMedia->desc.fmt[i].slen).c_str());
+		ost::PayloadType pt = atoi(std::string(localMedia->desc.fmt[i].ptr,
+				localMedia->desc.fmt[i].slen).c_str());
 		const sfl::Codec* codec = negotiatedMedia->getCodec(pt);
 
 		sfl::Fmtp negotiatedFormat;
 		// We give ourselves the right to strip the const away
-		sfl::Codec* modifiedCodec = const_cast<sfl::Codec*>(codec);
+		sfl::Codec* modifiedCodec = const_cast<sfl::Codec*> (codec);
 		try {
-			negotiatedFormat = modifiedCodec->negotiate(fmtpOfferer, fmtpAnswerer);
+			negotiatedFormat = modifiedCodec->negotiate(fmtpOfferer,
+					fmtpAnswerer);
 		} catch (sfl::SdpFormatNegotiationException e) {
 			_warn("%s", e.what());
 			return false;
@@ -606,8 +619,7 @@ void Sdp::setMediaFromSdpAnswer(const pjmedia_sdp_session* remoteSdp) {
 	 */
 
 	// Set the remote audio IP
-	std::string remoteIp(remoteSdp->conn->addr.ptr,
-			remoteSdp->conn->addr.slen);
+	std::string remoteIp(remoteSdp->conn->addr.ptr, remoteSdp->conn->addr.slen);
 	_info ("SDP: Remote IP from fetching SDP: %s", remoteIp.c_str());
 	setRemoteIp(remoteIp);
 

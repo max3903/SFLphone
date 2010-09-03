@@ -115,12 +115,16 @@ gboolean GstEncoder::extractParameter(GQuark field_id, const GValue* value, gpoi
 
 void GstEncoder::generateSdpParameters()
 {
+	_debug("Generating SDP by injecting frames ...");
 	// Set the selector to point on the videotestsrc
 	selectVideoTestSrc(true);
 
 	// Block until a buffer becomes available
 	_debug("Blocking until a buffer becomes available ...");
 	GstBuffer* buffer = retrievableEnd->getBuffer();
+	if (buffer == NULL) {
+		_error ("Got NULL buffer");
+	}
 
 	// Save a copy of the caps
 	setBufferCaps(gst_buffer_get_caps(buffer));
@@ -134,14 +138,36 @@ void GstEncoder::generateSdpParameters()
 	selectVideoTestSrc(false);
 }
 
+static void
+selector_blocked (GstPad * pad, gboolean blocked, gpointer user_data)
+{
+  /* no nothing */
+  _debug ("blocked callback, blocked: %d", blocked);
+}
+
 void GstEncoder::selectVideoTestSrc(bool selected)
 {
 	if (selected) {
 	    _debug("Selecting videotestsrc on input-selector ...");
-	    g_object_set (G_OBJECT (inputselector), "active-pad", videotestsrcPad, NULL);
+
+	    //gst_pad_set_blocked (appsrcPad, TRUE);
+	    //gst_pad_set_blocked (videotestsrcPad, FALSE);
+	    if (retrievableEnd->isPlaying()) {
+	    	gst_pad_set_blocked_async (videotestsrcPad, FALSE, selector_blocked, NULL);
+	    }
+
+	    g_object_set (G_OBJECT(inputselector), "active-pad", videotestsrcPad, NULL);
+
+//	    g_signal_emit_by_name(G_OBJECT (inputselector), "block", NULL);
+//	    g_signal_emit_by_name(G_OBJECT (inputselector), "switch", videotestsrcPad, -1, -1, NULL);
 	} else {
 	    _debug("Selecting encoding source on input-selector ...");
-	    g_object_set (G_OBJECT (inputselector), "active-pad", appsrcPad, NULL);
+
+	    if (retrievableEnd->isPlaying()) {
+	    	gst_pad_set_blocked_async (videotestsrcPad, TRUE, selector_blocked, NULL);
+	    }
+
+	    g_object_set (G_OBJECT(inputselector), "active-pad", appsrcPad, NULL);
 	}
 }
 
@@ -256,6 +282,8 @@ void GstEncoder::encode (const VideoFrame* frame) throw (VideoEncodingException)
     GST_BUFFER_DATA (buffer) = (guint8*) frame->getFrame();
 
     injectableEnd->inject (buffer);
+
+    _debug("Buffer %d injected", frame->getSize());
 }
 
 void GstEncoder::activate()
@@ -266,6 +294,8 @@ void GstEncoder::activate()
     init();
 
     retrievableEnd->start();
+    selectVideoTestSrc(false);
+    _info ("Pipeline started.");
 }
 
 void GstEncoder::deactivate()

@@ -30,37 +30,73 @@
 #include "GstEncoderH264.h"
 #include <iostream>
 
-namespace sfl
-{
+namespace sfl {
 
-void GstEncoderH264::buildFilter (Pipeline& pipeline)
-throw (MissingPluginException)
-{
+void GstEncoderH264::buildFilter(Pipeline& pipeline)
+		throw (MissingPluginException) {
 
-    x264enc = pipeline.addElement ("x264enc");
+	x264enc = pipeline.addElement("x264enc");
 
-    // Generate byte stream format of NALU
-    g_object_set (G_OBJECT (x264enc), "byte-stream", TRUE, NULL);
+	// Generate byte stream format of NALU
+	//g_object_set(G_OBJECT(x264enc), "byte-stream", TRUE, NULL);
 
-    // Enable automatic multithreading
-    g_object_set (G_OBJECT (x264enc), "threads", 0, NULL);
+	// Enable automatic multithreading
+	g_object_set(G_OBJECT(x264enc), "threads", 0, NULL);
 
-    // Set default bitrate
-    g_object_set (G_OBJECT (x264enc), "bitrate", 300, NULL);
+	// Set default bitrate
+	g_object_set(G_OBJECT(x264enc), "bitrate", 300, NULL);
 
-    rtph264pay = pipeline.addElement ("rtph264pay", x264enc);
+	rtph264pay = pipeline.addElement("rtph264pay", x264enc);
 
 }
 
-void GstEncoderH264::setVideoInputFormat(const VideoFormat& format)
-{
+void GstEncoderH264::setVideoInputFormat(const VideoFormat& format) {
 	GstEncoder::setVideoInputFormat(format);
 
 	generateSdpParameters();
+
+	// Now a few hacks and tricks to get the "profile-level-id"
+	// Get the src pad on the x264enc element, that contains the "codec_data" field
+	GstPad* srcPad = gst_element_get_static_pad(GST_ELEMENT(x264enc), "src");
+	if (srcPad == NULL) {
+		return;
+	}
+
+	// Get the caps on the src pad
+	GstCaps* caps = gst_pad_get_caps(srcPad);
+	if (!caps) {
+		return;
+	}
+
+	// Get the first structure in the caps
+	GstStructure* structure = gst_caps_get_structure(caps, 0);
+	if (!structure) {
+		return;
+	}
+	_debug ("Structure 0 on src pad of x264enc is %" GST_PTR_FORMAT, structure);
+
+	// Get the codec_data field
+	const GValue* value = gst_structure_get_value(structure, "codec_data");
+	if (!value) {
+		return;
+	}
+	GstBuffer* buffer = gst_value_get_buffer(value);
+	guint8* data = GST_BUFFER_DATA(buffer);
+	guint size = GST_BUFFER_SIZE(buffer);
+
+	// Create the base 16 representation of the profile-level-id
+	char profileBase16[7];
+	snprintf(profileBase16, 7, "%06X", (data[1] << 16) | (data[2] << 8) | data[3]);
+	_debug("profile-level-id %s", profileBase16);
+
+	// Keep the parameter internally
+	addParameter("profile-level-id", profileBase16);
+
+	gst_caps_unref(caps);
+	gst_object_unref(srcPad);
 }
 
-std::string GstEncoderH264::getParameter (const std::string& name)
-{
+std::string GstEncoderH264::getParameter(const std::string& name) {
 	// The "packetization-mode" SDP format property is known as
 	// "scan-mode" in Gstreamer.
 	if (name == "packetization-mode") {
@@ -71,21 +107,22 @@ std::string GstEncoderH264::getParameter (const std::string& name)
 		return ss.str();
 	}
 
-	if (name == "profile-level-id") {
-		return std::string("42801E");
-	}
+	//	if (name == "profile-level-id") {
+	//		return std::string("42801E");
+	//	}
+//	if (name == "sprop-parameter-sets") {
+//		return "";
+//	}
 
 	return GstEncoder::getParameter(name);
 }
 
-GstElement* GstEncoderH264::getHead()
-{
-    return x264enc;
+GstElement* GstEncoderH264::getHead() {
+	return x264enc;
 }
 
-GstElement* GstEncoderH264::getTail()
-{
-    return rtph264pay;
+GstElement* GstEncoderH264::getTail() {
+	return rtph264pay;
 }
 
 }
