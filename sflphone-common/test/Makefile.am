@@ -21,8 +21,6 @@ test_SOURCES = \
 	numbercleanertest.cpp \
 	pluginmanagertest.h \
 	pluginmanagertest.cpp \
-	rtptest.h \
-	rtptest.cpp \
 	sdesnegotiatortest.h \
 	sdesnegotiatortest.cpp \
 	VideoCaptureTest.h \
@@ -31,19 +29,12 @@ test_SOURCES = \
 	SemaphorePosixTest.cpp \
 	VideoEndpointTest.h \
 	VideoEndpointTest.cpp \
-	H264DecoderTest.h \
-	H264DecoderTest.cpp \
 	H264EncoderTest.h \
 	H264EncoderTest.cpp \
-	GstEncoderTest.h \
-	GstEncoderTest.cpp \
-	GstDecoderTest.h \
-	GstDecoderTest.cpp \
 	ringtonetest.h \
 	ringtonetest.cpp
 
 LLIBS=$(CPPUNIT_LIBS) \
-	../src/sflphoned-logger.o \
 	../src/sflphoned-managerimpl.o \
 	../src/sflphoned-account.o\
 	../src/sflphoned-accountcreator.o \

@@ -22,7 +22,7 @@
 #include "video/source/VideoInputSourceGst.h"
 #include "video/source/VideoInputSource.h"
 #include "video/source/VideoDevice.h"
-#include "video/VideoFormat.h"
+#include "video/source/VideoFormat.h"
 
 void VideoCaptureTest::setUp() {
 	std::cout << "Setting up..." << std::endl;

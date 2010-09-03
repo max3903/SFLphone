@@ -41,8 +41,8 @@ int main (int argc, char* argv[])
 {
 
     printf ("\nSFLphone Daemon Test Suite, by Savoir-Faire Linux 2004-2010\n\n");
-    Logger::setConsoleLog (true);
-    Logger::setDebugMode (true);
+    Logger::getInstance()->setConsoleLog (true);
+    Logger::getInstance()->setDebugMode (true);
 
     int argvIndex = 1;
 
@@ -67,7 +67,7 @@ int main (int argc, char* argv[])
         } else if (strcmp ("--debug", argv[1]) == 0) {
             argvIndex++;
 
-            Logger::setDebugMode (true);
+            Logger::getInstance()->setDebugMode (true);
             _info ("Debug mode activated");
         }
     }
