@@ -148,7 +148,7 @@ class VideoRtpSessionSimple: public ost::RTPSession, public AbstractObservable<B
             	 * @Override
             	 */
                 void onNewFrameEncoded (std::pair<uint32, Buffer<uint8> >& data) {
-                    //_debug ("Sending NAL unit of size %d over RTP", (data.second).getSize());
+                    _debug ("Sending NAL unit of size %d over RTP", (data.second).getSize());
                     parent->sendImmediate (data.first /* timestamp */,
                                            (data.second).getBuffer() /* payload */,
                                            (data.second).getSize() /* payload size */);

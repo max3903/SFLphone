@@ -43,8 +43,13 @@ void GstEncoderH264::buildFilter(Pipeline& pipeline)
 	// Enable automatic multithreading
 	g_object_set(G_OBJECT(x264enc), "threads", 0, NULL);
 
+	// If "cabac" entropy coding is enabled or "bframes"
+	// are allowed, then Main Profile is in effect, and
+	// otherwise Baseline profile applies.
+	g_object_set(G_OBJECT(x264enc), "cabac", FALSE, NULL);
+
 	// Set default bitrate
-	g_object_set(G_OBJECT(x264enc), "bitrate", 300, NULL);
+	g_object_set(G_OBJECT(x264enc), "bitrate", 768, NULL);
 
 	rtph264pay = pipeline.addElement("rtph264pay", x264enc);
 
@@ -106,13 +111,6 @@ std::string GstEncoderH264::getParameter(const std::string& name) {
 		ss << mode;
 		return ss.str();
 	}
-
-	//	if (name == "profile-level-id") {
-	//		return std::string("42801E");
-	//	}
-//	if (name == "sprop-parameter-sets") {
-//		return "";
-//	}
 
 	return GstEncoder::getParameter(name);
 }

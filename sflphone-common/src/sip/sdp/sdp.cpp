@@ -371,19 +371,10 @@ void Sdp::createMediaDescriptionLine(SdpMedia *media, pjmedia_sdp_media** p_med)
 			std::string value = std::string(med->desc.fmt[i].ptr,
 				med->desc.fmt[i].slen) + std::string(" ") + params;
 
-			//std::string value = "96 profile-level-id=42801E; packetization-mode=1; sprop-parameter-sets=J0KAFJWgUH5A,KM4CvIA=";
 			_debug("Format \"%s\"", value.c_str());
 			attr = PJ_POOL_ALLOC_T(_pool, pjmedia_sdp_attr); // FIXME Have no idea how it could be freed.
 			attr->name = pj_str(strdup("fmtp"));
 			attr->value = pj_str(strdup(value.c_str()));
-
-			pjmedia_sdp_media_add_attr(med, attr); // FIXME Have no idea how it could be freed.
-		}
-
-		if (codec->getMimeType() == "video") {
-			attr = PJ_POOL_ALLOC_T(_pool, pjmedia_sdp_attr); // FIXME Have no idea how it could be freed.
-			attr->name = pj_str(strdup("framerate"));
-			attr->value = pj_str(strdup("30"));
 
 			pjmedia_sdp_media_add_attr(med, attr); // FIXME Have no idea how it could be freed.
 		}

@@ -215,8 +215,8 @@ protected:
 
 		long int remoteProfileIdc = 0xFF & (remote >> 16);
 		long int localProfileIdc = 0xFF & (local >> 16);
-
 		if (remoteProfileIdc != localProfileIdc) {
+			_warn("Remote profile-idc (%d) is different from local profile-idc (%d)", remoteProfileIdc, localProfileIdc);
 			return;
 		}
 
@@ -247,6 +247,8 @@ protected:
 		char buf[7];
 		snprintf(buf, 7, "%02hhX%02hhX%02hhX", (uint)localProfileIdc,
 				(uint)negotiatedProfileIop, (uint)negotiatedLevelIdc);
+
+		_debug("Negotiated profile-level-id :%s", buf);
 
 		negotiatedFmtp[localParam.getName()] = std::string(buf, 7);
 	}
