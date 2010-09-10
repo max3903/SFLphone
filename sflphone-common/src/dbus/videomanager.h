@@ -183,8 +183,10 @@ class VideoManager: public org::sflphone::SFLphone::VideoManager_adaptor,
          * @param call The SipCall object containing the SdpSession.
          * Instantiate (if needed) and prepare a VideoRtpSession for sending data.
          * Once the the SDP answer is received, the session will be configured with the negotiated codec.
+         * @throw sfl::UnknownVideoDeviceException if the specified video device name in the SipCall cannot be found
+         * in the list of known devices in the VideoManager.
          */
-        void stageRtpSession(SipCall* call);
+        void stageRtpSession(SipCall* call) throw(sfl::UnknownVideoDeviceException);
 
         /**
          * Kept unexposed over DBus.
@@ -201,6 +203,17 @@ class VideoManager: public org::sflphone::SFLphone::VideoManager_adaptor,
          * @see #startRtpSession()
          */
         void stopRtpSession(SipCall* call);
+
+        /**
+         * @return true if the instance has/knowns a video device with the given name.
+         */
+        bool hasDevice(const std::string& name) const;
+
+        /**
+         * @return The name for the default video device.
+         * @throw sfl::NoVideoDeviceAvailableException if no video device is known to the video manager.
+         */
+        std::string getDefaultDevice() const throw(sfl::NoVideoDeviceAvailableException);
 
     private :
         /**
@@ -220,7 +233,7 @@ class VideoManager: public org::sflphone::SFLphone::VideoManager_adaptor,
         	 */
         	void onRemoteVideoStreamStarted(const std::string& shm) {
         		if (callId != "") {
-        			_debug("************************ Sending signal onRemoteVideoStreamStarted for shm %s and callid %s", shm.c_str(), callId.c_str());
+        			_debug("Sending signal onRemoteVideoStreamStarted for shm %s and callid %s", shm.c_str(), callId.c_str());
         			parent->onNewRemoteVideoStream(callId, shm);
         		}
         	}
@@ -271,6 +284,7 @@ class VideoManager: public org::sflphone::SFLphone::VideoManager_adaptor,
         // Key : device id. Value : Corresponding VideoDevice
         std::map<std::string, sfl::VideoDevicePtr> videoDevices;
         typedef	std::map<std::string, sfl::VideoDevicePtr>::iterator DeviceIdToVideoDevicePtrIterator;
+        typedef	std::map<std::string, sfl::VideoDevicePtr>::const_iterator DeviceIdToVideoDevicePtrConstIterator;
         typedef	std::pair<std::string, sfl::VideoDevicePtr> DeviceIdToVideoDevicePtrEntry;
 };
 
