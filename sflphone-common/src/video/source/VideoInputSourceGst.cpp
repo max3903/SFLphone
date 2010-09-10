@@ -163,6 +163,7 @@ void VideoInputSourceGst::grabFrame() throw (VideoDeviceIOException)
     g_object_unref (sink);
 
     setCurrentFrame (GST_BUFFER_DATA (buffer), GST_BUFFER_SIZE (buffer));
+
     gst_buffer_unref (buffer);
 }
 

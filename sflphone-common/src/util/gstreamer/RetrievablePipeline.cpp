@@ -45,7 +45,11 @@ GstFlowReturn RetrievablePipeline::onNewBuffer (GstAppSink* sink, gpointer data)
         return GST_FLOW_OK;
     }
 
+    // Notify the observers (it's their only chance to copy the data if need to. Otherwise, we'll free the buffer just after.)
     self->notifyAll (buffer);
+
+    // Free the buffer. Big mem leak if missing.
+    gst_buffer_unref (buffer);
 
     return GST_FLOW_OK;
 }
