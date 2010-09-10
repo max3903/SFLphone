@@ -734,7 +734,11 @@ bool SipVoipLink::newIpToIpCall (const CallId& id, const std::string& to)
 
         // Stage the video RTP session
         if (call->isVideoEnabled()) {
-        	DBusManager::instance().getVideoManager()->stageRtpSession(call);
+        	try {
+            	DBusManager::instance().getVideoManager()->stageRtpSession(call);
+        	} catch (sfl::UnknownVideoDeviceException e) {
+        		_error("%s", e.what());
+        	}
         }
 
         // Init TLS transport if enabled
@@ -2738,8 +2742,6 @@ pj_bool_t SipVoipLink::mod_on_rx_request (pjsip_rx_data *rdata)
     SIPAccount *account;
     pjmedia_sdp_session *remote_sdp;
 
-    // pjsip_generic_string_hdr* hdr;
-
     // voicemail part
     std::string method_name;
     std::string request;
@@ -2808,7 +2810,7 @@ pj_bool_t SipVoipLink::mod_on_rx_request (pjsip_rx_data *rdata)
     _debug ("UserAgent: The receiver is: %s@%s", userName.data(), server.data());
     _debug ("UserAgent: The callee account is %s", account_id.c_str());
 
-    /* Now, it is the time to find the information of the caller */
+    // Now, it is the time to find the information of the caller
     uri = rdata->msg_info.from->uri;
 
     sip_uri = (pjsip_sip_uri *) pjsip_uri_get_uri (uri);
@@ -2820,7 +2822,7 @@ pj_bool_t SipVoipLink::mod_on_rx_request (pjsip_rx_data *rdata)
 
     std::string peerNumber (tmp, length);
 
-    //Remove sip: prefix
+    // Remove sip: prefix
     size_t found = peerNumber.find ("sip:");
 
     if (found != std::string::npos) {
@@ -2874,7 +2876,7 @@ pj_bool_t SipVoipLink::mod_on_rx_request (pjsip_rx_data *rdata)
 
     account = dynamic_cast<SIPAccount *> (Manager::instance().getAccount (
                                               account_id));
-
+    // Get the remote SDP
     get_remote_sdp_from_offer (rdata, &remote_sdp);
 
     if (account->getActiveAudioCodecs().empty()) {
@@ -2887,7 +2889,6 @@ pj_bool_t SipVoipLink::mod_on_rx_request (pjsip_rx_data *rdata)
 
     // Verify that we can handle the request
     status = pjsip_inv_verify_request (rdata, &options, NULL, NULL, _endpt, NULL);
-
     if (status != PJ_SUCCESS) {
         pj_strdup2 (_pool, &reason, "user agent unable to handle this INVITE");
         pjsip_endpt_respond_stateless (_endpt, rdata, PJSIP_SC_METHOD_NOT_ALLOWED,
@@ -2895,8 +2896,7 @@ pj_bool_t SipVoipLink::mod_on_rx_request (pjsip_rx_data *rdata)
         return true;
     }
 
-    /******************************************* URL HOOK *********************************************/
-
+    // Handle URL hooks
     if (Manager::instance().hookPreference.getSipEnabled()) {
 
         _debug ("UserAgent: Set sip url hooks");
@@ -2916,6 +2916,7 @@ pj_bool_t SipVoipLink::mod_on_rx_request (pjsip_rx_data *rdata)
 
     }
 
+    // Create the SipCall
     _info ("UserAgent: Create a new call");
 
     CallId id = Manager::instance().getNewCallId();
@@ -2929,7 +2930,6 @@ pj_bool_t SipVoipLink::mod_on_rx_request (pjsip_rx_data *rdata)
     }
 
     pjsip_tpselector *tp;
-
     if (account != NULL) {
         // Set the appropriate transport to have the right VIA header
         link->init_transport_selector (account->getAccountTransport(), &tp);
@@ -2947,15 +2947,8 @@ pj_bool_t SipVoipLink::mod_on_rx_request (pjsip_rx_data *rdata)
     call->setDisplayName (displayName);
     call->initRecFileName();
 
-    try {
-        call->getAudioRtp()->initAudioRtpSession (call);
-    } catch (...) { // FIXME Be more specific
-        _warn ("UserAgent: Error: Failed to create rtp thread from answer");
-    }
-
     // Initialises the negotiator with the remote sdp.
     status = call->getLocalSDP()->receiveInitialOffer(remote_sdp);
-
     if (status != PJ_SUCCESS) {
         delete call;
         call = NULL;
@@ -2967,7 +2960,28 @@ pj_bool_t SipVoipLink::mod_on_rx_request (pjsip_rx_data *rdata)
         return false;
     }
 
-    /* Create the local dialog (UAS) */
+    // Init the audio RTP session
+    try {
+        call->getAudioRtp()->initAudioRtpSession (call);
+    } catch (...) { // FIXME Be more specific
+        _warn ("UserAgent: Error: Failed to create rtp thread from answer");
+    }
+
+    // Init the video RTP session, if any
+    if (call->getLocalSDP()->getRemoteVideoPort() != 0) {
+    	_debug("Remote peer is offering video on port %d", call->getLocalSDP()->getRemoteVideoPort());
+
+    	// If account allows video, stage the session
+        if (call->isVideoEnabled()) {
+        	try {
+            	DBusManager::instance().getVideoManager()->stageRtpSession(call);
+        	} catch (sfl::UnknownVideoDeviceException e) {
+        		_error("%s", e.what());
+        	}
+        }
+    }
+
+    // Create the local dialog (UAS)
     status = pjsip_dlg_create_uas (pjsip_ua_instance(), rdata, NULL, &dialog);
 
     if (status != PJ_SUCCESS) {

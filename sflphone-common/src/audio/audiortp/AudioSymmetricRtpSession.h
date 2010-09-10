@@ -43,7 +43,7 @@ class AudioSymmetricRtpSession : public ost::SymmetricRTPSession, public AudioRt
         AudioSymmetricRtpSession (ManagerImpl * manager, SipCall * sipcall) :
                 ost::SymmetricRTPSession (ost::InetHostAddress (sipcall->getLocalIp().c_str()), sipcall->getLocalAudioPort()),
                 AudioRtpSession<AudioSymmetricRtpSession> (manager, sipcall) {
-            _debug ("AudioSymmetricRtpSession initialized\n");
+            _debug ("AudioSymmetricRtpSession initialized");
         }
 };
 }

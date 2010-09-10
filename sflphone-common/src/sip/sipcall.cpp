@@ -34,6 +34,8 @@
 #include "sipcall.h"
 #include "global.h" // for _debug
 #include "sdp/sdp.h"
+#include "dbus/dbusmanager.h"
+#include "dbus/videomanager.h"
 #include "audio/audiortp/AudioRtpFactory.h"
 #include "sipaccount.h"
 
@@ -202,7 +204,12 @@ bool SipCall::isVideoEnabled() {
 }
 
 void SipCall::setVideoDevice(const std::string& device) {
-	_videoDevice = device;
+	// Make sure that the device name still refers to an active video device
+	if (DBusManager::instance().getVideoManager()->hasDevice(_videoDevice) == false) {
+		_videoDevice = DBusManager::instance().getVideoManager()->getDefaultDevice();
+	} else {
+		_videoDevice = device;
+	}
 }
 
 std::string SipCall::getVideoDevice()

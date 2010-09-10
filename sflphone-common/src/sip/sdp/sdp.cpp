@@ -625,7 +625,7 @@ void Sdp::setMediaFromSdpAnswer(const pjmedia_sdp_session* remoteSdp) {
 	// Set the remote video IP
 	media = getVideoSdpMedia(remoteSdp);
 	if (media == NULL) {
-		_debug ("SDP: No video media specified in SDP answer.");
+		_warn ("SDP: No video media specified in SDP answer.");
 		return;
 	}
 
@@ -904,7 +904,7 @@ void Sdp::getRemoteSdpCryptoFromOffer(const pjmedia_sdp_session* remote_sdp,
 Sdp::Sdp(pj_pool_t *pool) :
 	_initialMedias(), _negotiatedMedias(0), _negotiator(NULL), _ipAddress(""),
 			_localOffer(NULL), _remoteAnswer(NULL), _negotiatedOffer(NULL),
-			_pool(NULL), _publishedAudioPort(0) {
+			_pool(NULL), _publishedAudioPort(0), _remoteVideoPort(0) {
 	_pool = pool;
 }
 
