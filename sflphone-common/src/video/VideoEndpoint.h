@@ -34,8 +34,7 @@
 
 #include <sys/eventfd.h>
 
-namespace sfl
-{
+namespace sfl {
 
 class FileDescriptorPasser;
 
@@ -43,12 +42,11 @@ class FileDescriptorPasser;
  * This exception is thrown when an invalid token is passed to some method.
  * Invalidity is not specified. Can be syntactical or semantical.
  */
-class InvalidTokenException: public std::invalid_argument
-{
-    public:
-        InvalidTokenException (const std::string& msg) :
-                std::invalid_argument (msg) {
-        }
+class InvalidTokenException: public std::invalid_argument {
+public:
+	InvalidTokenException(const std::string& msg) :
+		std::invalid_argument(msg) {
+	}
 };
 
 /**
@@ -56,18 +54,17 @@ class InvalidTokenException: public std::invalid_argument
  * refer to some shared memory segment that does not
  * exists.
  */
-class NoSuchShmException: public std::invalid_argument
-{
-    public:
-	NoSuchShmException (const std::string& msg) :
-                std::invalid_argument (msg) {
-        }
+class NoSuchShmException: public std::invalid_argument {
+public:
+	NoSuchShmException(const std::string& msg) :
+		std::invalid_argument(msg) {
+	}
 };
 
 /**
  * Observer type for VideoEndpoint events.
  */
-class VideoEndpointObserver : public Observer {
+class VideoEndpointObserver: public Observer {
 public:
 	/**
 	 * This function is called when one when frames are written into
@@ -75,6 +72,11 @@ public:
 	 * @param shm The shared memory segment in which the frames get written to.
 	 */
 	virtual void onRemoteVideoStreamStarted(const std::string& shm) = 0;
+
+	/**
+	 * @param shm The shared memory segment that wil get disposed.
+	 */
+	virtual void onRemoteVideoStreamStopped(const std::string& shm) = 0;
 };
 
 /**
@@ -86,311 +88,354 @@ public:
  * A video endpoint is unique to a given video source. In other words, only one source
  * can be defined in every instance, but multiple targets can be tied to it.
  */
-class VideoEndpoint: public VideoFrameObserver, public AbstractObservable<const std::string&, VideoEndpointObserver>
-{
-    public:
-        /**
-         * Constructor for a video endpoint.
-         * @param src The mandatory video input source for this endpoint.
-         * @precondition The VideoInputSource must be configured to an existing video device.
-         * @see VideoInputSource#setDevice()
-         */
-        VideoEndpoint (VideoInputSource* src);
+class VideoEndpoint: public VideoFrameObserver, public AbstractObservable<
+		const std::string&, VideoEndpointObserver> {
+public:
+	/**
+	 * Constructor for a video endpoint.
+	 * @param src The mandatory video input source for this endpoint.
+	 * @precondition The VideoInputSource must be configured to an existing video device.
+	 * @see VideoInputSource#setDevice()
+	 */
+	VideoEndpoint(VideoInputSource* src);
 
-        /**
-         * @return The video input source for this endpoint.
-         */
-        VideoInputSource* getVideoInputSource();
+	/**
+	 * @return The video input source for this endpoint.
+	 */
+	VideoInputSource* getVideoInputSource();
 
-        /**
-         * @param address The address to listen on.
-         * @postcondition An RTP session will be available for future calls referencing to "local".
-         * TODO Support secured sessions.
-         */
-        void createRtpSession(const sfl::InetSocketAddress& address);
+	/**
+	 * @param address The local address on which an active RTP session is running.
+	 * @postcondition The unique RTP session identified by address will no longer exists, nor be referenceable
+	 */
+	void removeRtpSession(const sfl::InetSocketAddress& address);
 
-        /**
-         * Add a unicast destination for receiving and sending video data.
-         * @param local The local address on which some RTP session is bound to.
-         * @param address The destination address to add to the RTP session.
-         * @precondition A VideoRtpSession bound to "local" should be available.
-         * @see sfl#VideoEndpoint#createRtpsession
-         */
-        void addDestination(const InetSocketAddress& localAddress, const InetSocketAddress& destinationAddress);
+	/**
+	 * @param address The address to listen on.
+	 * @postcondition An RTP session will be available for future calls referencing to "local".
+	 * TODO Support secured sessions.
+	 */
+	void createRtpSession(const sfl::InetSocketAddress& address);
 
-        /**
-         * @param local The local address to bind to.
-         * @param negotiatedCodecs A codec list of size at least 1, containing the supported and negotiated video codecs.
-         * @precondition A VideoRtpSession bound to "local" should be available.
-         * @return The shared memory name where the remote video frames get written to.
-         * @see sfl#VideoEndpoint#createRtpsession
-         */
-        std::string startRtpSession(const InetSocketAddress& local, std::vector<const sfl::VideoCodec*> negotiatedCodecs);
+	/**
+	 * Add a unicast destination for receiving and sending video data.
+	 * @param local The local address on which some RTP session is bound to.
+	 * @param address The destination address to add to the RTP session.
+	 * @precondition A VideoRtpSession bound to "local" should be available.
+	 * @see sfl#VideoEndpoint#createRtpsession
+	 */
+	void addDestination(const InetSocketAddress& localAddress,
+			const InetSocketAddress& destinationAddress);
 
-        /**
-         * @return The RTP session bound to the given socket.
-         * TODO To implement (needed for SRTP, to retrieve crypto params).
-         */
-        sfl::VideoRtpSessionSimple* getRtpSession(sfl::InetSocketAddress local);
+	/**
+	 * @param local The local address to bind to.
+	 * @param negotiatedCodecs A codec list of size at least 1, containing the supported and negotiated video codecs.
+	 * @precondition A VideoRtpSession bound to "local" should be available.
+	 * @return The shared memory name where the remote video frames get written to.
+	 * @see sfl#VideoEndpoint#createRtpsession
+	 */
+	std::string startRtpSession(const InetSocketAddress& local, std::vector<
+			const sfl::VideoCodec*> negotiatedCodecs);
 
-        /**
-         * Start local capture, and issuing a token for accessing a given video source.
-         * When a token is given to a client, the server guarantees that it won't closes a
-         * video source unless all tokens have been handed back.
-         *
-         * The form of the token is left unspecified, but is guaranteed to be unique.
-         *
-         * @return A unique token for the requester.
-         * @throw VideoDeviceIOException If an error occur while starting video capture.
-         * @postcondition getSourceDeviceShmName() will return the name for the shared memory segment.
-         * @see VideoEndpoint#getSourceDeviceShmName
-         */
-        std::string capture() throw (VideoDeviceIOException);
+	/**
+	 * @return The RTP session bound to the given socket.
+	 * TODO To implement (needed for SRTP, to retrieve crypto params).
+	 */
+	sfl::VideoRtpSession* getRtpSession(sfl::InetSocketAddress local);
 
-        /**
-         * Release access to the video input source. If all tokens are handed back, the video
-         * subsystem will be instructed to stop capturing from the source device.
-         * @precondition The token must be existing (ie was issued by this same endpoint).
-         * @postcondition The token is no more valid. If all tokens are handed back, capturing stops.
-         * @param token The token that was obtained either from capture() or requestTokenForSource()
-         * @throw VideoDeviceIOException If an unrecoverable error occur while stopping video capture.
-         * @throw InvalidTokenException If the token that was passed is not valid.
-         * @see VideoEndpoint#capture
-         * @see VideoEndpoint#requestTokenForSource
-         */
-        void stopCapture (std::string token) throw (VideoDeviceIOException,
-                InvalidTokenException);
+	/**
+	 * Start local capture, and issuing a token for accessing a given video source.
+	 * When a token is given to a client, the server guarantees that it won't closes a
+	 * video source unless all tokens have been handed back.
+	 *
+	 * The form of the token is left unspecified, but is guaranteed to be unique.
+	 *
+	 * @return A unique token for the requester.
+	 * @throw VideoDeviceIOException If an error occur while starting video capture.
+	 * @postcondition getSourceDeviceShmName() will return the name for the shared memory segment.
+	 * @see VideoEndpoint#getSourceDeviceShmName
+	 */
+	std::string capture() throw (VideoDeviceIOException);
 
-        /**
-         * Issue a new token for an existing and running video input source.
-         * @return a unique token
-         * @precondition The video input source should be mapped in memory.
-         * @postcondition The token that was issued will be kept in memory for further operations.
-         * @see VideoEndpoint#capture
-         */
-        std::string requestTokenForSource();
+	/**
+	 * Release access to the video input source. If all tokens are handed back, the video
+	 * subsystem will be instructed to stop capturing from the source device.
+	 * @precondition The token must be existing (ie was issued by this same endpoint).
+	 * @postcondition The token is no more valid. If all tokens are handed back, capturing stops.
+	 * @param token The token that was obtained either from capture() or requestTokenForSource()
+	 * @throw VideoDeviceIOException If an unrecoverable error occur while stopping video capture.
+	 * @throw InvalidTokenException If the token that was passed is not valid.
+	 * @see VideoEndpoint#capture
+	 * @see VideoEndpoint#requestTokenForSource
+	 */
+	void stopCapture(std::string token) throw (VideoDeviceIOException,
+			InvalidTokenException);
 
-        /**
-         * @param shm The shared memory segment name to look presence for.
-         * @return true if the the given shared memory segment is owned by this object.
-         */
-        bool hasShm(const std::string& shm);
+	/**
+	 * Issue a new token for an existing and running video input source.
+	 * @return a unique token
+	 * @precondition The video input source should be mapped in memory.
+	 * @postcondition The token that was issued will be kept in memory for further operations.
+	 * @see VideoEndpoint#capture
+	 */
+	std::string requestTokenForSource();
 
-        /**
-         * @return The name for the shared memory allocated for frames capture.
-         */
-        std::string getSourceDeviceShmName();
+	/**
+	 * @param shm The shared memory segment name to look presence for.
+	 * @return true if the the given shared memory segment is owned by this object.
+	 */
+	bool hasShm(const std::string& shm);
 
-        /**
-         * @param shm A shared memory segment owned by this endpoint.
-         * @return A video format for the frames that are written into the given
-         * @precondition The given shared memory segment must exists, and be owned
-         * by the the current object.
-         * @throw NoSuchShmException if the shared memory segment cannot be found in this object.
-         */
-        sfl::VideoFormat getShmVideoFormat(const std::string& shm) throw(NoSuchShmException);
+	/**
+	 * @return The name for the shared memory allocated for frames capture.
+	 */
+	std::string getSourceDeviceShmName();
 
-        /**
-         * @return The name for the fd passer.
-         * @throw NoSuchShmException if the shared memory segment cannot be found in this object.
-         */
-        std::string getFdPasserName() throw(NoSuchShmException);
+	/**
+	 * @param shm A shared memory segment owned by this endpoint.
+	 * @return A video format for the frames that are written into the given
+	 * @precondition The given shared memory segment must exists, and be owned
+	 * by the the current object.
+	 * @throw NoSuchShmException if the shared memory segment cannot be found in this object.
+	 */
+	sfl::VideoFormat getShmVideoFormat(const std::string& shm)
+			throw (NoSuchShmException);
 
-        /**
-         * @return The name for the fd passer for the given shm.
-         * @precondition The given shm must be existing.
-         * @throw NoSuchShmException if the shared memory segment cannot be found in this object.
-         */
-        std::string getFdPasserName(const std::string& shm) throw(NoSuchShmException);
+	/**
+	 * @return The name for the fd passer.
+	 * @throw NoSuchShmException if the shared memory segment cannot be found in this object.
+	 */
+	std::string getFdPasserName() throw (NoSuchShmException);
 
-        /**
-         * @return true if this endpoint is capturing video from the local device.
-         */
-        bool isCapturing();
+	/**
+	 * @return The name for the fd passer for the given shm.
+	 * @precondition The given shm must be existing.
+	 * @throw NoSuchShmException if the shared memory segment cannot be found in this object.
+	 */
+	std::string getFdPasserName(const std::string& shm)
+			throw (NoSuchShmException);
 
-        /**
-         * @return true if this endpoint can be destroyed. This is true when no capture is
-         * taking place and that no session is established over RTP.
-         */
-        bool isDisposable();
+	/**
+	 * @return true if this endpoint is capturing video from the local device.
+	 */
+	bool isCapturing();
 
-        /**
-         * @Override
-         */
-        void onNewFrame (const VideoFrame* frame);
+	/**
+	 * @return true if this endpoint can be destroyed. This is true when no capture is
+	 * taking place and that no session is established over RTP.
+	 */
+	bool isDisposable();
 
-        /**
-         * eventfd() constant that represents the arrival of a new frame.
-         */
-        static const eventfd_t NEW_FRAME_EVENT = 1;
+	/**
+	 * @Override
+	 */
+	void onNewFrame(const VideoFrame* frame);
 
-        /**
-         * Set to "org.sflphone.eventfd.source" by default.
-         */
-        static const std::string EVENT_SOURCE_NAMESPACE;
+	/**
+	 * eventfd() constant that represents the arrival of a new frame.
+	 */
+	static const eventfd_t NEW_FRAME_EVENT = 1;
 
-        /**
-         * Set to "org.sflphone.eventfd.rtp" by default.
-         */
-        static const std::string EVENT_STREAM_NAMESPACE;
+	/**
+	 * Set to "org.sflphone.eventfd.source" by default.
+	 */
+	static const std::string EVENT_SOURCE_NAMESPACE;
 
-        VideoEndpoint();
-        virtual ~VideoEndpoint();
+	/**
+	 * Set to "org.sflphone.eventfd.rtp" by default.
+	 */
+	static const std::string EVENT_STREAM_NAMESPACE;
 
-    private:
-        /**
-         * Broadcast a video event belonging to the source device.
-         */
-        void broadcastNewFrameEvent();
+	VideoEndpoint();
+	virtual ~VideoEndpoint();
 
-        /**
-         * Send a video frame accross multiple RTP sessions.
-         * @param frame The frame to encode then send over RTP.
-         */
-        void sendInAllRtpSession(const VideoFrame* frame);
+private:
+	/**
+	 * Broadcast a video event belonging to the source device.
+	 */
+	void broadcastNewFrameEvent();
 
-        /**
-         * Compute a hash digest for the given name.
-         */
-        std::string getDigest (const std::string& name);
+	/**
+	 * Send a video frame accross multiple RTP sessions.
+	 * @param frame The frame to encode then send over RTP.
+	 */
+	void sendInAllRtpSession(const VideoFrame* frame);
 
-        /**
-         * @return a unique token.
-         */
-        std::string generateToken();
+	/**
+	 * Compute a hash digest for the given name.
+	 */
+	std::string getDigest(const std::string& name);
 
-        /**
-         * This observer type is used for writing asynchronously into
-         * the shared memory segment allocated for a given RTP session.
-         */
-        class RtpStreamDecoderObserver: public VideoFrameDecodedObserver {
-        public:
-        	RtpStreamDecoderObserver(int fd, SharedMemoryPosix* shm, VideoEndpoint* parent) :
-        	 fd(fd), shm(shm), parent(parent), signalSent(false) {}
+	/**
+	 * @return a unique token.
+	 */
+	std::string generateToken();
 
-        	void onNewFrameDecoded (Buffer<uint8_t>& data) {
-        		if (data.getBuffer() == NULL) {
-        			_error ("Null frame in RtpStreamDecoderObserver"); // FIXME Should not happen.
-        			return;
-        		}
+	/**
+	 * This observer type is used for writing asynchronously into
+	 * the shared memory segment allocated for a given RTP session.
+	 */
+	class RtpStreamDecoderObserver: public VideoFrameDecodedObserver {
+	public:
+		RtpStreamDecoderObserver(int fd, SharedMemoryPosix* shm,
+				VideoEndpoint* parent) :
+			fd(fd), shm(shm), parent(parent), signalSent(false) {
+		}
 
-        		// Make sure that the shared memory is still big enough to hold the new frame
-        		// Should be required once.
-        		if (shm->getSize() != data.getSize()) {
-        			_debug ("Truncating to %d", data.getSize());
-        			shm->truncate(data.getSize());
-        		}
+		void onNewFrameDecoded(Buffer<uint8_t>& data) {
+			if (data.getBuffer() == NULL) {
+				_error ("Null frame in RtpStreamDecoderObserver"); // FIXME Should not happen.
+				return;
+			}
 
-        		// Write into the shared memory segment
-        		memcpy(shm->getRegion(), data.getBuffer(), data.getSize());
+			// Make sure that the shared memory is still big enough to hold the new frame
+			// Should be required once.
+			if (shm->getSize() != data.getSize()) {
+				_debug ("Truncating to %d", data.getSize());
+				shm->truncate(data.getSize());
+			}
 
-        		// Notify the observers once if we have just written the first frame
-        		// and are about to broadcast the event over the eventfd channel.
-        		if (!signalSent) {
-        			parent->notifyAll(shm->getName());
-        			signalSent = true;
-        		}
+			// Write into the shared memory segment
+			memcpy(shm->getRegion(), data.getBuffer(), data.getSize());
 
-        		eventfd_write(fd, NEW_FRAME_EVENT);
+			// Notify the observers once if we have just written the first frame
+			// and are about to broadcast the event over the eventfd channel.
+			if (!signalSent) {
+				parent->notifyAll(shm->getName());
+				signalSent = true;
+			}
 
-        		//_debug("Wrote decoded frame of size %d in shm segment %s", data.getSize(), shm->getName().c_str());
-        	}
-        private:
-        	int fd;
-        	SharedMemoryPosix* shm;
-        	VideoEndpoint* parent;
-        	bool signalSent;
-        };
+			eventfd_write(fd, NEW_FRAME_EVENT);
 
-        /**
-         * This class is used to hold various information
-         * tied to an active RTP session.
-         */
-        class RtpSessionRecord {
-        public:
-        	RtpSessionRecord(SharedMemoryPosix* shm,
-        			FileDescriptorPasser* passer,
-        			VideoRtpSessionSimple* session,
-        			RtpStreamDecoderObserver* observer) :
-        	shm(shm), passer(passer), session(session), observer(observer){}
+			//_debug("Wrote decoded frame of size %d in shm segment %s", data.getSize(), shm->getName().c_str());
+		}
+	private:
+		int fd;
+		SharedMemoryPosix* shm;
+		VideoEndpoint* parent;
+		bool signalSent;
+	};
 
-            inline FileDescriptorPasser* getFileDescriptorPasser() const
-            {
-                return passer;
-            }
+	/**
+	 * This class is used to hold various information
+	 * tied to an active RTP session.
+	 */
+	class RtpSessionRecord {
+	public:
+		RtpSessionRecord(VideoEndpoint* parent, SharedMemoryPosix* shm, FileDescriptorPasser* passer,
+				VideoRtpSession* session, RtpStreamDecoderObserver* observer) :
+			parent(parent), shm(shm), passer(passer), session(session), observer(observer) {
+		}
 
-            inline VideoRtpSessionSimple* getVideoRtpSession() const
-            {
-                return session;
-            }
+		~RtpSessionRecord() {
+			// Send the "onRemoteVideoStreamStopped" signal
+			parent->notifyAll(shm->getName(), "onRemoteVideoStreamStopped");
 
-            inline SharedMemoryPosix* getSharedMemoryPosix() const
-            {
-                return shm;
-            }
+			// Remove the video source observer
+			session->removeObserver(observer);
+			delete observer;
 
-            inline RtpStreamDecoderObserver* getDecoderObserver() const
-            {
-                return observer;
-            }
+			// Stop the RTP session
+			delete session;
 
-            inline int getEventFd() const {
-            	return passer->getFileDescriptor();
-            }
+			// Close the event fd
+			close(passer->getFileDescriptor());
 
-        private:
-        	SharedMemoryPosix* shm;
-        	FileDescriptorPasser* passer;
-        	VideoRtpSessionSimple* session;
-        	RtpStreamDecoderObserver* observer;
-        };
+			// Stop and release the FD passer
+			delete passer;
 
-        std::map<InetSocketAddress, RtpSessionRecord> socketAddressToRtpSessionRecord;
-        typedef std::map<InetSocketAddress, RtpSessionRecord>::iterator SocketAddressToRtpSessionRecordIterator;
-        typedef std::pair<InetSocketAddress, RtpSessionRecord> SocketAddressToRtpSessionRecordEntry;
+			// Remove the shared memory segment
+			shm->remove();
+			delete shm;
+		}
 
-        /**
-         * Used in std::find_if
-         */
-        struct HasSameShmName
-        {
-          explicit HasSameShmName(const std::string& name) : shm(name) {}
+		inline FileDescriptorPasser* getFileDescriptorPasser() const {
+			return passer;
+		}
 
-          bool operator() (const std::pair<InetSocketAddress, RtpSessionRecord>& record) const
-          { return record.second.getSharedMemoryPosix()->getName() == shm; }
+		inline VideoRtpSession* getVideoRtpSession() const {
+			return session;
+		}
 
-          const std::string& shm;
-        };
+		inline SharedMemoryPosix* getSharedMemoryPosix() const {
+			return shm;
+		}
 
-        /**
-         * @Override
-         */
-        void notify (VideoEndpointObserver* observer, const std::string& shm) {
-        	observer->onRemoteVideoStreamStarted(shm);
-        }
+		inline RtpStreamDecoderObserver* getDecoderObserver() const {
+			return observer;
+		}
 
-        /**
-         * @Override
-         */
-        void notify (VideoEndpointObserver* observer, const std::string& name, const std::string& shm) {}
+		inline int getEventFd() const {
+			return passer->getFileDescriptor();
+		}
 
-        // The token set
-        std::set<std::string> sourceTokens;
+	private:
+		SharedMemoryPosix* shm;
+		FileDescriptorPasser* passer;
+		VideoRtpSession* session;
+		RtpStreamDecoderObserver* observer;
+		VideoEndpoint* parent;
+	};
 
-        // The *unique* video source for this endpoint
-        VideoInputSource* videoSource;
+	std::map<InetSocketAddress, RtpSessionRecord*>
+			socketAddressToRtpSessionRecord;
+	typedef std::map<InetSocketAddress, RtpSessionRecord*>::iterator
+			SocketAddressToRtpSessionRecordIterator;
+	typedef std::pair<InetSocketAddress, RtpSessionRecord*>
+			SocketAddressToRtpSessionRecordEntry;
 
-        // Instance of a local server in the UNIX domain for passing FD.
-        FileDescriptorPasser* sourceEventFdPasser;
+	/**
+	 * Used in std::find_if
+	 */
+	struct HasSameShmName {
+		explicit HasSameShmName(const std::string& name) :
+			shm(name) {
+		}
 
-        // The shared memory segment where frames are written to
-        SharedMemoryPosix* shmVideoSource;
+		bool operator()(
+				const std::pair<InetSocketAddress, RtpSessionRecord*>& record) const {
+			return (record.second)->getSharedMemoryPosix()->getName() == shm;
+		}
 
-        int eventFileDescriptorSource;
+		const std::string& shm;
+	};
 
-        bool capturing;
+	/**
+	 * @Override
+	 */
+	void notify(VideoEndpointObserver* observer, const std::string& shm) {
+		observer->onRemoteVideoStreamStarted(shm);
+	}
 
-        static const useconds_t BUSY_WAIT_TIME = 500;
+	/**
+	 * @Override
+	 */
+	void notify(VideoEndpointObserver* observer, const std::string& name,
+			const std::string& shm) {
+		if (name == "onRemoteVideoStreamStarted") {
+			observer->onRemoteVideoStreamStarted(shm);
+		} else if (name == "onRemoteVideoStreamStopped") {
+			observer->onRemoteVideoStreamStopped(shm);
+		}
+	}
+
+	// The token set
+	std::set<std::string> sourceTokens;
+
+	// The *unique* video source for this endpoint
+	VideoInputSource* videoSource;
+
+	// Instance of a local server in the UNIX domain for passing FD.
+	FileDescriptorPasser* sourceEventFdPasser;
+
+	// The shared memory segment where frames are written to
+	SharedMemoryPosix* shmVideoSource;
+
+	int eventFileDescriptorSource;
+
+	bool capturing;
+
+	static const useconds_t BUSY_WAIT_TIME = 500;
 };
 
 }

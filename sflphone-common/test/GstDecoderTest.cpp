@@ -11,7 +11,7 @@ void GstDecoderTest::setUp() {
 	std::cout << "Setting up..." << std::endl;
 
 	ost::InetHostAddress address("0.0.0.0");
-	session = new sfl::VideoRtpSessionSimple(address, (ost::tpport_t) 5000);
+	session = new sfl::VideoRtpSession(address, (ost::tpport_t) 5000);
 }
 
 void GstDecoderTest::tearDown() {

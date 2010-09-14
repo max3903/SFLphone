@@ -347,8 +347,12 @@ void VideoManager::stopRtpSession(SipCall* call) {
 		return;
 	}
 
+	// Stop local capture, if needed
 	sfl::VideoEndpoint* endpoint = ((*it).second).getVideoEndpoint();
 	endpoint->stopCapture(call->getVideoToken());
+
+	// Stop and remove RTP session
+	endpoint->removeRtpSession(sfl::InetSocketAddress(call->getLocalIp(), call->getLocalVideoPort()));
 }
 
 bool VideoManager::hasDevice(const std::string& name) const

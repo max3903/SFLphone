@@ -70,7 +70,9 @@ VideoEndpoint::~VideoEndpoint() {
 	videoSource->removeVideoFrameObserver(this);
 	delete sourceEventFdPasser;
 	close(eventFileDescriptorSource);
+
 	shmVideoSource->remove();
+	delete shmVideoSource;
 }
 
 std::string VideoEndpoint::generateToken() {
@@ -141,7 +143,7 @@ sfl::VideoFormat VideoEndpoint::getShmVideoFormat(const std::string& shm)
 				"\" within any session."));
 	}
 
-	return ((*it).second).getVideoRtpSession()->getVideoOutputFormat();
+	return ((*it).second)->getVideoRtpSession()->getVideoOutputFormat();
 }
 
 std::string VideoEndpoint::requestTokenForSource() {
@@ -190,7 +192,7 @@ std::string VideoEndpoint::getFdPasserName(const std::string& shm) throw(NoSuchS
 	}
 
 
-	return ((*it).second).getFileDescriptorPasser()->getAbstractNamespace();
+	return ((*it).second)->getFileDescriptorPasser()->getAbstractNamespace();
 }
 
 bool VideoEndpoint::isCapturing() {
@@ -205,7 +207,7 @@ void VideoEndpoint::sendInAllRtpSession(const VideoFrame* frame) {
 	SocketAddressToRtpSessionRecordIterator it;
 	for (it = socketAddressToRtpSessionRecord.begin(); it
 			!= socketAddressToRtpSessionRecord.end(); it++) {
-		((*it).second).getVideoRtpSession()->sendPayloaded(frame);
+		((*it).second)->getVideoRtpSession()->sendPayloaded(frame);
 	}
 }
 
@@ -232,6 +234,18 @@ void VideoEndpoint::onNewFrame(const VideoFrame* frame) {
 	broadcastNewFrameEvent();
 }
 
+void VideoEndpoint::removeRtpSession(const sfl::InetSocketAddress& address) {
+	SocketAddressToRtpSessionRecordIterator socketIt =
+			socketAddressToRtpSessionRecord.find(address);
+	if (socketIt == socketAddressToRtpSessionRecord.end()) {
+		return;
+	}
+
+	// Remove from the map
+	delete (*socketIt).second;
+	socketAddressToRtpSessionRecord.erase(socketIt);
+}
+
 void VideoEndpoint::createRtpSession(const sfl::InetSocketAddress& address) {
 
 	SocketAddressToRtpSessionRecordIterator socketIt =
@@ -245,7 +259,7 @@ void VideoEndpoint::createRtpSession(const sfl::InetSocketAddress& address) {
 	_debug("No RTP session bound to socket on %s could be found, creating new one ...", address.toString().c_str());
 
 	ost::InetHostAddress localAddress = address.getAddress();
-	sfl::VideoRtpSessionSimple* rtpSession = new sfl::VideoRtpSessionSimple(
+	sfl::VideoRtpSession* rtpSession = new sfl::VideoRtpSession(
 			localAddress, address.getPort());
 
 	// Set input format
@@ -285,7 +299,7 @@ void VideoEndpoint::createRtpSession(const sfl::InetSocketAddress& address) {
 	}
 
 	socketAddressToRtpSessionRecord.insert(
-			SocketAddressToRtpSessionRecordEntry(address, RtpSessionRecord(
+			SocketAddressToRtpSessionRecordEntry(address, new RtpSessionRecord(this,
 					shmRtpStream, passer, rtpSession, observer)));
 }
 
@@ -297,8 +311,8 @@ std::string VideoEndpoint::startRtpSession(const InetSocketAddress& localAddress
 	if (socketIt == socketAddressToRtpSessionRecord.end()) {
 		// TODO throw UnavailableSomethingException
 	}
-	VideoRtpSessionSimple* rtpSession =
-			((*socketIt).second).getVideoRtpSession();
+	VideoRtpSession* rtpSession =
+			((*socketIt).second)->getVideoRtpSession();
 
 	// Register the session codecs
 	std::vector<const sfl::VideoCodec*>::iterator codecIt;
@@ -310,7 +324,7 @@ std::string VideoEndpoint::startRtpSession(const InetSocketAddress& localAddress
 	// Start sending/receiving RTP packets
 	rtpSession->start();
 
-	return ((*socketIt).second).getSharedMemoryPosix()->getName();
+	return ((*socketIt).second)->getSharedMemoryPosix()->getName();
 }
 
 void VideoEndpoint::addDestination(const InetSocketAddress& localAddress,
@@ -325,8 +339,8 @@ void VideoEndpoint::addDestination(const InetSocketAddress& localAddress,
 	}
 
 	ost::InetHostAddress address = destinationAddress.getAddress();
-	VideoRtpSessionSimple* rtpSession =
-			((*socketIt).second).getVideoRtpSession();
+	VideoRtpSession* rtpSession =
+			((*socketIt).second)->getVideoRtpSession();
 	rtpSession->addDestination(address, destinationAddress.getPort());
 }
 

@@ -40,7 +40,7 @@ void H264EncoderTest::testSend()
 
 	// Create a video session
 	ost::InetHostAddress address("127.0.0.1");
-	sfl::VideoRtpSessionSimple* session = new sfl::VideoRtpSessionSimple(address, (ost::tpport_t) 5055);
+	sfl::VideoRtpSession* session = new sfl::VideoRtpSession(address, (ost::tpport_t) 5055);
 
 	// Set the video format for this RTP session
 	sfl::VideoFormat format = source.getOutputFormat();
@@ -61,11 +61,11 @@ void H264EncoderTest::testSend()
 	// Observer type for frames events
 	class WebCamObserver : public sfl::VideoFrameObserver {
 	public:
-		WebCamObserver(sfl::VideoRtpSessionSimple* session) : session(session) {}
+		WebCamObserver(sfl::VideoRtpSession* session) : session(session) {}
 		void onNewFrame (const sfl::VideoFrame* frame) {
 			session->sendPayloaded(frame);
 		}
-		sfl::VideoRtpSessionSimple* session;
+		sfl::VideoRtpSession* session;
 	};
 
 	source.addVideoFrameObserver(new WebCamObserver(session));

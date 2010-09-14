@@ -275,17 +275,11 @@ GstEncoder::~GstEncoder() {
 	delete injectableEnd;
 }
 
-void free_encoded_buffer(gpointer mem) {
-	_debug("Automatically Freeing buffer");
-	g_free(mem);
-}
-
 void GstEncoder::encode(const VideoFrame* frame) throw (VideoEncodingException) {
 	GstBuffer* buffer = gst_buffer_new();
 	GST_BUFFER_SIZE(buffer) = frame->getSize();
 	GST_BUFFER_MALLOCDATA(buffer) = (guint8*) g_malloc(frame->getSize());
 	GST_BUFFER_DATA(buffer) = GST_BUFFER_MALLOCDATA(buffer);
-	GST_BUFFER_FREE_FUNC(buffer) = free_encoded_buffer;
 
 	// Copy the actual data into the buffer
 	memcpy(GST_BUFFER_DATA(buffer), frame->getFrame(), frame->getSize());
@@ -293,7 +287,7 @@ void GstEncoder::encode(const VideoFrame* frame) throw (VideoEncodingException) 
 	// This function takes ownership of the buffer.
 	injectableEnd->inject(buffer);
 
-	_debug("Buffer %d injected", frame->getSize());
+	// _debug("Buffer %d injected in encoder", frame->getSize());
 }
 
 void GstEncoder::activate() {

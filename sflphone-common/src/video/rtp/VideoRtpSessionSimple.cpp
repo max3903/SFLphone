@@ -32,7 +32,7 @@
 namespace sfl
 {
 
-void VideoRtpSessionSimple::setActiveCodec(ost::PayloadType pt)
+void VideoRtpSession::setActiveCodec(ost::PayloadType pt)
 {
 	SessionCodecIterator it = sessionsCodecs.find(pt);
 	if (it == sessionsCodecs.end()) {
@@ -60,7 +60,7 @@ void VideoRtpSessionSimple::setActiveCodec(ost::PayloadType pt)
     activeCodec->activate();
 }
 
-void VideoRtpSessionSimple::addSessionCodec(ost::PayloadType payloadType, const sfl::VideoCodec* codec)
+void VideoRtpSession::addSessionCodec(ost::PayloadType payloadType, const sfl::VideoCodec* codec)
 {
 	VideoCodec* videoCodec = dynamic_cast<VideoCodec*>(codec->clone());
 	sessionsCodecs.insert (SessionCodecEntry(payloadType, videoCodec));
@@ -72,28 +72,28 @@ void VideoRtpSessionSimple::addSessionCodec(ost::PayloadType payloadType, const 
     }
 }
 
-void VideoRtpSessionSimple::setVideoInputFormat (const VideoFormat& format)
+void VideoRtpSession::setVideoInputFormat (const VideoFormat& format)
 {
 	currentVideoFormat = format;
 }
 
-VideoFormat VideoRtpSessionSimple::getVideoOutputFormat()
+VideoFormat VideoRtpSession::getVideoOutputFormat()
 {
 	return activeCodec->getVideoOutputFormat();
 }
 
-void VideoRtpSessionSimple::start()
+void VideoRtpSession::start()
 {
     // Start the socket thread
     startRunning();
 }
 
-void VideoRtpSessionSimple::sendPayloaded(const VideoFrame* frame)
+void VideoRtpSession::sendPayloaded(const VideoFrame* frame)
 {
 	activeCodec->encode(frame);
 }
 
-void VideoRtpSessionSimple::init()
+void VideoRtpSession::init()
 {
     // Fixed encoder for any video encoder type
     encoderObserver = new EncoderObserver (this);
@@ -115,7 +115,7 @@ void VideoRtpSessionSimple::init()
     _debug ("VideoRtpSessionSimple initialized.");
 }
 
-bool VideoRtpSessionSimple::onRTPPacketRecv (ost::IncomingRTPPkt& packet)
+bool VideoRtpSession::onRTPPacketRecv (ost::IncomingRTPPkt& packet)
 {
     // Make sure that a decoder has been configured for this payload type
     if (getCurrentPayloadType() != packet.getPayloadType()) {
@@ -134,21 +134,21 @@ bool VideoRtpSessionSimple::onRTPPacketRecv (ost::IncomingRTPPkt& packet)
     return true;
 }
 
-VideoRtpSessionSimple::VideoRtpSessionSimple (ost::InetMcastAddress& ima,
+VideoRtpSession::VideoRtpSession (ost::InetMcastAddress& ima,
         ost::tpport_t port) :
         ost::RTPSession (ima, port)
 {
     init();
 }
 
-VideoRtpSessionSimple::VideoRtpSessionSimple (ost::InetHostAddress& ia,
+VideoRtpSession::VideoRtpSession (ost::InetHostAddress& ia,
         ost::tpport_t port) :
         ost::RTPSession (ia, port)
 {
     init();
 }
 
-VideoRtpSessionSimple::~VideoRtpSessionSimple()
+VideoRtpSession::~VideoRtpSession()
 {
     // TODO codec->removeObserver(encoderObserver);
 	// TODO free the codec list.

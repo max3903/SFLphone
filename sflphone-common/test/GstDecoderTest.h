@@ -32,7 +32,7 @@ public:
 	void testReceiveJpeg();
 
 private:
-	sfl::VideoRtpSessionSimple* session;
+	sfl::VideoRtpSession* session;
 };
 /* Register our test module */
 CPPUNIT_TEST_SUITE_NAMED_REGISTRATION(GstDecoderTest, "GstDecoderTest");

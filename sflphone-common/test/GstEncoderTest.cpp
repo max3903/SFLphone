@@ -19,7 +19,7 @@ void GstEncoderTest::setUp() {
 
 	// Create a video session
 	ost::InetHostAddress address("127.0.0.1");
-	session = new sfl::VideoRtpSessionSimple(address, (ost::tpport_t) 5055);
+	session = new sfl::VideoRtpSession(address, (ost::tpport_t) 5055);
 
 	// Set the video source for this RTP session
 	session->setVideoSource(*source);

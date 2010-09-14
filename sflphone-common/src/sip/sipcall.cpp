@@ -67,7 +67,7 @@ void SipCall::init(Call::CallType type, SIPAccount* account)
 
 	// By default, load the video settings from the account.
 	// Those could be overridden later.
-	_videoDevice = account->getPreferredVideoDevice();
+	 setVideoDevice(account->getPreferredVideoDevice());
 	_videoFormat = account->getPreferredVideoFormat();
 	_videoToken = "";
 
@@ -207,6 +207,7 @@ void SipCall::setVideoDevice(const std::string& device) {
 	// Make sure that the device name still refers to an active video device
 	if (DBusManager::instance().getVideoManager()->hasDevice(_videoDevice) == false) {
 		_videoDevice = DBusManager::instance().getVideoManager()->getDefaultDevice();
+		_warn("Video device \"%s\" cannot be found. Using \"%s\" instead", device.c_str(), _videoDevice.c_str());
 	} else {
 		_videoDevice = device;
 	}

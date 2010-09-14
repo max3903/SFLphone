@@ -905,6 +905,7 @@ bool SipVoipLink::answer (const CallId& id)
         // Terminate the call
         _debug ("SIPVoIPLink::answer: fail terminate call %s ",call->getCallId().c_str());
 
+        // Stop the audio
         if (call->getAudioRtp()) {
             call->getAudioRtp()->stop();
         }
@@ -3545,7 +3546,7 @@ void call_on_media_update (pjsip_inv_session *inv, pj_status_t status)
 
     // Start the RTP with the codec
     try {
-        _info ("Starting RTP session ...");
+        _info ("Starting audio RTP session ...");
         call->setAudioStart (true);
         call->getAudioRtp()->start (rtpCodec);
     } catch (sfl::AudioRtpFactoryException& rtpException) {

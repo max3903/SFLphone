@@ -48,21 +48,21 @@ namespace sfl
  * Implementers will want to be notified when video frames get decoded. Therefore, a VideoFrameDecodedObserver
  * can be registered (via the hidden decoder delegate) on the session object.
  */
-class VideoRtpSessionSimple: public ost::RTPSession, public AbstractObservable<Buffer<uint8_t>&, VideoFrameDecodedObserver>
+class VideoRtpSession: public ost::RTPSession, public AbstractObservable<Buffer<uint8_t>&, VideoFrameDecodedObserver>
 {
     public:
         /**
          * @param mutiCastAddress Local multicast network address
          * @param port Local transport port (where incoming packets are expected)
          */
-        VideoRtpSessionSimple (ost::InetMcastAddress& multiCastAddress,
+        VideoRtpSession (ost::InetMcastAddress& multiCastAddress,
                                ost::tpport_t port);
 
         /**
          * @param unicastAddress Local unicast network address
          * @param port Local transport port (where incoming packets are expected)
          */
-        VideoRtpSessionSimple (ost::InetHostAddress& unicastAddress,
+        VideoRtpSession (ost::InetHostAddress& unicastAddress,
                                ost::tpport_t port);
 
         /**
@@ -108,7 +108,7 @@ class VideoRtpSessionSimple: public ost::RTPSession, public AbstractObservable<B
          */
         void sendPayloaded(const VideoFrame* frame);
 
-        ~VideoRtpSessionSimple();
+        ~VideoRtpSession();
 
         static const int SCHEDULING_TIMEOUT = 10000;
 
@@ -124,7 +124,7 @@ class VideoRtpSessionSimple: public ost::RTPSession, public AbstractObservable<B
         /**
          * @param pt The payload type identifying the codec to use.
          * @precondition A video codec instance must exists for the given payload type and have been added via the
-         * VideoRtpSessionSimple#addSessionCodec() method
+         * VideoRtpSession#addSessionCodec() method
          */
         void setActiveCodec(ost::PayloadType pt);
 
@@ -140,7 +140,7 @@ class VideoRtpSessionSimple: public ost::RTPSession, public AbstractObservable<B
         class EncoderObserver: public VideoFrameEncodedObserver
         {
             public:
-                EncoderObserver (VideoRtpSessionSimple* session) :
+                EncoderObserver (VideoRtpSession* session) :
                         parent (session) {
                 }
 
@@ -148,14 +148,14 @@ class VideoRtpSessionSimple: public ost::RTPSession, public AbstractObservable<B
             	 * @Override
             	 */
                 void onNewFrameEncoded (std::pair<uint32, Buffer<uint8> >& data) {
-                    _debug ("Sending NAL unit of size %d over RTP", (data.second).getSize());
+                    //_debug ("Sending NAL unit of size %d over RTP", (data.second).getSize());
                     parent->sendImmediate (data.first /* timestamp */,
                                            (data.second).getBuffer() /* payload */,
                                            (data.second).getSize() /* payload size */);
                 }
 
             private:
-                VideoRtpSessionSimple* parent;
+                VideoRtpSession* parent;
         };
         EncoderObserver* encoderObserver;
 
@@ -166,7 +166,7 @@ class VideoRtpSessionSimple: public ost::RTPSession, public AbstractObservable<B
         class DecoderObserver : public VideoFrameDecodedObserver
         {
 			public:
-        	DecoderObserver (VideoRtpSessionSimple* session) :
+        	DecoderObserver (VideoRtpSession* session) :
                     parent (session) {}
 
         	/**
@@ -177,7 +177,7 @@ class VideoRtpSessionSimple: public ost::RTPSession, public AbstractObservable<B
         	}
 
 			private:
-            VideoRtpSessionSimple* parent;
+            VideoRtpSession* parent;
         };
         DecoderObserver* decoderObserver;
 

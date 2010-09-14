@@ -20,7 +20,7 @@ void H264DecoderTest::testReceive()
 	std::cout << "Trying to decode frames ... " << std::endl;
 
 	ost::InetHostAddress address("0.0.0.0");
-	sfl::VideoRtpSessionSimple* session = new sfl::VideoRtpSessionSimple(address, (ost::tpport_t) 5000);
+	sfl::VideoRtpSession* session = new sfl::VideoRtpSession(address, (ost::tpport_t) 5000);
 
 	// Configure the session to have the H264 codec available.
 	std::cout << "Creating new codec ... " << std::endl;
