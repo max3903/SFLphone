@@ -133,11 +133,23 @@ sfl_video_session_get_property (GObject *object, guint property_id,
 }
 
 static void
+sfl_video_session_finalize (GObject *object)
+{
+  SFLVideoSession* self = SFL_VIDEO_SESSION(object);
+  SFLVideoSessionPrivate* priv = GET_PRIVATE(self);
+
+  g_free(priv->shm);
+
+  DEBUG("SFLVideoSession widget finalized.");
+}
+
+static void
 sfl_video_session_class_init (SFLVideoSessionClass *class)
 {
   GObjectClass* obj_class = G_OBJECT_CLASS (class);
   obj_class->get_property = sfl_video_session_get_property;
   obj_class->set_property = sfl_video_session_set_property;
+  obj_class->finalize = sfl_video_session_finalize;
 
   GtkWidgetClass* widget_class = GTK_WIDGET_CLASS (class);
 

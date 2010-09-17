@@ -703,6 +703,8 @@ connect_to_video_manager (DBusGConnection * connection)
   dbus_g_proxy_add_signal (videoProxy, "onNewRemoteVideoStream", G_TYPE_STRING, G_TYPE_STRING,
       G_TYPE_INVALID);
 
+  dbus_g_proxy_add_signal (videoProxy, "onRemoteVideoStreamStopped", G_TYPE_STRING, G_TYPE_STRING,
+      G_TYPE_INVALID);
 
   return videoProxy;
 }

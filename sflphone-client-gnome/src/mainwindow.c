@@ -223,6 +223,28 @@ on_new_remote_video_stream_cb (DBusGProxy *proxy UNUSED, const gchar* callID,
   gtk_widget_show_all (GTK_WIDGET(dock));
 }
 
+void on_remote_video_stream_stopped_cb (DBusGProxy *proxy UNUSED, const gchar* callID,
+    const gchar* shm, void * data)
+{
+  DEBUG("The remote video stream has stopped.");
+  GtkWidget* dock = (GtkWidget*) data;
+  GdlDockItem* item = gdl_dock_get_item_by_name(GDL_DOCK(dock), callID);
+  if (item) {
+    // Remove the SFLVideoSession widget from the dock item
+    //gtk_container_foreach (GTK_CONTAINER(item), (GtkCallback) gtk_widget_destroy, NULL);
+
+    // Destroy and remove the dock item from the dock
+    gtk_widget_destroy(GTK_WIDGET(item));
+  } else {
+    WARN("Cannot find item with name \"%s\" in gdl dock.", callID);
+  }
+
+  // Resize the window to better fit now that the dock item is gone.
+  GtkRequisition req;
+  gtk_widget_size_request (GTK_WIDGET(window), &req);
+  gtk_window_resize (GTK_WINDOW(window), req.width + 10, req.height);
+}
+
 void
 create_main_window ()
 {
@@ -354,6 +376,11 @@ create_main_window ()
   // gets created only upon video calls creation
   dbus_g_proxy_connect_signal (dbus_get_video_proxy (),
       "onNewRemoteVideoStream", G_CALLBACK(on_new_remote_video_stream_cb),
+      dock, NULL);
+
+  // Signal handler for the onRemoteVideoStreamStopped
+  dbus_g_proxy_connect_signal (dbus_get_video_proxy (),
+      "onRemoteVideoStreamStopped", G_CALLBACK(on_remote_video_stream_stopped_cb),
       dock, NULL);
 
   // Pack the tree hpanned into the vbox

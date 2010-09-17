@@ -58,18 +58,26 @@ GType
 sfl_video_cairo_shm_get_type (void);
 
 /**
- * @return A new video cairo widget, unbound to any source.
- * @param The shared memory segment to read data from.
- */
-SFLVideoCairoShm*
-sfl_video_cairo_shm_new (const gchar* shm);
-
-/**
  * Start reading and displaying frames from the shared memory segment.
  * @return < 0 on failure, >= 0 otherwise.
  */
 int
 sfl_video_cairo_shm_start (SFLVideoCairoShm* self);
+
+/**
+ * Start reading and displaying frames from the shared memory segment.
+ * @return < 0 on failure, >= 0 otherwise.
+ * @postcondition The allocated structures will be freed and will only be re-established through #sfl_video_cairo_shm_start.
+ */
+int
+sfl_video_cairo_shm_stop (SFLVideoCairoShm* self);
+
+/**
+ * @return A new video cairo widget, unbound to any source.
+ * @param The shared memory segment to read data from.
+ */
+SFLVideoCairoShm*
+sfl_video_cairo_shm_new (const gchar* shm);
 
 G_END_DECLS
 

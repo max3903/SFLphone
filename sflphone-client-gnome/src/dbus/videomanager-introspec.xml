@@ -176,6 +176,19 @@
 			   The path to the share memory region for accessing the remote video stream.
 			   </tp:docstring>
 		   </arg>
-	   </signal> 							  
+	   </signal> 	
+	   
+	   <signal name="onRemoteVideoStreamStopped" tp:name-for-bindings="onRemoteVideoStreamStopped">
+	   	   <arg type="s" name="callId">
+			   <tp:docstring>
+			   An identifier for the call in which this video stream is part of.
+			   </tp:docstring>
+		   </arg>
+		   <arg type="s" name="shm">
+			   <tp:docstring>
+			   The path to the share memory region for accessing the remote video stream.
+			   </tp:docstring>
+		   </arg>
+	   </signal>						  
   </interface>
 </node>

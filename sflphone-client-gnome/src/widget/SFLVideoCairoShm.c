@@ -233,13 +233,13 @@ static void
 sfl_video_cairo_shm_finalize (GObject *object)
 {
   SFLVideoCairoShm *self = SFL_VIDEO_CAIRO_SHM(object);
-  SFLVideoCairoShmPrivate *priv = GET_PRIVATE(self);
 
-  free (priv->image_data);
-  cairo_surface_destroy (priv->surface);
-  g_free (priv->shm);
+  sfl_video_cairo_shm_stop(self);
 
   G_OBJECT_CLASS (sfl_video_cairo_shm_parent_class)->finalize (object);
+
+  DEBUG("SFLVideoCairoShm widget finalized.");
+
 }
 
 static gboolean
@@ -392,6 +392,40 @@ sfl_video_cairo_shm_start (SFLVideoCairoShm *self)
   DEBUG("Playing signal emitted");
 
   return 0;
+}
+
+int
+sfl_video_cairo_shm_stop(SFLVideoCairoShm *self)
+{
+  SFLVideoCairoShmPrivate* priv = GET_PRIVATE (self);
+
+  // Stop the capturing thread
+  if (sflphone_video_stop_async (priv->endpt) < 0)
+    {
+      ERROR("Failed to stop video %s:%d", __FILE__, __LINE__);
+      return -1;
+    }
+
+  // Close the segment
+  if (sflphone_video_close < 0) {
+    ERROR("Failed to close shared memory segment %s:%d", __FILE__, __LINE__);
+  }
+
+  // Unregister as an observer
+  sflphone_video_remove_observer(priv->endpt, &on_new_frame_cb);
+
+  // Delete the endpoint
+  if (sflphone_video_free(priv->endpt) < 0) {
+    ERROR("Failed to dispose a video endpoint properly %s:%d", __FILE__, __LINE__);
+  }
+  free (priv->endpt);
+
+  // Free the image surface
+  cairo_surface_destroy (priv->surface);
+  free (priv->image_data);
+
+  // Free the shm structure
+  free (priv->shm);
 }
 
 SFLVideoCairoShm*
