@@ -362,7 +362,7 @@ create_main_window ()
 
   // Pack the vbox_left_pane into the hpanned
   gtk_box_pack_start (GTK_BOX(hpaned), vbox_left_pane, TRUE, TRUE, 0);
-  gtk_widget_set_size_request (vbox_left_pane, 320, 480);
+  gtk_widget_set_size_request (vbox_left_pane, 320, 480); // FIXME Hardcoded.
 
   // Pack the video session into the right pane.
   GtkWidget* dock = gdl_dock_new ();

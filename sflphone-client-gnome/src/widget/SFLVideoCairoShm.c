@@ -142,7 +142,9 @@ cairo_dump_buffer (guchar* pucPixelBuffer, gint width, gint height,
 }
 
 static void
-premultiply_alpha(SFLVideoCairoShm* self, uint8_t* destination, uint8_t* source) {
+premultiply_alpha (SFLVideoCairoShm* self, uint8_t* destination,
+    uint8_t* source)
+{
   SFLVideoCairoShmPrivate* priv = GET_PRIVATE(self);
 
   unsigned short alpha;
@@ -184,9 +186,9 @@ on_new_frame_cb (uint8_t* frame, void* widget)
       return;
     }
 
-//  if (fourcc_to_video_cairo(priv->fourcc) == CAIRO_FORMAT_ARGB32) {
-//    premultiply_alpha(self, priv->image_data, frame);
-//  }
+  //  if (fourcc_to_video_cairo(priv->fourcc) == CAIRO_FORMAT_ARGB32) {
+  //    premultiply_alpha(self, priv->image_data, frame);
+  //  }
 
   // Copy the frame into the image surface
   memcpy (priv->image_data, frame, priv->width * priv->height * 4); // FIXME. Hardcoded value 4
@@ -234,12 +236,48 @@ sfl_video_cairo_shm_finalize (GObject *object)
 {
   SFLVideoCairoShm *self = SFL_VIDEO_CAIRO_SHM(object);
 
-  sfl_video_cairo_shm_stop(self);
+  sfl_video_cairo_shm_stop (self);
 
   G_OBJECT_CLASS (sfl_video_cairo_shm_parent_class)->finalize (object);
 
   DEBUG("SFLVideoCairoShm widget finalized.");
 
+}
+
+/**
+ * Scale a cairo surface to a new one.
+ */
+static cairo_surface_t *
+scale_surface (cairo_surface_t* old_surface, resolution_t old_resolution,
+    resolution_t new_resolution)
+{
+  // Create a new surface
+  cairo_surface_t* scaled_surface = cairo_surface_create_similar (old_surface,
+      CAIRO_CONTENT_COLOR_ALPHA, new_resolution.width, new_resolution.height);
+
+  // Create the cairo context for that surface
+  cairo_t *cr = cairo_create (scaled_surface);
+
+  // Scale the surface
+  cairo_scale (cr, (double) new_resolution.width / old_resolution.width,
+      (double) new_resolution.height / old_resolution.height);
+
+  cairo_set_source_surface (cr, old_surface, 0, 0);
+
+  /* To avoid getting the edge pixels blended with 0 alpha, which would
+   * occur with the default EXTEND_NONE. Use EXTEND_PAD for 1.2 or newer (2)
+   */
+  cairo_pattern_set_extend (cairo_get_source (cr), CAIRO_EXTEND_REFLECT);
+
+  /* Replace the destination with the source instead of overlaying */
+  cairo_set_operator (cr, CAIRO_OPERATOR_SOURCE);
+
+  /* Do the actual drawing */
+  cairo_paint (cr);
+
+  cairo_destroy (cr);
+
+  return scaled_surface;
 }
 
 static gboolean
@@ -259,13 +297,33 @@ sfl_video_cairo_shm_expose (GtkWidget* cairo_video, GdkEventExpose* event)
   cairo_set_source_rgb (cr, 0.0, 0.0, 0.0);
   cairo_fill (cr);
 
+  // Scale the image, preserving the aspect ratio
+  resolution_t current_resolution;
+  current_resolution.width = priv->width;
+  current_resolution.height = priv->height;
+
+  double new_width = ((double) (current_resolution.width * allocation.height))
+      / ((double) current_resolution.height);
+
+  resolution_t new_resolution;
+  new_resolution.width = (int) new_width;
+  new_resolution.height = allocation.height;
+
+  cairo_surface_t * scaled_surface = scale_surface (priv->surface,
+      current_resolution, new_resolution);
+
   // Paint in the middle
-  cairo_set_source_surface (cr, priv->surface, (allocation.width - priv->width)
-      / 2, (allocation.height - priv->height) / 2);
+  cairo_set_source_surface (cr, scaled_surface, (allocation.width
+      - new_resolution.width) / 2, (allocation.height - new_resolution.height)
+      / 2);
+
   cairo_paint (cr);
 
   // Get rid of the cairo context
   cairo_destroy (cr);
+
+  // Get rid of the scaled surface
+  cairo_surface_destroy (scaled_surface);
 
   return FALSE;
 }
@@ -395,7 +453,7 @@ sfl_video_cairo_shm_start (SFLVideoCairoShm *self)
 }
 
 int
-sfl_video_cairo_shm_stop(SFLVideoCairoShm *self)
+sfl_video_cairo_shm_stop (SFLVideoCairoShm *self)
 {
   SFLVideoCairoShmPrivate* priv = GET_PRIVATE (self);
 
@@ -407,17 +465,19 @@ sfl_video_cairo_shm_stop(SFLVideoCairoShm *self)
     }
 
   // Close the segment
-  if (sflphone_video_close < 0) {
-    ERROR("Failed to close shared memory segment %s:%d", __FILE__, __LINE__);
-  }
+  if (sflphone_video_close < 0)
+    {
+      ERROR("Failed to close shared memory segment %s:%d", __FILE__, __LINE__);
+    }
 
   // Unregister as an observer
-  sflphone_video_remove_observer(priv->endpt, &on_new_frame_cb);
+  sflphone_video_remove_observer (priv->endpt, &on_new_frame_cb);
 
   // Delete the endpoint
-  if (sflphone_video_free(priv->endpt) < 0) {
-    ERROR("Failed to dispose a video endpoint properly %s:%d", __FILE__, __LINE__);
-  }
+  if (sflphone_video_free (priv->endpt) < 0)
+    {
+      ERROR("Failed to dispose a video endpoint properly %s:%d", __FILE__, __LINE__);
+    }
   free (priv->endpt);
 
   // Free the image surface

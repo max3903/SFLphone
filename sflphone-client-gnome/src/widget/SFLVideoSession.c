@@ -221,15 +221,11 @@ sfl_video_session_init (SFLVideoSession* self)
   //                            gtk_label_new ("got problems"));
 
   // Align the notebook
-  GtkWidget* align_notebook = gtk_alignment_new (0.5, 0.0, 1.0, 1.0);
-  gtk_container_add (GTK_CONTAINER(align_notebook), GTK_WIDGET(priv->notebook));
-  gtk_box_pack_start (GTK_BOX(self), align_notebook, FALSE, TRUE, 0);
+  gtk_box_pack_start (GTK_BOX(self), GTK_WIDGET(priv->notebook), TRUE, TRUE, 0);
 
   // Create the toolbar
   priv->controls = sfl_video_session_control_new ();
-  GtkWidget* align_toolbar = gtk_alignment_new (0.5, 0.0, 0.5, 0.0);
-  gtk_container_add (GTK_CONTAINER(align_toolbar), GTK_WIDGET(priv->controls));
-  gtk_box_pack_start (GTK_BOX(self), align_toolbar, FALSE, TRUE, 0);
+  gtk_box_pack_start (GTK_BOX(self), GTK_WIDGET(priv->controls), FALSE, TRUE, 0);
 
   // Start the spinner
   gtk_spinner_start (GTK_SPINNER(priv->spinner));
