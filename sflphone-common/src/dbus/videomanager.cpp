@@ -127,7 +127,7 @@ std::vector<std::string> VideoManager::getFrameRates(const std::string& device,
 	if (it != videoEndpoints.end()) {
 		_debug ( (std::string ("Device ") + std::string ("is already mapped to some endpoint.")).c_str());
 
-		sfl::VideoEndpoint* runningEndpoint = ((*it).second).getVideoEndpoint();
+		sfl::VideoEndpoint* runningEndpoint = ((*it).second)->getVideoEndpoint();
 
 		// Paranoid check. Should always be the case.
 		if (!runningEndpoint->isCapturing()) {
@@ -180,7 +180,7 @@ std::vector<std::string> VideoManager::getFrameRates(const std::string& device,
 	}
 
 	// Record (Device Name : Endpoint)
-	videoEndpoints.insert(DeviceNameToEndpointRecord(device, EndpointRecord(
+	videoEndpoints.insert(DeviceNameToEndpointRecord(device, new EndpointRecord(
 			endpoint, observer)));
 
 	// Send the path to the SHM as well as token to get access to this resource.
@@ -202,7 +202,7 @@ void VideoManager::stopLocalCapture(const std::string& device,
 
 	if (it != videoEndpoints.end()) {
 		try {
-			((*it).second)->stopCapture(token);
+			((*it).second)->getVideoEndpoint()->stopCapture(token);
 		} catch (sfl::VideoDeviceIOException e) {
 			_error ("Throwing VideoDeviceIOException over DBus because : %s", e.what());
 			throw DBus::VideoIOException(e);
@@ -211,9 +211,8 @@ void VideoManager::stopLocalCapture(const std::string& device,
 			throw DBus::InvalidTokenException(e1);
 		}
 
-		if (((*it).second)->isDisposable()) {
-			delete ((*it).second).getVideoEndpoint();
-			delete ((*it).second).getVideoEndpointObserver();
+		if (((*it).second)->getVideoEndpoint()->isDisposable()) {
+			delete ((*it).second);
 			videoEndpoints.erase(it);
 			_debug ("Endpoint was disposable. Removed.");
 		}
@@ -231,7 +230,7 @@ std::string VideoManager::getEventFdPasserNamespace(const std::string& shm)
 
 	std::string passerName;
 	try {
-		passerName = ((*it).second)->getFdPasserName(shm);
+		passerName = ((*it).second)->getVideoEndpoint()->getFdPasserName(shm);
 	} catch (sfl::NoSuchShmException e) {
 		throw DBus::NoSuchShmException(e);
 	}
@@ -251,7 +250,7 @@ DbusVideoShmInfo VideoManager::getShmInfo(const std::string& shm)
 	_debug("Getting shm info ...");
 	sfl::VideoFormat format;
 	try {
-		format = ((*it).second)->getShmVideoFormat(shm);
+		format = ((*it).second)->getVideoEndpoint()->getShmVideoFormat(shm);
 	} catch (sfl::NoSuchShmException e) {
 		throw DBus::NoSuchShmException(e);
 	}
@@ -297,9 +296,9 @@ void VideoManager::stageRtpSession(SipCall* call) throw(sfl::UnknownVideoDeviceE
 
 		// Record (Device Name : Endpoint)
 		videoEndpoints.insert(DeviceNameToEndpointRecord(device,
-				EndpointRecord(endpoint, observer)));
+				new EndpointRecord(endpoint, observer)));
 	} else {
-		endpoint = ((*it).second).getVideoEndpoint();
+		endpoint = ((*it).second)->getVideoEndpoint();
 	}
 
 	sfl::InetSocketAddress address(call->getLocalIp(),
@@ -326,7 +325,7 @@ void VideoManager::startRtpSession(SipCall* call, std::vector<
 			call->getLocalSDP()->getRemoteIp(),
 			call->getLocalSDP()->getRemoteVideoPort());
 
-	sfl::VideoEndpoint* endpoint = ((*it).second).getVideoEndpoint();
+	sfl::VideoEndpoint* endpoint = ((*it).second)->getVideoEndpoint();
 	endpoint->addDestination(localAddress, destinationAddress);
 
 	// Configure the RTP session with the given codec list (at least of size 1) and start sending data.
@@ -348,11 +347,18 @@ void VideoManager::stopRtpSession(SipCall* call) {
 	}
 
 	// Stop local capture, if needed
-	sfl::VideoEndpoint* endpoint = ((*it).second).getVideoEndpoint();
+	sfl::VideoEndpoint* endpoint = ((*it).second)->getVideoEndpoint();
 	endpoint->stopCapture(call->getVideoToken());
 
 	// Stop and remove RTP session
 	endpoint->removeRtpSession(sfl::InetSocketAddress(call->getLocalIp(), call->getLocalVideoPort()));
+
+	// Remove endpoint, if needed
+	if (endpoint->isDisposable()) {
+		delete ((*it).second);
+		videoEndpoints.erase(it);
+		_debug ("Endpoint was disposable. Removed.");
+	}
 }
 
 bool VideoManager::hasDevice(const std::string& name) const
@@ -383,5 +389,5 @@ sfl::VideoEndpoint* VideoManager::getVideoEndpoint(const std::string& device)
 				+ device + " in getVideoEndpoint");
 	}
 
-	return ((*it).second).getVideoEndpoint();
+	return ((*it).second)->getVideoEndpoint();
 }

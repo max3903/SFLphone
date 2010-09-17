@@ -258,6 +258,12 @@ class VideoManager: public org::sflphone::SFLphone::VideoManager_adaptor,
         	explicit EndpointRecord(sfl::VideoEndpoint* endpoint, sfl::VideoEndpointObserver* observer) :
         	endpoint(endpoint), observer(observer) {}
 
+        	~EndpointRecord() {
+        		endpoint->removeObserver(observer);
+        		delete observer;
+        		delete endpoint;
+        	}
+
         	sfl::VideoEndpoint* getVideoEndpoint() const { return endpoint; }
 
         	sfl::VideoEndpointObserver* getVideoEndpointObserver() const { return observer; }
@@ -265,6 +271,7 @@ class VideoManager: public org::sflphone::SFLphone::VideoManager_adaptor,
         	sfl::VideoEndpoint* operator ->() const {
         		return endpoint;
         	}
+
         private:
         	sfl::VideoEndpoint* endpoint;
         	sfl::VideoEndpointObserver* observer;
@@ -277,16 +284,16 @@ class VideoManager: public org::sflphone::SFLphone::VideoManager_adaptor,
         {
           explicit HasSameShmName(const std::string& name) : shm(name) {}
 
-          bool operator() (const std::pair<std::string, EndpointRecord>& endpoint) const
-          { return ((endpoint.second).getVideoEndpoint())->hasShm(shm); }
+          bool operator() (const std::pair<std::string, EndpointRecord*>& endpoint) const
+          { return ((endpoint.second)->getVideoEndpoint())->hasShm(shm); }
 
           const std::string& shm;
         };
 
         // Key : device name. Value : Corresponding VideoEndpoint
-        std::map<std::string, EndpointRecord> videoEndpoints;
-        typedef std::map<std::string, EndpointRecord>::iterator DeviceNameToEndpointRecordIterator;
-        typedef std::pair<std::string, EndpointRecord> DeviceNameToEndpointRecord;
+        std::map<std::string, EndpointRecord*> videoEndpoints;
+        typedef std::map<std::string, EndpointRecord*>::iterator DeviceNameToEndpointRecordIterator;
+        typedef std::pair<std::string, EndpointRecord*> DeviceNameToEndpointRecord;
 
         // Key : device id. Value : Corresponding VideoDevice
         std::map<std::string, sfl::VideoDevicePtr> videoDevices;

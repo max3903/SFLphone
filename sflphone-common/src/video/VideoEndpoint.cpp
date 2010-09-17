@@ -200,7 +200,8 @@ bool VideoEndpoint::isCapturing() {
 }
 
 bool VideoEndpoint::isDisposable() {
-	return !capturing;
+	// Disposable if not capturing nor has active RTP sessions.
+	return (!capturing && socketAddressToRtpSessionRecord.size() == 0);
 }
 
 void VideoEndpoint::sendInAllRtpSession(const VideoFrame* frame) {
@@ -247,7 +248,6 @@ void VideoEndpoint::removeRtpSession(const sfl::InetSocketAddress& address) {
 }
 
 void VideoEndpoint::createRtpSession(const sfl::InetSocketAddress& address) {
-
 	SocketAddressToRtpSessionRecordIterator socketIt =
 			socketAddressToRtpSessionRecord.find(address);
 	if (socketIt != socketAddressToRtpSessionRecord.end()) {
