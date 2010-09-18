@@ -44,6 +44,17 @@ struct _SFLVideoSessionControlPrivate
   GtkToolItem* fullscreen;
 };
 
+/**
+ * Signals
+ */
+enum
+{
+  SNAPSHOT_CLICKED, LAST_SIGNAL
+};
+
+static guint sfl_video_session_control_signals[LAST_SIGNAL] =
+  { 0 };
+
 static void
 sfl_video_session_control_dispose (GObject *object)
 {
@@ -68,6 +79,12 @@ sfl_video_session_control_class_init (SFLVideoSessionControlClass *klass)
 
   object_class->dispose = sfl_video_session_control_dispose;
   object_class->finalize = sfl_video_session_control_finalize;
+
+  // Install signals
+  sfl_video_session_control_signals[SNAPSHOT_CLICKED] = g_signal_new ("snapshot-clicked",
+      G_TYPE_FROM_CLASS(klass), (GSignalFlags) (G_SIGNAL_RUN_FIRST
+          | G_SIGNAL_ACTION), 0, NULL, NULL, g_cclosure_marshal_VOID__VOID,
+      G_TYPE_NONE, 0);
 }
 
 static void
@@ -87,13 +104,21 @@ fullscreen_toggled_cb (GtkToggleToolButton *toolbutton, gpointer user_data)
 }
 
 static void
+screenshot_clicked_cb (GtkToolButton* toolbutton, gpointer user_data)
+{
+  SFLVideoSessionControl* self = (SFLVideoSessionControl*) user_data;
+
+  g_signal_emit (self, sfl_video_session_control_signals[SNAPSHOT_CLICKED], 0);
+}
+
+static void
 sfl_video_session_control_init (SFLVideoSessionControl* self)
 {
   SFLVideoSessionControlPrivate* priv = GET_PRIVATE(self);
 
   priv->pause = gtk_toggle_tool_button_new_from_stock (GTK_STOCK_MEDIA_PAUSE);
   priv->fullscreen = gtk_toggle_tool_button_new_from_stock (GTK_STOCK_FULLSCREEN);
-  priv->screenshot = gtk_toggle_tool_button_new ();
+  priv->screenshot =  gtk_tool_button_new (NULL, "snapshot");
 
   gtk_tool_button_set_icon_name(GTK_TOOL_BUTTON(priv->screenshot), "applets-screenshooter");
 
@@ -104,6 +129,10 @@ sfl_video_session_control_init (SFLVideoSessionControl* self)
   // Install callback for the fullscreen button
   g_signal_connect(G_OBJECT(priv->fullscreen), "toggled",
       G_CALLBACK(fullscreen_toggled_cb), NULL);
+
+  // Install callback for the snapshot button
+  g_signal_connect(G_OBJECT(priv->screenshot), "clicked",
+      G_CALLBACK(screenshot_clicked_cb), self);
 
   gtk_toolbar_set_style (GTK_TOOLBAR(self), GTK_TOOLBAR_ICONS);
 }

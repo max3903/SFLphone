@@ -72,6 +72,33 @@ playing_cb(SFLVideoCairoShm* widget, gpointer* self) {
   gtk_notebook_set_current_page(GTK_NOTEBOOK(priv->notebook), index);
 }
 
+static char*
+get_timestamp ()
+{
+  time_t rawtime;
+  time (&rawtime);
+
+  struct tm* timeinfo = localtime (&rawtime);
+
+  static char output[80];
+  strftime (output, 80, "%d-%m-%Y-%H-%M-%S", timeinfo);
+
+  return output;
+}
+
+static void
+snapshot_clicked_cb(SFLVideoCairoShm* widget, gpointer* self) {
+  SFLVideoSessionPrivate* priv = GET_PRIVATE(self);
+
+  DEBUG("Snapshot clicked.");
+
+  gchar* filename =
+        g_strconcat ("sflphone-", get_timestamp (), ".png", NULL);
+  sfl_video_cairo_shm_take_snapshot(priv->remote_video, filename);
+
+  g_free (filename);
+}
+
 static void
 append_video_shm_page(SFLVideoSession* self)
 {
@@ -84,6 +111,10 @@ append_video_shm_page(SFLVideoSession* self)
   // to the appropriate page automatically
   g_signal_connect(G_OBJECT(priv->remote_video), "playing", G_CALLBACK(playing_cb), self);
   DEBUG("playing handler connected");
+
+  // Connect the "snapshot-clicked" signal
+  g_signal_connect(G_OBJECT(priv->controls), "snapshot-clicked", G_CALLBACK(snapshot_clicked_cb), self);
+  DEBUG("snapshot-clicked handler connected");
 
   // Append the page to the notebook
   gtk_widget_show (GTK_WIDGET(priv->remote_video));

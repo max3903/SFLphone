@@ -48,6 +48,7 @@ struct _SFLVideoCairoShmPrivate
 {
   cairo_surface_t* surface;
   unsigned char* image_data;
+  GMutex* image_data_mutex;
   int image_stride;
 
   gchar* shm;
@@ -96,49 +97,43 @@ fourcc_to_video_cairo (uint32_t fourcc)
   return -1;
 }
 
-static char*
-get_timestamp ()
+int
+sfl_video_cairo_shm_take_snapshot (SFLVideoCairoShm* self, gchar* filename)
 {
-  time_t rawtime;
-  time (&rawtime);
+  SFLVideoCairoShmPrivate* priv = GET_PRIVATE(self);
 
-  struct tm* timeinfo = localtime (&rawtime);
-
-  static char output[80];
-  strftime (output, 80, "%d-%m-%Y-%H-%M-%S", timeinfo);
-
-  return output;
-}
-
-static void
-cairo_dump_buffer (guchar* pucPixelBuffer, gint width, gint height,
-    cairo_format_t format)
-{
-  g_assert (pucPixelBuffer != NULL);
-  g_assert (height != 0);
+  g_assert (priv->image_data != NULL);
 
   // Create surface
+  cairo_format_t format = fourcc_to_video_cairo (priv->fourcc);
+  if (format == -1)
+    {
+      ERROR("A valid cairo format cannot be found for FOURCC value %d", priv->fourcc);
+      return -1;
+    }
+  priv->image_stride = cairo_format_stride_for_width (format, priv->width);
+  DEBUG("Row stride : %d", priv->image_stride);
+
+  // Create the cairo surface for data
+  g_mutex_lock(priv->image_data_mutex);
+
   cairo_surface_t* surface = cairo_image_surface_create_for_data (
-      pucPixelBuffer, format, width, height, cairo_format_stride_for_width (
-          format, width));
+      priv->image_data, format, priv->width, priv->height, priv->image_stride);
 
   cairo_status_t status = cairo_surface_status (surface);
   if (status != CAIRO_STATUS_SUCCESS)
     {
       ERROR("While creating cairo surface for dumping image to png : (%s)", cairo_status_to_string (status));
+      g_mutex_unlock(priv->image_data_mutex);
       return;
     }
 
-  // Create file name based on current date
-  gchar* filename =
-      g_strconcat ("buffer-dump-", get_timestamp (), ".png", NULL);
-
-  // Write image file
-  DEBUG("Writing filename : %s", filename);
   cairo_surface_write_to_png (surface, filename);
 
-  g_free (filename);
   cairo_surface_destroy (surface);
+
+  g_mutex_unlock(priv->image_data_mutex);
+
 }
 
 static void
@@ -191,7 +186,9 @@ on_new_frame_cb (uint8_t* frame, void* widget)
   //  }
 
   // Copy the frame into the image surface
+  g_mutex_lock(priv->image_data_mutex);
   memcpy (priv->image_data, frame, priv->width * priv->height * 4); // FIXME. Hardcoded value 4
+  g_mutex_unlock(priv->image_data_mutex);
 
   gtk_widget_queue_draw (GTK_WIDGET(self));
 }
@@ -234,9 +231,12 @@ sfl_video_cairo_shm_get_property (GObject *object, guint property_id,
 static void
 sfl_video_cairo_shm_finalize (GObject *object)
 {
-  SFLVideoCairoShm *self = SFL_VIDEO_CAIRO_SHM(object);
+  SFLVideoCairoShm* self = SFL_VIDEO_CAIRO_SHM(object);
+  SFLVideoCairoShmPrivate* priv = GET_PRIVATE(self);
 
   sfl_video_cairo_shm_stop (self);
+
+  g_mutex_free(priv->image_data_mutex);
 
   G_OBJECT_CLASS (sfl_video_cairo_shm_parent_class)->finalize (object);
 
@@ -379,6 +379,7 @@ sfl_video_cairo_shm_init (SFLVideoCairoShm *self)
 
   // Create a new video endpoint for reading frames in the SHM
   priv->endpt = sflphone_video_init ();
+  priv->image_data_mutex = g_mutex_new();
 }
 
 int

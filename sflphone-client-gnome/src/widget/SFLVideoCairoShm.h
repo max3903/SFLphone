@@ -73,6 +73,13 @@ int
 sfl_video_cairo_shm_stop (SFLVideoCairoShm* self);
 
 /**
+ * Save the current image buffer to a PNG file.
+ * @param filename The filename for the new image file.
+ */
+int
+sfl_video_cairo_shm_take_snapshot(SFLVideoCairoShm* self, gchar* filename);
+
+/**
  * @return A new video cairo widget, unbound to any source.
  * @param The shared memory segment to read data from.
  */
