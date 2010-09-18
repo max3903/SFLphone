@@ -3,6 +3,8 @@ include ../../globals.mak
 noinst_LTLIBRARIES = libwidget.la
 
 libwidget_la_SOURCES = \
+		cheese-flash.c \
+		cheese-flash.h \
 		PidginScrollBook.c \
 		PidginMiniDialog.c \
 		SFLMessageBar.c \

@@ -33,6 +33,8 @@
 #include "SFLVideoCairoShm.h"
 #include "SFLVideoSessionControl.h"
 
+#include "cheese-flash.h"
+
 #include "sflphone_const.h"
 
 G_DEFINE_TYPE (SFLVideoSession, sfl_video_session, GTK_TYPE_VBOX)
@@ -48,6 +50,8 @@ struct _SFLVideoSessionPrivate
 
   SFLVideoCairoShm* remote_video;
   SFLVideoSessionControl* controls;
+
+  CheeseFlash* flash;
 
   gchar* shm;
 };
@@ -92,9 +96,13 @@ snapshot_clicked_cb(SFLVideoCairoShm* widget, gpointer* self) {
 
   DEBUG("Snapshot clicked.");
 
+  // Save the current frame
   gchar* filename =
         g_strconcat ("sflphone-", get_timestamp (), ".png", NULL);
   sfl_video_cairo_shm_take_snapshot(priv->remote_video, filename);
+
+  // Animate with a flash
+  cheese_flash_fire (priv->flash);
 
   g_free (filename);
 }
@@ -253,6 +261,14 @@ sfl_video_session_init (SFLVideoSession* self)
 
   // Align the notebook
   gtk_box_pack_start (GTK_BOX(self), GTK_WIDGET(priv->notebook), TRUE, TRUE, 0);
+
+  // Create a flash widget for snapshot events
+  priv->flash = cheese_flash_new(NULL);
+
+  GtkWindow* window = gtk_widget_get_toplevel (GTK_WIDGET(self));
+  if (window != NULL) {
+    g_object_set (G_OBJECT (priv->flash), "parent", GTK_WIDGET (window), NULL);
+  }
 
   // Create the toolbar
   priv->controls = sfl_video_session_control_new ();

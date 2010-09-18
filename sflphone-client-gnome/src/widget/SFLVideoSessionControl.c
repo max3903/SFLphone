@@ -116,14 +116,14 @@ sfl_video_session_control_init (SFLVideoSessionControl* self)
 {
   SFLVideoSessionControlPrivate* priv = GET_PRIVATE(self);
 
-  priv->pause = gtk_toggle_tool_button_new_from_stock (GTK_STOCK_MEDIA_PAUSE);
+  //priv->pause = gtk_toggle_tool_button_new_from_stock (GTK_STOCK_MEDIA_PAUSE);
   priv->fullscreen = gtk_toggle_tool_button_new_from_stock (GTK_STOCK_FULLSCREEN);
   priv->screenshot =  gtk_tool_button_new (NULL, "snapshot");
 
   gtk_tool_button_set_icon_name(GTK_TOOL_BUTTON(priv->screenshot), "applets-screenshooter");
 
   gtk_toolbar_insert (GTK_TOOLBAR(self), GTK_TOOL_ITEM(priv->screenshot), -1);
-  gtk_toolbar_insert (GTK_TOOLBAR(self), GTK_TOOL_ITEM(priv->pause), -1);
+  //gtk_toolbar_insert (GTK_TOOLBAR(self), GTK_TOOL_ITEM(priv->pause), -1);
   gtk_toolbar_insert (GTK_TOOLBAR(self), GTK_TOOL_ITEM(priv->fullscreen), -1);
 
   // Install callback for the fullscreen button
