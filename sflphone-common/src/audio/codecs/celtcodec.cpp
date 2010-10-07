@@ -59,9 +59,6 @@ class Celt: public AudioCodec
             initCelt();
         }
 
-        Celt (const Celt&);
-        Celt& operator= (const Celt&);
-
         void initCelt() {
 
             int error = 0;
@@ -145,6 +142,20 @@ class Celt: public AudioCodec
             len = celt_encode (_enc, (celt_int16*) src, (celt_int16 *) src, dst, 40);
             // returns the number of bytes writen
             return len;
+        }
+
+	/**
+         * @Override
+         */
+        std::string getDescription() const {
+            return "audio/celt 32000 (\"HD\") codec. Based on libcelt, by Jean-Marc Valin.";
+        }
+
+        /**
+         * @Override
+         */
+        Celt* clone() const {
+            return new Celt (*this);
         }
 
     private:

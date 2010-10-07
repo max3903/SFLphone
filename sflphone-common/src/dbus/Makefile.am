@@ -12,7 +12,7 @@ BUILT_SOURCES=                      \
 
 # Rule to generate the binding headers
 %-glue.h: %-introspec.xml Makefile.am
-	$(DBUSXX) $< --adaptor=$@s
+	$(DBUSXX) $< --adaptor=$@
 
 libdbus_la_SOURCES = \
     callmanager.cpp \
