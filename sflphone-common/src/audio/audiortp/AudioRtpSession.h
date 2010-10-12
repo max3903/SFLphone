@@ -41,9 +41,9 @@
 #include "global.h"
 
 #include "sip/sipcall.h"
-#include "sip/sdp.h"
+#include "sip/sdp/sdp.h"
 #include "audio/audiolayer.h"
-#include "audio/codecs/audiocodec.h"
+#include "audio/codecs/AudioCodec.h"
 #include "audio/samplerateconverter.h"
 #include "audio/audioprocessing.h"
 #include "audio/noisesuppress.h"
@@ -52,7 +52,6 @@
 
 #include <ccrtp/rtp.h>
 #include <cc++/numbers.h> // ost::Time
-
 #include <speex/speex_jitter.h>
 
 #include <fstream>
@@ -94,7 +93,7 @@ class AudioRtpSession : public ost::Thread, public ost::TimerPort
         * Constructor
         * @param sipcall The pointer on the SIP call
         */
-        AudioRtpSession (ManagerImpl * manager, SIPCall* sipcall);
+        AudioRtpSession (ManagerImpl * manager, SipCall* sipcall);
 
         ~AudioRtpSession();
 
@@ -321,13 +320,13 @@ class AudioRtpSession : public ost::Thread, public ost::TimerPort
 
     protected:
 
-        SIPCall * _ca;
+        SipCall * _ca;
 
         bool onRTPPacketRecv (ost::IncomingRTPPkt&);
 };
 
 template <typename D>
-AudioRtpSession<D>::AudioRtpSession (ManagerImpl * manager, SIPCall * sipcall) :
+AudioRtpSession<D>::AudioRtpSession (ManagerImpl * manager, SipCall * sipcall) :
         _time (new ost::Time()),
         _mainloopSemaphore (0),
         _audiocodec (NULL),
@@ -482,13 +481,13 @@ void AudioRtpSession<D>::setSessionMedia (AudioCodec* audiocodec)
 {
     _audiocodec = audiocodec;
 
-    _debug ("RTP: Init codec payload %i", _audiocodec->getPayload());
+    _debug ("RTP: Init codec payload %d", _audiocodec->getPayloadType());
 
     _codecSampleRate = _audiocodec->getClockRate();
     _codecFrameSize = _audiocodec->getFrameSize();
 
     // G722 requires timestamp to be incremented at 8 kHz
-    if (_audiocodec->getPayload() == 9)
+    if (_audiocodec->getPayloadType() == 9)
         _timestampIncrement = 160;
     else
         _timestampIncrement = _codecFrameSize;
@@ -499,15 +498,15 @@ void AudioRtpSession<D>::setSessionMedia (AudioCodec* audiocodec)
     _debug ("RTP: RTP timestamp increment: %d", _timestampIncrement);
 
     // Even if specified as a 16 kHz codec, G722 requires rtp sending rate to be 8 kHz
-    if (_audiocodec->getPayload() == 9) {
+    if (_audiocodec->getPayloadType() == 9) {
         _debug ("RTP: Setting G722 payload format");
-        static_cast<D*> (this)->setPayloadFormat (ost::DynamicPayloadFormat ( (ost::PayloadType) _audiocodec->getPayload(), _audiocodec->getClockRate()));
+        static_cast<D*> (this)->setPayloadFormat (ost::DynamicPayloadFormat ( (ost::PayloadType) _audiocodec->getPayloadType(), _audiocodec->getClockRate()));
     } else if (_audiocodec->hasDynamicPayload()) {
         _debug ("RTP: Setting dynamic payload format");
-        static_cast<D*> (this)->setPayloadFormat (ost::DynamicPayloadFormat ( (ost::PayloadType) _audiocodec->getPayload(), _audiocodec->getClockRate()));
-    } else if (!_audiocodec->hasDynamicPayload() && _audiocodec->getPayload() != 9) {
+        static_cast<D*> (this)->setPayloadFormat (ost::DynamicPayloadFormat ( (ost::PayloadType) _audiocodec->getPayloadType(), _audiocodec->getClockRate()));
+    } else if (!_audiocodec->hasDynamicPayload() && _audiocodec->getPayloadType() != 9) {
         _debug ("RTP: Setting static payload format");
-        static_cast<D*> (this)->setPayloadFormat (ost::StaticPayloadFormat ( (ost::StaticPayloadType) _audiocodec->getPayload()));
+        static_cast<D*> (this)->setPayloadFormat (ost::StaticPayloadFormat ( (ost::StaticPayloadType) _audiocodec->getPayloadType()));
     }
 
 }
@@ -523,19 +522,19 @@ void AudioRtpSession<D>::setDestinationIpAddress (void)
     _info ("RTP: Setting IP address for the RTP session");
 
     // Store remote ip in case we would need to forget current destination
-    _remote_ip = ost::InetHostAddress (_ca->getLocalSDP()->get_remote_ip().c_str());
+    _remote_ip = ost::InetHostAddress (_ca->getLocalSDP()->getRemoteIp().c_str());
 
     if (!_remote_ip) {
         _warn ("RTP: Target IP address (%s) is not correct!",
-               _ca->getLocalSDP()->get_remote_ip().data());
+               _ca->getLocalSDP()->getRemoteIp().data());
         return;
     }
 
     // Store remote port in case we would need to forget current destination
-    _remote_port = (unsigned short) _ca->getLocalSDP()->get_remote_audio_port();
+    _remote_port = (unsigned short) _ca->getLocalSDP()->getRemoteAudioPort();
 
     _info ("RTP: New remote address for session: %s:%d",
-           _ca->getLocalSDP()->get_remote_ip().data(), _remote_port);
+           _ca->getLocalSDP()->getRemoteIp().data(), _remote_port);
 
     if (! static_cast<D*> (this)->addDestination (_remote_ip, _remote_port)) {
         _warn ("RTP: Can't add new destination to session!");
@@ -602,7 +601,7 @@ void AudioRtpSession<D>::sendDtmfEvent (sfl::DtmfEvent *dtmf)
     }
 
     // get back the payload to audio
-    static_cast<D*> (this)->setPayloadFormat (ost::StaticPayloadFormat ( (ost::StaticPayloadType) _audiocodec->getPayload()));
+    static_cast<D*> (this)->setPayloadFormat (ost::StaticPayloadFormat ( (ost::StaticPayloadType) _audiocodec->getPayloadType()));
 
     // decrease length remaining to process for this event
     dtmf->length -= 160;
@@ -676,7 +675,7 @@ int AudioRtpSession<D>::processDataEncode (void)
         if (_manager->audioPreference.getNoiseReduce())
             _audioProcess->processAudio (_micDataConverted, nbSample*sizeof (SFLDataFormat));
 
-        compSize = _audiocodec->codecEncode (_micDataEncoded, _micDataConverted, nbSample*sizeof (SFLDataFormat));
+        compSize = _audiocodec->encode (_micDataEncoded, _micDataConverted, nbSample*sizeof (SFLDataFormat));
 
     } else {
 
@@ -686,7 +685,7 @@ int AudioRtpSession<D>::processDataEncode (void)
             _audioProcess->processAudio (_micData, nbSample*sizeof (SFLDataFormat));
 
         // no resampling required
-        compSize = _audiocodec->codecEncode (_micDataEncoded, _micData, nbSample*sizeof (SFLDataFormat));
+        compSize = _audiocodec->encode (_micDataEncoded, _micData, nbSample*sizeof (SFLDataFormat));
 
     }
 
@@ -702,7 +701,7 @@ void AudioRtpSession<D>::processDataDecode (unsigned char * spkrData, unsigned i
         int _mainBufferSampleRate = _manager->getAudioDriver()->getMainBuffer()->getInternalSamplingRate();
 
         // Return the size of data in bytes
-        int expandedSize = _audiocodec->codecDecode (_spkrDataDecoded , spkrData , size);
+        int expandedSize = _audiocodec->decode (_spkrDataDecoded , spkrData , size);
 
         // buffer _receiveDataDecoded ----> short int or int16, coded on 2 bytes
         int nbSample = expandedSize / sizeof (SFLDataFormat);
@@ -737,6 +736,7 @@ void AudioRtpSession<D>::processDataDecode (unsigned char * spkrData, unsigned i
         if (_manager->incomingCallWaiting() > 0) {
             _countNotificationTime += _time->getSecond();
             int countTimeModulo = _countNotificationTime % 5000;
+
 
             // _debug("countNotificationTime: %d\n", countNotificationTime);
             // _debug("countTimeModulo: %d\n", countTimeModulo);
@@ -928,4 +928,3 @@ void AudioRtpSession<D>::run ()
 
 }
 #endif // __AUDIO_RTP_SESSION_H__
-

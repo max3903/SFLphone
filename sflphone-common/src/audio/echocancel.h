@@ -275,6 +275,7 @@ class EchoCancel : public Algorithm
         int _spkrHistoryLength;
 
         /**
+
          * Factor for power estimation
          */
         float _alpha;
@@ -389,6 +390,7 @@ class EchoCancel : public Algorithm
          */
         SpeexPreprocessState *_noiseState;
         // #endif
+
 
         DelayDetection _delayDetector;
 

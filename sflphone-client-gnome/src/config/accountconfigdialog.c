@@ -30,9 +30,6 @@
  *  shall include the source code for the parts of OpenSSL used as well
  *  as that of the covered work.
  */
-
-
-
 #include <actions.h>
 #include <mainwindow.h>
 #include <accountlist.h>
@@ -41,6 +38,11 @@
 #include <zrtpadvanceddialog.h>
 #include <tlsadvanceddialog.h>
 #include <audioconf.h>
+#include <AudioCodecList.h>
+#include <VideoCodecList.h>
+#include <VideoConfAccount.h>
+#include <widget/SFLMessageBar.h>
+#include <widget/SFLMainSection.h>
 
 // From version 2.16, gtk provides the functionalities libsexy used to provide
 #if GTK_CHECK_VERSION(2,16,0)
@@ -55,7 +57,8 @@
 #include <config.h>
 #include <gtk/gtk.h>
 
-
+static const int DEFAULT_SPACING = 10;
+static const int AUDIO_CODEC_LIST_DEFAULT_HEIGHT = 200;
 /**
  * TODO: tidy this up
  * by storing these variables
@@ -114,6 +117,7 @@ GHashTable * directIpCallsProperties = NULL;
 
 gchar *current_username;
 
+AudioCodecList* audio_codec_list;
 
 // Credentials
 enum {
@@ -175,7 +179,6 @@ is_iax_enabled (void)
     else
         return FALSE;
 }
-
 
 void
 select_dtmf_type (void)
@@ -517,6 +520,10 @@ static void delete_credential_cb (GtkWidget *button UNUSED, gpointer data)
         gtk_tree_path_free (path);
     }
 
+    gtk_list_store_append (GTK_LIST_STORE (model), &iter);
+    gtk_list_store_set (GTK_LIST_STORE (model), &iter, COLUMN_CREDENTIAL_REALM,
+                        "*", COLUMN_CREDENTIAL_USERNAME, _ ("Authentication"),
+                        COLUMN_CREDENTIAL_PASSWORD, _ ("Secret"), -1);
 }
 
 static void cell_edited_cb (GtkCellRendererText *renderer, gchar *path_desc, gchar *text, gpointer data)
@@ -591,7 +598,6 @@ static void key_exchange_changed_cb (GtkWidget *widget UNUSED, gpointer data UNU
 
     }
 }
-
 
 static void use_sip_tls_cb (GtkWidget *widget, gpointer data)
 {
@@ -727,9 +733,7 @@ static void same_as_local_cb (GtkWidget * widget, gpointer data UNUSED)
         gchar * local_port = (gchar *) gtk_entry_get_text (GTK_ENTRY (localPortSpinBox));
         gtk_spin_button_set_value (GTK_SPIN_BUTTON (publishedPortSpinBox), g_ascii_strtod (local_port, NULL));
     }
-
 }
-
 
 
 GtkWidget* create_credential_widget (account_t **a)
@@ -822,7 +826,6 @@ GtkWidget* create_credential_widget (account_t **a)
     return frame;
 }
 
-
 GtkWidget* create_security_widget (account_t **a)
 {
 
@@ -904,13 +907,15 @@ GtkWidget* create_security_widget (account_t **a)
 }
 
 
-GtkWidget * create_security_tab (account_t **a)
+GtkWidget *
+create_security_tab (account_t **a)
 {
     GtkWidget * frame;
     GtkWidget * ret;
+    GtkWidget * hbox;
 
-    ret = gtk_vbox_new (FALSE, 10);
-    gtk_container_set_border_width (GTK_CONTAINER (ret), 10);
+    ret = gtk_vbox_new (FALSE, DEFAULT_SPACING);
+    gtk_container_set_border_width (GTK_CONTAINER (ret), DEFAULT_SPACING);
 
     // Credentials frame
     frame = create_credential_widget (a);
@@ -925,12 +930,12 @@ GtkWidget * create_security_tab (account_t **a)
     return ret;
 }
 
+
 GtkWidget* create_registration_expire (account_t **a)
 {
-
     GtkWidget *table, *frame, *label;
 
-    gchar *resolve_once=NULL, *account_expire=NULL;
+    gchar *resolve_once = NULL, *account_expire = NULL;
 
     if (*a) {
         resolve_once = g_hash_table_lookup ( (*a)->properties, ACCOUNT_RESOLVE_ONCE);
@@ -1198,91 +1203,104 @@ void ringtone_enabled (GtkWidget *widget UNUSED, gpointer fileChooser, const gch
     }
 }
 
-
-GtkWidget* create_codecs_configuration (account_t **a)
+GtkWidget* create_codecs_configuration (account_t **account)
 {
-
     // Main widget
-    GtkWidget *ret, *codecs, *dtmf, *box, *frame, *sipinfo, *table;
-    account_t *currentAccount = *a;
-    gchar *currentDtmfType = "";
-    gboolean dtmf_are_rtp = TRUE;
-    gpointer p;
+    account_t* currentAccount = *account;
 
-    ret = gtk_vbox_new (FALSE, 10);
-    gtk_container_set_border_width (GTK_CONTAINER (ret), 10);
+    // Create the audio codec list
+    GtkWidget* audio_vbox = gtk_vbox_new (FALSE, DEFAULT_SPACING);
 
-    box = codecs_box (a);
+    // GtkWidget* audio_codec_list = create_audio_codec_box (a);
+    audio_codec_list = audio_codec_list_new (currentAccount);
 
     // Box for the codecs
-    gnome_main_section_new (_ ("Codecs"), &codecs);
-    gtk_box_pack_start (GTK_BOX (ret), codecs, FALSE, FALSE, 0);
-    gtk_widget_set_size_request (GTK_WIDGET (codecs), -1, 200);
-    gtk_widget_show (codecs);
-    gtk_container_add (GTK_CONTAINER (codecs) , box);
+    SFLMainSection* codecs_section =
+        sfl_main_section_new_with_label (_ ("Codecs"));
+    gtk_box_pack_start (GTK_BOX (audio_vbox), GTK_WIDGET (codecs_section), FALSE,
+                        FALSE, 0);
+    gtk_widget_set_size_request (GTK_WIDGET (codecs_section), -1,
+                                 AUDIO_CODEC_LIST_DEFAULT_HEIGHT);
+    sfl_main_section_set_content (codecs_section, GTK_WIDGET (audio_codec_list));
 
     // Add DTMF type selection for SIP account only
-    p = g_hash_table_lookup (currentAccount->properties, g_strdup (ACCOUNT_TYPE));
+    gpointer property;
+    property = g_hash_table_lookup (currentAccount->properties, g_strdup (ACCOUNT_TYPE));
 
-    if (g_strcmp0 (p, "SIP") == 0) {
-
+    if (g_strcmp0 (property, "SIP") == 0) {
         // Box for dtmf
-        gnome_main_section_new_with_table (_ ("DTMF"), &dtmf, &table, 1, 2);
-        gtk_box_pack_start (GTK_BOX (ret), dtmf, FALSE, FALSE, 0);
-        gtk_widget_show (dtmf);
+        SFLMainSection* dtmf_section = sfl_main_section_new_with_label (_ ("DTMF"));
+        GtkWidget* table = gtk_table_new (1, 2, FALSE);
+        sfl_main_section_set_content (dtmf_section, table);
 
+        gtk_box_pack_start (GTK_BOX (audio_vbox), GTK_WIDGET (dtmf_section), FALSE, FALSE, 0);
+        gtk_widget_show (GTK_WIDGET (dtmf_section));
 
-        currentDtmfType = g_hash_table_lookup (currentAccount->properties, g_strdup (ACCOUNT_DTMF_TYPE));
+        gchar* current_dtmf_type = "";
+        current_dtmf_type = g_hash_table_lookup (currentAccount->properties,
+                            g_strdup (ACCOUNT_DTMF_TYPE));
 
-        if (g_strcasecmp (currentDtmfType, OVERRTP) != 0) {
+        gboolean dtmf_are_rtp = TRUE;
+
+        if (g_strcasecmp (current_dtmf_type, OVERRTP) != 0) {
             dtmf_are_rtp = FALSE;
         }
 
         overrtp = gtk_radio_button_new_with_label (NULL, _ ("RTP"));
         gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (overrtp), dtmf_are_rtp);
-        gtk_table_attach (GTK_TABLE (table), overrtp, 0, 1, 0, 1, GTK_EXPAND | GTK_FILL, GTK_EXPAND | GTK_FILL, 0, 0);
+        gtk_table_attach (GTK_TABLE (table), overrtp, 0, 1, 0, 1, GTK_EXPAND
+                          | GTK_FILL, GTK_EXPAND | GTK_FILL, 0, 0);
 
-        sipinfo = gtk_radio_button_new_with_label_from_widget (GTK_RADIO_BUTTON (overrtp),  _ ("SIP"));
+        GtkWidget* sipinfo = gtk_radio_button_new_with_label_from_widget (
+                                 GTK_RADIO_BUTTON (overrtp), _ ("SIP"));
         gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (sipinfo), !dtmf_are_rtp);
         g_signal_connect (G_OBJECT (sipinfo), "clicked", G_CALLBACK (select_dtmf_type), NULL);
-        gtk_table_attach (GTK_TABLE (table), sipinfo, 1, 2, 0, 1, GTK_EXPAND | GTK_FILL, GTK_EXPAND | GTK_FILL, 0, 0);
+        gtk_table_attach (GTK_TABLE (table), sipinfo, 1, 2, 0, 1, GTK_EXPAND
+                          | GTK_FILL, GTK_EXPAND | GTK_FILL, 0, 0);
     }
 
     // Box for the ringtones
-    gnome_main_section_new_with_table (_ ("Ringtones"), &frame, &table, 1, 2);
-    gtk_box_pack_start (GTK_BOX (ret), frame, FALSE, FALSE, 0);
+    SFLMainSection* ringtones_section = sfl_main_section_new_with_label (_ ("Ringtones"));
+    GtkWidget* table = gtk_table_new (1, 2, FALSE);
+    sfl_main_section_set_content (ringtones_section, table);
 
-    fileChooser = gtk_file_chooser_button_new (_ ("Choose a ringtone"), GTK_FILE_CHOOSER_ACTION_OPEN);
+    gtk_box_pack_start (GTK_BOX (audio_vbox), GTK_WIDGET (ringtones_section), FALSE, FALSE, 0);
 
-    p = g_hash_table_lookup (currentAccount->properties, g_strdup (CONFIG_RINGTONE_ENABLED));
-    gboolean ringtoneEnabled = (g_strcmp0 (p, "true") == 0) ? TRUE : FALSE;
+    fileChooser = gtk_file_chooser_button_new (_ ("Choose a ringtone"),
+                  GTK_FILE_CHOOSER_ACTION_OPEN);
+
+    property = g_hash_table_lookup (currentAccount->properties, g_strdup (
+                                        CONFIG_RINGTONE_ENABLED));
+    gboolean ringtoneEnabled = (g_strcmp0 (property, "true") == 0) ? TRUE : FALSE;
 
     enableTone = gtk_check_button_new_with_mnemonic (_ ("_Enable ringtones"));
     gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (enableTone), ringtoneEnabled);
     g_signal_connect (G_OBJECT (enableTone) , "clicked" , G_CALLBACK (ringtone_enabled), fileChooser);
-    gtk_table_attach (GTK_TABLE (table), enableTone, 0, 1, 0, 1, GTK_EXPAND | GTK_FILL, GTK_EXPAND | GTK_FILL, 0, 0);
+    gtk_table_attach (GTK_TABLE (table), enableTone, 0, 1, 0, 1, GTK_EXPAND
+                      | GTK_FILL, GTK_EXPAND | GTK_FILL, 0, 0);
 
     // file chooser button
-    gtk_file_chooser_set_current_folder (GTK_FILE_CHOOSER (fileChooser) , g_get_home_dir());
-    p = g_hash_table_lookup (currentAccount->properties, g_strdup (CONFIG_RINGTONE_PATH));
-    gtk_file_chooser_set_filename (GTK_FILE_CHOOSER (fileChooser) , p);
+    gtk_file_chooser_set_current_folder (GTK_FILE_CHOOSER (fileChooser),
+                                         g_get_home_dir ());
+    property = g_hash_table_lookup (currentAccount->properties, g_strdup (
+                                        CONFIG_RINGTONE_PATH));
+    gtk_file_chooser_set_filename (GTK_FILE_CHOOSER (fileChooser), property);
     gtk_widget_set_sensitive (GTK_WIDGET (fileChooser), ringtoneEnabled);
 
-    GtkFileFilter *filter = gtk_file_filter_new();
-    gtk_file_filter_set_name (filter , _ ("Audio Files"));
-    gtk_file_filter_add_pattern (filter , "*.wav");
-    gtk_file_filter_add_pattern (filter , "*.ul");
-    gtk_file_filter_add_pattern (filter , "*.au");
-    gtk_file_chooser_add_filter (GTK_FILE_CHOOSER (fileChooser) , filter);
-    gtk_table_attach (GTK_TABLE (table), fileChooser, 0, 1, 1, 2, GTK_EXPAND | GTK_FILL, GTK_EXPAND | GTK_FILL, 0, 0);
+    GtkFileFilter *filter = gtk_file_filter_new ();
+    gtk_file_filter_set_name (filter, _ ("Audio Files"));
+    gtk_file_filter_add_pattern (filter, "*.wav");
+    gtk_file_filter_add_pattern (filter, "*.ul");
+    gtk_file_filter_add_pattern (filter, "*.au");
+    gtk_file_chooser_add_filter (GTK_FILE_CHOOSER (fileChooser), filter);
+    gtk_table_attach (GTK_TABLE (table), fileChooser, 0, 1, 1, 2, GTK_EXPAND
+                      | GTK_FILL, GTK_EXPAND | GTK_FILL, 0, 0);
 
+    gtk_widget_show_all (audio_vbox);
 
-
-    gtk_widget_show_all (ret);
-
-    return ret;
-
+    return audio_vbox;
 }
+
 
 void show_account_window (account_t * a)
 {
@@ -1336,14 +1354,17 @@ void show_account_window (account_t * a)
 
         gtk_notebook_append_page (GTK_NOTEBOOK (notebook), tab, gtk_label_new (_ ("Basic")));
         gtk_notebook_page_num (GTK_NOTEBOOK (notebook), tab);
-
-
     }
 
-    /* Codecs */
+    // Audio codecs
     codecs_tab = create_codecs_configuration (&currentAccount);
     gtk_notebook_append_page (GTK_NOTEBOOK (notebook), codecs_tab, gtk_label_new (_ ("Codecs")));
     gtk_notebook_page_num (GTK_NOTEBOOK (notebook), codecs_tab);
+
+    // Video codecs
+    VideoConfAccount* video_tab = video_conf_account_new (&currentAccount);
+    gtk_notebook_append_page (GTK_NOTEBOOK (notebook), GTK_WIDGET (video_tab), gtk_label_new (_ ("Video")));
+    gtk_notebook_page_num (GTK_NOTEBOOK (notebook), GTK_WIDGET (video_tab));
 
     // Get current protocol for this account protocol
     gchar *currentProtocol = "SIP";
@@ -1563,33 +1584,31 @@ void show_account_window (account_t * a)
         dbus_set_account_details (currentAccount);
     }
 
-    // Perpetuate changes to the deamon
-    codec_list_update_to_daemon (currentAccount);
+    video_conf_account_save (video_tab);
+
+    codec_list_save (SFL_CODEC_LIST (audio_codec_list));
+
 
     gtk_widget_destroy (GTK_WIDGET (dialog));
 }
 
-GtkWidget* create_direct_ip_calls_tab (account_t **a)
+
+
+GtkWidget*
+create_direct_ip_calls_tab (account_t **a)
 {
+    GtkWidget* ret = gtk_vbox_new (FALSE, DEFAULT_SPACING);
 
-    GtkWidget *ret, *frame, *label;
-    gchar *description;
+    gtk_container_set_border_width (GTK_CONTAINER (ret), 0);
 
-    ret = gtk_vbox_new (FALSE, 10);
-    gtk_container_set_border_width (GTK_CONTAINER (ret), 10);
+    SFLMessageBar* message_bar = sfl_message_bar_new ();
+    sfl_message_bar_show_info (
+        message_bar,
+        "Direct IP Calls",
+        _ ("This profile is used when you want to reach a remote peer simply by typing a sip URI of the form \"sip:remotepeer\". The settings you define here will also be used if no account can be matched to an incoming or outgoing call."));
+    gtk_box_pack_start (GTK_BOX (ret), GTK_WIDGET (message_bar), FALSE, FALSE, 0);
 
-    description = g_markup_printf_escaped (_ ("This profile is used when you want to reach a remote peer simply by typing a sip URI such as <b>sip:remotepeer</b>. The settings you define here will also be used if no account can be matched to an incoming or outgoing call."));
-    label = gtk_label_new (NULL);
-    gtk_label_set_markup (GTK_LABEL (label), description);
-    gtk_misc_set_alignment (GTK_MISC (label), 0, 0.5);
-    gtk_box_pack_start (GTK_BOX (ret), label, FALSE, FALSE, 0);
-
-    GtkRequisition requisition;
-    gtk_widget_size_request (GTK_WIDGET (ret), &requisition);
-    gtk_widget_set_size_request (GTK_WIDGET (label), 350, -1);
-    gtk_label_set_line_wrap (GTK_LABEL (label), TRUE);
-
-    frame = create_network (a);
+    GtkWidget* frame = create_network (a);
     gtk_box_pack_start (GTK_BOX (ret), frame, FALSE, FALSE, 0);
 
     frame = create_security_widget (a);
@@ -1599,4 +1618,3 @@ GtkWidget* create_direct_ip_calls_tab (account_t **a)
     return ret;
 
 }
-

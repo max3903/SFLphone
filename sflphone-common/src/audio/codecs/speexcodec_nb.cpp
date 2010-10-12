@@ -29,7 +29,7 @@
  *  as that of the covered work.
  */
 
-#include "audiocodec.h"
+#include "AudioCodec.h"
 #include <cstdio>
 #include <speex/speex.h>
 #include <speex/speex_preprocess.h>
@@ -39,23 +39,31 @@ class Speex : public AudioCodec
 
     public:
         Speex (int payload=0)
-                : AudioCodec (payload, "speex"),
+                : AudioCodec (payload, "SPEEX"),
                 _speexModePtr (NULL),
                 _speex_dec_bits(),
                 _speex_enc_bits(),
                 _speex_dec_state(),
                 _speex_enc_state(),
                 _speex_frame_size() {
-            _clockRate = 8000;
-            _frameSize = 160; // samples, 20 ms at 8kHz
-            _channel = 1;
-            _bitrate = 24;
-            _bandwidth = 0;
+
+            setClockRate (8000);
+            setChannel (1);
+            setFrameSize (160);
+            setBitrate (24);
+            setBandwidth (0);
             initSpeex();
         }
 
-        Speex (const Speex&);
-        Speex& operator= (const Speex&);
+        Speex (const Speex& other) : AudioCodec (other) {
+            setClockRate (other.getClockRate());
+            setChannel (other.getChannel());
+            setFrameSize (other.getFrameSize());
+            setBitrate (other.getBitRate());
+            setBandwidth (other.getBandwidth());
+
+            initSpeex();
+        }
 
         void initSpeex() {
 
@@ -94,7 +102,7 @@ class Speex : public AudioCodec
             _speex_enc_state = 0;
         }
 
-        virtual int codecDecode (short *dst, unsigned char *src, unsigned int size) {
+        virtual int decode (short *dst, unsigned char *src, unsigned int size) {
 
             // int ratio = 320 / _speex_frame_size;
             speex_bits_read_from (&_speex_dec_bits, (char*) src, size);
@@ -104,13 +112,27 @@ class Speex : public AudioCodec
             return _frameSize * 2;
         }
 
-        virtual int codecEncode (unsigned char *dst, short *src, unsigned int size) {
+        virtual int encode (unsigned char *dst, short *src, unsigned int size) {
             speex_bits_reset (&_speex_enc_bits);
 
             speex_encode_int (_speex_enc_state, src, &_speex_enc_bits);
             int nbBytes = speex_bits_write (&_speex_enc_bits, (char*) dst, size);
 
             return nbBytes;
+        }
+
+        /**
+         * @Override
+         */
+        std::string getDescription() const {
+            return "audio/speex 8000 (\"narrow band\") codec. Based on libspeex, by Jean-Marc Valin.";
+        }
+
+        /**
+         * @Override
+         */
+        Speex* clone() const {
+            return new Speex (*this);
         }
 
     private:
@@ -123,12 +145,12 @@ class Speex : public AudioCodec
 };
 
 // the class factories
-extern "C" AudioCodec* create()
+extern "C" sfl::Codec* create()
 {
     return new Speex (110);
 }
 
-extern "C" void destroy (AudioCodec* a)
+extern "C" void destroy (sfl::Codec* a)
 {
     delete a;
 }

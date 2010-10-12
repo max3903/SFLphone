@@ -2,8 +2,8 @@ include ../globals.mak
 
 check_PROGRAMS = test
 
-test_CXXFLAGS = $(CPPUNIT_CFLAGS)
-test_LDADD = $(LLIBS)
+test_CXXFLAGS = $(CPPUNIT_CFLAGS) $(GSTREAMER_CFLAGS)
+test_LDADD = $(LLIBS) $(GSTREAMER_LIBS)
 
 test_SOURCES = \
 	main.cpp \
@@ -13,8 +13,6 @@ test_SOURCES = \
 	accounttest.cpp \
 	audiolayertest.h \
 	audiolayertest.cpp \
-	configurationtest.h \
-	configurationtest.cpp \
 	historytest.h \
 	historytest.cpp \
 	hookmanagertest.h \
@@ -23,18 +21,24 @@ test_SOURCES = \
 	numbercleanertest.cpp \
 	pluginmanagertest.h \
 	pluginmanagertest.cpp \
-	siptest.h \
+<	siptest.h \
 	siptest.cpp \
 	rtptest.h \
 	rtptest.cpp \
 	sdesnegotiatortest.h \
 	sdesnegotiatortest.cpp \
-	delaydetectiontest.h \
-	delaydetectiontest.cpp \
-	instantmessagingtest.cpp
+	VideoCaptureTest.h \
+	VideoCaptureTest.cpp \
+	SemaphorePosixTest.h \
+	SemaphorePosixTest.cpp \
+	VideoEndpointTest.h \
+	VideoEndpointTest.cpp \
+	H264EncoderTest.h \
+	H264EncoderTest.cpp \
+	ringtonetest.h \
+	ringtonetest.cpp
 
 LLIBS=$(CPPUNIT_LIBS) \
-	../src/sflphoned-logger.o \
 	../src/sflphoned-managerimpl.o \
 	../src/sflphoned-account.o\
 	../src/sflphoned-accountcreator.o \

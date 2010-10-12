@@ -128,7 +128,7 @@ void NumberCleanerTest::test_format_10 (void)
 {
     _debug ("-------------------- NumberCleanerTest::test_format_10 --------------------\n");
 
-    cleaner->set_phone_number_prefix ("9");
+    cleaner->setPhoneNumberPrefix ("9");
     CPPUNIT_ASSERT (cleaner->get_phone_number_prefix () == "9");
     CPPUNIT_ASSERT (cleaner->clean (NUMBER_TEST_1) == VALID_PREPENDED_NUMBER);
 }
@@ -137,7 +137,7 @@ void NumberCleanerTest::test_format_11 (void)
 {
     _debug ("-------------------- NumberCleanerTest::test_format_11 --------------------\n");
 
-    cleaner->set_phone_number_prefix ("9");
+    cleaner->setPhoneNumberPrefix ("9");
     CPPUNIT_ASSERT (cleaner->get_phone_number_prefix () == "9");
     CPPUNIT_ASSERT (cleaner->clean (NUMBER_TEST_10) == VALID_EXTENSION);
 }

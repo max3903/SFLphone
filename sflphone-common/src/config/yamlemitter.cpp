@@ -262,7 +262,6 @@ void YamlEmitter::serializeHooksPreference (MappingNode *map)
 
 }
 
-
 void YamlEmitter::serializeAudioPreference (MappingNode *map)
 {
     std::string preferencestr ("audio");
@@ -292,7 +291,6 @@ void YamlEmitter::serializeAudioPreference (MappingNode *map)
     }
 
 }
-
 
 void YamlEmitter::serializeShortcutPreference (MappingNode *map)
 {
@@ -367,6 +365,7 @@ void YamlEmitter::addMappingItem (int mappingid, Key key, YamlNode *node)
     } else
         throw YamlEmitterException ("Unknown node type while adding mapping node");
 }
+
 
 
 }

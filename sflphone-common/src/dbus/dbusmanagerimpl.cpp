@@ -35,6 +35,7 @@
 #include "callmanager.h"
 #include "configurationmanager.h"
 #include "networkmanager.h"
+#include "videomanager.h"
 
 const char* DBusManagerImpl::SERVER_NAME = "org.sflphone.SFLphone";
 
@@ -50,6 +51,7 @@ DBusManagerImpl::exec()
 
     _callManager = new CallManager (sessionConnection);
     _configurationManager = new ConfigurationManager (sessionConnection);
+    _videoManager = new VideoManager (sessionConnection);
     _instanceManager = new Instance (sessionConnection);
 
 #ifdef USE_NETWORKMANAGER
@@ -73,6 +75,7 @@ DBusManagerImpl::exit()
 
     delete _callManager;
     delete _configurationManager;
+    delete _videoManager;
     delete _instanceManager;
 
 #ifdef USE_NETWORKMANAGER

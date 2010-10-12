@@ -69,8 +69,8 @@ main (int argc, char **argv)
 {
     int exit_code = 0;
 
-    Logger::setConsoleLog (false);
-    Logger::setDebugMode (false);
+    Logger::getInstance()->setConsoleLog (false);
+    Logger::getInstance()->setDebugMode (false);
 
     CommandOptionParse * args = makeCommandOptionParse (argc, argv, "");
 
@@ -90,12 +90,12 @@ main (int argc, char **argv)
 
     if (console.numSet) {
         _info ("Console logging activated");
-        Logger::setConsoleLog (true);
+        Logger::getInstance()->setConsoleLog (true);
     }
 
     if (debug.numSet) {
         _info ("Debug mode activated");
-        Logger::setDebugMode (true);
+        Logger::getInstance()->setDebugMode (true);
     }
 
     delete args;

@@ -28,29 +28,36 @@
  *  as that of the covered work.
  */
 
-#include "audiocodec.h"
+#include "AudioCodec.h"
 #include <cstdio>
 #include <celt/celt.h>
 
-
-class Celt : public AudioCodec
+class Celt: public AudioCodec
 {
 
     public:
-        Celt (int payload=0)	: AudioCodec (payload, "celt") {
+        Celt (int payload = 0) :
+                AudioCodec (payload, "celt") {
 
-            _clockRate = 32000;
-            _frameSize = 320;  // fixed frameSize, TODO: support variable size from 64 to 512
-            _channel = 1;
-            _bitrate = 0;
-            _bandwidth = 0;
+            setClockRate (32000);
+            setChannel (1);
+            setFrameSize (320); // fixed frameSize, TODO: support variable size from 64 to 512
+            setBitrate (0);
+            setBandwidth (0);
 
             initCelt();
-
         }
 
-        Celt (const Celt&);
-        Celt& operator= (const Celt&);
+        Celt (const Celt& other) :
+                AudioCodec (other) {
+            setClockRate (other.getClockRate());
+            setChannel (other.getChannel());
+            setFrameSize (other.getFrameSize());
+            setBitrate (other.getBitRate());
+            setBandwidth (other.getBandwidth());
+
+            initCelt();
+        }
 
         void initCelt() {
 
@@ -124,17 +131,31 @@ class Celt : public AudioCodec
             celt_mode_destroy (_mode);
         }
 
-        virtual int codecDecode (short *dst, unsigned char *src, unsigned int size) {
+        virtual int decode (short *dst, unsigned char *src, unsigned int size) {
             int err = 0;
             err = celt_decode (_dec, src, size, (celt_int16*) dst);
             return _frameSize * sizeof (celt_int16);
         }
 
-        virtual int codecEncode (unsigned char *dst, short *src, unsigned int size) {
+        virtual int encode (unsigned char *dst, short *src, unsigned int size) {
             int len = 0;
             len = celt_encode (_enc, (celt_int16*) src, (celt_int16 *) src, dst, 40);
             // returns the number of bytes writen
             return len;
+        }
+
+	/**
+         * @Override
+         */
+        std::string getDescription() const {
+            return "audio/celt 32000 (\"HD\") codec. Based on libcelt, by Jean-Marc Valin.";
+        }
+
+        /**
+         * @Override
+         */
+        Celt* clone() const {
+            return new Celt (*this);
         }
 
     private:
@@ -150,12 +171,12 @@ class Celt : public AudioCodec
 };
 
 // the class factories
-extern "C" AudioCodec* create()
+extern "C" sfl::Codec* create()
 {
     return new Celt (115);
 }
 
-extern "C" void destroy (AudioCodec* a)
+extern "C" void destroy (sfl::Codec* a)
 {
     delete a;
 }

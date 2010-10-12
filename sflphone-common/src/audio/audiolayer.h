@@ -134,7 +134,7 @@ class AudioLayer
          * @param toCopy    The size of the buffer
          * @return int      The number of bytes copied
          */
-        int putMain (void* buffer, int toCopy, CallID call_id = default_id);
+        int putMain (void* buffer, int toCopy, CallId call_id = default_id);
 
         void flushMain (void);
 

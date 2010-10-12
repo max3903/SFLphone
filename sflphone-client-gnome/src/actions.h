@@ -36,7 +36,7 @@
 #include <locale.h>
 
 #include <accountlist.h>
-#include <codeclist.h>
+#include <CodecList.h>
 #include <sflphone_const.h>
 #include <errors.h>
 #include <conference_obj.h>

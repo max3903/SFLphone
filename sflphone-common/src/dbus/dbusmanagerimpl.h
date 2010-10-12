@@ -36,16 +36,21 @@
 class ConfigurationManager;
 class CallManager;
 class NetworkManager;
+class VideoManager;
 
 class DBusManagerImpl
 {
     public:
-        CallManager * getCallManager() {
+        CallManager* getCallManager() {
             return _callManager;
+        };
+        VideoManager* getVideoManager() {
+            return _videoManager;
         };
         ConfigurationManager * getConfigurationManager() {
             return _configurationManager;
         };
+
         int exec();
         void exit();
         static const char* SERVER_NAME;
@@ -53,6 +58,7 @@ class DBusManagerImpl
     private:
         CallManager*          _callManager;
         ConfigurationManager* _configurationManager;
+        VideoManager*		  _videoManager;
         Instance*             _instanceManager;
         DBus::BusDispatcher   _dispatcher;
         NetworkManager* _networkManager;

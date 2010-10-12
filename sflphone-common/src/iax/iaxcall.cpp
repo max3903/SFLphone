@@ -33,8 +33,31 @@
 #include "manager.h"
 #include "global.h" // for _debug
 
-IAXCall::IAXCall (const CallID& id, Call::CallType type) : Call (id, type), _session (NULL)
+IAXCall::IAXCall (CallId id, Call::CallType type) : Call(id, type)
 {
+	init();
+}
+
+IAXCall::IAXCall (Call::CallType type) :
+	Call (type)
+{
+    init();
+}
+
+void IAXCall::init()
+{
+	_session = NULL;
+    mimeTypeToAstMacro["PCMU"] = AST_FORMAT_ULAW;
+    mimeTypeToAstMacro["GSM"] = AST_FORMAT_GSM;
+    mimeTypeToAstMacro["PCMA"] = AST_FORMAT_ALAW;
+    mimeTypeToAstMacro["ILBC"] = AST_FORMAT_ILBC;
+    mimeTypeToAstMacro["SPEEX"] = AST_FORMAT_SPEEX;
+
+    astMacroToMimeType[AST_FORMAT_ULAW] = "PCMU";
+    astMacroToMimeType[AST_FORMAT_GSM] = "GSM";
+    astMacroToMimeType[AST_FORMAT_ALAW] = "PCMA";
+    astMacroToMimeType[AST_FORMAT_ILBC] = "ILBC";
+    astMacroToMimeType[AST_FORMAT_SPEEX] = "SPEEX";
 }
 
 IAXCall::~IAXCall()
@@ -45,165 +68,88 @@ IAXCall::~IAXCall()
 void
 IAXCall::setFormat (int format)
 {
-    _format = format;
+    AstMacroToMimeTypeIterator it = astMacroToMimeType.find (format);
 
-    _info ("IAX set supported format: ");
-
-    switch (format) {
-
-        case AST_FORMAT_ULAW:
-            _info ("PCMU");
-            setAudioCodec (PAYLOAD_CODEC_ULAW);
-            break;
-
-        case AST_FORMAT_GSM:
-            _info ("GSM");
-            setAudioCodec (PAYLOAD_CODEC_GSM);
-            break;
-
-        case AST_FORMAT_ALAW:
-            _info ("ALAW");
-            setAudioCodec (PAYLOAD_CODEC_ALAW);
-            break;
-
-        case AST_FORMAT_ILBC:
-            _info ("ILBC");
-            setAudioCodec (PAYLOAD_CODEC_ILBC_20);
-            break;
-
-        case AST_FORMAT_SPEEX:
-            _info ("SPEEX");
-            setAudioCodec (PAYLOAD_CODEC_SPEEX_8000);
-            break;
-
-        default:
-            _info ("Error audio codec type %i not supported!", format);
-            setAudioCodec ( (AudioCodecType) -1);
-            break;
+    if (it == astMacroToMimeType.end()) {
+        _error ("Failed to set set asterisk format %d in IAX call", format);
+        return;
     }
-}
 
+    setAudioCodec ( (*it).second);
+    _asteriskFormat = format;
+}
 
 int
 IAXCall::getSupportedFormat (std::string accountID)
 {
-    CodecOrder map;
-    int format = 0;
-    unsigned int iter;
-    Account *account;
-
     _info ("IAX get supported format: ");
 
-    account = Manager::instance().getAccount (accountID);
+    Account* account = Manager::instance().getAccount (accountID);
+    CodecOrder codecsIdentifier;
 
     if (account != NULL) {
-        map = account->getActiveCodecs();
+        codecsIdentifier = account->getActiveAudioCodecs();
     } else {
         _error ("No IAx account could be found");
+        return 0;
     }
 
-    for (iter=0 ; iter < map.size() ; iter++) {
-        switch (map[iter]) {
+    CodecFactory& factory = CodecFactory::getInstance();
+    CodecOrder::const_iterator it;
 
-            case PAYLOAD_CODEC_ULAW:
-                _info ("PCMU ");
-                format |= AST_FORMAT_ULAW;
-                break;
+    int format = 0;
 
-            case PAYLOAD_CODEC_GSM:
-                _info ("GSM ");
-                format |= AST_FORMAT_GSM;
-                break;
+    for (it = codecsIdentifier.begin(); it != codecsIdentifier.end(); it++) {
+        const sfl::Codec* codec = factory.getCodec (*it);
 
-            case PAYLOAD_CODEC_ALAW:
-                _info ("PCMA ");
-                format |= AST_FORMAT_ALAW;
-                break;
+        MimeTypeToAstMacroIterator it = mimeTypeToAstMacro.find (codec->getMimeSubtype());
 
-            case PAYLOAD_CODEC_ILBC_20:
-                _info ("ILBC ");
-                format |= AST_FORMAT_ILBC;
-                break;
-
-            case PAYLOAD_CODEC_SPEEX_8000:
-                _info ("SPEEX ");
-                format |= AST_FORMAT_SPEEX;
-                break;
-
-            default:
-                break;
+        if (it != mimeTypeToAstMacro.end()) {
+            format |= (*it).second;
         }
     }
 
     return format;
-
 }
 
 int IAXCall::getFirstMatchingFormat (int needles, std::string accountID)
 {
-
-    Account *account;
-    CodecOrder map;
-    int format = 0;
-    unsigned int iter;
-
     _debug ("IAX get first matching codec: ");
 
-    account = Manager::instance().getAccount (accountID);
+    Account* account = Manager::instance().getAccount (accountID);
+    CodecOrder activeCodecs;
 
     if (account != NULL) {
-        map = account->getActiveCodecs();
+        activeCodecs = account->getActiveAudioCodecs();
     } else {
-        _error ("No IAx account could be found");
+        _error ("No IAX account could be found");
     }
 
-    for (iter=0 ; iter < map.size() ; iter++) {
-        switch (map[iter]) {
+    CodecFactory& codecFactory = CodecFactory::getInstance();
+    CodecOrder::const_iterator it;
 
-            case PAYLOAD_CODEC_ULAW:
-                _debug ("PCMU");
-                format = AST_FORMAT_ULAW;
-                break;
+    for (it = activeCodecs.begin(); it != activeCodecs.end(); it++) {
+        const sfl::Codec* codec = codecFactory.getCodec (*it);
+        MimeTypeToAstMacroIterator it = mimeTypeToAstMacro.find (codec->getMimeSubtype());
 
-            case PAYLOAD_CODEC_GSM:
-                _debug ("GSM");
-                format = AST_FORMAT_GSM;
-                break;
-
-            case PAYLOAD_CODEC_ALAW:
-                _debug ("PCMA");
-                format = AST_FORMAT_ALAW;
-                break;
-
-            case PAYLOAD_CODEC_ILBC_20:
-                _debug ("ILBC");
-                format = AST_FORMAT_ILBC;
-                break;
-
-            case PAYLOAD_CODEC_SPEEX_8000:
-                _debug ("SPEEX");
-                format = AST_FORMAT_SPEEX;
-                break;
-
-            default:
-                break;
+        if (it != mimeTypeToAstMacro.end()) {
+            if ( (*it).second & needles) {
+                return (*it).second;
+            }
         }
-
-        // Return the first that matches
-        if (format & needles)
-            return format;
-
     }
 
     return 0;
 }
 
-CodecDescriptor& IAXCall::getCodecMap()
+void IAXCall::setAudioCodec (const std::string& subtype)
 {
-    return _codecMap;
+    CodecFactory& factory = CodecFactory::getInstance();
+    const sfl::Codec* codec = factory.getCodecByMimeSubtype (subtype);
+    _audioCodec = (static_cast<const AudioCodec*> (codec))->clone();
 }
 
-AudioCodecType IAXCall::getAudioCodec()
+AudioCodec* IAXCall::getAudioCodec()
 {
     return _audioCodec;
 }

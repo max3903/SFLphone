@@ -38,7 +38,8 @@
 namespace Conf
 {
 
-YamlParser::YamlParser (const char *file) : filename (file)
+YamlParser::YamlParser (const char *file) :
+		filename (file)
         , accountSequence (NULL)
         , preferenceSequence (NULL)
         , addressbookSequence (NULL)
@@ -434,8 +435,6 @@ void YamlParser::constructNativeData()
 
 void YamlParser::mainNativeDataMapping (MappingNode *map)
 {
-
-
     Mapping::iterator iter = map->getMapping()->begin();
 
     Key accounts ("accounts");
@@ -476,8 +475,6 @@ void YamlParser::mainNativeDataMapping (MappingNode *map)
 
         iter++;
     }
-
-    // _debug("Done");
 }
 
 }

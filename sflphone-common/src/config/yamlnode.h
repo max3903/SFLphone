@@ -41,13 +41,14 @@ namespace Conf
 
 
 class YamlNode;
+class ScalarNode;
 
 typedef std::string Key;
 typedef std::string Value;
 typedef std::list<YamlNode *> Sequence;
 typedef std::map<Key, YamlNode *> Mapping;
 
-class YamlNodeException : public std::exception
+class YamlNodeException: public std::exception
 {
 
     public:
@@ -66,10 +67,13 @@ class YamlNodeException : public std::exception
 
 };
 
-enum NodeType { DOCUMENT, SCALAR, MAPPING, SEQUENCE };
+enum NodeType {
+    DOCUMENT, SCALAR, MAPPING, SEQUENCE
+};
 
 class YamlNode
 {
+
 
     public:
 
@@ -94,14 +98,21 @@ class YamlNode
 };
 
 
+
+
 class YamlDocument : YamlNode
 {
 
+ 
     public:
 
-        YamlDocument (YamlNode* top=NULL) : YamlNode (DOCUMENT, top) {}
+        YamlDocument (YamlNode* top = NULL) :
+                YamlNode (DOCUMENT, top) {
+        }
 
-        ~YamlDocument() {}
+        ~YamlDocument() {
+        }
+
 
         void addNode (YamlNode *node);
 
@@ -110,6 +121,7 @@ class YamlDocument : YamlNode
         Sequence *getSequence (void) {
             return &doc;
         }
+
 
     private:
 
@@ -139,6 +151,7 @@ class SequenceNode : public YamlNode
 };
 
 
+
 class MappingNode : public YamlNode
 {
 
@@ -163,6 +176,8 @@ class MappingNode : public YamlNode
         void removeKeyValue (Key key);
 
         YamlNode *getValue (Key key);
+
+	ScalarNode* getScalarNode (Key key);
 
     private:
 
@@ -190,6 +205,17 @@ class ScalarNode : public YamlNode
             val = v;
         }
 
+        bool toBoolean() {
+            if (val == "true") {
+                return true;
+            }
+
+            return false;
+        }
+
+        int toInt() {
+            return atoi (val.c_str());
+        }
     private:
 
         Value val;
@@ -197,8 +223,38 @@ class ScalarNode : public YamlNode
 };
 
 
+
+/**
+ * Singleton for a "null object" pattern.
+ */
+class NullScalarNode: public ScalarNode
+{
+    public:
+        /**
+         * @Override
+         */
+        Value getValue() {
+            return "";
+        }
+
+        /**
+         * @return an instance of the null scalar node.
+         */
+        static NullScalarNode* getInstance() {
+            if (instance == 0) {
+                instance = new NullScalarNode();
+            }
+
+            return instance;
+        }
+
+        virtual inline ~NullScalarNode() {}
+
+    protected:
+        NullScalarNode (Value v = "", YamlNode *top = NULL) : ScalarNode (v, top) {}
+        static NullScalarNode* instance;
+};
+
 }
-
-
 
 #endif

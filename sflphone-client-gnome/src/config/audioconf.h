@@ -39,7 +39,7 @@ GtkWidget* create_codecs_configuration (account_t **a);
 GtkWidget* api_box();
 GtkWidget* alsa_box();
 GtkWidget* pulse_box();
-GtkWidget* codecs_box();
+GtkWidget* create_audio_codec_box();
 GtkWidget* ringtone_box();
 
 gboolean get_api();

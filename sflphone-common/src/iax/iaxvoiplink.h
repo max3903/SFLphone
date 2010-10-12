@@ -36,7 +36,7 @@
 #include <iax-client.h>
 #include "global.h"
 
-#include "audio/codecs/codecDescriptor.h"
+#include "CodecFactory.h"
 #include "audio/samplerateconverter.h"
 #include "hooks/urlhook.h"
 
@@ -89,7 +89,7 @@ class IAXVoIPLink : public VoIPLink
         /**
          * Terminate on call
          */
-        void terminateOneCall (const CallID& id);
+        void terminateOneCall (const CallId& id);
 
         /**
          * Send out registration
@@ -112,7 +112,7 @@ class IAXVoIPLink : public VoIPLink
          * @param toUrl The address to call
          * @return Call*  A pointer on the call
          */
-        Call* newOutgoingCall (const CallID& id, const std::string& toUrl);
+        Call* newOutgoingCall (const CallId& id, const std::string& toUrl);
 
         /**
          * Answer a call
@@ -120,7 +120,7 @@ class IAXVoIPLink : public VoIPLink
          * @return bool true on success
          *		  false otherwise
          */
-        bool answer (const CallID& id);
+        bool answer (const CallId& id);
 
         /**
          * Hangup a call
@@ -128,7 +128,7 @@ class IAXVoIPLink : public VoIPLink
          * @return bool true on success
          *		  false otherwise
          */
-        bool hangup (const CallID& id);
+        bool hangup (const CallId& id);
 
         /**
          * Peer Hungup a call
@@ -136,7 +136,7 @@ class IAXVoIPLink : public VoIPLink
          * @return bool true on success
          *		  false otherwise
          */
-        bool peerHungup (const CallID& id);
+        bool peerHungup (const CallId& id);
 
         /**
          * Cancel a call
@@ -144,7 +144,7 @@ class IAXVoIPLink : public VoIPLink
          * @return bool true on success
          *		  false otherwise
          */
-        bool cancel (const CallID& id UNUSED) {
+        bool cancel (const CallId& id UNUSED) {
             return false;
         }
 
@@ -154,7 +154,7 @@ class IAXVoIPLink : public VoIPLink
          * @return bool true on success
          *		  false otherwise
          */
-        bool onhold (const CallID& id);
+        bool onhold (const CallId& id);
 
         /**
          * Put a call off hold
@@ -162,7 +162,7 @@ class IAXVoIPLink : public VoIPLink
          * @return bool true on success
          *		  false otherwise
          */
-        bool offhold (const CallID& id);
+        bool offhold (const CallId& id);
 
         /**
          * Transfer a call
@@ -171,7 +171,7 @@ class IAXVoIPLink : public VoIPLink
          * @return bool true on success
          *		  false otherwise
          */
-        bool transfer (const CallID& id, const std::string& to);
+        bool transfer (const CallId& id, const std::string& to);
 
         /**
          * Refuse a call
@@ -179,7 +179,7 @@ class IAXVoIPLink : public VoIPLink
          * @return bool true on success
          *		  false otherwise
          */
-        bool refuse (const CallID& id);
+        bool refuse (const CallId& id);
 
         /**
          * Send DTMF
@@ -188,10 +188,13 @@ class IAXVoIPLink : public VoIPLink
          * @return bool true on success
          *		  false otherwise
          */
-        bool carryingDTMFdigits (const CallID& id, char code);
+        bool carryingDTMFdigits (const CallId& id, char code);
 
+	bool sendTextMessage (sfl::InstantMessaging *module, const std::string& callID, const std::string& message, const std::string& from);
 
-        bool sendTextMessage (sfl::InstantMessaging *module, const std::string& callID, const std::string& message, const std::string& from);
+        bool sendMessage (const std::string& to UNUSED, const std::string& body UNUSED) {
+            return false;
+        }
 
         bool isContactPresenceSupported() {
             return false;
@@ -206,6 +209,8 @@ class IAXVoIPLink : public VoIPLink
 
     public: // iaxvoiplink only
 
+	
+	
         void updateAudiolayer (void);
 
     private:
@@ -225,7 +230,7 @@ class IAXVoIPLink : public VoIPLink
          * @param id CallId
          * @return IAXCall pointer or 0
          */
-        IAXCall* getIAXCall (const CallID& id);
+        IAXCall* getIAXCall (const CallId& id);
 
         /**
          * Delete every call

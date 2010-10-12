@@ -2,14 +2,15 @@ include $(top_srcdir)/globals.mak
 
 noinst_LTLIBRARIES = libcodecdescriptor.la
 
-libcodecdescriptor_la_SOURCES = codecDescriptor.cpp 
-
+libcodecdescriptor_la_SOURCES = AudioCodec.cpp
+	
 if BUILD_GSM
 GSM_LIB = libcodec_gsm.so
 libcodec_gsm_so_SOURCES = gsmcodec.cpp
 libcodec_gsm_so_CFLAGS = -fPIC -g -Wall
 libcodec_gsm_so_CXXFLAGS = -fPIC -g -Wall
 libcodec_gsm_so_LDFLAGS = --shared -lc -lgsm
+libcodec_gsm_so_LDADD = libcodecdescriptor.la
 INSTALL_GSM_RULE = install-libcodec_gsm_so
 endif
 
@@ -19,6 +20,7 @@ libcodec_speex_nb_so_SOURCES = speexcodec_nb.cpp
 libcodec_speex_nb_so_CFLAGS = -fPIC -g -Wall
 libcodec_speex_nb_so_CXXFLAGS = -fPIC -g -Wall $(SPEEXDSP)
 libcodec_speex_nb_so_LDFLAGS = --shared -lc -lspeex $(SPEEX_NIMP)
+libcodec_speex_nb_so_LDADD = libcodecdescriptor.la
 INSTALL_SPEEX_NB_RULE = install-libcodec_speex_nb_so
 endif
 
@@ -28,6 +30,7 @@ libcodec_speex_wb_so_SOURCES = speexcodec_wb.cpp
 libcodec_speex_wb_so_CFLAGS = -fPIC -g -Wall
 libcodec_speex_wb_so_CXXFLAGS = -fPIC -g -Wall $(SPEEXDSP)
 libcodec_speex_wb_so_LDFLAGS = --shared -lc -lspeex $(SPEEX_NIMP)
+libcodec_speex_wb_so_LDADD = libcodecdescriptor.la
 INSTALL_SPEEX_WB_RULE = install-libcodec_speex_wb_so
 endif
 
@@ -37,6 +40,7 @@ libcodec_speex_ub_so_SOURCES = speexcodec_ub.cpp
 libcodec_speex_ub_so_CFLAGS = -fPIC -g -Wall
 libcodec_speex_ub_so_CXXFLAGS = -fPIC -g -Wall $(SPEEXDSP)
 libcodec_speex_ub_so_LDFLAGS = --shared -lc -lspeex $(SPEEX_NIMP)
+libcodec_speex_ub_so_LDADD = libcodecdescriptor.la
 INSTALL_SPEEX_UB_RULE = install-libcodec_speex_ub_so
 endif
 
@@ -46,27 +50,30 @@ libcodec_celt_so_SOURCES = celtcodec.cpp
 libcodec_celt_so_CFLAGS = -fPIC -g -Wall
 libcodec_celt_so_CXXFLAGS = -fPIC -g -Wall
 libcodec_celt_so_LDFLAGS = --shared -lc -lcelt0 $(CELT_NIMP)
+libcodec_celt_so_LDADD = libcodecdescriptor.la
 INSTALL_CELT_RULE = install-libcodec_celt_so
 endif
 
-
 noinst_PROGRAMS = libcodec_ulaw.so libcodec_alaw.so libcodec_g722.so $(GSM_LIB) $(SPEEX_NB_LIB) $(SPEEX_WB_LIB) $(SPEEX_UB_LIB) $(CELT_LIB)
 
-noinst_HEADERS = audiocodec.h codecDescriptor.h
+noinst_HEADERS = AudioCodec.h
 
 libcodec_ulaw_so_SOURCES = ulaw.cpp
 libcodec_ulaw_so_CFLAGS = -fPIC -g -Wall
 libcodec_ulaw_so_CXXFLAGS = -fPIC -g -Wall
+libcodec_ulaw_so_LDADD = libcodecdescriptor.la
 libcodec_ulaw_so_LDFLAGS = --shared -lc
 
 libcodec_alaw_so_SOURCES = alaw.cpp
 libcodec_alaw_so_CFLAGS = -fPIC -g -Wall
 libcodec_alaw_so_CXXFLAGS = -fPIC -g -Wall
+libcodec_alaw_so_LDADD = libcodecdescriptor.la
 libcodec_alaw_so_LDFLAGS = --shared -lc
 
 libcodec_g722_so_SOURCES = g722.cpp
 libcodec_g722_so_CFLAGS = -fPIC -g -Wall
 libcodec_g722_so_CXXFLAGS = -fPIC -g -Wall
+libcodec_g722_so_LDADD = libcodecdescriptor.la
 libcodec_g722_so_LDFLAGS = --shared -lc
 
 install-exec-local:  install-libcodec_ulaw_so install-libcodec_alaw_so install-libcodec_g722_so $(INSTALL_GSM_RULE) $(INSTALL_SPEEX_NB_RULE) $(INSTALL_SPEEX_WB_RULE) $(INSTALL_SPEEX_UB_RULE) $(INSTALL_CELT_RULE) $(INSTALL_ILBC_RULE) 

@@ -160,6 +160,7 @@ class AlsaLayer : public AudioLayer
         bool isCaptureActive (void);
 
         /**
+
          * Get the noise suppressor state
          * @return true if noise suppressor activated
          */
@@ -338,7 +339,9 @@ class AlsaLayer : public AudioLayer
         /** Sample rate converter object */
         SamplerateConverter* _converter;
 
+
         // ofstream *captureFile;
+
 
 };
 

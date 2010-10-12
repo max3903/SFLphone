@@ -33,17 +33,21 @@
 #include "account.h"
 #include "manager.h"
 
+#include "CodecFactory.h"
+
 Account::Account (const AccountID& accountID, std::string type) :
         _accountID (accountID)
         , _link (NULL)
         , _enabled (true)
         , _type (type)
-        , _codecOrder ()
-        , _codecStr ("0/")
+        , _codecAudioSerialized ("")
+        , _codecVideoSerialized ("")
         , _ringtonePath ("/usr/share/sflphone/ringtones/konga.ul")
         , _ringtoneEnabled (true)
         , _displayName ("")
         , _useragent ("SFLphone")
+        , _preferredVideoDevice ("")
+        , _alwaysOfferVideo (false)
 {
     setRegistrationState (Unregistered);
 }
@@ -63,7 +67,7 @@ void Account::loadConfig()
 
 #endif
 
-    loadAudioCodecs ();
+    loadCodecs ();
 }
 
 void Account::setRegistrationState (RegistrationState state)
@@ -78,44 +82,95 @@ void Account::setRegistrationState (RegistrationState state)
     }
 }
 
-void Account::loadAudioCodecs (void)
+void Account::loadCodecs (void)
 {
+    _debug ("Serialized codecs : %s", _codecAudioSerialized.c_str());
 
-    // if the user never set the codec list, use the default configuration for this account
-    if (_codecStr == "") {
-        _info ("Account: Use default codec order");
-        Manager::instance ().getCodecDescriptorMap ().setDefaultOrder();
+    if (_codecAudioSerialized == "") {
+        _info ("No audio codecs were configured for this account. Using the default list.");
+        setActiveAudioCodecs (CodecFactory::getInstance().getDefaultAudioCodecOrder());
+    } else {
+        setActiveAudioCodecs (Manager::instance ().unserialize (_codecAudioSerialized));
     }
-    // else retrieve the one set in the user config file
-    else {
-        _debug ("Account: Set codec order from configuration file");
-        std::vector<std::string> active_list = Manager::instance ().retrieveActiveCodecs();
-        // This property is now set per account basis
-        // std::string s = Manager::instance ().getConfigString (_accountID, "ActiveCodecs");
-        setActiveCodecs (Manager::instance ().unserialize (_codecStr));
+
+    if (_codecVideoSerialized == "") {
+        _info ("No video codecs were configured for this account. Using the default list.");
+        setActiveVideoCodecs (CodecFactory::getInstance().getDefaultVideoCodecOrder());
+    } else {
+        setActiveVideoCodecs (Manager::instance ().unserialize (_codecVideoSerialized));
     }
 }
 
-void Account::setActiveCodecs (const std::vector <std::string> &list)
+void Account::setAlwaysOfferVideo (bool policy)
 {
+    _alwaysOfferVideo = policy;
+}
 
-    _codecOrder.clear();
-    // list contains the ordered payload of active codecs picked by the user for this account
-    // we used the CodecOrder vector to save the order.
-    int i=0;
-    int payload;
-    size_t size = list.size();
+bool Account::isAlwaysOfferVideo()
+{
+    return _alwaysOfferVideo;
+}
 
-    while ( (unsigned int) i < size) {
-        payload = std::atoi (list[i].data());
-        _info ("Account: Adding codec with RTP payload=%i", payload);
-        //if (Manager::instance ().getCodecDescriptorMap ().isCodecLoaded (payload)) {
-        _codecOrder.push_back ( (AudioCodecType) payload);
-        //}
-        i++;
-    }
+void Account::setPreferredVideoDevice (const std::string& device)
+{
+    _preferredVideoDevice = device;
+}
 
-    // setConfig
-    _codecStr = Manager::instance ().serialize (list);
+std::string Account::getPreferredVideoDevice()
+{
+    return _preferredVideoDevice;
+}
 
+void Account::setPreferredVideoFormat (const sfl::VideoFormat& format)
+{
+    _preferredVideoFormat = format;
+}
+
+sfl::VideoFormat Account::getPreferredVideoFormat()
+{
+    return _preferredVideoFormat;
+}
+
+CodecOrder& Account::getActiveVideoCodecs()
+{
+    return _codecVideoOrder;
+}
+
+CodecOrder& Account::getActiveAudioCodecs()
+{
+    return _codecAudioOrder;
+}
+
+void Account::setActiveVideoCodecs (CodecOrder codecs)
+{
+    _codecVideoOrder = codecs;
+    _codecVideoSerialized = Manager::instance().serialize (codecs);
+    _debug ("Setting active video codecs : %s", _codecVideoSerialized.c_str());
+}
+
+void Account::setActiveAudioCodecs (CodecOrder codecs)
+{
+    _codecAudioOrder = codecs;
+    _codecAudioSerialized = Manager::instance().serialize (codecs);
+    _debug ("Setting active audio codecs : %s", _codecAudioSerialized.c_str());
+}
+
+std::string Account::getAudioCodecsSerialized()
+{
+    return _codecAudioSerialized;
+}
+
+void Account::setAudioCodecsSerialized (const std::string& audioCodecs)
+{
+    _codecAudioSerialized = audioCodecs;
+}
+
+void Account::setVideoCodecsSerialized (const std::string& videoCodecs)
+{
+    _codecVideoSerialized = videoCodecs;
+}
+
+std::string Account::getVideoCodecsSerialized()
+{
+    return _codecVideoSerialized;
 }

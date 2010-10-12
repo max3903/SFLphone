@@ -46,8 +46,9 @@ EventThread::EventThread (VoIPLink *link)
 void EventThread::run (void)
 {
     while (!testCancel()) {
-        if (_linkthread)
+        if (_linkthread) {
             _linkthread->getEvent();
+        }
     }
 }
 

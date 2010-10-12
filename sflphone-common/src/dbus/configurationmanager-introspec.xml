@@ -387,64 +387,153 @@
 		   </arg>
 	   </method>
 
-	   <!--      ///////////////////////               -->
-
 	   <!-- Codecs-related methods -->
-
-	   <method name="getCodecList" tp:name-for-bindings="getCodecList">
+	   <method name="getAllAudioCodecMimeSubtypes" tp:name-for-bindings="getAllAudioCodecMimeSubtypes">
 		   <tp:docstring>
 		   </tp:docstring>
-		   <annotation name="com.trolltech.QtDBus.QtTypeName.Out0" value="VectorString"/>
 		   <arg type="as" name="list" direction="out">
 			   <tp:docstring>
+			    A list of all the MIME subtypes for the supported audio codecs.
 			   </tp:docstring>
 		   </arg>
 	   </method>
 
-	   <method name="getCodecDetails" tp:name-for-bindings="getCodecDetails">
+	   <method name="getAudioCodecDetails" tp:name-for-bindings="getAudioCodecDetails">
 		   <tp:docstring>
 		   </tp:docstring>
-		   <arg type="i" name="payload" direction="in">
+		   <arg type="s" name="mimesubtype" direction="in">
 			   <tp:docstring>
+			   The MIME subtype identifying this codec.
 			   </tp:docstring>
 		   </arg>
-		   <annotation name="com.trolltech.QtDBus.QtTypeName.Out0" value="VectorString"/>
-		   <arg type="as" name="details" direction="out">
+		   <arg type="(suyssdds)" name="details" direction="out">
 			   <tp:docstring>
-			   </tp:docstring>
+ 				A structure containing the following fields in order : clock rate, payload type, mime type, mime subtype, bitrate, bandwidth.			   
+ 				</tp:docstring>
+		   </arg>
+	   </method>
+	   
+	   <method name="getAllAudioCodecs" tp:name-for-bindings="getAudioCodecDetails">
+		   <tp:docstring>
+		   </tp:docstring>
+		   <arg type="a(suyssdds)" name="details" direction="out">
+			   <tp:docstring>
+ 				A DBus array of all the audio codecs that are available. Same as calling getAudioCodecMimeSubtypes() in a loop, then getAudioCodecDetails. 				
+ 		   		</tp:docstring>
+		   </arg>
+	   </method>
+	   
+	   <method name="getAllVideoCodecs" tp:name-for-bindings="getAllVideoCodecs">
+		   <tp:docstring>
+		   </tp:docstring>
+		   <arg type="a(suyssdds)" name="details" direction="out">
+			   <tp:docstring>
+ 				A DBus array of all the video codecs that are available.
+ 		   		</tp:docstring>
 		   </arg>
 	   </method>
 
-	   <method name="getActiveCodecList" tp:name-for-bindings="getActiveCodecList">
+	   <method name="getAllActiveAudioCodecs" tp:name-for-bindings="getAllActiveAudioCodecs">
 		   <tp:docstring>
 		   </tp:docstring>
 		   <annotation name="com.trolltech.QtDBus.QtTypeName.Out0" value="VectorString"/>
 		   <arg type="s" name="accountID" direction="in">
 			   <tp:docstring>
+			   The account id for which to retrieve the list of active codecs.
 			   </tp:docstring>
 		   </arg>
-		   <arg type="as" name="list" direction="out">
+		   <arg type="a(suyssdds)" name="list" direction="out">
 			   <tp:docstring>
+			   A dbus array type containing those codecs, as structures, that are currently enabled by the user. The preferred
+			   order is preserved.
+			   </tp:docstring>
+		   </arg>
+	   </method>
+	   
+	   <method name="getAllActiveVideoCodecs" tp:name-for-bindings="getAllActiveVideoCodecs">
+		   <tp:docstring>
+		   </tp:docstring>
+		   <annotation name="com.trolltech.QtDBus.QtTypeName.Out0" value="VectorString"/>
+		   <arg type="s" name="accountID" direction="in">
+			   <tp:docstring>
+			   The account id for which to retrieve the list of active codecs.
+			   </tp:docstring>
+		   </arg>
+		   <arg type="a(suyssdds)" name="list" direction="out">
+			   <tp:docstring>
+			   A dbus array type containing those codecs, as structures, that are currently enabled by the user. The preferred
+			   order is preserved.
 			   </tp:docstring>
 		   </arg>
 	   </method>
 
-	   <method name="setActiveCodecList" tp:name-for-bindings="setActiveCodecList">
+	   <method name="setActiveAudioCodecs" tp:name-for-bindings="setActiveAudioCodecs">
 		   <tp:docstring>
 		   </tp:docstring>
-		   <annotation name="com.trolltech.QtDBus.QtTypeName.In0" value="VectorString"/>
 		   <arg type="as" name="list" direction="in">
 			   <tp:docstring>
+			   A dbus array structure containing the codecs identifiers set by the user.
 			   </tp:docstring>
 		   </arg>
 		   <arg type="s" name="accountID" direction="in">
 			   <tp:docstring>
+			   The account id on which to set those codecs.
 			   </tp:docstring>
 		   </arg>
 	   </method>
-
-
-	   <!-- Audio devices methods -->
+	   
+	   <method name="setActiveVideoCodecs" tp:name-for-bindings="setActiveVideoCodecs">
+		   <tp:docstring>
+		   </tp:docstring>
+		   <arg type="as" name="list" direction="in">
+			   <tp:docstring>
+			   A dbus array structure containing the codecs identifiers set by the user.
+			   </tp:docstring>
+		   </arg>
+		   <arg type="s" name="accountID" direction="in">
+			   <tp:docstring>
+			   The account id on which to set those codecs.
+			   </tp:docstring>
+		   </arg>
+	   </method>
+	   	   
+	   <method name="setVideoSettings" tp:name-for-bindings="setVideoSettings">
+		   <tp:docstring>
+		   </tp:docstring>
+		   <arg type="s" name="accountID" direction="in">
+			   <tp:docstring>
+			  	The account id on which those video settings should apply.
+			   </tp:docstring>
+		   </arg>
+		   <arg type="((uu)(uu)sb)" name="settings" direction="in">
+			   <tp:docstring>
+			   A DBus structure containing members of the form :
+					"preferred resolution (struct : uint uint)"
+					"preferred framerate (struct : uint uint)"
+					"preferred device (string)"
+					"always offer video (boolean)"
+			   </tp:docstring>
+		   </arg>
+	   </method>
+	   
+	   <method name="getVideoSettings" tp:name-for-bindings="getVideoSettings">
+		   <tp:docstring>
+		   </tp:docstring>
+		   <arg type="s" name="accountID" direction="in">
+			   <tp:docstring>
+			  	The account id on which to retrieve the video settings for.
+			   </tp:docstring>
+		   </arg>
+		   <arg type="((uu)(uu)sb)" name="settings" direction="out">
+			   <tp:docstring>
+			   A DBus structure containing members of the form :
+					"preferred resolution (struct : uint uint)"
+					"preferred framerate (struct : uint uint)"
+					"preferred device (string)"
+					"always offer video (boolean)"
+			   </tp:docstring>
+		   </arg>
+	   </method>
 
 	   <method name="getAudioPluginList" tp:name-for-bindings="getAudioPluginList">
 		   <tp:docstring>

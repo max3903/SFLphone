@@ -31,14 +31,14 @@
 #define __SFL_AUDIO_SRTP_SESSION_H__
 
 #include "AudioRtpSession.h"
-#include "sip/SdesNegotiator.h"
+#include "sip/sdp/SdesNegotiator.h"
 
 #include <ccrtp/CryptoContext.h>
 #include <vector>
 
 class SdesNegotiator;
 class ManagerImpl;
-class SIPCall;
+class SipCall;
 
 /*
    Table from RFC 4568 6.2. Crypto-Suites, which define key parameters for supported
@@ -81,7 +81,7 @@ class AudioSrtpSession : public ost::SymmetricRTPSession, public AudioRtpSession
         /**
          * Constructor for this rtp session
          */
-        AudioSrtpSession (ManagerImpl * manager, SIPCall * sipcall);
+        AudioSrtpSession (ManagerImpl * manager, SipCall * sipcall);
 
         ~AudioSrtpSession();
 

@@ -125,7 +125,7 @@ class InstantMessaging
          * @param id	The current call
          * @return int	The number of currently open file stream
          */
-        int openArchive (CallID& id);
+        int openArchive (CallId& id);
 
         /*
          * Close the file corresponding to the specified call
@@ -133,7 +133,7 @@ class InstantMessaging
          * @param id	The current call
          * @return int	The number of remaining open file stream
          */
-        int closeArchive (CallID& id);
+        int closeArchive (CallId& id);
 
         /*
          * Write the text message to the right file
@@ -143,7 +143,7 @@ class InstantMessaging
          * @param id	The current call
          * @return True if the message could have been successfully saved, False otherwise
          */
-        bool saveMessage (const std::string& message, const std::string& author, CallID& id, int mode = MODE_APPEND);
+        bool saveMessage (const std::string& message, const std::string& author, CallId& id, int mode = MODE_APPEND);
 
         /*
            * Receive a string SIP message, for a specific call
@@ -151,7 +151,7 @@ class InstantMessaging
            * @param message	The message contained in the TEXT message
          * @param id		The call recipient of the message
          */
-        std::string receive (const std::string& message, const std::string& author, CallID& id);
+        std::string receive (const std::string& message, const std::string& author, CallId& id);
 
         /*
          * Send a SIP string message inside a call
@@ -162,13 +162,13 @@ class InstantMessaging
          * @return pj_status_t  0 on success
          *                      1 otherwise
          */
-        pj_status_t sip_send (pjsip_inv_session*, CallID& id, const std::string&);
+        pj_status_t sip_send (pjsip_inv_session*, CallId& id, const std::string&);
 
-        pj_status_t send_sip_message (pjsip_inv_session*, CallID& id, const std::string&);
+        pj_status_t send_sip_message (pjsip_inv_session*, CallId& id, const std::string&);
 
-        bool iax_send (iax_session* session, const CallID& id, const std::string& message);
+        bool iax_send (iax_session* session, const CallId& id, const std::string& message);
 
-        bool send_iax_message (iax_session *session, const CallID& id, const std::string&);
+        bool send_iax_message (iax_session *session, const CallId& id, const std::string&);
 
         std::vector<std::string> split_message (const std::string&);
 
@@ -178,7 +178,7 @@ class InstantMessaging
          *
             * @param id	The callID to notify (TODO: accountID?)
          */
-        pj_status_t notify (CallID& id);
+        pj_status_t notify (CallId& id);
 
 
         /**

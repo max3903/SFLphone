@@ -43,7 +43,7 @@ class Account;
 typedef std::string AccountID;
 
 /** Define a map that associate a Call object to a call identifier */
-typedef std::map<CallID, Call*> CallMap;
+typedef std::map<CallId, Call*> CallMap;
 
 /**
  * @file voiplink.h
@@ -105,49 +105,49 @@ class VoIPLink
          * @param toUrl  The address of the recipient of the call
          * @return Call* The current call
          */
-        virtual Call* newOutgoingCall (const CallID& id, const std::string& toUrl) = 0;
+        virtual Call* newOutgoingCall (const CallId& id, const std::string& toUrl) = 0;
 
         /**
          * Answer the call
          * @param id The call identifier
          * @return bool True on success
          */
-        virtual bool answer (const CallID& id) = 0;
+        virtual bool answer (const CallId& id) = 0;
 
         /**
          * Hang up a call
          * @param id The call identifier
          * @return bool True on success
          */
-        virtual bool hangup (const CallID& id) = 0;
+        virtual bool hangup (const CallId& id) = 0;
 
         /**
         * Peer Hung up a call
         * @param id The call identifier
         * @return bool True on success
         */
-        virtual bool peerHungup (const CallID& id) = 0;
+        virtual bool peerHungup (const CallId& id) = 0;
 
         /**
          * Cancel the call dialing
          * @param id The call identifier
          * @return bool True on success
          */
-        virtual bool cancel (const CallID& id) = 0;
+        virtual bool cancel (const CallId& id) = 0;
 
         /**
          * Put a call on hold
          * @param id The call identifier
          * @return bool True on success
          */
-        virtual bool onhold (const CallID& id) = 0;
+        virtual bool onhold (const CallId& id) = 0;
 
         /**
          * Resume a call from hold state
          * @param id The call identifier
          * @return bool True on success
          */
-        virtual bool offhold (const CallID& id) = 0;
+        virtual bool offhold (const CallId& id) = 0;
 
         /**
          * Transfer a call to specified URI
@@ -155,14 +155,14 @@ class VoIPLink
          * @param to The recipient of the call
          * @return bool True on success
          */
-        virtual bool transfer (const CallID& id, const std::string& to) = 0;
+        virtual bool transfer (const CallId& id, const std::string& to) = 0;
 
         /**
          * Refuse incoming call
          * @param id The call identifier
          * @return bool True on success
          */
-        virtual bool refuse (const CallID& id) = 0;
+        virtual bool refuse (const CallId& id) = 0;
 
         /**
          * Send DTMF
@@ -170,19 +170,19 @@ class VoIPLink
          * @param code  The char code
          * @return bool True on success
          */
-        virtual bool carryingDTMFdigits (const CallID& id, char code) = 0;
+        virtual bool carryingDTMFdigits (const CallId& id, char code) = 0;
 
         /**
          * Set Recording
          * @param id The call identifier
          */
-        // virtual void setRecording(const CallID& id) = 0;
+        // virtual void setRecording(const CallId& id) = 0;
 
         /**
          * Return recording state
          * @param id The call identifier
          */
-        // virtual bool isRecording(const CallID& id) = 0;
+        // virtual bool isRecording(const CallId& id) = 0;
 
         /**
          * Return the codec protocol used for this call
@@ -207,7 +207,7 @@ class VoIPLink
          * @param id A Call ID
          * @return bool True if the call was correctly removed
          */
-        bool removeCall (const CallID& id);
+        bool removeCall (const CallId& id);
 
         /**
          * Remove all the call from the map
@@ -236,7 +236,7 @@ class VoIPLink
          * @param id A Call ID
          * @return Call*  Call pointer or 0
          */
-        Call* getCall (const CallID& id);
+        Call* getCall (const CallId& id);
 
     private:
         /**

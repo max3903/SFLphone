@@ -36,6 +36,7 @@
 #include <pj/string.h>
 #include <pj/ctype.h>
 #include <pj/array.h>
+#include <pj/log.h>
 
 /**
  * This structure describes SDP media negotiator.
@@ -52,6 +53,8 @@ struct pjmedia_sdp_neg
 			*active_remote_sdp, /**< Currently active remote's.  */
 			*neg_local_sdp,	    /**< Temporary local SDP.	     */
 			*neg_remote_sdp;    /**< Temporary remote SDP.	     */
+
+    pjsip_sdp_neg_callback cb; /**< The callback structure */
 };
 
 static const char *state_str[] = 
@@ -76,6 +79,19 @@ static const char *state_str[] =
 		  (p - fmtp.fmt_param.ptr) - param.slen); \
 	ival = pj_strtoul(&s); \
     } while (0)
+
+
+PJ_DEF(pj_status_t) pjmedia_sdp_neg_set_callback(pjmedia_sdp_neg *neg, const pjsip_sdp_neg_callback *cb, void * user_data)
+{
+    PJ_ASSERT_RETURN((neg && cb), PJ_EINVAL);
+
+    /* Copy param. */
+    pj_memcpy(&neg->cb, cb, sizeof(pjsip_sdp_neg_callback));
+
+    neg->cb.user_data = user_data;
+
+    return PJ_SUCCESS;
+}
 
 /*
  * Get string representation of negotiator state.
@@ -116,6 +132,8 @@ PJ_DEF(pj_status_t) pjmedia_sdp_neg_create_w_local_offer( pj_pool_t *pool,
     neg->initial_sdp = pjmedia_sdp_session_clone(pool, local);
     neg->neg_local_sdp = pjmedia_sdp_session_clone(pool, local);
 
+    pj_memset(&neg->cb, 0, sizeof(pjsip_sdp_neg_callback));
+
     *p_neg = neg;
     return PJ_SUCCESS;
 }
@@ -147,6 +165,8 @@ PJ_DEF(pj_status_t) pjmedia_sdp_neg_create_w_remote_offer(pj_pool_t *pool,
 
     neg->prefer_remote_codec_order = PJMEDIA_SDP_NEG_PREFER_REMOTE_CODEC_ORDER;
     neg->neg_remote_sdp = pjmedia_sdp_session_clone(pool, remote);
+
+    pj_memset(&neg->cb, 0, sizeof(pjsip_sdp_neg_callback));
 
     if (initial) {
 	PJ_ASSERT_RETURN((status=pjmedia_sdp_validate(initial))==PJ_SUCCESS, 
@@ -757,7 +777,8 @@ static pj_status_t amr_toggle_octet_align(pj_pool_t *pool,
 static pj_status_t process_m_answer( pj_pool_t *pool,
 				     pjmedia_sdp_media *offer,
 				     pjmedia_sdp_media *answer,
-				     pj_bool_t allow_asym)
+				     pj_bool_t allow_asym,
+				     pjmedia_sdp_neg *neg)
 {
     unsigned i;
 
@@ -857,7 +878,7 @@ static pj_status_t process_m_answer( pj_pool_t *pool,
 		}
 		pjmedia_sdp_attr_get_rtpmap(a, &or_);
 
-		/* Find paylaod in answer SDP with matching 
+		/* Find payload in answer SDP with matching
 		 * encoding name and clock rate.
 		 */
 		for (j=0; j<answer->desc.fmt_count; ++j) {
@@ -875,21 +896,32 @@ static pj_status_t process_m_answer( pj_pool_t *pool,
 			    (pj_stricmp(&or_.param, &ar.param)==0 ||
 			     (ar.param.slen==1 && *ar.param.ptr=='1')))
 			{
+				/* Let the user first check if the codec match */
+			    if (neg->cb.on_format_negotiation) {
+				    PJ_LOG(4, (__FILE__, "SDP format callback "
+				    		"specified by user. Calling the function ..."));
+			    	if (neg->cb.on_format_negotiation(offer, i,
+			    			answer, j, NULL, neg->cb.user_data)) {
+			    		break;
+			    	}
+			    }
+
 			    /* Further check for G7221, negotiate bitrate. */
 			    if (pj_stricmp2(&or_.enc_name, "G7221") == 0) {
-				if (match_g7221(offer, i, answer, j))
-				    break;
-			    } else
-			    /* Further check for AMR, negotiate fmtp. */
-			    if (pj_stricmp2(&or_.enc_name, "AMR") == 0 ||
-				pj_stricmp2(&or_.enc_name, "AMR-WB") == 0) 
-			    {
-				if (match_amr(offer, i, answer, j, PJ_FALSE, 
-					      NULL))
-				    break;
+			    	if (match_g7221(offer, i, answer, j))
+			    		break;
 			    } else {
-				/* Match! */
-				break;
+					/* Further check for AMR, negotiate fmtp. */
+					if (pj_stricmp2(&or_.enc_name, "AMR") == 0 ||
+					pj_stricmp2(&or_.enc_name, "AMR-WB") == 0)
+					{
+					if (match_amr(offer, i, answer, j, PJ_FALSE,
+							  NULL))
+						break;
+					} else {
+						/* Match! */
+						break;
+					}
 			    }
 			}
 		    }
@@ -950,7 +982,8 @@ static pj_status_t process_answer(pj_pool_t *pool,
 				  pjmedia_sdp_session *offer,
 				  pjmedia_sdp_session *answer,
 				  pj_bool_t allow_asym,
-				  pjmedia_sdp_session **p_active)
+				  pjmedia_sdp_session **p_active,
+				  pjmedia_sdp_neg *neg)
 {
     unsigned omi = 0; /* Offer media index */
     unsigned ami = 0; /* Answer media index */
@@ -975,7 +1008,7 @@ static pj_status_t process_answer(pj_pool_t *pool,
 	}
 
 	status = process_m_answer(pool, offer->media[omi], answer->media[ami],
-				  allow_asym);
+				  allow_asym, neg);
 
 	/* If media type is mismatched, just disable the media. */
 	if (status == PJMEDIA_SDPNEG_EINVANSMEDIA) {
@@ -1002,7 +1035,8 @@ static pj_status_t match_offer(pj_pool_t *pool,
 			       pj_bool_t prefer_remote_codec_order,
 			       const pjmedia_sdp_media *offer,
 			       const pjmedia_sdp_media *preanswer,
-			       pjmedia_sdp_media **p_answer)
+			       pjmedia_sdp_media **p_answer,
+			       pjmedia_sdp_neg* neg)
 {
     unsigned i;
     pj_bool_t master_has_codec = 0,
@@ -1104,7 +1138,7 @@ static pj_status_t match_offer(pj_pool_t *pool,
 		    is_codec = 1;
 		}
 		
-		/* Find paylaod in our initial SDP with matching 
+		/* Find payload in our initial SDP with matching
 		 * encoding name and clock rate.
 		 */
 		for (j=0; j<slave->desc.fmt_count; ++j) {
@@ -1124,6 +1158,27 @@ static pj_status_t match_offer(pj_pool_t *pool,
 			{
 			    /* Match! */
 			    if (is_codec) {
+				/* Let the user first check if the codec match */
+			    pjmedia_sdp_media* modified_preanswer = NULL;
+			    if (neg->cb.on_format_negotiation) {
+				    unsigned o_med_idx, a_med_idx;
+
+				    o_med_idx = prefer_remote_codec_order? i:j;
+				    a_med_idx = prefer_remote_codec_order? j:i;
+
+				    PJ_LOG(4, (__FILE__, "SDP format callback specified"
+				    		" by user. Calling the function ..."));
+			    	if (!neg->cb.on_format_negotiation(offer, o_med_idx,
+			    			preanswer, a_med_idx, &modified_preanswer,
+			    			neg->cb.user_data)) {
+			    		continue;
+			    	}
+
+			    	if (modified_preanswer) {
+			    		answer = modified_preanswer;
+			    	}
+			    }
+
 				/* Further check for G7221, negotiate bitrate */
 				if (pj_stricmp2(&or_.enc_name, "G7221") == 0 &&
 				    !match_g7221(master, i, slave, j))
@@ -1250,7 +1305,8 @@ static pj_status_t create_answer( pj_pool_t *pool,
 				  pj_bool_t prefer_remote_codec_order,
 				  const pjmedia_sdp_session *initial,
 				  const pjmedia_sdp_session *offer,
-				  pjmedia_sdp_session **p_answer)
+				  pjmedia_sdp_session **p_answer,
+				  pjmedia_sdp_neg* neg)
 {
     pj_status_t status = PJMEDIA_SDPNEG_ENOMEDIA;
     pj_bool_t has_active = PJ_FALSE;
@@ -1296,7 +1352,7 @@ static pj_status_t create_answer( pj_pool_t *pool,
 	    {
 		/* See if it has matching codec. */
 		status = match_offer(pool, prefer_remote_codec_order, 
-				     om, im, &am);
+				     om, im, &am, neg);
 		if (status == PJ_SUCCESS) {
 		    /* Mark media as used. */
 		    media_used[j] = 1;
@@ -1386,7 +1442,7 @@ PJ_DEF(pj_status_t) pjmedia_sdp_neg_negotiate( pj_pool_t *pool,
     if (neg->has_remote_answer) {
 	pjmedia_sdp_session *active;
 	status = process_answer(pool, neg->neg_local_sdp, neg->neg_remote_sdp,
-			        allow_asym, &active);
+			        allow_asym, &active, neg);
 	if (status == PJ_SUCCESS) {
 	    /* Only update active SDPs when negotiation is successfull */
 	    neg->active_local_sdp = active;
@@ -1398,7 +1454,7 @@ PJ_DEF(pj_status_t) pjmedia_sdp_neg_negotiate( pj_pool_t *pool,
 
 	status = create_answer(pool, neg->prefer_remote_codec_order, 
 			       neg->neg_local_sdp, neg->neg_remote_sdp,
-			       &answer);
+			       &answer, neg);
 	if (status == PJ_SUCCESS) {
 	    pj_uint32_t active_ver;
 

@@ -1,0 +1,194 @@
+<?xml version="1.0" ?>
+<node name="/org/sflphone/SFLphone">
+  <interface name="org.sflphone.SFLphone.VideoManager">
+      
+		<method name="enumerateDevices" tp:name-for-bindings="enumerateDevices">
+			<tp:added version="0.9.9"/>
+			<tp:docstring>
+			Retreive a printable list of all the video capture devices that are available.
+			</tp:docstring>
+			
+			<arg type="as" name="list" direction="out">
+			  <tp:docstring>
+			    The list of all the video capture devices that are available.
+			  </tp:docstring>
+			</arg>
+		</method>
+		
+		<method name="getResolutionForDevice" tp:name-for-bindings="getResolutionForDevice">
+			<tp:added version="0.9.9"/>
+			<tp:docstring>
+			Find out what resolutions are supported for this device.
+			</tp:docstring>
+			
+			<arg type="s" name="device" direction="in">
+			  <tp:docstring>
+			   The video device.
+			  </tp:docstring>
+			</arg>
+						
+			<arg type="a(ii)" name="list" direction="out">
+			  <tp:docstring>
+			  The list of supported resolutions. First field is width, the other is height.
+			  </tp:docstring>
+			</arg>
+		</method>
+		
+		<method name="getFrameRates" tp:name-for-bindings="getFrameRates">
+			<tp:added version="0.9.9"/>
+			<tp:docstring>
+			Find out what framerates are supported for a device under some resolution.
+			</tp:docstring>
+			
+			<arg type="s" name="device" direction="in">
+			  <tp:docstring>
+			   The video device.
+			  </tp:docstring>
+			</arg>
+			
+			<arg type="i" name="width" direction="in">
+			  <tp:docstring>
+			   The frame width.
+			  </tp:docstring>
+			</arg>
+			
+			<arg type="i" name="height" direction="in">
+			  <tp:docstring>
+			  The frame height.
+			  </tp:docstring>
+			</arg>
+					
+			<arg type="as" name="list" direction="out">
+			  <tp:docstring>
+			  The list of supported framerates.
+			  </tp:docstring>
+			</arg>
+		</method>
+		
+		<method name="startLocalCapture" tp:name-for-bindings="startLocalCapture">
+			<tp:added version="0.9.9"/>
+			<tp:docstring>
+			Start capturing frames from a specified video device and write to shared memory.
+			</tp:docstring>
+			
+			<arg type="s" name="device" direction="in">
+			  <tp:docstring>
+			   The video device to start capturing from.
+			  </tp:docstring>
+			</arg>
+			
+			<arg type="i" name="width" direction="in">
+			  <tp:docstring>
+			   The source width.
+			  </tp:docstring>
+			</arg>
+			
+			<arg type="i" name="height" direction="in">
+			  <tp:docstring>
+			   The source height.
+			  </tp:docstring>
+			</arg>
+			
+			<arg type="s" name="fps" direction="in">
+			  <tp:docstring>
+			   The preferred frame rate, expressed as a ratio.
+			  </tp:docstring>
+			</arg>
+			
+			<arg type="(ss)" name="path" direction="out">
+			  <tp:docstring>
+			  A path to the shared memory segment, followed by a token for referring to this request when calling stop.
+			  </tp:docstring>
+			</arg>
+		</method>  
+		
+		<method name="stopLocalCapture" tp:name-for-bindings="stopLocalCapture">
+			<tp:added version="0.9.9"/>
+			<tp:docstring>
+			Stop capturing video. This method merely declares to the daemon that the client won't need 
+			access to the shared memory segment anymore.
+			</tp:docstring>
+			
+			<arg type="s" name="device" direction="in">
+			  <tp:docstring>
+			   The video device to stop capturing from.
+			  </tp:docstring>
+			</arg>
+			
+			<arg type="s" name="token" direction="in">
+			  <tp:docstring>
+			  The token that was obtained when startLocalCapture() was called. 
+			  </tp:docstring>
+			</arg>
+		</method> 
+						
+		<method name="getEventFdPasserNamespace" tp:name-for-bindings="getEventFdPasserNamespace">
+			<tp:added version="0.9.9"/>
+			<tp:docstring>
+			Retreive the namespace of a running instance of a file descriptor passer in the UNIX domain. This so-called file descriptor passer
+			is only used for passing the fd corresponding to an eventfd() source. It would be possible with DBUS alone, but only 
+			starting from 1.3.
+			
+			</tp:docstring>
+			
+			<arg type="s" name="device" direction="in">
+			  <tp:docstring>
+			   The shared memory segment. (frame capture).
+			  </tp:docstring>
+			</arg>
+			
+			<arg type="s" name="path" direction="out">
+			  <tp:docstring>
+			  The namespace of a running instance of a file descriptor passer for the corresponding shm.
+			  Throws DBus::NoSuchShmException if the given shared memory segment can't be found.
+			  </tp:docstring>
+			</arg>
+		</method>   
+				
+		<method name="getShmInfo" tp:name-for-bindings="getShmInfo">
+			<tp:added version="0.9.9"/>
+			<tp:docstring>
+			Get the video format information for the frames that get written into the given shared memory segment.
+			</tp:docstring>
+			
+			<arg type="s" name="device" direction="in">
+			  <tp:docstring>
+				The path to an existing shared memory segment			  
+			  </tp:docstring>
+			</arg>
+			
+			<arg type="(uuu)" name="path" direction="out">
+			  <tp:docstring>
+			  A structure describing the shared memory segment. This one contains, in the following order : width, height, fourcc.
+			  Throws a NoSuchShmException if the given shm name cannot be found.
+			  </tp:docstring>
+			</arg>
+		</method> 	
+				
+	   <signal name="onNewRemoteVideoStream" tp:name-for-bindings="onNewRemoteVideoStream">
+	   	   <arg type="s" name="callId">
+			   <tp:docstring>
+			   An identifier for the call in which this video stream is part of.
+			   </tp:docstring>
+		   </arg>
+		   <arg type="s" name="shm">
+			   <tp:docstring>
+			   The path to the share memory region for accessing the remote video stream.
+			   </tp:docstring>
+		   </arg>
+	   </signal> 	
+	   
+	   <signal name="onRemoteVideoStreamStopped" tp:name-for-bindings="onRemoteVideoStreamStopped">
+	   	   <arg type="s" name="callId">
+			   <tp:docstring>
+			   An identifier for the call in which this video stream is part of.
+			   </tp:docstring>
+		   </arg>
+		   <arg type="s" name="shm">
+			   <tp:docstring>
+			   The path to the share memory region for accessing the remote video stream.
+			   </tp:docstring>
+		   </arg>
+	   </signal>						  
+  </interface>
+</node>

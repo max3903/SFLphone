@@ -105,6 +105,7 @@ class PulseLayer : public AudioLayer
          */
         int canGetMic();
 
+
         static void overflow (pa_stream* s, void* userdata);
         static void underflow (pa_stream* s, void* userdata);
         static void stream_state_callback (pa_stream* s, void* user_data);
@@ -192,6 +193,7 @@ class PulseLayer : public AudioLayer
         void processData (void);
 
         /**
+
          * Get the noise suppressor state
          * @return true if noise suppressor activated
          */
@@ -279,8 +281,6 @@ class PulseLayer : public AudioLayer
         int micVolume;
 
 
-        // ofstream *captureFile;
-        // ofstream *spkrFile;
 
         DeviceList _sinkList;
 

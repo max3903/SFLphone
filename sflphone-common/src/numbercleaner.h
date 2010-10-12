@@ -44,7 +44,7 @@ class NumberCleaner
 
         std::string clean (std::string to_clean);
 
-        inline void set_phone_number_prefix (std::string prefix) {
+        inline void setPhoneNumberPrefix (std::string prefix) {
             _debug ("Number: Set phone number prefix %s", _prefix.c_str());
             _prefix = prefix;
         }

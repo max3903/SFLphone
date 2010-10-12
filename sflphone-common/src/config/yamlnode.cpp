@@ -34,6 +34,7 @@
 namespace Conf
 {
 
+NullScalarNode* NullScalarNode::instance = 0;
 
 void YamlDocument::addNode (YamlNode *node)
 {
@@ -71,8 +72,19 @@ void MappingNode::removeKeyValue (Key key)
     map.erase (it);
 }
 
+ScalarNode* MappingNode::getScalarNode (Key key)
+{
+    Mapping::iterator it = map.find (key);
 
-YamlNode *MappingNode::getValue (Key key)
+    if (it != map.end()) {
+        return (Conf::ScalarNode *) (it->second);
+    } else {
+        _debug ("MappingNode: Could not find %s", key.c_str());
+        return (Conf::ScalarNode *) NullScalarNode::getInstance();
+    }
+}
+
+YamlNode* MappingNode::getValue (Key key)
 {
 
     Mapping::iterator it = map.find (key);

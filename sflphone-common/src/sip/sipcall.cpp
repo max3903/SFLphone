@@ -33,31 +33,208 @@
 
 #include "sipcall.h"
 #include "global.h" // for _debug
-#include "sdp.h"
+#include "sdp/sdp.h"
+#include "dbus/dbusmanager.h"
+#include "dbus/videomanager.h"
+#include "audio/audiortp/AudioRtpFactory.h"
+#include "sipaccount.h"
 
-SIPCall::SIPCall (const CallID& id, Call::CallType type, pj_pool_t *pool) : Call (id, type)
-        , _cid (0)
-        , _did (0)
-        , _tid (0)
-        , _audiortp (new sfl::AudioRtpFactory())
-        , _xferSub (NULL)
-        , _invSession (NULL)
-        , _local_sdp (0)
-{
-    _debug ("SIPCall: Create new call %s", id.c_str());
-
-    _local_sdp = new Sdp (pool);
+SipCall::SipCall(CallId id, Call::CallType type, SIPAccount* account) : Call(id, type) {
+	init(type, account);
 }
 
-SIPCall::~SIPCall()
-{
-    _debug ("SIPCall: Delete call");
-
-    delete _audiortp;
-    _audiortp = 0;
-    delete _local_sdp;
-    _local_sdp = 0;
+SipCall::SipCall(Call::CallType type, SIPAccount* account) :
+	Call(type) {
+	init(type, account);
 }
 
+void SipCall::init(Call::CallType type, SIPAccount* account)
+{
+	_debug("Creating new SIP call ... ");
 
+	// Init fields
+	_cid = 0;
+	_did = 0;
+	_tid = 0;
+	_audiortp = new sfl::AudioRtpFactory();
+	_xferSub = NULL;
+	_invSession = NULL;
+	_sdpSession = 0;
+	_account  = account;
+
+	_videoEnabled = account->isAlwaysOfferVideo();
+	_debug("Always offer video : %d", account->isAlwaysOfferVideo());
+
+	// By default, load the video settings from the account.
+	// Those could be overridden later.
+	 setVideoDevice(account->getPreferredVideoDevice());
+	_videoFormat = account->getPreferredVideoFormat();
+	_videoToken = "";
+
+	// Create an SDP object.
+	SipVoipLink* link = SipVoipLink::instance(account->getAccountID());
+	_sdpSession = new Sdp(link->getMemoryPool());
+
+	// Set the IP address
+	std::string addrSdp;
+	if (account->isStunEnabled()) {
+		addrSdp = account->getPublishedAddress();
+	} else {
+		addrSdp = link->getInterfaceAddrFromName(account->getLocalInterface());
+	}
+
+	if (addrSdp == "0.0.0.0") {
+		link->getLocalIp(&addrSdp);
+	}
+
+	setLocalIp(addrSdp);
+
+	_sdpSession->setIpAddress(addrSdp);
+
+	// Set the audio/video ports
+	unsigned int callLocalAudioPort = RANDOM_LOCAL_PORT;
+	unsigned int callLocalExternAudioPort = callLocalAudioPort;
+
+	if (account->isStunEnabled()) {
+		// If use Stun server
+		callLocalExternAudioPort = account->getStunPort();
+	}
+
+	// Set the audio ports
+	setLocalAudioPort(callLocalAudioPort);
+	setPublishedAudioPort(callLocalExternAudioPort);
+	_debug ("            Local audio port : %d", callLocalAudioPort);
+	_debug ("            Published audio port : %d", callLocalExternAudioPort);
+
+	// Add audio capabilities
+	_sdpSession->setLocalMediaCapabilities(MIME_TYPE_AUDIO,
+			account->getActiveAudioCodecs());
+
+	if (isVideoEnabled()) {
+		_debug("Video is enabled. Initializing video properties in new SIP call ...");
+		// Set the video ports
+		unsigned int callLocalVideoPort = RANDOM_LOCAL_PORT;
+		unsigned int callLocalExternVideoPort = callLocalVideoPort;
+
+		setLocalVideoPort(callLocalVideoPort);
+		setPublishedVideoPort(callLocalExternVideoPort);
+		_debug ("            Local video port : %d", callLocalVideoPort);
+		_debug ("            Published video port : %d", callLocalExternVideoPort);
+
+		// Add video capabilities
+		_sdpSession->setLocalMediaCapabilities(MIME_TYPE_VIDEO,
+				account->getActiveVideoCodecs());
+
+		// Add video format, might be required for some codecs to figure out some parameters.
+		_sdpSession->setVideoFormat(getVideoFormat());
+	}
+
+	_sdpSession->createLocalOffer();
+}
+
+SipCall::~SipCall() {
+	_debug ("SIPCall: Delete call");
+
+	delete _audiortp;
+	_audiortp = 0;
+	delete _sdpSession;
+	_sdpSession = 0;
+}
+
+int SipCall::getCid() {
+	return _cid;
+}
+
+void SipCall::setCid(int cid) {
+	_cid = cid;
+}
+
+int SipCall::getDid() {
+	return _did;
+}
+
+void SipCall::setDid(int did) {
+	_did = did;
+}
+
+int SipCall::getTid() {
+	return _tid;
+}
+
+void SipCall::setTid(int tid) {
+	_tid = tid;
+}
+
+void SipCall::setXferSub(pjsip_evsub* sub) {
+	_xferSub = sub;
+}
+
+pjsip_evsub* SipCall::getXferSub() {
+	return _xferSub;
+}
+
+void SipCall::setInvSession(pjsip_inv_session* inv) {
+	_invSession = inv;
+}
+
+pjsip_inv_session* SipCall::getInvSession() {
+	return _invSession;
+}
+
+void SipCall::setPublishedAudioPort(unsigned int port) {
+	Call::setPublishedAudioPort(port);
+	_sdpSession->setPublishedAudioPort(port);
+}
+
+void SipCall::setPublishedVideoPort(unsigned int port) {
+	Call::setPublishedVideoPort(port);
+	_sdpSession->setPublishedVideoPort(port);
+}
+
+Sdp* SipCall::getLocalSDP(void) {
+	return _sdpSession;
+}
+
+sfl::AudioRtpFactory* SipCall::getAudioRtp(void) {
+	return _audiortp;
+}
+
+bool SipCall::isVideoEnabled() {
+	return _videoEnabled;
+}
+
+void SipCall::setVideoDevice(const std::string& device) {
+	// Make sure that the device name still refers to an active video device
+	if (DBusManager::instance().getVideoManager()->hasDevice(_videoDevice) == false) {
+		_videoDevice = DBusManager::instance().getVideoManager()->getDefaultDevice();
+		_warn("Video device \"%s\" cannot be found. Using \"%s\" instead", device.c_str(), _videoDevice.c_str());
+	} else {
+		_videoDevice = device;
+	}
+}
+
+std::string SipCall::getVideoDevice()
+{
+	return _videoDevice;
+}
+
+void SipCall::setVideoFormat(sfl::VideoFormat format)
+{
+	_videoFormat = format;
+}
+
+sfl::VideoFormat SipCall::getVideoFormat()
+{
+	return _videoFormat;
+}
+
+void SipCall::setVideoToken(const std::string& token)
+{
+	_videoToken = token;
+}
+
+std::string SipCall::getVideoToken()
+{
+	return _videoToken;
+}
 

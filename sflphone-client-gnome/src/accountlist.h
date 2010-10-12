@@ -32,60 +32,9 @@
 #ifndef __ACCOUNTLIST_H__
 #define __ACCOUNTLIST_H__
 
+#include "account.h"
+
 #include <gtk/gtk.h>
-/** @file accountlist.h
-  * @brief A list to hold accounts.
-  */
-
-/** @enum account_state_t
-  * This enum have all the states an account can take.
-  */
-typedef enum {
-    /** Invalid state */
-    ACCOUNT_STATE_INVALID = 0,
-    /** The account is registered  */
-    ACCOUNT_STATE_REGISTERED,
-    /** The account is not registered */
-    ACCOUNT_STATE_UNREGISTERED,
-    /** The account is trying to register */
-    ACCOUNT_STATE_TRYING,
-    /** Error state. The account is not registered */
-    ACCOUNT_STATE_ERROR,
-    /** An authentification error occured. Wrong password or wrong username. The account is not registered */
-    ACCOUNT_STATE_ERROR_AUTH,
-    /** The network is unreachable. The account is not registered */
-    ACCOUNT_STATE_ERROR_NETWORK,
-    /** Host is unreachable. The account is not registered */
-    ACCOUNT_STATE_ERROR_HOST,
-    /** Stun server configuration error. The account is not registered */
-    ACCOUNT_STATE_ERROR_CONF_STUN,
-    /** Stun server is not existing. The account is not registered */
-    ACCOUNT_STATE_ERROR_EXIST_STUN,
-    /** IP profile status **/
-    IP2IP_PROFILE_STATUS
-} account_state_t;
-
-/** @struct account_t
-  * @brief Account information.
-  * This struct holds information about an account.  All values are stored in the
-  * properties GHashTable except the accountID and state.  This match how the
-  * server internally works and the dbus API to save and retrieve the accounts details.
-  *
-  * To retrieve the Alias for example, use g_hash_table_lookup(a->properties, ACCOUNT_ALIAS).
-  */
-
-typedef struct  {
-    gchar * accountID;
-    account_state_t state;
-    gchar * protocol_state_description;
-    guint protocol_state_code;
-    GHashTable * properties;
-    GPtrArray * credential_information;
-
-    /* The codec list */
-    GQueue *codecs;
-    guint _messages_number;
-} account_t;
 
 
 /**

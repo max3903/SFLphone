@@ -1946,6 +1946,20 @@ PJ_DEF(pj_status_t) pjsip_inv_set_sdp_answer( pjsip_inv_session *inv,
     return status;
 }
 
+/*
+ * Set SDP negotiator callbacks.
+ */
+PJ_DEF(pj_status_t) pjsip_inv_set_sdp_callback(pjsip_inv_session *inv,
+					      const pjsip_sdp_neg_callback *cb, void *user_data)
+{
+    pj_status_t status;
+
+    PJ_ASSERT_RETURN(inv && cb, PJ_EINVAL);
+
+    status = pjmedia_sdp_neg_set_callback(inv->neg, cb, user_data);
+
+    return status;
+}
 
 /*
  * End session.

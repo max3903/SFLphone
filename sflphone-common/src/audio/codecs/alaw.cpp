@@ -30,7 +30,7 @@
  */
 
 #include "../common.h"
-#include "audiocodec.h"
+#include "AudioCodec.h"
 
 class Alaw : public AudioCodec
 {
@@ -39,16 +39,24 @@ class Alaw : public AudioCodec
         // 8 PCMA A 8000 1 [RFC3551]
         Alaw (int payload=0)
                 : AudioCodec (payload, "PCMA") {
-            _clockRate = 8000;
-            _frameSize = 160; // samples, 20 ms at 8kHz
-            _channel   = 1;
-            _bitrate = 64;
-            _bandwidth = 80;
+            setClockRate (8000);
+            setChannel (1);
+            setFrameSize (160);
+            setBitrate (64);
+            setBandwidth (80);
+        }
+
+        Alaw (const Alaw& other) : AudioCodec (other) {
+            setClockRate (other.getClockRate());
+            setChannel (other.getChannel());
+            setFrameSize (other.getFrameSize());
+            setBitrate (other.getBitRate());
+            setBandwidth (other.getBandwidth());
         }
 
         virtual ~Alaw() {}
 
-        virtual int codecDecode (short *dst, unsigned char *src, unsigned int size) {
+        virtual int decode (short *dst, unsigned char *src, unsigned int size) {
             // _debug("Decoded by alaw ");
             int16* end = dst+size;
 
@@ -58,7 +66,7 @@ class Alaw : public AudioCodec
             return size<<1;
         }
 
-        virtual int codecEncode (unsigned char *dst, short *src, unsigned int size) {
+        virtual int encode (unsigned char *dst, short *src, unsigned int size) {
             // _debug("Encoded by alaw ");
             size >>= 1;
             uint8* end = dst+size;
@@ -130,16 +138,29 @@ class Alaw : public AudioCodec
 
             return a^0x55; // A-law has alternate bits inverted for transmission
         }
+        /**
+         * @Override
+         */
+        std::string getDescription() const {
+            return "audio/PCMA 8000 (\"alaw\") codec.";
+        }
+
+        /**
+         * @Override
+         */
+        Alaw* clone() const {
+            return new Alaw (*this);
+        }
 
 };
 
 // the class factories
-extern "C" AudioCodec* create()
+extern "C" sfl::Codec* create()
 {
     return new Alaw (8);
 }
 
-extern "C" void destroy (AudioCodec* a)
+extern "C" void destroy (sfl::Codec* a)
 {
     delete a;
 }

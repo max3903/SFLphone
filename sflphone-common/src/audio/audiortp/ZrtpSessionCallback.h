@@ -37,7 +37,7 @@
 #include <exception>
 #include <map>
 
-class SIPCall;
+class SipCall;
 class DBusManagerImpl;
 
 namespace sfl
@@ -53,7 +53,7 @@ class ZrtpSessionCallbackException: public std::exception
 class ZrtpSessionCallback: public ZrtpUserCallback
 {
     public:
-        ZrtpSessionCallback (SIPCall *sipcall);
+        ZrtpSessionCallback (SipCall *sipcall);
 
         void secureOn (std::string cipher);
         void secureOff (void);
@@ -64,7 +64,7 @@ class ZrtpSessionCallback: public ZrtpUserCallback
         void confirmGoClear();
 
     private:
-        SIPCall* _sipcall;
+        SipCall* _sipcall;
 
         static std::map<int32, std::string*> _infoMap;
         static std::map<int32, std::string*> _warningMap;

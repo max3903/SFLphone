@@ -65,7 +65,7 @@ using namespace sfl;
 class AudioSymmetricRtpSession;
 class AudioRtpSession;
 //class AudioRtpFactory;
-class SIPVoIPLink;
+class SipVoipLink;
 
 class RtpTest: public CppUnit::TestCase {
 
@@ -108,7 +108,7 @@ private:
 
 	AudioRtpFactory *audiortp;
 
-	SIPCall *sipcall;
+	SipCall *sipcall;
 
 	pj_caching_pool _cp;
 

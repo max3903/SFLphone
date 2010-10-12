@@ -61,7 +61,8 @@ PKG_CHECK_MODULES(DEPS,     \
     webkit-1.0              \
     libebook-1.2 >= 2.22	\
 	libgnomeui-2.0			\
-	gnome-doc-utils
+	gnome-doc-utils \
+	gdl-1.0
 )
 
 AC_SUBST(DEPS_CFLAGS)
@@ -83,6 +84,7 @@ src/dbus/Makefile
 src/contacts/Makefile
 src/contacts/addressbook/Makefile
 src/widget/Makefile
+src/util/Makefile
 src/icons/Makefile
 pixmaps/Makefile
 webkit/Makefile

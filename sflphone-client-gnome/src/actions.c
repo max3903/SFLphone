@@ -69,15 +69,17 @@ sflphone_notify_voice_mail (const gchar* accountID , guint count)
 
     DEBUG ("sflphone_notify_voice_mail begin");
 
-    if (g_strcasecmp (id, current_id) != 0 || account_list_get_size() == 0)
+    // We want to notify only the current account; ie the first in the list
+    id = g_strdup (accountID);
+    current_id = account_list_get_current_id ();
+
+    if (g_strcasecmp (id, current_id) != 0 || account_list_get_size () == 0) {
         return;
+    }
 
     // Set the number of voice messages for the current account
     current_account_set_message_number (count);
     current = account_list_get_current ();
-
-    // Update the voicemail tool button
-    update_voicemail_status ();
 
     if (current)
         notify_voice_mails (count, current);
@@ -331,7 +333,6 @@ gboolean sflphone_init()
         history = calltab_init (TRUE, HISTORY);
 
         account_list_init ();
-        codec_capabilities_load ();
         conferencelist_init ();
 
         // Fetch the configured accounts
@@ -349,10 +350,11 @@ gboolean sflphone_init()
 
 void sflphone_fill_ip2ip_profile (void)
 {
-    ip2ip_profile = (GHashTable *) dbus_get_ip2_ip_details();
+    ip2ip_profile = (GHashTable *) dbus_get_ip2_ip_details ();
 }
 
-void sflphone_get_ip2ip_properties (GHashTable **properties)
+void
+sflphone_get_ip2ip_properties (GHashTable **properties)
 {
     *properties	= ip2ip_profile;
 }
@@ -425,11 +427,10 @@ sflphone_hang_up()
     calltree_update_clock();
 }
 
-
 void
-sflphone_conference_hang_up()
+sflphone_conference_hang_up ()
 {
-    conference_obj_t * selectedConf = calltab_get_selected_conf();
+    conference_obj_t * selectedConf = calltab_get_selected_conf ();
 
     if (selectedConf)
         dbus_hang_up_conference (selectedConf);
@@ -732,9 +733,9 @@ sflphone_new_call()
 
     c->_history_state = OUTGOING;
 
-    calllist_add (current_calls,c);
+    calllist_add (current_calls, c);
     calltree_add_call (current_calls, c, NULL);
-    update_actions();
+    update_actions ();
 
     return c;
 }
@@ -1139,66 +1140,14 @@ void sflphone_fill_codec_list ()
 
 void sflphone_fill_codec_list_per_account (account_t **account)
 {
-
-    gchar **order;
-    gchar** pl;
-    GQueue *codeclist;
-    gboolean active = FALSE;
-
-    order = (gchar**) dbus_get_active_codec_list ( (*account)->accountID);
-
-    codeclist = (*account)->codecs;
-
-    // First clean the list
-    codec_list_clear (&codeclist);
-
-    if (! (*order))
-        ERROR ("SFLphone: No codec list provided");
-
-    for (pl=order; *pl; pl++) {
-        codec_t * cpy = NULL;
-
-        // Each account will have a copy of the system-wide capabilities
-        codec_create_new_from_caps (codec_list_get_by_payload ( (gconstpointer) (size_t) atoi (*pl), NULL), &cpy);
-
-        if (cpy) {
-            cpy->is_active = TRUE;
-            codec_list_add (cpy, &codeclist);
-        } else
-            ERROR ("SFLphone: Couldn't find codec");
-    }
-
-    // Test here if we just added some active codec.
-    active = (codeclist->length == 0) ? TRUE : FALSE;
-
-    guint caps_size = codec_list_get_size (), i=0;
-
-    for (i=0; i<caps_size; i++) {
-
-        codec_t * current_cap = capabilities_get_nth (i);
-
-        // Check if this codec has already been enabled for this account
-        if (codec_list_get_by_payload ( (gconstpointer) (size_t) (current_cap->_payload), codeclist) == NULL) {
-            // codec_t *cpy;
-            // codec_create_new_from_caps (current_cap, &cpy);
-            current_cap->is_active = active;
-            codec_list_add (current_cap, &codeclist);
-        } else {
-        }
-
-    }
-
-    (*account)->codecs = codeclist;
-
-    // call dbus function with array of strings
-    codec_list_update_to_daemon (*account);
-
+    codec_library_load_audio_codecs_by_account (*account);
 }
 
-void sflphone_fill_call_list (void)
+void
+sflphone_fill_call_list (void)
 {
 
-    gchar** calls = (gchar**) dbus_get_call_list();
+    gchar** calls = (gchar**) dbus_get_call_list ();
     gchar** pl;
     GHashTable *call_details;
     callable_obj_t *c;
@@ -1207,7 +1156,7 @@ void sflphone_fill_call_list (void)
     DEBUG ("sflphone_fill_call_list");
 
     if (calls) {
-        for (pl=calls; *calls; calls++) {
+        for (pl = calls; *calls; calls++) {
             c = g_new0 (callable_obj_t, 1);
             callID = (gchar*) (*calls);
             call_details = dbus_get_call_details (callID);
@@ -1221,6 +1170,7 @@ void sflphone_fill_call_list (void)
             calltree_add_call (current_calls, c, NULL);
         }
     }
+
 }
 
 
@@ -1257,7 +1207,8 @@ void sflphone_fill_conference_list (void)
     }
 }
 
-void sflphone_fill_history (void)
+void
+sflphone_fill_history (void)
 {
     GHashTable *entries;
     GHashTableIter iter;
@@ -1319,7 +1270,8 @@ void sflphone_fill_history (void)
     }
 }
 
-void sflphone_save_history (void)
+void
+sflphone_save_history (void)
 {
     GQueue *items;
     gint size;

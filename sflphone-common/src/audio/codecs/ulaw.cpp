@@ -29,58 +29,62 @@
  *  as that of the covered work.
  */
 
-
-
 #include "../common.h"
-#include "audiocodec.h"
+#include "AudioCodec.h"
 
-class Ulaw : public AudioCodec
+class Ulaw: public AudioCodec
 {
 
     public:
         // 0 PCMU A 8000 1 [RFC3551]
-        Ulaw (int payload=0)
-                : AudioCodec (payload, "PCMU") {
-            _clockRate = 8000;
-            _frameSize = 160; // samples, 20 ms at 8kHz
-            _channel   = 1;
-            _bitrate =  64;
-            _bandwidth = 80;
+        Ulaw (int payload = 0) :
+                AudioCodec (payload, "PCMU") {
+            setClockRate (8000);
+            setChannel (1);
+            setFrameSize (160);
+            setBitrate (64);
+            setBandwidth (80);
         }
 
-        virtual int codecDecode (short *dst, unsigned char *src, unsigned int size) {
-            // _debug("Decoded by ulaw");
-            int16* end = dst+size;
+        Ulaw (const Ulaw& other) : AudioCodec (other) {
+            setClockRate (other.getClockRate());
+            setChannel (other.getChannel());
+            setFrameSize (other.getFrameSize());
+            setBitrate (other.getBitRate());
+            setBandwidth (other.getBandwidth());
+        }
 
-            while (dst<end)
+        int decode (short *dst, unsigned char *src, unsigned int size) {
+            int16* end = dst + size;
+
+            while (dst < end)
                 *dst++ = ULawDecode (*src++);
 
-            return size<<1;
+            return size << 1;
         }
 
-        virtual int codecEncode (unsigned char *dst, short *src, unsigned int size) {
-            // _debug("Encoded by ulaw \n");
+        int encode (unsigned char *dst, short *src, unsigned int size) {
             size >>= 1;
-            uint8* end = dst+size;
+            uint8* end = dst + size;
 
-            while (dst<end)
+            while (dst < end)
                 *dst++ = ULawEncode (*src++);
 
             return size;
         }
 
         int ULawDecode (uint8 ulaw) {
-            ulaw ^= 0xff;  // u-law has all bits inverted for transmission
-            int linear = ulaw&0x0f;
+            ulaw ^= 0xff; // u-law has all bits inverted for transmission
+            int linear = ulaw & 0x0f;
             linear <<= 3;
-            linear |= 0x84;  // Set MSB (0x80) and a 'half' bit (0x04) to place PCM value in middle of range
+            linear |= 0x84; // Set MSB (0x80) and a 'half' bit (0x04) to place PCM value in middle of range
 
-            uint shift = ulaw>>4;
+            uint shift = ulaw >> 4;
             shift &= 7;
             linear <<= shift;
             linear -= 0x84; // Subract uLaw bias
 
-            if (ulaw&0x80)
+            if (ulaw & 0x80)
                 return -linear;
             else
                 return linear;
@@ -88,34 +92,34 @@ class Ulaw : public AudioCodec
 
         uint8 ULawEncode (int16 pcm16) {
             int p = pcm16;
-            uint u;  // u-law value we are forming
+            uint u; // u-law value we are forming
 
-            if (p<0) {
+            if (p < 0) {
                 p = ~p;
-                u = 0x80^0x10^0xff;  // Sign bit = 1 (^0x10 because this will get inverted later) ^0xff ^0xff to invert final u-Law code
+                u = 0x80 ^ 0x10 ^ 0xff; // Sign bit = 1 (^0x10 because this will get inverted later) ^0xff ^0xff to invert final u-Law code
             } else {
-                u = 0x00^0x10^0xff;  // Sign bit = 0 (-0x10 because this amount extra will get added later) ^0xff to invert final u-Law code
+                u = 0x00 ^ 0x10 ^ 0xff; // Sign bit = 0 (-0x10 because this amount extra will get added later) ^0xff to invert final u-Law code
             }
 
             p += 0x84; // Add uLaw bias
 
-            if (p>0x7f00)
-                p = 0x7f00;  // Clip to 15 bits
+            if (p > 0x7f00)
+                p = 0x7f00; // Clip to 15 bits
 
             // Calculate segment and interval numbers
-            p >>= 3;        // Shift down to 13bit
+            p >>= 3; // Shift down to 13bit
 
-            if (p>=0x100) {
+            if (p >= 0x100) {
                 p >>= 4;
                 u ^= 0x40;
             }
 
-            if (p>=0x40) {
+            if (p >= 0x40) {
                 p >>= 2;
                 u ^= 0x20;
             }
 
-            if (p>=0x20) {
+            if (p >= 0x20) {
                 p >>= 1;
                 u ^= 0x10;
             }
@@ -124,15 +128,28 @@ class Ulaw : public AudioCodec
 
             return u;
         }
+        /**
+         * @Override
+         */
+        std::string getDescription() const {
+            return "audio/PCMU 8000 (\"ulaw\") codec.";
+        }
+
+        /**
+         * @Override
+         */
+        Ulaw* clone() const {
+            return new Ulaw (*this);
+        }
 };
 
 // the class factories
-extern "C" AudioCodec* create()
+extern "C" sfl::Codec* create()
 {
     return new Ulaw (0);
 }
 
-extern "C" void destroy (AudioCodec* a)
+extern "C" void destroy (sfl::Codec* a)
 {
     delete a;
 }

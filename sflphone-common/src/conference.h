@@ -41,7 +41,7 @@
 
 typedef std::string ConfID;
 
-typedef std::set<CallID> ParticipantSet;
+typedef std::set<CallId> ParticipantSet;
 
 class Conference: public Recordable
 {
@@ -70,11 +70,11 @@ class Conference: public Recordable
             return _nbParticipant;
         }
 
-        void add (CallID participant_id);
+        void add (CallId participant_id);
 
-        void remove (CallID participant_id);
+        void remove (CallId participant_id);
 
-        void bindParticipant (CallID participant_id);
+        void bindParticipant (CallId participant_id);
 
         ParticipantSet getParticipantList();
 
@@ -87,7 +87,7 @@ class Conference: public Recordable
     private:
 
         /** Unique ID of the conference */
-        CallID _id;
+        CallId _id;
 
         ConferenceState _confState;
 

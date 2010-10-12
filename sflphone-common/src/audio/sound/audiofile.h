@@ -36,9 +36,10 @@
 
 #include <fstream>
 
+#include "audio/samplerateconverter.h"
 #include "audio/audioloop.h"
-#include "audio/codecs/audiocodec.h"
-#include "audio/codecs/codecDescriptor.h"
+#include "audio/codecs/AudioCodec.h"
+#include "CodecFactory.h"
 
 
 /**

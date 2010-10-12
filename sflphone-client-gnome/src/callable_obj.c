@@ -29,7 +29,7 @@
  */
 
 #include <callable_obj.h>
-#include <codeclist.h>
+#include <CodecList.h>
 #include <sflphone_const.h>
 #include <time.h>
 #include "contacts/calltree.h"
@@ -62,7 +62,8 @@ gint get_state_callstruct (gconstpointer a, gconstpointer b)
     }
 }
 
-gchar* call_get_peer_name (const gchar *format)
+gchar*
+call_get_peer_name (const gchar *format)
 {
     const gchar *end, *name;
 
@@ -78,7 +79,8 @@ gchar* call_get_peer_name (const gchar *format)
     }
 }
 
-gchar* call_get_peer_number (const gchar *format)
+gchar*
+call_get_peer_number (const gchar *format)
 {
     DEBUG ("    callable_obj: %s", format);
 
@@ -93,19 +95,20 @@ gchar* call_get_peer_number (const gchar *format)
     return number;
 }
 
-gchar* call_get_audio_codec (callable_obj_t *obj)
+gchar*
+call_get_audio_codec (callable_obj_t *obj)
 {
-    gchar *audio_codec = "";
-    codec_t *codec;
-    gchar *format ="";
-    int samplerate;
+
+    gchar* format = "";
 
     if (obj) {
-        audio_codec = dbus_get_current_codec_name (obj);
-        codec = codec_list_get_by_name (audio_codec, NULL);
+        gchar* audio_codec = dbus_get_current_codec_name (obj);
+
+        codec_library_t* library = codec_library_get_system_codecs ();
+        codec_t* codec = codec_library_get_codec_by_mime_subtype (library, audio_codec);
 
         if (codec) {
-            samplerate = codec->sample_rate;
+            uint32_t samplerate = codec->audio.clock_rate;
             format = g_markup_printf_escaped ("%s/%i", audio_codec, samplerate);
         }
     }
@@ -210,7 +213,6 @@ void stop_call_clock (callable_obj_t *c)
 
 void create_new_call (callable_type_t type, call_state_t state, gchar* callID , gchar* accountID, gchar* peer_name, gchar* peer_number, callable_obj_t ** new_call)
 {
-
     GError *err1 = NULL ;
     callable_obj_t *obj;
     gchar *call_id;
@@ -262,7 +264,9 @@ void create_new_call (callable_type_t type, call_state_t state, gchar* callID , 
     *new_call = obj;
 }
 
-void create_new_call_from_details (const gchar *call_id, GHashTable *details, callable_obj_t **call)
+void
+create_new_call_from_details (const gchar *call_id, GHashTable *details,
+                              callable_obj_t **call)
 {
     gchar *peer_name, *peer_number, *accountID, *state_str;
     callable_obj_t *new_call;
@@ -273,9 +277,11 @@ void create_new_call_from_details (const gchar *call_id, GHashTable *details, ca
     peer_name = g_hash_table_lookup (details, "DISPLAY_NAME");
     state_str = g_hash_table_lookup (details, "CALL_STATE");
 
-
     if (g_strcasecmp (state_str, "CURRENT") == 0)
         state = CALL_STATE_CURRENT;
+
+    else if (g_strcasecmp (state_str, "RINGING") == 0)
+        state = CALL_STATE_RINGING;
 
     else if (g_strcasecmp (state_str, "RINGING") == 0)
         state = CALL_STATE_RINGING;
@@ -283,12 +289,8 @@ void create_new_call_from_details (const gchar *call_id, GHashTable *details, ca
     else if (g_strcasecmp (state_str, "INCOMING") == 0)
         state = CALL_STATE_INCOMING;
 
-    else if (g_strcasecmp (state_str, "HOLD") == 0)
-        state = CALL_STATE_HOLD;
-
     else if (g_strcasecmp (state_str, "BUSY") == 0)
         state = CALL_STATE_BUSY;
-
     else
         state = CALL_STATE_FAILURE;
 
@@ -296,53 +298,60 @@ void create_new_call_from_details (const gchar *call_id, GHashTable *details, ca
     *call = new_call;
 }
 
-void create_history_entry_from_serialized_form (gchar *timestamp, gchar *details, callable_obj_t **call)
+void
+create_history_entry_from_serialized_form (gchar *timestamp, gchar *details,
+        callable_obj_t **call)
 {
-    gchar *peer_name="";
-    gchar *peer_number="", *accountID="", *time_stop="";
+    gchar *peer_name = "";
+    gchar *peer_number = "", *accountID = "", *time_stop = "";
     callable_obj_t *new_call;
     history_state_t history_state = MISSED;
     char **ptr;
-    const char *delim="|";
-    int token=0;
+    const char *delim = "|";
+    int token = 0;
 
     // details is in serialized form, i e: calltype%to%from%callid
 
-    if ( (ptr = g_strsplit (details, delim,5)) != NULL) {
+    if ( (ptr = g_strsplit (details, delim, 5)) != NULL) {
 
-        while (ptr != NULL && token < 5) {
+        if ( (ptr = g_strsplit (details, delim,5)) != NULL) {
 
-            switch (token) {
-                case 0:
-                    history_state = get_history_state_from_id (*ptr);
-                    break;
-                case 1:
-                    peer_number = *ptr;
-                    break;
-                case 2:
-                    peer_name = *ptr;
-                    break;
-                case 3:
-                    time_stop = *ptr;
-                    break;
-                case 4:
-                    accountID = *ptr;
-                    break;
-                default:
-                    break;
+            while (ptr != NULL && token < 5) {
+
+                switch (token) {
+                    case 0:
+                        history_state = get_history_state_from_id (*ptr);
+                        break;
+                    case 1:
+                        peer_number = *ptr;
+                        break;
+                    case 2:
+                        peer_name = *ptr;
+                        break;
+                    case 3:
+                        time_stop = *ptr;
+                        break;
+                    case 4:
+                        accountID = *ptr;
+                        break;
+                    default:
+                        break;
+                }
+
+                token++;
+                ptr++;
             }
-
-            token++;
-            ptr++;
 
         }
 
+        if (g_strcasecmp (peer_name, "empty") == 0)
+            peer_name="";
+
     }
 
-    if (g_strcasecmp (peer_name, "empty") == 0)
-        peer_name="";
 
-    create_new_call (HISTORY_ENTRY, CALL_STATE_DIALING, "", accountID, peer_name, peer_number, &new_call);
+    create_new_call (HISTORY_ENTRY, CALL_STATE_DIALING, "", accountID, peer_name,
+                     peer_number, &new_call);
     new_call->_history_state = history_state;
     new_call->_time_start = convert_gchar_to_timestamp (timestamp);
     new_call->_time_stop = convert_gchar_to_timestamp (time_stop);
@@ -350,7 +359,8 @@ void create_history_entry_from_serialized_form (gchar *timestamp, gchar *details
     *call = new_call;
 }
 
-void free_callable_obj_t (callable_obj_t *c)
+void
+free_callable_obj_t (callable_obj_t *c)
 {
     DEBUG ("CallableObj: Free callable object");
 
@@ -373,7 +383,8 @@ void attach_thumbnail (callable_obj_t *call, GdkPixbuf *pixbuf)
     call->_contact_thumbnail = pixbuf;
 }
 
-gchar* generate_call_id (void)
+gchar*
+generate_call_id (void)
 {
     gchar *call_id;
 
@@ -382,7 +393,8 @@ gchar* generate_call_id (void)
     return call_id;
 }
 
-gchar* get_peer_info (gchar* number, gchar* name)
+gchar*
+get_peer_info (gchar* number, gchar* name)
 {
     gchar *info;
 
@@ -395,11 +407,11 @@ history_state_t get_history_state_from_id (gchar *indice)
 
     history_state_t state;
 
-    if (g_strcasecmp (indice, "0") ==0)
+    if (g_strcasecmp (indice, "0") == 0)
         state = MISSED;
-    else if (g_strcasecmp (indice, "1") ==0)
+    else if (g_strcasecmp (indice, "1") == 0)
         state = INCOMING;
-    else if (g_strcasecmp (indice, "2") ==0)
+    else if (g_strcasecmp (indice, "2") == 0)
         state = OUTGOING;
     else
         state = MISSED;
@@ -407,7 +419,8 @@ history_state_t get_history_state_from_id (gchar *indice)
     return state;
 }
 
-gchar* get_call_duration (callable_obj_t *obj)
+gchar*
+get_call_duration (callable_obj_t *obj)
 {
 
     gchar *res;
@@ -438,7 +451,8 @@ gchar* get_call_duration (callable_obj_t *obj)
 
 }
 
-gchar* serialize_history_entry (callable_obj_t *entry)
+gchar*
+serialize_history_entry (callable_obj_t *entry)
 {
     // "0|514-276-5468|Savoir-faire Linux|144562458" for instance
 
@@ -464,7 +478,8 @@ gchar* serialize_history_entry (callable_obj_t *entry)
     return result;
 }
 
-gchar* get_history_id_from_state (history_state_t state)
+gchar*
+get_history_id_from_state (history_state_t state)
 {
     // Refer to history_state_t enum in callable_obj.h
     switch (state) {
@@ -514,7 +529,8 @@ gchar* get_formatted_start_timestamp (callable_obj_t *obj)
     return "";
 }
 
-void set_timestamp (time_t *timestamp)
+void
+set_timestamp (time_t *timestamp)
 {
     time_t tmp;
 
@@ -523,12 +539,14 @@ void set_timestamp (time_t *timestamp)
     *timestamp=tmp;
 }
 
-gchar* convert_timestamp_to_gchar (time_t timestamp)
+gchar*
+convert_timestamp_to_gchar (time_t timestamp)
 {
     return g_markup_printf_escaped ("%i", (int) timestamp);
 }
 
-time_t convert_gchar_to_timestamp (gchar *timestamp)
+time_t
+convert_gchar_to_timestamp (gchar *timestamp)
 {
     return (time_t) atoi (timestamp);
 }

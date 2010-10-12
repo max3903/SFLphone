@@ -37,6 +37,8 @@
 #include "sip/sipvoiplink.h"
 #include "sip/sipaccount.h"
 
+#include "CodecFactory.h"
+
 const char* ConfigurationManager::SERVER_PATH =
     "/org/sflphone/SFLphone/ConfigurationManager";
 
@@ -194,7 +196,7 @@ std::map<std::string, std::string> ConfigurationManager::getTlsSettings()
 
     std::map<std::string, std::string> tlsSettings;
 
-    SIPAccount *sipaccount = (SIPAccount *) Manager::instance().getAccount (IP2IP_PROFILE);
+    SIPAccount *sipaccount = static_cast<SIPAccount *>( Manager::instance().getAccount (IP2IP_PROFILE) );
 
     if (!sipaccount)
         return tlsSettings;
@@ -404,32 +406,6 @@ std::vector<std::string> ConfigurationManager::getRingtoneList()
     return ret;
 }
 
-/**
- * Send the list of all codecs loaded to the client through DBus.
- * Can stay global, as only the active codecs will be set per accounts
- */
-std::vector<std::string> ConfigurationManager::getCodecList (void)
-{
-
-    std::vector<std::string> list;
-
-    CodecsMap codecs = Manager::instance().getCodecDescriptorMap().getCodecsMap();
-    CodecsMap::iterator iter = codecs.begin();
-
-    while (iter != codecs.end()) {
-        std::stringstream ss;
-
-        if (iter->second != NULL) {
-            ss << iter->first;
-            list.push_back ( (ss.str()).data());
-        }
-
-        iter++;
-    }
-
-    return list;
-}
-
 std::vector<std::string> ConfigurationManager::getSupportedTlsMethod (void)
 {
     std::vector<std::string> method;
@@ -441,60 +417,292 @@ std::vector<std::string> ConfigurationManager::getSupportedTlsMethod (void)
     return method;
 }
 
-std::vector<std::string> ConfigurationManager::getCodecDetails (
-    const int32_t& payload)
+std::vector<std::string> ConfigurationManager::getAllAudioCodecMimeSubtypes (
+    void)
 {
-
-    return Manager::instance().getCodecDescriptorMap().getCodecSpecifications (
-               payload);
+    CodecFactory& factory = CodecFactory::getInstance();
+    return factory.getAllMimeSubtypes();
 }
 
-std::vector<std::string> ConfigurationManager::getActiveCodecList (
+DbusAudioCodec ConfigurationManager::getAudioCodecDetails (
+    const std::string& codecSubMimeType)
+{
+    CodecFactory& factory = CodecFactory::getInstance();
+    const sfl::Codec* codec = factory.getCodec (codecSubMimeType); // TODO Make sure that the codec does exists
+
+    DbusAudioCodec codecDescription;
+    codecDescription._1 = codec->hashCode();
+    codecDescription._2 = codec->getClockRate();
+    codecDescription._3 = codec->getPayloadType();
+    codecDescription._4 = codec->getMimeType();
+    codecDescription._5 = codec->getMimeSubtype();
+    codecDescription._6 = codec->getBitRate();
+    codecDescription._7 = codec->getBandwidth();
+    codecDescription._8 = codec->getDescription();
+
+    return codecDescription;
+}
+
+std::vector<DbusAudioCodec> ConfigurationManager::getAllAudioCodecs()
+{
+    std::vector<DbusAudioCodec> output;
+
+    CodecFactory& factory = CodecFactory::getInstance();
+
+    std::vector<const AudioCodec*> codecs = factory.getAllAudioCodecs();
+    std::vector<const AudioCodec*>::iterator it;
+
+    for (it = codecs.begin(); it != codecs.end(); it++) {
+        const AudioCodec* codec = (*it);
+
+        DbusAudioCodec codecDescription;
+        codecDescription._1 = codec->hashCode();
+        codecDescription._2 = codec->getClockRate();
+        codecDescription._3 = codec->getPayloadType();
+        codecDescription._4 = codec->getMimeType();
+        codecDescription._5 = codec->getMimeSubtype();
+        codecDescription._6 = codec->getBitRate();
+        codecDescription._7 = codec->getBandwidth();
+        codecDescription._8 = codec->getDescription();
+
+        output.push_back (codecDescription);
+    }
+
+    return output;
+}
+
+std::vector<DbusAudioCodec> ConfigurationManager::getAllVideoCodecs()
+{
+    std::vector<DbusAudioCodec> output;
+
+    CodecFactory& factory = CodecFactory::getInstance();
+
+    std::vector<const sfl::VideoCodec*> codecs = factory.getAllVideoCodecs();
+    std::vector<const sfl::VideoCodec*>::iterator it;
+
+    for (it = codecs.begin(); it != codecs.end(); it++) {
+        const sfl::VideoCodec* codec = (*it);
+
+        DbusAudioCodec codecDescription;
+        codecDescription._1 = codec->hashCode();
+        codecDescription._2 = codec->getClockRate();
+        codecDescription._3 = codec->getPayloadType();
+        codecDescription._4 = codec->getMimeType();
+        codecDescription._5 = codec->getMimeSubtype();
+        codecDescription._6 = codec->getBitRate();
+        codecDescription._7 = codec->getBandwidth();
+        codecDescription._8 = codec->getDescription();
+
+        output.push_back (codecDescription);
+    }
+
+    return output;
+}
+
+std::vector<DbusAudioCodec> ConfigurationManager::getAllActiveAudioCodecs (
     const std::string& accountID)
 {
+    _info ("Sending active codec list for account \"%s\" ...", accountID.c_str ());
 
-    _debug ("Send active codec list for account %s", accountID.c_str ());
+    CodecFactory& factory = CodecFactory::getInstance();
+    CodecOrder audioCodecOrder = factory.getDefaultAudioCodecOrder();
 
-    std::vector<std::string> v;
-    Account *acc;
-    CodecOrder active;
-    unsigned int i = 0;
-    size_t size;
+    Account* account = Manager::instance().getAccount (accountID);
 
-    acc = Manager::instance().getAccount (accountID);
+    if (account != NULL) {
+        audioCodecOrder = account->getActiveAudioCodecs();
+    } else {
+        _error ("Could not return active codec list for non-existing account id \"%s\". Sending audio defaults.", accountID.c_str());
+    }
 
-    if (acc != NULL) {
-        active = acc->getActiveCodecs();
-        size = active.size();
+    _info ("Account \"%s\" has %d active audio codecs.", accountID.c_str(), audioCodecOrder.size());
 
-        while (i < size) {
-            std::stringstream ss;
-            ss << active[i];
-            v.push_back ( (ss.str()).data());
-            i++;
+    std::vector<DbusAudioCodec> output;
+    CodecOrder::iterator it;
+
+    for (it = audioCodecOrder.begin(); it != audioCodecOrder.end(); it++) {
+        const AudioCodec* codec =
+            static_cast<const AudioCodec*> (factory.getCodec ( (*it)));
+
+        if (codec != NULL) { // TODO Catch exception instead
+
+            DbusAudioCodec codecDescription;
+            codecDescription._1 = codec->hashCode();
+            codecDescription._2 = codec->getClockRate();
+            codecDescription._3 = codec->getPayloadType();
+            codecDescription._4 = codec->getMimeType();
+            codecDescription._5 = codec->getMimeSubtype();
+            codecDescription._6 = codec->getBitRate();
+            codecDescription._7 = codec->getBandwidth();
+            codecDescription._8 = codec->getDescription();
+
+            output.push_back (codecDescription);
+            _debug ("Sending \"%s\" (id \"%s\")", codec->getMimeSubtype().c_str(), codec->hashCode().c_str());
         }
     }
 
-    return v;
-
+    return output;
 }
 
-void ConfigurationManager::setActiveCodecList (
-    const std::vector<std::string>& list, const std::string& accountID)
+std::vector<DbusAudioCodec> ConfigurationManager::getAllActiveVideoCodecs (
+    const std::string& accountID)
 {
+    _info ("Sending active video codec list for account \"%s\" ...", accountID.c_str ());
 
-    _debug ("ConfigurationManager: Active codec list received");
+    CodecFactory& factory = CodecFactory::getInstance();
+    CodecOrder videoCodecOrder = factory.getDefaultVideoCodecOrder();
 
-    Account *acc;
+    Account* account = Manager::instance().getAccount (accountID);
 
-    // Save the codecs list per account
-    acc = Manager::instance().getAccount (accountID);
-
-    if (acc != NULL) {
-        acc->setActiveCodecs (list);
+    if (account != NULL) {
+        videoCodecOrder = account->getActiveVideoCodecs();
+    } else {
+        _error ("Could not return active codec list for non-existing account id \"%s\". Sending video defaults.", accountID.c_str());
     }
+
+    _info ("Account \"%s\" has %d active video codecs.", accountID.c_str(), videoCodecOrder.size());
+
+    std::vector<DbusAudioCodec> output;
+    CodecOrder::iterator it;
+
+    for (it = videoCodecOrder.begin(); it != videoCodecOrder.end(); it++) {
+        const sfl::VideoCodec* codec =
+            dynamic_cast<const sfl::VideoCodec*> (factory.getCodec ( (*it)));
+
+        if (codec != NULL) { // TODO Catch exception instead
+
+            DbusAudioCodec codecDescription;
+            codecDescription._1 = codec->hashCode();
+            codecDescription._2 = codec->getClockRate();
+            codecDescription._3 = codec->getPayloadType();
+            codecDescription._4 = codec->getMimeType();
+            codecDescription._5 = codec->getMimeSubtype();
+            codecDescription._6 = codec->getBitRate();
+            codecDescription._7 = codec->getBandwidth();
+            codecDescription._8 = codec->getDescription();
+
+            output.push_back (codecDescription);
+            _debug ("Sending \"%s\" (id \"%s\")", codec->getMimeSubtype().c_str(), codec->hashCode().c_str());
+        }
+    }
+
+    return output;
 }
 
+void ConfigurationManager::setActiveAudioCodecs (
+    const std::vector<std::string>& codecIdentifiers,
+    const std::string& accountID)
+{
+    _info ("Setting audio codecs for account id \"%s\"", accountID.c_str());
+
+    // Set the new codec order.
+    Account* account = Manager::instance().getAccount (accountID);
+
+    if (!account) {
+        _error ("Account id \"%s\" cannot be found.", accountID.c_str());
+        return;
+    }
+
+    // Create a CodecOrder object from the hash codes contained in the structures.
+    CodecOrder ordering;
+
+    std::vector<std::string>::const_iterator it;
+
+    for (it = codecIdentifiers.begin(); it != codecIdentifiers.end(); it++) {
+        _debug ("Setting codec ID \"%s\" for account \"%s\"", (*it).c_str(), accountID.c_str());
+        ordering.push_back ( (*it));
+    }
+
+    account->setActiveAudioCodecs (ordering);
+}
+
+void ConfigurationManager::setActiveVideoCodecs (
+    const std::vector<std::string>& codecIdentifiers,
+    const std::string& accountID)
+{
+    _info ("Setting video codecs for account id \"%s\"", accountID.c_str());
+
+    // Create a CodecOrder object from the hash codes contained in the structures.
+    CodecOrder ordering;
+
+    std::vector<std::string>::const_iterator it;
+
+    for (it = codecIdentifiers.begin(); it != codecIdentifiers.end(); it++) {
+        _debug ("Setting video codec ID \"%s\" for account \"%s\"", (*it).c_str(), accountID.c_str());
+        ordering.push_back ( (*it));
+    }
+
+    // Set the new codec order.
+    Account* account = Manager::instance().getAccount (accountID);
+
+    if (!account) {
+        _error ("Account id \"%s\" cannot be found.", accountID.c_str());
+        return;
+    }
+
+    account->setActiveVideoCodecs (ordering);
+}
+
+
+
+void ConfigurationManager::setVideoSettings (const std::string& accountID, const DbusVideoSettings& settings) throw (DBus::NonexistentAccountException)
+{
+    Account* account = Manager::instance().getAccount (accountID);
+
+    if (!account) {
+        throw DBus::NonexistentAccountException (accountID);
+    }
+
+    VideoSettings videoSettings (settings);
+
+    // Always offer video
+    _debug ("Settings video parameters for account %s : always offer video : %d", accountID.c_str(), videoSettings.alwaysOfferVideo);
+    account->setAlwaysOfferVideo (videoSettings.alwaysOfferVideo);
+
+    // Video device name
+    _debug ("Settings video parameters for account %s : preferred device name : %s", accountID.c_str(), videoSettings.device.c_str());
+    account->setPreferredVideoDevice (videoSettings.device);
+
+    // Video format
+    sfl::VideoFormat format;
+    _debug ("Settings video parameters for account %s : preferred framerate : %d/%d", accountID.c_str(), videoSettings.framerate.numerator, videoSettings.framerate.denominator);
+    format.setFramerate (videoSettings.framerate.numerator, videoSettings.framerate.denominator);
+
+    _debug ("Settings video parameters for account %s : preferred resolution : %d x %d", accountID.c_str(), videoSettings.resolution.width, videoSettings.resolution.height);
+    format.setWidth (videoSettings.resolution.width);
+    format.setHeight (videoSettings.resolution.height);
+
+    account->setPreferredVideoFormat (format);
+}
+
+DbusVideoSettings ConfigurationManager::getVideoSettings (const std::string& accountID) throw (DBus::NonexistentAccountException)
+{
+    Account* account = Manager::instance().getAccount (accountID);
+
+    if (!account) {
+        throw DBus::NonexistentAccountException (accountID);
+    }
+
+    // Build a VideoSettings structure.
+    VideoSettings videoSettings;
+    sfl::VideoFormat format = account->getPreferredVideoFormat();
+    videoSettings.resolution.width = format.getWidth();
+    videoSettings.resolution.height = format.getHeight();
+    videoSettings.framerate.numerator = format.getPreferredFrameRate().getNumerator();
+    videoSettings.framerate.denominator = format.getPreferredFrameRate().getDenominator();
+    videoSettings.device = account->getPreferredVideoDevice();
+    videoSettings.alwaysOfferVideo = account->isAlwaysOfferVideo();
+
+    return videoSettings.toDbusType();
+}
+
+
+void ConfigurationManager::setAudioPlugin (const std::string& audioPlugin)
+{
+    _debug ("ConfigurationManager: Set audio plugin %s", audioPlugin.c_str());
+
+    return Manager::instance().setAudioPlugin (audioPlugin);
+}
 
 std::vector<std::string> ConfigurationManager::getAudioPluginList()
 {
@@ -508,13 +716,6 @@ std::vector<std::string> ConfigurationManager::getAudioPluginList()
     return v;
 }
 
-
-void ConfigurationManager::setAudioPlugin (const std::string& audioPlugin)
-{
-    _debug ("ConfigurationManager: Set audio plugin %s", audioPlugin.c_str());
-
-    return Manager::instance().setAudioPlugin (audioPlugin);
-}
 
 std::vector<std::string> ConfigurationManager::getAudioOutputDeviceList()
 {
@@ -770,7 +971,7 @@ std::string ConfigurationManager::getAddrFromInterfaceName (
     const std::string& interface)
 {
 
-    std::string address = SIPVoIPLink::instance ("")->getInterfaceAddrFromName (
+    std::string address = SipVoipLink::instance ("")->getInterfaceAddrFromName (
                               interface);
 
     return address;
@@ -780,8 +981,8 @@ std::vector<std::string> ConfigurationManager::getAllIpInterface (void)
 {
 
     std::vector<std::string> vector;
-    SIPVoIPLink * sipLink = NULL;
-    sipLink = SIPVoIPLink::instance ("");
+    SipVoipLink * sipLink = NULL;
+    sipLink = SipVoipLink::instance ("");
 
     if (sipLink != NULL) {
         vector = sipLink->getAllIpInterface();
@@ -793,8 +994,8 @@ std::vector<std::string> ConfigurationManager::getAllIpInterface (void)
 std::vector<std::string> ConfigurationManager::getAllIpInterfaceByName (void)
 {
     std::vector<std::string> vector;
-    SIPVoIPLink * sipLink = NULL;
-    sipLink = SIPVoIPLink::instance ("");
+    SipVoipLink * sipLink = NULL;
+    sipLink = SipVoipLink::instance ("");
 
     if (sipLink != NULL) {
         vector = sipLink->getAllIpInterfaceByName();
@@ -806,14 +1007,12 @@ std::vector<std::string> ConfigurationManager::getAllIpInterfaceByName (void)
 
 std::map<std::string, std::string> ConfigurationManager::getShortcuts()
 {
-
     return Manager::instance().shortcutPreferences.getShortcuts();
 }
 
 void ConfigurationManager::setShortcuts (
     const std::map<std::string, std::string>& shortcutsMap)
 {
-
     std::map<std::string, std::string> map_cpy = shortcutsMap;
     /*
       std::map<std::string, std::string> map_cpy = shortcutsMap;
@@ -832,4 +1031,3 @@ void ConfigurationManager::setShortcuts (
 
     Manager::instance().saveConfig();
 }
-

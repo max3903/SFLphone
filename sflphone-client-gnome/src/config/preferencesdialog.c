@@ -30,7 +30,6 @@
  *  shall include the source code for the parts of OpenSSL used as well
  *  as that of the covered work.
  */
-
 #include <gtk/gtk.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -51,7 +50,6 @@
 gboolean accDialogOpen = FALSE;
 gboolean dialogOpen = FALSE;
 gboolean ringtoneEnabled = TRUE;
-
 
 GtkWidget * status;
 GtkWidget * history_value;
@@ -335,8 +333,6 @@ selection_changed_cb (GtkIconView *view, gpointer user_data UNUSED)
     g_list_foreach (list, (GFunc) gtk_tree_path_free, NULL);
     g_list_free (list);
 }
-
-
 
 /**
  * Show configuration window with tabs

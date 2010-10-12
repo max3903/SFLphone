@@ -53,8 +53,7 @@
 #include "audio/sound/tonelist.h"  // for Tone::TONEID declaration
 #include "audio/sound/audiofile.h"
 #include "audio/sound/dtmf.h" // DTMF class contained by value here
-#include "audio/codecs/codecDescriptor.h" // CodecDescriptor class contained by value here
-
+#include "CodecFactory.h" // CodecFactory class contained by value here
 #include "audio/mainbuffer.h"
 #include "yamlemitter.h"
 #include "yamlparser.h"
@@ -79,25 +78,25 @@ class SIPAccount;
 /** Define a type for a AccountMap container */
 typedef std::map<AccountID, Account*> AccountMap;
 
-/** Define a type for a CallID to AccountID Map inside ManagerImpl */
-typedef std::map<CallID, AccountID> CallAccountMap;
+/** Define a type for a CallId to AccountID Map inside ManagerImpl */
+typedef std::map<CallId, AccountID> CallAccountMap;
 
-typedef std::map<CallID, Call::CallConfiguration> CallConfigMap;
+typedef std::map<CallId, Call::CallConfiguration> CallConfigMap;
 
-/** Define a type for CallID vector (waiting list, incoming not answered) */
-typedef std::set<CallID> CallIDSet;
+/** Define a type for CallId vector (waiting list, incoming not answered) */
+typedef std::set<CallId> CallIdSet;
 
 /** To send multiple string */
 typedef std::list<std::string> TokenList;
 
 /** To store conference objects by call ids
     used to retreive the conference according to a call */
-typedef std::map<CallID, Conference*> ConferenceCallMap;
+typedef std::map<CallId, Conference*> ConferenceCallMap;
 
 /** To store conference objects by conference ids */
-typedef std::map<CallID, Conference*> ConferenceMap;
+typedef std::map<CallId, Conference*> ConferenceMap;
 
-static CallID default_conf = "conf";
+static CallId default_conf = "conf";
 
 static char * mapStateToChar[] = {
     (char*) "UNREGISTERED",
@@ -182,13 +181,6 @@ class ManagerImpl
             return _audiodriver;
         }
 
-        /**
-         * Get a descriptor map of codec available
-         * @return CodecDescriptor  The internal codec map
-         */
-        CodecDescriptor& getCodecDescriptorMap (void) {
-            return _codecDescriptorMap;
-        }
 
         /**
          * Functions which occur with a user's action
@@ -199,21 +191,21 @@ class ManagerImpl
          * @return bool true on success
          *		  false otherwise
          */
-        bool outgoingCall (const AccountID& accountId, const CallID& id, const std::string& to);
+        bool outgoingCall (const AccountID& accountId, const CallId& id, const std::string& to);
 
         /**
          * Functions which occur with a user's action
          * Answer the call
          * @param id  The call identifier
          */
-        bool answerCall (const CallID& id);
+        bool answerCall (const CallId& id);
 
         /**
          * Functions which occur with a user's action
          * Hangup the call
          * @param id  The call identifier
          */
-        bool hangupCall (const CallID& id);
+        bool hangupCall (const CallId& id);
 
 
         /**
@@ -228,21 +220,21 @@ class ManagerImpl
          * Cancel the call
          * @param id  The call identifier
          */
-        bool cancelCall (const CallID& id);
+        bool cancelCall (const CallId& id);
 
         /**
          * Functions which occur with a user's action
          * Put the call on hold
          * @param id  The call identifier
          */
-        bool onHoldCall (const CallID& id);
+        bool onHoldCall (const CallId& id);
 
         /**
          * Functions which occur with a user's action
          * Put the call off hold
          * @param id  The call identifier
          */
-        bool offHoldCall (const CallID& id);
+        bool offHoldCall (const CallId& id);
 
         /**
          * Functions which occur with a user's action
@@ -250,7 +242,7 @@ class ManagerImpl
          * @param id  The call identifier
          * @param to  The recipient of the transfer
          */
-        bool transferCall (const CallID& id, const std::string& to);
+        bool transferCall (const CallId& id, const std::string& to);
 
         /**
          * Notify the client the transfer is successful
@@ -267,83 +259,83 @@ class ManagerImpl
          * Refuse the call
          * @param id  The call identifier
          */
-        bool refuseCall (const CallID& id);
+        bool refuseCall (const CallId& id);
 
         /**
          * Create a new conference given two participant
          * @param the first participant ID
          * @param the second participant ID
          */
-        Conference* createConference (const CallID& id1, const CallID& id2);
+        Conference* createConference (const CallId& id1, const CallId& id2);
 
         /**
          * Delete this conference
          * @param the conference ID
          */
-        void removeConference (const CallID& conference_id);
+        void removeConference (const CallId& conference_id);
 
         /**
          * Return the conference id for which this call is attached
          * @ param the call id
          */
-        Conference* getConferenceFromCallID (const CallID& call_id);
+        Conference* getConferenceFromCallId (const CallId& call_id);
 
         /**
          * Hold every participant to a conference
          * @param the conference id
          */
-        void holdConference (const CallID& conferece_id);
+        void holdConference (const CallId& conferece_id);
 
         /**
          * Unhold all conference participants
          * @param the conference id
          */
-        void unHoldConference (const CallID& conference_id);
+        void unHoldConference (const CallId& conference_id);
 
         /**
          * Test if this id is a conference (usefull to test current call)
          * @param the call id
          */
-        bool isConference (const CallID& call_id);
+        bool isConference (const CallId& call_id);
 
         /**
          * Test if a call id particips to this conference
          * @param the call id
          */
-        bool participToConference (const CallID& call_id);
+        bool participToConference (const CallId& call_id);
 
         /**
          * Add a participant to a conference
          * @param the call id
          * @param the conference id
          */
-        void addParticipant (const CallID& call_id, const CallID& conference_id);
+        void addParticipant (const CallId& call_id, const CallId& conference_id);
 
         /**
          * Bind the main participant to a conference (mainly called on a double click action)
          * @param the conference id
          */
-        void addMainParticipant (const CallID& conference_id);
+        void addMainParticipant (const CallId& conference_id);
 
         /**
          * Join two participants to create a conference
          * @param the fist call id
          * @param the second call id
          */
-        void joinParticipant (const CallID& call_id1, const CallID& call_id2);
+        void joinParticipant (const CallId& call_id1, const CallId& call_id2);
 
         /**
          * Detach a participant from a conference, put the call on hold, do not hangup it
          * @param call id
          * @param the current call id
          */
-        void detachParticipant (const CallID& call_id, const CallID& current_call_id);
+        void detachParticipant (const CallId& call_id, const CallId& current_call_id);
 
         /**
          * Remove the conference participant from a conference
          * @param call id
          */
-        void removeParticipant (const CallID& call_id);
+        void removeParticipant (const CallId& call_id);
 
         /**
          * Process remaining participant given a conference and the current call id.
@@ -351,16 +343,16 @@ class ManagerImpl
          * @param current call id
          * @param conference pointer
          */
-        void processRemainingParticipant (CallID current_call_id, Conference *conf);
+        void processRemainingParticipant (CallId current_call_id, Conference *conf);
 
         /**
          * Join two conference together into one unique conference
          */
-        void joinConference (const CallID& conf_id1, const CallID& conf_id2);
+        void joinConference (const CallId& conf_id1, const CallId& conf_id2);
 
-        void addStream (const CallID& call_id);
+        void addStream (const CallId& call_id);
 
-        void removeStream (const CallID& call_id);
+        void removeStream (const CallId& call_id);
 
         /**
          * Save config to file
@@ -386,7 +378,7 @@ class ManagerImpl
          * @param   id: callid of the line.
          * @param   code: pressed key.
          */
-        bool sendDtmf (const CallID& id, char code);
+        bool sendDtmf (const CallId& id, char code);
 
         /**
          * Play the dtmf-associated sound
@@ -427,27 +419,27 @@ class ManagerImpl
          * call in Current state
          * @param id  The call identifier
          */
-        void peerAnsweredCall (const CallID& id);
+        void peerAnsweredCall (const CallId& id);
 
         /**
          * Rings back because the outgoing call is ringing and the put the
          * call in Ringing state
          * @param id  The call identifier
          */
-        void peerRingingCall (const CallID& id);
+        void peerRingingCall (const CallId& id);
 
         /**
          * Put the call in Hungup state, remove the call from the list
          * @param id  The call identifier
          */
-        void peerHungupCall (const CallID& id);
+        void peerHungupCall (const CallId& id);
 
         /**
          * Notify the client with an incoming message
          * @param accountId	The account identifier
          * @param message The content of the message
          */
-        void incomingMessage (const CallID& callID, const std::string& from, const std::string& message);
+        void incomingMessage (const CallId& callID, const std::string& from, const std::string& message);
 
 
         /**
@@ -456,7 +448,7 @@ class ManagerImpl
          * @param message	The content of the message
         * @param from	        The sender of this message (could be another participant of a conference)
          */
-        bool sendTextMessage (const CallID& callID, const std::string& message, const std::string& from);
+        bool sendTextMessage (const CallId& callID, const std::string& message, const std::string& from);
 
         /**
          * Notify the client he has voice mails
@@ -510,7 +502,7 @@ class ManagerImpl
          * @param callID	  The account identifier
          * @return std::map< std::string, std::string > The call details
          */
-        std::map< std::string, std::string > getCallDetails (const CallID& callID);
+        std::map< std::string, std::string > getCallDetails (const CallId& callID);
 
         /**
          * Get call list
@@ -523,7 +515,7 @@ class ManagerImpl
          * @param callID	  The account identifier
          * @return std::map< std::string, std::string > The call details
          */
-        std::map< std::string, std::string > getConferenceDetails (const CallID& callID);
+        std::map< std::string, std::string > getConferenceDetails (const CallId& callID);
 
         /**
          * Get call list
@@ -574,7 +566,7 @@ class ManagerImpl
          * @param call id
          * @return std::string The codec name
          */
-        std::string getCurrentCodecName (const CallID& id);
+        std::string getCurrentCodecName (const CallId& id);
 
         /**
          * Set input audio plugin
@@ -727,12 +719,12 @@ class ManagerImpl
          * Start recording
          * @param id  The call identifier
          */
-        void setRecordingCall (const CallID& id);
+        void setRecordingCall (const CallId& id);
 
         /**
          * Return true if the call is currently recorded
          */
-        bool isRecording (const CallID& id);
+        bool isRecording (const CallId& id);
 
         /**
          * Set the maximum number of days to keep in the history
@@ -978,12 +970,12 @@ class ManagerImpl
         /**
          * Handle played sound when a call can not be conpleted because of a busy recipient
          */
-        void callBusy (const CallID& id);
+        void callBusy (const CallId& id);
 
         /**
          * Handle played sound when a failure occurs
          */
-        void callFailure (const CallID& id);
+        void callFailure (const CallId& id);
 
         /**
          * Retrieve the current telephone tone
@@ -1062,22 +1054,22 @@ class ManagerImpl
 
         /**
          * Return a new random callid that is not present in the list
-         * @return CallID A brand new callid
+         * @return CallId A brand new callid
          */
-        CallID getNewCallID();
+        CallId getNewCallId();
 
         /**
          * Get the current call id
-         * @return CallID	The call id or ""
+         * @return CallId	The call id or ""
          */
-        const CallID& getCurrentCallId();
+        const CallId& getCurrentCallId();
 
         /**
          * Check if a call is the current one
          * @param callId the new callid
          * @return bool   True if the id is the current call
          */
-        bool isCurrentCall (const CallID& callId);
+        bool isCurrentCall (const CallId& callId);
 
 
         /**
@@ -1163,7 +1155,7 @@ class ManagerImpl
          * Switch of current call id
          * @param id The new callid
          */
-        void switchCall (const CallID& id);
+        void switchCall (const CallId& id);
 
         /*
          * Play one tone
@@ -1175,13 +1167,13 @@ class ManagerImpl
         Conf::ConfigTree _config;
 
         /** Current Call ID */
-        CallID _currentCallId2;
+        CallId _currentCallId2;
 
         /** Protected current call access */
         ost::Mutex _currentCallMutex;
 
-        /** Vector of CodecDescriptor */
-        CodecDescriptor* _codecBuilder;
+	/** Vector of CodecFactory */
+	CodecFactory* _codecBuilder;
 
         /** Audio layer */
         AudioLayer* _audiodriver;
@@ -1189,9 +1181,6 @@ class ManagerImpl
         // Main thread
 
         DTMF* _dtmfKey;
-
-        // map of codec (for configlist request)
-        CodecDescriptor _codecDescriptorMap;
 
         /////////////////////
         // Protected by Mutex
@@ -1217,7 +1206,7 @@ class ManagerImpl
         DBusManagerImpl * _dbus;
 
         /** Waiting Call Vectors */
-        CallIDSet _waitingCall;
+        CallIdSet _waitingCall;
 
         /** Protect waiting call list, access by many voip/audio threads */
         ost::Mutex _waitingCallMutex;
@@ -1227,22 +1216,22 @@ class ManagerImpl
 
         /**
          * Add incoming callid to the waiting list
-         * @param id CallID to add
+         * @param id CallId to add
          */
-        void addWaitingCall (const CallID& id);
+        void addWaitingCall (const CallId& id);
 
         /**
          * Remove incoming callid to the waiting list
-         * @param id CallID to remove
+         * @param id CallId to remove
          */
-        void removeWaitingCall (const CallID& id);
+        void removeWaitingCall (const CallId& id);
 
         /**
          * Tell if a call is waiting and should be remove
-         * @param id CallID to test
+         * @param id CallId to test
          * @return bool True if the call is waiting
          */
-        bool isWaitingCall (const CallID& id);
+        bool isWaitingCall (const CallId& id);
 
         /**
          * Path of the ConfigFile
@@ -1257,7 +1246,7 @@ class ManagerImpl
         DNSService *_DNSService;
 #endif
 
-        /** Map to associate a CallID to the good account */
+        /** Map to associate a CallId to the good account */
         CallAccountMap _callAccountMap;
 
         /** Mutex to lock the call account map (main thread + voiplink thread) */
@@ -1265,11 +1254,11 @@ class ManagerImpl
 
         CallConfigMap _callConfigMap;
 
-        bool associateConfigToCall (const CallID& callID, Call::CallConfiguration config);
+        bool associateConfigToCall (const CallId& callID, Call::CallConfiguration config);
 
-        Call::CallConfiguration getConfigFromCall (const CallID& callID);
+        Call::CallConfiguration getConfigFromCall (const CallId& callID);
 
-        bool removeCallConfig (const CallID& callID);
+        bool removeCallConfig (const CallId& callID);
 
         /**
          *Contains a list of account (sip, aix, etc) and their respective voiplink/calls */
@@ -1310,20 +1299,20 @@ class ManagerImpl
 
     public:
 
-        /** Associate a new CallID to a AccountID
+        /** Associate a new CallId to a AccountID
          * Protected by mutex
-         * @param callID the new CallID not in the list yet
+         * @param callID the new CallId not in the list yet
          * @param accountID the known accountID present in accountMap
          * @return bool True if the new association is create
          */
-        bool associateCallToAccount (const CallID& callID, const AccountID& accountID);
+        bool associateCallToAccount (const CallId& callID, const AccountID& accountID);
 
-        /** Remove a CallID/AccountID association
+        /** Remove a CallId/AccountID association
          * Protected by mutex
-         * @param callID the CallID to remove
+         * @param callID the CallId to remove
          * @return bool True if association is removed
          */
-        bool removeCallAccount (const CallID& callID);
+        bool removeCallAccount (const CallId& callID);
 
         /**
          * Return a pointer to the  instance of the mainbuffer
@@ -1372,19 +1361,19 @@ class ManagerImpl
          */
         Account* getAccount (const AccountID& accountID);
 
-        /** Return the AccountID from a CallID
+        /** Return the AccountID from a CallId
          * Protected by mutex
-         * @param callID the CallID in the list
+         * @param callID the CallId in the list
          * @return AccountID  The accountID associated or "" if the callID is not found
          */
-        AccountID getAccountFromCall (const CallID& callID);
+        AccountID getAccountFromCall (const CallId& callID);
 
         /**
          * Get the voip link from the account pointer
          * @param accountID	  Account ID to get
          * @return VoIPLink*   The voip link from the account pointer or 0
          */
-        VoIPLink* getAccountLink (const AccountID& accountID=AccountNULL);
+        VoIPLink* getAccountLink (const AccountID& accountID=ACCOUNT_NULL);
 
         VoIPLink* getSIPAccountLink (void);
 
@@ -1422,7 +1411,7 @@ class ManagerImpl
         /**
          * Check if the call is a classic call or a direct IP-to-IP call
          */
-        void check_call_configuration (const CallID& id, const std::string& to, Call::CallConfiguration *callConfig);
+        void checkCallConfiguration (const CallId& id, const std::string& to, Call::CallConfiguration *callConfig);
 
         Conf::YamlParser *parser;
         Conf::YamlEmitter *emitter;

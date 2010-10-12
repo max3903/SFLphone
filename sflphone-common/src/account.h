@@ -29,15 +29,19 @@
  *  as that of the covered work.
  */
 
-#ifndef ACCOUNT_H
-#define ACCOUNT_H
+#ifndef __ACCOUNT_H__
+#define __ACCOUNT_H__
+
+#include "config/config.h"
+
+#include "voiplink.h"
+
+#include "config/serializable.h"
+
+#include "CodecFactory.h"
 
 #include <string>
 #include <vector>
-
-#include "config/config.h"
-#include "voiplink.h"
-#include "config/serializable.h"
 
 class VoIPLink;
 
@@ -56,15 +60,15 @@ typedef enum RegistrationState {
     Trying,
     Registered,
     Error,
-    ErrorAuth ,
-    ErrorNetwork ,
+    ErrorAuth,
+    ErrorNetwork,
     ErrorHost,
     ErrorExistStun,
     ErrorConfStun,
     NumberOfState
 } RegistrationState;
 
-#define AccountNULL ""
+#define ACCOUNT_NULL ""
 
 // Account identifier
 #define ACCOUNT_ID                          "Account.id"
@@ -133,7 +137,6 @@ typedef enum RegistrationState {
 #define REGISTRATION_STATE_CODE             "Registration.code"
 #define REGISTRATION_STATE_DESCRIPTION      "Registration.description"
 
-
 // General configuration keys for accounts
 const Conf::Key aliasKey ("alias");
 const Conf::Key typeKey ("type");
@@ -144,14 +147,15 @@ const Conf::Key hostnameKey ("hostname");
 const Conf::Key accountEnableKey ("enable");
 const Conf::Key mailboxKey ("mailbox");
 
-const Conf::Key codecsKey ("codecs");  // 0/9/110/111/112/
+const Conf::Key audioCodecsKey ("audioCodecs");
+const Conf::Key videoCodecsKey ("videoCodecs");
 const Conf::Key ringtonePathKey ("ringtonePath");
 const Conf::Key ringtoneEnabledKey ("ringtoneEnabled");
 const Conf::Key displayNameKey ("displayName");
 
 #define find_in_map(X, Y)  if((iter = map_cpy.find(X)) != map_cpy.end()) { Y = iter->second; }
 
-class Account : public Serializable
+class Account: public Serializable
 {
 
     public:
@@ -179,7 +183,6 @@ class Account : public Serializable
 
         virtual std::map<std::string, std::string> getAccountDetails() = 0;
 
-
         /**
          * Load the settings for this account.
          */
@@ -201,7 +204,7 @@ class Account : public Serializable
             return _link;
         }
 
-        virtual void setVoIPLink () = 0;
+        virtual void setVoIPLink() = 0;
 
         /**
          * Register the underlying VoIPLink. Launch the event listener.
@@ -264,6 +267,25 @@ class Account : public Serializable
             return _registrationStateDetailed;
         }
 
+        /**
+         * @return An ordered list of those codecs that the user has chosen for this account.
+         */
+        CodecOrder& getActiveAudioCodecs();
+
+        /**
+         * @return An ordered list of those codecs that the user has chosen for this account.
+         */
+        CodecOrder& getActiveVideoCodecs();
+
+        /**
+         * @param codecs An ordered list of those codecs that the user has chosen for this account.
+         */
+        void setActiveAudioCodecs (CodecOrder codecs);
+
+        /**
+         * @param codecs An ordered list of those codecs that the user has chosen for this account.
+         */
+        void setActiveVideoCodecs (CodecOrder codecs);
 
         /* inline functions */
         /* They should be treated like macro definitions by the C++ compiler */
@@ -302,15 +324,6 @@ class Account : public Serializable
             _type = type;
         }
 
-        /**
-         * Accessor to data structures
-         * @return CodecOrder& The list that reflects the user's choice
-         */
-        inline CodecOrder& getActiveCodecs (void) {
-            return _codecOrder;
-        }
-        void setActiveCodecs (const std::vector <std::string>& list);
-
         inline std::string getRingtonePath (void) {
             return _ringtonePath;
         }
@@ -339,6 +352,7 @@ class Account : public Serializable
             _useragent = ua;
         }
 
+
         std::string getMailBox (void) {
             return _mailBox;
         }
@@ -347,6 +361,37 @@ class Account : public Serializable
             _mailBox = mb;
         }
 
+        /**
+         * @param policy If set to true, video will be offered on every call.
+         */
+        void setAlwaysOfferVideo (bool policy);
+
+        /**
+         * @return true If video will be offered on every call.
+         */
+        bool isAlwaysOfferVideo();
+
+        /**
+         * @param device The video device to choose from if available.
+         */
+        void setPreferredVideoDevice (const std::string& device);
+
+        /**
+         * @return The identifier for the preferred video device configured for this account.
+         */
+        std::string getPreferredVideoDevice();
+
+        /**
+         * @param format The preferred video format to use.
+         */
+        void setPreferredVideoFormat (const sfl::VideoFormat& format);
+
+        /**
+         * @return The preferred video format for the a given video device.
+         */
+        sfl::VideoFormat getPreferredVideoFormat();
+
+
     private:
         // copy constructor
         Account (const Account& rh);
@@ -354,10 +399,31 @@ class Account : public Serializable
         // assignment operator
         Account& operator= (const Account& rh);
 
+        void loadCodecs (void);
+
     protected:
 
-        void loadAudioCodecs (void);
+        /**
+         * @return The audio codec order under the form of a string.
+         */
+        std::string getAudioCodecsSerialized();
 
+        /**
+         * @param audioCodecs A string representing the serialized audio codecs identifiers.
+         */
+        void setAudioCodecsSerialized (const std::string& audioCodecs);
+
+        /**
+         * @return The video codec order under the form of a string.
+         */
+        std::string getVideoCodecsSerialized();
+
+        /**
+         * @param videoCodecs A string representing the serialized video codecs identifiers.
+         */
+        void setVideoCodecsSerialized (const std::string& videoCodecs);
+
+    protected: // Should become private !
         /**
          * Account ID are assign in constructor and shall not changed
          */
@@ -414,15 +480,26 @@ class Account : public Serializable
         std::pair<int, std::string> _registrationStateDetailed;
 
         /**
-         * Vector containing the order of the codecs
+         * Vector containing the order of the audio codecs
          */
-        CodecOrder _codecOrder;
+        CodecOrder _codecAudioOrder;
+
+        /**
+         * Vector containing the order of the video codecs
+         */
+        CodecOrder _codecVideoOrder;
 
         /**
          * List of codec obtained when parsing configuration and used
          * to generate codec order list
          */
-        std::string _codecStr;
+        std::string _codecAudioSerialized;
+
+        /**
+         * List of codec obtained when parsing configuration and used
+         * to generate codec order list
+         */
+        std::string _codecVideoSerialized;
 
         /**
          * Ringtone .au file used for this account
@@ -444,12 +521,16 @@ class Account : public Serializable
          */
         std::string _useragent;
 
+	std::string _mailBox;
 
-        /**
-             * Account mail box
-         */
-        std::string _mailBox;
+        // Video settings
+        bool _alwaysOfferVideo;
 
+        std::string _preferredVideoDevice;
+
+        sfl::VideoFormat _preferredVideoFormat;
+
+	
 };
 
 #endif

@@ -33,11 +33,11 @@
 #include <stdexcept>
 #include <cc++/thread.h>
 
-#include "sip/SdesNegotiator.h"
-#include "audio/codecs/audiocodec.h"
+#include "sip/sdp/SdesNegotiator.h"
+#include "audio/codecs/AudioCodec.h"
 
 class SdesNegotiator;
-class SIPCall;
+class SipCall;
 
 namespace sfl
 {
@@ -59,7 +59,6 @@ typedef enum RtpMethod {
     Sdes
 } RtpMethod;
 
-
 class UnsupportedRtpSessionType : public std::logic_error
 {
     public:
@@ -76,10 +75,8 @@ class AudioRtpFactory
 {
     public:
         AudioRtpFactory();
-        AudioRtpFactory (SIPCall * ca);
+        AudioRtpFactory (SipCall * ca);
         ~AudioRtpFactory();
-
-        void initAudioRtpConfig (SIPCall *ca);
 
         /**
          * 	Lazy instantiation method. Create a new RTP session of a given
@@ -87,7 +84,7 @@ class AudioRtpFactory
          * @param ca A pointer on a SIP call
          * @return A new AudioRtpSession object
          */
-        void initAudioRtpSession (SIPCall *ca);
+        void initAudioRtpSession (SipCall *ca);
 
         /**
          * Start the audio rtp thread of the type specified in the configuration
@@ -166,7 +163,7 @@ class AudioRtpFactory
          */
         sfl::AudioZrtpSession * getAudioZrtpSession();
 
-        void initLocalCryptoInfo (SIPCall *ca);
+        void initLocalCryptoInfo (SipCall *ca);
 
         /**
          * Set remote cryptographic info. Should be called after negotiation in SDP
@@ -182,7 +179,11 @@ class AudioRtpFactory
          */
         void sendDtmfDigit (int digit);
 
+
+	void initAudioRtpConfig (SipCall *ca);
+
     private:
+
         void * _rtpSession;
         RtpMethod _rtpSessionType;
         ost::Mutex _audioRtpThreadMutex;

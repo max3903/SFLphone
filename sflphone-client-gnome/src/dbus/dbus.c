@@ -31,14 +31,16 @@
  */
 #include <config.h>
 
-#include <calltab.h>
 #include <callmanager-glue.h>
 #include <configurationmanager-glue.h>
+#include <videomanager-glue.h>
 #include <instance-glue.h>
+#include <marshaller.h>
+
+#include <calltab.h>
 #include <preferencesdialog.h>
 #include <accountlistconfigdialog.h>
 #include <mainwindow.h>
-#include <marshaller.h>
 #include <sliders.h>
 #include <statusicon.h>
 #include <assistant.h>
@@ -53,10 +55,19 @@
 
 #define DEFAULT_DBUS_TIMEOUT 30000
 
-DBusGConnection * connection;
-DBusGProxy * callManagerProxy;
-DBusGProxy * configurationManagerProxy;
-DBusGProxy * instanceProxy;
+#define DBUS_STRUCT_INT_INT (dbus_g_type_get_struct ("GValueArray", G_TYPE_INT, G_TYPE_INT, G_TYPE_INVALID))
+#define DBUS_AUDIO_CODEC_TYPE (dbus_g_type_get_struct ("GValueArray", G_TYPE_STRING, G_TYPE_UINT, G_TYPE_UCHAR, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_DOUBLE, G_TYPE_DOUBLE, G_TYPE_STRING, G_TYPE_INVALID))
+#define DBUS_VIDEO_CODEC_TYPE (dbus_g_type_get_struct ("GValueArray", G_TYPE_STRING, G_TYPE_UINT, G_TYPE_UCHAR, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_DOUBLE, G_TYPE_DOUBLE, G_TYPE_STRING, G_TYPE_INVALID))
+#define DBUS_VIDEO_SETTINGS_TYPE (dbus_g_type_get_struct ("GValueArray", dbus_g_type_get_struct ("GValueArray", G_TYPE_UINT, G_TYPE_UINT, G_TYPE_INVALID), dbus_g_type_get_struct ("GValueArray", G_TYPE_UINT, G_TYPE_UINT, G_TYPE_INVALID), G_TYPE_STRING, G_TYPE_BOOLEAN, G_TYPE_INVALID))
+#define DBUS_VIDEO_RESOLUTION_TYPE (dbus_g_type_get_struct ("GValueArray", G_TYPE_UINT, G_TYPE_UINT, G_TYPE_INVALID))
+#define DBUS_VIDEO_FRAMERATE_TYPE (dbus_g_type_get_struct ("GValueArray", G_TYPE_UINT, G_TYPE_UINT, G_TYPE_INVALID))
+#define DBUS_VIDEO_SHM_INFO (dbus_g_type_get_struct ("GValueArray", G_TYPE_UINT, G_TYPE_UINT, G_TYPE_UINT, G_TYPE_INVALID))
+
+static DBusGConnection * connection;
+static DBusGProxy * callManagerProxy;
+static DBusGProxy * configurationManagerProxy;
+static DBusGProxy * videoManagerProxy;
+static DBusGProxy * instanceProxy;
 
 static void
 incoming_call_cb (DBusGProxy *proxy UNUSED, const gchar* accountID,
@@ -510,214 +521,309 @@ error_alert (DBusGProxy *proxy UNUSED, int errCode, void * foo  UNUSED)
     sflphone_throw_exception (errCode);
 }
 
-gboolean
-dbus_connect()
+/**
+ * Connect to the configuration manager.
+ * @param connection The Dbus connection.
+ */
+static DBusGProxy *
+connect_to_configuration_manager (DBusGConnection * connection)
 {
+    DBusGProxy * configurationProxy = dbus_g_proxy_new_for_name (connection,
+                                      "org.sflphone.SFLphone", "/org/sflphone/SFLphone/ConfigurationManager",
+                                      "org.sflphone.SFLphone.ConfigurationManager");
 
-    GError *error = NULL;
-    connection = NULL;
-    instanceProxy = NULL;
-
-    g_type_init();
-
-    connection = dbus_g_bus_get (DBUS_BUS_SESSION, &error);
-
-    if (error) {
-        ERROR ("Failed to open connection to bus: %s",
-               error->message);
-        g_error_free (error);
-        return FALSE;
+    if (!configurationProxy) {
+        ERROR ("Failed to get proxy to ConfigurationManager");
+        return NULL;
     }
 
-    /* Create a proxy object for the "bus driver" (name "org.freedesktop.DBus") */
+    DEBUG ("DBus connected to ConfigurationManager");
 
-    instanceProxy = dbus_g_proxy_new_for_name (connection,
-                    "org.sflphone.SFLphone", "/org/sflphone/SFLphone/Instance",
-                    "org.sflphone.SFLphone.Instance");
+    dbus_g_proxy_add_signal (configurationProxy, "accountsChanged",
+                             G_TYPE_INVALID);
 
-    if (instanceProxy == NULL) {
-        ERROR ("Failed to get proxy to Instance");
-        return FALSE;
-    }
+    dbus_g_proxy_connect_signal (configurationProxy, "accountsChanged",
+                                 G_CALLBACK (accounts_changed_cb), NULL, NULL);
 
-    DEBUG ("DBus connected to Instance");
+    dbus_g_object_register_marshaller (g_cclosure_user_marshal_VOID__INT,
+                                       G_TYPE_NONE, G_TYPE_INT, G_TYPE_INVALID);
 
-    callManagerProxy = dbus_g_proxy_new_for_name (connection,
-                       "org.sflphone.SFLphone", "/org/sflphone/SFLphone/CallManager",
-                       "org.sflphone.SFLphone.CallManager");
+    dbus_g_proxy_add_signal (configurationProxy, "errorAlert", G_TYPE_INT,
+                             G_TYPE_INVALID);
 
-    if (callManagerProxy == NULL) {
-        ERROR ("Failed to get proxy to CallManagers");
-        return FALSE;
+    dbus_g_proxy_connect_signal (configurationProxy, "errorAlert",
+                                 G_CALLBACK (error_alert), NULL, NULL);
+
+    return configurationProxy;
+}
+
+
+/**
+ * Connect to the call manager.
+ * @param connection The Dbus connection.
+ */
+static DBusGProxy *
+connect_to_call_manager (DBusGConnection * connection)
+{
+    DBusGProxy * callProxy = dbus_g_proxy_new_for_name (connection,
+                             "org.sflphone.SFLphone", "/org/sflphone/SFLphone/CallManager",
+                             "org.sflphone.SFLphone.CallManager");
+
+    if (callProxy == NULL) {
+        ERROR ("Failed to get proxy to CallManager");
+        return NULL;
     }
 
     DEBUG ("DBus connected to CallManager");
-    /* STRING STRING STRING Marshaller */
+
     /* Incoming call */
     dbus_g_object_register_marshaller (
         g_cclosure_user_marshal_VOID__STRING_STRING_STRING, G_TYPE_NONE,
         G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_INVALID);
-    dbus_g_proxy_add_signal (callManagerProxy, "incomingCall", G_TYPE_STRING,
+    dbus_g_proxy_add_signal (callProxy, "incomingCall", G_TYPE_STRING,
                              G_TYPE_STRING, G_TYPE_STRING, G_TYPE_INVALID);
-    dbus_g_proxy_connect_signal (callManagerProxy, "incomingCall",
+    dbus_g_proxy_connect_signal (callProxy, "incomingCall",
                                  G_CALLBACK (incoming_call_cb), NULL, NULL);
 
-    dbus_g_proxy_add_signal (callManagerProxy, "zrtpNegotiationFailed",
-                             G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_INVALID);
-    dbus_g_proxy_connect_signal (callManagerProxy, "zrtpNegotiationFailed",
+    dbus_g_proxy_add_signal (callProxy, "zrtpNegotiationFailed", G_TYPE_STRING,
+                             G_TYPE_STRING, G_TYPE_STRING, G_TYPE_INVALID);
+    dbus_g_proxy_connect_signal (callProxy, "zrtpNegotiationFailed",
                                  G_CALLBACK (zrtp_negotiation_failed_cb), NULL, NULL);
 
     /* Current codec */
     dbus_g_object_register_marshaller (
         g_cclosure_user_marshal_VOID__STRING_STRING_STRING, G_TYPE_NONE,
         G_TYPE_STRING, G_TYPE_STRING, G_TYPE_INVALID);
-    dbus_g_proxy_add_signal (callManagerProxy, "currentSelectedCodec",
-                             G_TYPE_STRING, G_TYPE_STRING, G_TYPE_INVALID);
-    dbus_g_proxy_connect_signal (callManagerProxy, "currentSelectedCodec",
+    dbus_g_proxy_add_signal (callProxy, "currentSelectedCodec", G_TYPE_STRING,
+                             G_TYPE_STRING, G_TYPE_INVALID);
+    dbus_g_proxy_connect_signal (callProxy, "currentSelectedCodec",
                                  G_CALLBACK (curent_selected_codec), NULL, NULL);
 
     /* Register a marshaller for STRING,STRING */
     dbus_g_object_register_marshaller (
         g_cclosure_user_marshal_VOID__STRING_STRING, G_TYPE_NONE, G_TYPE_STRING,
         G_TYPE_STRING, G_TYPE_INVALID);
-    dbus_g_proxy_add_signal (callManagerProxy, "callStateChanged", G_TYPE_STRING,
+    dbus_g_proxy_add_signal (callProxy, "callStateChanged", G_TYPE_STRING,
                              G_TYPE_STRING, G_TYPE_INVALID);
-    dbus_g_proxy_connect_signal (callManagerProxy, "callStateChanged",
+    dbus_g_proxy_connect_signal (callProxy, "callStateChanged",
                                  G_CALLBACK (call_state_cb), NULL, NULL);
 
     dbus_g_object_register_marshaller (g_cclosure_user_marshal_VOID__STRING_INT,
                                        G_TYPE_NONE, G_TYPE_STRING, G_TYPE_INT, G_TYPE_INVALID);
-    dbus_g_proxy_add_signal (callManagerProxy, "voiceMailNotify", G_TYPE_STRING,
+    dbus_g_proxy_add_signal (callProxy, "voiceMailNotify", G_TYPE_STRING,
                              G_TYPE_INT, G_TYPE_INVALID);
-    dbus_g_proxy_connect_signal (callManagerProxy, "voiceMailNotify",
+    dbus_g_proxy_connect_signal (callProxy, "voiceMailNotify",
                                  G_CALLBACK (voice_mail_cb), NULL, NULL);
 
-    dbus_g_proxy_add_signal (callManagerProxy, "incomingMessage", G_TYPE_STRING,
-                             G_TYPE_STRING, G_TYPE_STRING, G_TYPE_INVALID);
-    dbus_g_proxy_connect_signal (callManagerProxy, "incomingMessage",
+    dbus_g_proxy_add_signal (callProxy, "incomingMessage", G_TYPE_STRING,
+                             G_TYPE_STRING, G_TYPE_INVALID);
+    dbus_g_proxy_connect_signal (callProxy, "incomingMessage",
                                  G_CALLBACK (incoming_message_cb), NULL, NULL);
 
     dbus_g_object_register_marshaller (
         g_cclosure_user_marshal_VOID__STRING_DOUBLE, G_TYPE_NONE, G_TYPE_STRING,
         G_TYPE_DOUBLE, G_TYPE_INVALID);
-    dbus_g_proxy_add_signal (callManagerProxy, "volumeChanged", G_TYPE_STRING,
+    dbus_g_proxy_add_signal (callProxy, "volumeChanged", G_TYPE_STRING,
                              G_TYPE_DOUBLE, G_TYPE_INVALID);
-    dbus_g_proxy_connect_signal (callManagerProxy, "volumeChanged",
+    dbus_g_proxy_connect_signal (callProxy, "volumeChanged",
                                  G_CALLBACK (volume_changed_cb), NULL, NULL);
 
-    dbus_g_proxy_add_signal (callManagerProxy, "transferSucceded", G_TYPE_INVALID);
-    dbus_g_proxy_connect_signal (callManagerProxy, "transferSucceded",
+    dbus_g_proxy_add_signal (callProxy, "transferSucceded", G_TYPE_INVALID);
+    dbus_g_proxy_connect_signal (callProxy, "transferSucceded",
                                  G_CALLBACK (transfer_succeded_cb), NULL, NULL);
 
-    dbus_g_proxy_add_signal (callManagerProxy, "transferFailed", G_TYPE_INVALID);
-    dbus_g_proxy_connect_signal (callManagerProxy, "transferFailed",
+    dbus_g_proxy_add_signal (callProxy, "transferFailed", G_TYPE_INVALID);
+    dbus_g_proxy_connect_signal (callProxy, "transferFailed",
                                  G_CALLBACK (transfer_failed_cb), NULL, NULL);
 
     /* Conference related callback */
 
     dbus_g_object_register_marshaller (g_cclosure_user_marshal_VOID__STRING,
                                        G_TYPE_NONE, G_TYPE_STRING, G_TYPE_INVALID);
-    dbus_g_proxy_add_signal (callManagerProxy, "conferenceChanged", G_TYPE_STRING,
+    dbus_g_proxy_add_signal (callProxy, "conferenceChanged", G_TYPE_STRING,
                              G_TYPE_STRING, G_TYPE_INVALID);
-    dbus_g_proxy_connect_signal (callManagerProxy, "conferenceChanged",
+    dbus_g_proxy_connect_signal (callProxy, "conferenceChanged",
                                  G_CALLBACK (conference_changed_cb), NULL, NULL);
 
-    dbus_g_proxy_add_signal (callManagerProxy, "conferenceCreated", G_TYPE_STRING,
+    dbus_g_proxy_add_signal (callProxy, "conferenceCreated", G_TYPE_STRING,
                              G_TYPE_INVALID);
-    dbus_g_proxy_connect_signal (callManagerProxy, "conferenceCreated",
+    dbus_g_proxy_connect_signal (callProxy, "conferenceCreated",
                                  G_CALLBACK (conference_created_cb), NULL, NULL);
 
-    dbus_g_proxy_add_signal (callManagerProxy, "conferenceRemoved", G_TYPE_STRING,
+    dbus_g_proxy_add_signal (callProxy, "conferenceRemoved", G_TYPE_STRING,
                              G_TYPE_INVALID);
-    dbus_g_proxy_connect_signal (callManagerProxy, "conferenceRemoved",
+    dbus_g_proxy_connect_signal (callProxy, "conferenceRemoved",
                                  G_CALLBACK (conference_removed_cb), NULL, NULL);
 
     /* Security related callbacks */
 
-    dbus_g_proxy_add_signal (callManagerProxy, "secureSdesOn", G_TYPE_STRING,
+    dbus_g_proxy_add_signal (callProxy, "secureSdesOn", G_TYPE_STRING,
                              G_TYPE_INVALID);
-    dbus_g_proxy_connect_signal (callManagerProxy, "secureSdesOn",
+    dbus_g_proxy_connect_signal (callProxy, "secureSdesOn",
                                  G_CALLBACK (secure_sdes_on_cb), NULL, NULL);
-
-    dbus_g_proxy_add_signal (callManagerProxy, "secureSdesOff", G_TYPE_STRING,
+    dbus_g_proxy_add_signal (callProxy, "secureSdesOff", G_TYPE_STRING,
                              G_TYPE_INVALID);
-    dbus_g_proxy_connect_signal (callManagerProxy, "secureSdesOff",
+    dbus_g_proxy_connect_signal (callProxy, "secureSdesOff",
                                  G_CALLBACK (secure_sdes_off_cb), NULL, NULL);
 
     /* Register a marshaller for STRING,STRING,BOOL */
     dbus_g_object_register_marshaller (
         g_cclosure_user_marshal_VOID__STRING_STRING_BOOL, G_TYPE_NONE,
         G_TYPE_STRING, G_TYPE_STRING, G_TYPE_BOOLEAN, G_TYPE_INVALID);
-    dbus_g_proxy_add_signal (callManagerProxy, "showSAS", G_TYPE_STRING,
-                             G_TYPE_STRING, G_TYPE_BOOLEAN, G_TYPE_INVALID);
-    dbus_g_proxy_connect_signal (callManagerProxy, "showSAS",
+    dbus_g_proxy_add_signal (callProxy, "showSAS", G_TYPE_STRING, G_TYPE_STRING,
+                             G_TYPE_BOOLEAN, G_TYPE_INVALID);
+    dbus_g_proxy_connect_signal (callProxy, "showSAS",
                                  G_CALLBACK (show_zrtp_sas_cb), NULL, NULL);
 
-    dbus_g_proxy_add_signal (callManagerProxy, "secureZrtpOn", G_TYPE_STRING,
+    dbus_g_proxy_add_signal (callProxy, "secureZrtpOn", G_TYPE_STRING,
                              G_TYPE_STRING, G_TYPE_INVALID);
-    dbus_g_proxy_connect_signal (callManagerProxy, "secureZrtpOn",
+    dbus_g_proxy_connect_signal (callProxy, "secureZrtpOn",
                                  G_CALLBACK (secure_zrtp_on_cb), NULL, NULL);
 
     /* Register a marshaller for STRING*/
     dbus_g_object_register_marshaller (g_cclosure_user_marshal_VOID__STRING,
                                        G_TYPE_NONE, G_TYPE_STRING, G_TYPE_INVALID);
-    dbus_g_proxy_add_signal (callManagerProxy, "secureZrtpOff", G_TYPE_STRING,
+    dbus_g_proxy_add_signal (callProxy, "secureZrtpOff", G_TYPE_STRING,
                              G_TYPE_INVALID);
-    dbus_g_proxy_connect_signal (callManagerProxy, "secureZrtpOff",
+    dbus_g_proxy_connect_signal (callProxy, "secureZrtpOff",
                                  G_CALLBACK (secure_zrtp_off_cb), NULL, NULL);
-    dbus_g_proxy_add_signal (callManagerProxy, "zrtpNotSuppOther", G_TYPE_STRING,
+    dbus_g_proxy_add_signal (callProxy, "zrtpNotSuppOther", G_TYPE_STRING,
                              G_TYPE_INVALID);
-    dbus_g_proxy_connect_signal (callManagerProxy, "zrtpNotSuppOther",
+    dbus_g_proxy_connect_signal (callProxy, "zrtpNotSuppOther",
                                  G_CALLBACK (zrtp_not_supported_cb), NULL, NULL);
-    dbus_g_proxy_add_signal (callManagerProxy, "confirmGoClear", G_TYPE_STRING,
+    dbus_g_proxy_add_signal (callProxy, "confirmGoClear", G_TYPE_STRING,
                              G_TYPE_INVALID);
-    dbus_g_proxy_connect_signal (callManagerProxy, "confirmGoClear",
+    dbus_g_proxy_connect_signal (callProxy, "confirmGoClear",
                                  G_CALLBACK (confirm_go_clear_cb), NULL, NULL);
 
     /* VOID STRING STRING INT */
     dbus_g_object_register_marshaller (
         g_cclosure_user_marshal_VOID__STRING_STRING_INT, G_TYPE_NONE,
         G_TYPE_STRING, G_TYPE_STRING, G_TYPE_INT, G_TYPE_INVALID);
-
-    dbus_g_proxy_add_signal (callManagerProxy, "sipCallStateChanged",
-                             G_TYPE_STRING, G_TYPE_STRING, G_TYPE_INT, G_TYPE_INVALID);
-    dbus_g_proxy_connect_signal (callManagerProxy, "sipCallStateChanged",
+    dbus_g_proxy_add_signal (callProxy, "sipCallStateChanged", G_TYPE_STRING,
+                             G_TYPE_STRING, G_TYPE_INT, G_TYPE_INVALID);
+    dbus_g_proxy_connect_signal (callProxy, "sipCallStateChanged",
                                  G_CALLBACK (sip_call_state_cb), NULL, NULL);
 
-    configurationManagerProxy = dbus_g_proxy_new_for_name (connection,
-                                "org.sflphone.SFLphone", "/org/sflphone/SFLphone/ConfigurationManager",
-                                "org.sflphone.SFLphone.ConfigurationManager");
+    return callProxy;
+}
 
-    if (!configurationManagerProxy) {
-        ERROR ("Failed to get proxy to ConfigurationManager");
+/**
+ * Connect to the instance manager.
+ * @param connection The Dbus connection.
+ */
+static DBusGProxy *
+connect_to_instance_proxy (DBusGConnection * connection)
+{
+    DBusGProxy* instance = dbus_g_proxy_new_for_name (connection,
+                           "org.sflphone.SFLphone", "/org/sflphone/SFLphone/Instance",
+                           "org.sflphone.SFLphone.Instance");
+
+    if (instance == NULL) {
+        ERROR ("Failed to get proxy to Instance");
+        return NULL;
+    }
+
+    DEBUG ("DBus connected to Instance");
+
+    return instance;
+}
+
+/**
+ * Connect to the video manager.
+ * @param connection The Dbus connection.
+ */
+static DBusGProxy *
+connect_to_video_manager (DBusGConnection * connection)
+{
+    DBusGProxy * videoProxy = dbus_g_proxy_new_for_name (connection,
+                              "org.sflphone.SFLphone", "/org/sflphone/SFLphone/VideoManager",
+                              "org.sflphone.SFLphone.VideoManager");
+
+    if (!videoProxy) {
+        ERROR ("Failed to get proxy to VideoManager");
+        return NULL;
+    }
+
+    DEBUG ("DBus connected to VideoManager");
+
+    // onNewRemoteVideoStream signal
+    dbus_g_object_register_marshaller (g_cclosure_user_marshal_VOID__STRING_STRING,
+                                       G_TYPE_NONE, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_INVALID);
+
+    dbus_g_proxy_add_signal (videoProxy, "onNewRemoteVideoStream", G_TYPE_STRING, G_TYPE_STRING,
+                             G_TYPE_INVALID);
+
+    dbus_g_proxy_add_signal (videoProxy, "onRemoteVideoStreamStopped", G_TYPE_STRING, G_TYPE_STRING,
+                             G_TYPE_INVALID);
+
+    return videoProxy;
+}
+
+DBusGProxy *
+dbus_get_video_proxy()
+{
+    return videoManagerProxy;
+}
+
+gboolean
+dbus_connect ()
+{
+    GError *error = NULL;
+    connection = NULL;
+    instanceProxy = NULL;
+
+    g_type_init ();
+
+    connection = dbus_g_bus_get (DBUS_BUS_SESSION, &error);
+
+    if (error) {
+        ERROR ("Failed to open connection to bus: %s", error->message);
+        g_error_free (error);
         return FALSE;
     }
 
-    DEBUG ("DBus connected to ConfigurationManager");
-    dbus_g_proxy_add_signal (configurationManagerProxy, "accountsChanged",
-                             G_TYPE_INVALID);
-    dbus_g_proxy_connect_signal (configurationManagerProxy, "accountsChanged",
-                                 G_CALLBACK (accounts_changed_cb), NULL, NULL);
+    /* Create a proxy object for the "bus driver" (name "org.freedesktop.DBus") */
+    instanceProxy = connect_to_instance_proxy (connection);
 
-    dbus_g_object_register_marshaller (g_cclosure_user_marshal_VOID__INT,
-                                       G_TYPE_NONE, G_TYPE_INT, G_TYPE_INVALID);
-    dbus_g_proxy_add_signal (configurationManagerProxy, "errorAlert", G_TYPE_INT,
-                             G_TYPE_INVALID);
-    dbus_g_proxy_connect_signal (configurationManagerProxy, "errorAlert",
-                                 G_CALLBACK (error_alert), NULL, NULL);
+    if (instanceProxy == NULL) {
+        return FALSE;
+    }
+
+    /* Connect to the call manager */
+    callManagerProxy = connect_to_call_manager (connection);
+
+    if (callManagerProxy == NULL) {
+        return FALSE;
+    }
+
+    /* Connect to the configuration manager */
+    configurationManagerProxy = connect_to_configuration_manager (connection);
+
+    if (configurationManagerProxy == NULL) {
+        return FALSE;
+    }
+
+    /* Connect to the video manager */
+    videoManagerProxy = connect_to_video_manager (connection);
+
+    if (videoManagerProxy == NULL) {
+        return FALSE;
+    }
 
     /* Defines a default timeout for the proxies */
 #if HAVE_DBUS_G_PROXY_SET_DEFAULT_TIMEOUT
     dbus_g_proxy_set_default_timeout (callManagerProxy, DEFAULT_DBUS_TIMEOUT);
     dbus_g_proxy_set_default_timeout (instanceProxy, DEFAULT_DBUS_TIMEOUT);
     dbus_g_proxy_set_default_timeout (configurationManagerProxy, DEFAULT_DBUS_TIMEOUT);
+    dbus_g_proxy_set_default_timeout (videoManagerProxy, DEFAULT_DBUS_TIMEOUT);
 #endif
 
     return TRUE;
 }
 
 void
-dbus_clean()
+dbus_clean ()
 {
     g_object_unref (callManagerProxy);
     g_object_unref (configurationManagerProxy);
@@ -887,7 +993,7 @@ dbus_place_call (const callable_obj_t * c)
 }
 
 gchar**
-dbus_account_list()
+dbus_account_list ()
 {
     GError *error = NULL;
     char ** array;
@@ -1199,46 +1305,87 @@ dbus_unregister (int pid)
     }
 }
 
-gchar**
-dbus_codec_list()
+GList*
+dbus_get_all_audio_codecs ()
 {
+    GError* error = NULL;
+    GPtrArray* audio_codecs = NULL;
+    GList* ret = NULL;
 
-    GError *error = NULL;
-    gchar** array = NULL;
-    org_sflphone_SFLphone_ConfigurationManager_get_codec_list (
-        configurationManagerProxy, &array, &error);
+    org_sflphone_SFLphone_ConfigurationManager_get_all_audio_codecs (
+        configurationManagerProxy, &audio_codecs, &error);
 
-    if (error) {
-        ERROR ("Failed to call get_codec_list() on ConfigurationManager: %s",
-               error->message);
+    if (error != NULL) {
+        ERROR ("Failed to get all of the audio codecs over dbus");
         g_error_free (error);
+        return NULL;
     }
 
-    return array;
+    int i;
+
+    for (i = 0; i < audio_codecs->len; i++) {
+        GValue elem = { 0 };
+        g_value_init (&elem, DBUS_AUDIO_CODEC_TYPE);
+
+        g_value_set_static_boxed (&elem, g_ptr_array_index (audio_codecs, i));
+
+        audio_codec_t* codec = g_new (audio_codec_t, 1);
+
+        dbus_g_type_struct_get (&elem, 0, &codec->identifier, 1,
+                                &codec->clock_rate, 2, &codec->payload, 3, &codec->mime_type, 4,
+                                &codec->mime_subtype, 5, &codec->bitrate, 6, &codec->bandwidth, 7,
+                                &codec->description, G_MAXUINT);
+
+        codec->is_active = FALSE;
+
+        ret = g_list_append (ret, codec);
+    }
+
+    return ret;
 }
 
-gchar**
-dbus_codec_details (int payload)
+GList*
+dbus_get_all_video_codecs ()
 {
+    GError* error = NULL;
+    GPtrArray* video_codecs = NULL;
+    GList* ret = NULL;
 
-    GError *error = NULL;
-    gchar ** array;
-    org_sflphone_SFLphone_ConfigurationManager_get_codec_details (
-        configurationManagerProxy, payload, &array, &error);
+    org_sflphone_SFLphone_ConfigurationManager_get_all_video_codecs (
+        configurationManagerProxy, &video_codecs, &error);
 
-    if (error) {
-        ERROR ("Failed to call get_codec_details() on ConfigurationManager: %s",
-               error->message);
+    if (error != NULL) {
+        ERROR ("Failed to get all of the video codecs over dbus");
         g_error_free (error);
+        return NULL;
     }
 
-    return array;
+    int i;
+
+    for (i = 0; i < video_codecs->len; i++) {
+        GValue elem = { 0 };
+        g_value_init (&elem, DBUS_VIDEO_CODEC_TYPE);
+
+        g_value_set_static_boxed (&elem, g_ptr_array_index (video_codecs, i));
+
+        video_codec_t* codec = g_new (video_codec_t, 1);
+
+        dbus_g_type_struct_get (&elem, 0, &codec->identifier, 1,
+                                &codec->clock_rate, 2, &codec->payload, 3, &codec->mime_type, 4,
+                                &codec->mime_subtype, 5, &codec->bitrate, 6, &codec->bandwidth, 7,
+                                &codec->description, G_MAXUINT);
+
+        codec->is_active = FALSE;
+
+        ret = g_list_append (ret, codec);
+    }
+
+    return ret;
 }
 
 gchar*
 dbus_get_current_codec_name (const callable_obj_t * c)
 {
-
     gchar* codecName = "";
     GError* error = NULL;
 
@@ -1249,50 +1396,256 @@ dbus_get_current_codec_name (const callable_obj_t * c)
         g_error_free (error);
     }
 
-    DEBUG ("dbus_get_current_codec_name : codecName : %s", codecName);
+    DEBUG ("Current audio codec name : \"%s\"", codecName);
 
     return codecName;
 }
 
-gchar**
-dbus_get_active_codec_list (gchar *accountID)
+GList*
+dbus_get_active_audio_codecs (gchar* accountID)
 {
+    GError* error = NULL;
+    GPtrArray* audio_codecs = NULL;
+    GList* ret = NULL;
 
-    gchar ** array;
-    GError *error = NULL;
-    org_sflphone_SFLphone_ConfigurationManager_get_active_codec_list (
-        configurationManagerProxy, accountID, &array, &error);
+    DEBUG ("Fetching active audio codecs for account \"%s\" ...", accountID);
 
-    if (error) {
-        ERROR ("Failed to call get_active_codec_list() on ConfigurationManager: %s",
-               error->message);
+    org_sflphone_SFLphone_ConfigurationManager_get_all_active_audio_codecs (
+        configurationManagerProxy, accountID, &audio_codecs, &error);
+
+    if (error != NULL) {
+        ERROR ("Failed to retrieve active audio codecs for account \"%s\" over Dbus", accountID);
         g_error_free (error);
+        return NULL;
     }
 
-    return array;
+    DEBUG ("Server returned %d audio codecs.", audio_codecs->len);
+
+    int i;
+
+    for (i = 0; i < audio_codecs->len; i++) {
+        GValue elem = { 0 };
+        g_value_init (&elem, DBUS_AUDIO_CODEC_TYPE);
+        g_value_set_static_boxed (&elem, g_ptr_array_index (audio_codecs, i));
+
+        audio_codec_t* codec = g_new (audio_codec_t, 1);
+        dbus_g_type_struct_get (&elem, 0, &codec->identifier, 1,
+                                &codec->clock_rate, 2, &codec->payload, 3, &codec->mime_type, 4,
+                                &codec->mime_subtype, 5, &codec->bitrate, 6, &codec->bandwidth, 7,
+                                &codec->description, G_MAXUINT);
+
+        DEBUG ("Audio codec %s/%s %d (payload number %d)\nDescription : \"%s\"\nBandwidth : %f\nBitrate : %f",
+               codec->mime_type,
+               codec->mime_subtype,
+               codec->clock_rate,
+               codec->payload,
+               codec->description,
+               codec->bandwidth,
+               codec->bitrate);
+
+        codec->is_active = TRUE;
+
+        ret = g_list_append (ret, codec);
+    }
+
+    return ret;
 }
 
 void
-dbus_set_active_codec_list (const gchar** list, const gchar *accountID)
+dbus_set_active_audio_codecs (const gchar** list, const gchar *accountID)
 {
-
+    DEBUG ("Sending active audio codec list for account %s ...", accountID);
     GError *error = NULL;
-    org_sflphone_SFLphone_ConfigurationManager_set_active_codec_list (
+    org_sflphone_SFLphone_ConfigurationManager_set_active_audio_codecs (
         configurationManagerProxy, list, accountID, &error);
 
     if (error) {
-        ERROR ("Failed to call set_active_codec_list() on ConfigurationManager: %s",
+        ERROR ("Failed to call setActiveAudioCodecs on ConfigurationManager: %s",
                error->message);
         g_error_free (error);
     }
 }
 
+GList*
+dbus_get_active_video_codecs (gchar* accountID)
+{
+    GError* error = NULL;
+    GPtrArray* video_codecs = NULL;
+    GList* ret = NULL;
+
+    DEBUG ("Fetching active video codecs for account \"%s\" ...", accountID);
+
+    org_sflphone_SFLphone_ConfigurationManager_get_all_active_video_codecs (
+        configurationManagerProxy, accountID, &video_codecs, &error);
+
+    if (error != NULL) {
+        ERROR ("Failed to retrieve active video codecs for account \"%s\" over Dbus", accountID);
+        g_error_free (error);
+        return NULL;
+    }
+
+    DEBUG ("Server returned %d video codecs.", video_codecs->len);
+
+    int i;
+
+    for (i = 0; i < video_codecs->len; i++) {
+        GValue elem = { 0 };
+        g_value_init (&elem, DBUS_VIDEO_CODEC_TYPE);
+        g_value_set_static_boxed (&elem, g_ptr_array_index (video_codecs, i));
+
+        video_codec_t* codec = g_new (video_codec_t, 1);
+        dbus_g_type_struct_get (&elem, 0, &codec->identifier, 1,
+                                &codec->clock_rate, 2, &codec->payload, 3, &codec->mime_type, 4,
+                                &codec->mime_subtype, 5, &codec->bitrate, 6, &codec->bandwidth, 7,
+                                &codec->description, G_MAXUINT);
+
+        DEBUG ("Video codec %s/%s %d (payload number %d)\nDescription : \"%s\"\nBandwidth : %f\nBitrate : %f",
+               codec->mime_type,
+               codec->mime_subtype,
+               codec->clock_rate,
+               codec->payload,
+               codec->description,
+               codec->bandwidth,
+               codec->bitrate);
+
+        codec->is_active = TRUE;
+
+        ret = g_list_append (ret, codec);
+    }
+
+    return ret;
+}
+
+void
+dbus_set_active_video_codecs (const gchar** list, const gchar *accountID)
+{
+    DEBUG ("Sending active video codec list for account %s ...", accountID);
+    GError *error = NULL;
+    org_sflphone_SFLphone_ConfigurationManager_set_active_video_codecs (
+        configurationManagerProxy, list, accountID, &error);
+
+    if (error) {
+        ERROR ("Failed to call setActiveVideoCodecs on ConfigurationManager: %s",
+               error->message);
+        g_error_free (error);
+    }
+}
+
+void
+dbus_set_video_settings (const gchar* accountID,
+                         video_settings_t* video_settings)
+{
+    DEBUG ("Setting video for account id %s", accountID);
+
+    GValue elem = { 0 };
+    g_value_init (&elem, DBUS_VIDEO_SETTINGS_TYPE);
+    g_value_take_boxed (&elem, dbus_g_type_specialized_construct (
+                            DBUS_VIDEO_SETTINGS_TYPE));
+
+    // Set resolution
+    GValue resolution = { 0 };
+    g_value_init (&resolution, DBUS_VIDEO_RESOLUTION_TYPE);
+    g_value_take_boxed (&resolution, dbus_g_type_specialized_construct (
+                            DBUS_VIDEO_RESOLUTION_TYPE));
+
+    dbus_g_type_struct_set (&resolution,
+                            0, video_settings_get_width (video_settings),
+                            1, video_settings_get_height (video_settings),
+                            G_MAXUINT);
+
+    // Set framerate
+    GValue framerate = { 0 };
+    g_value_init (&framerate, DBUS_VIDEO_FRAMERATE_TYPE);
+    g_value_take_boxed (&framerate, dbus_g_type_specialized_construct (
+                            DBUS_VIDEO_FRAMERATE_TYPE));
+
+    dbus_g_type_struct_set (&framerate,
+                            0, video_settings_get_numerator (video_settings),
+                            1, video_settings_get_denominator (video_settings),
+                            G_MAXUINT);
+
+    // Set other properties
+    dbus_g_type_struct_set (&elem,
+                            0, (GValueArray*) g_value_get_boxed (&resolution),
+                            1, (GValueArray*) g_value_get_boxed (&framerate),
+                            2, video_settings_get_device (video_settings),
+                            3, video_settings_get_always_offer_video (video_settings),
+                            G_MAXUINT);
+
+    GError* error = NULL;
+    org_sflphone_SFLphone_ConfigurationManager_set_video_settings (
+        configurationManagerProxy, accountID, (GValueArray*) g_value_get_boxed (
+            &elem), &error);
+
+    if (error) {
+        ERROR ("Failed to call setVideoSettings on ConfigurationManager: %s",
+               error->message);
+        g_error_free (error);
+    }
+
+    DEBUG ("Video settings sent.");
+}
+
+video_settings_t*
+dbus_get_video_settings (const gchar* accountID)
+{
+    GError* error = NULL;
+    GValueArray* settings;
+    org_sflphone_SFLphone_ConfigurationManager_get_video_settings (
+        configurationManagerProxy, accountID, &settings, &error);
+
+    if (error) {
+        ERROR ("Failed to call getVideoSettings on ConfigurationManager: %s", error->message);
+        g_error_free (error);
+    }
+
+    GValueArray* resolution_struct = (GValueArray *) g_value_get_boxed (
+                                         g_value_array_get_nth (settings, 0));
+
+    if (resolution_struct->n_values != 2) {
+        ERROR ("Wrong data format while getting video settings (%s:%d)", __FILE__, __LINE__);
+        return NULL;
+    }
+
+    GValue* width = g_value_array_get_nth (resolution_struct, 0);
+    GValue* height = g_value_array_get_nth (resolution_struct, 1);
+
+    GValueArray* framerate_struct = (GValueArray *) g_value_get_boxed (
+                                        g_value_array_get_nth (settings, 1));
+
+    if (framerate_struct->n_values != 2) {
+        ERROR ("Wrong data format while getting video settings (%s:%d)", __FILE__, __LINE__);
+        return NULL;
+    }
+
+    GValue* numerator = g_value_array_get_nth (framerate_struct, 0);
+    GValue* denominator = g_value_array_get_nth (framerate_struct, 1);
+
+    GValue* device = g_value_array_get_nth (settings, 2);
+    GValue* always_offer_video = g_value_array_get_nth (settings, 3);
+
+    video_settings_t* video_settings = video_settings_new ();
+    video_settings_set_width (video_settings, g_value_get_uint (width));
+    video_settings_set_height (video_settings, g_value_get_uint (height));
+
+    video_settings_set_numerator (video_settings, g_value_get_uint (numerator));
+    video_settings_set_denominator (video_settings,
+                                    g_value_get_uint (denominator));
+
+    video_settings_set_device (video_settings, g_value_get_string (device));
+    video_settings_set_always_offer_video (video_settings, g_value_get_boolean (
+                                               always_offer_video));
+
+    video_settings_print (video_settings);
+
+    return video_settings;
+}
 
 /**
  * Get a list of output supported audio plugins
  */
 gchar**
-dbus_get_audio_plugin_list()
+dbus_get_audio_plugin_list ()
 {
     gchar** array;
     GError* error = NULL;
@@ -1314,14 +1667,27 @@ dbus_get_audio_plugin_list()
 }
 
 void
-dbus_set_audio_plugin (gchar* audioPlugin)
+dbus_set_input_audio_plugin (gchar* audioPlugin)
 {
     GError* error = NULL;
-    org_sflphone_SFLphone_ConfigurationManager_set_audio_plugin (
+    org_sflphone_SFLphone_ConfigurationManager_set_input_audio_plugin (
         configurationManagerProxy, audioPlugin, &error);
 
     if (error) {
-        ERROR ("Failed to call set_audio_plugin() on ConfigurationManager: %s", error->message);
+        ERROR ("Failed to call set_input_audio_plugin() on ConfigurationManager: %s", error->message);
+        g_error_free (error);
+    }
+}
+
+void
+dbus_set_output_audio_plugin (gchar* audioPlugin)
+{
+    GError* error = NULL;
+    org_sflphone_SFLphone_ConfigurationManager_set_output_audio_plugin (
+        configurationManagerProxy, audioPlugin, &error);
+
+    if (error) {
+        ERROR ("Failed to call set_output_audio_plugin() on ConfigurationManager: %s", error->message);
         g_error_free (error);
     }
 }
@@ -1330,7 +1696,7 @@ dbus_set_audio_plugin (gchar* audioPlugin)
  * Get all output devices index supported by current audio manager
  */
 gchar**
-dbus_get_audio_output_device_list()
+dbus_get_audio_output_device_list ()
 {
     gchar** array;
     GError* error = NULL;
@@ -1397,7 +1763,7 @@ dbus_set_audio_ringtone_device (const int index)
  * Get all input devices index supported by current audio manager
  */
 gchar**
-dbus_get_audio_input_device_list()
+dbus_get_audio_input_device_list ()
 {
     gchar** array;
     GError* error = NULL;
@@ -1416,7 +1782,7 @@ dbus_get_audio_input_device_list()
  * Get output device index and input device index
  */
 gchar**
-dbus_get_current_audio_devices_index()
+dbus_get_current_audio_devices_index ()
 {
     gchar** array;
     GError* error = NULL;
@@ -1454,7 +1820,7 @@ dbus_get_audio_device_index (const gchar *name)
  * Get audio plugin
  */
 gchar*
-dbus_get_current_audio_output_plugin()
+dbus_get_current_audio_output_plugin ()
 {
     gchar* plugin = "";
     GError* error = NULL;
@@ -1469,12 +1835,11 @@ dbus_get_current_audio_output_plugin()
     return plugin;
 }
 
-
 /**
  * Get noise reduction state
  */
 gchar*
-dbus_get_noise_suppress_state()
+dbus_get_noise_suppress_state ()
 {
     gchar* state = "";
     GError* error = NULL;
@@ -1503,7 +1868,6 @@ dbus_set_noise_suppress_state (gchar* state)
         g_error_free (error);
     }
 }
-
 
 gchar*
 dbus_get_ringtone_choice (const gchar *accountID)
@@ -1562,7 +1926,7 @@ dbus_ringtone_enabled (const gchar *accountID)
 }
 
 gboolean
-dbus_is_md5_credential_hashing()
+dbus_is_md5_credential_hashing ()
 {
     int res;
     GError* error = NULL;
@@ -1589,7 +1953,7 @@ dbus_set_md5_credential_hashing (gboolean enabled)
 }
 
 int
-dbus_is_iax2_enabled()
+dbus_is_iax2_enabled ()
 {
     int res;
     GError* error = NULL;
@@ -2127,7 +2491,7 @@ dbus_request_go_clear (const callable_obj_t * c)
 }
 
 gchar**
-dbus_get_supported_tls_method()
+dbus_get_supported_tls_method ()
 {
     GError *error = NULL;
     gchar** array = NULL;
@@ -2253,12 +2617,65 @@ dbus_set_shortcuts (GHashTable * shortcuts)
     org_sflphone_SFLphone_ConfigurationManager_set_shortcuts (
         configurationManagerProxy, shortcuts, &error);
 
-
     if (error) {
         ERROR ("Failed to call set_shortcuts() on ConfigurationManager: %s",
                error->message);
         g_error_free (error);
     }
+}
+
+gchar**
+dbus_video_enumerate_devices (void)
+{
+    GError *error = NULL;
+    char ** array = NULL;
+
+    org_sflphone_SFLphone_VideoManager_enumerate_devices (videoManagerProxy,
+            &array, &error);
+
+    if (error != NULL) {
+        ERROR ("Failed to enumerate devices over dbus.");
+        g_error_free (error);
+    }
+
+    return array;
+}
+
+GList*
+dbus_video_get_resolution_for_device (const gchar* device)
+{
+    GError* error = NULL;
+    GPtrArray* resolutions = NULL;
+    GList* ret = NULL;
+
+    org_sflphone_SFLphone_VideoManager_get_resolution_for_device (
+        videoManagerProxy, device, &resolutions, &error);
+
+    if (error != NULL) {
+        ERROR ("Failed to get resolution for device over dbus.");
+        g_error_free (error);
+    }
+
+    int i;
+
+    for (i = 0; i < resolutions->len; i++) {
+        GValue elem = { 0 };
+        gint width;
+        gint height;
+
+        g_value_init (&elem, DBUS_STRUCT_INT_INT);
+        g_value_set_static_boxed (&elem, g_ptr_array_index (resolutions, i));
+
+        dbus_g_type_struct_get (&elem, 0, &width, 1, &height, G_MAXUINT);
+
+        resolution_t* resolution = malloc (sizeof (resolution_t));
+        resolution->width = width;
+        resolution->height = height;
+        ret = g_list_prepend (ret, resolution);
+    }
+
+    ret = g_list_reverse (ret);
+    return ret;
 }
 
 void
@@ -2273,4 +2690,101 @@ dbus_send_text_message (const gchar* callID, const gchar *message)
                error->message);
         g_error_free (error);
     }
+}
+
+gchar**
+dbus_video_get_framerates (const gchar* device, const gint width,
+                           const gint height)
+{
+    GError *error = NULL;
+    char ** array = NULL;
+
+    org_sflphone_SFLphone_VideoManager_get_frame_rates (videoManagerProxy,
+            device, width, height, &array, &error);
+
+    DEBUG ("Requesting supported framerates for device %s under %d x %d", device, width, height);
+
+    if (error != NULL) {
+        ERROR ("Failed to get resolution for device over dbus.");
+        g_error_free (error);
+    }
+
+    return array;
+}
+
+video_shm_info*
+dbus_get_video_shm_info (const gchar* shm)
+{
+    GError* error = NULL;
+    GValueArray* shmInfo = NULL;
+
+    org_sflphone_SFLphone_VideoManager_get_shm_info (videoManagerProxy, shm, &shmInfo, &error);
+
+    if (error != NULL) {
+        ERROR ("Caught remote method (getShmInfo) exception %s", error->message);
+        g_error_free (error);
+        return NULL;
+    }
+
+    video_shm_info* info = g_new (video_shm_info, 1);
+    info->width = g_value_get_uint (g_value_array_get_nth (shmInfo, 0));
+    info->height = g_value_get_uint (g_value_array_get_nth (shmInfo, 1));
+    info->fourcc = g_value_get_uint (g_value_array_get_nth (shmInfo, 2));
+
+    return info;
+}
+
+video_key_t*
+dbus_video_start_local_capture (const gchar * device, gint width, gint height,
+                                gchar* fps)
+{
+    GError* error = NULL;
+    GValueArray* shmToken = NULL;
+
+    org_sflphone_SFLphone_VideoManager_start_local_capture (videoManagerProxy,
+            device, width, height, fps, &shmToken, &error);
+
+    if (error != NULL) {
+        ERROR ("Caught remote method (startLocalCapture) exception %s", error->message);
+        g_error_free (error);
+        return NULL;
+    }
+
+    video_key_t* key = (video_key_t*) malloc (sizeof (video_key_t));
+    key->shm = g_value_dup_string (g_value_array_get_nth (shmToken, 0));
+    key->token = g_value_dup_string (g_value_array_get_nth (shmToken, 1));
+
+    return key;
+}
+
+gboolean
+dbus_video_stop_local_capture (gchar* device, gchar* token)
+{
+    GError* error = NULL;
+    org_sflphone_SFLphone_VideoManager_stop_local_capture (videoManagerProxy,
+            device, token, &error);
+
+    if (error != NULL) {
+        ERROR ("Caught remote method exception");
+        return FALSE;
+    }
+
+    return TRUE;
+}
+
+gchar*
+dbus_video_get_fd_passer_namespace (gchar * shm)
+{
+    GError *error = NULL;
+    gchar *fdpasser = NULL;
+
+    org_sflphone_SFLphone_VideoManager_get_event_fd_passer_namespace (
+        videoManagerProxy, shm, &fdpasser, &error);
+
+    if (error != NULL) {
+        ERROR ("Caught remote method (startLocalCapture) exception  %s: %s", dbus_g_error_get_name (error), error->message);
+        g_error_free (error);
+    }
+
+    return fdpasser;
 }

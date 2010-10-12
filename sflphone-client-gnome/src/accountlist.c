@@ -64,10 +64,12 @@ gint get_state_struct (gconstpointer a, gconstpointer b)
     }
 }
 
-void account_list_init ()
+void
+account_list_init ()
 {
-
     accountQueue = g_queue_new ();
+
+    DEBUG ("Account list initialised.");
 }
 
 void
@@ -156,7 +158,9 @@ account_list_get_current()
     return current;
 }
 
-void account_list_set_current (account_t *current)
+
+void
+account_list_set_current (account_t *current)
 {
     gpointer acc;
     guint pos;
@@ -172,8 +176,8 @@ void account_list_set_current (account_t *current)
     }
 }
 
-
-const gchar * account_state_name (account_state_t s)
+const gchar *
+account_state_name (account_state_t s)
 {
     gchar * state;
 
@@ -350,7 +354,8 @@ guint account_list_get_position (account_t *account)
     return -1;
 }
 
-gboolean current_account_has_mailbox (void)
+gboolean
+current_account_has_mailbox (void)
 {
 
     account_t *current;
@@ -369,7 +374,8 @@ gboolean current_account_has_mailbox (void)
     return FALSE;
 }
 
-void current_account_set_message_number (guint nb)
+void
+current_account_set_message_number (guint nb)
 {
     account_t *current;
 
@@ -380,7 +386,8 @@ void current_account_set_message_number (guint nb)
     }
 }
 
-guint current_account_get_message_number (void)
+guint
+current_account_get_message_number (void)
 {
     account_t *current;
 
@@ -392,7 +399,8 @@ guint current_account_get_message_number (void)
         return 0;
 }
 
-gboolean current_account_has_new_message (void)
+gboolean
+current_account_has_new_message (void)
 {
     account_t *current;
 

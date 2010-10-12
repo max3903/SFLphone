@@ -36,6 +36,15 @@
 #include <pwd.h>
 #include <sstream>
 
+const char* SIPAccount::ALWAYS_OFFER_VIDEO = "alwaysOfferVideo";
+const char* SIPAccount::PREFERRED_VIDEO_DEVICE = "preferredVideoDevice";
+const char* SIPAccount::PREFERRED_VIDEO_RESOLUTION = "preferredVideoResolution";
+const char* SIPAccount::PREFERRED_VIDEO_FRAMERATE = "preferredVideoFramerate";
+const char* SIPAccount::PREFERRED_WIDTH = "width";
+const char* SIPAccount::PREFERRED_HEIGHT = "height";
+const char* SIPAccount::PREFERRED_NUMERATOR = "numerator";
+const char* SIPAccount::PREFERRED_DENOMINATOR = "denominator";
+
 Credentials::Credentials() : credentialCount (0) {}
 
 Credentials::~Credentials() {}
@@ -75,8 +84,6 @@ void Credentials::unserialize (Conf::MappingNode *map)
         val = NULL;
     }
 }
-
-
 
 SIPAccount::SIPAccount (const AccountID& accountID)
         : Account (accountID, "SIP")
@@ -129,21 +136,14 @@ SIPAccount::SIPAccount (const AccountID& accountID)
     _stunServerName.ptr = NULL;
     _stunServerName.slen = 0;
     _stunPort = 0;
-
-    // IP2IP settings must be loaded before singleton instanciation, cannot call it here...
-
-    // _link = SIPVoIPLink::instance ("");
-
-    /* Represents the number of SIP accounts connected the same link */
-    // dynamic_cast<SIPVoIPLink*> (_link)->incrementClients();
-
 }
 
 SIPAccount::~SIPAccount()
 {
     /* One SIP account less connected to the sip voiplink */
-    if (_accountID != "default")
-        dynamic_cast<SIPVoIPLink*> (_link)->decrementClients();
+    if (_accountID != "default") {
+        dynamic_cast<SipVoipLink*> (_link)->decrementClients();
+    }
 
     /* Delete accounts-related information */
     _regc = NULL;
@@ -184,7 +184,7 @@ void SIPAccount::serialize (Conf::YamlEmitter *emitter)
     Conf::ScalarNode publishPort (publicportstr.str());
     Conf::ScalarNode sameasLocal (_publishedSameasLocal ? "true" : "false");
     Conf::ScalarNode resolveOnce (_resolveOnce ? "true" : "false");
-    Conf::ScalarNode codecs (_codecStr);
+
     Conf::ScalarNode ringtonePath (_ringtonePath);
     Conf::ScalarNode ringtoneEnabled (_ringtoneEnabled ? "true" : "false");
     Conf::ScalarNode stunServer (_stunServer);
@@ -239,21 +239,33 @@ void SIPAccount::serialize (Conf::YamlEmitter *emitter)
     accountmap.setKeyValue (serviceRouteKey, &serviceRoute);
     accountmap.setKeyValue (dtmfTypeKey, &dtmfType);
     accountmap.setKeyValue (displayNameKey, &displayName);
-    accountmap.setKeyValue (codecsKey, &codecs);
+
+    // Audio
+    Conf::ScalarNode audioCodecs (getAudioCodecsSerialized());
+    accountmap.setKeyValue (audioCodecsKey, &audioCodecs);
+
+    // Ringtone
     accountmap.setKeyValue (ringtonePathKey, &ringtonePath);
     accountmap.setKeyValue (ringtoneEnabledKey, &ringtoneEnabled);
 
+    // SRTP
     accountmap.setKeyValue (srtpKey, &srtpmap);
     srtpmap.setKeyValue (srtpEnableKey, &srtpenabled);
     srtpmap.setKeyValue (keyExchangeKey, &keyExchange);
     srtpmap.setKeyValue (rtpFallbackKey, &rtpFallback);
 
+    // ZRTP
     accountmap.setKeyValue (zrtpKey, &zrtpmap);
     zrtpmap.setKeyValue (displaySasKey, &displaySas);
     zrtpmap.setKeyValue (displaySasOnceKey, &displaySasOnce);
     zrtpmap.setKeyValue (helloHashEnabledKey, &helloHashEnabled);
     zrtpmap.setKeyValue (notSuppWarningKey, &notSuppWarning);
 
+    // Credentials
+    accountmap.setKeyValue (credKey, &credentialmap);
+    credentialmap.setKeyValue (credentialCountKey, &count);
+
+    // TLS
     accountmap.setKeyValue (credKey, &credentialmap);
     credentialmap.setKeyValue (credentialCountKey, &count);
 
@@ -272,6 +284,32 @@ void SIPAccount::serialize (Conf::YamlEmitter *emitter)
     tlsmap.setKeyValue (verifyClientKey, &verifyclient);
     tlsmap.setKeyValue (verifyServerKey, &verifyserver);
 
+    // Video
+    Conf::MappingNode videoSection (NULL);
+    accountmap.setKeyValue ("video", &videoSection);
+    videoSection.setKeyValue (ALWAYS_OFFER_VIDEO, new Conf::ScalarNode (isAlwaysOfferVideo() ? "true" : "false"));
+    videoSection.setKeyValue (PREFERRED_VIDEO_DEVICE, new Conf::ScalarNode (getPreferredVideoDevice()));
+    videoSection.setKeyValue ("codecs", new Conf::ScalarNode (getVideoCodecsSerialized()));
+    Conf::MappingNode resolutionSection (NULL);
+    videoSection.setKeyValue (PREFERRED_VIDEO_RESOLUTION, &resolutionSection);
+    std::stringstream ss;
+    ss << getPreferredVideoFormat().getWidth();
+    resolutionSection.setKeyValue (PREFERRED_WIDTH, new Conf::ScalarNode (ss.str()));
+
+    ss.str ("");
+    ss << getPreferredVideoFormat().getHeight();
+    resolutionSection.setKeyValue (PREFERRED_HEIGHT, new Conf::ScalarNode (ss.str()));
+
+    Conf::MappingNode framerateSection (NULL);
+    videoSection.setKeyValue (PREFERRED_VIDEO_FRAMERATE, &framerateSection);
+    ss.str ("");
+    ss << getPreferredVideoFormat().getPreferredFrameRate().getNumerator();
+    framerateSection.setKeyValue (PREFERRED_NUMERATOR, new Conf::ScalarNode (ss.str()));
+
+    ss.str ("");
+    ss << getPreferredVideoFormat().getPreferredFrameRate().getDenominator();
+    framerateSection.setKeyValue (PREFERRED_DENOMINATOR, new Conf::ScalarNode (ss.str()));
+
     try {
         emitter->serializeAccount (&accountmap);
     } catch (Conf::YamlEmitterException &e) {
@@ -279,356 +317,135 @@ void SIPAccount::serialize (Conf::YamlEmitter *emitter)
     }
 }
 
-
 void SIPAccount::unserialize (Conf::MappingNode *map)
 {
-    Conf::ScalarNode *val;
-    Conf::MappingNode *srtpMap;
-    Conf::MappingNode *tlsMap;
-    Conf::MappingNode *zrtpMap;
-    Conf::MappingNode *credMap;
-
     _debug ("SipAccount: Unserialize %s", _accountID.c_str());
 
-    val = (Conf::ScalarNode *) (map->getValue (aliasKey));
+    _alias = (map->getScalarNode (aliasKey))->getValue();
+    _type = (map->getScalarNode (typeKey))->getValue();
+    _accountID = (map->getScalarNode (idKey))->getValue();
+    _username = (map->getScalarNode (usernameKey))->getValue();
+    _password = (map->getScalarNode (passwordKey))->getValue();
+    _hostname = (map->getScalarNode (hostnameKey))->getValue();
+    _enabled = (map->getScalarNode (accountEnableKey))->toBoolean();
 
-    if (val) {
-        _alias = val->getValue();
-        val = NULL;
-    }
+    // Codecs
+    setAudioCodecsSerialized ( (map->getScalarNode (audioCodecsKey))->getValue());
 
-    val = (Conf::ScalarNode *) (map->getValue (typeKey));
+    _ringtonePath = (map->getScalarNode (ringtonePathKey))->getValue();
+    _ringtoneEnabled = (map->getScalarNode (ringtoneEnabledKey))->toBoolean();
 
-    if (val) {
-        _type = val->getValue();
-        val = NULL;
-    }
+    _registrationExpire = (map->getScalarNode (expireKey))->getValue();
+    _interface = (map->getScalarNode (interfaceKey))->getValue();
+    _localPort = (map->getScalarNode (portKey))->toInt();
 
-    val = (Conf::ScalarNode *) (map->getValue (idKey));
+    // Interfaces
+    _publishedIpAddress = (map->getScalarNode (publishAddrKey))->getValue();
+    _publishedPort = (map->getScalarNode (publishPortKey))->toInt();
+    _publishedSameasLocal = (map->getScalarNode (interfaceKey))->toBoolean();
+    _resolveOnce = (map->getScalarNode (resolveOnceKey))->toBoolean();
 
-    if (val) {
-        _accountID = val->getValue();
-        val = NULL;
-    }
-
-    val = (Conf::ScalarNode *) (map->getValue (usernameKey));
-
-    if (val) {
-        _username = val->getValue();
-        val = NULL;
-    }
-
-    val = (Conf::ScalarNode *) (map->getValue (passwordKey));
-
-    if (val) {
-        _password = val->getValue();
-        val = NULL;
-    }
-
-    val = (Conf::ScalarNode *) (map->getValue (hostnameKey));
-
-    if (val) {
-        _hostname = val->getValue();
-        val = NULL;
-    }
-
-    val = (Conf::ScalarNode *) (map->getValue (accountEnableKey));
-
-    if (val) {
-        _enabled = (val->getValue() == "false") ? false : true;
-        val = NULL;
-    }
-
-    val = (Conf::ScalarNode *) (map->getValue (mailboxKey));
-
-    if (val) {
-        _mailBox = val->getValue();
-        val = NULL;
-    }
-
-    val = (Conf::ScalarNode *) (map->getValue (codecsKey));
-
-    if (val) {
-        _codecStr = val->getValue();
-        val = NULL;
-    }
-
-    val = (Conf::ScalarNode *) (map->getValue (ringtonePathKey));
-
-    if (val) {
-        _ringtonePath = val->getValue();
-        val = NULL;
-    }
-
-    val = (Conf::ScalarNode *) (map->getValue (ringtoneEnabledKey));
-
-    if (val) {
-        _ringtoneEnabled = (val->getValue() == "true") ? true : false;
-        val = NULL;
-    }
-
-    val = (Conf::ScalarNode *) (map->getValue (expireKey));
-
-    if (val) {
-        _registrationExpire = val->getValue();
-        val = NULL;
-    }
-
-    val = (Conf::ScalarNode *) (map->getValue (interfaceKey));
-
-    if (val) {
-        _interface = val->getValue();
-        val = NULL;
-    }
-
-    val = (Conf::ScalarNode *) (map->getValue (portKey));
-
-    if (val) {
-        _localPort = atoi (val->getValue().data());
-        val = NULL;
-    }
-
-    val = (Conf::ScalarNode *) (map->getValue (publishAddrKey));
-
-    if (val) {
-        _publishedIpAddress = val->getValue();
-        val = NULL;
-    }
-
-    val = (Conf::ScalarNode *) (map->getValue (publishPortKey));
-
-    if (val) {
-        _publishedPort = atoi (val->getValue().data());
-        val = NULL;
-    }
-
-    val = (Conf::ScalarNode *) (map->getValue (sameasLocalKey));
-
-    if (val) {
-        _publishedSameasLocal = (val->getValue().compare ("true") == 0) ? true : false;
-        val = NULL;
-    }
-
-    val = (Conf::ScalarNode *) (map->getValue (resolveOnceKey));
-
-    if (val) {
-        _resolveOnce = (val->getValue().compare ("true") == 0) ? true : false;
-        val = NULL;
-    }
-
-    val = (Conf::ScalarNode *) (map->getValue (dtmfTypeKey));
-
-    if (val) {
-        _dtmfType = (val->getValue() == "overrtp") ? OVERRTP : SIPINFO;
-        val = NULL;
-    }
-
-    // _dtmfType = atoi(val->getValue();
-    val = (Conf::ScalarNode *) (map->getValue (serviceRouteKey));
-
-    if (val) {
-        _serviceRoute = val->getValue();
-        val = NULL;
-    }
-
-    // stun enabled
-    val = (Conf::ScalarNode *) (map->getValue (stunEnabledKey));
-
-    if (val) {
-        _stunEnabled = (val->getValue().compare ("true") == 0) ? true : false;
-        val = NULL;
-    }
-
-    val = (Conf::ScalarNode *) (map->getValue (stunServerKey));
-
-    if (val) {
-        _stunServer = val->getValue();
-        val = NULL;
-    }
-
-    // Init stun server name with default server name
+    // Stun
+    _stunEnabled = (map->getScalarNode (stunEnabledKey))->toBoolean();
+    _stunServer = (map->getScalarNode (publishAddrKey))->getValue();
     _stunServerName = pj_str ( (char*) _stunServer.data());
 
-    credMap = (Conf::MappingNode *) (map->getValue (credKey));
+    // Routes
+    _serviceRoute = (map->getScalarNode (serviceRouteKey))->getValue();
 
-    if (credMap)
-        credentials.unserialize (credMap);
+    // Credentials
+    Conf::MappingNode* credMap = (Conf::MappingNode *) (map->getValue (credKey));
+    credentials.unserialize (credMap);
 
-    val = (Conf::ScalarNode *) (map->getValue (displayNameKey));
+    _displayName = (map->getScalarNode (displayNameKey))->getValue();
 
-    if (val) {
-        _displayName = val->getValue();
-        val = NULL;
+    // SRTP submap
+    Conf::MappingNode* srtpMap = (Conf::MappingNode *) (map->getValue (srtpKey));
+
+    if (!srtpMap) {
+        throw SipAccountException ("Did not found SRTP map.");
     }
 
-    // get srtp submap
-    srtpMap = (Conf::MappingNode *) (map->getValue (srtpKey));
+    _srtpEnabled = (srtpMap->getScalarNode (srtpEnableKey))->toBoolean();
+    _srtpKeyExchange = (srtpMap->getScalarNode (keyExchangeKey))->getValue();
+    _srtpFallback = (srtpMap->getScalarNode (rtpFallbackKey))->toBoolean();
 
-    if (!srtpMap)
-        throw SipAccountException (" did not found srtp map");
+    // ZRTP submap
+    Conf::MappingNode* zrtpMap = (Conf::MappingNode *) (map->getValue (zrtpKey));
 
-    val = (Conf::ScalarNode *) (srtpMap->getValue (srtpEnableKey));
-
-    if (val) {
-        _srtpEnabled = (val->getValue().compare ("true") == 0) ? true : false;
-        val = NULL;
+    if (!zrtpMap) {
+        throw SipAccountException ("Did not found ZRTP map.");
     }
 
-    val = (Conf::ScalarNode *) (srtpMap->getValue (keyExchangeKey));
+    _zrtpDisplaySas = (zrtpMap->getScalarNode (displaySasKey))->toBoolean();
+    _zrtpDisplaySasOnce = (zrtpMap->getScalarNode (displaySasOnceKey))->toBoolean();
+    _zrtpHelloHash = (zrtpMap->getScalarNode (helloHashEnabledKey))->toBoolean();
+    _zrtpNotSuppWarning = (zrtpMap->getScalarNode (notSuppWarningKey))->toBoolean();
 
-    if (val) {
-        _srtpKeyExchange = val->getValue();
-        val = NULL;
+    // TLS submap
+    Conf::MappingNode* tlsMap = (Conf::MappingNode *) (map->getValue (tlsKey));
+
+    if (!tlsMap) {
+        throw SipAccountException ("Did not found TLS map.");
     }
 
-    val = (Conf::ScalarNode *) (srtpMap->getValue (rtpFallbackKey));
+    _tlsEnable = (tlsMap->getScalarNode (tlsEnableKey))->getValue();
+    _tlsPortStr = (tlsMap->getScalarNode (tlsPortKey))->getValue();
+    _tlsCertificateFile = (tlsMap->getScalarNode (certificateKey))->getValue();
+    _tlsCaListFile = (tlsMap->getScalarNode (calistKey))->getValue();
+    _tlsCiphers = (tlsMap->getScalarNode (ciphersKey))->getValue();
+    _tlsMethod = (tlsMap->getScalarNode (methodKey))->getValue();
+    _tlsNegotiationTimeoutSec = (tlsMap->getScalarNode (timeoutKey))->getValue();
+    _tlsNegotiationTimeoutMsec = (tlsMap->getScalarNode (timeoutKey))->getValue(); // FIXME Wrong key
+    _tlsPassword = (tlsMap->getScalarNode (tlsPasswordKey))->getValue();
+    _tlsPrivateKeyFile = (tlsMap->getScalarNode (privateKeyKey))->getValue();
+    _tlsRequireClientCertificate = (tlsMap->getScalarNode (requireCertifKey))->toBoolean();
+    _tlsServerName = (tlsMap->getScalarNode (serverKey))->getValue();
+    _tlsVerifyServer = (tlsMap->getScalarNode (verifyClientKey))->toBoolean();
+    _tlsVerifyClient = (tlsMap->getScalarNode (verifyServerKey))->toBoolean();
 
-    if (val) {
-        _srtpFallback = (val->getValue().compare ("true") == 0) ? true : false;
-        val = NULL;
+    // Video submap
+    Conf::MappingNode* videoSection = (Conf::MappingNode *) (map->getValue ("video"));
+
+    if (!videoSection) {
+        throw SipAccountException ("Did not found video map.");
     }
 
-    // get zrtp submap
-    zrtpMap = (Conf::MappingNode *) (map->getValue (zrtpKey));
+    setAlwaysOfferVideo ( (videoSection->getScalarNode (ALWAYS_OFFER_VIDEO))->toBoolean());
+    setPreferredVideoDevice ( (videoSection->getScalarNode (PREFERRED_VIDEO_DEVICE))->getValue());
 
-    if (!zrtpMap)
-        throw SipAccountException (" did not found zrtp map");
+    Conf::MappingNode* resolutionSection = (Conf::MappingNode *) (videoSection->getValue (PREFERRED_VIDEO_RESOLUTION));
 
-    val = (Conf::ScalarNode *) (zrtpMap->getValue (displaySasKey));
-
-    if (val) {
-        _zrtpDisplaySas = (val->getValue().compare ("true") == 0) ? true : false;
-        val = NULL;
+    if (!resolutionSection) {
+        throw SipAccountException ("Did not found resolution map.");
     }
 
-    val = (Conf::ScalarNode *) (zrtpMap->getValue (displaySasOnceKey));
+    uint width = (resolutionSection->getScalarNode (PREFERRED_WIDTH))->toInt();
+    uint height = (resolutionSection->getScalarNode (PREFERRED_HEIGHT))->toInt();
 
-    if (val) {
-        _zrtpDisplaySasOnce = (val->getValue().compare ("true") == 0) ? true : false;
-        val = NULL;
+    Conf::MappingNode* framerateSection = (Conf::MappingNode *) (videoSection->getValue (PREFERRED_VIDEO_FRAMERATE));
+
+    if (!framerateSection) {
+        throw SipAccountException ("Did not found framerate map.");
     }
 
-    val = (Conf::ScalarNode *) (zrtpMap->getValue (helloHashEnabledKey));
+    uint num = (framerateSection->getScalarNode (PREFERRED_NUMERATOR))->toInt();
+    uint denom = (framerateSection->getScalarNode (PREFERRED_DENOMINATOR))->toInt();
 
-    if (val) {
-        _zrtpHelloHash = (val->getValue().compare ("true") == 0) ? true : false;
-        val = NULL;
-    }
+    sfl::VideoFormat format;
+    format.setWidth (width);
+    format.setHeight (height);
+    sfl::FrameRate rate (num, denom);
+    format.setPreferredFrameRate (rate);
 
-    val = (Conf::ScalarNode *) (zrtpMap->getValue (notSuppWarningKey));
+    setPreferredVideoFormat (format);
 
-    if (val) {
-        _zrtpNotSuppWarning = (val->getValue().compare ("true") == 0) ? true : false;
-        val = NULL;
-    }
-
-    // get tls submap
-    tlsMap = (Conf::MappingNode *) (map->getValue (tlsKey));
-
-    if (!tlsMap)
-        throw SipAccountException (" did not found tls map");
-
-    val = (Conf::ScalarNode *) (tlsMap->getValue (tlsEnableKey));
-
-    if (val) {
-        _tlsEnable = val->getValue();
-        val = NULL;
-    }
-
-    val = (Conf::ScalarNode *) (tlsMap->getValue (tlsPortKey));
-
-    if (val) {
-        _tlsPortStr = val->getValue();
-        val = NULL;
-    }
-
-    val = (Conf::ScalarNode *) (tlsMap->getValue (certificateKey));
-
-    if (val) {
-        _tlsCertificateFile = val->getValue();
-        val = NULL;
-    }
-
-    val = (Conf::ScalarNode *) (tlsMap->getValue (calistKey));
-
-    if (val) {
-        _tlsCaListFile = val->getValue();
-        val = NULL;
-    }
-
-    val = (Conf::ScalarNode *) (tlsMap->getValue (ciphersKey));
-
-    if (val) {
-        _tlsCiphers = val->getValue();
-        val = NULL;
-    }
-
-    val = (Conf::ScalarNode *) (tlsMap->getValue (methodKey));
-
-    if (val) {
-        _tlsMethod = val->getValue();
-        val = NULL;
-    }
-
-    val = (Conf::ScalarNode *) (tlsMap->getValue (timeoutKey));
-
-    if (val) _tlsNegotiationTimeoutSec = val->getValue();
-
-    if (val) {
-        _tlsNegotiationTimeoutMsec = val->getValue();
-        val=NULL;
-    }
-
-    val = (Conf::ScalarNode *) (tlsMap->getValue (tlsPasswordKey));
-
-    if (val) {
-        _tlsPassword = val->getValue();
-        val = NULL;
-    }
-
-    val = (Conf::ScalarNode *) (tlsMap->getValue (privateKeyKey));
-
-    if (val) {
-        _tlsPrivateKeyFile = val->getValue();
-        val = NULL;
-    }
-
-    val = (Conf::ScalarNode *) (tlsMap->getValue (requireCertifKey));
-
-    if (val) {
-        _tlsRequireClientCertificate = (val->getValue().compare ("true") == 0) ? true : false;
-        val = NULL;
-    }
-
-    val = (Conf::ScalarNode *) (tlsMap->getValue (serverKey));
-
-    if (val) {
-        _tlsServerName = val->getValue();
-        val = NULL;
-    }
-
-    val = (Conf::ScalarNode *) (tlsMap->getValue (verifyClientKey));
-
-    if (val) {
-        _tlsVerifyServer = (val->getValue().compare ("true") == 0) ? true : false;
-        val = NULL;
-    }
-
-    val = (Conf::ScalarNode *) (tlsMap->getValue (verifyServerKey));
-
-    if (val) {
-        _tlsVerifyClient = (val->getValue().compare ("true") == 0) ? true : false;
-        val = NULL;
-    }
-
-    Account::loadAudioCodecs();
-
+    setVideoCodecsSerialized ( (videoSection->getScalarNode (videoCodecsKey))->getValue());
 }
 
 
 void SIPAccount::setAccountDetails (const std::map<std::string, std::string>& details)
 {
-
     std::map<std::string, std::string> map_cpy;
     std::map<std::string, std::string>::iterator iter;
 
@@ -931,16 +748,13 @@ std::map<std::string, std::string> SIPAccount::getAccountDetails()
 
 }
 
-
 // void SIPAccount::setVoIPLink(VoIPLink *link) {
 void SIPAccount::setVoIPLink()
 {
-
-    _link = SIPVoIPLink::instance ("");
-    dynamic_cast<SIPVoIPLink*> (_link)->incrementClients();
+    _link = SipVoipLink::instance ("");
+    dynamic_cast<SipVoipLink*> (_link)->incrementClients();
 
 }
-
 
 int SIPAccount::initCredential (void)
 {

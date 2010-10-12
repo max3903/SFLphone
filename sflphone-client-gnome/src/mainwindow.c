@@ -29,7 +29,6 @@
  *  shall include the source code for the parts of OpenSSL used as well
  *  as that of the covered work.
  */
-
 #include <config.h>
 #include <actions.h>
 #include <calltree.h>
@@ -44,7 +43,11 @@
 #include <widget/minidialog.h>
 #include "uimanager.h"
 
+#include <widget/SFLVideoSession.h>
+
 #include <gtk/gtk.h>
+#include <gdl/gdl.h>
+
 #include <eel-gconf-extensions.h>
 
 /** Local variables */
@@ -81,7 +84,6 @@ static gboolean window_configure_cb (GtkWidget *win UNUSED, GdkEventConfigure *e
 
     return FALSE;
 }
-
 
 /**
  * Minimize the main window.
@@ -126,7 +128,6 @@ main_window_ask_quit ()
     gtk_widget_destroy (dialog);
 
     return (response == GTK_RESPONSE_NO) ? FALSE : TRUE ;
-
 
 }
 
@@ -566,4 +567,3 @@ main_window_confirm_go_clear (callable_obj_t * c)
 
     add_error_dialog (GTK_WIDGET (mini_dialog), c);
 }
-

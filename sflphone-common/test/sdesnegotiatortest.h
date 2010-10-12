@@ -50,8 +50,8 @@
 #include <pjnath/stun_config.h>
 
 // Application import
-#include "sip/SdesNegotiator.h"
-#include "sip/Pattern.h"
+#include "sip/sdp/SdesNegotiator.h"
+#include "util/regex/Pattern.h"
 
 
 /*

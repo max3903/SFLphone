@@ -118,5 +118,4 @@ class CallManager
         sfl::AudioZrtpSession * getAudioZrtpSession (const std::string& callID);
 };
 
-
 #endif//CALLMANAGER_H

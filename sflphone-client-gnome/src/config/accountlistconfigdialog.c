@@ -29,7 +29,6 @@
  *  as that of the covered work.
  */
 
-
 #include <accountlistconfigdialog.h>
 #include <dbus/dbus.h>
 #include <accountconfigdialog.h>
@@ -47,11 +46,12 @@ GtkWidget *restoreButton;
 GtkWidget *accountMoveDownButton;
 GtkWidget *accountMoveUpButton;
 GtkWidget * status_bar;
-GtkListStore * accountStore;
+GtkListStore* accountStore;
 
-GtkDialog * accountListDialog = NULL;
+GtkDialog* accountListDialog = NULL;
 
-account_t * selectedAccount = NULL;
+account_t* selectedAccount = NULL;
+
 // Account properties
 enum {
     COLUMN_ACCOUNT_ALIAS,
@@ -130,8 +130,6 @@ void account_list_config_dialog_fill()
     }
 
 }
-
-
 
 /**
  * Call back when the user click on an account in the list

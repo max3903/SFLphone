@@ -31,6 +31,7 @@
 #include "utils.h"
 #include <sflphone_const.h>
 
+static const int DEFAULT_SPACING = 10;
 void gnome_main_section_new_with_table (gchar *title, GtkWidget **frame, GtkWidget **table, gint nb_col, gint nb_row)
 {
     GtkWidget *_frame, *_table, *label, *align;
@@ -97,7 +98,7 @@ void gnome_main_section_new_with_vbox (gchar *title, GtkWidget **frame, GtkWidge
 
 void gnome_main_section_new (gchar *title, GtkWidget **frame)
 {
-    GtkWidget *_frame, *label;
+    GtkWidget *label;
     PangoAttrList *attrs = NULL;
     PangoAttribute *attr = NULL;
 
@@ -107,7 +108,7 @@ void gnome_main_section_new (gchar *title, GtkWidget **frame)
     attr->end_index = -1;
     pango_attr_list_insert (attrs, attr);
 
-    _frame = gtk_frame_new (title);
+    GtkWidget* _frame = gtk_frame_new (title);
     gtk_frame_set_shadow_type (GTK_FRAME (_frame), GTK_SHADOW_NONE);
     gtk_container_set_border_width (GTK_CONTAINER (_frame), 2);
 

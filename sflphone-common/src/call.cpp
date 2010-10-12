@@ -32,12 +32,28 @@
 #include "manager.h"
 #include "audio/mainbuffer.h"
 
-Call::Call (const CallID& id, Call::CallType type)
+Call::Call(Call::CallType type) 
+	: _callMutex()
+        , _audioStarted (false)
+        , _localIPAddress ("")
+        , _localAudioPort (0)
+        , _id (generateCallId())
+        , _confID ("")
+        , _type (type)
+        , _connectionState (Call::Disconnected)
+        , _callState (Call::Inactive)
+        , _callConfig (Call::Classic)
+        , _peerName()
+        , _peerNumber()
+{
+	
+}
+
+Call::Call (const CallId id, Call::CallType type)
         : _callMutex()
         , _audioStarted (false)
         , _localIPAddress ("")
         , _localAudioPort (0)
-        , _localExternalAudioPort (0)
         , _id (id)
         , _confID ("")
         , _type (type)
@@ -85,7 +101,7 @@ Call::getState()
 }
 
 std::string
-Call::getStateStr ()
+Call::getStateAsString ()
 {
     CallState state = getState();
     ConnectionState connection = getConnectionState ();
@@ -156,19 +172,58 @@ Call::getStateStr ()
     return state_str;
 }
 
+void Call::setLocalIp(const std::string& ip) {
+	_localIPAddress = ip;
+}
 
-const std::string&
-Call::getLocalIp()
+const std::string& Call::getLocalIp()
 {
     ost::MutexLock m (_callMutex);
     return _localIPAddress;
 }
 
-unsigned int
-Call::getLocalAudioPort()
+void Call::setLocalAudioPort(unsigned int port) {
+	_localAudioPort = port;
+}
+
+unsigned int Call::getLocalAudioPort()
 {
     ost::MutexLock m (_callMutex);
     return _localAudioPort;
+}
+
+void Call::setLocalVideoPort (unsigned int port)
+{
+	_localVideoPort = port;
+}
+
+unsigned int Call::getLocalVideoPort() {
+	return _localVideoPort;
+}
+
+void Call::setPublishedAudioPort(unsigned int port) {
+	_publishedAudioPort = port;
+}
+
+unsigned int Call::getPublishedAudioPort() {
+	return _publishedAudioPort;
+}
+
+
+void Call::setPublishedVideoPort(unsigned int port) {
+	_publishedVideoPort = port;
+}
+
+unsigned int Call::getPublishedVideoPort() {
+	return _publishedVideoPort;
+}
+
+std::string Call::getRecFileId (void) {
+    return getPeerName();
+}
+
+std::string Call::getFileName (void) {
+    return _filename;
 }
 
 void
@@ -201,7 +256,7 @@ Call::setRecording()
         _debug ("Call: Call not recording yet, set ringbuffers");
 
         MainBuffer *mbuffer = Manager::instance().getMainBuffer();
-        CallID process_id = Recordable::recorder.getRecorderID();
+        CallId process_id = Recordable::recorder.getRecorderID();
 
         mbuffer->bindHalfDuplexOut (process_id, _id);
         mbuffer->bindHalfDuplexOut (process_id);
@@ -214,7 +269,7 @@ Call::setRecording()
         _debug ("Call: Stop recording");
 
         MainBuffer *mbuffer = Manager::instance().getMainBuffer();
-        CallID process_id = Recordable::recorder.getRecorderID();
+        CallId process_id = Recordable::recorder.getRecorderID();
 
         mbuffer->unBindHalfDuplexOut (process_id, _id);
         mbuffer->unBindHalfDuplexOut (process_id);
@@ -224,4 +279,20 @@ Call::setRecording()
     Manager::instance().getMainBuffer()->stateInfo();
 
     return recordStatus;
+}
+
+CallId Call::generateCallId()
+{
+    std::ostringstream random_id ("s");
+    random_id << (unsigned) rand();
+
+    // when it's not found, it return ""
+    // generate, something like s10000s20000s4394040
+    while (Manager::instance().getAccountFromCall (random_id.str()) != ACCOUNT_NULL) {
+        random_id.clear();
+        random_id << "s";
+        random_id << (unsigned) rand();
+    }
+
+    return random_id.str();
 }

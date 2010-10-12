@@ -42,7 +42,7 @@
 namespace sfl
 {
 
-AudioZrtpSession::AudioZrtpSession (ManagerImpl * manager, SIPCall * sipcall, const std::string& zidFilename) :
+AudioZrtpSession::AudioZrtpSession (ManagerImpl * manager, SipCall * sipcall, const std::string& zidFilename) :
         ost::SymmetricZRTPSession (ost::InetHostAddress (sipcall->getLocalIp().c_str()), sipcall->getLocalAudioPort()),
         AudioRtpSession<AudioZrtpSession> (manager, sipcall),
         _zidFilename (zidFilename)

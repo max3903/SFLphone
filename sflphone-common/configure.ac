@@ -1,11 +1,11 @@
-dnl SFLPhone - configure.ac for automake 1.9 and autoconf 2.59
-dnl
+	dnl SFLPhone - configure.ac for automake 1.9 and autoconf 2.59
+	dnl
 
 	dnl Process this file with autoconf to produce a configure script.
 	AC_PREREQ(2.59)
-	AC_INIT([sflphone],[0.9.9],[sflphoneteam@savoirfairelinux.com],[sflphone])
+	AC_INIT([sflphone],[0.9.9~beta],[sflphoneteam@savoirfairelinux.com],[sflphone])
 	AC_COPYRIGHT([[Copyright (c) Savoir-Faire Linux 2004, 2005, 2006, 2007, 2008, 2009, 2010]])
-AC_REVISION([$Revision$])
+	AC_REVISION([$Revision$])
 
 	AC_CANONICAL_SYSTEM
 
@@ -13,13 +13,13 @@ AC_REVISION([$Revision$])
 	VERSION=`cat VERSION`
 
 	AM_INIT_AUTOMAKE($NAME, $VERSION)
-AM_CONFIG_HEADER([config.h])
+	AM_CONFIG_HEADER([config.h])
 
-# Silent build by default. Use make V=1 to increase verbosity
-m4_ifdef([AM_SILENT_RULES],[AM_SILENT_RULES([yes])])
+	# Silent build by default. Use make V=1 to increase verbosity
+	m4_ifdef([AM_SILENT_RULES],[AM_SILENT_RULES([yes])])
 
 	dnl Use this variable in the program
-AC_SUBST(PACKAGE_VERSION)
+	AC_SUBST(PACKAGE_VERSION)
 
 	AM_PROG_LIBTOOL
 
@@ -35,11 +35,11 @@ AC_SUBST(PACKAGE_VERSION)
 
 	dnl Where to find configure files
 	dnl AC_CONFIG_SRCDIR([config.h.in])
-AC_CONFIG_MACRO_DIR([m4])
+	AC_CONFIG_MACRO_DIR([m4])
 
 	dnl What to generate
 	dnl AC_CONFIG_FILES([stamp-h], [echo timestamp > stamp-h])
-AC_CONFIG_FILES([Makefile])
+	AC_CONFIG_FILES([Makefile])
 	AC_CONFIG_FILES([libs/Makefile \
 			libs/utilspp/Makefile \
 			libs/utilspp/functor/Makefile \
@@ -51,6 +51,7 @@ AC_CONFIG_FILES([Makefile])
 			libs/iax2/Makefile])
 
 	AC_CONFIG_FILES([src/Makefile \
+			src/sip/sdp/Makefile \
 			src/sip/Makefile \
 			src/im/Makefile \
 			src/iax/Makefile \
@@ -60,6 +61,19 @@ AC_CONFIG_FILES([Makefile])
 			src/audio/alsa/Makefile \
 			src/audio/sound/Makefile \
 			src/audio/codecs/Makefile \
+			src/util/regex/Makefile \
+			src/util/ipc/Makefile \
+			src/util/pattern/Makefile \
+			src/util/memory/Makefile \
+			src/util/gstreamer/Makefile \
+			src/util/Makefile \
+			src/video/source/Makefile \
+			src/video/codec/mime/Makefile \
+			src/video/codec/decoder/Makefile \
+			src/video/codec/encoder/Makefile \
+			src/video/codec/Makefile \
+			src/video/rtp/Makefile \
+			src/video/Makefile \
 			src/config/Makefile \
 			src/dbus/Makefile \
 			src/plug-in/Makefile \
@@ -67,22 +81,22 @@ AC_CONFIG_FILES([Makefile])
 			src/hooks/Makefile \
 			src/history/Makefile]) 
 
-	dnl Unitary test section
-AC_CONFIG_FILES([test/Makefile])
+	dnl Unit test section
+	AC_CONFIG_FILES([test/Makefile])
 
-AC_CONFIG_FILES([ringtones/Makefile])
+	AC_CONFIG_FILES([ringtones/Makefile])
 
-AC_CONFIG_FILES([man/Makefile])
+	AC_CONFIG_FILES([man/Makefile])
 
 	AC_CONFIG_FILES([doc/Makefile \
 					doc/dbus-api/Makefile \
 			doc/doxygen/Makefile])
 
 	dnl the file stamp-h.in should be there before (instead of AC_CONFIG_HEADERS(config.h))
-dnl AM_CONFIG_HEADER(config.h)
+	dnl AM_CONFIG_HEADER(config.h)
 
 	dnl Settings need Standard C++ Library
-	LIBS="$LIBS -lstdc++"
+	LIBS="$LIBS -lstdc++ -std=c++0x"
 
 	dnl Solaris pkgadd support definitions
 	PKGADD_PKG="SFLphone"
@@ -90,7 +104,7 @@ dnl AM_CONFIG_HEADER(config.h)
 	PKGADD_VENDOR="http://www.sflphone.org/"
 	AC_SUBST(PKGADD_PKG)
 	AC_SUBST(PKGADD_NAME)
-AC_SUBST(PKGADD_VENDOR)
+	AC_SUBST(PKGADD_VENDOR)
 
 	dnl Check for programs
 	AC_PROG_CC
@@ -103,10 +117,10 @@ AC_SUBST(PKGADD_VENDOR)
 	AC_PROG_LIBTOOL
 
 	dnl Define C++ as default language
-AC_LANG(C++)
+	AC_LANG(C++)
 
 	dnl Setup C++ compiler flags
-	CXXFLAGS="$CXXFLAGS $USE_EXCEPTIONS $USER_INCLUDES -g -Wno-return-type"
+	CXXFLAGS="$CXXFLAGS $USE_EXCEPTIONS $USER_INCLUDES -g -Wno-return-type -std=c++0x"
 	dnl CXXFLAGS="$USE_EXCEPTIONS $USER_INCLUDES -O0 -g -Wno-return-type"
 
 	dnl Check for header files
@@ -125,7 +139,7 @@ AC_LANG(C++)
 	AC_TYPE_SIZE_T
 	AC_HEADER_TIME
 	AC_C_VOLATILE
-AC_CHECK_TYPES([ptrdiff_t])
+	AC_CHECK_TYPES([ptrdiff_t])
 
 	dnl ********************************
 	dnl Check for needed functions
@@ -145,6 +159,10 @@ AC_CHECK_TYPES([ptrdiff_t])
 	AC_CHECK_FUNCS([bzero floor gethostbyname gethrtime gettimeofday \
 			inet_ntoa memset mkdir pathconf pow regcomp select setlocale socket \
 			strchr strdup strerror strrchr strstr strtol utime])
+			
+	dnl # check for system bytesex
+	dnl # AC_DEFINES WORDS_BIGENDIAN
+	AC_C_BIGENDIAN
 
 	dnl *****************************************
 	dnl Check for header files
@@ -154,75 +172,76 @@ AC_CHECK_TYPES([ptrdiff_t])
 	dnl Check for GNU ccRTP
 	PKG_PROG_PKG_CONFIG
 
-#Trying to set PJSIP using pkg-config
-#PKG_CHECK_MODULES(SIP, libpj-sfl, have_libpj=true, have_libpj=false)
-#if test "x${have_libpj}" = "xfalse" ; then
-#   AC_MSG_ERROR([PJSIP not found. http://www.pjsip.org/download.htm])
-#fi
-#AC_SUBST(SIP_CFLAGS)
+	#Trying to set PJSIP using pkg-config
+	#PKG_CHECK_MODULES(SIP, libpj-sfl, have_libpj=true, have_libpj=false)
+	#if test "x${have_libpj}" = "xfalse" ; then
+	#   AC_MSG_ERROR([PJSIP not found. http://www.pjsip.org/download.htm])
+	#fi
+	#AC_SUBST(SIP_CFLAGS)
 
 	dnl Check for uuid development package - name: uuid-dev 
-	dnl PKG_CHECK_MODULES(UUID, uuid >= ${UUID_MIN_VERSION})
-	dnl AC_SUBST(UUID_CFLAGS)
-dnl AC_SUBST(UUID_LIBS)
 	UUID_MIN_VERSION=1.0
 	PKG_CHECK_MODULES(UUID, uuid >= ${UUID_MIN_VERSION}, HAVE_UUID=true, HAVE_UUID=false);
 	AC_SUBST(UUID_CFLAGS)
-AC_SUBST(UUID_LIBS)
+	AC_SUBST(UUID_LIBS)
 
 	dnl Check for alsa development package - name: libasound2-dev 
 	LIBASOUND2_MIN_VERSION=1.0
 	PKG_CHECK_MODULES(ALSA, alsa >= ${LIBASOUND2_MIN_VERSION})
 	AC_SUBST(ALSA_CFLAGS)
-AC_SUBST(ALSA_LIBS)
+	AC_SUBST(ALSA_LIBS)
 
 	dnl Check for pulseaudio development package - name: libpulse-dev 
 	LIBPULSE_MIN_VERSION=0.9.15
 	PKG_CHECK_MODULES(PULSEAUDIO, libpulse >= ${LIBPULSE_MIN_VERSION})
 	AC_SUBST(PULSEAUDIO_LIBS)
-AC_SUBST(PULSEAUDIO_CFLAGS)
+	AC_SUBST(PULSEAUDIO_CFLAGS)
 
 	dnl Check for the samplerate development package - name: libsamplerate0-dev
 	LIBSAMPLERATE_MIN_VERSION=0.1.2
 	PKG_CHECK_MODULES(SAMPLERATE, samplerate >= ${LIBSAMPLERATE_MIN_VERSION})
 	AC_SUBST(SAMPLERATE_LIBS)
-AC_SUBST(SAMPLERATE_CFLAGS)
+	AC_SUBST(SAMPLERATE_CFLAGS)
 
 	LIBCCGNU2_MIN_VERSION=1.3.1
 	PKG_CHECK_MODULES(CCGNU2, libccgnu2 >= ${LIBCCGNU2_MIN_VERSION})
 	AC_SUBST(CCGNU2_LIBS)
-AC_SUBST(CCGNU2_FLAGS)
+	AC_SUBST(CCGNU2_FLAGS)
 
 	LIBCCEXT2_MIN_VERSION=1.3.1
 	PKG_CHECK_MODULES(CCEXT2, libccext2 >= ${LIBCCEXT2_MIN_VERSION})
 	AC_SUBST(CCEXT2_LIBS)
-AC_SUBST(CCEXT2_CFLAGS)
+	AC_SUBST(CCEXT2_CFLAGS)
 
 	LIBCCRT_MIN_VERSION=1.3.0
 	PKG_CHECK_MODULES(CCRTP, libccrtp1 >= ${LIBCCRT_MIN_VERSION})
 	AC_SUBST(CCRTP_LIBS)
-AC_SUBST(CCRTP_CFLAGS)
+	AC_SUBST(CCRTP_CFLAGS)
 
 	dnl Check for OpenSSL to link against pjsip and provide SIPS TLS support
 	PKG_CHECK_MODULES([libssl], libssl, , AC_MSG_ERROR([libssl is required]))
 	AC_SUBST(libssl_CFLAGS)
-AC_SUBST(libssl_LIBS)
+	AC_SUBST(libssl_LIBS)
 
 	dnl Check for libzrtpcpp, a ccRTP extension providing zrtp key exchange
 	LIBZRTPCPP_MIN_VERSION=1.3.0
 	PKG_CHECK_MODULES(ZRTPCPP, libzrtpcpp >= ${LIBZRTPCPP_MIN_VERSION})
 	AC_SUBST(ZRTPCPP_LIBS)
-AC_SUBST(ZRTPCPP_CFLAGS)
+	AC_SUBST(ZRTPCPP_CFLAGS)
 
-
-dnl DBus-C++ detection (used to be in library own build system)
+	dnl GStreamer Support
+  	PKG_CHECK_MODULES(GSTREAMER, [gstreamer-plugins-base-0.10 gstreamer-interfaces-0.10  gstreamer-app-0.10 gstreamer-video-0.10 gstreamer-rtp-0.10])
+  	AC_SUBST(GSTREAMER_CFLAGS)
+  	AC_SUBST(GSTREAMER_LIBS)
+	
+	dnl DBus-C++ detection (used to be in library own build system)
 	DBUS_REQUIRED_VERSION=0.60
 	PKG_CHECK_MODULES(dbus, [dbus-1 >= $DBUS_REQUIRED_VERSION],,
 			AC_MSG_ERROR([You need the DBus libraries (version 0.6 or better)]
 				[http://gitorious.org/dbus-cplusplus])
 			)
 	AC_SUBST(dbus_CFLAGS)
-AC_SUBST(dbus_LIBS)
+	AC_SUBST(dbus_LIBS)
 
 	DBUS_API_STABLE_VERSION=1.0.0
 	PKG_CHECK_EXISTS([dbus-1 < $DBUS_API_STABLE_VERSION],
@@ -249,9 +268,9 @@ AC_SUBST(dbus_LIBS)
 			[with_debug=no]
 			)
 	if test "x$with_debug" = "xfull" -o "x$with_debug" = "xyes"; then
-	CXXFLAGS="$USE_EXCEPTIONS $USER_INCLUDES -g -O0 -Wno-return-type"
+	CXXFLAGS="$USE_EXCEPTIONS $USER_INCLUDES -g -O0 -Wno-return-type -std=c++0x"
 	else
-	CXXFLAGS="-g -Wall -O2"
+	CXXFLAGS="-g -Wall -O2 -std=c++0x"
 	fi
 
 AC_CHECK_LIB([expat], XML_ParserCreate_MM,

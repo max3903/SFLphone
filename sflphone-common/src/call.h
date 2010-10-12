@@ -47,7 +47,7 @@
  * @brief A call is the base class for protocol-based calls
  */
 
-typedef std::string CallID;
+typedef std::string CallId;
 
 class Call: public Recordable
 {
@@ -80,18 +80,24 @@ class Call: public Recordable
         enum CallState {Inactive, Active, Hold, Busy, Conferencing, Refused, Error};
 
         /**
-         * Constructor of a call
-         * @param id Unique identifier of the call
+         * Constructor for a call.
          * @param type set definitely this call as incoming/outgoing
          */
-        Call (const CallID& id, Call::CallType type);
+        Call (Call::CallType type);
+
+        /**
+         * Constructor for a call, specifying a call id.
+         * @param id The call id used to identify this object.
+         */
+        Call (CallId id, Call::CallType type);
+
         virtual ~Call();
 
         /**
          * Return a reference on the call id
          * @return call id
          */
-        CallID& getCallId() {
+        CallId& getCallId() {
             return _id;
         }
 
@@ -99,11 +105,11 @@ class Call: public Recordable
              * Return a reference on the conference id
              * @return call id
              */
-        CallID& getConfId() {
+        CallId& getConfId() {
             return _confID;
         }
 
-        void setConfId (CallID id) {
+        void setConfId (CallId id) {
             _confID = id;
         }
 
@@ -174,6 +180,14 @@ class Call: public Recordable
             return (_type == Incoming) ? true : false;
         }
 
+        void setCallConfiguration (Call::CallConfiguration callConfig) {
+            _callConfig = callConfig;
+        }
+
+        Call::CallConfiguration getCallConfiguration (void) {
+            return _callConfig;
+        }
+
         /**
          * Set the connection state of the call (protected by mutex)
          * @param state The connection state
@@ -196,17 +210,9 @@ class Call: public Recordable
          * Get the call state of the call (protected by mutex)
          * @return CallState  The call state
          */
-        CallState getState();
+        CallState getState(void);
 
-        std::string getStateStr ();
-
-        void setCallConfiguration (Call::CallConfiguration callConfig) {
-            _callConfig = callConfig;
-        }
-
-        Call::CallConfiguration getCallConfiguration (void) {
-            return _callConfig;
-        }
+        std::string getStateAsString (void);
 
         /**
          * Set the audio start boolean (protected by mutex)
@@ -226,33 +232,7 @@ class Call: public Recordable
          * Set my IP [not protected]
          * @param ip  The local IP address
          */
-        void setLocalIp (const std::string& ip)     {
-            _localIPAddress = ip;
-        }
-
-        /**
-         * Set local audio port, as seen by me [not protected]
-         * @param port  The local audio port
-         */
-        void setLocalAudioPort (unsigned int port)  {
-            _localAudioPort = port;
-        }
-
-        /**
-         * Set the audio port that remote will see.
-         * @param port  The external audio port
-         */
-        void setLocalExternAudioPort (unsigned int port) {
-            _localExternalAudioPort = port;
-        }
-
-        /**
-         * Return the audio port seen by the remote side.
-         * @return unsigned int The external audio port
-         */
-        unsigned int getLocalExternAudioPort() {
-            return _localExternalAudioPort;
-        }
+        void setLocalIp (const std::string& ip);
 
         /**
          * Return my IP [mutex protected]
@@ -261,22 +241,69 @@ class Call: public Recordable
         const std::string& getLocalIp();
 
         /**
-         * Return port used locally (for my machine) [mutex protected]
-         * @return unsigned int  The local audio port
+         * Set local audio port, as seen by me [not protected]
+         * @param port  The local audio port
+         */
+		void setLocalAudioPort (unsigned int port);
+
+        /**
+         * @param port The local audio port
          */
         unsigned int getLocalAudioPort();
 
-        std::string getRecFileId (void) {
-            return getPeerName();
-        }
+        /**
+         * Set the audio port that remote will see.
+         * @param port  The external audio port
+         */
+        void setPublishedAudioPort (unsigned int port);
 
-        std::string getFileName (void) {
-            return _peerNumber;
-        }
+        /**
+         * Return the audio port seen by the remote side.
+         * @return unsigned int The external audio port
+         */
+        unsigned int getPublishedAudioPort();
+
+        /**
+         * Set local video port, as seen by me [not protected]
+         * @param port  The local video port
+         */
+        void setLocalVideoPort (unsigned int port);
+
+        /**
+         * @return The local video port.
+         */
+        unsigned int getLocalVideoPort();
+
+        /**
+         * Set the video port that remote will see.
+         * @param port  The external video port
+         */
+        void setPublishedVideoPort (unsigned int port);
+
+        /**
+         * Return the video port seen by the remote side.
+         * @return unsigned int The external video port
+         */
+        unsigned int getPublishedVideoPort();
+
+        /**
+         * @return The peer name.
+         */
+        std::string getRecFileId (void);
+
+        /**
+         * @return The file name used for recordings.
+         */
+        std::string getFileName (void);
 
         virtual bool setRecording (void);
 
     protected:
+        /**
+         * @return A call unique call identifier.
+         */
+        CallId generateCallId();
+
         /** Protect every attribute that can be changed by two threads */
         ost::Mutex _callMutex;
 
@@ -290,17 +317,25 @@ class Call: public Recordable
         /** Local audio port, as seen by me. */
         unsigned int _localAudioPort;
 
-        /** Port assigned to my machine by the NAT, as seen by remote peer (he connects there) */
-        unsigned int _localExternalAudioPort;
+        unsigned int _localVideoPort;
 
+        /** Port assigned to my machine by the NAT, as seen by remote peer (he connects there) */
+        unsigned int _publishedAudioPort;
+
+        /** Port assigned to my machine by the NAT, as seen by remote peer (he connects there) */
+        unsigned int _publishedVideoPort;
 
     private:
+        /**
+         * Helper function for constructor.
+         */
+        void init(CallId id, Call::CallType type);
 
         /** Unique ID of the call */
-        CallID _id;
+        CallId _id;
 
         /** Unique conference ID, used exclusively in case of a conferece */
-        CallID _confID;
+        CallId _confID;
 
         /** Type of the call */
         CallType _type;
@@ -323,7 +358,7 @@ class Call: public Recordable
         /** Display Name */
         std::string _displayName;
 
-        /** File name for his call, should be peer number */
+        /** File name for his call : time YY-MM-DD */
         std::string _filename;
 
 

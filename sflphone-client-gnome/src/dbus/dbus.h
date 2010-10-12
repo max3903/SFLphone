@@ -42,20 +42,47 @@
 #include <conference_obj.h>
 #include <sflnotify.h>
 
+#include <stdint.h>
+
+/**
+ * Utility structure for holding a (shm : token) key pair.
+ */
+typedef struct {
+    gchar* shm;
+    gchar* token;
+} video_key_t;
+
+/**
+ * Return type for VideoManager#getShmInfo()
+ */
+typedef struct {
+    guint width;
+    guint height;
+    guint fourcc;
+} video_shm_info;
+
 /** @file dbus.h
-  * @brief General DBus functions wrappers.
-  */
+ * @brief General DBus functions wrappers.
+ */
 
 /**
  * Try to connect to DBus services
  * @return TRUE if connection succeeded, FALSE otherwise
  */
-gboolean dbus_connect ();
+gboolean
+dbus_connect ();
 
 /**
  * Unreferences the proxies
  */
-void dbus_clean ();
+void
+dbus_clean ();
+
+/**
+ * @return a pointer on the video proxy.
+ */
+DBusGProxy*
+dbus_get_video_proxy();
 
 /**
  * CallManager - Hold a call
@@ -79,32 +106,36 @@ void dbus_hang_up (const callable_obj_t * c);
  * CallManager - Transfer a call
  * @param c The call to transfer
  */
-void dbus_transfert (const callable_obj_t * c);
+void
+dbus_transfert (const callable_obj_t * c);
 
 /**
  * CallManager - Accept a call
  * @param c The call to accept
  */
-void dbus_accept (const callable_obj_t * c);
+void
+dbus_accept (const callable_obj_t * c);
 
 /**
  * CallManager - Refuse a call
  * @param c The call to refuse
  */
-void dbus_refuse (const callable_obj_t * c);
+void
+dbus_refuse (const callable_obj_t * c);
 
 /**
  * CallManager - Place a call
  * @param c The call to place
  */
-void dbus_place_call (const callable_obj_t * c);
-
+void
+dbus_place_call (const callable_obj_t * c);
 
 /**
  * ConfigurationManager - Get the list of the setup accounts
  * @return gchar** The list of accounts
  */
-gchar ** dbus_account_list();
+gchar **
+dbus_account_list ();
 
 /**
  * ConfigurationManager - Get the details of a specific account
@@ -208,55 +239,64 @@ gdouble dbus_get_volume (const gchar * device);
 void dbus_play_dtmf (const gchar * key);
 
 /**
- * ConfigurationManager - Get the codecs list
- * @return gchar** The list of codecs
- */
-gchar** dbus_codec_list();
-
-/**
- * ConfigurationManager - Get the codec details
- * @param payload The payload of the codec
- * @return gchar** The codec details
- */
-gchar** dbus_codec_details (int payload);
-
-/**
  * ConfigurationManager - Get the default codec list
  * The default codec list are the codecs selected by the server if the user hasn't made any changes
  * @return gchar** The default codec list
  */
-gchar** dbus_default_codec_list();
+gchar** dbus_default_codec_list ();
+
+/**
+ * @return The list of all the available codecs, as audio_codec_t elements.
+ */
+GList* dbus_get_all_audio_codecs();
+
+/**
+ * @return The list of all the available codecs, as video_codec_t elements.
+ */
+GList* dbus_get_all_video_codecs();
 
 /**
  * ConfigurationManager - Get the list of the codecs used for media negociation
  * @return gchar** The list of codecs
  */
-gchar** dbus_get_active_codec_list (gchar *accountID);
+GList*
+dbus_get_active_audio_codecs (gchar *accountID);
+
+/**
+ * ConfigurationManager - Get the list of the codecs used for media negociation
+ * @return gchar** The list of codecs
+ */
+GList*
+dbus_get_active_video_codecs (gchar* accountID);
 
 /**
  * ConfigurationManager - Set the list of codecs used for media negociation
  * @param list The list of codecs
  */
-void dbus_set_active_codec_list (const gchar** list, const gchar*);
+void
+dbus_set_active_audio_codecs (const gchar** list, const gchar*);
+
+/**
+ * ConfigurationManager - Set the list of codecs used for media negociation
+ * @param list The list of codecs
+ */
+void
+dbus_set_active_video_codecs (const gchar** list, const gchar *accountID);
 
 /**
  * CallManager - return the codec name
  * @param callable_obj_t* current call
  */
-gchar* dbus_get_current_codec_name (const callable_obj_t * c);
+gchar*
+dbus_get_current_codec_name (const callable_obj_t * c);
+
 
 /**
  * ConfigurationManager - Get the list of available output audio plugins
  * @return gchar** The list of plugins
  */
-gchar** dbus_get_audio_plugin_list();
-
-
-/**
- * ConfigurationManager - Select an input audio plugin
- * @param audioPlugin The string description of the plugin
- */
-void dbus_set_audio_plugin (gchar* audioPlugin);
+gchar**
+dbus_get_audio_plugin_list ();
 
 /**
  * ConfigurationManager - Select an input audio plugin
@@ -274,7 +314,8 @@ void dbus_set_output_audio_plugin (gchar* audioPlugin);
  * ConfigurationManager - Get the list of available output audio devices
  * @return gchar** The list of devices
  */
-gchar** dbus_get_audio_output_device_list();
+gchar**
+dbus_get_audio_output_device_list ();
 
 /**
  * ConfigurationManager - Select an output audio device
@@ -286,7 +327,8 @@ void dbus_set_audio_output_device (const int index);
  * ConfigurationManager - Get the list of available input audio devices
  * @return gchar** The list of devices
  */
-gchar** dbus_get_audio_input_device_list();
+gchar**
+dbus_get_audio_input_device_list ();
 
 /**
  * ConfigurationManager - Select an input audio device
@@ -298,7 +340,8 @@ void dbus_set_audio_input_device (const int index);
  * ConfigurationManager - Get the current audio devices
  * @return gchar** The index of the current soundcard
  */
-gchar** dbus_get_current_audio_devices_index();
+gchar**
+dbus_get_current_audio_devices_index ();
 
 /**
  * ConfigurationManager - Get the index of the specified audio device
@@ -328,14 +371,14 @@ gchar *dbus_get_noise_suppress_state (void);
  */
 void dbus_set_noise_suppress_state (gchar *state);
 
-
 /**
  * ConfigurationManager - Query to server to
  * know if MD5 credential hashing is enabled.
  * @return True if enabled, false otherwise
  *
  */
-gboolean dbus_is_md5_credential_hashing();
+gboolean
+dbus_is_md5_credential_hashing ();
 
 /**
  * ConfigurationManager - Set whether or not
@@ -387,7 +430,8 @@ guint dbus_get_history_limit (void);
 /**
  * ConfigurationManager - Gives the maximum number of days the user wants to have in the history
  */
-void dbus_set_history_limit (const guint days);
+void
+dbus_set_history_limit (const guint days);
 
 /**
  * ConfigurationManager - Returns the selected audio manager
@@ -460,17 +504,21 @@ gchar* dbus_get_record_path (void);
  * Encapsulate all the address book-related configuration
  * Get the configuration
  */
-GHashTable* dbus_get_addressbook_settings (void);
+GHashTable*
+dbus_get_addressbook_settings (void);
 
 /**
  * Encapsulate all the address book-related configuration
  * Set the configuration
  */
-void dbus_set_addressbook_settings (GHashTable *);
+void
+dbus_set_addressbook_settings (GHashTable *);
 
-gchar** dbus_get_addressbook_list (void);
+gchar**
+dbus_get_addressbook_list (void);
 
-void dbus_set_addressbook_list (const gchar** list);
+void
+dbus_set_addressbook_list (const gchar** list);
 
 /**
  * Resolve the local address given an interface name
@@ -491,67 +539,156 @@ gchar** dbus_get_all_ip_interface_by_name (void);
  * Encapsulate all the url hook-related configuration
  * Get the configuration
  */
-GHashTable* dbus_get_hook_settings (void);
+GHashTable*
+dbus_get_hook_settings (void);
 
 /**
  * Encapsulate all the url hook-related configuration
  * Set the configuration
  */
-void dbus_set_hook_settings (GHashTable *);
-
+void
+dbus_set_hook_settings (GHashTable *);
 
 gboolean dbus_get_is_recording (const callable_obj_t *);
 
-GHashTable* dbus_get_call_details (const gchar* callID);
+GHashTable*
+dbus_get_call_details (const gchar* callID);
 
-gchar** dbus_get_call_list (void);
+gchar**
+dbus_get_call_list (void);
 
-GHashTable* dbus_get_conference_details (const gchar* confID);
+GHashTable*
+dbus_get_conference_details (const gchar* confID);
 
-gchar** dbus_get_conference_list (void);
+gchar**
+dbus_get_conference_list (void);
 
-void dbus_set_accounts_order (const gchar* order);
+void
+dbus_set_accounts_order (const gchar* order);
 
-GHashTable* dbus_get_history (void);
+GHashTable*
+dbus_get_history (void);
 
-void dbus_set_history (GHashTable* entries);
+void
+dbus_set_history (GHashTable* entries);
 
-void sflphone_display_transfer_status (const gchar* message);
+void
+sflphone_display_transfer_status (const gchar* message);
 
 /**
  * CallManager - Confirm Short Authentication String
  * for a given callId
  * @param c The call to confirm SAS
  */
-void dbus_confirm_sas (const callable_obj_t * c);
+void
+dbus_confirm_sas (const callable_obj_t * c);
 
 /**
  * CallManager - Reset Short Authentication String
  * for a given callId
  * @param c The call to reset SAS
  */
-void dbus_reset_sas (const callable_obj_t * c);
+void
+dbus_reset_sas (const callable_obj_t * c);
 
 /**
  * CallManager - Request Go Clear in the ZRTP Protocol
  * for a given callId
  * @param c The call that we want to go clear
  */
-void dbus_request_go_clear (const callable_obj_t * c);
+void
+dbus_request_go_clear (const callable_obj_t * c);
 
 /**
  * CallManager - Accept Go Clear request from remote
  * for a given callId
  * @param c The call to confirm
  */
-void dbus_set_confirm_go_clear (const callable_obj_t * c);
+void
+dbus_set_confirm_go_clear (const callable_obj_t * c);
 
 /**
  * CallManager - Get the list of supported TLS methods from
  * the server in textual form.
  * @return an array of string representing supported methods
  */
-gchar** dbus_get_supported_tls_method();
+gchar**
+dbus_get_supported_tls_method ();
+
+gchar**
+dbus_get_participant_list (const char * confID);
+
+GHashTable*
+dbus_get_shortcuts (void);
+void
+dbus_set_shortcuts (GHashTable * shortcuts);
+
+void
+dbus_enable_status_icon (const gchar*);
+gchar*
+dbus_is_status_icon_enabled (void);
+
+/**
+ * Retrieve a printable list of all the video capture devices that are available.
+ * @return The list of all the video capture devices that are available.
+ */
+gchar**
+dbus_video_enumerate_devices ();
+
+/**
+ * Find out what resolutions are supported for this device.
+ * @return A list of resolution_t structures.
+ */
+GList*
+dbus_video_get_resolution_for_device (const gchar* device);
+
+/**
+ * Get the video format information for the frames that get written into the given shared memory segment.
+ * @param The path to an existing shared memory segment
+ * @return A structure describing the shared memory segment. This one contains, in the following order : width, height, fourcc.
+ *  A NULL pointer is returned if an error occurred.
+ */
+video_shm_info*
+dbus_get_video_shm_info (const gchar* shm);
+
+/**
+ * Find out what framerates are supported for a device under some resolution and device.
+ */
+gchar**
+dbus_video_get_framerates (const gchar* device, const gint width,
+                           const gint height);
+
+/**
+ * @param device The device to start capturing from.
+ * @param width The source width.
+ * @param height The source height.
+ * @param fps The preferred frame rate, expressed as a ratio.
+ * @return A path to the shared memory segment, followed by a token for referring to this request when calling stop. NULL
+ * in case of error.
+ */
+video_key_t*
+dbus_video_start_local_capture (const gchar * device, gint width, gint height,
+                                gchar* fps);
+
+/**
+ * @param device The device on which to stop capturing from.
+ * @param token The token that was obtained when capture started.
+ * @param FALSE if an error occured.
+ */
+gboolean dbus_video_stop_local_capture (gchar* device, gchar* token);
+
+/**
+ * @param shm The shared memory segment.
+ * @return The address in the UNIX namespace to reach a file descriptor passer instance.
+ */
+gchar*
+dbus_video_get_fd_passer_namespace (gchar * shm);
+
+/**
+ * @param accountID The account identifier for which to set those parameters for.
+ * @param settings The video setting structure containing the parameters to set.
+ */
+void dbus_set_video_settings (const gchar* accountID, video_settings_t* settings);
 
 GHashTable* dbus_get_shortcuts (void);
 

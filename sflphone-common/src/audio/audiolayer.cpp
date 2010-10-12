@@ -66,7 +66,7 @@ int AudioLayer::putUrgent (void* buffer, int toCopy)
     return 0;
 }
 
-int AudioLayer::putMain (void *buffer, int toCopy, CallID call_id)
+int AudioLayer::putMain (void *buffer, int toCopy, CallId call_id)
 {
     int a;
 

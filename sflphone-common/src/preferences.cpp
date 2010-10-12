@@ -190,7 +190,8 @@ void Preferences::unserialize (Conf::MappingNode *map)
 }
 
 
-VoipPreference::VoipPreference() :  _playDtmf (true)
+VoipPreference::VoipPreference() :
+		_playDtmf (true)
         , _playTones (true)
         , _pulseLength (atoi (DFT_PULSE_LENGTH_STR)) // DFT_PULSE_LENGTH_STR
         , _symmetricRtp (true)
@@ -227,9 +228,7 @@ void VoipPreference::serialize (Conf::YamlEmitter *emitter)
 
 void VoipPreference::unserialize (Conf::MappingNode *map)
 {
-
     _debug ("VoipPreference: Unserialize configuration");
-
     Conf::ScalarNode *val = NULL;
 
     if (!map) {
@@ -274,8 +273,6 @@ void VoipPreference::unserialize (Conf::MappingNode *map)
 
 }
 
-
-
 AddressbookPreference::AddressbookPreference() : _photo (true)
         , _enabled (true)
         , _list ("")
@@ -284,7 +281,7 @@ AddressbookPreference::AddressbookPreference() : _photo (true)
         , _home (true)
         , _mobile (true)
 {
-
+	/* Nothing */
 }
 
 AddressbookPreference::~AddressbookPreference() {}
@@ -471,8 +468,6 @@ void HookPreference::unserialize (Conf::MappingNode *map)
 
 }
 
-
-
 AudioPreference::AudioPreference() : _cardin (atoi (ALSA_DFT_CARD)) // ALSA_DFT_CARD
         , _cardout (atoi (ALSA_DFT_CARD)) // ALSA_DFT_CARD
         , _cardring (atoi (ALSA_DFT_CARD)) // ALSA_DFT_CARD
@@ -552,7 +547,6 @@ void AudioPreference::serialize (Conf::YamlEmitter *emitter)
     preferencemap.setKeyValue (noiseReduceKey, &noise);
 
     emitter->serializeAudioPreference (&preferencemap);
-
 }
 
 void AudioPreference::unserialize (Conf::MappingNode *map)
@@ -678,19 +672,15 @@ void AudioPreference::unserialize (Conf::MappingNode *map)
 
 }
 
-
-
 ShortcutPreferences::ShortcutPreferences() : _hangup ("")
         , _pickup ("")
         , _popup ("")
         , _toggleHold ("")
         , _togglePickupHangup ("")
 {
-
 }
 
 ShortcutPreferences::~ShortcutPreferences() {}
-
 
 std::map<std::string, std::string> ShortcutPreferences::getShortcuts()
 {
@@ -744,18 +734,7 @@ void ShortcutPreferences::setShortcuts (std::map<std::string, std::string> map_c
     if (it != map_cpy.end()) {
         _togglePickupHangup = it->second;
     }
-
-    /*
-    for (int i = 0; i < (int)shortcutsKeys.size(); i++) {
-      std::string key = shortcutsKeys.at(i);
-      it = map_cpy.find(key);
-      if (it != shortcutsMap.end()) {
-        Manager::instance().setConfig("Shortcuts", key, it->second);
-      }
-    }
-    */
 }
-
 
 void ShortcutPreferences::serialize (Conf::YamlEmitter *emitter)
 {
