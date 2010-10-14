@@ -50,7 +50,7 @@ SipCall::SipCall(Call::CallType type, SIPAccount* account) :
 
 void SipCall::init(Call::CallType type, SIPAccount* account)
 {
-	_debug("Creating new SIP call ... ");
+	_debug("SipCall: Creating new SIP call ... ");
 
 	// Init fields
 	_cid = 0;
@@ -67,9 +67,16 @@ void SipCall::init(Call::CallType type, SIPAccount* account)
 
 	// By default, load the video settings from the account.
 	// Those could be overridden later.
-	 setVideoDevice(account->getPreferredVideoDevice());
-	_videoFormat = account->getPreferredVideoFormat();
-	_videoToken = "";
+	try {
+		setVideoDevice(account->getPreferredVideoDevice());
+		_videoFormat = account->getPreferredVideoFormat();
+		_videoToken = "";
+	}
+	catch(sfl::NoVideoDeviceAvailableException) {
+		_debug("SipCall: No video device found");
+	    // setVideoDevice("");
+	}
+	catch(...) {}
 
 	// Create an SDP object.
 	SipVoipLink* link = SipVoipLink::instance(account->getAccountID());
@@ -110,7 +117,8 @@ void SipCall::init(Call::CallType type, SIPAccount* account)
 	_sdpSession->setLocalMediaCapabilities(MIME_TYPE_AUDIO,
 			account->getActiveAudioCodecs());
 
-	if (isVideoEnabled()) {
+	// video must be available and _videoDevice must be a valid
+	if (isVideoEnabled() && _videoDevice != "") {
 		_debug("Video is enabled. Initializing video properties in new SIP call ...");
 		// Set the video ports
 		unsigned int callLocalVideoPort = RANDOM_LOCAL_PORT;

@@ -673,7 +673,7 @@ SipVoipLink::newOutgoingCall (const CallId& id, const std::string& toUrl)
     if (call) {
         // Set the initial state in which this account is
         if (account == NULL) {
-            _error ("UserAgent: Error: Could not retrieving account to make call with");
+            _error ("UserAgent: Error: Could not retrieve account to make call with (%s:%d)", __FILE__, __LINE__);
             call->setConnectionState (Call::Disconnected);
             call->setState (Call::Error);
             delete call;
@@ -693,7 +693,7 @@ SipVoipLink::newOutgoingCall (const CallId& id, const std::string& toUrl)
             call->getAudioRtp()->initAudioRtpSession (call);
             call->getAudioRtp()->initLocalCryptoInfo (call);
         } catch (...) {
-            _error ("UserAgent: Error: Failed to create rtp thread from newOutGoingCall");
+            _error ("UserAgent: Error: Failed to create rtp thread from newOutGoingCall (%s:%d)", __FILE__, __LINE__);
         }
 
         // init file name according to peer phone number
