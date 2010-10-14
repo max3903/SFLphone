@@ -296,7 +296,8 @@ account_init (account_t* account)
                                account->accountID);
 
     if (details == NULL) {
-        ERROR ("Could not get account details for account \"%s\"", account->accountID);
+        ERROR ("Account: Could not get account details for account \"%s\" (%s:%d)",
+               account->accountID, __FILE__, __LINE__);
         return FALSE;
     }
 

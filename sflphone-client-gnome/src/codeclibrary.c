@@ -131,7 +131,7 @@ codec_library_add_audio_codec (codec_library_t* library,
     codec_t* codec;
 
     if ( (codec = codec_library_get_codec_by_identifier (library, audioCodec->identifier)) == NULL) {
-        DEBUG ("Codec could not be found");
+        DEBUG ("CodecLibrary: Codec could not be found (%s:%d)", __FILE__, __LINE__);
         g_mutex_lock (library->audio_codec_list_mutex);
         {
             g_queue_push_tail (library->audio_codec_list, (gpointer *) audioCodec);
@@ -148,7 +148,7 @@ codec_library_add_video_codec (codec_library_t* library,
     codec_t* codec;
 
     if ( (codec = codec_library_get_codec_by_identifier (library, videoCodec->identifier)) == NULL) {
-        DEBUG ("Codec could not be found");
+        DEBUG ("CodecLibrary: Codec could not be found (%s:%d)", __FILE__, __LINE__);
         g_mutex_lock (library->video_codec_list_mutex);
         {
             g_queue_push_tail (library->video_codec_list, (gpointer *) videoCodec);
@@ -188,7 +188,7 @@ static void
 codec_library_add_list (codec_library_t* library, GList* codecs)
 {
     if (!codecs) {
-        WARN ("Video codec list is NULL (%s:%d)", __FILE__, __LINE__);
+        WARN ("CodecLibrary: Video codec list is NULL (%s:%d)", __FILE__, __LINE__);
         return;
     }
 
@@ -236,7 +236,8 @@ codec_library_get_audio_codec_by_identifier (codec_library_t* library,
         return codec->data;
     }
 
-    WARN ("Codec with identifier \"%d\" could not be found in the audio library.", identifier);
+    WARN ("CodecLibrary: Codec with identifier \"%d\" could not be found in the audio library. (%s:%d)",
+          identifier, __FILE__, __LINE__);
 
     return NULL;
 }
@@ -257,7 +258,8 @@ codec_library_get_video_codec_by_identifier (codec_library_t* library,
         return codec->data;
     }
 
-    WARN ("Codec with identifier \"%d\" could not be found in the video library.", identifier);
+    WARN ("CodecLibrary: Codec with identifier \"%d\" could not be found in the video library. (%s:%d)",
+          identifier, __FILE__, __LINE__);
 
     return NULL;
 }
@@ -267,20 +269,20 @@ void
 swap_link_down (GList* codec)
 {
     if (codec == NULL) {
-        WARN ("Codec is NULL (%s:%d)", __FILE__, __LINE__);
+        WARN ("CodecLibrary: Codec is NULL (%s:%d)", __FILE__, __LINE__);
         return;
     }
 
     GList* link_down;
 
     if ( (link_down = g_list_next (codec)) != NULL) {
-        DEBUG ("Link down %s", ( (codec_t*) link_down->data)->codec.mime_subtype);
+        DEBUG ("CodecLibrary: Link down %s", ( (codec_t*) link_down->data)->codec.mime_subtype);
         gpointer tmp = codec->data;
         codec->data = link_down->data;
         link_down->data = tmp;
-        DEBUG ("Link down now %s", ( (codec_t*) link_down->data)->codec.mime_subtype);
+        DEBUG ("CodecLibrary: Link down now %s", ( (codec_t*) link_down->data)->codec.mime_subtype);
     } else {
-        ERROR ("Next link is NULL.");
+        ERROR ("CodecLibrary: Next link is NULL. (%s:%d)", __FILE__, __LINE__);
     }
 }
 
@@ -289,7 +291,7 @@ void
 swap_link_up (GList* codec)
 {
     if (codec == NULL) {
-        WARN ("Codec is NULL (%s:%d)", __FILE__, __LINE__);
+        WARN ("CodecLibrary: Codec is NULL (%s:%d)", __FILE__, __LINE__);
         return;
     }
 
@@ -316,6 +318,8 @@ codec_library_get_system_codecs ()
 codec_library_t*
 codec_library_new ()
 {
+    DEBUG("CodecLibrary: Initialize new codec library");
+
     codec_library_t* library =
         (codec_library_t*) malloc (sizeof (codec_library_t));
 
@@ -325,7 +329,7 @@ codec_library_new ()
     library->video_codec_list = g_queue_new ();
     library->video_codec_list_mutex = g_mutex_new();
 
-    DEBUG ("New codec library created.");
+    DEBUG ("CodecLibrary: New codec library created.");
 
     return library;
 }
@@ -342,7 +346,7 @@ codec_library_free (codec_library_t* library)
 void
 codec_library_load_available_codecs (codec_library_t* library)
 {
-    DEBUG ("Loading system codecs ...");
+    DEBUG ("CodecLibrary: Loading system codecs ...");
 
     // Load audio codecs
     codec_library_add_list (library, dbus_get_all_audio_codecs ());
@@ -354,10 +358,10 @@ codec_library_load_available_codecs (codec_library_t* library)
 void
 codec_library_load_audio_codecs_by_account (account_t* account)
 {
-    DEBUG ("Loading audio codecs for account \"%s\" ...", account->accountID);
+    DEBUG ("CodecLibrary: Loading audio codecs for account \"%s\"", account->accountID);
 
     if (!account->codecs) {
-        DEBUG ("CodecLibrary: Codec list NULL in account");
+        WARN ("CodecLibrary: Codec list NULL in account (%s:%d)", __FILE__, __LINE__);
         return;
     }
 
@@ -373,7 +377,7 @@ codec_library_load_audio_codecs_by_account (account_t* account)
 void
 codec_library_load_video_codecs_by_account (account_t* account)
 {
-    DEBUG ("Loading video codecs for account \"%s\" ...", account->accountID);
+    DEBUG ("CodecLibrary: Loading video codecs for account \"%s\"", account->accountID);
 
     // Clear all of the actual codecs, and load built-in list
     codec_library_video_clear (account->codecs);
@@ -387,7 +391,7 @@ codec_library_load_video_codecs_by_account (account_t* account)
 void
 codec_library_add (codec_library_t* library, codec_t* codec)
 {
-    DEBUG ("       L Adding codec \"%s\" to codec library.", codec->codec.mime_subtype);
+    DEBUG ("CodecLibrary: Adding codec \"%s\" to codec library.", codec->codec.mime_subtype);
 
     if (g_strcmp0 (codec->codec.mime_type, "audio") == 0) {
         codec_library_add_audio_codec (library, (audio_codec_t*) codec);
@@ -419,7 +423,8 @@ codec_library_get_codec_by_mime_subtype (codec_library_t* library,
         return codec->data;
     }
 
-    WARN ("Codec with mime subtype \"%s\" could not be found in the library.", name);
+    WARN ("CodecLibrary: Codec with mime subtype \"%s\" could not be found in the library. (%s:%d)",
+          name, __FILE__, __LINE__);
 
     return NULL;
 }
@@ -440,7 +445,8 @@ codec_library_get_codec_by_payload_type (codec_library_t* library,
         return codec->data;
     }
 
-    WARN ("Codec with payload type \"%d\" could not be found in the library.", payload);
+    WARN ("CodecLibrary: Codec with payload type \"%d\" could not be found in the library. (%s:%d)",
+           payload, __FILE__, __LINE__);
 
     return NULL;
 }
@@ -466,6 +472,10 @@ codec_library_get_codec_by_identifier (codec_library_t* library,
 GQueue*
 codec_library_get_audio_codecs (codec_library_t* library)
 {
+    if(!library) {
+        WARN ("CodecLibrary: codec library is not initialized (%s:%d)", __FILE__, __LINE__);
+        return NULL;
+    }
     return library->audio_codec_list;
 }
 
@@ -521,7 +531,7 @@ void
 codec_library_toggle_active (codec_library_t* library, codec_t* codec)
 {
     gboolean state = codec->codec.is_active;
-    DEBUG ("Video codec %s (%s) is in state %d", codec->codec.mime_subtype, codec->codec.identifier, codec->codec.is_active);
+    DEBUG ("CodecLibrary: Video codec %s (%s) is in state %d", codec->codec.mime_subtype, codec->codec.identifier, codec->codec.is_active);
     codec_library_set_active (library, codec, !state);
 }
 
@@ -543,7 +553,7 @@ codec_library_set_active (codec_library_t* library, codec_t* codec,
         g_mutex_unlock (library->audio_codec_list_mutex);
     }
 
-    DEBUG ("Video codec %s (%s) is now in state %d", codec->codec.mime_subtype, codec->codec.identifier, codec->codec.is_active);
+    DEBUG ("CodecLibrary: Video codec %s (%s) is now in state %d", codec->codec.mime_subtype, codec->codec.identifier, codec->codec.is_active);
 }
 
 codec_t*
@@ -599,7 +609,7 @@ codec_library_set (codec_library_t* library, const gchar* accountID, gboolean vi
     // Build a string array for sending over dbus
     gchar** identifiers = g_new (gchar*, g_queue_get_length (active_queue) + 1);
 
-    DEBUG ("Active codecs %d", g_queue_get_length (active_queue));
+    DEBUG ("CodecLibrary: Active codecs %d", g_queue_get_length (active_queue));
 
     int j = 0;
 
@@ -607,7 +617,7 @@ codec_library_set (codec_library_t* library, const gchar* accountID, gboolean vi
         codec_t* codec = g_queue_peek_nth (active_queue, i);
 
         if (codec) {
-            DEBUG ("Sending preferred codec %s (%s) for account id \"%s\"", codec->codec.identifier, codec->codec.mime_subtype, accountID);
+            DEBUG ("CodecLibrary: Sending preferred codec %s (%s) for account id \"%s\"", codec->codec.identifier, codec->codec.mime_subtype, accountID);
             identifiers[j] = codec->codec.identifier;
             j += 1;
         }

@@ -43,6 +43,7 @@
 
 class AudioLoop
 {
+
     public:
         /**
          * Constructor

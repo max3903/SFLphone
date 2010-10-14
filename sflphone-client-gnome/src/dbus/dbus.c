@@ -1408,18 +1408,19 @@ dbus_get_active_audio_codecs (gchar* accountID)
     GPtrArray* audio_codecs = NULL;
     GList* ret = NULL;
 
-    DEBUG ("Fetching active audio codecs for account \"%s\" ...", accountID);
+    DEBUG ("Dbus: Fetching active audio codecs for account \"%s\"", accountID);
 
     org_sflphone_SFLphone_ConfigurationManager_get_all_active_audio_codecs (
         configurationManagerProxy, accountID, &audio_codecs, &error);
 
     if (error != NULL) {
-        ERROR ("Failed to retrieve active audio codecs for account \"%s\" over Dbus", accountID);
+        ERROR ("Dbus: Failed to retrieve active audio codecs for account \"%s\" over Dbus (%s:%d)",
+                accountID, __FILE__, __LINE__);
         g_error_free (error);
         return NULL;
     }
 
-    DEBUG ("Server returned %d audio codecs.", audio_codecs->len);
+    DEBUG ("Dbus: Server returned %d audio codecs.", audio_codecs->len);
 
     int i;
 
@@ -1434,7 +1435,7 @@ dbus_get_active_audio_codecs (gchar* accountID)
                                 &codec->mime_subtype, 5, &codec->bitrate, 6, &codec->bandwidth, 7,
                                 &codec->description, G_MAXUINT);
 
-        DEBUG ("Audio codec %s/%s %d (payload number %d)\nDescription : \"%s\"\nBandwidth : %f\nBitrate : %f",
+        DEBUG ("Dbus: Audio codec %s/%s %d (payload number %d)\nDescription : \"%s\"\nBandwidth : %f\nBitrate : %f",
                codec->mime_type,
                codec->mime_subtype,
                codec->clock_rate,
@@ -1454,7 +1455,7 @@ dbus_get_active_audio_codecs (gchar* accountID)
 void
 dbus_set_active_audio_codecs (const gchar** list, const gchar *accountID)
 {
-    DEBUG ("Sending active audio codec list for account %s ...", accountID);
+    DEBUG ("DBus: Sending active audio codec list for account %s", accountID);
     GError *error = NULL;
     org_sflphone_SFLphone_ConfigurationManager_set_active_audio_codecs (
         configurationManagerProxy, list, accountID, &error);

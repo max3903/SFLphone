@@ -502,7 +502,7 @@ std::vector<DbusAudioCodec> ConfigurationManager::getAllVideoCodecs()
 std::vector<DbusAudioCodec> ConfigurationManager::getAllActiveAudioCodecs (
     const std::string& accountID)
 {
-    _info ("Sending active codec list for account \"%s\" ...", accountID.c_str ());
+    _info ("ConfigurationManager: Sending active codec list for account \"%s\" ...", accountID.c_str ());
 
     CodecFactory& factory = CodecFactory::getInstance();
     CodecOrder audioCodecOrder = factory.getDefaultAudioCodecOrder();
@@ -512,10 +512,11 @@ std::vector<DbusAudioCodec> ConfigurationManager::getAllActiveAudioCodecs (
     if (account != NULL) {
         audioCodecOrder = account->getActiveAudioCodecs();
     } else {
-        _error ("Could not return active codec list for non-existing account id \"%s\". Sending audio defaults.", accountID.c_str());
+        _error ("ConfigurationManager: Could not return active codec list for non-existing account id \"%s\". "
+        		"Sending audio defaults. (%s:%d)", accountID.c_str(), __FILE__, __LINE__);
     }
 
-    _info ("Account \"%s\" has %d active audio codecs.", accountID.c_str(), audioCodecOrder.size());
+    _info ("ConfigurationManager: Account \"%s\" has %d active audio codecs.", accountID.c_str(), audioCodecOrder.size());
 
     std::vector<DbusAudioCodec> output;
     CodecOrder::iterator it;
@@ -537,7 +538,7 @@ std::vector<DbusAudioCodec> ConfigurationManager::getAllActiveAudioCodecs (
             codecDescription._8 = codec->getDescription();
 
             output.push_back (codecDescription);
-            _debug ("Sending \"%s\" (id \"%s\")", codec->getMimeSubtype().c_str(), codec->hashCode().c_str());
+            _debug ("ConfigurationManager: Sending \"%s\" (id \"%s\")", codec->getMimeSubtype().c_str(), codec->hashCode().c_str());
         }
     }
 
@@ -547,7 +548,7 @@ std::vector<DbusAudioCodec> ConfigurationManager::getAllActiveAudioCodecs (
 std::vector<DbusAudioCodec> ConfigurationManager::getAllActiveVideoCodecs (
     const std::string& accountID)
 {
-    _info ("Sending active video codec list for account \"%s\" ...", accountID.c_str ());
+    _info ("ConfigurationManager: Sending active video codec list for account \"%s\" ...", accountID.c_str ());
 
     CodecFactory& factory = CodecFactory::getInstance();
     CodecOrder videoCodecOrder = factory.getDefaultVideoCodecOrder();
@@ -557,10 +558,11 @@ std::vector<DbusAudioCodec> ConfigurationManager::getAllActiveVideoCodecs (
     if (account != NULL) {
         videoCodecOrder = account->getActiveVideoCodecs();
     } else {
-        _error ("Could not return active codec list for non-existing account id \"%s\". Sending video defaults.", accountID.c_str());
+        _error ("ConfigurationManager: Could not return active codec list for non-existing account id \"%s\". "
+        		"Sending video defaults. (%s:%d)", accountID.c_str(), __FILE__, __LINE__);
     }
 
-    _info ("Account \"%s\" has %d active video codecs.", accountID.c_str(), videoCodecOrder.size());
+    _info ("ConfigurationManager: Account \"%s\" has %d active video codecs.", accountID.c_str(), videoCodecOrder.size());
 
     std::vector<DbusAudioCodec> output;
     CodecOrder::iterator it;
@@ -582,7 +584,7 @@ std::vector<DbusAudioCodec> ConfigurationManager::getAllActiveVideoCodecs (
             codecDescription._8 = codec->getDescription();
 
             output.push_back (codecDescription);
-            _debug ("Sending \"%s\" (id \"%s\")", codec->getMimeSubtype().c_str(), codec->hashCode().c_str());
+            _debug ("ConfigurationManager: Sending \"%s\" (id \"%s\")", codec->getMimeSubtype().c_str(), codec->hashCode().c_str());
         }
     }
 
