@@ -65,6 +65,8 @@ framerate_new_from_string (const gchar* rate)
 video_settings_t*
 video_settings_new ()
 {
+    DEBUG("VideoSettings: Video settings new");
+
     video_settings_t* settings = g_new (video_settings_t, 1);
     settings->always_offer_video = FALSE;
     settings->device = g_strdup ("");
@@ -95,14 +97,14 @@ video_settings_print (video_settings_t* settings)
     g_mutex_lock (settings->mutex);
     {
         DEBUG (
-            "\nResolution : \n"
-            "         width : %d\n"
-            "         height: %d\n"
-            "Framerate : \n"
-            "         numerator : %d\n"
-            "         denominator: %d\n"
-            "Always offering video : %d\n"
-            "Device : \"%s\""
+            "\n       Resolution : \n"
+            "                   width : %d\n"
+            "                   height: %d\n"
+            "         Framerate : \n"
+            "                   numerator : %d\n"
+            "                   denominator: %d\n"
+            "         Always offering video : %d\n"
+            "         Device : \"%s\""
             ,settings->resolution.width, settings->resolution.height,
             settings->framerate.numerator, settings->framerate.denominator,
             settings->always_offer_video,

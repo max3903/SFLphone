@@ -1362,7 +1362,7 @@ void show_account_window (account_t * a)
     gtk_notebook_page_num (GTK_NOTEBOOK (notebook), codecs_tab);
 
     // Video codecs
-    VideoConfAccount* video_tab = video_conf_account_new (&currentAccount);
+    VideoConfAccount* video_tab = video_conf_account_new (currentAccount);
     gtk_notebook_append_page (GTK_NOTEBOOK (notebook), GTK_WIDGET (video_tab), gtk_label_new (_ ("Video")));
     gtk_notebook_page_num (GTK_NOTEBOOK (notebook), GTK_WIDGET (video_tab));
 

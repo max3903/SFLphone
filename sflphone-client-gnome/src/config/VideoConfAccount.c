@@ -81,7 +81,6 @@ video_conf_account_set_property (GObject *object, guint property_id,
     switch (property_id) {
         case PROP_ACCOUNT:
             priv->account = g_value_get_pointer (value);
-            ;
             break;
         default:
             G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);
@@ -126,7 +125,7 @@ video_conf_account_finalize (GObject* object)
 static void
 video_conf_account_realize (GtkWidget* self)
 {
-    DEBUG ("Realizing VideoConfAccount ...");
+    DEBUG ("VideoConf: Realizing VideoConfAccount ...");
     GTK_WIDGET_CLASS (video_conf_account_parent_class)->realize (self);
 
     VideoConfAccountPrivate* priv = GET_PRIVATE (self);
@@ -183,6 +182,8 @@ video_conf_account_init (VideoConfAccount* self)
 {
     VideoConfAccountPrivate* priv = GET_PRIVATE (self);
 
+     DEBUG("VideoConf: Init");
+
     // Message bar
     priv->message_bar = sfl_message_bar_new();
     gtk_widget_set_no_show_all (GTK_WIDGET (priv->message_bar), TRUE);
@@ -237,7 +238,7 @@ video_conf_account_save (VideoConfAccount* self)
     // Save the video codecs over dbus
     codec_list_save (SFL_CODEC_LIST (priv->video_codec_list));
 
-    DEBUG ("************************************************* SAVING");
+    DEBUG ("VideoConf: SAVING");
     // Save the video settings over dbus
     video_conf_device_save (SFL_VIDEO_CONF_DEVICE (priv->video_conf_device), priv->account);
 }

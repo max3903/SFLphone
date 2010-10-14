@@ -1435,7 +1435,10 @@ dbus_get_active_audio_codecs (gchar* accountID)
                                 &codec->mime_subtype, 5, &codec->bitrate, 6, &codec->bandwidth, 7,
                                 &codec->description, G_MAXUINT);
 
-        DEBUG ("Dbus: Audio codec %s/%s %d (payload number %d)\nDescription : \"%s\"\nBandwidth : %f\nBitrate : %f",
+        DEBUG ("Dbus: Audio codec %s/%s %d (payload number %d)\n"
+               "               Description : \"%s\"\n"
+               "               Bandwidth : %f\n"
+               "               Bitrate : %f",
                codec->mime_type,
                codec->mime_subtype,
                codec->clock_rate,
@@ -1595,8 +1598,10 @@ dbus_get_video_settings (const gchar* accountID)
     org_sflphone_SFLphone_ConfigurationManager_get_video_settings (
         configurationManagerProxy, accountID, &settings, &error);
 
+    DEBUG("Dbus: Get video settings for account: %s", accountID);
+
     if (error) {
-        ERROR ("Failed to call getVideoSettings on ConfigurationManager: %s", error->message);
+        ERROR ("Dbus: Failed to call getVideoSettings on ConfigurationManager: %s (%s:%d)", error->message, __FILE__, __LINE__);
         g_error_free (error);
     }
 
@@ -1604,7 +1609,7 @@ dbus_get_video_settings (const gchar* accountID)
                                          g_value_array_get_nth (settings, 0));
 
     if (resolution_struct->n_values != 2) {
-        ERROR ("Wrong data format while getting video settings (%s:%d)", __FILE__, __LINE__);
+        ERROR ("Dbus: Wrong data format while getting video settings (%s:%d)", __FILE__, __LINE__);
         return NULL;
     }
 
@@ -1615,7 +1620,7 @@ dbus_get_video_settings (const gchar* accountID)
                                         g_value_array_get_nth (settings, 1));
 
     if (framerate_struct->n_values != 2) {
-        ERROR ("Wrong data format while getting video settings (%s:%d)", __FILE__, __LINE__);
+        ERROR ("Dbus: Wrong data format while getting video settings (%s:%d)", __FILE__, __LINE__);
         return NULL;
     }
 
