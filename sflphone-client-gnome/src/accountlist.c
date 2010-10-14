@@ -69,7 +69,7 @@ account_list_init ()
 {
     accountQueue = g_queue_new ();
 
-    DEBUG ("Account list initialised.");
+    DEBUG ("AccountList: Account list initialised.");
 }
 
 void
@@ -230,7 +230,7 @@ account_list_clear ()
 void
 account_list_move_up (guint index)
 {
-    DEBUG ("index  = %i\n", index);
+    DEBUG ("AccountList: index  = %i\n", index);
 
     if (index != 0) {
         gpointer acc = g_queue_pop_nth (accountQueue, index);
@@ -259,7 +259,7 @@ account_list_get_registered_accounts (void)
             res ++;
     }
 
-    DEBUG ("Account: %d registered accounts" , res);
+    DEBUG ("AccountList: %d registered accounts" , res);
     return res;
 }
 

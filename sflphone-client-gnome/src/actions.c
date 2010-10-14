@@ -218,101 +218,32 @@ sflphone_hung_up (callable_obj_t * c)
 void sflphone_fill_account_list (void)
 {
 
-    gchar** array;
-    gchar** accountID;
-    unsigned int i;
-    int count;
+  DEBUG("SFLphone: Fill account list");
 
-    DEBUG ("SFLphone: Fill account list");
+  account_list_clear ();
 
-    count = current_account_get_message_number ();
+  gchar** array = (gchar **) dbus_account_list ();
+  if (array)
+    {
+      gchar** accountID;
+      for (accountID = array; *accountID; accountID++)
+        {
+          account_t* account = account_new(*accountID);
 
-    account_list_clear ();
+          account_list_add(account);
 
-    array = (gchar **) dbus_account_list();
+          account_init (account);
 
-    if (array) {
-
-        for (accountID = array; *accountID; accountID++) {
-            account_t * a = g_new0 (account_t,1);
-            a->accountID = g_strdup (*accountID);
-            a->credential_information = NULL;
-            account_list_add (a);
+          DEBUG("Account %s added.", account->accountID);
         }
-
-        g_strfreev (array);
+      g_strfreev (array);
     }
 
-    for (i = 0; i < account_list_get_size(); i++) {
-        account_t  * a = account_list_get_nth (i);
-        GHashTable * details = (GHashTable *) dbus_account_details (a->accountID);
+  // Set the current account message number
+  int count = current_account_get_message_number();
+  current_account_set_message_number (count);
 
-        if (details == NULL)
-            break;
-
-        a->properties = details;
-
-        /* As this function might be called numberous time, we should free the
-         * previously allocated space to avoid memory leaks.
-         */
-
-        /* Fill the actual array of credentials */
-        int number_of_credential = dbus_get_number_of_credential (a->accountID);
-
-        if (number_of_credential) {
-            a->credential_information = g_ptr_array_new();
-        } else {
-            a->credential_information = NULL;
-        }
-
-        int credential_index;
-
-        for (credential_index = 0; credential_index < number_of_credential; credential_index++) {
-            GHashTable * credential_information = dbus_get_credential (a->accountID, credential_index);
-            g_ptr_array_add (a->credential_information, credential_information);
-        }
-
-        gchar * status = g_hash_table_lookup (details, REGISTRATION_STATUS);
-
-        if (strcmp (status, "REGISTERED") == 0) {
-            a->state = ACCOUNT_STATE_REGISTERED;
-        } else if (strcmp (status, "UNREGISTERED") == 0) {
-            a->state = ACCOUNT_STATE_UNREGISTERED;
-        } else if (strcmp (status, "TRYING") == 0) {
-            a->state = ACCOUNT_STATE_TRYING;
-        } else if (strcmp (status, "ERROR") == 0) {
-            a->state = ACCOUNT_STATE_ERROR;
-        } else if (strcmp (status , "ERROR_AUTH") == 0) {
-            a->state = ACCOUNT_STATE_ERROR_AUTH;
-        } else if (strcmp (status , "ERROR_NETWORK") == 0) {
-            a->state = ACCOUNT_STATE_ERROR_NETWORK;
-        } else if (strcmp (status , "ERROR_HOST") == 0) {
-            a->state = ACCOUNT_STATE_ERROR_HOST;
-        } else if (strcmp (status , "ERROR_CONF_STUN") == 0) {
-            a->state = ACCOUNT_STATE_ERROR_CONF_STUN;
-        } else if (strcmp (status , "ERROR_EXIST_STUN") == 0) {
-            a->state = ACCOUNT_STATE_ERROR_EXIST_STUN;
-        } else if (strcmp (status, "READY") == 0) {
-            a->state = IP2IP_PROFILE_STATUS;
-        } else {
-            a->state = ACCOUNT_STATE_INVALID;
-        }
-
-        gchar * code = NULL;
-        code = g_hash_table_lookup (details, REGISTRATION_STATE_CODE);
-
-        if (code != NULL) {
-            a->protocol_state_code = atoi (code);
-        }
-
-        g_free (a->protocol_state_description);
-        a->protocol_state_description = g_hash_table_lookup (details, REGISTRATION_STATE_DESCRIPTION);
-    }
-
-    // Set the current account message number
-    current_account_set_message_number (count);
-
-    sflphone_fill_codec_list ();
+  sflphone_fill_codec_list ();
 }
 
 gboolean sflphone_init()
