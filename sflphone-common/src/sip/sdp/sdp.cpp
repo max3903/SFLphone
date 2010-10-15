@@ -114,8 +114,7 @@ void Sdp::sdpAddMediaDescription() {
 	std::vector<SdpMedia*> mediaList = getInitialMediaList();
 	_localOffer->media_count = mediaList.size();
 
-	int i;
-	for (i = 0; i < _localOffer->media_count; i++) {
+	for (unsigned int i = 0; i < _localOffer->media_count; i++) {
 		createMediaDescriptionLine(mediaList[i], &med);
 		_localOffer->media[i] = med;
 	}
@@ -197,8 +196,7 @@ pjmedia_sdp_media* Sdp::getAudioSdpMedia(const pjmedia_sdp_session* remoteSdp) {
 		return NULL;
 	}
 
-	int i;
-	for (i = 0; i < remoteSdp->media_count; ++i) {
+	for (unsigned int i = 0; i < remoteSdp->media_count; ++i) {
 		if (pj_stricmp2(&remoteSdp->media[i]->desc.media, "audio") == 0) {
 			return remoteSdp->media[i];;
 		}
@@ -213,8 +211,7 @@ pjmedia_sdp_media* Sdp::getVideoSdpMedia(const pjmedia_sdp_session* remoteSdp) {
 		return NULL;
 	}
 
-	int i;
-	for (i = 0; i < remoteSdp->media_count; ++i) {
+	for (unsigned int i = 0; i < remoteSdp->media_count; ++i) {
 		if (pj_stricmp2(&remoteSdp->media[i]->desc.media, "video") == 0) {
 			return remoteSdp->media[i];;
 		}
@@ -493,7 +490,7 @@ bool Sdp::negotiateFormat() {
 	pjmedia_sdp_media* localMedia = NULL;
 
 	if(remoteMedia) {
-	    for (int i = 0; i < negotiatedLocalSdp->media_count; i++) {
+	    for (unsigned int i = 0; i < negotiatedLocalSdp->media_count; i++) {
 		    if ((pj_stricmp(&remoteMedia->desc.media,
 				&negotiatedLocalSdp->media[i]->desc.media) == 0)
 				&& ((pj_stricmp(&remoteMedia->desc.transport,
@@ -526,7 +523,7 @@ bool Sdp::negotiateFormat() {
 
 	// Negotiate the formats for all of codecs in the local SDP
 	// with the format in the remote answer
-	for (int i = 0; i < localMedia->desc.fmt_count; i++) {
+	for (unsigned int i = 0; i < localMedia->desc.fmt_count; i++) {
 		// Find the answerer a=fmtp line
 		sfl::Fmtp fmtpAnswerer;
 		pjmedia_sdp_fmtp fmtpAttribute;

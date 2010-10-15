@@ -43,13 +43,19 @@ namespace sfl
 {
 
 AudioRtpFactory::AudioRtpFactory() :
-        _rtpSession (NULL)
+        _rtpSession (NULL),
+        _srtpEnabled (false),
+        _keyExchangeProtocol(Symmetric),
+        _helloHashEnabled(false)
 {
 
 }
 
 AudioRtpFactory::AudioRtpFactory (SipCall *ca) :
-        _rtpSession (NULL)
+		_rtpSession (NULL),
+		_srtpEnabled (false),
+		_keyExchangeProtocol(Symmetric),
+		_helloHashEnabled(false)
 {
     assert (ca);
 
