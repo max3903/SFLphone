@@ -85,22 +85,49 @@ class MainBuffer
          */
         void unBindHalfDuplexOut (CallID process_id, CallID call_id = default_id);
 
+        /**
+         * Unbind coresponding ringbuffer from audio layer
+         */
         void unBindAll (CallID call_id);
 
+        /**
+         * Unbind coresponding ringbuffer from audio recorder
+         */
         void unBindAllHalfDuplexOut (CallID process_id);
 
+        /**
+         * Put data into the coresponding audio ringbuffer
+         */
         int putData (void *buffer, int toCopy, unsigned short volume = 100, CallID call_id = default_id);
 
+        /**
+         * Get data from the coresponding audio ringbuffer(s). Data may come from several buffers in case of a conference
+         */
         int getData (void *buffer, int toCopy, unsigned short volume = 100, CallID call_id = default_id);
 
+        /**
+         * Return the available number of bytes to store data in ringbuffer
+         */
         int availForPut (CallID call_id = default_id);
 
+        /**
+         * Return the available number of byte already stored in ringbuffer(s)
+         */
         int availForGet (CallID call_id = default_id);
 
+        /**
+         * Discard the specified number of data in ringbuffer(s). Usefull when dropping frames for synchronisation
+         */
         int discard (int toDiscard, CallID call_id = default_id);
 
+        /**
+         * Reset internal ringbuffers coresponding to this callID
+         */
         void flush (CallID call_id = default_id);
 
+        /**
+         * Reset the all buffers
+         */
         void flushAllBuffers();
 
         void flushDefault();
@@ -111,10 +138,19 @@ class MainBuffer
 
     private:
 
+        /**
+         * Get teh call ids to which this call is bound
+         */
         CallIDSet* getCallIDSet (CallID call_id);
 
+        /**
+         * Create a new call id set for this call
+         */
         bool createCallIDSet (CallID set_id);
 
+        /**
+         * Remove this call id set
+         */
         bool removeCallIDSet (CallID set_id);
 
         /**
@@ -122,6 +158,9 @@ class MainBuffer
          */
         void addCallIDtoSet (CallID set_id, CallID call_id);
 
+        /**
+         * Remove a call id from a set
+         */
         void removeCallIDfromSet (CallID set_id, CallID call_id);
 
         /**
@@ -129,16 +168,34 @@ class MainBuffer
          */
         RingBuffer* createRingBuffer (CallID call_id);
 
+        /**
+         * Remove corresponding ring buffer
+         */
         bool removeRingBuffer (CallID call_id);
 
+        /**
+         * Get corresponding ring buffer
+         */
         RingBuffer* getRingBuffer (CallID call_id);
 
+        /**
+         * Get data from the corresponding ringbuffer
+         */
         int getDataByID (void *buffer, int toCopy, unsigned short volume, CallID call_id, CallID reader_id);
 
+        /**
+         * Return the corresponding data size from a specific ringbuffer
+         */
         int availForGetByID (CallID call_id, CallID reader_id);
 
+        /**
+         * Discard the specified number of frames from a specific ring buffer
+         */
         int discardByID (int toDiscard, CallID call_id, CallID reader_id);
 
+        /**
+         * Discard data for this specific ring buffer
+         */
         void flushByID (CallID call_id, CallID reader_id);
 
         RingBufferMap _ringBufferMap;
