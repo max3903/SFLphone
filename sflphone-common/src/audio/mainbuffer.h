@@ -97,14 +97,24 @@ class MainBuffer
         void unBindAllHalfDuplexOut (CallID process_id);
 
         /**
-         * Put data into the coresponding audio ringbuffer
+         * Put data into the corresponding audio ringbuffer
          */
         int putData (void *buffer, int toCopy, unsigned short volume = 100, CallID call_id = default_id);
+
+        /**
+         * Put the content of the audio frames in corresponding ring buffers
+         */
+        int putData (AudioFrame& frame, unsigned short volume=100, CallID call_id = default_id);
 
         /**
          * Get data from the coresponding audio ringbuffer(s). Data may come from several buffers in case of a conference
          */
         int getData (void *buffer, int toCopy, unsigned short volume = 100, CallID call_id = default_id);
+
+        /**
+         * Fill the content of the frame
+         */
+        int getData(AudioFrame& frame, unsigned short volume = 100, CallID call_id = default_id);
 
         /**
          * Return the available number of bytes to store data in ringbuffer

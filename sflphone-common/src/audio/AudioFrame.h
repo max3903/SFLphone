@@ -63,17 +63,17 @@ public:
 	/**
 	 * Return the number of sanmples contained by this frame
 	 */
-	unsigned int getSize(void);
+	unsigned int getSize(void) { return _size; }
 
 	/**
 	 * Return the number of channels contained by this frame
 	 */
-	unsigned int getNbChannel(void);
+	unsigned int getNbChannel(void) { return _nbChannel; }
 
 	/**
 	 * Return the original sampling rate for data at creation of this frame
 	 */
-	unsigned int getSmplRate(void);
+	unsigned int getSmplRate(void) { return _smplRate; }
 
 	/**
 	 * Copy data contained by this frame into the provided buffer
@@ -85,6 +85,11 @@ public:
 	 * Copy data into the frame. Data should be of the same size of the frame
 	 */
 	bool putData(SFLDataFormat *buffer, const unsigned int channel);
+
+	/**
+	 * Return a pointer to the internal buffer
+	 */
+	SFLDataFormat *getInternalBuffer(void) { return _internalBuffer; }
 
 private:
 

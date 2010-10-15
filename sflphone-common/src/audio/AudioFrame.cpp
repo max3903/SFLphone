@@ -39,14 +39,20 @@ AudioFrame::AudioFrame (const unsigned int size, const unsigned int nbChannel, c
 						_internalBuffer(NULL),
 						_bufferSize(0)
 {
+	_debug("createA: %d:%d", _size, _nbChannel);
+
 	if(_size == 0 || _nbChannel == 0) {
 		_warn("AudioFrame: Cannot create audio frame of size 0");
 		_size=160;         // Default is 160 samples, 20 ms at 8000 Hz
 		_nbChannel = 1;
 	}
 
+	_nbChannel = 1;
+
 	// compute length of internal buffer in samples
 	_bufferSize = _size*_nbChannel;
+
+	_debug("createA: %d:%d:%d", _size, _nbChannel, _bufferSize);
 
 	_internalBuffer = new SFLDataFormat[_bufferSize];
 
@@ -56,6 +62,8 @@ AudioFrame::AudioFrame (const unsigned int size, const unsigned int nbChannel, c
 
 AudioFrame::AudioFrame (const unsigned int size, const unsigned int nbChannel, const unsigned int smplRate, SFLDataFormat *buffer)
 {
+	_debug("createB: %d:%d", _size, _nbChannel);
+
 	if(_size == 0 || _nbChannel == 0) {
 		_warn("AudioFrame: Cannot create audio frame of size 0");
 		_size=160;
@@ -65,6 +73,8 @@ AudioFrame::AudioFrame (const unsigned int size, const unsigned int nbChannel, c
 	// compute length of internal buffer in sample
 	_bufferSize = _size*_nbChannel;
 
+	_debug("createA: %d:%d:%d", _size, _nbChannel, _bufferSize);
+
 	_internalBuffer = new SFLDataFormat[_bufferSize];
 
 	// size in byte
@@ -73,8 +83,10 @@ AudioFrame::AudioFrame (const unsigned int size, const unsigned int nbChannel, c
 
 AudioFrame::~AudioFrame()
 {
+	_debug("delete: %d:%d:%d", _size, _nbChannel, _bufferSize);
+
 	if(_internalBuffer)
-		delete [] _internalBuffer;
+		delete _internalBuffer;
 
 	_internalBuffer = NULL;
 }

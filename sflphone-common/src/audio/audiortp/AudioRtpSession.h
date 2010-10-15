@@ -47,6 +47,7 @@
 #include "audio/samplerateconverter.h"
 #include "audio/audioprocessing.h"
 #include "audio/noisesuppress.h"
+#include "audio/AudioFrame.h"
 
 #include "managerimpl.h"
 
@@ -225,16 +226,6 @@ class AudioRtpSession : public ost::Thread, public ost::TimerPort
         /** Codecs frame size in samples (20 ms => 882 at 44.1kHz)
             The exact value is stored in the codec */
         int _codecFrameSize;
-
-        /** Speaker buffer length in samples once the data are resampled
-         *  (used for mixing and recording)
-         */
-        int _nSamplesSpkr;
-
-        /** Mic buffer length in samples once the data are resampled
-         *  (used for mixing and recording)
-         */
-        int _nSamplesMic;
 
         /**
          * Maximum number of sample for audio buffers (mic and spkr)
@@ -649,15 +640,18 @@ int AudioRtpSession<D>::processDataEncode (void)
     int bytesAvail = (availBytesFromMic < maxBytesToGet) ? availBytesFromMic : maxBytesToGet;
 
     if (bytesAvail == 0) {
-        memset (_micDataEncoded, 0, sizeof (SFLDataFormat));
         return _audiocodec->getFrameSize();
     }
 
+
+    _debug("ByteAvail: %d, clockRate: %d", bytesAvail, _audiocodec->getClockRate());
+    AudioFrame *frame = new AudioFrame(bytesAvail/sizeof(SFLDataFormat), 1, _audiocodec->getClockRate());
+
     // Get bytes from micRingBuffer to data_from_mic
-    int nbSample = _manager->getAudioDriver()->getMainBuffer()->getData (_micData , bytesAvail, 100, _ca->getCallId()) / sizeof (SFLDataFormat);
+    int nbSample = _manager->getAudioDriver()->getMainBuffer()->getData (*frame, 100, _ca->getCallId()) / sizeof (SFLDataFormat);
 
     if (!_micFadeInComplete)
-        _micFadeInComplete = fadeIn (_micData, nbSample, &_micAmplFactor);
+        _micFadeInComplete = fadeIn (frame->getInternalBuffer(), nbSample, &_micAmplFactor);
 
     if (nbSample == 0)
         return nbSample;
@@ -669,26 +663,26 @@ int AudioRtpSession<D>::processDataEncode (void)
     if (_audiocodec->getClockRate() != _mainBufferSampleRate) {
         int nb_sample_up = nbSample;
 
-        _nSamplesMic = nbSample;
-
-        nbSample = _converter->downsampleData (_micData , _micDataConverted , _audiocodec->getClockRate(), _mainBufferSampleRate, nb_sample_up);
+        nbSample = _converter->downsampleData (frame->getInternalBuffer(), _micDataConverted , _audiocodec->getClockRate(), _mainBufferSampleRate, nb_sample_up);
 
         if (_manager->audioPreference.getNoiseReduce())
             _audioProcess->processAudio (_micDataConverted, nbSample*sizeof (SFLDataFormat));
 
         compSize = _audiocodec->codecEncode (_micDataEncoded, _micDataConverted, nbSample*sizeof (SFLDataFormat));
 
+        delete frame;
+
     } else {
 
-        _nSamplesMic = nbSample;
-
         if (_manager->audioPreference.getNoiseReduce())
-            _audioProcess->processAudio (_micData, nbSample*sizeof (SFLDataFormat));
+            _audioProcess->processAudio (frame->getInternalBuffer(), nbSample*sizeof (SFLDataFormat));
 
         // no resampling required
-        compSize = _audiocodec->codecEncode (_micDataEncoded, _micData, nbSample*sizeof (SFLDataFormat));
+        compSize = _audiocodec->codecEncode (_micDataEncoded, frame->getInternalBuffer(), nbSample*sizeof (SFLDataFormat));
 
+        delete frame;
     }
+
 
     return compSize;
 }
@@ -718,19 +712,25 @@ void AudioRtpSession<D>::processDataDecode (unsigned char * spkrData, unsigned i
 
             nbSample = _converter->upsampleData (_spkrDataDecoded, _spkrDataConverted, _codecSampleRate, _mainBufferSampleRate, nb_sample_down);
 
-            // Store the number of samples for recording
-            _nSamplesSpkr = nbSample;
+            // c
+            AudioFrame *frame = new AudioFrame(nbSample, 1, _audiocodec->getClockRate(), _spkrDataConverted);
 
             // put data in audio layer, size in byte
-            _manager->getAudioDriver()->getMainBuffer()->putData (_spkrDataConverted, nbSample * sizeof (SFLDataFormat), 100, _ca->getCallId());
+            _manager->getAudioDriver()->getMainBuffer()->putData (*frame, 100, _ca->getCallId());
 
+            // TODO: Implement reference counting for frames
+            delete frame;
 
         } else {
-            // Store the number of samples for recording
-            _nSamplesSpkr = nbSample;
+
+
+        	AudioFrame *frame = new AudioFrame(expandedSize/sizeof(SFLDataFormat), 1, _audiocodec->getClockRate(), _spkrDataDecoded);
 
             // put data in audio layer, size in byte
-            _manager->getAudioDriver()->getMainBuffer()->putData (_spkrDataDecoded, expandedSize, 100, _ca->getCallId());
+            _manager->getAudioDriver()->getMainBuffer()->putData (*frame, 100, _ca->getCallId());
+
+            // TODO: Implement reference counting for frames
+            delete frame;
         }
 
         // Notify (with a beep) an incoming call when there is already a call

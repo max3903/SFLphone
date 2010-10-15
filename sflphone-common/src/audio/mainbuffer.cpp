@@ -355,23 +355,31 @@ int MainBuffer::putData (void *buffer, int toCopy, unsigned short volume, CallID
 
     RingBuffer* ring_buffer = getRingBuffer (call_id);
 
-    if (ring_buffer == NULL) {
+    if (ring_buffer == NULL)
         return 0;
-    }
 
-    int a;
+    int avail = ring_buffer->AvailForPut();
 
-    a = ring_buffer->AvailForPut();
+    return ring_buffer->Put (buffer, (avail >= toCopy) ? toCopy : avail, volume);
 
-    if (a >= toCopy) {
+}
 
-        return ring_buffer->Put (buffer, toCopy, volume);
 
-    } else {
+int MainBuffer::putData (AudioFrame& frame, unsigned short volume, CallID call_id)
+{
+    ost::MutexLock guard (_mutex);
 
-        return ring_buffer->Put (buffer, a, volume);
-    }
+    RingBuffer* ring_buffer = getRingBuffer (call_id);
 
+    if (ring_buffer == NULL)
+        return 0;
+
+    // get the frame size in byte
+    int frameSize = frame.getSize()*sizeof(SFLDataFormat);
+
+    int avail = ring_buffer->AvailForPut();
+
+    return ring_buffer->Put (frame.getInternalBuffer(), (avail >= frameSize) ? frameSize : avail, volume);
 }
 
 int MainBuffer::availForPut (CallID call_id)
@@ -395,8 +403,6 @@ int MainBuffer::getData (void *buffer, int toCopy, unsigned short volume, CallID
 
     CallIDSet* callid_set = getCallIDSet (call_id);
 
-    int nbSmplToCopy = toCopy / sizeof (SFLDataFormat);
-
     if (callid_set == NULL)
         return 0;
 
@@ -414,7 +420,7 @@ int MainBuffer::getData (void *buffer, int toCopy, unsigned short volume, CallID
             return 0;
     } else {
 
-        memset (buffer, 0, nbSmplToCopy*sizeof (SFLDataFormat));
+        memset (buffer, 0, toCopy);
 
         int size = 0;
 
@@ -423,6 +429,8 @@ int MainBuffer::getData (void *buffer, int toCopy, unsigned short volume, CallID
         while (iter_id != callid_set->end()) {
 
             memset (mixBuffer, 0, toCopy);
+
+            int nbSmplToCopy = toCopy / sizeof (SFLDataFormat);
 
             size = getDataByID (mixBuffer, toCopy, volume, (CallID) (*iter_id), call_id);
 
@@ -439,6 +447,62 @@ int MainBuffer::getData (void *buffer, int toCopy, unsigned short volume, CallID
     }
 }
 
+
+int MainBuffer::getData (AudioFrame& frame, unsigned short volume, CallID call_id)
+{
+    ost::MutexLock guard (_mutex);
+
+    CallIDSet* callid_set = getCallIDSet (call_id);
+
+    if (callid_set == NULL)
+        return 0;
+
+    if (callid_set->empty())
+        return 0;
+
+    // get the size of thye buffer in byte
+    unsigned int toCopy = frame.getSize()*sizeof(SFLDataFormat);
+
+    // store a pointer to the internal frame buffer
+    SFLDataFormat *buffer = frame.getInternalBuffer();
+
+    if (callid_set->size() == 1) {
+
+        CallIDSet::iterator iter_id = callid_set->begin();
+
+        if (iter_id != callid_set->end())
+            return getDataByID (buffer, toCopy, volume, *iter_id, call_id);
+        else
+            return 0;
+    } else {
+
+    	// init internal buffer
+        memset (buffer, 0, toCopy);
+
+        int size = 0;
+
+        CallIDSet::iterator iter_id = callid_set->begin();
+
+        while (iter_id != callid_set->end()) {
+
+            memset (mixBuffer, 0, toCopy);
+
+            int nbSmplToCopy = toCopy / sizeof (SFLDataFormat);
+
+            size = getDataByID (mixBuffer, toCopy, volume, (CallID) (*iter_id), call_id);
+
+            if (size > 0) {
+                for (int k = 0; k < nbSmplToCopy; k++) {
+                    ( (SFLDataFormat*) (buffer)) [k] += mixBuffer[k];
+                }
+            }
+
+            iter_id++;
+        }
+
+        return size;
+    }
+}
 
 int MainBuffer::getDataByID (void *buffer, int toCopy, unsigned short volume, CallID call_id, CallID reader_id)
 {
