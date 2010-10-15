@@ -53,7 +53,7 @@ public:
 	 * @param original sampling rate
 	 * @param buffer, data to be copied in this frame
 	 */
-	AudioFrame(const unsigned int size=160, const unsigned int nbChannel=1, const unsigned int smplRate=8000, SFLDataFormat *buffer);
+	AudioFrame(const unsigned int size, const unsigned int nbChannel, const unsigned int smplRate, SFLDataFormat *buffer);
 
 	/**
 	 * Destructor
@@ -79,19 +79,19 @@ public:
 	 * Copy data contained by this frame into the provided buffer
 	 * buffer should be of the same size of the data contained by this frame
 	 */
-	unsigned int  getData(SFLDataFormat *buffer, const unsigned int channel);
+	bool getData(SFLDataFormat *buffer, const unsigned int channel);
 
 	/**
 	 * Copy data into the frame. Data should be of the same size of the frame
 	 */
-	unsigned int putData(SF:DataFormat *buffer, const unsigned int channel);
+	bool putData(SFLDataFormat *buffer, const unsigned int channel);
 
 private:
 
 	/**
 	 * Number of samples contained by this frame
 	 */
-	unsigned int _size
+	unsigned int _size;
 
 	/**
 	 * Number of channels (1 mono, 2 stereo)

@@ -68,7 +68,7 @@ AudioFrame::AudioFrame (const unsigned int size, const unsigned int nbChannel, c
 	_internalBuffer = new SFLDataFormat[_bufferSize];
 
 	// size in byte
-	memcpy(_internalBuffer, buffer, bufferSize*sizeof(SFLDataFormat));
+	memcpy(_internalBuffer, buffer, _bufferSize*sizeof(SFLDataFormat));
 }
 
 AudioFrame::~AudioFrame()
@@ -79,24 +79,32 @@ AudioFrame::~AudioFrame()
 	_internalBuffer = NULL;
 }
 
-boolean AudioFrame::getData(SFLDataFormat *buffer, const unsigned int channel)
+bool AudioFrame::getData(SFLDataFormat *buffer, const unsigned int channel)
 {
-	if(channel <= 0)
-		channel = 1;
+	unsigned int chan = channel;
 
-	if(channel > _nbChannel)
-		channel = _nbChannel;
+	if(chan <= 0)
+		chan = 1;
 
-	memcpy(buffer, _internalBuffer[channel], _size*sizeof(SFLDataFormat));
+	if(chan > _nbChannel)
+		chan = _nbChannel;
+
+	memcpy(buffer, (void *)_internalBuffer[chan-1], _size*sizeof(SFLDataFormat));
+
+	return true;
 }
 
-boolean AudioFrame::putData(SFLDataFormat *buffer, const unsigned int channel)
+bool AudioFrame::putData(SFLDataFormat *buffer, const unsigned int channel)
 {
-	if(channel <= 0)
-		channel = 1;
+	unsigned int chan = channel;
 
-	if(channel > _nbChannel)
-		channel = _nbChannel;
+	if(chan <= 0)
+		chan = 1;
 
-	memcpy(_internalBuffer[channel-1], buffer, _size*sizeof(SFLDataFormat));
+	if(chan > _nbChannel)
+		chan = _nbChannel;
+
+	memcpy((void *)_internalBuffer[chan-1], buffer, _size*sizeof(SFLDataFormat));
+
+	return true;
 }

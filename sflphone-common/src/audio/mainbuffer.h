@@ -40,6 +40,7 @@
 #include "global.h"
 #include "call.h"
 #include "ringbuffer.h"
+#include "AudioFrame.h"
 
 typedef std::map<CallID, RingBuffer*> RingBufferMap;
 
