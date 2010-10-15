@@ -2433,15 +2433,15 @@ std::string ManagerImpl::getCurrentCodecName (const CallId& id)
     Call* call = link->getCall (id);
 
     if (!call) {
-        _warn ("No call is available to get codec name on (%s:%d)", __FILE__, __LINE__);
+        _warn ("Manager: No call is available to get codec name on (%s:%d)", __FILE__, __LINE__);
         return "";
     }
 
     if (call->getState() != Call::Active) {
-        _warn ("Call is not in state \"active\" while getting codec name on (%s:%d)", __FILE__, __LINE__);
+        _warn ("Manager: Call is not in state \"active\" while getting codec name on (%s:%d)", __FILE__, __LINE__);
         return "";
     } else {
-        _debug ("Current codec name: %s", link->getCurrentCodecName().c_str());
+        _debug ("Manager: Current codec name: %s", link->getCurrentCodecName().c_str());
         return link->getCurrentCodecName();
     }
 }

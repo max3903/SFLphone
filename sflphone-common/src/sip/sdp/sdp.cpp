@@ -208,6 +208,7 @@ pjmedia_sdp_media* Sdp::getAudioSdpMedia(const pjmedia_sdp_session* remoteSdp) {
 }
 
 pjmedia_sdp_media* Sdp::getVideoSdpMedia(const pjmedia_sdp_session* remoteSdp) {
+
 	if (!remoteSdp) {
 		return NULL;
 	}
@@ -479,6 +480,9 @@ void Sdp::setNegotiatedSdp(const pjmedia_sdp_session *sdp) {
 }
 
 bool Sdp::negotiateFormat() {
+
+	_debug("Sdp: Negotiate format");
+
 	pjmedia_sdp_session* negotiatedLocalSdp = getNegotiatedOffer();
 	const pjmedia_sdp_session* remoteSdp = getRemoteAnswer();
 
@@ -487,20 +491,22 @@ bool Sdp::negotiateFormat() {
 	// FIXME Make this non-specific to "video"
 	pjmedia_sdp_media* remoteMedia = getVideoSdpMedia(remoteSdp);
 	pjmedia_sdp_media* localMedia = NULL;
-	int i;
-	for (i = 0; i < negotiatedLocalSdp->media_count; i++) {
-		if ((pj_stricmp(&remoteMedia->desc.media,
+
+	if(remoteMedia) {
+	    for (int i = 0; i < negotiatedLocalSdp->media_count; i++) {
+		    if ((pj_stricmp(&remoteMedia->desc.media,
 				&negotiatedLocalSdp->media[i]->desc.media) == 0)
 				&& ((pj_stricmp(&remoteMedia->desc.transport,
 						&negotiatedLocalSdp->media[i]->desc.transport)) == 0)) {
-			// We found the corresponding media in the local offer
-			localMedia = negotiatedLocalSdp->media[i];
-		}
+			    // We found the corresponding media in the local offer
+			    localMedia = negotiatedLocalSdp->media[i];
+		    }
+	    }
 	}
 
 	if (localMedia == NULL) {
-		_warn("Failed to match media from remote to the local negotiated media");
-		return false;
+		_warn("Sdp: Failed to match media from remote to the local negotiated media (%s:%d)", __FILE__, __LINE__);
+		return true;
 	}
 
 	// Find the corresponding SdpMedia
@@ -514,13 +520,13 @@ bool Sdp::negotiateFormat() {
 	}
 
 	if (negotiatedMedia == NULL) {
-		_warn("Failed to match the given media with the local negotiated media.");
+		_warn("Sdp: Failed to match the given media with the local negotiated media.", __FILE__, __LINE__);
 		return false;
 	}
 
 	// Negotiate the formats for all of codecs in the local SDP
 	// with the format in the remote answer
-	for (i = 0; i < localMedia->desc.fmt_count; i++) {
+	for (int i = 0; i < localMedia->desc.fmt_count; i++) {
 		// Find the answerer a=fmtp line
 		sfl::Fmtp fmtpAnswerer;
 		pjmedia_sdp_fmtp fmtpAttribute;
