@@ -232,7 +232,8 @@ bool ManagerImpl::outgoingCall (const std::string& account_id,
     SipVoipLink *siplink;
 
     if (call_id.empty()) {
-        _debug ("Manager: New outgoing call abbort, missing callid");
+        _debug ("Manager: New outgoing call abbort, missing callid (%s:%d)",
+        		__FILE__, __LINE__);
         return false;
     }
 
@@ -4036,7 +4037,7 @@ bool ManagerImpl::associateConfigToCall (const CallId& callID,
 
     if (getConfigFromCall (callID) == CallConfigNULL) { // nothing with the same ID
         _callConfigMap[callID] = config;
-        _debug ("Manager: Associate call %s with config %i", callID.c_str(), config);
+        _debug ("Manager: Associate call %s with config %d", callID.c_str(), config);
         return true;
     } else {
         return false;

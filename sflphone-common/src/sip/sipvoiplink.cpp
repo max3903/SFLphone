@@ -716,63 +716,167 @@ SipVoipLink::newOutgoingCall (const CallId& id, const std::string& toUrl)
 
 bool SipVoipLink::newIpToIpCall (const CallId& id, const std::string& to)
 {
-    pj_status_t status;
-    pjsip_dialog *dialog;
-    pjsip_inv_session *inv;
-    pjsip_tx_data *tdata;
-    pjsip_inv_session *inv_session;
+	pj_status_t status;
+	pjsip_dialog *dialog;
+	pjsip_inv_session *inv;
+	pjsip_tx_data *tdata;
 
-    _debug ("UserAgent: Answering call %s", id.c_str());
+	_debug ("UserAgent: New IP2IP call %s to %s", id.c_str(), to.c_str());
 
-    SipCall *call = getSipCall (id);
+	// Get the associated account.
+	SIPAccount * account = NULL;
+	account = dynamic_cast<SIPAccount *> (Manager::instance().getAccount (
+	                                              IP2IP_PROFILE));
+	if (account == NULL) {
+		_error ("UserAgent: Error: Account %s is null. Returning", IP2IP_PROFILE);
+		return !PJ_SUCCESS;
+	}
 
-    if (call==0) {
-        _debug ("UserAgent: SipCall %s doesn't exists while answering", id.c_str());
-        return false;
-    }
+    /* Create the call */
+	SipCall* call =  new SipCall (id, Call::Outgoing, account);
+	if (call) {
+		call->setCallConfiguration (Call::IPtoIP);
+		call->initRecFileName(to);
 
-    Sdp *local_sdp = call->getLocalSDP();
+		// Set peer number
+		std::string toUri = account->getToUri (to);
+		call->setPeerNumber (toUri);
 
-    inv_session = call->getInvSession();
+		_debug ("UserAgent: TO uri for IP2IP call: %s", toUri.c_str());
 
-    status = local_sdp->startNegotiation ();
+		// Audio RTP Session must be initialized before creating initial
+		// offer in SDP session since SDES requires crypto attribute.
+		try {
+			call->getAudioRtp()->initAudioRtpSession (call);
+		} catch (...) { // FIXME Be more specific
+			_debug ("UserAgent: Unable to create RTP Session in new IP2IP call (%s:%d)", __FILE__, __LINE__);
+		}
 
-    if (status == PJ_SUCCESS) {
+		// Stage the video RTP session
+		if (call->isVideoEnabled()) {
+			try {
+				DBusManager::instance().getVideoManager()->stageRtpSession(call);
+			} catch (sfl::UnknownVideoDeviceException e) {
+				_error("%s", e.what());
+			}
+		}
 
-        _debug ("SipVoipLink: UserAgent: SDP Negociation success! : call %s ", call->getCallId().c_str());
-        // Create and send a 200(OK) response
-        status = pjsip_inv_answer (inv_session, PJSIP_SC_OK, NULL, NULL, &tdata);
-        PJ_ASSERT_RETURN (status == PJ_SUCCESS, 1);
-        status = pjsip_inv_send_msg (inv_session, tdata);
-        PJ_ASSERT_RETURN (status == PJ_SUCCESS, 1);
+		// Init TLS transport if enabled
+		if (account->isTlsEnabled()) {
 
-        call->setConnectionState (Call::Connected);
-        call->setState (Call::Active);
+			_debug ("UserAgent: TLS enabled for IP2IP calls");
+			int at = toUri.find ("@");
+			int trns = toUri.find (";transport");
+			std::string remoteAddr = toUri.substr (at+1, trns-at-1);
 
-        return true;
-    } else {
-        // Create and send a 488/Not acceptable here
-        // because the SDP negociation failed
-        status = pjsip_inv_answer (inv_session, PJSIP_SC_NOT_ACCEPTABLE_HERE,
-                                   NULL, NULL, &tdata);
-        PJ_ASSERT_RETURN (status == PJ_SUCCESS, 1);
-        status = pjsip_inv_send_msg (inv_session, tdata);
-        PJ_ASSERT_RETURN (status == PJ_SUCCESS, 1);
+			if (toUri.find ("sips:") != 1) {
+				_debug ("UserAgent: Error \"sips\" scheme required for TLS call");
+				return false;
+			}
 
-        // Terminate the call
-        _debug ("SipVoipLink::answer: fail terminate call %s ",call->getCallId().c_str());
+			if (createTlsTransport (account->getAccountID(), remoteAddr) != PJ_SUCCESS) {
+				return false;
+			}
+		}
 
-        // Stop the audio
-        if (call->getAudioRtp()) {
-            call->getAudioRtp()->stop();
+		// If no transport already set, use the default one created at pjsip initialization
+		if (account->getAccountTransport() == NULL) {
+			_debug ("UserAgent: No transport for this account, using the default one");
+			account->setAccountTransport (_localUDPTransport);
+		}
+
+		// Create URI
+		std::string fromUri = account->getFromUri();
+		std::string address = findLocalAddressFromUri (toUri,
+				account->getAccountTransport());
+
+		int port = findLocalPortFromUri (toUri, account->getAccountTransport());
+
+		std::stringstream ss;
+		std::string portStr;
+		ss << port;
+		ss >> portStr;
+
+		std::string contactUri = account->getContactHeader (address, portStr);
+
+		_debug ("UserAgent:  FROM uri: %s, TO uri: %s, CONTACT uri: %s",
+				fromUri.c_str(), toUri.c_str(), contactUri.c_str());
+
+		pj_str_t pjFrom;
+		pj_cstr (&pjFrom, fromUri.c_str());
+
+		pj_str_t pjTo;
+		pj_cstr (&pjTo, toUri.c_str());
+
+		pj_str_t pjContact;
+		pj_cstr (&pjContact, contactUri.c_str());
+
+		// Create the dialog (UAC)
+		// (Parameters are "strduped" inside this function)
+		status = pjsip_dlg_create_uac (pjsip_ua_instance(), &pjFrom, &pjContact, &pjTo, NULL, &dialog);
+		PJ_ASSERT_RETURN (status == PJ_SUCCESS, false);
+
+		// Create the invite session for this call
+		status = pjsip_inv_create_uac (dialog, call->getLocalSDP()->getLocalSdpSession(), 0, &inv);
+        PJ_ASSERT_RETURN (status == PJ_SUCCESS, false);
+
+        if (! (account->getServiceRoute().empty())) {
+
+        	_error ("UserAgent: Set Service-Route with %s", account->getServiceRoute().c_str());
+
+        	pjsip_route_hdr *route_set = pjsip_route_hdr_create (_pool);
+        	pjsip_route_hdr *routing = pjsip_route_hdr_create (_pool);
+        	pjsip_sip_uri *url = pjsip_sip_uri_create (_pool, 0);
+        	routing->name_addr.uri = (pjsip_uri*) url;
+        	pj_strdup2 (_pool, &url->host, account->getServiceRoute().c_str());
+
+        	pj_list_push_back (&route_set, pjsip_hdr_clone (_pool, routing));
+
+        	pjsip_dlg_set_route_set (dialog, route_set);
         }
 
-        terminateOneCall (call->getCallId());
+        // Set the appropriate transport
+        pjsip_tpselector *tp;
 
-        removeCall (call->getCallId());
+        init_transport_selector (account->getAccountTransport(), &tp);
 
-        return false;
-    }
+        if (!account->getAccountTransport()) {
+        	_error ("UserAgent: Error: Transport is NULL in IP2IP call");
+        }
+
+        // set_transport methods increment transport's ref_count
+        status = pjsip_dlg_set_transport (dialog, tp);
+        if (status != PJ_SUCCESS) {
+        	_error ("UserAgent: Error: Failed to set the transport for an IP2IP call");
+        	return status;
+        }
+
+        // Associate current call in the invite session
+        inv->mod_data[getModId() ] = call;
+
+        status = pjsip_inv_invite (inv, &tdata);
+
+        PJ_ASSERT_RETURN (status == PJ_SUCCESS, false);
+
+        // Associate current invite session in the call
+        call->setInvSession (inv);
+
+        status = pjsip_inv_send_msg (inv, tdata);
+
+        if (status != PJ_SUCCESS) {
+        	delete call;
+        	call = 0;
+        	return false;
+        }
+
+        call->setConnectionState (Call::Progressing);
+
+        call->setState (Call::Active);
+        addCall (call);
+
+        return true;
+	} else
+		return false;
 }
 
 bool SipVoipLink::answer (const CallId& id)

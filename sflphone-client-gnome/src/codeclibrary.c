@@ -169,6 +169,11 @@ copy_codec_in_library (gpointer el, gpointer user_data)
 static void
 codec_library_audio_clear (codec_library_t* library)
 {
+    if(!library) {
+        ERROR("CodecLibrary: No valid library (%s:%d)", __FILE__, __LINE__);
+        return;
+    }
+
     g_mutex_lock (library->audio_codec_list_mutex);
     {
         g_queue_free (library->audio_codec_list);
@@ -364,6 +369,7 @@ codec_library_load_audio_codecs_by_account (account_t* account)
         WARN ("CodecLibrary: Codec list NULL in account (%s:%d)", __FILE__, __LINE__);
         return;
     }
+
 
     // Clear all of the actual codecs, and load built-in list
     codec_library_audio_clear (account->codecs);
@@ -586,6 +592,11 @@ static void
 codec_library_set (codec_library_t* library, const gchar* accountID, gboolean video)
 {
     GQueue* codec_queue;
+
+    if(!library) {
+        ERROR("CodecLibrary: No valid library (%s:%d)", __FILE__, __LINE__);
+        return;
+    }
 
     if (video) {
         codec_queue = library->video_codec_list;
