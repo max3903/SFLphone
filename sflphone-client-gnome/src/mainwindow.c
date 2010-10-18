@@ -43,6 +43,9 @@
 #include <widget/minidialog.h>
 #include "uimanager.h"
 
+#include <widget/PidginScrollBook.h>
+#include <widget/PidginMiniDialog.h>
+
 #include <widget/SFLVideoSession.h>
 
 #include <gtk/gtk.h>
@@ -171,159 +174,275 @@ focus_on_mainwindow_in ()
     //  gtk_widget_grab_focus(GTK_WIDGET(window));
 }
 
+
+static void
+on_video_conf_detached_cb (GdlDockItem *item, gboolean cancel,
+    gpointer user_data)
+{
+  GtkRequisition req;
+  gtk_widget_size_request (GTK_WIDGET(window), &req);
+  gtk_window_resize (GTK_WINDOW(window), req.width + 10, req.height);
+}
+
+void
+on_video_conf_minimized_cb (GdlDockObject *gdldockobject, gboolean arg1, gpointer user_data)
+{
+  if (arg1 == TRUE) {
+    gtk_container_resize_children (GTK_CONTAINER(vbox));
+  }
+}
+
+static void
+on_new_remote_video_stream_cb (DBusGProxy *proxy UNUSED, const gchar* callID,
+    const gchar* shm, void * data)
+{
+  GtkWidget* item_video_conference = gdl_dock_item_new (callID,
+      "Ongoing video conference", GDL_DOCK_ITEM_BEH_NORMAL);
+  g_object_set (item_video_conference, "resize", FALSE, NULL);
+
+  g_signal_connect_after (G_OBJECT (item_video_conference), "detach",
+        G_CALLBACK (on_video_conf_minimized_cb), NULL);
+
+  g_signal_connect_after (G_OBJECT (item_video_conference), "dock-drag-end",
+      G_CALLBACK (on_video_conf_detached_cb), NULL);
+
+  INFO("A new remote video session stream is available in shm %s", shm);
+
+  SFLVideoSession* session = sfl_video_session_new (shm);
+  gtk_widget_show_all (GTK_WIDGET(session));
+
+  gtk_container_add (GTK_CONTAINER (item_video_conference), GTK_WIDGET(session));
+  gtk_container_set_border_width (GTK_CONTAINER (item_video_conference), 10);
+
+  GtkWidget* dock = (GtkWidget*) data;
+  gdl_dock_add_item (GDL_DOCK (dock), GDL_DOCK_ITEM (item_video_conference),
+      GDL_DOCK_LEFT);
+  gtk_widget_show_all (item_video_conference);
+
+  // Resize the dock to the desired child object
+  gtk_container_resize_children (GTK_CONTAINER(dock));
+
+  gtk_widget_show_all (GTK_WIDGET(dock));
+}
+
+void on_remote_video_stream_stopped_cb (DBusGProxy *proxy UNUSED, const gchar* callID,
+    const gchar* shm, void * data)
+{
+  DEBUG("The remote video stream has stopped.");
+  GtkWidget* dock = (GtkWidget*) data;
+  GdlDockItem* item = gdl_dock_get_item_by_name(GDL_DOCK(dock), callID);
+  if (item) {
+    // Remove the SFLVideoSession widget from the dock item
+    //gtk_container_foreach (GTK_CONTAINER(item), (GtkCallback) gtk_widget_destroy, NULL);
+
+    // Destroy and remove the dock item from the dock
+    gtk_widget_destroy(GTK_WIDGET(item));
+  } else {
+    WARN("Cannot find item with name \"%s\" in gdl dock.", callID);
+  }
+
+  // Resize the window to better fit now that the dock item is gone.
+  GtkRequisition req;
+  gtk_widget_size_request (GTK_WIDGET(window), &req);
+  gtk_window_resize (GTK_WINDOW(window), req.width + 10, req.height);
+}
+
 void
 create_main_window ()
 {
-    GtkWidget *widget;
-    GError *error = NULL;
-    gboolean ret;
-    const char *window_title = "SFLphone VoIP Client";
-    int width, height, position_x, position_y;
+  GtkWidget *widget;
+  gchar *path;
+  GError *error = NULL;
+  gboolean ret;
+  const char *window_title = "SFLphone VoIP Client";
+  int width, height, position_x, position_y;
 
-    focus_is_on_calltree = FALSE;
-    focus_is_on_searchbar = FALSE;
+  focus_is_on_calltree = FALSE;
+  focus_is_on_searchbar = FALSE;
 
-    // Get configuration stored in gconf
-    width =  eel_gconf_get_integer (CONF_MAIN_WINDOW_WIDTH);
-    height =  eel_gconf_get_integer (CONF_MAIN_WINDOW_HEIGHT);
-    position_x =  eel_gconf_get_integer (CONF_MAIN_WINDOW_POSITION_X);
-    position_y =  eel_gconf_get_integer (CONF_MAIN_WINDOW_POSITION_Y);
+  // Get configuration stored in gconf
+  width = eel_gconf_get_integer (CONF_MAIN_WINDOW_WIDTH);
+  height = eel_gconf_get_integer (CONF_MAIN_WINDOW_HEIGHT);
+  position_x = eel_gconf_get_integer (CONF_MAIN_WINDOW_POSITION_X);
+  position_y = eel_gconf_get_integer (CONF_MAIN_WINDOW_POSITION_Y);
 
-    window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
-    gtk_container_set_border_width (GTK_CONTAINER (window), 0);
-    gtk_window_set_title (GTK_WINDOW (window), window_title);
-    gtk_window_set_default_size (GTK_WINDOW (window), width, height);
-    gtk_window_set_default_icon_from_file (LOGO,
-                                           NULL);
-    gtk_window_set_position (GTK_WINDOW (window) , GTK_WIN_POS_MOUSE);
+  window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
+  gtk_window_set_title (GTK_WINDOW (window), window_title);
+  gtk_window_set_default_size (GTK_WINDOW (window), width, height);
+  gtk_window_set_default_icon_from_file (LOGO, NULL);
+  gtk_window_set_position (GTK_WINDOW(window), GTK_WIN_POS_MOUSE);
+  //gtk_window_set_policy(GTK_WINDOW(window), TRUE, FALSE, TRUE);
 
-    /* Connect the destroy event of the window with our on_destroy function
-     * When the window is about to be destroyed we get a notificaiton and
-     * stop the main GTK loop
-     */
-    g_signal_connect (G_OBJECT (window), "delete-event",
-                      G_CALLBACK (on_delete), NULL);
+  /* Connect the destroy event of the window with our on_destroy function
+   * When the window is about to be destroyed we get a notificaiton and
+   * stop the main GTK loop
+   */
+  g_signal_connect (G_OBJECT (window), "delete-event",
+      G_CALLBACK (on_delete), NULL);
 
-    g_signal_connect (G_OBJECT (window), "key-release-event",
-                      G_CALLBACK (on_key_released), NULL);
+  g_signal_connect (G_OBJECT (window), "key-release-event",
+      G_CALLBACK (on_key_released), NULL);
 
-    g_signal_connect_after (G_OBJECT (window), "focus-in-event",
-                            G_CALLBACK (focus_on_mainwindow_in), NULL);
+  g_signal_connect_after (G_OBJECT (window), "focus-in-event",
+      G_CALLBACK (focus_on_mainwindow_in), NULL);
 
-    g_signal_connect_after (G_OBJECT (window), "focus-out-event",
-                            G_CALLBACK (focus_on_mainwindow_out), NULL);
+  g_signal_connect_after (G_OBJECT (window), "focus-out-event",
+      G_CALLBACK (focus_on_mainwindow_out), NULL);
 
-    g_signal_connect_object (G_OBJECT (window), "configure-event",
-                             G_CALLBACK (window_configure_cb), NULL, 0);
+  g_signal_connect_object (G_OBJECT (window), "configure-event",
+      G_CALLBACK (window_configure_cb), NULL, 0);
 
-    gtk_widget_set_name (window, "mainwindow");
+  gtk_widget_set_name (window, "mainwindow");
 
-    ret = uimanager_new (&ui_manager);
-
-    if (!ret) {
-        ERROR ("Could not load xml GUI\n");
-        g_error_free (error);
-        exit (1);
+  ret = uimanager_new (&ui_manager);
+  if (!ret)
+    {
+      ERROR ("Could not load xml GUI\n");
+      g_error_free (error);
+      exit (1);
     }
 
-    /* Create an accel group for window's shortcuts */
-    gtk_window_add_accel_group (GTK_WINDOW (window),
-                                gtk_ui_manager_get_accel_group (ui_manager));
+  /* Create an accel group for window's shortcuts */
+  gtk_window_add_accel_group (GTK_WINDOW(window),
+      gtk_ui_manager_get_accel_group (ui_manager));
 
-    vbox = gtk_vbox_new (FALSE /*homogeneous*/, 0 /*spacing*/);
-    subvbox = gtk_vbox_new (FALSE /*homogeneous*/, 5 /*spacing*/);
+  // This vbox holds the menu bar, the various tree views, and the status bar
+  vbox = gtk_vbox_new (FALSE /*homogeneous*/, 0 /*spacing*/);
 
-    create_menus (ui_manager, &widget);
-    gtk_box_pack_start (GTK_BOX (vbox), widget, FALSE /*expand*/, TRUE /*fill*/,
-                        0 /*padding*/);
+  // Create the menus
+  create_menus (ui_manager, &widget);
+  gtk_box_pack_start (GTK_BOX (vbox), widget, FALSE /*expand*/, TRUE /*fill*/,
+      0 /*padding*/);
 
-    create_toolbar_actions (ui_manager, &widget);
-    // Do not override GNOME user settings
-    gtk_box_pack_start (GTK_BOX (vbox), widget, FALSE /*expand*/, TRUE /*fill*/,
-                        0 /*padding*/);
+  // Create the toolbar
+  create_toolbar_actions (ui_manager, &widget);
+  // Do not override GNOME user settings
+  gtk_box_pack_start (GTK_BOX (vbox), widget, FALSE /*expand*/, TRUE /*fill*/,
+      0 /*padding*/);
 
-    gtk_box_pack_start (GTK_BOX (vbox), current_calls->tree, TRUE /*expand*/,
-                        TRUE /*fill*/, 0 /*padding*/);
-    gtk_box_pack_start (GTK_BOX (vbox), history->tree, TRUE /*expand*/,
-                        TRUE /*fill*/, 0 /*padding*/);
-    gtk_box_pack_start (GTK_BOX (vbox), contacts->tree, TRUE /*expand*/,
-                        TRUE /*fill*/, 0 /*padding*/);
+  // Create an split pane. One one side : the tree view, and on the other the video conference, if any
+  GtkWidget* hpaned = gtk_hbox_new (FALSE, 0);
 
-    g_signal_connect_object (G_OBJECT (window), "configure-event",
-                             G_CALLBACK (window_configure_cb), NULL, 0);
-    gtk_box_pack_start (GTK_BOX (vbox), subvbox, FALSE /*expand*/,
-                        FALSE /*fill*/, 0 /*padding*/);
+  // Create tree views
+  GtkWidget* vbox_left_pane = gtk_vbox_new (FALSE, 0);
 
-    embedded_error_notebook = PIDGIN_SCROLL_BOOK (pidgin_scroll_book_new());
-    gtk_box_pack_start (GTK_BOX (subvbox), GTK_WIDGET (embedded_error_notebook),
-                        FALSE, FALSE, 0);
+  gtk_box_pack_start (GTK_BOX (vbox_left_pane), current_calls->tree, TRUE,
+      TRUE, 0);
+  gtk_box_pack_start (GTK_BOX (vbox_left_pane), history->tree, TRUE, TRUE, 0);
+  gtk_box_pack_start (GTK_BOX (vbox_left_pane), contacts->tree, TRUE, TRUE, 0);
 
-    if (SHOW_VOLUME) {
-        speaker_control = create_slider ("speaker");
-        gtk_box_pack_end (GTK_BOX (subvbox), speaker_control, FALSE /*expand*/,
-                          TRUE /*fill*/, 0 /*padding*/);
-        gtk_widget_show_all (speaker_control);
-        mic_control = create_slider ("mic");
-        gtk_box_pack_end (GTK_BOX (subvbox), mic_control, FALSE /*expand*/,
-                          TRUE /*fill*/, 0 /*padding*/);
-        gtk_widget_show_all (mic_control);
+  // Pack the scroll book into the subvbox, into the vbox_left_pane
+  embedded_error_notebook = PIDGIN_SCROLL_BOOK(pidgin_scroll_book_new());
+  subvbox = gtk_vbox_new (FALSE /*homogeneous*/, 5 /*spacing*/);
+  gtk_box_pack_start (GTK_BOX(subvbox), GTK_WIDGET(embedded_error_notebook),
+      FALSE, TRUE, 0);
+
+  // Pack the subvbox into the vbox
+  gtk_box_pack_start (GTK_BOX (vbox_left_pane), subvbox, FALSE, TRUE, 0);
+
+  g_signal_connect_object (G_OBJECT (window), "configure-event",
+      G_CALLBACK (window_configure_cb), NULL, 0);
+
+  if (SHOW_VOLUME)
+    {
+      speaker_control = create_slider ("speaker");
+      gtk_box_pack_end (GTK_BOX (subvbox), speaker_control, FALSE, TRUE, 0);
+
+      gtk_widget_show_all (speaker_control);
+      mic_control = create_slider ("mic");
+
+      gtk_box_pack_end (GTK_BOX (subvbox), mic_control, FALSE, TRUE, 0);
+      gtk_widget_show_all (mic_control);
     }
 
-
-    if (eel_gconf_get_boolean (CONF_SHOW_DIALPAD)) {
-        dialpad = create_dialpad();
-        gtk_box_pack_end (GTK_BOX (subvbox), dialpad, FALSE /*expand*/, TRUE /*fill*/, 0 /*padding*/);
-        gtk_widget_show_all (dialpad);
+  if (eel_gconf_get_boolean (CONF_SHOW_DIALPAD))
+    {
+      dialpad = create_dialpad ();
+      gtk_box_pack_end (GTK_BOX (subvbox), dialpad, FALSE, TRUE, 0);
+      gtk_widget_show_all (dialpad);
     }
 
-    /* Status bar */
-    statusBar = gtk_statusbar_new ();
-    gtk_box_pack_start (GTK_BOX (vbox), statusBar, FALSE /*expand*/,
-                        TRUE /*fill*/, 0 /*padding*/);
-    gtk_container_add (GTK_CONTAINER (window), vbox);
+  // Pack the vbox_left_pane into the hpanned
+  gtk_box_pack_start (GTK_BOX(hpaned), vbox_left_pane, TRUE, TRUE, 0);
+  gtk_widget_set_size_request (vbox_left_pane, 320, 480); // FIXME Hardcoded.
 
-    /* make sure that everything, window and label, are visible */
-    gtk_widget_show_all (window);
+  // Pack the video session into the right pane.
+  GtkWidget* dock = gdl_dock_new ();
+  GtkWidget* dockbar = gdl_dock_bar_new (GDL_DOCK (dock));
+  gdl_dock_bar_set_style (GDL_DOCK_BAR (dockbar), GDL_DOCK_BAR_TEXT);
 
-    /* dont't show the history */
-    gtk_widget_hide (history->tree);
+  gtk_box_pack_end (GTK_BOX(hpaned), GTK_WIDGET(dock), TRUE, TRUE, 0);
+  gtk_box_pack_end (GTK_BOX(hpaned), GTK_WIDGET(dockbar), FALSE, TRUE, 0);
 
-    /* dont't show the contact list */
-    gtk_widget_hide (contacts->tree);
+  // Dock items. Set up a signal handler so that the dock items
+  // gets created only upon video calls creation
+  dbus_g_proxy_connect_signal (dbus_get_video_proxy (),
+      "onNewRemoteVideoStream", G_CALLBACK(on_new_remote_video_stream_cb),
+      dock, NULL);
 
-    searchbar_init (history);
-    searchbar_init (contacts);
+  // Signal handler for the onRemoteVideoStreamStopped
+  dbus_g_proxy_connect_signal (dbus_get_video_proxy (),
+      "onRemoteVideoStreamStopped", G_CALLBACK(on_remote_video_stream_stopped_cb),
+      dock, NULL);
 
-    /* don't show waiting layer */
-    gtk_widget_hide (waitingLayer);
+  // Pack the tree hpanned into the vbox
+  gtk_box_pack_start (GTK_BOX (vbox), hpaned, FALSE, TRUE, 0);
 
-    // pthread_mutex_init (&statusbar_message_mutex, NULL);
-    gmutex = g_mutex_new();
+  /* Status bar */
+  statusBar = gtk_statusbar_new ();
+  gtk_box_pack_end (GTK_BOX (vbox), statusBar, FALSE, FALSE, 0);
+  gtk_container_add (GTK_CONTAINER (window), vbox);
 
-    // Configuration wizard
-    if (account_list_get_size () == 1) {
+  gtk_widget_show_all (vbox);
+
+  /* make sure that everything, window and label, are visible */
+  gtk_widget_show_all (window);
+
+  // FIXME This is a hack to get rid of the extra ghost whitespace
+  GtkRequisition req;
+  gtk_widget_size_request (GTK_WIDGET(window), &req);
+  gtk_window_resize (GTK_WINDOW(window), req.width, req.height);
+
+  /* dont't show the history */
+  gtk_widget_hide (history->tree);
+
+  /* dont't show the contact list */
+  gtk_widget_hide (contacts->tree);
+
+  searchbar_init (history);
+  searchbar_init (contacts);
+
+  /* don't show waiting layer */
+  gtk_widget_hide (waitingLayer);
+
+  // pthread_mutex_init (&statusbar_message_mutex, NULL);
+  gmutex = g_mutex_new();
+
+  // Configuration wizard
+  if (account_list_get_size () == 1)
+    {
 #if GTK_CHECK_VERSION(2,10,0)
-        build_wizard ();
+      build_wizard ();
 #else
-        GtkWidget * dialog = gtk_message_dialog_new_with_markup (GTK_WINDOW (window),
-                             GTK_DIALOG_DESTROY_WITH_PARENT,
-                             GTK_MESSAGE_INFO,
-                             GTK_BUTTONS_YES_NO,
-                             "<b><big>Welcome to SFLphone!</big></b>\n\nThere are no VoIP accounts configured, would you like to edit the preferences now?");
+      GtkWidget * dialog = gtk_message_dialog_new_with_markup (GTK_WINDOW(window),
+          GTK_DIALOG_DESTROY_WITH_PARENT,
+          GTK_MESSAGE_INFO,
+          GTK_BUTTONS_YES_NO,
+          "<b><big>Welcome to SFLphone!</big></b>\n\nThere are no VoIP accounts configured, would you like to edit the preferences now?");
 
-        int response = gtk_dialog_run (GTK_DIALOG (dialog));
+      int response = gtk_dialog_run (GTK_DIALOG(dialog));
 
-        gtk_widget_destroy (GTK_WIDGET (dialog));
+      gtk_widget_destroy (GTK_WIDGET(dialog));
 
-        if (response == GTK_RESPONSE_YES) {
-            show_preferences_dialog();
+      if (response == GTK_RESPONSE_YES)
+        {
+          show_preferences_dialog();
         }
-
 #endif
     }
 
-    // Restore position according to the configuration stored in gconf
-    gtk_window_move (GTK_WINDOW (window), position_x, position_y);
+  // Restore position according to the configuration stored in gconf
+  gtk_window_move (GTK_WINDOW (window), position_x, position_y);
 }
 
 GtkAccelGroup *
