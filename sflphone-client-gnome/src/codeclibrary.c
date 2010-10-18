@@ -93,9 +93,13 @@ codec_library_get_link (codec_library_t* library, gpointer data)
 static void
 codec_library_free_audio_codecs (codec_library_t* library)
 {
-    // TODO Free the elements properly.
+    g_queue_foreach(library->audio_codec_list, (GFunc)g_free, NULL);
+
     g_queue_free (library->audio_codec_list);
+    library->audio_codec_list = NULL;
+
     g_mutex_free (library->audio_codec_list_mutex);
+    library->audio_codec_list_mutex = NULL;
 }
 
 /**
@@ -104,8 +108,13 @@ codec_library_free_audio_codecs (codec_library_t* library)
 static void
 codec_library_free_video_codecs (codec_library_t* library)
 {
+    g_queue_foreach(library->video_codec_list, (GFunc)g_free, NULL);
+
     g_queue_free (library->video_codec_list);
+    library->video_codec_list = NULL;
+
     g_mutex_free (library->video_codec_list_mutex);
+    library->video_codec_list_mutex = NULL;
 }
 
 /**
@@ -169,6 +178,8 @@ copy_codec_in_library (gpointer el, gpointer user_data)
 static void
 codec_library_audio_clear (codec_library_t* library)
 {
+    DEBUG("CodecLibrary: Clear codec library");
+
     if(!library) {
         ERROR("CodecLibrary: No valid library (%s:%d)", __FILE__, __LINE__);
         return;
@@ -177,13 +188,9 @@ codec_library_audio_clear (codec_library_t* library)
     g_mutex_lock (library->audio_codec_list_mutex);
     {
         g_queue_free (library->audio_codec_list);
-    }
-    g_mutex_unlock (library->audio_codec_list_mutex);
 
-    library->audio_codec_list = NULL;
+        library->audio_codec_list = NULL;
 
-    g_mutex_lock (library->audio_codec_list_mutex);
-    {
         library->audio_codec_list = g_queue_new ();
     }
     g_mutex_unlock (library->audio_codec_list_mutex);
@@ -213,14 +220,11 @@ codec_library_video_clear (codec_library_t* library)
     g_mutex_lock (library->video_codec_list_mutex);
     {
         g_queue_free (library->video_codec_list);
-    }
-    g_mutex_unlock (library->video_codec_list_mutex);
 
-    library->video_codec_list = NULL;
+        library->video_codec_list = NULL;
 
-    g_mutex_lock (library->video_codec_list_mutex);
-    {
         library->video_codec_list = g_queue_new ();
+
     }
     g_mutex_unlock (library->video_codec_list_mutex);
 }
@@ -229,6 +233,7 @@ static codec_t*
 codec_library_get_audio_codec_by_identifier (codec_library_t* library,
         gconstpointer identifier)
 {
+
     GList* codec;
     g_mutex_lock (library->audio_codec_list_mutex);
     {
@@ -312,6 +317,8 @@ swap_link_up (GList* codec)
 codec_library_t*
 codec_library_get_system_codecs ()
 {
+    DEBUG("CodecLibrary: Get system codecs");
+
     if (system_library == NULL) {
         system_library = codec_library_new ();
         codec_library_load_available_codecs (system_library);
@@ -342,6 +349,8 @@ codec_library_new ()
 void
 codec_library_free (codec_library_t* library)
 {
+    DEBUG("CodecLibrary: Codec library free");
+
     codec_library_free_audio_codecs (library);
     codec_library_free_video_codecs (library);
     g_free (library);
@@ -463,11 +472,8 @@ codec_library_get_codec_by_identifier (codec_library_t* library,
 {
     codec_t* codec;
 
-    if ( (codec
-            = codec_library_get_audio_codec_by_identifier (library, identifier))
-            == NULL) {
-        if ( (codec = codec_library_get_video_codec_by_identifier (library,
-                      identifier)) == NULL) {
+    if ( (codec = codec_library_get_audio_codec_by_identifier (library, identifier)) == NULL) {
+        if ( (codec = codec_library_get_video_codec_by_identifier (library, identifier)) == NULL) {
             return NULL;
         }
     }
@@ -579,6 +585,8 @@ codec_copy (codec_t* src)
 codec_library_t*
 codec_library_copy (codec_library_t* library)
 {
+    DEBUG("CodecLibrary: Codec library copy");
+
     codec_library_t* lib = codec_library_new ();
 
     g_queue_foreach (library->audio_codec_list, copy_codec_in_library, lib);
