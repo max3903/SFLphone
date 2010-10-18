@@ -81,6 +81,8 @@ account_list_clean ()
 void
 account_list_add (account_t * c)
 {
+    DEBUG("AccountList: Add account %s", c->accountID);
+
     g_queue_push_tail (accountQueue, (gpointer *) c);
 }
 
@@ -223,6 +225,19 @@ account_state_name (account_state_t s)
 void
 account_list_clear ()
 {
+    DEBUG ("AccountList: clear account list");
+
+    guint nbAccount = g_queue_get_length(accountQueue);
+
+    guint i;
+    gpointer acc;
+    for(i = 0; i < nbAccount; i++) {
+        acc = g_queue_peek_nth(accountQueue, i);
+        if(acc)
+            account_free((account_t *)acc);
+        acc = NULL;
+    }
+
     g_queue_free (accountQueue);
     accountQueue = g_queue_new ();
 }
@@ -230,7 +245,7 @@ account_list_clear ()
 void
 account_list_move_up (guint index)
 {
-    DEBUG ("AccountList: index  = %i\n", index);
+    DEBUG ("AccountList: index  = %i", index);
 
     if (index != 0) {
         gpointer acc = g_queue_pop_nth (accountQueue, index);

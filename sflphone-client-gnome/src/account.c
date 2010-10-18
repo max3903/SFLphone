@@ -82,6 +82,9 @@ video_settings_new ()
 void
 video_settings_free (video_settings_t* settings)
 {
+
+    DEBUG("Account: Free video settings");
+
     g_mutex_lock (settings->mutex);
     {
         g_free (settings->device);
@@ -279,6 +282,8 @@ video_settings_get_always_offer_video (video_settings_t* settings)
 account_t*
 account_new (gchar* accountID)
 {
+    DEBUG("Account: create new account %s", accountID);
+
     account_t* ret = g_new0 (account_t,1);
     ret->accountID = g_strdup (accountID);
     ret->protocol_state_description = NULL;
@@ -293,6 +298,8 @@ account_new (gchar* accountID)
 gboolean
 account_init (account_t* account)
 {
+    DEBUG("Account: Init account %s", account->accountID);
+
     // Set account details
     GHashTable * details = (GHashTable *) dbus_account_details (
                                account->accountID);
@@ -368,6 +375,8 @@ account_init (account_t* account)
 void
 account_free (account_t* account)
 {
+    DEBUG("Account: Free account %s", account->accountID);
+
     g_free (account->accountID);
     video_settings_free (account->video_settings);
     codec_library_free (account->codecs);

@@ -1577,17 +1577,16 @@ void show_account_window (account_t * a)
         }
     }
 
+    video_conf_account_save (video_tab);
+
+    codec_list_save (SFL_CODEC_LIST (audio_codec_list));
+
     /** @todo Verify if it's the best condition to check */
     if (g_strcasecmp (currentAccount->accountID, "new") == 0) {
         dbus_add_account (currentAccount);
     } else {
         dbus_set_account_details (currentAccount);
     }
-
-    video_conf_account_save (video_tab);
-
-    codec_list_save (SFL_CODEC_LIST (audio_codec_list));
-
 
     gtk_widget_destroy (GTK_WIDGET (dialog));
 }

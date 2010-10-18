@@ -223,21 +223,19 @@ void sflphone_fill_account_list (void)
   account_list_clear ();
 
   gchar** array = (gchar **) dbus_account_list ();
-  if (array)
-    {
+  if (array) {
+
       gchar** accountID;
-      for (accountID = array; *accountID; accountID++)
-        {
+      for (accountID = array; *accountID; accountID++) {
+
           account_t* account = account_new(*accountID);
 
           account_list_add(account);
 
           account_init (account);
-
-          DEBUG("Account %s added.", account->accountID);
-        }
+      }
       g_strfreev (array);
-    }
+  }
 
   // Set the current account message number
   int count = current_account_get_message_number();

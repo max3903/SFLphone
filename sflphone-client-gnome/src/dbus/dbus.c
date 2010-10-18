@@ -387,9 +387,10 @@ conference_removed_cb (DBusGProxy *proxy UNUSED, const gchar* confID, void * foo
 static void
 accounts_changed_cb (DBusGProxy *proxy UNUSED, void * foo  UNUSED)
 {
-    DEBUG ("Accounts changed");
+    DEBUG ("Dbus: Accounts changed");
+
     sflphone_fill_account_list();
-    sflphone_fill_ip2ip_profile();
+    // sflphone_fill_ip2ip_profile();
     account_list_config_dialog_fill();
 
     // Update the status bar in case something happened
@@ -403,7 +404,7 @@ accounts_changed_cb (DBusGProxy *proxy UNUSED, void * foo  UNUSED)
 static void
 transfer_succeded_cb (DBusGProxy *proxy UNUSED, void * foo  UNUSED)
 {
-    DEBUG ("Transfer succeded\n");
+    DEBUG ("Dbus: Transfer succeded");
     sflphone_display_transfer_status ("Transfer successfull");
 }
 
@@ -1010,7 +1011,7 @@ dbus_account_list ()
         g_error_free (error);
         return NULL;
     } else {
-        DEBUG ("DBus called get_account_list() on ConfigurationManager");
+        DEBUG ("DBus: Get account list");
         return array;
     }
 }
@@ -1128,6 +1129,8 @@ dbus_get_ip2_ip_details (void)
     GError *error = NULL;
     GHashTable * details;
 
+    DEBUG("Dbus: Get IP2IP details");
+
     if (!org_sflphone_SFLphone_ConfigurationManager_get_ip2_ip_details (
                 configurationManagerProxy, &details, &error)) {
         if (error->domain == DBUS_GERROR && error->code
@@ -1189,6 +1192,8 @@ dbus_remove_account (gchar * accountID)
 void
 dbus_set_account_details (account_t *a)
 {
+    DEBUG("Dbus: Set account details");
+
     GError *error = NULL;
     org_sflphone_SFLphone_ConfigurationManager_set_account_details (
         configurationManagerProxy, a->accountID, a->properties, &error);
@@ -1202,6 +1207,8 @@ dbus_set_account_details (account_t *a)
 gchar*
 dbus_add_account (account_t *a)
 {
+    DEBUG("Dbus: Add account");
+
     gchar* accountId;
     GError *error = NULL;
     org_sflphone_SFLphone_ConfigurationManager_add_account (
