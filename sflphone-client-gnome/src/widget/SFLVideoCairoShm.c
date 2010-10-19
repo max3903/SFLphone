@@ -75,6 +75,9 @@ enum {
 
 static guint sfl_video_cairo_shm_signals[LAST_SIGNAL] = { 0 };
 
+// TODO find a better way to return error on format
+#define SFL_CAIRO_FORMAT_ERROR 10
+
 static cairo_format_t
 fourcc_to_video_cairo (uint32_t fourcc)
 {
@@ -89,7 +92,7 @@ fourcc_to_video_cairo (uint32_t fourcc)
             break;
     }
 
-    return -1;
+    return SFL_CAIRO_FORMAT_ERROR;
 }
 
 int
@@ -102,7 +105,7 @@ sfl_video_cairo_shm_take_snapshot (SFLVideoCairoShm* self, gchar* filename)
     // Create surface
     cairo_format_t format = fourcc_to_video_cairo (priv->fourcc);
 
-    if (format == -1) {
+    if (format == SFL_CAIRO_FORMAT_ERROR) {
         ERROR ("CairoSharedMemory: A valid cairo format cannot be found for FOURCC value %d", priv->fourcc);
         return -1;
     }
@@ -404,7 +407,7 @@ sfl_video_cairo_shm_start (SFLVideoCairoShm *self)
 
     cairo_format_t format = fourcc_to_video_cairo (priv->fourcc);
 
-    if (format == -1) {
+    if (format == SFL_CAIRO_FORMAT_ERROR) {
         ERROR ("CairoSharedMemory: A valid cairo format cannot be found for FOURCC value %d", priv->fourcc);
         return -1;
     }
