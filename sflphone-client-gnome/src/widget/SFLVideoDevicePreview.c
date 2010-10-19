@@ -66,7 +66,7 @@ reallocate_buffer (SFLVideoDevicePreview* self)
 {
     SFLVideoDevicePreviewPrivate* priv = SFL_VIDEO_DEVICE_PREVIEW_GET_PRIVATE ( (SFLVideoDevicePreview*) self);
 
-    DEBUG ("Reallocating buffers");
+    DEBUG ("VideoCairo: Reallocating buffers");
 
     free (priv->image_data);
 
@@ -89,7 +89,7 @@ sfl_video_device_preview_set_property (GObject *object, guint property_id,
     SFLVideoDevicePreview *self = SFL_VIDEO_DEVICE_PREVIEW (object);
     SFLVideoDevicePreviewPrivate *priv = SFL_VIDEO_DEVICE_PREVIEW_GET_PRIVATE (self);
 
-    DEBUG ("Setting property.");
+    DEBUG ("VideoCairo: Setting property.");
 
     switch (property_id) {
         case PROP_SOURCE:
@@ -152,28 +152,28 @@ sfl_video_device_preview_get_property (GObject *object, guint property_id, GValu
 void
 sfl_video_device_preview_set_source (SFLVideoDevicePreview* sfl_video_device_preview, gchar* source)
 {
-    DEBUG ("Setting source (%s)", source);
+    DEBUG ("VideoCairo: Setting source (%s)", source);
     g_object_set (G_OBJECT (sfl_video_device_preview), "source", source, NULL);
 }
 
 void
 sfl_video_device_preview_set_capture_width (SFLVideoDevicePreview* sfl_video_device_preview, gint width)
 {
-    DEBUG ("Setting width (%d)", width);
+    DEBUG ("VideoCairo: Setting width (%d)", width);
     g_object_set (G_OBJECT (sfl_video_device_preview), "width", width, NULL);
 }
 
 void
 sfl_video_device_preview_set_capture_height (SFLVideoDevicePreview* sfl_video_device_preview, gint height)
 {
-    DEBUG ("Setting height (%d)", height);
+    DEBUG ("VideoCairo: Setting height (%d)", height);
     g_object_set (G_OBJECT (sfl_video_device_preview), "height", height, NULL);
 }
 
 void
 sfl_video_device_preview_set_capture_framerate (SFLVideoDevicePreview* sfl_video_device_preview, gchar* fps)
 {
-    DEBUG ("Setting frame rate (%s)", fps);
+    DEBUG ("VideoCairo: Setting frame rate (%s)", fps);
     g_object_set (G_OBJECT (sfl_video_device_preview), "fps", fps, NULL);
 }
 
@@ -210,13 +210,13 @@ cairo_dump_buffer (guchar* pucPixelBuffer, /* pointer to image-data */
     status = cairo_surface_status (pSurface);
 
     if (status != CAIRO_STATUS_SUCCESS) {
-        ERROR ("While creating cairo surface for dumping image to png : (%s)", cairo_status_to_string (status));
+        ERROR ("VideoCairo: While creating cairo surface for dumping image to png : (%s)", cairo_status_to_string (status));
         return;
     }
 
     gchar* filename =
         g_strconcat ("buffer-dump-", get_timestamp (), ".png", NULL);
-    DEBUG ("Writing filename : %s", filename);
+    DEBUG ("VideoCairo: Writing filename : %s", filename);
     cairo_surface_write_to_png (pSurface, filename);
     g_free (filename);
 
@@ -261,7 +261,7 @@ static void
 sfl_video_device_preview_init (SFLVideoDevicePreview *self)
 {
     SFLVideoDevicePreviewPrivate *priv = SFL_VIDEO_DEVICE_PREVIEW_GET_PRIVATE (self);
-    DEBUG ("Initializing cairo");
+    DEBUG ("VideoCairo: Initializing cairo");
 
     priv->endpt = sflphone_video_init ();
 
@@ -376,7 +376,7 @@ sfl_video_device_preview_get_type (void)
 SFLVideoDevicePreview *
 sfl_video_device_preview_new_with_source (const gchar *source)
 {
-    DEBUG ("Creating new SFLVideoDevicePreview.");
+    DEBUG ("VideoCairo: Creating new SFLVideoDevicePreview.");
     return g_object_new (SFL_TYPE_VIDEO_DEVICE_PREVIEW, "source", source, "width",
                          DEFAULT_NO_DEVICE_WIDTH, "height", DEFAULT_NO_DEVICE_HEIGHT, "fps",
                          DEFAULT_FPS, NULL);
@@ -391,26 +391,26 @@ sfl_video_device_preview_new ()
 int
 sfl_video_device_preview_start (SFLVideoDevicePreview* self)
 {
-    DEBUG ("Starting video cairo capture");
+    DEBUG ("VideoCairo: Starting video cairo capture");
 
     SFLVideoDevicePreviewPrivate* priv = SFL_VIDEO_DEVICE_PREVIEW_GET_PRIVATE (self);
 
     if (sflphone_video_add_observer (priv->endpt, &on_new_frame_cb, self) < 0) {
-        ERROR ("Failed to register as an observer and start video %s:%d", __FILE__, __LINE__);
+        ERROR ("VideoCairo: Failed to register as an observer and start video %s:%d", __FILE__, __LINE__);
         return -1;
     }
 
     if (sflphone_video_open_device (priv->endpt) < 0) {
-        ERROR ("Failed to open and start video %s:%d", __FILE__, __LINE__);
+        ERROR ("VideoCairo: Failed to open and start video %s:%d", __FILE__, __LINE__);
         return -1;
     }
 
     if (sflphone_video_start_async (priv->endpt) < 0) {
-        ERROR ("Failed to start video %s:%d", __FILE__, __LINE__);
+        ERROR ("VideoCairo: Failed to start video %s:%d", __FILE__, __LINE__);
         return -1;
     }
 
-    DEBUG ("Registered as an observer");
+    DEBUG ("VideoCairo: Registered as an observer");
 
     priv->capturing = TRUE;
 }

@@ -49,7 +49,7 @@ sflphone_video_init_with_device (gchar * device)
                                            sizeof (sflphone_video_endpoint_t));
 
     if (endpt == NULL) {
-        ERROR ("Failed to created video endpoint");
+        ERROR ("VideoEndpoint: Failed to created video endpoint");
     }
 
     endpt->device = g_strdup (device);
@@ -107,7 +107,7 @@ sflphone_video_open (sflphone_video_endpoint_t* endpt, gchar* shm)
 
     if (sflphone_shm_ensure_non_zero (endpt->shm_frame, MAX_WAIT_SHM_NON_ZERO)
             < 0) {
-        ERROR ("After %d micro seconds, shm segment failed to become non zero", MAX_WAIT_SHM_NON_ZERO);
+        ERROR ("VideoEndpoint: After %d micro seconds, shm segment failed to become non zero", MAX_WAIT_SHM_NON_ZERO);
         return -1;
     }
 
@@ -126,7 +126,7 @@ sflphone_video_open (sflphone_video_endpoint_t* endpt, gchar* shm)
 int
 sflphone_video_open_device (sflphone_video_endpoint_t* endpt)
 {
-    DEBUG ("Sending over dbus start() %s %d %d %s", endpt->device, endpt->width, endpt->height, endpt->fps);
+    DEBUG ("VideoEndpoint: Sending over dbus start() %s %d %d %s", endpt->device, endpt->width, endpt->height, endpt->fps);
 
     // Instruct the daemon to start video capture, if it's not already doing so.
     video_key_t* key;
@@ -134,6 +134,7 @@ sflphone_video_open_device (sflphone_video_endpoint_t* endpt)
                                           endpt->height, endpt->fps); // FIXME Check return value
 
     if (key == NULL) {
+        ERROR("VideoEndpoint: Error: Returned key from dbus is NULL (%s:%d)", __FILE__, __LINE__);
         return -1;
     }
 
@@ -142,7 +143,7 @@ sflphone_video_open_device (sflphone_video_endpoint_t* endpt)
 
     if (sflphone_shm_ensure_non_zero (endpt->shm_frame, MAX_WAIT_SHM_NON_ZERO)
             < 0) {
-        ERROR ("After %d micro seconds, shm segment failed to become non zero", MAX_WAIT_SHM_NON_ZERO);
+        ERROR ("VideoEndpoint: After %d micro seconds, shm segment failed to become non zero", MAX_WAIT_SHM_NON_ZERO);
         return -1;
     }
 
@@ -153,6 +154,7 @@ sflphone_video_open_device (sflphone_video_endpoint_t* endpt)
     endpt->event_listener = sflphone_eventfd_init (key->shm);
 
     if (endpt->event_listener == NULL) {
+        ERROR("VideoEndpoint: Error: Could not initialize event listener (%s:%d)". __FILE__, __LINE__);
         return -1;
     }
 
@@ -273,7 +275,7 @@ capturing_thread (void* params)
         pthread_testcancel ();
     }
 
-    DEBUG ("Exiting capturing thread");
+    DEBUG ("VideoEndpoint: Exiting capturing thread");
 }
 
 int
@@ -281,10 +283,14 @@ sflphone_video_start_async (sflphone_video_endpoint_t* endpt)
 {
     int rc = pthread_create (&endpt->thread, NULL, &capturing_thread,
                              (void*) endpt);
+
+    return rc;
 }
 
 int
 sflphone_video_stop_async (sflphone_video_endpoint_t* endpt)
 {
-    pthread_cancel (endpt->thread);
+    int rc = pthread_cancel (endpt->thread);
+
+    return rc;
 }

@@ -24,7 +24,7 @@ sflphone_shm_new_with_path (char* location)
     sflphone_shm_t* shm = (sflphone_shm_t*) malloc (sizeof (sflphone_shm_t));
 
     if (shm == NULL) {
-        ERROR ("Failed to create new sflphone shm type:  (%s)", strerror (errno));
+        ERROR ("SharedMemory: Failed to create new sflphone shm type:  (%s)", strerror (errno));
         return NULL;
     }
 
@@ -63,7 +63,7 @@ sflphone_shm_ensure_non_zero (sflphone_shm_t* shm, useconds_t max_wait)
         int rc = errno;
 
         if (errno != ENOENT) {
-            ERROR ("cannot open shm segment (%s)", strerror (errno));
+            ERROR ("SharedMemory: Cannot open shm segment (%s)", strerror (errno));
         }
 
         close (shm_fd);
@@ -76,7 +76,7 @@ sflphone_shm_ensure_non_zero (sflphone_shm_t* shm, useconds_t max_wait)
     struct stat buffer;
 
     if (fstat (shm_fd, &buffer) < 0) {
-        ERROR ("Cannot get size: (%s)", strerror (errno));
+        ERROR ("SharedMemory: Cannot get size: (%s)", strerror (errno));
     }
 
     while ( (buffer.st_size == 0) && (time + WAIT_SHM_TIME_INCREMENT) < max_wait) {
@@ -84,14 +84,14 @@ sflphone_shm_ensure_non_zero (sflphone_shm_t* shm, useconds_t max_wait)
         time += WAIT_SHM_TIME_INCREMENT;
 
         if (fstat (shm_fd, &buffer) < 0) {
-            ERROR ("Cannot get size: (%s)", strerror (errno));
+            ERROR ("SharedMemory: Cannot get size: (%s)", strerror (errno));
             return -1;
         }
     }
 
     // Close
     if (close (shm_fd) < 0) {
-        ERROR ("cannot close shm fd : (%s)", strerror (errno));
+        ERROR ("SharedMemory: cannot close shm fd : (%s)", strerror (errno));
         return -1;
     }
 
@@ -108,7 +108,7 @@ sflphone_shm_get_file_size (sflphone_shm_t* shm)
     struct stat buffer;
 
     if (fstat (shm->fd, &buffer) < 0) {
-        ERROR ("Cannot get size: (%s)", strerror (errno));
+        ERROR ("SharedMemory: Cannot get size: (%s)", strerror (errno));
     }
 
     DEBUG ("shm (%s) is %d bytes long.", shm->path, buffer.st_size);
@@ -128,7 +128,7 @@ sflphone_shm_get_size (sflphone_shm_t* shm)
 static int
 attach (sflphone_shm_t* shm)
 {
-    DEBUG ("Attaching in read only mode to segment %s for %d bytes", shm->path, shm->size);
+    DEBUG ("SharedMemory: Attaching in read only mode to segment %s for %d bytes", shm->path, shm->size);
 
     if ( (shm->addr = mmap (NULL, shm->size, PROT_READ, MAP_SHARED, shm->fd,
                             (off_t) 0)) == MAP_FAILED) {
@@ -146,7 +146,7 @@ static int
 release (sflphone_shm_t* shm)
 {
     if (munmap (shm->addr, shm->size) < 0) {
-        ERROR ("cannot release shm segment: %s", strerror (errno));
+        ERROR ("SharedMemory: cannot release shm segment: %s", strerror (errno));
     }
 
     shm->addr = NULL;
@@ -158,7 +158,7 @@ release (sflphone_shm_t* shm)
 int
 sflphone_shm_open (sflphone_shm_t* shm)
 {
-    DEBUG ("Opening shared memory segment (%s)", shm->path);
+    DEBUG ("SharedMemory: Opening shared memory segment (%s)", shm->path);
 
     // Open
     int shm_fd;
@@ -167,7 +167,7 @@ sflphone_shm_open (sflphone_shm_t* shm)
         int rc = errno;
 
         if (errno != ENOENT) {
-            ERROR ("cannot open existing shm segment (%s)", strerror (errno));
+            ERROR ("SharedMemory: cannot open existing shm segment (%s)", strerror (errno));
         }
 
         close (shm_fd);
@@ -177,10 +177,10 @@ sflphone_shm_open (sflphone_shm_t* shm)
     // Attach
     shm->fd = shm_fd;
     shm->size = sflphone_shm_get_file_size (shm);
-    DEBUG ("In sflphone_shm_open, file size is %d", shm->size);
+    DEBUG ("SharedMemory: In sflphone_shm_open, file size is %d", shm->size);
 
     if (attach (shm) < 0) {
-        ERROR ("attach() failed in sflphone_shm_open");
+        ERROR ("SharedMemory: attach() failed in sflphone_shm_open");
         return -1;
     }
 
@@ -191,7 +191,7 @@ int
 sflphone_shm_close (sflphone_shm_t* shm)
 {
     if (close (shm->fd) < 0) {
-        ERROR ("cannot close shm fd : (%s)", strerror (errno));
+        ERROR ("SharedMemory: cannot close shm fd : (%s)", strerror (errno));
     }
 
     shm->fd = 0;

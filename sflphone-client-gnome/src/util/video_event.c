@@ -38,7 +38,7 @@ receive_eventfd (const char* namespace)
 
     if (connect (client_socket, (struct sockaddr *) &server_address,
                  sizeof (server_address.sun_family) + strlen (socket_path) + 1) < 0) {
-        ERROR ("Failed to connect to the file descriptor passer on \"%s\" because \"%s\"", socket_path, strerror (errno));
+        ERROR ("VideoEndpoint: Failed to connect to the file descriptor passer on \"%s\" because \"%s\"", socket_path, strerror (errno));
         free (socket_path);
         return -1;
     }
@@ -67,11 +67,11 @@ receive_eventfd (const char* namespace)
     msg.msg_iovlen = 1;
 
     if (recvmsg (client_socket, &msg, 0) == -1) {
-        ERROR ("recvmsg() : %s:%d %s", __FILE__, __LINE__, strerror (errno));
+        ERROR ("VideoEndpoint: recvmsg() : %s:%d %s", __FILE__, __LINE__, strerror (errno));
     }
 
     if ( (msg.msg_flags & MSG_TRUNC) || (msg.msg_flags & MSG_CTRUNC)) {
-        ERROR ("Control message truncated : %s:%d", __FILE__, __LINE__);
+        ERROR ("VideoEndpoint: Control message truncated : %s:%d", __FILE__, __LINE__);
     }
 
     int fd;
@@ -94,7 +94,7 @@ sflphone_eventfd_init (const char* shm)
     char* fd_passer = dbus_video_get_fd_passer_namespace (shm);
 
     if (fd_passer == NULL) {
-        ERROR ("Could not retreive namespace from dbus");
+        ERROR ("VideoEndpoint: Could not retreive namespace from dbus (%s:%d)", __FILE__, __LINE__);
         return NULL;
     }
 
@@ -102,14 +102,14 @@ sflphone_eventfd_init (const char* shm)
                                                sizeof (sflphone_event_listener_t));
 
     if (listener == NULL) {
-        ERROR ("An error occured while receiving the FD %s:%d", __FILE__, __LINE__);
+        ERROR ("VideoEndpoint: An error occured while receiving the FD %s:%d", __FILE__, __LINE__);
         return NULL;
     }
 
     listener->fd = receive_eventfd (fd_passer);
 
     if (listener->fd < 0) {
-        ERROR ("An error occured while receiving the FD %s:%d", __FILE__, __LINE__);
+        ERROR ("VideoEndpoint: An error occured while receiving the FD %s:%d", __FILE__, __LINE__);
         sflphone_eventfd_free (listener);
         return NULL;
     }
