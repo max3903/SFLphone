@@ -413,12 +413,14 @@ sfl_video_device_preview_start (SFLVideoDevicePreview* self)
     DEBUG ("VideoCairo: Registered as an observer");
 
     priv->capturing = TRUE;
+
+    return 0;
 }
 
 int
 sfl_video_device_preview_stop (SFLVideoDevicePreview* self)
 {
-    DEBUG ("Stopping video cairo capture");
+    DEBUG ("VideoCairo: Stopping video cairo capture");
 
     SFLVideoDevicePreviewPrivate* priv = SFL_VIDEO_DEVICE_PREVIEW_GET_PRIVATE (self);
 
@@ -428,6 +430,8 @@ sfl_video_device_preview_stop (SFLVideoDevicePreview* self)
     sflphone_video_close_device (priv->endpt);
 
     priv->capturing = FALSE;
+
+    return 0;
 }
 
 gboolean

@@ -72,29 +72,31 @@ sflphone_video_free (sflphone_video_endpoint_t* endpt)
     g_slist_free (endpt->observers);
     g_free (endpt->device);
     g_free (endpt->source_token);
+
+    return 0;
 }
 
-int
+void
 sflphone_video_set_device (sflphone_video_endpoint_t * endpt, gchar * device)
 {
     g_free (endpt->device);
     endpt->device = g_strdup (device);
 }
 
-int
+void
 sflphone_video_set_framerate (sflphone_video_endpoint_t* endpt, gchar* fps)
 {
     g_free (endpt->fps);
     endpt->fps = g_strdup (fps);
 }
 
-int
+void
 sflphone_video_set_height (sflphone_video_endpoint_t* endpt, gint height)
 {
     endpt->height = height;
 }
 
-int
+void
 sflphone_video_set_width (sflphone_video_endpoint_t* endpt, gint width)
 {
     endpt->width = width;
@@ -121,6 +123,8 @@ sflphone_video_open (sflphone_video_endpoint_t* endpt, gchar* shm)
     if (endpt->event_listener == NULL) {
         return -1;
     }
+
+    return 0;
 }
 
 int
@@ -154,7 +158,7 @@ sflphone_video_open_device (sflphone_video_endpoint_t* endpt)
     endpt->event_listener = sflphone_eventfd_init (key->shm);
 
     if (endpt->event_listener == NULL) {
-        ERROR("VideoEndpoint: Error: Could not initialize event listener (%s:%d)". __FILE__, __LINE__);
+        ERROR("VideoEndpoint: Error: Could not initialize event listener (%s:%d)", __FILE__, __LINE__);
         return -1;
     }
 
@@ -163,6 +167,8 @@ sflphone_video_open_device (sflphone_video_endpoint_t* endpt)
     g_free (key->token);
     g_free (key->shm);
     free (key);
+
+     return 0;
 }
 
 int
@@ -173,6 +179,8 @@ sflphone_video_close (sflphone_video_endpoint_t* endpt)
     sflphone_shm_close (endpt->shm_frame);
 
     free (endpt->frame);
+
+    return 0;
 }
 
 int
@@ -186,6 +194,8 @@ sflphone_video_close_device (sflphone_video_endpoint_t* endpt)
 
     DEBUG ("Sending video stop()");
     dbus_video_stop_local_capture (endpt->device, endpt->source_token);
+
+    return 0;
 }
 
 int
@@ -203,6 +213,8 @@ sflphone_video_add_observer (sflphone_video_endpoint_t* endpt,
 
     endpt->observers = g_slist_append (endpt->observers,
                                        (gpointer) observer_context);
+
+    return 0;
 }
 
 int
@@ -237,7 +249,7 @@ notify_observer (gpointer obs, gpointer frame)
     frame_cb ( (uint8_t*) frame, data);
 }
 
-static
+static void
 notify_all_observers (sflphone_video_endpoint_t* endpt, uint8_t* frame)
 {
     // DEBUG("Notifying all %d observers", g_slist_length(endpt->observers));
@@ -250,7 +262,7 @@ notify_all_observers (sflphone_video_endpoint_t* endpt, uint8_t* frame)
 
 }
 
-static void*
+static void
 capturing_thread (void* params)
 {
     sflphone_video_endpoint_t* endpt = (sflphone_video_endpoint_t*) params;
@@ -281,7 +293,7 @@ capturing_thread (void* params)
 int
 sflphone_video_start_async (sflphone_video_endpoint_t* endpt)
 {
-    int rc = pthread_create (&endpt->thread, NULL, &capturing_thread,
+    int rc = pthread_create (&endpt->thread, NULL, (void *)(&capturing_thread),
                              (void*) endpt);
 
     return rc;

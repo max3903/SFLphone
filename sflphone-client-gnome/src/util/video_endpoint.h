@@ -66,25 +66,25 @@ sflphone_video_endpoint_t* sflphone_video_init_with_device (gchar* device);
  * @param endpt An existing sflphone_video_endpoint type of object.
  * @param device The name of the device.
  */
-int sflphone_video_set_device (sflphone_video_endpoint_t* endpt, gchar* device);
+void sflphone_video_set_device (sflphone_video_endpoint_t* endpt, gchar* device);
 
 /**
  * @param endpt An existing sflphone_video_endpoint type of object.
  * @param fps The framerate of the form "num/denom".
  */
-int sflphone_video_set_framerate (sflphone_video_endpoint_t* endpt, gchar* fps);
+void sflphone_video_set_framerate (sflphone_video_endpoint_t* endpt, gchar* fps);
 
 /**
  * @param endpt An existing sflphone_video_endpoint type of object.
  * @param height The desired and supported height.
  */
-int sflphone_video_set_height (sflphone_video_endpoint_t* endpt, gint height);
+void sflphone_video_set_height (sflphone_video_endpoint_t* endpt, gint height);
 
 /**
  * @param endpt An existing sflphone_video_endpoint type of object.
  * @param width The desired and supported width.
  */
-int sflphone_video_set_width (sflphone_video_endpoint_t* endpt, gint width);
+void sflphone_video_set_width (sflphone_video_endpoint_t* endpt, gint width);
 
 /**
  * @param endpt An existing sflphone_video_endpoint type of object.

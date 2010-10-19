@@ -82,10 +82,10 @@ fourcc_to_video_cairo (uint32_t fourcc)
         case FOURCC ('R', 'G', 'B', 'A') :
             return CAIRO_FORMAT_ARGB32;
         case FOURCC ('R','G','B','x') :
-            DEBUG ("USING RGB24");
+            DEBUG ("CairoSharedMemory: USING RGB24");
             return CAIRO_FORMAT_RGB24;
         default:
-            ERROR ("No cairo format for fourcc value %d", fourcc);
+            ERROR ("CairoSharedMemory: No cairo format for fourcc value %d", fourcc);
             break;
     }
 
@@ -103,12 +103,12 @@ sfl_video_cairo_shm_take_snapshot (SFLVideoCairoShm* self, gchar* filename)
     cairo_format_t format = fourcc_to_video_cairo (priv->fourcc);
 
     if (format == -1) {
-        ERROR ("A valid cairo format cannot be found for FOURCC value %d", priv->fourcc);
+        ERROR ("CairoSharedMemory: A valid cairo format cannot be found for FOURCC value %d", priv->fourcc);
         return -1;
     }
 
     priv->image_stride = cairo_format_stride_for_width (format, priv->width);
-    DEBUG ("Row stride : %d", priv->image_stride);
+    DEBUG ("CairoSharedMemory: Row stride : %d", priv->image_stride);
 
     // Create the cairo surface for data
     g_mutex_lock (priv->image_data_mutex);
@@ -119,9 +119,9 @@ sfl_video_cairo_shm_take_snapshot (SFLVideoCairoShm* self, gchar* filename)
     cairo_status_t status = cairo_surface_status (surface);
 
     if (status != CAIRO_STATUS_SUCCESS) {
-        ERROR ("While creating cairo surface for dumping image to png : (%s)", cairo_status_to_string (status));
+        ERROR ("CairoSharedMemory: While creating cairo surface for dumping image to png : (%s)", cairo_status_to_string (status));
         g_mutex_unlock (priv->image_data_mutex);
-        return;
+        return -1;
     }
 
     cairo_surface_write_to_png (surface, filename);
@@ -129,6 +129,8 @@ sfl_video_cairo_shm_take_snapshot (SFLVideoCairoShm* self, gchar* filename)
     cairo_surface_destroy (surface);
 
     g_mutex_unlock (priv->image_data_mutex);
+
+    return 0;
 
 }
 
@@ -140,10 +142,10 @@ premultiply_alpha (SFLVideoCairoShm* self, uint8_t* destination,
 
     unsigned short alpha;
 
-    int y;
+    unsigned int y;
 
     for (y = 0; y < priv->height; y++) {
-        int x;
+        unsigned int x;
 
         for (x = 0; x < priv->width; x++) {
 #if G_BYTE_ORDER == G_LITTLE_ENDIAN
@@ -198,7 +200,7 @@ sfl_video_cairo_shm_set_property (GObject *object, guint property_id,
     switch (property_id) {
         case PROP_SHM_PATH:
             priv->shm = g_value_dup_string (value);
-            DEBUG ("Setting property shm path to %s", priv->shm);
+            DEBUG ("CairoSharedMemory: Setting property shm path to %s", priv->shm);
             break;
         default:
             G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);
@@ -233,7 +235,7 @@ sfl_video_cairo_shm_finalize (GObject *object)
 
     G_OBJECT_CLASS (sfl_video_cairo_shm_parent_class)->finalize (object);
 
-    DEBUG ("SFLVideoCairoShm widget finalized.");
+    DEBUG ("CairoSharedMemory: SFLVideoCairoShm widget finalized.");
 
 }
 
@@ -274,7 +276,7 @@ scale_surface (cairo_surface_t* old_surface, resolution_t old_resolution,
 }
 
 static gboolean
-sfl_video_cairo_shm_expose (GtkWidget* cairo_video, GdkEventExpose* event)
+sfl_video_cairo_shm_expose (GtkWidget* cairo_video, GdkEventExpose* event UNUSED)
 {
     SFLVideoCairoShmPrivate* priv = GET_PRIVATE (cairo_video);
 
@@ -328,7 +330,7 @@ sfl_video_cairo_shm_size_request (GtkWidget* widget,
     g_return_if_fail (widget != NULL);
     g_return_if_fail (SFL_IS_VIDEO_CAIRO_SHM (widget));
 
-    DEBUG ("Size request");
+    DEBUG ("CairoSharedMemory: Size request");
 
     requisition->width = 640;
     requisition->height = 480;
@@ -368,7 +370,7 @@ sfl_video_cairo_shm_init (SFLVideoCairoShm *self)
 {
     SFLVideoCairoShmPrivate *priv = GET_PRIVATE (self);
 
-    DEBUG ("Initializing video cairo shm widget ...");
+    DEBUG ("CairoSharedMemory: Initializing video cairo shm widget ...");
 
     // Create a new video endpoint for reading frames in the SHM
     priv->endpt = sflphone_video_init ();
@@ -384,14 +386,14 @@ sfl_video_cairo_shm_start (SFLVideoCairoShm *self)
     video_shm_info* info = dbus_get_video_shm_info (priv->shm);
 
     if (info == NULL) {
-        ERROR ("Failed to retrieve SHM info for segment %s", priv->shm);
-        return;
+        ERROR ("CairoSharedMemory: Failed to retrieve SHM info for segment %s", priv->shm);
+        return -1;
     }
 
     priv->width = info->width;
     priv->height = info->height;
     priv->fourcc = info->fourcc;
-    DEBUG ("Shared memory segment has format %d %d and color space %d", priv->width, priv->height, priv->fourcc);
+    DEBUG ("CairoSharedMemory: Shared memory segment has format %d %d and color space %d", priv->width, priv->height, priv->fourcc);
     g_free (info);
 
     // Allocate the cairo surface
@@ -403,12 +405,12 @@ sfl_video_cairo_shm_start (SFLVideoCairoShm *self)
     cairo_format_t format = fourcc_to_video_cairo (priv->fourcc);
 
     if (format == -1) {
-        ERROR ("A valid cairo format cannot be found for FOURCC value %d", priv->fourcc);
+        ERROR ("CairoSharedMemory: A valid cairo format cannot be found for FOURCC value %d", priv->fourcc);
         return -1;
     }
 
     priv->image_stride = cairo_format_stride_for_width (format, priv->width);
-    DEBUG ("Row stride : %d", priv->image_stride);
+    DEBUG ("CairoSharedMemory: Row stride : %d", priv->image_stride);
 
     // Create the cairo surface for data
     priv->surface = cairo_image_surface_create_for_data (priv->image_data,
@@ -419,28 +421,28 @@ sfl_video_cairo_shm_start (SFLVideoCairoShm *self)
 
     // Register as an observer
     if (sflphone_video_add_observer (priv->endpt, &on_new_frame_cb, self) < 0) {
-        ERROR ("Failed to register as an observer and start video %s:%d", __FILE__, __LINE__);
+        ERROR ("CairoSharedMemory: Failed to register as an observer and start video %s:%d", __FILE__, __LINE__);
         return -1;
     }
 
-    DEBUG ("Registered as an observer on \"%s\".", priv->shm);
+    DEBUG ("CairoSharedMemory: Registered as an observer on \"%s\".", priv->shm);
 
     // Open the video segment
     if (sflphone_video_open (priv->endpt, priv->shm) < 0) {
-        ERROR ("Failed to open and start video %s:%d", __FILE__, __LINE__);
+        ERROR ("CairoSharedMemory: Failed to open and start video %s:%d", __FILE__, __LINE__);
         return -1;
     }
 
     // Start capturing data
     if (sflphone_video_start_async (priv->endpt) < 0) {
-        ERROR ("Failed to start video %s:%d", __FILE__, __LINE__);
+        ERROR ("CairoSharedMemory: Failed to start video %s:%d", __FILE__, __LINE__);
         return -1;
     }
 
     // Emit the "playing" signal on the first frame received
     g_signal_emit (self, sfl_video_cairo_shm_signals[PLAYING], 0);
 
-    DEBUG ("Playing signal emitted");
+    DEBUG ("CairoSharedMemory: Playing signal emitted");
 
     return 0;
 }
@@ -452,13 +454,14 @@ sfl_video_cairo_shm_stop (SFLVideoCairoShm *self)
 
     // Stop the capturing thread
     if (sflphone_video_stop_async (priv->endpt) < 0) {
-        ERROR ("Failed to stop video %s:%d", __FILE__, __LINE__);
+        ERROR ("CairoSharedMemory: Failed to stop video %s:%d", __FILE__, __LINE__);
         return -1;
     }
 
     // Close the segment
-    if (sflphone_video_close < 0) {
-        ERROR ("Failed to close shared memory segment %s:%d", __FILE__, __LINE__);
+    if (sflphone_video_close (priv->endpt) < 0) {
+        ERROR ("CairoSharedMemory: Failed to close shared memory segment %s:%d", __FILE__, __LINE__);
+        return -1;
     }
 
     // Unregister as an observer
@@ -466,7 +469,8 @@ sfl_video_cairo_shm_stop (SFLVideoCairoShm *self)
 
     // Delete the endpoint
     if (sflphone_video_free (priv->endpt) < 0) {
-        ERROR ("Failed to dispose a video endpoint properly %s:%d", __FILE__, __LINE__);
+        ERROR ("CairoSharedMemory: Failed to dispose a video endpoint properly %s:%d", __FILE__, __LINE__);
+        return -1;
     }
 
     free (priv->endpt);
@@ -477,6 +481,8 @@ sfl_video_cairo_shm_stop (SFLVideoCairoShm *self)
 
     // Free the shm structure
     free (priv->shm);
+
+    return 0;
 }
 
 SFLVideoCairoShm*
