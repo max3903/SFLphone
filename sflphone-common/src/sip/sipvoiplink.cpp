@@ -980,6 +980,9 @@ SipVoipLink::hangup (const CallId& id)
         call->getAudioRtp()->stop();
     }
 
+    // Start the video session
+    DBusManager::instance().getVideoManager()->stopRtpSession(call);
+
     terminateOneCall (id);
 
     removeCall (id);
