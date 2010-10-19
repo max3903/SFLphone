@@ -3680,7 +3680,10 @@ void ManagerImpl::loadIptoipProfile()
 
     // build a default IP2IP account with default parameters
     _directIpAccount = AccountCreator::createAccount (AccountCreator::SIP_DIRECT_IP_ACCOUNT, "");
+
+    // IP2IP profile is refered in the map as "IP2IP" or "" account id string
     _accountMap[IP2IP_PROFILE] = _directIpAccount;
+    _accountMap[""] = _directIpAccount;
 
     if (_directIpAccount == NULL) {
         _error ("Manager: Failed to create default \"account\"");

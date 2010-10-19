@@ -3689,7 +3689,9 @@ mod_on_rx_request (pjsip_rx_data *rdata)
         }
     }
 
-    account = dynamic_cast<SIPAccount *> (Manager::instance().getAccount (account_id));
+    if(!(account = dynamic_cast<SIPAccount *> (Manager::instance().getAccount (account_id)))) {
+    	_error("UserAgent: Error: Did not found any account (%s:%d)", __FILE__, __LINE__);
+    }
 
     get_remote_sdp_from_offer (rdata, &remote_sdp);
 
