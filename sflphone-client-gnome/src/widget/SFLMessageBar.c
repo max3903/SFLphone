@@ -115,7 +115,7 @@ sfl_message_bar_init (SFLMessageBar *self)
 static void
 sfl_message_bar_class_init (SFLMessageBarClass *klass)
 {
-    GtkInfoBarClass* base_class = GTK_INFO_BAR_CLASS (klass);
+    // GtkInfoBarClass* base_class = GTK_INFO_BAR_CLASS (klass);
 
     g_type_class_add_private (klass, sizeof (SFLMessageBarPrivate));
 }

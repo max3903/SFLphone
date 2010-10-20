@@ -1330,7 +1330,7 @@ dbus_get_all_audio_codecs ()
 
     guint i;
     for (i = 0; i < audio_codecs->len; i++) {
-        GValue elem; // = {0};
+        GValue elem = {0};
         g_value_init (&elem, DBUS_AUDIO_CODEC_TYPE);
 
         g_value_set_static_boxed (&elem, g_ptr_array_index (audio_codecs, i));
@@ -1368,7 +1368,7 @@ dbus_get_all_video_codecs ()
 
     guint i;
     for (i = 0; i < video_codecs->len; i++) {
-        GValue elem; // = {0};
+        GValue elem = {0};
         g_value_init (&elem, DBUS_VIDEO_CODEC_TYPE);
 
         g_value_set_static_boxed (&elem, g_ptr_array_index (video_codecs, i));
@@ -1430,7 +1430,7 @@ dbus_get_active_audio_codecs (gchar* accountID)
     guint i;
 
     for (i = 0; i < audio_codecs->len; i++) {
-        GValue elem; // = {0};
+        GValue elem = {0};
         g_value_init (&elem, DBUS_AUDIO_CODEC_TYPE);
         g_value_set_static_boxed (&elem, g_ptr_array_index (audio_codecs, i));
 
@@ -1498,7 +1498,7 @@ dbus_get_active_video_codecs (gchar* accountID)
     guint i;
 
     for (i = 0; i < video_codecs->len; i++) {
-        GValue elem; // = {0};
+        GValue elem = {0};
         g_value_init (&elem, DBUS_VIDEO_CODEC_TYPE);
         g_value_set_static_boxed (&elem, g_ptr_array_index (video_codecs, i));
 
@@ -1546,7 +1546,7 @@ dbus_set_video_settings (const gchar* accountID,
 {
     DEBUG ("Setting video for account id %s", accountID);
 
-    GValue elem; // = {0};
+    GValue elem = {0};
     g_value_init (&elem, DBUS_VIDEO_SETTINGS_TYPE);
     g_value_take_boxed (&elem, dbus_g_type_specialized_construct (
                             DBUS_VIDEO_SETTINGS_TYPE));
@@ -2670,7 +2670,7 @@ dbus_video_get_resolution_for_device (const gchar* device)
     guint i;
 
     for (i = 0; i < resolutions->len; i++) {
-        GValue elem; // = { 0 };
+        GValue elem = { 0 };
         gint width;
         gint height;
 
@@ -2784,7 +2784,7 @@ dbus_video_stop_local_capture (gchar* device, gchar* token)
 }
 
 gchar*
-dbus_video_get_fd_passer_namespace (gchar * shm)
+dbus_video_get_fd_passer_namespace (const gchar * shm)
 {
     GError *error = NULL;
     gchar *fdpasser = NULL;

@@ -91,7 +91,7 @@ get_timestamp ()
 }
 
 static void
-snapshot_clicked_cb (SFLVideoCairoShm* widget, gpointer* self)
+snapshot_clicked_cb (SFLVideoCairoShm* widget UNUSED, gpointer* self)
 {
     SFLVideoSessionPrivate* priv = GET_PRIVATE (self);
 
@@ -263,7 +263,7 @@ sfl_video_session_init (SFLVideoSession* self)
     // Create a flash widget for snapshot events
     priv->flash = cheese_flash_new (NULL);
 
-    GtkWindow* window = gtk_widget_get_toplevel (GTK_WIDGET (self));
+    GtkWindow* window = GTK_WINDOW(gtk_widget_get_toplevel (GTK_WIDGET (self)));
 
     if (window != NULL) {
         g_object_set (G_OBJECT (priv->flash), "parent", GTK_WIDGET (window), NULL);

@@ -55,8 +55,8 @@ static guint sfl_video_session_control_signals[LAST_SIGNAL] = { 0 };
 static void
 sfl_video_session_control_dispose (GObject *object)
 {
-    SFLVideoSessionControlPrivate* priv =
-        GET_PRIVATE ( (SFLVideoSessionControl*) object);
+    // SFLVideoSessionControlPrivate* priv =
+    //     GET_PRIVATE ( (SFLVideoSessionControl*) object);
 
     G_OBJECT_CLASS (sfl_video_session_control_parent_class)->dispose (object);
 }
@@ -85,11 +85,11 @@ sfl_video_session_control_class_init (SFLVideoSessionControlClass *klass)
 }
 
 static void
-fullscreen_toggled_cb (GtkToggleToolButton *toolbutton, gpointer user_data)
+fullscreen_toggled_cb (GtkToggleToolButton *toolbutton, gpointer user_data UNUSED)
 {
     DEBUG ("fullscreen toggled");
 
-    GtkWindow* window = gtk_widget_get_toplevel (GTK_WIDGET (toolbutton));
+    GtkWindow* window = GTK_WINDOW(gtk_widget_get_toplevel (GTK_WIDGET (toolbutton)));
 
     if (gtk_toggle_tool_button_get_active (toolbutton) == TRUE) {
         gtk_window_fullscreen (window);
@@ -101,7 +101,7 @@ fullscreen_toggled_cb (GtkToggleToolButton *toolbutton, gpointer user_data)
 }
 
 static void
-screenshot_clicked_cb (GtkToolButton* toolbutton, gpointer user_data)
+screenshot_clicked_cb (GtkToolButton* toolbutton UNUSED, gpointer user_data)
 {
     SFLVideoSessionControl* self = (SFLVideoSessionControl*) user_data;
 

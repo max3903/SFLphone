@@ -51,7 +51,6 @@
 void show_edit_number (callable_obj_t *call);
 
 static GtkWidget *toolbar;
-static GtkWidget *toolbarWindows;
 
 guint transfertButtonConnId; //The button toggled signal connection ID
 guint recordButtonConnId; //The button toggled signal connection ID

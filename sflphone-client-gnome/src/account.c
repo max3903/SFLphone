@@ -31,11 +31,15 @@
 #include "account.h"
 
 #include "CodecList.h"
+#include "codeclibrary.h"
+
+#include "dbus.h"
 
 #include <glib.h>
 #include <glib/gprintf.h>
 
 #include "sflphone_const.h"
+
 
 gchar*
 framerate_to_string (framerate_t* rate)

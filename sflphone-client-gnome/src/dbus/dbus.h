@@ -682,13 +682,18 @@ gboolean dbus_video_stop_local_capture (gchar* device, gchar* token);
  * @return The address in the UNIX namespace to reach a file descriptor passer instance.
  */
 gchar*
-dbus_video_get_fd_passer_namespace (gchar * shm);
+dbus_video_get_fd_passer_namespace (const gchar * shm);
 
 /**
  * @param accountID The account identifier for which to set those parameters for.
  * @param settings The video setting structure containing the parameters to set.
  */
 void dbus_set_video_settings (const gchar* accountID, video_settings_t* settings);
+
+/**
+ * @param accountID The account identifier for which to set those parameters for.
+ */
+video_settings_t* dbus_get_video_settings (const gchar* accountID);
 
 GHashTable* dbus_get_shortcuts (void);
 

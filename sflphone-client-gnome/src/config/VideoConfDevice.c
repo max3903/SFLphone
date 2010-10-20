@@ -65,7 +65,7 @@ enum {
 static void
 video_conf_device_dispose (GObject *object)
 {
-    VideoConfDevicePrivate* priv = GET_PRIVATE ( (VideoConfDevice*) object);
+    // VideoConfDevicePrivate* priv = GET_PRIVATE ( (VideoConfDevice*) object);
 
     G_OBJECT_CLASS (video_conf_device_parent_class)->dispose (object);
 }
@@ -88,13 +88,13 @@ video_conf_device_class_init (VideoConfDeviceClass *klass)
 }
 
 static void
-on_framerates_combo_changed_cb (GtkWidget* widget, gpointer self)
+on_framerates_combo_changed_cb (GtkWidget* widget UNUSED, gpointer self UNUSED)
 {
     /* Nothing */
 }
 
 static void
-on_resolutions_combo_changed_cb (GtkWidget* widget, gpointer self)
+on_resolutions_combo_changed_cb (GtkWidget* widget UNUSED, gpointer self)
 {
     VideoConfDevicePrivate* priv = GET_PRIVATE ( (VideoConfDevice*) self);
 
@@ -417,8 +417,8 @@ void video_conf_device_save (VideoConfDevice* self, account_t* account)
     model = gtk_combo_box_get_model (GTK_COMBO_BOX (priv->resolutions_combo));
     gtk_combo_box_get_active_iter (GTK_COMBO_BOX (priv->resolutions_combo), &iter);
     gtk_tree_model_get (model, &iter, COLUMN_RESOLUTION_POINTER, &resolution, -1);
-    gint width = resolution->width;
-    gint height = resolution->height;
+    // gint width = resolution->width;
+    // gint height = resolution->height;
 
     // Get the corresponding rate
     gchar* rate;

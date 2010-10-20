@@ -206,11 +206,15 @@ codec_library_add_list (codec_library_t* library, GList* codecs)
 
     GList* it;
 
+    codec_t *tmpcodec;
+
     for (it = codecs; it != NULL; it = g_list_next (it)) {
-        codec_t* codec = g_new (codec_t, 1);
+        codec_t *codec = g_new (codec_t, 1);
+        tmpcodec = (codec_t *)(it->data);
         memcpy (codec, it->data, sizeof (codec_t)); // Does not copy the strings themselves.
         codec_library_add (library, codec);
         // TODO g_free((it)->data)
+        codec = NULL;
     }
 }
 
@@ -406,7 +410,7 @@ codec_library_load_video_codecs_by_account (account_t* account)
 void
 codec_library_add (codec_library_t* library, codec_t* codec)
 {
-    DEBUG ("CodecLibrary: Adding codec \"%s\" to codec library.", codec->codec.mime_subtype);
+    // DEBUG ("CodecLibrary: Adding codec \"%s\" to codec library.", codec->codec.mime_subtype);
 
     if (g_strcmp0 (codec->codec.mime_type, "audio") == 0) {
         codec_library_add_audio_codec (library, (audio_codec_t*) codec);

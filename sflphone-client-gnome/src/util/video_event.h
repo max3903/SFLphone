@@ -29,6 +29,6 @@ sflphone_event_t sflphone_eventfd_catch (sflphone_event_listener_t* listener);
 /**
  * Free an sflphone_event_listener_t type of object.
  */
-int sflphone_eventfd_free (sflphone_event_listener_t* listener);
+void sflphone_eventfd_free (sflphone_event_listener_t* listener);
 
 #endif

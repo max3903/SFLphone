@@ -117,7 +117,7 @@ sflphone_eventfd_init (const char* shm)
     return listener;
 }
 
-int
+void
 sflphone_eventfd_free (sflphone_event_listener_t* listener)
 {
     free (listener);

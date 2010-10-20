@@ -78,11 +78,11 @@ const sfl::Codec* CodecFactory::getCodec (const std::string& id)
     IdentifierToCodecInstanceMap::iterator iter = _codecsMap.find (id);
 
     if (iter != _codecsMap.end()) {
-        // _debug("Found codec %i _codecsMap from codec descriptor", payload);
+        // _debug("CodecFactory: Found codec %d _codecsMap from codec descriptor", payload);
         return (iter->second);
     }
 
-    _error ("Error cannot find codec %i in Codec Factory", id.c_str());
+    _error ("CodecFactory: Error cannot find codec %i in Codec Factory", id.c_str());
 
     return NULL;
 }
@@ -243,7 +243,7 @@ void CodecFactory::init()
             _codecsMap.insert (std::pair<std::string, sfl::Codec*> (id, codec));
         }
     } else {
-        _error ("No plugin could be found.");
+        _error ("CodecFactory: No plugin could be found.");
         // TODO Throw something.
     }
 }
@@ -321,7 +321,7 @@ bool CodecFactory::isLibraryValid (std::string lib)
 
 void CodecFactory::deleteHandlePointer (void)
 {
-    _debug ("CodecDesccriptor: Delete codec handle pointers");
+    _debug ("CodecFactory: Delete codec handle pointers");
 
     for (int i = 0; (unsigned int) i < _codecInMemory.size(); i++) {
         unloadCodec (_codecInMemory[i]);
@@ -347,7 +347,7 @@ std::vector<sfl::Codec*> CodecFactory::scanCodecDirectory (void)
     for (i = 0; (unsigned int) i < dirToScan.size(); i++) {
         std::string dirStr = dirToScan[i];
 
-        _debug ("CodecDescriptor: Scanning %s to find audio codecs....", dirStr.c_str());
+        _debug ("CodecFactory: Scanning %s to find audio codecs....", dirStr.c_str());
 
         DIR *dir = opendir (dirStr.c_str());
 
@@ -361,13 +361,13 @@ std::vector<sfl::Codec*> CodecFactory::scanCodecDirectory (void)
                     if (isLibraryValid (tmp) && !isAlreadyInCache (tmp)) {
                         _cache.push_back (tmp);
 
-                        _debug ("Library %s added to the cache.", tmp.c_str());
+                        _debug ("CodecFactory: Library %s added to the cache.", tmp.c_str());
 
                         sfl::Codec* audioCodec = loadCodec (dirStr.append (tmp));
 
                         codecs.push_back (audioCodec);
 
-                        _debug ("Codec %s/%s %d (%s) loaded.",
+                        _debug ("CodecFactory: Codec %s/%s %d (%s) loaded.",
                                 audioCodec->getMimeType().c_str(),
                                 audioCodec->getMimeSubtype().c_str(),
                                 audioCodec->getClockRate(),
@@ -391,13 +391,13 @@ sfl::Codec* CodecFactory::loadCodec (std::string path)
     void* codecHandle = dlopen (path.c_str(), RTLD_LAZY);
 
     if (!codecHandle) {
-        _error ("%s", dlerror());
+        _error ("CodecFactory: %s", dlerror());
     }
 
     create_t* createCodec = (create_t*) dlsym (codecHandle, "create");
 
     if (createCodec == NULL) {
-        _error ("%s (%s:%d)", dlerror(), __FILE__, __LINE__);
+        _error ("CodecFactory: %s (%s:%d)", dlerror(), __FILE__, __LINE__);
     }
 
     sfl::Codec* codec = createCodec();
@@ -411,7 +411,7 @@ void CodecFactory::unloadCodec (CodecHandlePointer p)
     destroy_t* destroyCodec = (destroy_t*) dlsym (p.second, "destroy");
 
     if (destroyCodec == NULL) {
-        _error ("%s (%s:%d)", dlerror(), __FILE__, __LINE__);
+        _error ("CodecFactory: %s (%s:%d)", dlerror(), __FILE__, __LINE__);
     }
 
     destroyCodec (p.first);
