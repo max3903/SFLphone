@@ -123,7 +123,7 @@ video_settings_saves (video_settings_t* settings, const gchar* accountID)
 }
 
 void
-video_settings_set_device (video_settings_t* settings, gchar* device)
+video_settings_set_device (video_settings_t* settings, const gchar* device)
 {
     g_mutex_lock (settings->mutex);
     {

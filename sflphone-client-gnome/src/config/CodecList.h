@@ -62,7 +62,7 @@ typedef struct {
     /**
      * Save the active codec library for some account.
      */
-    void (*save_codecs) (codec_library_t*, gchar*);
+    void (*save_codecs) (codec_library_t*, const gchar*);
 
     /**
      * @return the codecs that were loaded.

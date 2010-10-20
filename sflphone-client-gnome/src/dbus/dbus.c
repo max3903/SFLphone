@@ -1328,10 +1328,9 @@ dbus_get_all_audio_codecs ()
         return NULL;
     }
 
-    int i;
-
+    guint i;
     for (i = 0; i < audio_codecs->len; i++) {
-        GValue elem = { 0 };
+        GValue elem; // = {0};
         g_value_init (&elem, DBUS_AUDIO_CODEC_TYPE);
 
         g_value_set_static_boxed (&elem, g_ptr_array_index (audio_codecs, i));
@@ -1367,10 +1366,9 @@ dbus_get_all_video_codecs ()
         return NULL;
     }
 
-    int i;
-
+    guint i;
     for (i = 0; i < video_codecs->len; i++) {
-        GValue elem = { 0 };
+        GValue elem; // = {0};
         g_value_init (&elem, DBUS_VIDEO_CODEC_TYPE);
 
         g_value_set_static_boxed (&elem, g_ptr_array_index (video_codecs, i));
@@ -1429,10 +1427,10 @@ dbus_get_active_audio_codecs (gchar* accountID)
 
     DEBUG ("Dbus: Server returned %d audio codecs.", audio_codecs->len);
 
-    int i;
+    guint i;
 
     for (i = 0; i < audio_codecs->len; i++) {
-        GValue elem = { 0 };
+        GValue elem; // = {0};
         g_value_init (&elem, DBUS_AUDIO_CODEC_TYPE);
         g_value_set_static_boxed (&elem, g_ptr_array_index (audio_codecs, i));
 
@@ -1497,10 +1495,10 @@ dbus_get_active_video_codecs (gchar* accountID)
 
     DEBUG ("Server returned %d video codecs.", video_codecs->len);
 
-    int i;
+    guint i;
 
     for (i = 0; i < video_codecs->len; i++) {
-        GValue elem = { 0 };
+        GValue elem; // = {0};
         g_value_init (&elem, DBUS_VIDEO_CODEC_TYPE);
         g_value_set_static_boxed (&elem, g_ptr_array_index (video_codecs, i));
 
@@ -1548,13 +1546,13 @@ dbus_set_video_settings (const gchar* accountID,
 {
     DEBUG ("Setting video for account id %s", accountID);
 
-    GValue elem = { 0 };
+    GValue elem; // = {0};
     g_value_init (&elem, DBUS_VIDEO_SETTINGS_TYPE);
     g_value_take_boxed (&elem, dbus_g_type_specialized_construct (
                             DBUS_VIDEO_SETTINGS_TYPE));
 
     // Set resolution
-    GValue resolution = { 0 };
+    GValue resolution; // = {0};
     g_value_init (&resolution, DBUS_VIDEO_RESOLUTION_TYPE);
     g_value_take_boxed (&resolution, dbus_g_type_specialized_construct (
                             DBUS_VIDEO_RESOLUTION_TYPE));
@@ -1565,7 +1563,7 @@ dbus_set_video_settings (const gchar* accountID,
                             G_MAXUINT);
 
     // Set framerate
-    GValue framerate = { 0 };
+    GValue framerate; // = {0};
     g_value_init (&framerate, DBUS_VIDEO_FRAMERATE_TYPE);
     g_value_take_boxed (&framerate, dbus_g_type_specialized_construct (
                             DBUS_VIDEO_FRAMERATE_TYPE));
@@ -2669,10 +2667,10 @@ dbus_video_get_resolution_for_device (const gchar* device)
         g_error_free (error);
     }
 
-    int i;
+    guint i;
 
     for (i = 0; i < resolutions->len; i++) {
-        GValue elem = { 0 };
+        GValue elem; // = { 0 };
         gint width;
         gint height;
 

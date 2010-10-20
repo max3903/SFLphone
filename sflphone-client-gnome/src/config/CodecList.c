@@ -28,6 +28,7 @@
  *  as that of the covered work.
  */
 #include "CodecList.h"
+#include "codeclibrary.h"
 #include "sflphone_const.h"
 
 static const int DEFAULT_SPACING = 10;
@@ -91,9 +92,8 @@ codec_list_fill (CodecList* self)
     DEBUG ("Queue has length : %d", length);
 
     // Insert in the tree view
-    int i;
+    guint i;
     GtkTreeIter iter;
-
     for (i = 0; i < length; i++) {
         codec_t* codec = g_queue_peek_nth (current, i);
 
@@ -159,7 +159,7 @@ codec_list_set_account (CodecList* codec_list, account_t* account)
 static void
 codec_list_dispose (GObject *object)
 {
-    CodecListPrivate* priv = GET_PRIVATE ( (CodecList*) object);
+    // CodecListPrivate* priv = GET_PRIVATE ( (CodecList*) object);
 
     G_OBJECT_CLASS (codec_list_parent_class)->dispose (object);
 }
@@ -208,10 +208,10 @@ codec_list_class_init (CodecListClass *klass)
 }
 
 static GObject*
-codec_list_constructor (GType type, guint n_construct_properties,
+codec_list_constructor (GType type UNUSED, guint n_construct_properties,
                         GObjectConstructParam *construct_properties)
 {
-    gint i;
+    guint i;
 
     for (i = 0; i < n_construct_properties; i++) {
         /* we will print the the properties' names and if it's
@@ -249,7 +249,7 @@ select_codec_cb (GtkTreeSelection *selection, gpointer data)
  * and in configuration files
  */
 static void
-codec_active_toggled_cb (GtkCellRendererToggle *renderer, gchar *path,
+codec_active_toggled_cb (GtkCellRendererToggle *renderer UNUSED, gchar *path,
                          gpointer data)
 {
     // Get path of clicked codec active toggle box
@@ -286,6 +286,7 @@ codec_active_toggled_cb (GtkCellRendererToggle *renderer, gchar *path,
     // Modify codec queue to represent change
     DEBUG ("Toggling codec %s", codec->codec.mime_subtype);
     codec_library_toggle_active (account->codecs, codec);
+
 }
 
 /**
@@ -341,7 +342,7 @@ codec_move_cb (gboolean move_up, gpointer data)
  * Called from move up codec button signal
  */
 static void
-codec_move_up_cb (GtkButton* button, gpointer data)
+codec_move_up_cb (GtkButton* button UNUSED, gpointer data)
 {
     // Change tree view ordering and get indice changed
     codec_move_cb (TRUE, data);
@@ -351,7 +352,7 @@ codec_move_up_cb (GtkButton* button, gpointer data)
  * Called from move down codec button signal
  */
 static void
-codec_move_down_cb (GtkButton *button, gpointer data)
+codec_move_down_cb (GtkButton *button UNUSED, gpointer data)
 {
     // Change tree view ordering and get indice changed
     codec_move_cb (FALSE, data);
@@ -368,13 +369,13 @@ codec_list_init (CodecList* self)
     gtk_scrolled_window_set_shadow_type (GTK_SCROLLED_WINDOW (scrolledWindow),
                                          GTK_SHADOW_IN);
 
-    priv->codec_store = gtk_list_store_new (CODEC_COLUMN_COUNT, G_TYPE_BOOLEAN, // Active
+    priv->codec_store = GTK_TREE_MODEL(gtk_list_store_new (CODEC_COLUMN_COUNT, G_TYPE_BOOLEAN, // Active
                                             G_TYPE_STRING, // Name
                                             G_TYPE_STRING, // Frequency
                                             G_TYPE_STRING, // Bit rate
                                             G_TYPE_STRING, // Bandwith
                                             G_TYPE_POINTER // A pointer to the actual codec.
-                                           );
+                                           ));
 
     // Create codec tree view with list store
     priv->codec_tree_view = gtk_tree_view_new_with_model (

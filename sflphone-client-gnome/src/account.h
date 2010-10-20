@@ -126,7 +126,7 @@ void video_settings_saves (video_settings_t* settings, const gchar* accountID);
 /**
  * @param device The device to set in the structure.
  */
-void video_settings_set_device (video_settings_t* settings, gchar* device);
+void video_settings_set_device (video_settings_t* settings, const gchar* device);
 
 /**
  * @return The video device.

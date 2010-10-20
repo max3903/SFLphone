@@ -912,7 +912,6 @@ create_security_tab (account_t **a)
 {
     GtkWidget * frame;
     GtkWidget * ret;
-    GtkWidget * hbox;
 
     ret = gtk_vbox_new (FALSE, DEFAULT_SPACING);
     gtk_container_set_border_width (GTK_CONTAINER (ret), DEFAULT_SPACING);

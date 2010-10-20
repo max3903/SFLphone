@@ -29,14 +29,12 @@
  */
 
 #include <audioconf.h>
-
+#include <string.h>
 #include <utils.h>
 
 #include "account.h"
-
 #include "CodecList.h"
-
-#include <string.h>
+#include "eel-gconf-extensions.h"
 
 GtkListStore *pluginlist;
 GtkListStore *outputlist;
@@ -566,11 +564,9 @@ create_audio_configuration ()
     // Main widget
     GtkWidget *ret;
     // Sub boxes
-    GtkWidget *box;
     GtkWidget *frame;
-    GtkWidget *enableEchoCancel;
     GtkWidget *enableNoiseReduction;
-    gboolean echocancelActive, noisesuppressActive;
+    gboolean noisesuppressActive;
     gchar *state;
 
     ret = gtk_vbox_new (FALSE, 10);
