@@ -2405,7 +2405,7 @@ std::vector<std::string> ManagerImpl::unserialize (std::string s)
         std::string temp = s.substr (0, pos);
         s.erase (0, pos + 1);
 
-        _debug ("Using codec %s", temp.c_str());
+        _debug ("Manager: Unserialize codec %s", temp.c_str());
 
         list.push_back (temp);
     }

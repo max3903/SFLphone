@@ -521,7 +521,7 @@ class Account: public Serializable
          */
         std::string _useragent;
 
-	std::string _mailBox;
+	    std::string _mailBox;
 
         // Video settings
         bool _alwaysOfferVideo;

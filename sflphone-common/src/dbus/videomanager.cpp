@@ -35,6 +35,9 @@ const char* VideoManager::SHM_ERROR_PATH = "/dev/null";
 
 VideoManager::VideoManager(DBus::Connection& connection) :
 	DBus::ObjectAdaptor(connection, SERVER_PATH) {
+
+	_debug("VideoManager: Init video manager");
+
 	sfl::VideoInputSource* videoInputSource = new sfl::VideoInputSourceGst();
 	std::vector<sfl::VideoDevicePtr> devicesList =
 			videoInputSource->enumerateDevices();
@@ -48,7 +51,7 @@ VideoManager::VideoManager(DBus::Connection& connection) :
 }
 
 std::vector<std::string> VideoManager::enumerateDevices() {
-	_debug ("Enumerating devices");
+	_debug ("VideoManager: Enumerating devices");
 
 	std::vector<std::string> devices;
 
@@ -100,7 +103,7 @@ std::vector<std::string> VideoManager::getFrameRates(const std::string& device,
 			if (((*itFormat).getWidth() == width) && ((*itFormat).getHeight()
 					== height)) {
 
-				_debug ("Found resolution %d x %d %s", (*itFormat).getWidth(), (*itFormat).getHeight(), (*itFormat).getMimetype().c_str());
+				_debug ("VideoManager: Found resolution %d x %d %s", (*itFormat).getWidth(), (*itFormat).getHeight(), (*itFormat).getMimetype().c_str());
 				std::set<sfl::FrameRate> rates = (*itFormat).getFrameRates();
 				std::set<sfl::FrameRate>::iterator itRate;
 
@@ -120,7 +123,7 @@ std::vector<std::string> VideoManager::getFrameRates(const std::string& device,
 ::DBus::Struct<std::string, std::string> VideoManager::startLocalCapture(
 		const std::string& device, const int32_t& width, const int32_t& height,
 		const std::string& fps) throw (DBus::VideoIOException) {
-	_debug ("Starting video capture on DBus request.");
+	_debug ("VideoManager: Starting video capture on DBus request.");
 	// The code below deals with a device that is already capturing.
 	DeviceNameToEndpointRecordIterator it = videoEndpoints.find(device);
 
@@ -131,7 +134,7 @@ std::vector<std::string> VideoManager::getFrameRates(const std::string& device,
 
 		// Paranoid check. Should always be the case.
 		if (!runningEndpoint->isCapturing()) {
-			_error ("Mapped device but not capturing.");
+			_error ("VideoManager: Mapped device but not capturing.");
 			// throw DBus::VideoIOException(e);
 		}
 
@@ -140,7 +143,7 @@ std::vector<std::string> VideoManager::getFrameRates(const std::string& device,
 		// Request additional token
 		reply._2 = runningEndpoint->requestTokenForSource();
 
-		_debug ("Sending reply %s with token %s", reply._1.c_str(), reply._2.c_str());
+		_debug ("VideoManager: Sending reply %s with token %s", reply._1.c_str(), reply._2.c_str());
 
 		return reply;
 	}
@@ -188,7 +191,7 @@ std::vector<std::string> VideoManager::getFrameRates(const std::string& device,
 	reply._1 = endpoint->getSourceDeviceShmName();
 	reply._2 = token;
 
-	_debug ("Sending reply %s with token %s", reply._1.c_str(), reply._2.c_str());
+	_debug ("VideoManager: Sending reply %s with token %s", reply._1.c_str(), reply._2.c_str());
 
 	return reply;
 }
@@ -198,7 +201,7 @@ void VideoManager::stopLocalCapture(const std::string& device,
 		DBus::InvalidTokenException) {
 	DeviceNameToEndpointRecordIterator it = videoEndpoints.find(device);
 
-	_debug ("Stopping device %s with token %s", device.c_str(), token.c_str());
+	_debug ("VideoManager: Stopping device %s with token %s", device.c_str(), token.c_str());
 
 	if (it != videoEndpoints.end()) {
 		try {
@@ -247,7 +250,7 @@ DbusVideoShmInfo VideoManager::getShmInfo(const std::string& shm)
 				+ shm + "\" could not be found."));
 	}
 
-	_debug("Getting shm info ...");
+	_debug("VideoManager: Getting shm info ...");
 	sfl::VideoFormat format;
 	try {
 		format = ((*it).second)->getVideoEndpoint()->getShmVideoFormat(shm);
@@ -264,7 +267,7 @@ DbusVideoShmInfo VideoManager::getShmInfo(const std::string& shm)
 }
 
 void VideoManager::stageRtpSession(SipCall* call) throw(sfl::UnknownVideoDeviceException) {
-	_info("Staging video RTP session ...");
+	_info("VideoManager: Staging video RTP session ...");
 
 	DeviceNameToEndpointRecordIterator it = videoEndpoints.find(
 			call->getVideoDevice());
@@ -308,7 +311,7 @@ void VideoManager::stageRtpSession(SipCall* call) throw(sfl::UnknownVideoDeviceE
 
 void VideoManager::startRtpSession(SipCall* call, std::vector<
 		const sfl::VideoCodec*> negotiatedCodecs) {
-	_info("Starting video RTP session ...");
+	_info("VideoManager: Starting video RTP session ...");
 
 	DeviceNameToEndpointRecordIterator it = videoEndpoints.find(
 			call->getVideoDevice());
@@ -338,11 +341,11 @@ void VideoManager::startRtpSession(SipCall* call, std::vector<
 }
 
 void VideoManager::stopRtpSession(SipCall* call) {
-	_info("Stopping video RTP session ...");
+	_info("VideoManager: Stopping video RTP session ...");
 	DeviceNameToEndpointRecordIterator it = videoEndpoints.find(
 			call->getVideoDevice());
 	if (it == videoEndpoints.end()) {
-		_error("Cannot find a video endpoint for device %s", call->getVideoDevice().c_str());
+		_error("VideoManager: Cannot find a video endpoint for device %s", call->getVideoDevice().c_str());
 		return;
 	}
 
@@ -357,7 +360,7 @@ void VideoManager::stopRtpSession(SipCall* call) {
 	if (endpoint->isDisposable()) {
 		delete ((*it).second);
 		videoEndpoints.erase(it);
-		_debug ("Endpoint was disposable. Removed.");
+		_debug ("VideoManager: Endpoint was disposable. Removed.");
 	}
 }
 

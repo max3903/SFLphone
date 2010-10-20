@@ -113,12 +113,12 @@ gboolean GstEncoder::extractParameter(GQuark field_id, const GValue* value,
 }
 
 void GstEncoder::generateSdpParameters() {
-	_debug("Generating SDP by injecting frames ...");
+	_debug("GstEncoder: Generating SDP by injecting frames ...");
 	// Set the selector to point on the videotestsrc
 	selectVideoTestSrc(true);
 
 	// Block until a buffer becomes available
-	_debug("Blocking until a buffer becomes available ...");
+	_debug("GstEncoder: Blocking until a buffer becomes available ...");
 	GstBuffer* buffer = retrievableEnd->getBuffer();
 	if (buffer == NULL) {
 		_error ("Got NULL buffer");
@@ -138,12 +138,12 @@ void GstEncoder::generateSdpParameters() {
 
 static void selector_blocked(GstPad * pad, gboolean blocked, gpointer user_data) {
 	/* no nothing */
-	_debug ("blocked callback, blocked: %d", blocked);
+	_debug ("GstEncoder: blocked callback, blocked: %d", blocked);
 }
 
 void GstEncoder::selectVideoTestSrc(bool selected) {
 	if (selected) {
-		_debug("Selecting videotestsrc on input-selector ...");
+		_debug("GstEncoder: Selecting videotestsrc on input-selector ...");
 
 		//gst_pad_set_blocked (appsrcPad, TRUE);
 		//gst_pad_set_blocked (videotestsrcPad, FALSE);
@@ -158,7 +158,7 @@ void GstEncoder::selectVideoTestSrc(bool selected) {
 		//	    g_signal_emit_by_name(G_OBJECT (inputselector), "block", NULL);
 		//	    g_signal_emit_by_name(G_OBJECT (inputselector), "switch", videotestsrcPad, -1, -1, NULL);
 	} else {
-		_debug("Selecting encoding source on input-selector ...");
+		_debug("GstEncoder: Selecting encoding source on input-selector ...");
 
 		if (retrievableEnd->isPlaying()) {
 			gst_pad_set_blocked_async(videotestsrcPad, TRUE, selector_blocked,
@@ -170,6 +170,9 @@ void GstEncoder::selectVideoTestSrc(bool selected) {
 }
 
 void GstEncoder::configureSource() {
+
+	_debug("GstEncoder: Configure source");
+
 	// Create the new caps for this video source
 	VideoFormat format = getVideoInputFormat();
 	std::ostringstream caps;
@@ -184,7 +187,7 @@ void GstEncoder::configureSource() {
 			<< format.getPreferredFrameRate().getDenominator();
 
 	GstCaps* sourceCaps = gst_caps_from_string((caps.str()).c_str());
-	_debug ("Setting caps %s on encoder source", caps.str().c_str());
+	_debug ("GstEncoder: Setting caps %s on encoder source", caps.str().c_str());
 
 	// Set the new maximum size on the input queue
 	injectableEnd->setMaxQueueSize(10 /** Frames */* format.getWidth()
@@ -212,6 +215,8 @@ void GstEncoder::configureSource() {
 
 void GstEncoder::init() throw (VideoDecodingException, MissingPluginException) {
 	gst_init(0, NULL);
+
+	_debug("GstEncoder: Init encoder");
 
 	// Create a new pipeline
 	Pipeline pipeline(std::string("sfl_") + getMimeSubtype() + std::string(
@@ -292,18 +297,18 @@ void GstEncoder::encode(const VideoFrame* frame) throw (VideoEncodingException) 
 
 void GstEncoder::activate() {
 	VideoEncoder::activate();
-	_info ("Activating encoder");
+	_info ("GstEncoder: Activating encoder");
 
 	init();
 
 	retrievableEnd->start();
 	selectVideoTestSrc(false);
-	_info ("Pipeline started.");
+	_info ("GstEncoder: Pipeline started.");
 }
 
 void GstEncoder::deactivate() {
 	VideoEncoder::deactivate();
-	_info ("Deactivating encoder");
+	_info ("GstEncoder: Deactivating encoder");
 
 	clearObservers();
 

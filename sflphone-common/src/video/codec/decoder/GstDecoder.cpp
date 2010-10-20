@@ -53,7 +53,7 @@ GstDecoder::GstDecoder(VideoFormat& format) throw (VideoDecodingException,
 
 void GstDecoder::setParameter(const std::string& name, const std::string& value) {
 	if (injectableEnd == NULL) {
-		_debug ("Pushing parameter in list since injectableEnd is null");
+		_debug ("GstDecoder: Pushing parameter in list since injectableEnd is null");
 		parameters.push_back(std::pair<std::string, std::string>(name, value));
 	} else {
 		injectableEnd->setField(name, value);
@@ -95,14 +95,14 @@ void GstDecoder::init() throw (VideoDecodingException, MissingPluginException) {
 			<< (int) getPayloadType();
 
 	GstCaps* sourceCaps = gst_caps_from_string((caps.str()).c_str());
-	_debug ("Setting caps %s on decoder source", caps.str().c_str());
+	_debug ("GstDecoder: Setting caps %s on decoder source", caps.str().c_str());
 
 	injectableEnd = new InjectablePipeline(pipeline, sourceCaps);
 
 	// If there are any optional parameters that were added before activate()
 	// was called, apply them now.
 	std::list<std::pair<std::string, std::string> >::iterator it;
-	_debug ("Unwinding parameters ...");
+	_debug ("GstDecoder: Unwinding parameters ...");
 
 	for (it = parameters.begin(); it != parameters.end(); it++) {
 		injectableEnd->setField((*it).first, (*it).second);
@@ -141,14 +141,14 @@ void GstDecoder::decode(Buffer<uint8>& data) throw (VideoDecodingException) {
 }
 
 void GstDecoder::setOutputFormat(VideoFormat& format) {
-	_debug("Setting output format on decoder to %s", format.toString().c_str());
+	_debug("GstDecoder: Setting output format on decoder to %s", format.toString().c_str());
 	VideoFormatToGstCaps convert;
 	retrievableEnd->setCaps(convert(format));
 }
 
 VideoFormat GstDecoder::getOutputFormat() {
 	// Extract the colospace, width and height from caps
-	_debug ("caps are %" GST_PTR_FORMAT, currentCaps);
+	_debug ("GstDecoder: caps are %" GST_PTR_FORMAT, currentCaps);
 
 	GstStructure* structure = gst_caps_get_structure(currentCaps, 0);
 
@@ -182,7 +182,7 @@ VideoFormat GstDecoder::getOutputFormat() {
 }
 
 void GstDecoder::activate() {
-	_info ("Activating decoder");
+	_info ("GstDecoder: Activating decoder");
 
 	init();
 
@@ -191,7 +191,7 @@ void GstDecoder::activate() {
 }
 
 void GstDecoder::deactivate() {
-	_info ("Deactivating gstreamer decoder");
+	_info ("GstDecoder: Deactivating gstreamer decoder");
 
 	// Clear our own observers
 	clearObservers();

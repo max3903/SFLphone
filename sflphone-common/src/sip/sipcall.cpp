@@ -63,7 +63,7 @@ void SipCall::init(Call::CallType type, SIPAccount* account)
 	_account  = account;
 
 	_videoEnabled = account->isAlwaysOfferVideo();
-	_debug("Always offer video : %d", account->isAlwaysOfferVideo());
+	_debug("SipCall: Always offer video : %d", account->isAlwaysOfferVideo());
 
 	// By default, load the video settings from the account.
 	// Those could be overridden later.
@@ -110,8 +110,8 @@ void SipCall::init(Call::CallType type, SIPAccount* account)
 	// Set the audio ports
 	setLocalAudioPort(callLocalAudioPort);
 	setPublishedAudioPort(callLocalExternAudioPort);
-	_debug ("            Local audio port : %d", callLocalAudioPort);
-	_debug ("            Published audio port : %d", callLocalExternAudioPort);
+	_debug ("SipCall: Local audio port : %d", callLocalAudioPort);
+	_debug ("SipCall: Published audio port : %d", callLocalExternAudioPort);
 
 	// Add audio capabilities
 	_sdpSession->setLocalMediaCapabilities(MIME_TYPE_AUDIO,
@@ -119,15 +119,15 @@ void SipCall::init(Call::CallType type, SIPAccount* account)
 
 	// video must be available and _videoDevice must be a valid
 	if (isVideoEnabled() && _videoDevice != "") {
-		_debug("Video is enabled. Initializing video properties in new SIP call ...");
+		_debug("SipCall: Video is enabled. Initializing video properties in new SIP call ...");
 		// Set the video ports
 		unsigned int callLocalVideoPort = RANDOM_LOCAL_PORT;
 		unsigned int callLocalExternVideoPort = callLocalVideoPort;
 
 		setLocalVideoPort(callLocalVideoPort);
 		setPublishedVideoPort(callLocalExternVideoPort);
-		_debug ("            Local video port : %d", callLocalVideoPort);
-		_debug ("            Published video port : %d", callLocalExternVideoPort);
+		_debug ("SipCall: Local video port : %d", callLocalVideoPort);
+		_debug ("SipCall: Published video port : %d", callLocalExternVideoPort);
 
 		// Add video capabilities
 		_sdpSession->setLocalMediaCapabilities(MIME_TYPE_VIDEO,

@@ -46,8 +46,8 @@ Account::Account (const AccountID& accountID, std::string type) :
         , _ringtoneEnabled (true)
         , _displayName ("")
         , _useragent ("SFLphone")
-        , _preferredVideoDevice ("")
         , _alwaysOfferVideo (false)
+		, _preferredVideoDevice ("")
 {
     setRegistrationState (Unregistered);
 }
@@ -84,17 +84,17 @@ void Account::setRegistrationState (RegistrationState state)
 
 void Account::loadCodecs (void)
 {
-    _debug ("Serialized codecs : %s", _codecAudioSerialized.c_str());
+    _debug ("Account: Serialized codecs : %s", _codecAudioSerialized.c_str());
 
     if (_codecAudioSerialized == "") {
-        _info ("No audio codecs were configured for this account. Using the default list.");
+        _info ("Account: No audio codecs were configured for this account. Using the default list.");
         setActiveAudioCodecs (CodecFactory::getInstance().getDefaultAudioCodecOrder());
     } else {
         setActiveAudioCodecs (Manager::instance ().unserialize (_codecAudioSerialized));
     }
 
     if (_codecVideoSerialized == "") {
-        _info ("No video codecs were configured for this account. Using the default list.");
+        _info ("Account: No video codecs were configured for this account. Using the default list.");
         setActiveVideoCodecs (CodecFactory::getInstance().getDefaultVideoCodecOrder());
     } else {
         setActiveVideoCodecs (Manager::instance ().unserialize (_codecVideoSerialized));
@@ -145,14 +145,14 @@ void Account::setActiveVideoCodecs (CodecOrder codecs)
 {
     _codecVideoOrder = codecs;
     _codecVideoSerialized = Manager::instance().serialize (codecs);
-    _debug ("Setting active video codecs : %s", _codecVideoSerialized.c_str());
+    _debug ("Account: Setting active video codecs : %s", _codecVideoSerialized.c_str());
 }
 
 void Account::setActiveAudioCodecs (CodecOrder codecs)
 {
     _codecAudioOrder = codecs;
     _codecAudioSerialized = Manager::instance().serialize (codecs);
-    _debug ("Setting active audio codecs : %s", _codecAudioSerialized.c_str());
+    _debug ("Account: Setting active audio codecs : %s", _codecAudioSerialized.c_str());
 }
 
 std::string Account::getAudioCodecsSerialized()

@@ -229,7 +229,7 @@ void Sdp::setRemoteSdpAnswer(const pjmedia_sdp_session* answer) {
 }
 
 SdpMedia* Sdp::getInitialMedia(const std::string& mime) {
-	_debug("Getting media %s", mime.c_str());
+	_debug("Sdp: Getting media %s", mime.c_str());
 	std::vector<SdpMedia*>::iterator it;
 	for (it = _initialMedias.begin(); it != _initialMedias.end(); it++) {
 		if ((*it)->getMediaTypeStr() == mime) {
@@ -242,7 +242,7 @@ SdpMedia* Sdp::getInitialMedia(const std::string& mime) {
 
 const sfl::Codec* Sdp::getInitialCodec(const std::string& mime,
 		const std::string& payload) {
-	_debug("Getting initial media %s %s", mime.c_str(), payload.c_str());
+	_debug("Sdp: Getting initial media %s %s", mime.c_str(), payload.c_str());
 	SdpMedia* media = getInitialMedia(mime);
 	if (media) {
 		uint8 pt = atoi(payload.c_str());
@@ -257,6 +257,8 @@ const sfl::Codec* Sdp::getInitialCodec(const std::string& mime,
 
 void Sdp::setLocalMediaCapabilities(MimeType mime, CodecOrder selectedCodecs) {
 	SdpMedia* media;
+
+	_debug("Sdp: Set local media capabilities");
 
 	switch (mime) {
 	case MIME_TYPE_AUDIO: {
@@ -285,7 +287,7 @@ void Sdp::setLocalMediaCapabilities(MimeType mime, CodecOrder selectedCodecs) {
 		}
 	}
 
-	_debug("Adding media %s to initial medias", media->getMediaTypeStr().c_str());
+	_debug("Sdp: Adding media %s to initial medias", media->getMediaTypeStr().c_str());
 	_initialMedias.push_back(media);
 }
 
@@ -394,7 +396,7 @@ void Sdp::createMediaDescriptionLine(SdpMedia *media, pjmedia_sdp_media** p_med)
 }
 
 int Sdp::createLocalOffer() {
-	_info ("SDP: Create local offer");
+	_info ("Sdp: Create local offer");
 
 	// Create and initialize basic SDP session
 	this->_localOffer = PJ_POOL_ZALLOC_T (_pool, pjmedia_sdp_session);
@@ -637,7 +639,7 @@ void Sdp::setMediaFromSdpAnswer(const pjmedia_sdp_session* remoteSdp) {
 }
 
 std::vector<SdpMedia*> Sdp::getInitialMediaList() {
-	_debug("Returning medias");
+	_debug("Sdp: Get initial medias");
 	return _initialMedias;
 }
 
@@ -753,7 +755,7 @@ unsigned int Sdp::getRemoteVideoPort() {
 }
 
 void Sdp::setVideoFormat(const sfl::VideoFormat& format) {
-	_debug("Setting video format on SDP media ...");
+	_debug("Sdp: Setting video format on SDP media ...");
 
 	std::vector<SdpMedia*> mediaList = getInitialMediaList();
 	std::vector<SdpMedia*>::iterator it;
@@ -765,7 +767,7 @@ void Sdp::setVideoFormat(const sfl::VideoFormat& format) {
 }
 
 const sfl::Codec* Sdp::getFirstCodec() {
-	_debug ("SDP: Getting session medias. (%s:%d)", __FILE__, __LINE__);
+	_debug ("Sdp: Getting session medias. (%s:%d)", __FILE__, __LINE__);
 
 	std::vector<SdpMedia*> mediaList = getNegotiatedMediaList();
 	const sfl::Codec *codec = NULL;

@@ -595,13 +595,13 @@ void ConfigurationManager::setActiveAudioCodecs (
     const std::vector<std::string>& codecIdentifiers,
     const std::string& accountID)
 {
-    _info ("Setting audio codecs for account id \"%s\"", accountID.c_str());
+    _info ("ConfigurationManager: Setting audio codecs for account id \"%s\"", accountID.c_str());
 
     // Set the new codec order.
     Account* account = Manager::instance().getAccount (accountID);
 
     if (!account) {
-        _error ("Account id \"%s\" cannot be found.", accountID.c_str());
+        _error ("ConfigurationManager: Account id \"%s\" cannot be found.", accountID.c_str());
         return;
     }
 
@@ -611,7 +611,7 @@ void ConfigurationManager::setActiveAudioCodecs (
     std::vector<std::string>::const_iterator it;
 
     for (it = codecIdentifiers.begin(); it != codecIdentifiers.end(); it++) {
-        _debug ("Setting codec ID \"%s\" for account \"%s\"", (*it).c_str(), accountID.c_str());
+        _debug ("ConfigurationManager: Setting codec ID \"%s\" for account \"%s\"", (*it).c_str(), accountID.c_str());
         ordering.push_back ( (*it));
     }
 
@@ -622,7 +622,7 @@ void ConfigurationManager::setActiveVideoCodecs (
     const std::vector<std::string>& codecIdentifiers,
     const std::string& accountID)
 {
-    _info ("Setting video codecs for account id \"%s\"", accountID.c_str());
+    _info ("ConfigurationManager: Setting video codecs for account id \"%s\"", accountID.c_str());
 
     // Create a CodecOrder object from the hash codes contained in the structures.
     CodecOrder ordering;
@@ -630,7 +630,7 @@ void ConfigurationManager::setActiveVideoCodecs (
     std::vector<std::string>::const_iterator it;
 
     for (it = codecIdentifiers.begin(); it != codecIdentifiers.end(); it++) {
-        _debug ("Setting video codec ID \"%s\" for account \"%s\"", (*it).c_str(), accountID.c_str());
+        _debug ("ConfigurationManager: Setting video codec ID \"%s\" for account \"%s\"", (*it).c_str(), accountID.c_str());
         ordering.push_back ( (*it));
     }
 
@@ -638,7 +638,7 @@ void ConfigurationManager::setActiveVideoCodecs (
     Account* account = Manager::instance().getAccount (accountID);
 
     if (!account) {
-        _error ("Account id \"%s\" cannot be found.", accountID.c_str());
+        _error ("ConfigurationManager: Account id \"%s\" cannot be found.", accountID.c_str());
         return;
     }
 
@@ -658,19 +658,19 @@ void ConfigurationManager::setVideoSettings (const std::string& accountID, const
     VideoSettings videoSettings (settings);
 
     // Always offer video
-    _debug ("Settings video parameters for account %s : always offer video : %d", accountID.c_str(), videoSettings.alwaysOfferVideo);
+    _debug ("ConfigurationManager: Settings video parameters for account %s : always offer video : %d", accountID.c_str(), videoSettings.alwaysOfferVideo);
     account->setAlwaysOfferVideo (videoSettings.alwaysOfferVideo);
 
     // Video device name
-    _debug ("Settings video parameters for account %s : preferred device name : %s", accountID.c_str(), videoSettings.device.c_str());
+    _debug ("ConfigurationManager: Settings video parameters for account %s : preferred device name : %s", accountID.c_str(), videoSettings.device.c_str());
     account->setPreferredVideoDevice (videoSettings.device);
 
     // Video format
     sfl::VideoFormat format;
-    _debug ("Settings video parameters for account %s : preferred framerate : %d/%d", accountID.c_str(), videoSettings.framerate.numerator, videoSettings.framerate.denominator);
+    _debug ("ConfigurationManager: Settings video parameters for account %s : preferred framerate : %d/%d", accountID.c_str(), videoSettings.framerate.numerator, videoSettings.framerate.denominator);
     format.setFramerate (videoSettings.framerate.numerator, videoSettings.framerate.denominator);
 
-    _debug ("Settings video parameters for account %s : preferred resolution : %d x %d", accountID.c_str(), videoSettings.resolution.width, videoSettings.resolution.height);
+    _debug ("ConfigurationManager: Settings video parameters for account %s : preferred resolution : %d x %d", accountID.c_str(), videoSettings.resolution.width, videoSettings.resolution.height);
     format.setWidth (videoSettings.resolution.width);
     format.setHeight (videoSettings.resolution.height);
 

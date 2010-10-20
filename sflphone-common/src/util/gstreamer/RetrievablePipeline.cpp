@@ -41,7 +41,7 @@ GstFlowReturn RetrievablePipeline::onNewBuffer (GstAppSink* sink, gpointer data)
 
     GstBuffer* buffer = gst_app_sink_pull_buffer (GST_APP_SINK (self->appsink));
     if (buffer == NULL) {
-        _warn ("Pulled a NULL buffer");
+        _warn ("RetreivablePipeline: Pulled a NULL buffer");
         return GST_FLOW_OK;
     }
 
@@ -62,20 +62,20 @@ GstBuffer* RetrievablePipeline::getBuffer()
 GstFlowReturn RetrievablePipeline::onNewPreroll (GstAppSink *sink,
         gpointer user_data)
 {
-    _debug ("New preroll buffer is available");
+    _debug ("RetreivablePipeline: New preroll buffer is available");
     return GST_FLOW_OK;
 }
 
 GstFlowReturn RetrievablePipeline::onNewBufferList (GstAppSink *sink,
         gpointer user_data)
 {
-    _debug ("New buffer list is available");
+    _debug ("RetreivablePipeline: New buffer list is available");
     return GST_FLOW_OK;
 }
 
 void RetrievablePipeline::onEos (GstAppSink *sink, gpointer user_data)
 {
-    _warn ("Got EOS on pipeline at appsink");
+    _warn ("RetreivablePipeline: Got EOS on pipeline at appsink");
 }
 
 void RetrievablePipeline::init (GstCaps* caps, Pipeline& pipeline)
@@ -104,7 +104,7 @@ void RetrievablePipeline::init (GstCaps* caps, Pipeline& pipeline)
     gst_app_sink_set_callbacks (GST_APP_SINK (appsink), &sinkCallbacks, this,
                                 NULL);
 
-    _debug ("Callbacks configured on appsink");
+    _debug ("RetreivablePipeline: Callbacks configured on appsink");
 
     // Add to the existing pipeline
     gst_bin_add_many (GST_BIN (getGstPipeline()), appsink, NULL);

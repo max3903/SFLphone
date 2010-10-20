@@ -57,7 +57,7 @@ throw (VideoDeviceIOException)
                                gstDevice->getPreferredFrameRateNumerator(),
                                gstDevice->getPreferredFrameRateDenominator(), APPSINK_NAME);
 
-    _debug ("Opening Gstreamer with pipeline : %s", command);
+    _debug ("VideoInputSource: Opening Gstreamer with pipeline : %s", command);
 
     GError* error = NULL;
     pipeline = gst_parse_launch (command, &error);
@@ -243,7 +243,7 @@ std::vector<VideoFormat> VideoInputSourceGst::getWebcamCapabilities (
                 name = "Unknown";
             }
 
-            _debug ("Getting capabilities for device: %s (%s)", name, device.c_str());
+            _debug ("VideoinputSource: Getting capabilities for device: %s (%s)", name, device.c_str());
 
             pad = gst_element_get_pad (src, "src");
             caps = gst_pad_get_caps (pad);
@@ -481,6 +481,7 @@ throw (MissingGstPluginException)
 std::vector<VideoDevicePtr> VideoInputSourceGst::getV4l2Devices()
 throw (MissingGstPluginException)
 {
+	_debug("VideoInputSource: Get video device");
 
     std::vector<std::string> neededPlugins;
     neededPlugins.push_back ("v4l2src");
@@ -492,7 +493,7 @@ throw (MissingGstPluginException)
     element = gst_element_factory_make ("v4l2src", "v4l2srcpresencetest");
 
     if (element == NULL) {
-        _error ("V4L2 plugin is missing");
+        _error ("VideoInputSource: V4L2 plugin is missing");
         throw MissingGstPluginException ("Missing v4l2src plugin.");
     } else {
         GstPropertyProbe* probe = NULL;
@@ -543,7 +544,7 @@ std::vector<VideoDevicePtr> VideoInputSourceGst::enumerateDevices (void)
 
     } catch (MissingGstPluginException e) {
         // TODO We might want to pop something up to the user in the GUI.
-        _warn ( (std::string ("A plugin is missing : ") + e.what()).c_str());
+        _warn ( (std::string ("VideoInputSource: A plugin is missing : ") + e.what()).c_str());
     }
 
     return detectedDevices;

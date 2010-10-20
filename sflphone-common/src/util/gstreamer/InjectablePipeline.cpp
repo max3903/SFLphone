@@ -65,12 +65,12 @@ void InjectablePipeline::setField (const std::string& name, const std::string& v
     caps = gst_caps_make_writable (caps);
 
     // Note that this method set the value in all structures.
-    _debug ("Setting field %s=%s on caps", name.c_str(), value.c_str());
+    _debug ("InjectablePipeline: Setting field %s=%s on caps", name.c_str(), value.c_str());
     gst_caps_set_value (caps, name.c_str(), &gstValue);
 
     gst_app_src_set_caps (GST_APP_SRC (appsrc), caps); // Might not have to do that.
 
-    _debug ("New altered caps on injectable element %" GST_PTR_FORMAT, caps);
+    _debug ("InjectablePipeline: New altered caps on injectable element %" GST_PTR_FORMAT, caps);
 }
 
 std::string InjectablePipeline::getField (const std::string& name)
@@ -84,7 +84,7 @@ std::string InjectablePipeline::getField (const std::string& name)
     const GValue*  value = gst_structure_get_value (structure, name.c_str());
     if (!G_IS_VALUE(value)) {
         // TODO throw
-    	_debug("Field \"%s\" could not be found", name.c_str());
+    	_debug("InjectablePipeline: Field \"%s\" could not be found", name.c_str());
     	return std::string("");
     }
 
@@ -92,7 +92,7 @@ std::string InjectablePipeline::getField (const std::string& name)
     gchar* valueStr;
     std::string output;
     if ( (valueStr = gst_value_serialize (value)) == NULL) {
-    	_warn("Failed to unserialize data.");
+    	_warn("InjectablePipeline: Failed to unserialize data.");
     }
     return std::string(valueStr);
 }
@@ -130,16 +130,16 @@ void InjectablePipeline::inject (GstBuffer* data)
        // _debug ("Injecting buffer ...");
 
         if (gst_app_src_push_buffer (GST_APP_SRC (appsrc), data) != GST_FLOW_OK) {
-            _warn ("Failed to push buffer.");
+            _warn ("InjectablePipeline: Failed to push buffer.");
         }
     } else {
-        _warn ("Dropping buffer. Not enough space in input queue.");
+        _warn ("InjectablePipeline: Dropping buffer. Not enough space in input queue.");
     }
 }
 
 void InjectablePipeline::stop()
 {
-    _warn ("Sending EOS message from injectable endpoint (%s:%d)", __FILE__, __LINE__);
+    _warn ("InjectablePipeline: Sending EOS message from injectable endpoint (%s:%d)", __FILE__, __LINE__);
     gst_app_src_end_of_stream (GST_APP_SRC (appsrc));
     Pipeline::stop();
 }
@@ -147,6 +147,8 @@ void InjectablePipeline::stop()
 void InjectablePipeline::init (GstCaps* caps, Pipeline& pipeline,
                                size_t maxQueueSize)
 {
+	_debug("InjectablePipeline: Init");
+
     gst_init (0, NULL);
 
     // Let the data be queued initially
@@ -194,7 +196,7 @@ void InjectablePipeline::init (GstCaps* caps, Pipeline& pipeline,
 void InjectablePipeline::setSink (GstElement* sink)
 {
     if (gst_element_link (appsrc, sink) == FALSE) {
-        throw GstException ("Failed to prepend appsrc to head.");
+        throw GstException ("InjectablePipeline: Failed to prepend appsrc to head.");
     }
 }
 
@@ -202,11 +204,11 @@ void InjectablePipeline::setSink (GstPad* other)
 {
     GstPad* sourcePad = gst_element_get_static_pad (appsrc, "src");
     if (sourcePad == NULL) {
-        throw GstException ("Failed to obtain static pad on the source.");
+        throw GstException ("InjectablePipeline: Failed to obtain static pad on the source.");
     }
 
 	if (gst_pad_link(sourcePad, other) != GST_PAD_LINK_OK) {
-        throw GstException ("Failed to prepend appsrc to pad.");
+        throw GstException ("InjectablePipeline: Failed to prepend appsrc to pad.");
 	}
 }
 
