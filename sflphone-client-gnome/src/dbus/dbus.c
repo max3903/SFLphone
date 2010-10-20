@@ -1528,7 +1528,7 @@ dbus_get_active_video_codecs (gchar* accountID)
 void
 dbus_set_active_video_codecs (const gchar** list, const gchar *accountID)
 {
-    DEBUG ("Sending active video codec list for account %s ...", accountID);
+    DEBUG ("Dbus: Sending active video codec list for account %s ...", accountID);
     GError *error = NULL;
     org_sflphone_SFLphone_ConfigurationManager_set_active_video_codecs (
         configurationManagerProxy, list, accountID, &error);
@@ -1544,7 +1544,7 @@ void
 dbus_set_video_settings (const gchar* accountID,
                          video_settings_t* video_settings)
 {
-    DEBUG ("Setting video for account id %s", accountID);
+    DEBUG ("Dbus: Setting video for account id %s", accountID);
 
     GValue elem = {0};
     g_value_init (&elem, DBUS_VIDEO_SETTINGS_TYPE);
@@ -1552,7 +1552,7 @@ dbus_set_video_settings (const gchar* accountID,
                             DBUS_VIDEO_SETTINGS_TYPE));
 
     // Set resolution
-    GValue resolution; // = {0};
+    GValue resolution = {0};
     g_value_init (&resolution, DBUS_VIDEO_RESOLUTION_TYPE);
     g_value_take_boxed (&resolution, dbus_g_type_specialized_construct (
                             DBUS_VIDEO_RESOLUTION_TYPE));
@@ -1563,7 +1563,7 @@ dbus_set_video_settings (const gchar* accountID,
                             G_MAXUINT);
 
     // Set framerate
-    GValue framerate; // = {0};
+    GValue framerate = {0};
     g_value_init (&framerate, DBUS_VIDEO_FRAMERATE_TYPE);
     g_value_take_boxed (&framerate, dbus_g_type_specialized_construct (
                             DBUS_VIDEO_FRAMERATE_TYPE));
