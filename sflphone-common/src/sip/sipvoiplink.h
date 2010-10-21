@@ -249,9 +249,10 @@ class SipVoipLink: public VoIPLink
 
         /**
          * Handling 5XX/6XX error
-         * @param
+         * @param Pointer to call
+         * @param String describing the cause of the error
          */
-        void SipCallServerFailure (SipCall *call);
+        void SipCallServerFailure (SipCall *call, std::string& cause);
 
         /**
          * Peer close the connection

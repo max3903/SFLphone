@@ -1722,18 +1722,17 @@ bool SipVoipLink::SIPStartCall (SipCall* call, const std::string& subject UNUSED
     return true;
 }
 
-void SipVoipLink::SipCallServerFailure (SipCall *call)
+void SipVoipLink::SipCallServerFailure (SipCall *call, std::string& cause)
 {
     if (call != 0) {
-        _error ("UserAgent: Error: Server error!");
+        _error ("UserAgent: Error: Server error! %s", cause.c_str());
         CallId id = call->getCallId();
         Manager::instance().callFailure (id);
         terminateOneCall (id);
         removeCall (id);
 
-        if (call->getAudioRtp()) {
+        if (call->getAudioRtp())
             call->getAudioRtp()->stop();
-        }
     }
 }
 
@@ -3122,6 +3121,8 @@ void call_on_state_changed (pjsip_inv_session *inv, pjsip_event *e)
         // Make sure link is valid
         assert (link);
 
+        std::string cause = "";
+
         switch (inv->cause) {
             // The call terminates normally - BYE / CANCEL
             case PJSIP_SC_OK:
@@ -3130,27 +3131,50 @@ void call_on_state_changed (pjsip_inv_session *inv, pjsip_event *e)
                 break;
 
             case PJSIP_SC_DECLINE:
-                _debug ("UserAgent: Call %s is declined", call->getCallId().c_str());
-
+                cause = "Call declined";
                 if (inv->role == PJSIP_ROLE_UAC)
-                    link->SipCallServerFailure (call);
-
+                    link->SipCallServerFailure (call, cause);
                 break;
-            case PJSIP_SC_NOT_FOUND:            /* peer not found */
-            case PJSIP_SC_REQUEST_TIMEOUT:      /* request timeout */
-            case PJSIP_SC_NOT_ACCEPTABLE_HERE:  /* no compatible codecs */
+            case PJSIP_SC_NOT_FOUND:
+            	cause = "Peer not found";
+            	link->SipCallServerFailure(call, cause);
+            	break;
+            case PJSIP_SC_REQUEST_TIMEOUT:
+            	cause = "Request timeout";
+            	link->SipCallServerFailure(call, cause);
+            	break;
+            case PJSIP_SC_NOT_ACCEPTABLE_HERE:
+            	cause = "No compatible codecs";
+            	link->SipCallServerFailure(call, cause);
+            	break;
             case PJSIP_SC_NOT_ACCEPTABLE_ANYWHERE:
+            	cause = "Request not acceptable anywhere";
+            	link->SipCallServerFailure(call, cause);
+            	break;
             case PJSIP_SC_UNSUPPORTED_MEDIA_TYPE:
+            	cause = "Unsupported media type";
+            	link->SipCallServerFailure(call, cause);
+            	break;
             case PJSIP_SC_UNAUTHORIZED:
+            	cause = "Unauthorized";
+            	link->SipCallServerFailure(call, cause);
+            	break;
             case PJSIP_SC_FORBIDDEN:
+            	cause = "Forbidden";
+            	link->SipCallServerFailure(call,cause);
+            	break;
             case PJSIP_SC_REQUEST_PENDING:
+            	cause = "Request Pending";
+            	link->SipCallServerFailure(call, cause);
+            	break;
             case PJSIP_SC_ADDRESS_INCOMPLETE:
-                link->SipCallServerFailure (call);
+            	cause = "Address Incomplete";
+                link->SipCallServerFailure (call, cause);
                 break;
 
             default:
-                link->SipCallServerFailure (call);
-                _error ("UserAgent: Unhandled call state. This is probably a bug.");
+            	cause = "UserAgent: Unhandled call state. This is probably a bug.";
+                link->SipCallServerFailure (call, cause);
                 break;
         }
     }
