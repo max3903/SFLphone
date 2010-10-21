@@ -489,29 +489,40 @@ throw (MissingGstPluginException)
 
     // Retreive the list of devices and their details.
     std::vector<VideoDevicePtr> detectedDevices;
-    GstElement* element = NULL;
-    element = gst_element_factory_make ("v4l2src", "v4l2srcpresencetest");
+    GstElement *element = gst_element_factory_make ("v4l2src", "v4l2srcpresencetest");
 
-    if (element == NULL) {
+    if (!element) {
         _error ("VideoInputSource: V4L2 plugin is missing");
         throw MissingGstPluginException ("Missing v4l2src plugin.");
     } else {
-        GstPropertyProbe* probe = NULL;
-        const GParamSpec* pspec = NULL;
-        GValueArray* array = NULL;
 
-        probe = GST_PROPERTY_PROBE (element);
-        pspec = gst_property_probe_get_property (probe, "device");
-        array = gst_property_probe_probe_and_get_values (probe, pspec);
+        GstPropertyProbe *probe = GST_PROPERTY_PROBE (element);
+        const GParamSpec *pspec = gst_property_probe_get_property (probe, "device");
 
-        if (array != NULL) {
+        if(!pspec) {
+        	_error("VideoInputSource: Could not get plugin properties");
+        }
+
+        GValueArray *array = gst_property_probe_probe_and_get_values (probe, pspec);
+
+        if (array) {
             for (guint index = 0; index < array->n_values; index++) {
-                GValue* device = NULL;
+
                 gchar* name = NULL;
 
-                device = g_value_array_get_nth (array, index);
+                GValue* device = g_value_array_get_nth (array, index);
                 g_object_set_property (G_OBJECT (element), "device", device);
                 g_object_get (G_OBJECT (element), "device-name", &name, NULL);
+
+                if(!device) {
+                	_warn("VideoInputSource: No device found with index %d", index);
+                	continue;
+                }
+
+                if(!name) {
+                	_warn("VideoInputSource: No valid name for device with index %d", index);
+                	continue;
+                }
 
                 // Add to vector
                 std::vector<VideoFormat> formats = getWebcamCapabilities (V4L2,
