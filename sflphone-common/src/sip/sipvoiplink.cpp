@@ -3237,8 +3237,8 @@ void call_on_media_update (pjsip_inv_session *inv, pj_status_t status)
     }
 
     // Negotiate the format attributes, if any
-    if (call->getLocalSDP()->negotiateFormat() == false) {
-        _warn ("Failed to negotiate formats");
+    if (!call->getLocalSDP()->negotiateFormat()) {
+        _warn ("UserAgent: Failed to negotiate formats");
         link->hangup (call->getCallId());
         Manager::instance().callFailure (call->getCallId());
     }

@@ -435,7 +435,7 @@ void Sdp::setNegotiatedSdp(const pjmedia_sdp_session *sdp) {
 		InitialMediasIterator it = std::find_if(_initialMedias.begin(),
 				_initialMedias.end(), IsSameMedia(mediaType, port));
 		if (it == _initialMedias.end()) {
-			_error ("A media of type \"%s\" was received in the SDP answer, but was not specified in the initial offer.", mediaType.c_str());
+			_error ("Sdp: A media of type \"%s\" was received in the SDP answer, but was not specified in the initial offer.", mediaType.c_str());
 			continue;
 		}
 

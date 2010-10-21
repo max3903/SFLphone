@@ -491,6 +491,8 @@ throw (MissingGstPluginException)
     std::vector<VideoDevicePtr> detectedDevices;
     GstElement *element = gst_element_factory_make ("v4l2src", "v4l2srcpresencetest");
 
+    _debug("VideoInputSource: Get Properties from devices");
+
     if (!element) {
         _error ("VideoInputSource: V4L2 plugin is missing");
         throw MissingGstPluginException ("Missing v4l2src plugin.");
@@ -502,6 +504,8 @@ throw (MissingGstPluginException)
         if(!pspec) {
         	_error("VideoInputSource: Could not get plugin properties");
         }
+
+        _debug("VideoInputSource: Probe devices");
 
         GValueArray *array = gst_property_probe_probe_and_get_values (probe, pspec);
 
@@ -528,18 +532,25 @@ throw (MissingGstPluginException)
                 std::vector<VideoFormat> formats = getWebcamCapabilities (V4L2,
                                                    g_value_get_string (device));
 
-                detectedDevices.push_back (VideoDevicePtr (new GstVideoDevice (
-                                               V4L2, formats, g_value_get_string (device), name)));
+                try {
+                	GstVideoDevice * gstvdev = new GstVideoDevice (V4L2, formats, g_value_get_string (device), name);
+                	detectedDevices.push_back (VideoDevicePtr (gstvdev));
+                }
+                catch(sfl::InvalidVideoDeviceException) {
+                	continue;
+                }
 
                 g_free (name);
             }
+
+            g_value_array_free (array);
+
         }
 
-        g_value_array_free (array);
         gst_element_set_state (element, GST_STATE_NULL);
-    }
 
-    gst_object_unref (GST_OBJECT (element));
+        gst_object_unref (GST_OBJECT (element));
+    }
 
     return detectedDevices;
 }
