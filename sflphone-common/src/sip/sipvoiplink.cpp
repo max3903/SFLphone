@@ -3282,6 +3282,11 @@ void call_on_media_update (pjsip_inv_session *inv, pj_status_t status)
         }
     }
 
+    if(!call->getAudioRtp()) {
+    	std::string cause("UserAgent: No valid RTP session initialized while negotiating SDP");
+    	link->SipCallServerFailure(call, cause);
+    	return;
+    }
 
     // We did not found any crypto context for this media, RTP fallback
     if (!nego_success && call->getAudioRtp()->getAudioRtpType() == sfl::Sdes) {
