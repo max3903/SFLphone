@@ -38,7 +38,7 @@ void VideoInputSource::open() throw (VideoDeviceIOException,
         open (devices.at (0));
         setDevice (devices.at (0));
     } else {
-        _debug ("Opening current device %s", currentDevice->getName().c_str());
+        _debug ("VideoInputSource: Opening current device %s", currentDevice->getName().c_str());
         open (currentDevice);
     }
 }
@@ -64,7 +64,7 @@ void VideoInputSource::setDevice (const std::string& deviceFile, Dimension dim, 
         if (deviceFile == (*it)->getDevice()) {
             setDevice ( (*it));
 
-            _debug ("Found device file %s", deviceFile.c_str());
+            _debug ("VideoInputSource: Found device file %s", deviceFile.c_str());
 
             VideoFormat format;
             format.setWidth (dim.getWidth());
@@ -92,7 +92,7 @@ throw (UnknownVideoDeviceException)
     std::vector<sfl::VideoDevicePtr> devices = enumerateDevices();
     std::vector<sfl::VideoDevicePtr>::iterator it;
 
-    _debug ("Searching for device (%s) to set", device.c_str());
+    _debug ("VideoInputSource: Searching for device (%s) to set", device.c_str());
 
     // Search for that name
     for (it = devices.begin(); it < devices.end(); it++) {

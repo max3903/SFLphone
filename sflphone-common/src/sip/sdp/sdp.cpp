@@ -360,7 +360,7 @@ void Sdp::createMediaDescriptionLine(SdpMedia *media, pjmedia_sdp_media** p_med)
 
 		// Convert the rtpmap structure into an SDP attribute
 		pjmedia_sdp_rtpmap_to_attr(_pool, &rtpmap, &attr);
-		_debug("%.*s", attr->value.slen, attr->value.ptr);
+		_debug("Sdp: rtpmap: %.*s", attr->value.slen, attr->value.ptr);
 		pjmedia_sdp_media_add_attr(med, attr);
 
 		// We know it's OK to strip the const away in this very case,
@@ -371,7 +371,7 @@ void Sdp::createMediaDescriptionLine(SdpMedia *media, pjmedia_sdp_media** p_med)
 			std::string value = std::string(med->desc.fmt[i].ptr,
 				med->desc.fmt[i].slen) + std::string(" ") + params;
 
-			_debug("Format \"%s\"", value.c_str());
+			_debug("Sdp: Format \"%s\"", value.c_str());
 			attr = PJ_POOL_ALLOC_T(_pool, pjmedia_sdp_attr); // FIXME Have no idea how it could be freed.
 			attr->name = pj_str(strdup("fmtp"));
 			attr->value = pj_str(strdup(value.c_str()));
@@ -380,7 +380,7 @@ void Sdp::createMediaDescriptionLine(SdpMedia *media, pjmedia_sdp_media** p_med)
 		}
 	}
 
-	_debug("Stream direction : %s", media->getStreamDirectionStr().c_str());
+	_debug("Sdp: Stream direction : %s", media->getStreamDirectionStr().c_str());
 
 	if (!_zrtpHelloHash.empty()) {
 		try {
@@ -389,7 +389,7 @@ void Sdp::createMediaDescriptionLine(SdpMedia *media, pjmedia_sdp_media** p_med)
 			throw;
 		}
 	} else {
-		_warn ("No hash specified");
+		_warn ("Sdp: No hash specified");
 	}
 
 	*p_med = med;

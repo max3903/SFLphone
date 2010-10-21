@@ -329,13 +329,13 @@ std::string VideoEndpoint::startRtpSession(const InetSocketAddress& localAddress
 
 void VideoEndpoint::addDestination(const InetSocketAddress& localAddress,
 		const InetSocketAddress& destinationAddress) {
-	_info("Adding destination %s to RTP session bound on %s", destinationAddress.toString().c_str(), localAddress.toString().c_str());
+	_info("VideoEndpoint: Adding destination %s to RTP session bound on %s", destinationAddress.toString().c_str(), localAddress.toString().c_str());
 
 	SocketAddressToRtpSessionRecordIterator socketIt =
 			socketAddressToRtpSessionRecord.find(localAddress);
 	if (socketIt == socketAddressToRtpSessionRecord.end()) {
 		// TODO throw UnavailableSomethingException
-		_error("Could not find RTP session for local address %s (%s:%d)", localAddress.toString().c_str(), __FILE__, __LINE__);
+		_error("VideoEndpoint: Could not find RTP session for local address %s (%s:%d)", localAddress.toString().c_str(), __FILE__, __LINE__);
 	}
 
 	ost::InetHostAddress address = destinationAddress.getAddress();

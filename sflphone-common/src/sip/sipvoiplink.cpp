@@ -3327,18 +3327,18 @@ void call_on_media_update (pjsip_inv_session *inv, pj_status_t status)
         return;
     }
 
+    // Start the video session
+    if (call->isVideoEnabled()) {
+        std::vector<const sfl::VideoCodec*> videoCodecs = sdpSession->getNegotiatedVideoCodecs();
+        DBusManager::instance().getVideoManager()->startRtpSession(call, videoCodecs);
+    }
+
     try {
         _info ("Starting audio RTP session ...");
         call->setAudioStart (true);
         call->getAudioRtp()->start (rtpCodec);
     } catch (sfl::AudioRtpFactoryException& rtpException) {
         _error ("UserAgent: Error: %s", rtpException.what());
-    }
-
-    // Start the video session
-    if (call->isVideoEnabled()) {
-        std::vector<const sfl::VideoCodec*> videoCodecs = sdpSession->getNegotiatedVideoCodecs();
-        DBusManager::instance().getVideoManager()->startRtpSession(call, videoCodecs);
     }
 
 }
