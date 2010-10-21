@@ -56,13 +56,24 @@ GstFlowReturn RetrievablePipeline::onNewBuffer (GstAppSink* sink, gpointer data)
 
 GstBuffer* RetrievablePipeline::getBuffer()
 {
-	return gst_app_sink_pull_buffer (GST_APP_SINK (appsink));
+	return gst_app_sink_pull_preroll (GST_APP_SINK (appsink));
 }
 
-GstFlowReturn RetrievablePipeline::onNewPreroll (GstAppSink *sink,
-        gpointer user_data)
+GstFlowReturn RetrievablePipeline::onNewPreroll (GstAppSink *sink, gpointer data)
 {
     _debug ("RetreivablePipeline: New preroll buffer is available");
+
+    RetrievablePipeline* self = (RetrievablePipeline*) data;
+
+    GstBuffer *prerollBuffer = gst_app_sink_pull_preroll(GST_APP_SINK (self->appsink));
+    if(prerollBuffer == NULL) {
+    	_warn ("RetreivablePipeline: Pulled a NULL buffer");
+    	return GST_FLOW_OK;
+    }
+
+    // Notify the observers
+    self->notifyAll (prerollBuffer);
+
     return GST_FLOW_OK;
 }
 
@@ -87,6 +98,8 @@ void RetrievablePipeline::init (GstCaps* caps, Pipeline& pipeline)
     ss << name;
     ss << "_retrievable_";
     ss << numberInstances;
+
+    _debug("RetreivablePipeline: Init appsink");
 
     appsink = gst_element_factory_make ("appsink", (ss.str()).c_str());
 

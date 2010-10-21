@@ -113,6 +113,7 @@ gboolean GstEncoder::extractParameter(GQuark field_id, const GValue* value,
 }
 
 void GstEncoder::generateSdpParameters() {
+
 	_debug("GstEncoder: Generating SDP by injecting frames ...");
 	// Set the selector to point on the videotestsrc
 	selectVideoTestSrc(true);
@@ -123,6 +124,8 @@ void GstEncoder::generateSdpParameters() {
 	if (buffer == NULL) {
 		_error ("Got NULL buffer");
 	}
+
+	_debug("GstEncoder: Get capabilities");
 
 	// Save a copy of the caps
 	setBufferCaps(gst_buffer_get_caps(buffer));
