@@ -234,8 +234,6 @@ void VideoEndpoint::onNewFrame(const VideoFrame* frame) {
 
 	// Notify other processes
 	broadcastNewFrameEvent();
-
-	_debug("OK");
 }
 
 void VideoEndpoint::removeRtpSession(const sfl::InetSocketAddress& address) {

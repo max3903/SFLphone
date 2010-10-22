@@ -1736,6 +1736,9 @@ void SipVoipLink::SipCallServerFailure (SipCall *call, std::string& cause)
 
         if (call->getAudioRtp())
             call->getAudioRtp()->stop();
+
+        // Start the video session
+        DBusManager::instance().getVideoManager()->stopRtpSession(call);
     }
 }
 
@@ -1755,6 +1758,9 @@ void SipVoipLink::SipCallClosed (SipCall *call)
         _debug ("UserAgent: Stopping AudioRTP when closing");
         call->getAudioRtp()->stop();
     }
+
+    // Start the video session
+    DBusManager::instance().getVideoManager()->stopRtpSession(call);
 
     Manager::instance().peerHungupCall (id);
     terminateOneCall (id);
