@@ -903,6 +903,9 @@ bool SipVoipLink::answer (const CallId& id)
     if (status == PJ_SUCCESS) {
 
         _debug ("SIPVoIPLink::answer:UserAgent: Negociation success! : call %s ", call->getCallId().c_str());
+
+        status = pjsip_inv_answer (inv_session, PJSIP_SC_OK, NULL, NULL, &tdata);
+
         // Create and send a 200(OK        status = pjsip_inv_answer (inv_session, PJSIP_SC_OK, NULL, NULL, &tdata);
         PJ_ASSERT_RETURN (status == PJ_SUCCESS, 1);
         status = pjsip_inv_send_msg (inv_session, tdata);
