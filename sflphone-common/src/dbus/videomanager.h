@@ -233,14 +233,14 @@ class VideoManager: public org::sflphone::SFLphone::VideoManager_adaptor,
         	 */
         	void onRemoteVideoStreamStarted(const std::string& shm) {
         		if (callId != "") {
-        			_debug("Sending signal onRemoteVideoStreamStarted for shm \"%s\" and callid %s", shm.c_str(), callId.c_str());
+        			_debug("EndpointObserver: Sending signal onRemoteVideoStreamStarted for shm \"%s\" and callid %s", shm.c_str(), callId.c_str());
         			parent->onNewRemoteVideoStream(callId, shm);
         		}
         	}
 
         	void onRemoteVideoStreamStopped(const std::string& shm) {
         		if (callId != "") {
-        			_debug("Sending signal onRemoteVideoStreamStopped for shm \"%s\" and callid \"%s\"", shm.c_str(), callId.c_str());
+        			_debug("EndpointObserver: Sending signal onRemoteVideoStreamStopped for shm \"%s\" and callid \"%s\"", shm.c_str(), callId.c_str());
         			parent->onRemoteVideoStreamStopped(callId, shm);
         		}
         	}

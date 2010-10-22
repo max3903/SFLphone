@@ -903,8 +903,7 @@ bool SipVoipLink::answer (const CallId& id)
     if (status == PJ_SUCCESS) {
 
         _debug ("SIPVoIPLink::answer:UserAgent: Negociation success! : call %s ", call->getCallId().c_str());
-        // Create and send a 200(OK) response
-        status = pjsip_inv_answer (inv_session, PJSIP_SC_OK, NULL, NULL, &tdata);
+        // Create and send a 200(OK        status = pjsip_inv_answer (inv_session, PJSIP_SC_OK, NULL, NULL, &tdata);
         PJ_ASSERT_RETURN (status == PJ_SUCCESS, 1);
         status = pjsip_inv_send_msg (inv_session, tdata);
         PJ_ASSERT_RETURN (status == PJ_SUCCESS, 1);
@@ -913,6 +912,7 @@ bool SipVoipLink::answer (const CallId& id)
         call->setState (Call::Active);
 
         return true;
+
     } else {
         // Create and send a 488/Not acceptable here
         // because the SDP negociation failed
@@ -3862,14 +3862,14 @@ mod_on_rx_request (pjsip_rx_data *rdata)
 
     // Init the video RTP session, if any
     if (call->getLocalSDP()->getRemoteVideoPort() != 0) {
-    	_debug("Remote peer is offering video on port %d", call->getLocalSDP()->getRemoteVideoPort());
+    	_debug("UserAgent: Remote peer is offering video on port %d", call->getLocalSDP()->getRemoteVideoPort());
 
     	// If account allows video, stage the session
         if (call->isVideoEnabled()) {
         	try {
             	DBusManager::instance().getVideoManager()->stageRtpSession(call);
         	} catch (sfl::UnknownVideoDeviceException e) {
-        		_error("%s", e.what());
+        		_error("UserAgent: %s", e.what());
         	}
         }
     }

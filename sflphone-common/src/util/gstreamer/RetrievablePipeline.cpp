@@ -40,14 +40,15 @@ GstFlowReturn RetrievablePipeline::onNewBuffer (GstAppSink* sink, gpointer data)
     RetrievablePipeline* self = (RetrievablePipeline*) data;
 
     GstBuffer* buffer = gst_app_sink_pull_buffer (GST_APP_SINK (self->appsink));
-    if (buffer == NULL) {
+    if (!buffer) {
         _warn ("RetreivablePipeline: Pulled a NULL buffer");
         return GST_FLOW_OK;
     }
 
+    _debug("decoder 1");
     // Notify the observers (it's their only chance to copy the data if need to. Otherwise, we'll free the buffer just after.)
     self->notifyAll (buffer);
-
+    _debug("decoder 2");
     // Free the buffer. Big mem leak if missing.
     gst_buffer_unref (buffer);
 
@@ -61,6 +62,8 @@ GstBuffer* RetrievablePipeline::getBuffer()
 
 GstFlowReturn RetrievablePipeline::onNewPreroll (GstAppSink *sink, gpointer data)
 {
+
+	/*
     _debug ("RetreivablePipeline: New preroll buffer is available");
 
     RetrievablePipeline* self = (RetrievablePipeline*) data;
@@ -73,7 +76,7 @@ GstFlowReturn RetrievablePipeline::onNewPreroll (GstAppSink *sink, gpointer data
 
     // Notify the observers
     self->notifyAll (prerollBuffer);
-
+	*/
     return GST_FLOW_OK;
 }
 

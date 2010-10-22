@@ -123,12 +123,14 @@ std::vector<std::string> VideoManager::getFrameRates(const std::string& device,
 ::DBus::Struct<std::string, std::string> VideoManager::startLocalCapture(
 		const std::string& device, const int32_t& width, const int32_t& height,
 		const std::string& fps) throw (DBus::VideoIOException) {
+
 	_debug ("VideoManager: Starting video capture on DBus request.");
+
 	// The code below deals with a device that is already capturing.
 	DeviceNameToEndpointRecordIterator it = videoEndpoints.find(device);
 
 	if (it != videoEndpoints.end()) {
-		_debug ( (std::string ("Device ") + std::string ("is already mapped to some endpoint.")).c_str());
+		_debug ( (std::string ("VideoManager: Device ") + std::string ("is already mapped to some endpoint.")).c_str());
 
 		sfl::VideoEndpoint* runningEndpoint = ((*it).second)->getVideoEndpoint();
 
@@ -199,6 +201,7 @@ std::vector<std::string> VideoManager::getFrameRates(const std::string& device,
 void VideoManager::stopLocalCapture(const std::string& device,
 		const std::string& token) throw (DBus::VideoIOException,
 		DBus::InvalidTokenException) {
+
 	DeviceNameToEndpointRecordIterator it = videoEndpoints.find(device);
 
 	_debug ("VideoManager: Stopping device %s with token %s", device.c_str(), token.c_str());
@@ -317,7 +320,7 @@ void VideoManager::startRtpSession(SipCall* call, std::vector<
 			call->getVideoDevice());
 	if (it == videoEndpoints.end()) {
 		// TODO Throw UnstagedRtpSessionException
-		_error("Cannot find a video endpoint for device %s", call->getVideoDevice().c_str());
+		_error("VideoManager: Cannot find a video endpoint for device %s", call->getVideoDevice().c_str());
 		return;
 	}
 

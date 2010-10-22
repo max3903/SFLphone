@@ -435,7 +435,7 @@ private:
 
 	bool capturing;
 
-	static const useconds_t BUSY_WAIT_TIME = 500;
+	static const useconds_t BUSY_WAIT_TIME = 250;
 };
 
 }

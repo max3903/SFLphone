@@ -141,6 +141,7 @@ void GstDecoder::decode(Buffer<uint8>& data) throw (VideoDecodingException) {
 }
 
 void GstDecoder::setOutputFormat(VideoFormat& format) {
+
 	_debug("GstDecoder: Setting output format on decoder to %s", format.toString().c_str());
 	VideoFormatToGstCaps convert;
 	retrievableEnd->setCaps(convert(format));

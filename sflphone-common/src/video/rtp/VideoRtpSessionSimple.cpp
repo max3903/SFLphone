@@ -95,6 +95,8 @@ void VideoRtpSession::sendPayloaded(const VideoFrame* frame)
 
 void VideoRtpSession::init()
 {
+	_debug("VideoRtpSession: Initialize RTP session");
+
     // Fixed encoder for any video encoder type
     encoderObserver = new EncoderObserver (this);
     decoderObserver = new DecoderObserver (this);
@@ -111,15 +113,13 @@ void VideoRtpSession::init()
     // TODO Set the other items
     ost::defaultApplication().setSDESItem (ost::SDESItemTypeTOOL,
                                            "SFLPhone Video Endpoint");
-
-    _debug ("VideoRtpSessionSimple initialized.");
 }
 
 bool VideoRtpSession::onRTPPacketRecv (ost::IncomingRTPPkt& packet)
 {
     // Make sure that a decoder has been configured for this payload type
     if (getCurrentPayloadType() != packet.getPayloadType()) {
-        _warn ("New payload type detected during RTP session. Switching to new codec with payload type %d", packet.getPayloadType());
+        _warn ("VideoRtpSession: New payload type detected during RTP session. Switching to new codec with payload type %d", packet.getPayloadType());
         //setActiveCodec(packet.getPayloadType());
     }
 
@@ -129,6 +129,7 @@ bool VideoRtpSession::onRTPPacketRecv (ost::IncomingRTPPkt& packet)
 
     // Send to the depayloader/decoder
     Buffer<uint8> buffer (rawData, rawSize); // TODO Should not be managed
+
     activeCodec->decode (buffer);
 
     return true;
@@ -150,9 +151,18 @@ VideoRtpSession::VideoRtpSession (ost::InetHostAddress& ia,
 
 VideoRtpSession::~VideoRtpSession()
 {
+
     // TODO codec->removeObserver(encoderObserver);
+	// activeCodec->removeObserver(encoderObserver);
+	delete activeCodec;
 	// TODO free the codec list.
-    _warn ("VideoRtpSessionSimple has terminated");
+    _warn ("VideoRtpSession:  Rtp Session Simple has terminated");
+
+    clearObservers();
+
+    delete encoderObserver;
+    delete decoderObserver;
+
 }
 
 }

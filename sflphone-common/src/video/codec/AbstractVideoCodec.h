@@ -51,9 +51,12 @@ class AbstractVideoCodec: public virtual VideoCodec
     public:
         AbstractVideoCodec() :
                 VideoCodec() {
-            encoder = new EncoderType();
-            decoder = new DecoderType();
+            // encoder = new EncoderType();
+            // decoder = new DecoderType();
+
         }
+
+
 
         virtual ~AbstractVideoCodec() {
         }
@@ -63,73 +66,73 @@ class AbstractVideoCodec: public virtual VideoCodec
          * @Override
          */
         void setVideoInputFormat(const VideoFormat& format) {
-        	encoder->setVideoInputFormat(format);
+        	encoder.setVideoInputFormat(format);
         }
 
         /**
          * @Override
          */
         VideoFormat getVideoOutputFormat() {
-        	return decoder->getOutputFormat();
+        	return decoder.getOutputFormat();
         }
 
         /**
          * @Override
          */
         void addVideoFrameEncodedObserver (VideoFrameEncodedObserver& observer) {
-            encoder->addObserver (&observer);
+            encoder.addObserver (&observer);
         }
 
         /**
          * @Override
          */
         void addVideoFrameDecodedObserver (VideoFrameDecodedObserver& observer) {
-            decoder->addObserver (&observer);
+            decoder.addObserver (&observer);
         }
 
         /**
          * @Override
          */
         inline void decode (Buffer<uint8>& data) throw (VideoDecodingException) {
-            decoder->decode (data);
+            decoder.decode (data);
         }
 
         /**
          * @Override
          */
         void encode (const VideoFrame* frame) throw (VideoEncodingException) {
-            encoder->encode (frame);
+            encoder.encode (frame);
         }
 
         /**
          * @Override
          */
         void deactivate() {
-            encoder->deactivate();
-            decoder->deactivate();
+            encoder.deactivate();
+            decoder.deactivate();
         }
 
         /**
          * @Override
          */
         void activate() {
-            encoder->activate();
-            decoder->activate();
+            encoder.activate();
+            decoder.activate();
         }
 
         /**
          * @Override
          */
         void setParameter (const std::string& name, const std::string& value) {
-            encoder->setParameter (name, value);
-            decoder->setParameter (name, value);
+            encoder.setParameter (name, value);
+            decoder.setParameter (name, value);
         }
 
         /**
          * @Override
          */
         std::string getParameter (const std::string& name) {
-            return encoder->getParameter (name);
+            return encoder.getParameter (name);
         }
 
     private:
@@ -140,9 +143,9 @@ class AbstractVideoCodec: public virtual VideoCodec
         typedef typename DecoderType::IsDerivedFromVideoDecoder
         DerivedFromDecoderGuard;
 
-        EncoderType* encoder;
+        EncoderType encoder;
 
-        DecoderType* decoder;
+        DecoderType decoder;
 
 };
 

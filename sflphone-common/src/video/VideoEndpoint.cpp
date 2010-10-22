@@ -36,7 +36,7 @@ VideoEndpoint::VideoEndpoint(VideoInputSource* src) :
 	// Compute a simple CRC16 hash digest for this device. We want that to limit the
 	// length of possible device/path names and offer consistent syntax.
 	std::string hash = getDigest(src->getDevice()->getName());
-	_debug ("Device %s gets hashed to %s ", src->getDevice()->getName().c_str(), hash.c_str());
+	_debug ("VideoEndpoint: Device %s gets hashed to %s ", src->getDevice()->getName().c_str(), hash.c_str());
 
 	// Create a shared memory segment for video
 	shmVideoSource = new SharedMemoryPosix("/sflphone-shm-" + hash, false);
@@ -161,6 +161,7 @@ std::string VideoEndpoint::capture() throw (VideoDeviceIOException) {
 
 void VideoEndpoint::stopCapture(std::string token)
 		throw (VideoDeviceIOException, InvalidTokenException) {
+
 	if (!sourceTokens.erase(token)) {
 		throw InvalidTokenException("Token " + token + " is not valid.");
 	}
@@ -224,7 +225,7 @@ void VideoEndpoint::onNewFrame(const VideoFrame* frame) {
 	// Make sure that the shared memory is still big enough to hold the new frame
 	// Should be required once.
 	if (shmVideoSource->getSize() != frame->getSize()) {
-		_debug ("Truncating to %d", frame->getSize());
+		_debug ("VideoEndpoint: Truncating video source size %d to %d", shmVideoSource->getSize(), frame->getSize());
 		shmVideoSource->truncate(frame->getSize());
 	}
 
@@ -233,9 +234,14 @@ void VideoEndpoint::onNewFrame(const VideoFrame* frame) {
 
 	// Notify other processes
 	broadcastNewFrameEvent();
+
+	_debug("OK");
 }
 
 void VideoEndpoint::removeRtpSession(const sfl::InetSocketAddress& address) {
+
+	_debug("VideoEndpoint: Remove RTP Session");
+
 	SocketAddressToRtpSessionRecordIterator socketIt =
 			socketAddressToRtpSessionRecord.find(address);
 	if (socketIt == socketAddressToRtpSessionRecord.end()) {
@@ -256,7 +262,7 @@ void VideoEndpoint::createRtpSession(const sfl::InetSocketAddress& address) {
 		return;
 	}
 
-	_debug("No RTP session bound to socket on %s could be found, creating new one ...", address.toString().c_str());
+	_debug("VideoEndpoint: No RTP session bound to socket on %s could be found, creating new one ...", address.toString().c_str());
 
 	ost::InetHostAddress localAddress = address.getAddress();
 	sfl::VideoRtpSession* rtpSession = new sfl::VideoRtpSession(
@@ -282,6 +288,8 @@ void VideoEndpoint::createRtpSession(const sfl::InetSocketAddress& address) {
 
 	RtpStreamDecoderObserver* observer = new RtpStreamDecoderObserver(fd,
 			shmRtpStream, this);
+
+	_debug("VideoEndpoint: Rtp stream decoder observer %p", observer);
 
 	// Instantiate a decoder observer that will write into the SHM
 	rtpSession->addObserver(observer);
