@@ -1,6 +1,7 @@
 /*
  *  Copyright (C) 2004, 2005, 2006, 2009, 2008, 2009, 2010 Savoir-Faire Linux Inc.
  *  Author: Pierre-Luc Bacon <pierre-luc.bacon@savoirfairelinux.com>
+ *  Author: Alexandre Savard <alexandre.savard@savoirfairelinux.com>
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -33,6 +34,7 @@
 #include "AudioSymmetricRtpSession.h"
 #include "manager.h"
 #include "account.h"
+#include "sip/sdp/sdp.h"
 #include "sip/sipcall.h"
 #include "sip/sipaccount.h"
 #include "sip/sdp/SdesNegotiator.h"
@@ -307,6 +309,7 @@ void AudioRtpFactory::sendDtmfDigit (int digit)
             static_cast<AudioZrtpSession *> (_rtpSession)->putDtmfEvent (digit);
             break;
     }
+
 }
 }
 
