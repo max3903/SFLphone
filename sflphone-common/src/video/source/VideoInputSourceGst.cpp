@@ -169,16 +169,21 @@ void VideoInputSourceGst::grabFrame() throw (VideoDeviceIOException)
 
 void VideoInputSourceGst::close() throw (VideoDeviceIOException)
 {
-    gst_element_set_state (pipeline, GST_STATE_NULL);
+	GstStateChangeReturn state = gst_element_set_state (pipeline, GST_STATE_NULL);
+	if (state == GST_STATE_CHANGE_ASYNC) {
+		// Block for the operation to complete
+		_warn("Must block for a while before unref since the state change is asynchronous.");
 
-    // Wait at most 10 sec to ensure that the device is correctly closed
-    GstStateChangeReturn ret = gst_element_get_state (pipeline, NULL, NULL,
-                               STATE_CHANGE_MAX_WAIT * GST_SECOND);
+		GstState current;
+		GstState pending;
+		state = gst_element_get_state(pipeline, &current, &pending, STATE_CHANGE_MAX_WAIT);
 
-    if (ret == GST_STATE_CHANGE_ASYNC) {
-        throw VideoDeviceIOException ("Device " + currentDevice->getName()
-                                      + " is still closing.");
-    } else if (ret == GST_STATE_CHANGE_FAILURE) {
+		if (state != GST_STATE_CHANGE_SUCCESS ||
+				current != GST_STATE_NULL ||
+				pending != GST_STATE_VOID_PENDING) {
+			throw VideoDeviceIOException("Failed change state on " + currentDevice->getName() + " after a fixed amount of time.");
+		}
+	} else if (state == GST_STATE_CHANGE_FAILURE) {
         throw VideoDeviceIOException ("Device " + currentDevice->getName()
                                       + " failed to get closed.");
     }

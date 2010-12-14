@@ -93,7 +93,12 @@ class InjectablePipeline : public Pipeline, public AbstractObservable<void*, Inj
          */
         InjectablePipeline (Pipeline& middle, GstCaps* caps, size_t maxQueueSize);
 
-        virtual ~InjectablePipeline() {};;
+        virtual ~InjectablePipeline() {};
+
+        /**
+         * Send End of stream signal from the appsrc element.
+         */
+        void sendEos();
 
         /**
          * @Override

@@ -63,10 +63,27 @@ void Pipeline::init (GstElement* pipeline)
 
 void Pipeline::stop() throw (GstException)
 {
-    gst_element_set_state (pipeline, GST_STATE_NULL);
-    gst_object_unref (pipeline);
+	GstStateChangeReturn state = gst_element_set_state (pipeline, GST_STATE_NULL);
+	if (state == GST_STATE_CHANGE_ASYNC) {
+		// Block for the operation to complete
+		_warn("Must block for a while before unref since the state change is asynchronous.");
 
-    _warn ("Video decoder stopped.");
+		GstState current;
+		GstState pending;
+		state = gst_element_get_state(pipeline, &current, &pending, MAX_BUS_POOL_WAIT);
+
+		if (state != GST_STATE_CHANGE_SUCCESS ||
+				current != GST_STATE_NULL ||
+				pending != GST_STATE_VOID_PENDING) {
+			throw GstException("Failed get state change result after a fixed amount of time.");
+		}
+	} else if (state == GST_STATE_CHANGE_FAILURE) {
+        throw GstException ("Failed to change state to GST_STATE_NULL.");
+    }
+
+    gst_object_unref (GST_OBJECT (pipeline));
+
+    _warn ("Pipeline stopped.");
 }
 
 bool Pipeline::isPlaying() throw (GstException)

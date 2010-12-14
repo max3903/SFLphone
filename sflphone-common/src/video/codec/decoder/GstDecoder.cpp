@@ -200,6 +200,14 @@ void GstDecoder::deactivate() {
 	// Unsubscribe this object from appsink events.
 	retrievableEnd->removeObserver(outputObserver);
 
+	injectableEnd->sendEos();
+
+	_warn("Waiting to receive the EOS signal at the sink in decoder.");
+
+	// During that time on_new_buffer callback will be called and since the
+	// observer list will be empty, the buffers will just be cleared.
+	retrievableEnd->waitEos();
+
 	// Does not matter whether we call stop() on injectable or retrievable endpoints.
 	retrievableEnd->stop();
 

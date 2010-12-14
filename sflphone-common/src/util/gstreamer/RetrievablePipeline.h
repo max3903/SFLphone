@@ -94,6 +94,11 @@ class RetrievablePipeline : public Pipeline, public AbstractObservable<GstBuffer
          */
         GstCaps* getCaps();
 
+        /**
+         * Wait (indefinitely) for the EOS signal to be received.
+         */
+        void waitEos();
+
     protected:
         /**
          * Simple dispatch for this observer type.

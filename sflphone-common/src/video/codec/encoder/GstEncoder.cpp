@@ -274,10 +274,10 @@ void GstEncoder::init() throw (VideoDecodingException, MissingPluginException) {
 }
 
 GstEncoder::~GstEncoder() {
+	deactivate();
+
 	gst_object_unref(videotestsrcPad);
 	gst_object_unref(appsrcPad);
-
-	deactivate();
 
 	delete retrievableEnd;
 	delete injectableEnd;
@@ -310,12 +310,20 @@ void GstEncoder::activate() {
 }
 
 void GstEncoder::deactivate() {
-	VideoEncoder::deactivate();
-	_info ("GstEncoder: Deactivating encoder");
+	_info ("GstEncoder: Deactivating gstreamer encoder");
 
 	clearObservers();
 
 	retrievableEnd->removeObserver(outputObserver);
+
+	injectableEnd->sendEos();
+
+	_warn("Waiting to receive the EOS signal at the sink in encoder.");
+
+	// During that time on_new_buffer callback will be called and since the
+	// observer list will be empty, the buffers will just be cleared.
+	retrievableEnd->waitEos();
+
 	retrievableEnd->stop();
 }
 
