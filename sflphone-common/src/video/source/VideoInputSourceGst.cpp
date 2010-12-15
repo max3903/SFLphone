@@ -169,27 +169,22 @@ void VideoInputSourceGst::grabFrame() throw (VideoDeviceIOException)
 
 void VideoInputSourceGst::close() throw (VideoDeviceIOException)
 {
-	GstStateChangeReturn state = gst_element_set_state (pipeline, GST_STATE_NULL);
-	if (state == GST_STATE_CHANGE_ASYNC) {
-		// Block for the operation to complete
-		_warn("Must block for a while before unref since the state change is asynchronous.");
+	GstStateChangeReturn state =
+			gst_element_set_state(pipeline, GST_STATE_NULL);
 
-		GstState current;
-		GstState pending;
-		state = gst_element_get_state(pipeline, &current, &pending, STATE_CHANGE_MAX_WAIT);
+	GstState current;
+	GstState pending;
+	state = gst_element_get_state(pipeline, &current, &pending,
+			STATE_CHANGE_MAX_WAIT);
 
-		if (state != GST_STATE_CHANGE_SUCCESS ||
-				current != GST_STATE_NULL ||
-				pending != GST_STATE_VOID_PENDING) {
-			throw VideoDeviceIOException("Failed change state on " + currentDevice->getName() + " after a fixed amount of time.");
-		}
-	} else if (state == GST_STATE_CHANGE_FAILURE) {
-        throw VideoDeviceIOException ("Device " + currentDevice->getName()
-                                      + " failed to get closed.");
-    }
+	if (state != GST_STATE_CHANGE_SUCCESS || current != GST_STATE_NULL
+			|| pending != GST_STATE_VOID_PENDING) {
+		throw VideoDeviceIOException("Failed change state on "
+				+ currentDevice->getName() + " after a fixed amount of time.");
+	}
 
-    gst_object_unref (GST_OBJECT (pipeline));
-    pipelineRunning = false;
+	gst_object_unref(GST_OBJECT(pipeline));
+	pipelineRunning = false;
 }
 
 /**
