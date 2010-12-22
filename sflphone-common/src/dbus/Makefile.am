@@ -7,7 +7,10 @@ noinst_LTLIBRARIES = libdbus.la
 BUILT_SOURCES=                      \
     callmanager-glue.h              \
     configurationmanager-glue.h     \
-    instance-glue.h
+    ClientMonitor-glue.h
+
+ClientMonitor-glue.h: org.freedesktop.DBus.xml
+	$(DBUSXX) $^ --proxy=$@
 
 # Rule to generate the binding headers
 %-glue.h: %-introspec.xml Makefile.am
@@ -18,7 +21,8 @@ libdbus_la_SOURCES = \
     configurationmanager.cpp  \
     instance.cpp  \
     dbusmanagerimpl.cpp  \
-    networkmanager.cpp
+    networkmanager.cpp \
+    ClientMonitor.cpp
 
 if USE_NETWORKMANAGER
 NETWORKMANAGER=-DUSE_NETWORKMANAGER
@@ -33,11 +37,13 @@ libdbus_la_LIBADD = $(top_srcdir)/libs/dbus-c++/src/libdbus-c++-1.la
 noinst_HEADERS =            \
     callmanager.h           \
     configurationmanager.h  \
+    instance-adaptor.h      \
     instance.h              \
     dbusmanager.h           \
     dbusmanagerimpl.h       \
     networkmanager_proxy.h  \
     networkmanager.h        \
+    ClientMonitor.h         \
     $(BUILT_SOURCES)
 
 # Dbus service file

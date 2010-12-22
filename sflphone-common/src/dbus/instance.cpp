@@ -27,24 +27,60 @@
  *  shall include the source code for the parts of OpenSSL used as well
  *  as that of the covered work.
  */
-#include <global.h>
 #include <instance.h>
-#include "../manager.h"
+#include "manager.h"
+#include "global.h"
 
 const char* Instance::SERVER_PATH = "/org/sflphone/SFLphone/Instance";
+const char* Instance::DBUS_SERVER_NAME = "org.freedesktop.DBus";
+const char* Instance::DBUS_SERVER_PATH = "/org/freedesktop/DBus";
 
 Instance::Instance (DBus::Connection& connection)
-    : DBus::ObjectAdaptor (connection, SERVER_PATH)
+    : DBus::ObjectAdaptor (connection, SERVER_PATH),
+      ::DBus::ObjectProxy (connection, DBUS_SERVER_PATH, DBUS_SERVER_NAME)
+{}
+
+
+void
+Instance::NameOwnerChanged (const std::string& name,
+                            const std::string& old_owner, const std::string& new_owner)
 {
-    count = 0;
+    // Check if a name was released
+    ClientsIterator it = std::find (clients.begin(), clients.end(), old_owner);
+    if (new_owner == "" && it != clients.end()) {
+        TerminationThread* termination = new TerminationThread (this, old_owner);
+        termination->start();
+    }
+}
+
+void Instance::NameLost (const std::string& name)
+{
+    _warn ("Name lost %s", name.c_str());
+}
+
+void Instance::NameAcquired (const std::string& name)
+{
+    _warn ("Name acquired %s", name.c_str());
+}
+
+void
+Instance::removeClient (const std::string& uniqueName)
+{
+    ClientsIterator it = std::find (clients.begin(), clients.end(), uniqueName);
+    clients.erase (it);
+
+    if (clients.empty()) {
+        Manager::instance().terminate();
+        DBusManager::instance().exit();
+    }
 }
 
 void
 Instance::Register (const int32_t& pid UNUSED,
-                    const std::string& name UNUSED)
+                    const std::string& name UNUSED, const std::string& sender)
 {
-    _debug ("Instance::register received");
-    count++;
+    _debug ("Instance::register received from %s, adding to table", sender.c_str());
+    clients.push_back (sender);
 }
 
 
@@ -52,23 +88,11 @@ void
 Instance::Unregister (const int32_t& pid UNUSED)
 {
     _debug ("Instance::unregister received");
-    count --;
-
-    if (count <= 0) {
-
-
-        Manager::instance().terminate();
-
-        DBusManager::instance().exit();
-
-    }
 }
 
 int32_t
 Instance::getRegistrationCount (void)
 {
-
-    return count;
-
+    return clients.size();
 }
 

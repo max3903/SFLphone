@@ -28,34 +28,108 @@
  *  as that of the covered work.
  */
 
-#ifndef INSTANCE_H
-#define INSTANCE_H
+#ifndef __INSTANCE_H__
+#define __INSTANCE_H__
 
-#pragma GCC diagnostic ignored "-Wignored-qualifiers"
-#pragma GCC diagnostic ignored "-Wunused-parameter"
-#include "instance-glue.h"
-#pragma GCC diagnostic warning "-Wignored-qualifiers"
-#pragma GCC diagnostic warning "-Wunused-parameter"
+#include "manager.h"
+#include "dbus/dbusmanager.h"
+
+#include "instance-adaptor.h"
+#include "ClientMonitor-glue.h"
+
 #include <dbus-c++/dbus.h>
-
+#include <cc++/thread.h>
 
 class Instance
     : public org::sflphone::SFLphone::Instance_adaptor,
   public DBus::IntrospectableAdaptor,
-  public DBus::ObjectAdaptor
+  public DBus::ObjectAdaptor,
+  public org::freedesktop::DBus_proxy,
+  public DBus::IntrospectableProxy,
+  public DBus::ObjectProxy
 {
-    private:
-        int count;
-
     public:
         Instance (DBus::Connection& connection);
-        static const char* SERVER_PATH;
 
-        void Register (const int32_t& pid, const std::string& name);
+        /**
+         * The pid and name are currently useless. Only kept for compatibility issues.
+         * The sender argument is being passed by Dbus-c++
+         */
+        void Register (const int32_t& pid, const std::string& name,  const std::string& sender);
+
+        /**
+         * Unused as we monitor disconnection directly on the DBUS interface.
+         */
         void Unregister (const int32_t& pid);
+
+        /**
+         * Unused.
+         */
         int32_t getRegistrationCount (void);
 
+        /**
+         * Set to /org/sflphone/SFLphone/Instance
+         */
+        static const char* SERVER_PATH;
+
+        /**
+         * Set to org.freedesktop.DBus
+         */
+        static const char* DBUS_SERVER_NAME;
+
+        /**
+         * Set to /org/freedesktop/DBus
+         */
+        static const char* DBUS_SERVER_PATH;
+
+    protected:
+        void removeClient (const std::string& uniqueName);
+
+    private:
+        /**
+         * @Override
+         */
+        void NameOwnerChanged (const std::string& name, const std::string& old_owner, const std::string& new_owner);
+
+        /**
+         * @Override
+         */
+        void NameLost (const std::string&);
+
+        /**
+         * @Override
+         */
+        void NameAcquired (const std::string&);
+
+        std::vector<std::string> clients;
+        typedef std::vector<std::string>::iterator ClientsIterator;
+        ost::Mutex clientsMutex;
+
+        /**
+         * A termination thread is spawned too avoid
+         * deadlocks in the NameOwnerChanged signal.
+         */
+        class TerminationThread : public ost::Thread
+        {
+            public:
+                TerminationThread (Instance* self, const std::string& clientName) :
+                    parent (self),
+                    clientName (clientName) {};
+                virtual ~TerminationThread() {}
+
+            protected:
+                /**
+                 * @Override
+                 */
+                void run() {
+                    parent->removeClient (clientName);
+                }
+
+            private:
+                Instance* parent;
+                std::string clientName;
+        };
 };
 
 
-#endif//INSTANCE_H
+#endif

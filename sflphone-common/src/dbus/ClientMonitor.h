@@ -1,6 +1,6 @@
 /*
  *  Copyright (C) 2004, 2005, 2006, 2009, 2008, 2009, 2010 Savoir-Faire Linux Inc.
- *  Author: Pierre-Luc Beaudoin <pierre-luc.beaudoin@savoirfairelinux.com>
+ *  Author: Pierre-Luc Bacon <pierre-luc.bacon@savoirfairelinux.com>
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -27,36 +27,44 @@
  *  shall include the source code for the parts of OpenSSL used as well
  *  as that of the covered work.
  */
-
-#ifndef __DBUSMANAGERIMPL_H__
-#define __DBUSMANAGERIMPL_H__
+#ifndef __CLIENT_MONITOR_H__
+#define __CLIENT_MONITOR_H__
 
 #include <dbus-c++/dbus.h>
+#include "ClientMonitor-glue.h"
 
-class Instance;
-class ConfigurationManager;
-class CallManager;
-class NetworkManager;
-
-class DBusManagerImpl
+namespace sfl
+{
+/**
+ * This class monitors new connections from clients
+ * and exits the server when it's not being used.
+ */
+class ClientMonitor: public org::freedesktop::DBus_proxy,
+    public DBus::IntrospectableProxy,
+    public DBus::ObjectProxy
 {
     public:
-        CallManager * getCallManager() {
-            return _callManager;
-        };
-        ConfigurationManager * getConfigurationManager() {
-            return _configurationManager;
-        };
-        int exec();
-        void exit();
-        static const char* SERVER_NAME;
+
+        ClientMonitor (::DBus::Connection& conn);
 
     private:
-        CallManager*          _callManager;
-        ConfigurationManager* _configurationManager;
-        Instance*             _instanceManager;
-        DBus::BusDispatcher   _dispatcher;
-        NetworkManager* _networkManager;
+        /**
+         * @Override
+         */
+        void NameOwnerChanged (const std::string&, const std::string&,
+                               const std::string&);
+
+        /**
+         * @Override
+         */
+        void NameLost (const std::string&);
+
+        /**
+         * @Override
+         */
+        void NameAcquired (const std::string&);
+
 };
+}
 
 #endif

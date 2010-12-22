@@ -1,6 +1,6 @@
 /*
  *  Copyright (C) 2004, 2005, 2006, 2009, 2008, 2009, 2010 Savoir-Faire Linux Inc.
- *  Author: Pierre-Luc Beaudoin <pierre-luc.beaudoin@savoirfairelinux.com>
+ *  Author: Pierre-Luc Bacon <pierre-luc.bacon@savoirfairelinux.com>
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -27,60 +27,38 @@
  *  shall include the source code for the parts of OpenSSL used as well
  *  as that of the covered work.
  */
-
-#include <dbusmanagerimpl.h>
-#include "global.h"
-#include "manager.h"
-
-#include "instance.h"
-#include "callmanager.h"
-#include "configurationmanager.h"
-#include "networkmanager.h"
 #include "ClientMonitor.h"
+#include "logger.h"
 
-const char* DBusManagerImpl::SERVER_NAME = "org.sflphone.SFLphone";
+static const char* DBUS_SERVER_NAME = "org.freedesktop.DBus";
+static const char* DBUS_SERVER_PATH = "/org/freedesktop/DBus";
 
-int
-DBusManagerImpl::exec()
+namespace sfl
+{
+ClientMonitor::ClientMonitor (::DBus::Connection& conn) :
+    ::DBus::ObjectProxy (conn, DBUS_SERVER_PATH, DBUS_SERVER_NAME)
 {
 
-    DBus::default_dispatcher = &_dispatcher;
+    std::vector<std::string> names = ListNames();
 
-    DBus::Connection sessionConnection = DBus::Connection::SessionBus();
-    DBus::Connection systemConnection = DBus::Connection::SystemBus();
-    sessionConnection.request_name (SERVER_NAME);
-
-    _callManager = new CallManager (sessionConnection);
-    _configurationManager = new ConfigurationManager (sessionConnection);
-    _instanceManager = new Instance (sessionConnection);
-    //sfl::ClientMonitor* clientMonitor = new sfl::ClientMonitor (sessionConnection);
-
-#ifdef USE_NETWORKMANAGER
-    _networkManager = new NetworkManager (systemConnection, "/org/freedesktop/NetworkManager", "");
-#endif
-
-    // Register accounts
-    Manager::instance().initRegisterAccounts(); //getEvents();
-
-    _debug ("Starting DBus event loop");
-    _dispatcher.enter();
-
-    return 1;
+    for (std::vector<std::string>::iterator it = names.begin(); it != names.end(); ++it) {
+        _warn ("Client has name %s", (*it).c_str());
+    }
 }
 
-void
-DBusManagerImpl::exit()
+void ClientMonitor::NameOwnerChanged (const std::string& name,
+                                      const std::string& old_owner, const std::string& new_owner)
 {
-
-    _dispatcher.leave();
-
-    delete _callManager;
-    delete _configurationManager;
-    delete _instanceManager;
-
-#ifdef USE_NETWORKMANAGER
-    delete _networkManager;
-#endif
-
+    _warn ("NameOwnerChanged name %s changed owner from %s to %s", name.c_str(), old_owner.c_str(), new_owner.c_str());
 }
 
+void ClientMonitor::NameLost (const std::string& name)
+{
+    _warn ("Name lost %s", name.c_str());
+}
+
+void ClientMonitor::NameAcquired (const std::string& name)
+{
+    _warn ("Name acquired %s", name.c_str());
+}
+}
