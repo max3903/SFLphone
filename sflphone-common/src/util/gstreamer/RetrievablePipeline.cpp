@@ -85,12 +85,6 @@ GstFlowReturn RetrievablePipeline::onNewBufferList (GstAppSink *sink,
     return GST_FLOW_OK;
 }
 
-void RetrievablePipeline::waitEos()
-{
-	// FIXME Ugly Ugly Ugly. Hints : use the onEos callback.
-    while (!gst_app_sink_is_eos (GST_APP_SINK (appsink))) {}
-}
-
 void RetrievablePipeline::onEos (GstAppSink *sink, gpointer user_data)
 {
     _warn ("RetreivablePipeline: Got EOS on pipeline at appsink");

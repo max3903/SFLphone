@@ -127,6 +127,8 @@ void InjectablePipeline::need_data_cb (GstAppSrc *src, guint length,
 void InjectablePipeline::inject (GstBuffer* data)
 {
     if (enoughData == false) {
+       // _debug ("Injecting buffer ...");
+
         if (gst_app_src_push_buffer (GST_APP_SRC (appsrc), data) != GST_FLOW_OK) {
             _warn ("InjectablePipeline: Failed to push buffer.");
         }
@@ -135,18 +137,10 @@ void InjectablePipeline::inject (GstBuffer* data)
     }
 }
 
-void InjectablePipeline::sendEos()
-{
-    _warn ("InjectablePipeline: Sending EOS message from injectable endpoint (%s:%d)", __FILE__, __LINE__);
-    GstFlowReturn ret = gst_app_src_end_of_stream (GST_APP_SRC (appsrc));
-    if (ret != GST_FLOW_OK) {
-		_error("End of stream in wrong state");
-	}
-}
-
 void InjectablePipeline::stop()
 {
-	sendEos();
+    _warn ("InjectablePipeline: Sending EOS message from injectable endpoint (%s:%d)", __FILE__, __LINE__);
+    gst_app_src_end_of_stream (GST_APP_SRC (appsrc));
     Pipeline::stop();
 }
 

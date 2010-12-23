@@ -51,7 +51,12 @@ class AbstractVideoCodec: public virtual VideoCodec
     public:
         AbstractVideoCodec() :
                 VideoCodec() {
+            // encoder = new EncoderType();
+            // decoder = new DecoderType();
+
         }
+
+
 
         virtual ~AbstractVideoCodec() {
         }
