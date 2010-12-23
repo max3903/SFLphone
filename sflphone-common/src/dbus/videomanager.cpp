@@ -24,7 +24,7 @@
 #include "video/source/VideoFormat.h"
 
 #include "sip/sdp/sdp.h"
-
+#include "call.h"
 #include "logger.h"
 
 #include <vector>
@@ -354,7 +354,13 @@ void VideoManager::stopRtpSession(SipCall* call) {
 
 	// Stop local capture, if needed
 	sfl::VideoEndpoint* endpoint = ((*it).second)->getVideoEndpoint();
-	endpoint->stopCapture(call->getVideoToken());
+
+	// TODO See #4790 This might change if RTP is not started in call_on_media_update
+	if (call->getConnectionState() == Call::ConnectionState::Connected) {
+		endpoint->stopCapture(call->getVideoToken());
+	} else {
+		_info("Call should be in state CONNECTED but is %d. Can't stop.", call->getConnectionState());
+	}
 
 	// Stop and remove RTP session
 	endpoint->removeRtpSession(sfl::InetSocketAddress(call->getLocalIp(), call->getLocalVideoPort()));

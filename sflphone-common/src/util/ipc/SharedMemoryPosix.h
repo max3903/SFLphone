@@ -107,6 +107,11 @@ class SharedMemoryPosix
         void attach() throw (SharedMemoryException);
 
         /**
+         * @return true when the process is attached to the share memory segment.
+         */
+        bool isAttached() const;
+
+        /**
          * Removes any mappings for those entire pages containing any part of the address space of the process.
          */
         void release() throw (SharedMemoryException);

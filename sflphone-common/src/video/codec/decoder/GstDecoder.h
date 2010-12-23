@@ -125,7 +125,12 @@ class GstDecoder : public VideoDecoder, protected Filter
                  */
                 void onNewBuffer (GstBuffer* buffer) {
                 	gst_caps_unref(parent->currentCaps);
-                	parent->currentCaps = gst_buffer_get_caps(buffer);
+
+                	GstCaps* currentCaps = gst_buffer_get_caps(buffer);
+                	if (currentCaps != NULL) {
+                    	parent->currentCaps = currentCaps;
+                	}
+
                     Buffer<uint8_t> buf(GST_BUFFER_DATA(buffer), GST_BUFFER_SIZE(buffer));
                     parent->notifyAll(buf);
                 }

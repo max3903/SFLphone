@@ -70,12 +70,14 @@ void GstEncoderH264::setVideoInputFormat(const VideoFormat& format) {
 	// Get the caps on the src pad
 	GstCaps* caps = gst_pad_get_caps(srcPad);
 	if (!caps) {
+		_error("Caps are NULL on source pad (%d:%s)", __LINE__, __FILE__);
 		return;
 	}
 
 	// Get the first structure in the caps
 	GstStructure* structure = gst_caps_get_structure(caps, 0);
 	if (!structure) {
+		_error("Structure 0 can't be found in caps (%d:%s)", __LINE__, __FILE__);
 		return;
 	}
 	_debug ("Structure 0 on src pad of x264enc is %" GST_PTR_FORMAT, structure);
@@ -97,6 +99,7 @@ void GstEncoderH264::setVideoInputFormat(const VideoFormat& format) {
 	// Keep the parameter internally
 	addParameter("profile-level-id", profileBase16);
 
+	_debug("Unrefing caps on GstEncoderH264");
 	gst_caps_unref(caps);
 	gst_object_unref(srcPad);
 }

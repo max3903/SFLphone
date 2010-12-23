@@ -115,6 +115,7 @@ void GstDecoder::init() throw (VideoDecodingException, MissingPluginException) {
 
 	// Color space transform to RGBA if needed
 	g_object_set(G_OBJECT(capsfilter), "caps", currentCaps, NULL);
+	retrievableEnd->setCaps(currentCaps);
 
 	// Connect both endpoints to the graph.
 	injectableEnd->setSink(getHead());
@@ -200,7 +201,8 @@ void GstDecoder::deactivate() {
 	// Unsubscribe this object from appsink events.
 	retrievableEnd->removeObserver(outputObserver);
 
-	// Does not matter whether we call stop() on injectable or retrievable endpoints.
+	// Does not matter whether we call stop() on pipeline directly,
+	// injectable or retrievable endpoints.
 	retrievableEnd->stop();
 
 	// Clear the parameter set

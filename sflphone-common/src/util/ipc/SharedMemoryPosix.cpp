@@ -68,8 +68,10 @@ SharedMemoryPosix::SharedMemoryPosix (const std::string& name, bool exclusive,
 SharedMemoryPosix::~SharedMemoryPosix()
 {
     try {
-        _debug ("Releasing ...");
-        release();
+        if (isAttached()) {
+            _debug ("Releasing ...");
+        	release();
+        }
         _debug ("Closing ...");
         this->close();
     } catch (SharedMemoryException e) {
@@ -142,6 +144,15 @@ void SharedMemoryPosix::attach() throw (SharedMemoryException)
         this->close();
         throw SharedMemoryException (std::string ("mmap(): ") + strerror (errno));
     }
+}
+
+bool SharedMemoryPosix::isAttached() const
+{
+	if (mappedAddr != NULL) {
+		return true;
+	}
+
+	return false;
 }
 
 void SharedMemoryPosix::release() throw (SharedMemoryException)

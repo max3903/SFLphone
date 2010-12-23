@@ -163,7 +163,7 @@ void VideoEndpoint::stopCapture(std::string token)
 		throw (VideoDeviceIOException, InvalidTokenException) {
 
 	if (!sourceTokens.erase(token)) {
-		throw InvalidTokenException("Token " + token + " is not valid.");
+		throw InvalidTokenException("Token \"" + token + "\" is not valid.");
 	}
 
 	if (sourceTokens.size() == 0) {
