@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<diagram>
+<source><![CDATA[#!>>
+#! Sequence of operations leading to the interruption of an ongoing video call.
+#! A token system is used as a form of reference counting mechanism to deal with 
+#! video device interruption. 
+#! 
+#! A video endpoint object manages access to a uniquely accessible video device
+#! to multiple clients. It observes the video source and write the captured frames
+#! into a shared memory segment, while sending them to the remote peer via RTP.
+#!
+#! December 2010,
+#! pierre-luc.bacon@savoirfairelinux.com
+#!<<
+
+#![Video call interruption]
+ext:External[pe]
+voipLink:SipVoipLink[a]
+dbusManager:DBusManager[a]
+videoManager:VideoManager
+call:SipCall
+endpoint:VideoEndpoint
+videoSource:VideoSource[a]
+
+ext:voipLink.hangup(callId)
+voipLink:voipLink.call := getSipCall(id)
+voipLink[1]:dbusManager.videoManager := getVideoManager()
+voipLink:videoManager.stopRtpSession(call)
+
+videoManager:call.device := getVideoDevice()
+videoManager:videoManager.endpoint := find(device)
+videoManager[1]:call.token := getToken()
+videoManager:endpoint.stopCapture(token)
+    endpoint:endpoint.found := exists(token)
+    [c:break found == FALSE]
+        endpoint[1]:token is invalid: throw InvalidTokenException
+    [/c]
+    endpoint:endpoint.erase(token)
+    endpoint[1]:endpoint.numberToken := size()
+    [c:opt numberToken < 0]
+        endpoint[1]:videoSource.close()
+    [/c]
+    
+
+videoManager:call.ipAddr := getLocalIp()
+videoManager:call.port := getLocalVideoPort()
+videoManager:endpoint.removeRtpSession(ipAddr, port)
+videoManager:endpoint.disposable : = isDisposable()
+[c:opt disposable]
+videoManager:videoManager.remove(endpoint)
+[/c]]]></source>
+<configuration>
+<property name="actorWidth" value="25"/>
+<property name="allowMessageProperties" value="false"/>
+<property name="arrowSize" value="6"/>
+<property name="colorizeThreads" value="true"/>
+<property name="destructorWidth" value="30"/>
+<property family="Dialog" name="font" size="12" style="0"/>
+<property name="fragmentMargin" value="8"/>
+<property name="fragmentPadding" value="10"/>
+<property name="fragmentTextPadding" value="3"/>
+<property name="glue" value="10"/>
+<property name="headHeight" value="35"/>
+<property name="headLabelPadding" value="5"/>
+<property name="headWidth" value="100"/>
+<property name="initialSpace" value="10"/>
+<property name="leftMargin" value="5"/>
+<property name="lineWrap" value="false"/>
+<property name="lowerMargin" value="5"/>
+<property name="mainLifelineWidth" value="8"/>
+<property name="messageLabelSpace" value="3"/>
+<property name="messagePadding" value="6"/>
+<property name="noteMargin" value="6"/>
+<property name="notePadding" value="6"/>
+<property name="opaqueMessageText" value="false"/>
+<property name="returnArrowVisible" value="true"/>
+<property name="rightMargin" value="5"/>
+<property name="selfMessageHorizontalSpace" value="15"/>
+<property name="separatorBottomMargin" value="8"/>
+<property name="separatorTopMargin" value="15"/>
+<property name="shouldShadowParticipants" value="true"/>
+<property name="spaceBeforeActivation" value="2"/>
+<property name="spaceBeforeAnswerToSelf" value="10"/>
+<property name="spaceBeforeConstruction" value="6"/>
+<property name="spaceBeforeSelfMessage" value="7"/>
+<property name="subLifelineWidth" value="6"/>
+<property name="tc0" value="-1118482"/>
+<property name="tc1" value="-256"/>
+<property name="tc2" value="-65536"/>
+<property name="tc3" value="-16776961"/>
+<property name="tc4" value="-16711936"/>
+<property name="tc5" value="-4144960"/>
+<property name="tc6" value="-65281"/>
+<property name="tc7" value="-14336"/>
+<property name="tc8" value="-20561"/>
+<property name="tc9" value="-12566464"/>
+<property name="threadNumbersVisible" value="false"/>
+<property name="threaded" value="false"/>
+<property name="upperMargin" value="5"/>
+<property name="verticallySplit" value="false"/>
+</configuration>
+</diagram>
