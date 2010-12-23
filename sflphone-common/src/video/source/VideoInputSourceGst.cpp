@@ -183,6 +183,7 @@ void VideoInputSourceGst::close() throw (VideoDeviceIOException)
                                       + " failed to get closed.");
     }
 
+    _debug("Freeing the pipeline used for the video source");
     gst_object_unref (GST_OBJECT (pipeline));
     pipelineRunning = false;
 }

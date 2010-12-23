@@ -85,7 +85,12 @@ void GstDecoder::init() throw (VideoDecodingException, MissingPluginException) {
 	//    pipeline.addElement ("autovideosink", previous);
 	//    GstPad* outputBranch = pipeline.branch ("main_tee");
 	GstElement* previous = pipeline.addElement("ffmpegcolorspace", getTail());
-	GstElement* capsfilter = pipeline.addElement("capsfilter", previous);
+	GstElement* capsfilter = pipeline.addElement("capsfilter");
+
+	// Enforce our caps on the output buffers
+	g_object_set(G_OBJECT(capsfilter), "caps", currentCaps, NULL);
+
+	pipeline.link(previous, capsfilter);
 
 	// Add injectable endpoint
 	std::ostringstream caps;
@@ -105,17 +110,18 @@ void GstDecoder::init() throw (VideoDecodingException, MissingPluginException) {
 	_debug ("GstDecoder: Unwinding parameters ...");
 
 	for (it = parameters.begin(); it != parameters.end(); it++) {
+		_debug("Setting \"%s\" to \"%s\"", ((*it).first).c_str(), ((*it).second).c_str());
 		injectableEnd->setField((*it).first, (*it).second);
 	}
 
 	// Add retrievable endpoint
 	retrievableEnd = new RetrievablePipeline(pipeline);
+
+	// Color space transform to RGBA
+	retrievableEnd->setCaps(currentCaps);
+
 	outputObserver = new PipelineEventObserver(this);
 	retrievableEnd->addObserver(outputObserver);
-
-	// Color space transform to RGBA if needed
-	g_object_set(G_OBJECT(capsfilter), "caps", currentCaps, NULL);
-	retrievableEnd->setCaps(currentCaps);
 
 	// Connect both endpoints to the graph.
 	injectableEnd->setSink(getHead());

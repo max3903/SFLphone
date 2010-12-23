@@ -122,6 +122,8 @@ void RetrievablePipeline::init (GstCaps* caps, Pipeline& pipeline)
 
     // Add to the existing pipeline
     gst_bin_add_many (GST_BIN (getGstPipeline()), appsink, NULL);
+
+    _debug("RetreivablePipeline: appsink added to pipeline");
 }
 
 void RetrievablePipeline::setSource (GstElement* source)
