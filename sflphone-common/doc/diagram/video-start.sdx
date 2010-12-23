@@ -32,12 +32,15 @@ sdp:sdp.mediaList := getInitialMediaList()
    sdp[1]:media.type := getMediaType()
    [c:opt type == MIME_TYPE_VIDEO]
        sdp:media.setVideoFormat(format)
-       media:codec.setVideoFormat(format)
-       codec:encoder.setVideoFormat(format)
-       encoder:encoder.generateSdpParameter()
-       encoder:encoder.selectVideoTestSrc(TRUE)
-       encoder[1]:encoder.buffer := getBuffer()
-       encoder[1]:encoder.selectVideoTestSrc(FALSE)
+       media:media.codecList := getCodecList()       
+       [c:loop for each codec in codecList]
+           media[1]:codec.setVideoFormat(format)
+           codec:encoder.setVideoFormat(format)
+           encoder:encoder.generateSdpParameter()
+           encoder:encoder.selectVideoTestSrc(TRUE)
+           encoder[1]:encoder.buffer := getBuffer()
+           encoder[1]:encoder.selectVideoTestSrc(FALSE)
+       [/c]
    [/c]
 [/c]]]></source>
 <configuration>
