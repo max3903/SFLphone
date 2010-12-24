@@ -30,8 +30,9 @@
 #include "GstEncoder.h"
 #include "util/gstreamer/InjectablePipeline.h"
 #include "util/gstreamer/RetrievablePipeline.h"
+#include "util/gstreamer/VideoFormatToGstCaps.h"
 
-#include "string.h"
+#include <string.h>
 
 namespace sfl {
 GstEncoder::GstEncoder() :
@@ -178,19 +179,12 @@ void GstEncoder::configureSource() {
 
 	// Create the new caps for this video source
 	VideoFormat format = getVideoInputFormat();
-	std::ostringstream caps;
-	caps << "video/x-raw-rgb" << ",format=(fourcc)"
-			<< format.getFourcc().c_str() << ",height=(int)"
-			<< format.getHeight() << ",width=(int)" << format.getWidth()
-			<< ",bpp=(int)" << 32 << ",depth=(int)" << 32
-			<< ",endianness=(int)" << 4321 << ",red_mask=(int)" << 65280
-			<< ",green_mask=(int)" << 16711680 << ",blue_mask=(int)"
-			<< -16777216 << ",framerate=(fraction)"
-			<< format.getPreferredFrameRate().getNumerator() << "/"
-			<< format.getPreferredFrameRate().getDenominator();
+	sfl::VideoFormatToGstCaps convert;
+	GstCaps* sourceCaps = convert(format);
 
-	GstCaps* sourceCaps = gst_caps_from_string((caps.str()).c_str());
-	_debug ("GstEncoder: Setting caps %s on encoder source", caps.str().c_str());
+	gchar* capsStr = gst_caps_to_string(sourceCaps);
+	_debug("GstEncoder: Setting caps %s on encoder source.", capsStr);
+	g_free(capsStr);
 
 	// Set the new maximum size on the input queue
 	injectableEnd->setMaxQueueSize(10 /** Frames */* format.getWidth()
