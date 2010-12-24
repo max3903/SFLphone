@@ -32,216 +32,210 @@
 
 #include <sstream>
 
-namespace sfl
-{
+namespace sfl {
 
 unsigned Pipeline::UNIQUE_COUNTER_NAME = 0;
 
-Pipeline::Pipeline (const std::string& name) throw (GstException)
-{
-    GstElement* element = gst_pipeline_new (name.c_str());
+Pipeline::Pipeline(const std::string& name) throw (GstException) {
+	GstElement* element = gst_pipeline_new(name.c_str());
 
-    if (element == NULL) {
-        throw GstException ("Failed to create new pipeline");
-    }
+	if (element == NULL) {
+		throw GstException("Failed to create new pipeline");
+	}
 
-    init (element);
+	init(element);
 }
 
-Pipeline::Pipeline (GstElement* pipeline)
-{
-    init (pipeline);
+Pipeline::Pipeline(GstElement* pipeline) {
+	init(pipeline);
 }
 
-void Pipeline::init (GstElement* pipeline)
-{
-    this->pipeline = pipeline;
-    prefix = "sfl";
+void Pipeline::init(GstElement* pipeline) {
+	this->pipeline = pipeline;
+	prefix = "sfl";
 
-    gst_init (0, NULL);
+	gst_init(0, NULL);
 }
 
-void Pipeline::stop() throw (GstException)
-{
-    gst_element_set_state (pipeline, GST_STATE_NULL);
-    gst_object_unref (pipeline);
+void Pipeline::stop() throw (GstException) {
 
-    _warn ("Video decoder stopped.");
+	GstStateChangeReturn ret;
+
+	ret = gst_element_set_state(pipeline, GST_STATE_NULL);
+	if (ret == GST_STATE_CHANGE_FAILURE) {
+		_error("sfl:Pipeline : could not go to NULL\n");
+	}
+	ret = gst_element_get_state(pipeline, NULL, NULL, GST_CLOCK_TIME_NONE);
+	if (ret != GST_STATE_CHANGE_SUCCESS) {
+		_error("sfl::Pipeline : could not complete NULL\n");
+	}
+
+	gst_object_unref(GST_OBJECT(pipeline));
+
+	_warn ("Video decoder stopped.");
 }
 
-bool Pipeline::isPlaying() throw (GstException)
-{
-    GstState state;
-    gst_element_get_state(pipeline, &state, NULL, 10);
-    if (state == GST_STATE_PLAYING) {
-    	return true;
-    }
+bool Pipeline::isPlaying() throw (GstException) {
+	GstState state;
+	gst_element_get_state(pipeline, &state, NULL, 10);
+	if (state == GST_STATE_PLAYING) {
+		return true;
+	}
 
-    return false;
+	return false;
 }
 
-void Pipeline::start() throw (GstException)
-{
-    GstStateChangeReturn ret = gst_element_set_state (pipeline,
-                               GST_STATE_PLAYING);
+void Pipeline::start() throw (GstException) {
+	GstStateChangeReturn ret = gst_element_set_state(pipeline,
+			GST_STATE_PLAYING);
 
-    if (ret == GST_STATE_CHANGE_FAILURE) {
-        g_print ("Failed to start up pipeline!\n");
+	if (ret == GST_STATE_CHANGE_FAILURE) {
+		g_print("Failed to start up pipeline!\n");
 
-        // Check if there is an error message with details on the bus
-        std::string errorMessage = "An error occured while starting decoding. ";
-        GstBus* bus = gst_element_get_bus (pipeline);
-        GstMessage *msg = gst_bus_poll (bus, GST_MESSAGE_ERROR,
-                                        MAX_BUS_POOL_WAIT);
-        gst_object_unref (bus);
+		// Check if there is an error message with details on the bus
+		std::string errorMessage = "An error occured while starting decoding. ";
+		GstBus* bus = gst_element_get_bus(pipeline);
+		GstMessage *msg = gst_bus_poll(bus, GST_MESSAGE_ERROR,
+				MAX_BUS_POOL_WAIT);
+		gst_object_unref(bus);
 
-        if (msg) {
-            GError *err = NULL;
-            gst_message_parse_error (msg, &err, NULL);
+		if (msg) {
+			GError *err = NULL;
+			gst_message_parse_error(msg, &err, NULL);
 
-            errorMessage = errorMessage + std::string (err->message);
-            g_error_free (err);
-            gst_message_unref (msg);
-        }
+			errorMessage = errorMessage + std::string(err->message);
+			g_error_free(err);
+			gst_message_unref(msg);
+		}
 
-        throw GstException (errorMessage);
-    }
+		throw GstException(errorMessage);
+	}
 }
 
-void Pipeline::addTee (const std::string& teeName) throw (GstException)
-{
-    GstElement* tee = gst_element_factory_make ("tee", teeName.c_str());
+void Pipeline::addTee(const std::string& teeName) throw (GstException) {
+	GstElement* tee = gst_element_factory_make("tee", teeName.c_str());
 
-    if (tee == NULL) {
-        throw GstException ("Failed to create \"tee\"");
-    }
+	if (tee == NULL) {
+		throw GstException("Failed to create \"tee\"");
+	}
 
-    if (gst_bin_add (GST_BIN (pipeline), tee) == FALSE) {
-        throw GstException ("The bin does not want to accept the element");
-    }
+	if (gst_bin_add(GST_BIN(pipeline), tee) == FALSE) {
+		throw GstException("The bin does not want to accept the element");
+	}
 }
 
-void Pipeline::addTee (const std::string& teeName, GstElement* previous) throw (GstException)
-{
-    GstElement* tee = gst_element_factory_make ("tee", teeName.c_str());
+void Pipeline::addTee(const std::string& teeName, GstElement* previous)
+		throw (GstException) {
+	GstElement* tee = gst_element_factory_make("tee", teeName.c_str());
 
-    if (tee == NULL) {
-        throw GstException ("Failed to create \"tee\"");
-    }
+	if (tee == NULL) {
+		throw GstException("Failed to create \"tee\"");
+	}
 
-    if (gst_bin_add (GST_BIN (pipeline), tee) == FALSE) {
-        throw GstException ("The bin does not want to accept the element");
-    }
+	if (gst_bin_add(GST_BIN(pipeline), tee) == FALSE) {
+		throw GstException("The bin does not want to accept the element");
+	}
 
-    link (previous, tee);
+	link(previous, tee);
 }
 
-void Pipeline::addTee (const std::string& teeName, GstPad* pad) throw (GstException)
-{
-    GstElement* tee = gst_element_factory_make ("tee", teeName.c_str());
+void Pipeline::addTee(const std::string& teeName, GstPad* pad)
+		throw (GstException) {
+	GstElement* tee = gst_element_factory_make("tee", teeName.c_str());
 
-    if (tee == NULL) {
-        throw GstException ("Failed to create \"tee\"");
-    }
+	if (tee == NULL) {
+		throw GstException("Failed to create \"tee\"");
+	}
 
-    if (gst_bin_add (GST_BIN (pipeline), tee) == FALSE) {
-        throw GstException ("The bin does not want to accept the element");
-    }
+	if (gst_bin_add(GST_BIN(pipeline), tee) == FALSE) {
+		throw GstException("The bin does not want to accept the element");
+	}
 
-    link (pad, tee);
+	link(pad, tee);
 }
 
 /**
  * Branch at the given "tee".
  * @param teeName the name of an existing tee element.
  */
-GstPad* Pipeline::branch (const std::string& teeName)
-{
-    GstElement* tee = gst_bin_get_by_name (GST_BIN (pipeline), teeName.c_str());
+GstPad* Pipeline::branch(const std::string& teeName) {
+	GstElement* tee = gst_bin_get_by_name(GST_BIN(pipeline), teeName.c_str());
 
-    //Branch at the current branchName by requesting a new pad.
-    return gst_element_get_request_pad (tee, "src%d");
+	//Branch at the current branchName by requesting a new pad.
+	return gst_element_get_request_pad(tee, "src%d");
 }
 
-GstElement* Pipeline::addElement (const std::string& factoryName)
-throw (MissingGstPluginException, GstException)
-{
-    GstElement* element = createElement (factoryName);
+GstElement* Pipeline::addElement(const std::string& factoryName)
+		throw (MissingGstPluginException, GstException) {
+	GstElement* element = createElement(factoryName);
 
-    return element;
+	return element;
 }
 
-GstElement* Pipeline::addElement (const std::string& factoryName, GstPad* pad)
-throw (MissingGstPluginException, GstException)
-{
-    GstElement* element = createElement (factoryName);
-    link (pad, element);
+GstElement* Pipeline::addElement(const std::string& factoryName, GstPad* pad)
+		throw (MissingGstPluginException, GstException) {
+	GstElement* element = createElement(factoryName);
+	link(pad, element);
 
-    return element;
+	return element;
 }
 
-GstElement* Pipeline::addElement (const std::string& factoryName, GstElement* previous)
-throw (MissingGstPluginException, GstException)
-{
-    GstElement* element = createElement (factoryName);
-    link (previous, element);
+GstElement* Pipeline::addElement(const std::string& factoryName,
+		GstElement* previous) throw (MissingGstPluginException, GstException) {
+	GstElement* element = createElement(factoryName);
+	link(previous, element);
 
-    return element;
+	return element;
 }
 
-void Pipeline::setPrefix (const std::string& prefix)
-{
-    this->prefix = prefix;
+void Pipeline::setPrefix(const std::string& prefix) {
+	this->prefix = prefix;
 }
 
-GstElement* Pipeline::createElement (const std::string& factoryName) throw (MissingGstPluginException, GstException)
-{
-    std::ostringstream uniqueName;
-    uniqueName << prefix << factoryName << "_" << UNIQUE_COUNTER_NAME;
+GstElement* Pipeline::createElement(const std::string& factoryName)
+		throw (MissingGstPluginException, GstException) {
+	std::ostringstream uniqueName;
+	uniqueName << prefix << factoryName << "_" << UNIQUE_COUNTER_NAME;
 
-    GstElement* element = gst_element_factory_make (factoryName.c_str(), (uniqueName.str()).c_str());
+	GstElement* element = gst_element_factory_make(factoryName.c_str(),
+			(uniqueName.str()).c_str());
 
-    if (element == NULL) {
-        throw MissingGstPluginException (std::string ("Plugin \"") + factoryName
-                                         + std::string ("\" could not be found. "
-                                                        "Run gst-inspect to get the list of available plugins"));
-    }
+	if (element == NULL) {
+		throw MissingGstPluginException(std::string("Plugin \"") + factoryName
+				+ std::string("\" could not be found. "
+					"Run gst-inspect to get the list of available plugins"));
+	}
 
-    if (gst_bin_add (GST_BIN (pipeline), element) == FALSE) {
-        throw GstException ("The bin does not want to accept the element");
-    }
+	if (gst_bin_add(GST_BIN(pipeline), element) == FALSE) {
+		throw GstException("The bin does not want to accept the element");
+	}
 
-    UNIQUE_COUNTER_NAME += 1;
-    return element;
+	UNIQUE_COUNTER_NAME += 1;
+	return element;
 }
 
-void Pipeline::link (GstElement* src, GstElement* dst) throw (GstException)
-{
-    if (gst_element_link (src, dst) == FALSE) {
-        throw GstException ("Failed to link elements");
-    }
+void Pipeline::link(GstElement* src, GstElement* dst) throw (GstException) {
+	if (gst_element_link(src, dst) == FALSE) {
+		throw GstException("Failed to link elements");
+	}
 }
 
-void Pipeline::link (GstPad* src, GstElement* dst) throw (GstException)
-{
-    GstPad* sinkPad = gst_element_get_static_pad (dst, "sink"); // TODO throw exception
-    gst_pad_link (src, sinkPad);
+void Pipeline::link(GstPad* src, GstElement* dst) throw (GstException) {
+	GstPad* sinkPad = gst_element_get_static_pad(dst, "sink"); // TODO throw exception
+	gst_pad_link(src, sinkPad);
 }
 
-void Pipeline::link (GstElement* src, GstPad* dst) throw (GstException)
-{
-    GstPad* sourcePad = gst_element_get_static_pad (src, "src"); // TODO throw exception
-    gst_pad_link (sourcePad, dst);
+void Pipeline::link(GstElement* src, GstPad* dst) throw (GstException) {
+	GstPad* sourcePad = gst_element_get_static_pad(src, "src"); // TODO throw exception
+	gst_pad_link(sourcePad, dst);
 }
 
-void Pipeline::link (GstPad* src, GstPad* dst) throw (GstException)
-{
-    gst_pad_link (src, dst); // TODO throw exception
+void Pipeline::link(GstPad* src, GstPad* dst) throw (GstException) {
+	gst_pad_link(src, dst); // TODO throw exception
 }
 
-GstElement* Pipeline::getGstPipeline()
-{
-    return pipeline;
+GstElement* Pipeline::getGstPipeline() {
+	return pipeline;
 }
 
 }
