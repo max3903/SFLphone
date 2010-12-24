@@ -66,6 +66,10 @@ class VideoCodec : public virtual Codec, public VideoPlugin
         virtual void addVideoFrameEncodedObserver (VideoFrameEncodedObserver& observer) = 0;
 
         virtual void addVideoFrameDecodedObserver (VideoFrameDecodedObserver& observer) = 0;
+
+        virtual void removeVideoFrameEncodedObserver (VideoFrameEncodedObserver& observer) = 0;
+
+        virtual void removeVideoFrameDecodedObserver (VideoFrameDecodedObserver& observer) = 0;
 };
 
 }

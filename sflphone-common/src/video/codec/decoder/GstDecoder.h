@@ -126,6 +126,8 @@ class GstDecoder : public VideoDecoder, protected Filter
                 void onNewBuffer (GstBuffer* buffer) {
                 	gst_caps_unref(parent->currentCaps);
 
+                	// Returns : a reference to the GstCaps. unref after usage.
+                	// Returns NULL if there were no caps on this buffer
                 	GstCaps* currentCaps = gst_buffer_get_caps(buffer);
                 	if (currentCaps != NULL) {
                     	parent->currentCaps = currentCaps;

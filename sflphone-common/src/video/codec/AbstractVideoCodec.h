@@ -51,14 +51,9 @@ class AbstractVideoCodec: public virtual VideoCodec
     public:
         AbstractVideoCodec() :
                 VideoCodec() {
-            // encoder = new EncoderType();
-            // decoder = new DecoderType();
-
         }
 
-
-
-        virtual ~AbstractVideoCodec() {
+       virtual ~AbstractVideoCodec() {
         }
         ;
 
@@ -88,6 +83,20 @@ class AbstractVideoCodec: public virtual VideoCodec
          */
         void addVideoFrameDecodedObserver (VideoFrameDecodedObserver& observer) {
             decoder.addObserver (&observer);
+        }
+
+        /**
+         * @Override
+         */
+        void removeVideoFrameEncodedObserver (VideoFrameEncodedObserver& observer) {
+            encoder.removeObserver (&observer);
+        }
+
+        /**
+         * @Override
+         */
+        void removeVideoFrameDecodedObserver (VideoFrameDecodedObserver& observer) {
+            decoder.removeObserver (&observer);
         }
 
         /**

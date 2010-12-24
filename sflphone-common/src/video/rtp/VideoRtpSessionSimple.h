@@ -160,7 +160,7 @@ class VideoRtpSession: public ost::RTPSession, public AbstractObservable<Buffer<
         EncoderObserver* encoderObserver;
 
         /**
-         * Decoder observer, only meant to hide the observable mechanism at the decoder leve
+         * Decoder observer, only meant to hide the observable mechanism at the decoder level
          * and make codec switching easier.
          */
         class DecoderObserver : public VideoFrameDecodedObserver

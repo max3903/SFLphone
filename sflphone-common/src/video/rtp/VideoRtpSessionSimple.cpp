@@ -130,7 +130,9 @@ bool VideoRtpSession::onRTPPacketRecv (ost::IncomingRTPPkt& packet)
     // Send to the depayloader/decoder
     Buffer<uint8> buffer (rawData, rawSize); // TODO Should not be managed
 
-    activeCodec->decode (buffer);
+    if (activeCodec != NULL) {
+    	activeCodec->decode (buffer);
+    }
 
     return true;
 }
@@ -151,10 +153,12 @@ VideoRtpSession::VideoRtpSession (ost::InetHostAddress& ia,
 
 VideoRtpSession::~VideoRtpSession()
 {
+    activeCodec->removeVideoFrameDecodedObserver((*decoderObserver));
+    activeCodec->removeVideoFrameEncodedObserver ((*encoderObserver));
 
-    // TODO codec->removeObserver(encoderObserver);
-	// activeCodec->removeObserver(encoderObserver);
 	delete activeCodec;
+	activeCodec = NULL;
+
 	// TODO free the codec list.
     _warn ("VideoRtpSession:  Rtp Session Simple has terminated");
 
@@ -162,7 +166,6 @@ VideoRtpSession::~VideoRtpSession()
 
     delete encoderObserver;
     delete decoderObserver;
-
 }
 
 }
