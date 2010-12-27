@@ -73,7 +73,8 @@ enum {
     PLAYING, LAST_SIGNAL
 };
 
-static guint sfl_video_cairo_shm_signals[LAST_SIGNAL] = { 0 };
+static guint sfl_video_cairo_shm_signals[LAST_SIGNAL] =
+{ 0 };
 
 // TODO find a better way to return error on format
 #define SFL_CAIRO_FORMAT_ERROR 10
@@ -117,7 +118,7 @@ sfl_video_cairo_shm_take_snapshot (SFLVideoCairoShm* self, gchar* filename)
     g_mutex_lock (priv->image_data_mutex);
 
     cairo_surface_t* surface = cairo_image_surface_create_for_data (
-                                   priv->image_data, format, priv->width, priv->height, priv->image_stride);
+        priv->image_data, format, priv->width, priv->height, priv->image_stride);
 
     cairo_status_t status = cairo_surface_status (surface);
 
@@ -138,12 +139,9 @@ sfl_video_cairo_shm_take_snapshot (SFLVideoCairoShm* self, gchar* filename)
 }
 
 static void
-premultiply_alpha (SFLVideoCairoShm* self, uint8_t* destination,
-                   uint8_t* source)
+premultiply_alpha (SFLVideoCairoShm* self, uint8_t* data)
 {
     SFLVideoCairoShmPrivate* priv = GET_PRIVATE (self);
-
-    unsigned short alpha;
 
     unsigned int y;
 
@@ -152,20 +150,19 @@ premultiply_alpha (SFLVideoCairoShm* self, uint8_t* destination,
 
         for (x = 0; x < priv->width; x++) {
 #if G_BYTE_ORDER == G_LITTLE_ENDIAN
-            alpha = source[3];
-            destination[0] = (source[0] * alpha + 128) / 255;
-            destination[1] = (source[1] * alpha + 128) / 255;
-            destination[2] = (source[2] * alpha + 128) / 255;
-            destination[3] = alpha;
+            guint8 alpha = data[3];
+
+            data[0] = (data[0] * alpha) >> 8;
+            data[1] = (data[1] * alpha) >> 8;
+            data[2] = (data[2] * alpha) >> 8;
 #else
-            alpha = source[0];
-            destination[0] = alpha;
-            destination[1] = (source[1] * alpha + 128) / 255;
-            destination[2] = (source[2] * alpha + 128) / 255;
-            destination[3] = (source[3] * alpha + 128) / 255;
+            guint8 alpha = data[0];
+
+            data[1] = (data[1] * alpha) >> 8;
+            data[2] = (data[2] * alpha) >> 8;
+            data[3] = (data[3] * alpha) >> 8;
 #endif
-            source += 4;
-            destination += 4;
+            data += 4;
         }
     }
 }
@@ -181,9 +178,9 @@ on_new_frame_cb (uint8_t* frame, void* widget)
         return;
     }
 
-    //  if (fourcc_to_video_cairo(priv->fourcc) == CAIRO_FORMAT_ARGB32) {
-    //    premultiply_alpha(self, priv->image_data, frame);
-    //  }
+//    if (fourcc_to_video_cairo (priv->fourcc) == CAIRO_FORMAT_ARGB32) {
+//        premultiply_alpha (self, priv->image_data);
+//    }
 
     // Copy the frame into the image surface
     g_mutex_lock (priv->image_data_mutex);
@@ -195,7 +192,7 @@ on_new_frame_cb (uint8_t* frame, void* widget)
 
 static void
 sfl_video_cairo_shm_set_property (GObject *object, guint property_id,
-                                  const GValue *value, GParamSpec *pspec)
+const GValue *value, GParamSpec *pspec)
 {
     SFLVideoCairoShm *self = SFL_VIDEO_CAIRO_SHM (object);
     SFLVideoCairoShmPrivate *priv = GET_PRIVATE (self);
@@ -213,7 +210,7 @@ sfl_video_cairo_shm_set_property (GObject *object, guint property_id,
 
 static void
 sfl_video_cairo_shm_get_property (GObject *object, guint property_id,
-                                  GValue *value, GParamSpec *pspec)
+GValue *value, GParamSpec *pspec)
 {
     SFLVideoCairoShm *self = SFL_VIDEO_CAIRO_SHM (object);
     SFLVideoCairoShmPrivate *priv = GET_PRIVATE (self);
@@ -247,18 +244,18 @@ sfl_video_cairo_shm_finalize (GObject *object)
  */
 static cairo_surface_t *
 scale_surface (cairo_surface_t* old_surface, resolution_t old_resolution,
-               resolution_t new_resolution)
+resolution_t new_resolution)
 {
     // Create a new surface
     cairo_surface_t* scaled_surface = cairo_surface_create_similar (old_surface,
-                                      CAIRO_CONTENT_COLOR_ALPHA, new_resolution.width, new_resolution.height);
+    CAIRO_CONTENT_COLOR_ALPHA, new_resolution.width, new_resolution.height);
 
     // Create the cairo context for that surface
     cairo_t *cr = cairo_create (scaled_surface);
 
     // Scale the surface
     cairo_scale (cr, (double) new_resolution.width / old_resolution.width,
-                 (double) new_resolution.height / old_resolution.height);
+    (double) new_resolution.height / old_resolution.height);
 
     cairo_set_source_surface (cr, old_surface, 0, 0);
 
@@ -301,19 +298,19 @@ sfl_video_cairo_shm_expose (GtkWidget* cairo_video, GdkEventExpose* event UNUSED
     current_resolution.height = priv->height;
 
     double new_width = ( (double) (current_resolution.width * allocation.height))
-                       / ( (double) current_resolution.height);
+    / ( (double) current_resolution.height);
 
     resolution_t new_resolution;
     new_resolution.width = (int) new_width;
     new_resolution.height = allocation.height;
 
     cairo_surface_t * scaled_surface = scale_surface (priv->surface,
-                                       current_resolution, new_resolution);
+    current_resolution, new_resolution);
 
     // Paint in the middle
     cairo_set_source_surface (cr, scaled_surface, (allocation.width
-                              - new_resolution.width) / 2, (allocation.height - new_resolution.height)
-                              / 2);
+    - new_resolution.width) / 2, (allocation.height - new_resolution.height)
+    / 2);
 
     cairo_paint (cr);
 
@@ -328,7 +325,7 @@ sfl_video_cairo_shm_expose (GtkWidget* cairo_video, GdkEventExpose* event UNUSED
 
 static void
 sfl_video_cairo_shm_size_request (GtkWidget* widget,
-                                  GtkRequisition* requisition)
+GtkRequisition* requisition)
 {
     g_return_if_fail (widget != NULL);
     g_return_if_fail (SFL_IS_VIDEO_CAIRO_SHM (widget));
@@ -353,16 +350,16 @@ sfl_video_cairo_shm_class_init (SFLVideoCairoShmClass *class)
 
     // Install properties
     g_object_class_install_property (obj_class, PROP_SHM_PATH,
-                                     g_param_spec_string ("shm", "shm",
-                                                          "The shared memory segment to read data from.", NULL,
-                                                          G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB
-                                                          | G_PARAM_CONSTRUCT_ONLY | G_PARAM_READWRITE));
+    g_param_spec_string ("shm", "shm",
+    "The shared memory segment to read data from.", NULL,
+    G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB
+    | G_PARAM_CONSTRUCT_ONLY | G_PARAM_READWRITE));
 
     // Install signals
     sfl_video_cairo_shm_signals[PLAYING] = g_signal_new ("playing",
-                                           G_TYPE_FROM_CLASS (class), (GSignalFlags) (G_SIGNAL_RUN_FIRST
-                                                   | G_SIGNAL_ACTION), 0, NULL, NULL, g_cclosure_marshal_VOID__VOID,
-                                           G_TYPE_NONE, 0);
+    G_TYPE_FROM_CLASS (class), (GSignalFlags) (G_SIGNAL_RUN_FIRST
+    | G_SIGNAL_ACTION), 0, NULL, NULL, g_cclosure_marshal_VOID__VOID,
+    G_TYPE_NONE, 0);
 
     // Install private structure
     g_type_class_add_private (obj_class, sizeof (SFLVideoCairoShmPrivate));
@@ -417,7 +414,7 @@ sfl_video_cairo_shm_start (SFLVideoCairoShm *self)
 
     // Create the cairo surface for data
     priv->surface = cairo_image_surface_create_for_data (priv->image_data,
-                    format, priv->width, priv->height, priv->image_stride);
+    format, priv->width, priv->height, priv->image_stride);
 
     // Create a new endpoint
     priv->endpt = sflphone_video_init ();

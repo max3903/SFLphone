@@ -36,19 +36,6 @@ namespace sfl {
 
 GstDecoder::GstDecoder() throw (VideoDecodingException, MissingPluginException) :
 	VideoDecoder(), injectableEnd(NULL), retrievableEnd(NULL) {
-	currentCaps = gst_caps_new_simple("video/x-raw-rgb", "format",
-			GST_TYPE_FOURCC, GST_MAKE_FOURCC('R', 'G', 'B', 'A'), "bpp",
-			G_TYPE_INT, 32, "depth", G_TYPE_INT, 32, NULL);
-}
-
-GstDecoder::GstDecoder(VideoFormat& format) throw (VideoDecodingException,
-		MissingPluginException) :
-	VideoDecoder(), outputVideoFormat(format), injectableEnd(NULL),
-			retrievableEnd(NULL) {
-	// FIXME VideoFormat not taken into account.
-	currentCaps = gst_caps_new_simple("video/x-raw-rgb", "format",
-			GST_TYPE_FOURCC, GST_MAKE_FOURCC('R', 'G', 'B', 'A'), "bpp",
-			G_TYPE_INT, 32, "depth", G_TYPE_INT, 32, NULL);
 }
 
 void GstDecoder::setParameter(const std::string& name, const std::string& value) {
@@ -87,6 +74,10 @@ void GstDecoder::init() throw (VideoDecodingException, MissingPluginException) {
 	GstElement* previous = pipeline.addElement("ffmpegcolorspace", getTail());
 	GstElement* capsfilter = pipeline.addElement("capsfilter");
 
+	currentCaps = gst_caps_new_simple("video/x-raw-rgb",
+			"bpp", G_TYPE_INT, 32, "depth",
+			G_TYPE_INT, 32, NULL);
+
 	// Enforce our caps on the output buffers
 	g_object_set(G_OBJECT(capsfilter), "caps", currentCaps, NULL);
 
@@ -116,9 +107,6 @@ void GstDecoder::init() throw (VideoDecodingException, MissingPluginException) {
 
 	// Add retrievable endpoint
 	retrievableEnd = new RetrievablePipeline(pipeline);
-
-	// Color space transform to RGBA
-	retrievableEnd->setCaps(currentCaps);
 
 	outputObserver = new PipelineEventObserver(this);
 	retrievableEnd->addObserver(outputObserver);
@@ -158,33 +146,29 @@ VideoFormat GstDecoder::getOutputFormat() {
 	// Extract the colospace, width and height from caps
 	_debug ("GstDecoder: caps are %" GST_PTR_FORMAT, currentCaps);
 
-	GstStructure* structure = gst_caps_get_structure(currentCaps, 0);
+	GstVideoFormat format;
+	int width, height;
+	gboolean ret = gst_video_format_parse_caps(currentCaps, &format, &width, &height);
+	if (ret == false) {
+		throw VideoDecodingException("Failed to parse caps");
+	}
 
-	guint32 fourcc;
-	gst_structure_get_fourcc(structure, "format", &fourcc);
+	int numerator, denominator;
+	ret = gst_video_parse_caps_framerate(currentCaps, &numerator, &denominator);
+	if (ret == false) {
+		throw VideoDecodingException("Failed to parse caps");
+	}
 
-	gint width;
-	gst_structure_get_int (structure, "width", &width);
-
-	gint height;
-	gst_structure_get_int (structure, "height", &height);
-
-	// Extract the mime type
-	const gchar* mimetype = gst_structure_get_name(structure);
-
-	// Extract the framerate
-	int fps_n = 1;
-	int fps_d = 1;
-	gst_structure_get_fraction (structure, "framerate", &fps_n, &fps_d);
+	guint32 fourcc = VideoFormatToGstCaps::fourccFromGstVideoFormat(format);
 
 	VideoFormat videoFormat;
 	videoFormat.setFourcc(fourcc);
 	videoFormat.setWidth(width);
 	videoFormat.setHeight(height);
-	videoFormat.setMimetype(std::string(mimetype));
-	videoFormat.setFramerate(fps_n, fps_d);
+	videoFormat.setMimetype(std::string("video/x-raw-rgb"));
+	videoFormat.setFramerate(numerator, denominator);
 
-	_debug("Fourcc format is %d", fourcc);
+	_debug("Fourcc format is %d (%s)", fourcc, videoFormat.getFourcc().c_str());
 
 	return videoFormat;
 }
@@ -213,6 +197,8 @@ void GstDecoder::deactivate() {
 
 	// Clear the parameter set
 	parameters.clear();
+
+    gst_caps_unref(currentCaps);
 }
 
 }
