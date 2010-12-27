@@ -190,6 +190,8 @@ class VideoRtpSession: public ost::RTPSession, public AbstractObservable<Buffer<
          */
         VideoCodec* activeCodec;
 
+        ost::Mutex activeCodecMutex;
+
         /**
          * The video format in which the video frames are expected to be received.
          */

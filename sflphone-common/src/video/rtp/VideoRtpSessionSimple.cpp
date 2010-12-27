@@ -29,11 +29,9 @@
 #include "VideoRtpSessionSimple.h"
 #include "video/codec/VideoCodecNull.h"
 
-namespace sfl
-{
+namespace sfl {
 
-void VideoRtpSession::setActiveCodec(ost::PayloadType pt)
-{
+void VideoRtpSession::setActiveCodec(ost::PayloadType pt) {
 	SessionCodecIterator it = sessionsCodecs.find(pt);
 	if (it == sessionsCodecs.end()) {
 		// TODO throw MissingPluginException
@@ -42,130 +40,131 @@ void VideoRtpSession::setActiveCodec(ost::PayloadType pt)
 
 	sfl::VideoCodec* codec = (*it).second;
 
-    activeCodec->deactivate();
+	activeCodec->deactivate();
 
-    activeCodec = codec;
+	activeCodec = codec;
 
-    // Set the payload format in ccRTP from the information contained in the VideoCodec.
-    ost::DynamicPayloadFormat format (activeCodec->getPayloadType(), activeCodec->getClockRate());
-    setPayloadFormat (format);
+	// Set the payload format in ccRTP from the information contained in the VideoCodec.
+	ost::DynamicPayloadFormat format(activeCodec->getPayloadType(),
+			activeCodec->getClockRate());
+	setPayloadFormat(format);
 
-    // Register as a VideoFrameEncodedObserver so that encoded frames produced in the VideoCodec,
-    // starting from the VideoSource, get dispatched internally and sent over the network immediately.
-    activeCodec->addVideoFrameEncodedObserver ((*encoderObserver));
+	// Register as a VideoFrameEncodedObserver so that encoded frames produced in the VideoCodec,
+	// starting from the VideoSource, get dispatched internally and sent over the network immediately.
+	activeCodec->addVideoFrameEncodedObserver((*encoderObserver));
 
-    // Register as a VideoFrameDecodedObserver
-    activeCodec->addVideoFrameDecodedObserver((*decoderObserver));
+	// Register as a VideoFrameDecodedObserver
+	activeCodec->addVideoFrameDecodedObserver((*decoderObserver));
 
-    activeCodec->activate();
+	activeCodec->activate();
 }
 
-void VideoRtpSession::addSessionCodec(ost::PayloadType payloadType, const sfl::VideoCodec* codec)
-{
-	VideoCodec* videoCodec = dynamic_cast<VideoCodec*>(codec->clone());
-	sessionsCodecs.insert (SessionCodecEntry(payloadType, videoCodec));
+void VideoRtpSession::addSessionCodec(ost::PayloadType payloadType,
+		const sfl::VideoCodec* codec) {
+	VideoCodec* videoCodec = dynamic_cast<VideoCodec*> (codec->clone());
+	sessionsCodecs.insert(SessionCodecEntry(payloadType, videoCodec));
 	_info ("Codec \"%s\" (payload number %d) added for this session", videoCodec->getMimeSubtype().c_str(), payloadType);
 
-    // If this is the first codec that we add, set as default.
-    if (sessionsCodecs.size() == 1) {
-        setActiveCodec(payloadType);
-    }
+	// If this is the first codec that we add, set as default.
+	if (sessionsCodecs.size() == 1) {
+		setActiveCodec(payloadType);
+	}
 }
 
-void VideoRtpSession::setVideoInputFormat (const VideoFormat& format)
-{
+void VideoRtpSession::setVideoInputFormat(const VideoFormat& format) {
 	currentVideoFormat = format;
 }
 
-VideoFormat VideoRtpSession::getVideoOutputFormat()
-{
+VideoFormat VideoRtpSession::getVideoOutputFormat() {
+
 	return activeCodec->getVideoOutputFormat();
 }
 
-void VideoRtpSession::start()
-{
-    // Start the socket thread
-    startRunning();
+void VideoRtpSession::start() {
+	// Start the socket thread
+	startRunning();
 }
 
-void VideoRtpSession::sendPayloaded(const VideoFrame* frame)
-{
+void VideoRtpSession::sendPayloaded(const VideoFrame* frame) {
+
 	activeCodec->encode(frame);
 }
 
-void VideoRtpSession::init()
-{
+void VideoRtpSession::init() {
 	_debug("VideoRtpSession: Initialize RTP session");
 
-    // Fixed encoder for any video encoder type
-    encoderObserver = new EncoderObserver (this);
-    decoderObserver = new DecoderObserver (this);
-    activeCodec = new VideoCodecNull();
+	// Fixed encoder for any video encoder type
+	encoderObserver = new EncoderObserver(this);
+	decoderObserver = new DecoderObserver(this);
 
-    // The default scheduling timeout to use when no data packets are waiting to be sent.
-    setSchedulingTimeout (SCHEDULING_TIMEOUT);
+	activeCodec = new VideoCodecNull();
 
-    // Set the "expired" timer for expiring packets pending in the send
-    // queue which have gone unsent and are already "too late" to be sent now.
-    setExpireTimeout (EXPIRE_TIMEOUT);
+	// The default scheduling timeout to use when no data packets are waiting to be sent.
+	setSchedulingTimeout(SCHEDULING_TIMEOUT);
 
-    // Set the SDES information
-    // TODO Set the other items
-    ost::defaultApplication().setSDESItem (ost::SDESItemTypeTOOL,
-                                           "SFLPhone Video Endpoint");
+	// Set the "expired" timer for expiring packets pending in the send
+	// queue which have gone unsent and are already "too late" to be sent now.
+	setExpireTimeout(EXPIRE_TIMEOUT);
+
+	// Set the SDES information
+	// TODO Set the other items
+	ost::defaultApplication().setSDESItem(ost::SDESItemTypeTOOL,
+			"SFLPhone Video Endpoint");
 }
 
-bool VideoRtpSession::onRTPPacketRecv (ost::IncomingRTPPkt& packet)
-{
-    // Make sure that a decoder has been configured for this payload type
-    if (getCurrentPayloadType() != packet.getPayloadType()) {
-        _warn ("VideoRtpSession: New payload type detected during RTP session. Switching to new codec with payload type %d", packet.getPayloadType());
-        //setActiveCodec(packet.getPayloadType());
-    }
+bool VideoRtpSession::onRTPPacketRecv(ost::IncomingRTPPkt& packet) {
+	// Make sure that a decoder has been configured for this payload type
+	if (getCurrentPayloadType() != packet.getPayloadType()) {
+		_warn ("VideoRtpSession: New payload type detected during RTP session. Switching to new codec with payload type %d", packet.getPayloadType());
+		//setActiveCodec(packet.getPayloadType());
+	}
 
-    // Extract RTP packet
-    unsigned char* rawData = const_cast<unsigned char*> (packet.getRawPacket()); // FIXME Dangerous, but needed.
-    uint32 rawSize = packet.getRawPacketSize();
+	// Extract RTP packet
+	unsigned char* rawData = const_cast<unsigned char*> (packet.getRawPacket()); // FIXME Dangerous, but needed.
+	uint32 rawSize = packet.getRawPacketSize();
 
-    // Send to the depayloader/decoder
-    Buffer<uint8> buffer (rawData, rawSize); // TODO Should not be managed
+	// Send to the depayloader/decoder
+	Buffer<uint8> buffer(rawData, rawSize); // TODO Should not be managed
 
-    if (activeCodec != NULL) {
-    	activeCodec->decode (buffer);
-    }
+	activeCodecMutex.enterMutex();
+	{
+		if (activeCodec != NULL) {
+			activeCodec->decode(buffer);
+		}
+	}
+	activeCodecMutex.leaveMutex();
 
-    return true;
+	return true;
 }
 
-VideoRtpSession::VideoRtpSession (ost::InetMcastAddress& ima,
-        ost::tpport_t port) :
-        ost::RTPSession (ima, port)
-{
-    init();
+VideoRtpSession::VideoRtpSession(ost::InetMcastAddress& ima, ost::tpport_t port) :
+	ost::RTPSession(ima, port) {
+	init();
 }
 
-VideoRtpSession::VideoRtpSession (ost::InetHostAddress& ia,
-        ost::tpport_t port) :
-        ost::RTPSession (ia, port)
-{
-    init();
+VideoRtpSession::VideoRtpSession(ost::InetHostAddress& ia, ost::tpport_t port) :
+	ost::RTPSession(ia, port) {
+	init();
 }
 
-VideoRtpSession::~VideoRtpSession()
-{
-    activeCodec->removeVideoFrameDecodedObserver((*decoderObserver));
-    activeCodec->removeVideoFrameEncodedObserver ((*encoderObserver));
+VideoRtpSession::~VideoRtpSession() {
+	activeCodecMutex.enterMutex();
+	{
+		activeCodec->removeVideoFrameDecodedObserver((*decoderObserver));
+		activeCodec->removeVideoFrameEncodedObserver((*encoderObserver));
 
-	delete activeCodec;
-	activeCodec = NULL;
+		delete activeCodec;
+		activeCodec = NULL;
+	}
+	activeCodecMutex.leaveMutex();
 
 	// TODO free the codec list.
-    _warn ("VideoRtpSession:  Rtp Session Simple has terminated");
+	_warn ("VideoRtpSession:  Rtp Session Simple has terminated");
 
-    clearObservers();
+	clearObservers();
 
-    delete encoderObserver;
-    delete decoderObserver;
+	delete encoderObserver;
+	delete decoderObserver;
 }
 
 }
