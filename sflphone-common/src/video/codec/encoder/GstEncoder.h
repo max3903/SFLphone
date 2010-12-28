@@ -95,6 +95,12 @@ class GstEncoder: public VideoEncoder, protected Filter
 
         static const unsigned MAX_FRAME_QUEUED = 10;
 
+        /**
+         * Produce a human-readable list of parameters gathered
+		 * @return A string representing all the parameters.
+         */
+        std::string toString();
+
     protected:
     	/**
     	 * Generate SDP parameters from video input format.

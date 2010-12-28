@@ -29,33 +29,39 @@
 
 #include "GstEncoderTheora.h"
 
-namespace sfl
-{
+namespace sfl {
 
-void GstEncoderTheora::buildFilter (Pipeline& pipeline)
-throw (MissingPluginException)
-{
+void GstEncoderTheora::buildFilter(Pipeline& pipeline)
+		throw (MissingPluginException) {
 
-    theoraenc = pipeline.addElement ("theoraenc");
-    rtptheorapay = pipeline.addElement ("rtptheorapay", theoraenc);
+	theoraenc = pipeline.addElement("theoraenc");
+	rtptheorapay = pipeline.addElement("rtptheorapay", theoraenc);
 
 }
 
-void GstEncoderTheora::setVideoInputFormat(const VideoFormat& format)
-{
+GstElement* GstEncoderTheora::getHead() {
+	return theoraenc;
+}
+
+GstElement* GstEncoderTheora::getTail() {
+	return rtptheorapay;
+}
+
+void GstEncoderTheora::setVideoInputFormat(const VideoFormat& format) {
 	GstEncoder::setVideoInputFormat(format);
 
 	generateSdpParameters();
+
+	_debug("Parameters : %s", toString().c_str());
 }
 
-GstElement* GstEncoderTheora::getHead()
+std::string GstEncoderTheora::getParameter(const std::string& name)
 {
-    return theoraenc;
-}
+	if (name == "delivery-method") {
+		return "inline";
+	}
 
-GstElement* GstEncoderTheora::getTail()
-{
-    return rtptheorapay;
+	return GstEncoder::getParameter(name);
 }
 
 }

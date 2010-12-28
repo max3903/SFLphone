@@ -99,6 +99,16 @@ void GstEncoder::addParameter(const std::string& name, const std::string& value)
 	}
 }
 
+std::string GstEncoder::toString() {
+	ParameterIterator it;
+	std::stringstream ss;
+	for (it = parameters.begin(); it != parameters.end(); it++) {
+		ss << "\""  << (*it).first << "\" : "  << "\""  << (*it).second << "\""  << std::endl;
+	}
+
+	return ss.str();
+}
+
 gboolean GstEncoder::extractParameter(GQuark field_id, const GValue* value,
 		gpointer user_data) {
 	GstEncoder* self = (GstEncoder*) user_data;
@@ -126,7 +136,7 @@ void GstEncoder::generateSdpParameters() {
 		_error ("Got NULL buffer");
 	}
 
-	_debug("GstEncoder: Get capabilities");
+	_debug("GstEncoder: Getting capabilities ... ");
 
 	// Save a copy of the caps
 	setBufferCaps(gst_buffer_get_caps(buffer));

@@ -49,6 +49,11 @@ class GstEncoderTheora: public MimeParameterstheora, public GstEncoder
      */
     void setVideoInputFormat(const VideoFormat& format);
 
+	/**
+	 * @Override
+	 */
+	std::string getParameter (const std::string& name);
+
     protected:
         /**
          * @Override
