@@ -34,6 +34,8 @@
  * Start a new payload format definition.
  */
 #define MIME_PAYLOAD_FORMAT_DEFINITION( mime, subtype, payloadType, clock ) \
+		private: \
+			uint8 payload; \
 		public: \
 		inline virtual ~MimeParameters##subtype() {}; \
         std::string getMimeType() const { \
@@ -43,12 +45,15 @@
             return std::string( #subtype ); \
         } \
         uint8 getPayloadType() const { \
-            return payloadType; \
+            return payload; \
         } \
+        void setPayloadType(uint8 pt) { \
+			payload = pt; \
+		} \
         uint32 getClockRate() const { \
             return clock; \
         } \
-	    MimeParameters##subtype() {
+	    MimeParameters##subtype() : payload(payloadType) {
 
 /**
  * An alias for MIME_PARAMETER_OPTIONAL
@@ -125,6 +130,11 @@ class MimeParameters
          * @return payload type numeric identifier.
          */
         virtual uint8 getPayloadType() const = 0;
+
+        /**
+         * @param payload The new payload to set
+         */
+        virtual void setPayloadType(uint8 payload) = 0;
 
         /**
          * @return RTP clock rate in Hz.

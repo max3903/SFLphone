@@ -95,6 +95,13 @@ class AudioCodec : public sfl::Codec   // TODO Move into the "sfl" namespace
         uint8 getPayloadType() const ;
 
         /**
+         * @Override
+         */
+        void setPayloadType(uint8 pt) {
+        	_payload = pt;
+        }
+
+        /**
          * @return true if this payload is a dynamic one.
          */
         bool hasDynamicPayload();

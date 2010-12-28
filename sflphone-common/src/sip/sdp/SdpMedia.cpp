@@ -153,8 +153,10 @@ void SdpMedia::addCodec (const sfl::Codec* codec)
     		}
     	    ret = _payloadList.insert(nonConflictingPayload);
     	}
+    	sfl::Codec* alteredCodec = codec->clone();
+    	alteredCodec->setPayloadType(nonConflictingPayload);
 
-    	_codecList.push_back(new CodecPayloadDecorator(codec, nonConflictingPayload));
+    	_codecList.push_back(alteredCodec);
     } else {
     	// We avoid ownership issues by cloning the codec
         _codecList.push_back (codec->clone());

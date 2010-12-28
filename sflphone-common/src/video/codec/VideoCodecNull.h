@@ -63,6 +63,13 @@ class VideoCodecNull: public MimeParametersNull, public AbstractVideoCodec<NullE
         /**
          * @Override
          */
+        void setPayloadType() {
+        	/* Empty */
+        }
+
+        /**
+         * @Override
+         */
         uint32 getClockRate() const {
             return 90000;
         }

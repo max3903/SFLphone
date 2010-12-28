@@ -56,6 +56,13 @@ class MimeParametersNull : public virtual MimeParameters
         /**
          * @Override
          */
+        void setPayloadType(uint8 pt) {
+        	/* Empty */
+        }
+
+        /**
+         * @Override
+         */
         uint32 getClockRate() const {
             return 90000;
         }
