@@ -1,0 +1,2 @@
+#define PJSIP_MAX_PKT_LEN	5000
+
