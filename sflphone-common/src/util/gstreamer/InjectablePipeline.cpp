@@ -129,13 +129,13 @@ void InjectablePipeline::need_data_cb (GstAppSrc *src, guint length,
 
 void InjectablePipeline::inject (GstBuffer* data)
 {
-    if (enoughData == false && isPlaying()) {
+    if (enoughData == false) {
        // _debug ("Injecting buffer ...");
         if (gst_app_src_push_buffer (GST_APP_SRC (appsrc), data) != GST_FLOW_OK) {
             _warn ("InjectablePipeline: Failed to push buffer.");
         }
     } else {
-        _warn ("InjectablePipeline: Dropping buffer. Not enough space in input queue.");
+        _warn ("InjectablePipeline: Dropping buffer. Not enough space in input queue");
     }
 }
 
