@@ -576,7 +576,7 @@ bool Sdp::negotiateFormat() {
 		}
 		_debug("Negotiation : %s", negotiatedFormat.getParametersFormatted().c_str());
 
-		modifiedCodec->setParameters(negotiatedFormat);
+		modifiedCodec->setNegotiatedParameters(negotiatedFormat);
 	}
 
 	return true;

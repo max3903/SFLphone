@@ -193,11 +193,22 @@ class MimeParameters
         void setParameters(const sfl::Fmtp& format) {
         	sfl::Fmtp::const_iterator it;
         	for (it = format.begin(); it != format.end(); it++) {
+        		_info("****************** Setting parameters");
         		setParameter((*it).first, (*it).second);
         	}
         }
 
+        void setNegotiatedParameters(const sfl::Fmtp& format) {
+        	negotiatedFormat = format;
+        }
+
+        void applyNegotiatedParameters() {
+        	setParameters(negotiatedFormat);
+        }
+
     protected:
+        sfl::Fmtp negotiatedFormat;
+
         /**
          * @param name The name for the required parameter to add.
          */

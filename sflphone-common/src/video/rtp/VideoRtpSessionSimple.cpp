@@ -56,6 +56,9 @@ void VideoRtpSession::setActiveCodec(ost::PayloadType pt) {
 	// Register as a VideoFrameDecodedObserver
 	activeCodec->addVideoFrameDecodedObserver((*decoderObserver));
 
+	// Apply SDP parameters obtained after negotiation
+	activeCodec->applyNegotiatedParameters();
+
 	activeCodec->activate();
 }
 

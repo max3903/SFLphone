@@ -91,7 +91,7 @@ void GstDecoder::init() throw (VideoDecodingException, MissingPluginException) {
 			<< (int) getPayloadType();
 
 	GstCaps* sourceCaps = gst_caps_from_string((caps.str()).c_str());
-	_debug ("GstDecoder: Setting caps %s on decoder source", caps.str().c_str());
+	_debug ("GstDecoder: Setting initial caps %s on decoder source", caps.str().c_str());
 
 	injectableEnd = new InjectablePipeline(pipeline, sourceCaps);
 
@@ -104,6 +104,10 @@ void GstDecoder::init() throw (VideoDecodingException, MissingPluginException) {
 		_debug("Setting \"%s\" to \"%s\"", ((*it).first).c_str(), ((*it).second).c_str());
 		injectableEnd->setField((*it).first, (*it).second);
 	}
+
+	GstCaps* completeCaps = injectableEnd->getCaps();
+	_debug ("GstDecoder: Complete caps on decoder source are now %" GST_PTR_FORMAT, completeCaps);
+	gst_caps_unref(completeCaps);
 
 	// Add retrievable endpoint
 	retrievableEnd = new RetrievablePipeline(pipeline);
