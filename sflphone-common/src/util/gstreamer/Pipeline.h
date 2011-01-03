@@ -169,6 +169,14 @@ class Pipeline
     private:
         GstElement* pipeline;
 
+        guint watchId;
+
+        bool playing;
+
+        static gboolean message_cb(GstBus*, GstMessage* msg, gpointer self);
+
+        static GstBusSyncReply message_sync_cb (GstBus * bus, GstMessage * message, gpointer data);
+
         /**
          * @param factoryName a named factory to instantiate
          * @return A pointer to the newly created filter.

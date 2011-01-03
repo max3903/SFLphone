@@ -89,10 +89,6 @@ std::string VideoFormat::getFourcc() const
 }
 
 uint32_t VideoFormat::getFourccCode() const {
-	if (fourcc == "RGB") {
-		return FourCC("RGB3").getValue();
-	}
-
 	return FourCC(fourcc).getValue();
 }
 

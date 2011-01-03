@@ -36,7 +36,68 @@ namespace sfl {
 
 unsigned Pipeline::UNIQUE_COUNTER_NAME = 0;
 
-Pipeline::Pipeline(const std::string& name) throw (GstException) {
+gboolean Pipeline::message_cb(GstBus*, GstMessage* msg, gpointer data) {
+	Pipeline* self = reinterpret_cast<Pipeline*>(data);
+
+	_debug("Message callback");
+
+  switch ( GST_MESSAGE_TYPE(msg)) {
+    case GST_MESSAGE_ERROR:
+      break;
+
+    case GST_MESSAGE_TAG:
+      break;
+
+    default:
+      break;
+  }
+
+  return FALSE;
+}
+
+GstBusSyncReply
+Pipeline::message_sync_cb (GstBus * bus, GstMessage * message, gpointer data)
+{
+	//Pipeline* self = reinterpret_cast<Pipeline*>(data);
+	Pipeline* self = ((Pipeline*) data);
+
+	GError* error = NULL;
+	gchar* debug = NULL;
+
+	  switch (GST_MESSAGE_TYPE(message)) {
+	    case GST_MESSAGE_STATE_CHANGED:
+	        GstState oldState, newState;
+	        gst_message_parse_state_changed (message, &oldState, &newState, NULL);
+
+	        if (newState == GST_STATE_PLAYING) {
+	        	self->playing = true;
+	        } else {
+	        	self->playing = false;
+	        }
+
+	        _debug("Went from state %s to %s",
+	        		gst_element_state_get_name(oldState),
+	        		gst_element_state_get_name(newState));
+
+	        break;
+
+	    case GST_MESSAGE_ERROR:
+
+	    	gst_message_parse_error(message, &error, &debug);
+	    	_error("Gstreamer error : %s", debug);
+
+	    	g_error_free(error);
+	    	g_free(debug);
+	      break;
+
+	    default:
+	      break;
+	  }
+	  return GST_BUS_PASS;
+}
+
+Pipeline::Pipeline(const std::string& name) throw (GstException) :
+		playing(false)  {
 	GstElement* element = gst_pipeline_new(name.c_str());
 
 	if (element == NULL) {
@@ -59,6 +120,9 @@ void Pipeline::init(GstElement* pipeline) {
 
 void Pipeline::stop() throw (GstException) {
 
+    gst_bus_set_sync_handler(gst_pipeline_get_bus(GST_PIPELINE(pipeline)), NULL, NULL);
+	g_source_remove(watchId);
+
 	GstStateChangeReturn ret;
 
 	ret = gst_element_set_state(pipeline, GST_STATE_NULL);
@@ -76,16 +140,15 @@ void Pipeline::stop() throw (GstException) {
 }
 
 bool Pipeline::isPlaying() throw (GstException) {
-	GstState state;
-	gst_element_get_state(pipeline, &state, NULL, 10);
-	if (state == GST_STATE_PLAYING) {
-		return true;
-	}
-
-	return false;
+	return playing;
 }
 
 void Pipeline::start() throw (GstException) {
+	GstBus* bus = gst_pipeline_get_bus(GST_PIPELINE(pipeline));
+	gst_bus_set_sync_handler (bus, message_sync_cb, this);
+	watchId = gst_bus_add_watch(bus, message_cb, this);
+	gst_object_unref(bus);
+
 	GstStateChangeReturn ret = gst_element_set_state(pipeline,
 			GST_STATE_PLAYING);
 

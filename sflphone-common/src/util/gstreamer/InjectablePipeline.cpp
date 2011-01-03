@@ -129,9 +129,8 @@ void InjectablePipeline::need_data_cb (GstAppSrc *src, guint length,
 
 void InjectablePipeline::inject (GstBuffer* data)
 {
-    if (enoughData == false) {
+    if (enoughData == false && isPlaying()) {
        // _debug ("Injecting buffer ...");
-
         if (gst_app_src_push_buffer (GST_APP_SRC (appsrc), data) != GST_FLOW_OK) {
             _warn ("InjectablePipeline: Failed to push buffer.");
         }
