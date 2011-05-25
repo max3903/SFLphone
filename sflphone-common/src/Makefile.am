@@ -103,6 +103,7 @@ libsflphone_la_LDFLAGS = \
 		@PULSEAUDIO_LIBS@ \
 		@SAMPLERATE_LIBS@ \
 		@libssl_LIBS@ \
+		@libcrypto_LIBS@ \
 		@UUID_LIBS@ \
 		@yaml_LIBS@ \
 		@xml_LIBS@

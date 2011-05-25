@@ -36,7 +36,7 @@ namespace sfl
 {
 class GstCodecH264 : public virtual MimeParametersH264, public AbstractVideoCodec<GstEncoderH264, GstDecoderH264>
 {
-        static const double DEFAULT_BITRATE = 768;
+        static const double DEFAULT_BITRATE;
         double getBitRate() const {
             return DEFAULT_BITRATE;
         }
@@ -53,4 +53,6 @@ class GstCodecH264 : public virtual MimeParametersH264, public AbstractVideoCode
             return new GstCodecH264 (*this);
         }
 };
+
+    const double GstCodecH264::DEFAULT_BITRATE = 768;
 }
