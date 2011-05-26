@@ -242,27 +242,6 @@ class VideoFormat
             return false;
         }
 
-        /**
-         * Set to video/x-raw-rgb
-         */
-        static const std::string DEFAULT_MIMETYPE;
-        /**
-         * Set to RGB
-         */
-        static const std::string DEFAULT_FOURCC;
-        /**
-         * Set to 30/1
-         */
-        static const FrameRate DEFAULT_FRAMERATE;
-        /**
-         * Set to 320
-         */
-        static const int DEFAULT_WIDTH;
-        /**
-         * Set to 240
-         */
-        static const int DEFAULT_HEIGHT;
-
     private:
         /**
          * Helper method for constructors.

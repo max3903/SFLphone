@@ -8,29 +8,31 @@
 namespace sfl
 {
 
-const std::string VideoFormat::DEFAULT_MIMETYPE = "video/x-raw-rgb";
-const std::string VideoFormat::DEFAULT_FOURCC = "ARGB";
-const FrameRate VideoFormat::DEFAULT_FRAMERATE = FrameRate (30, 1);
-const int VideoFormat::DEFAULT_WIDTH = 320;
-const int VideoFormat::DEFAULT_HEIGHT = 240;
+namespace {
+std::string DEFAULT_MIMETYPE() { return "video/x-raw-rgb"; }
+std::string DEFAULT_FOURCC() { return "ARGB"; }
+FrameRate DEFAULT_FRAMERATE() { return FrameRate (30, 1); }
+int DEFAULT_WIDTH() { return 320; }
+int DEFAULT_HEIGHT() { return 240; }
+}
 
 VideoFormat::VideoFormat() throw (InvalidFrameRateException)
 {
-    framerates.insert (DEFAULT_FRAMERATE);
-    init (DEFAULT_MIMETYPE, DEFAULT_FOURCC, DEFAULT_WIDTH, DEFAULT_HEIGHT, framerates);
+    framerates.insert (DEFAULT_FRAMERATE());
+    init (DEFAULT_MIMETYPE(), DEFAULT_FOURCC(), DEFAULT_WIDTH(), DEFAULT_HEIGHT(), framerates);
 }
 
 VideoFormat::VideoFormat (const std::string& mimetype, int width, int height, FrameRate framerate) throw (InvalidFrameRateException)
 {
     std::set<FrameRate> rates;
     rates.insert (framerate);
-    init (mimetype, DEFAULT_FOURCC, width, height, rates);
+    init (mimetype, DEFAULT_FOURCC(), width, height, rates);
 }
 
 VideoFormat::VideoFormat (const std::string& mimetype, int width, int height,
                           std::set<FrameRate> framerates) throw (InvalidFrameRateException)
 {
-    init (mimetype, DEFAULT_FOURCC, width, height, framerates);
+    init (mimetype, DEFAULT_FOURCC(), width, height, framerates);
 }
 
 void VideoFormat::init (const std::string& mimetype, const std::string& fourcc, int width, int height,
@@ -47,7 +49,7 @@ void VideoFormat::init (const std::string& mimetype, const std::string& fourcc, 
     this->framerates = framerates;
 
     if (framerates.size() == 0) {
-        preferredFramerate = DEFAULT_FRAMERATE;
+        preferredFramerate = DEFAULT_FRAMERATE();
     } else {
         preferredFramerate = * (framerates.rbegin());
     }

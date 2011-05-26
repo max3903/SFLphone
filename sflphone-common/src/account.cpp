@@ -48,6 +48,7 @@ Account::Account (const AccountID& accountID, std::string type) :
         , _useragent ("SFLphone")
         , _alwaysOfferVideo (false)
 		, _preferredVideoDevice ("")
+        , _preferredVideoFormat()
 {
     setRegistrationState (Unregistered);
 }
